@@ -146,11 +146,11 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         $tempBalance = ($tempR + $tempB + $tempG)/3;
 
-        if ($tempBalance < 200 && phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 10) != "#ffffff") {
-           $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 10);
+        if ($tempBalance < 200 && phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20) != "#ffffff") {
+           $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
 
-        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor} !important;}";
+        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor};}";
 
         // стилове за меню и футър
         $css .= "\n    #cmsMenu {background-color:#{$baseColor};}";
