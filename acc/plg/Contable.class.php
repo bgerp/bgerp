@@ -494,7 +494,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if(!$res){
-            if (!empty($rec->id) && ($rec->state != 'draft' || !$mvc->haveRightFor('edit', $rec))) {
+            if (!empty($rec->id) && $rec->state != 'draft') {
                 $res = FALSE;
             } elseif(count($mvc->details)){
                 $hasDetail = FALSE;
