@@ -141,6 +141,15 @@ class cms_DefaultTheme extends core_ProtoInner {
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 25);
         }
 
+        $colorObj =  new color_Object($bgcolorActive);
+        list($tempR, $tempG, $tempB) = array($colorObj->r, $colorObj->g, $colorObj->b);
+
+        $tempBalance = ($tempR + $tempB + $tempG)/3;
+
+        if ($tempBalance < 200 && phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 10) != "#ffffff") {
+           $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 10);
+        }
+
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor} !important;}";
 
         // стилове за меню и футър
@@ -158,7 +167,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
         $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor} !important;}";
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor}; border:none !important}";
-        $css .= "\n    .richtext h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
+        $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
 
         if($css) {
             $tpl->append($css, 'STYLES');
