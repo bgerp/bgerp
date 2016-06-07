@@ -680,6 +680,7 @@ class unit_MinkPbgERP extends core_Manager {
      * 14. Нова продажба на съществуваща фирма с папка
      * Проверка количество и цени - изрази
      * Проверка състояние чакащо плащане - не (платено)
+     * Да се добави за схема с авансово плащане .....................................
      */
      
     //http://localhost/unit_MinkPbgERP/CreateSale/
@@ -1908,8 +1909,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Други продукти');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
-       
         //$browser->hasText('Добавяне на търговска рецепта към');
+        $browser->setValue('notes', 'CreateBom');
         $browser->setValue('expenses', '8');
         $browser->setValue('quantityForPrice', '100');
         $browser->press('Чернова');
@@ -1919,7 +1920,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('propQuantity', '1,6');
         $browser->refresh('Запис');
         // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
-        
         $browser->press('Запис и Нов');
         $browser->setValue('resourceId', '2');
         $browser->setValue('propQuantity', '1 + $Начално= 10');
@@ -2510,11 +2510,13 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
     
         $browser->setValue('iban', 'BG21 CREX 9260 3114 5487 01');
+        //$browser->setValue('iban', '#BG21 CREX 9260 3114 5490 03');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('Pavlinka', '1');
-        //$browser->setValue('Оператори....', 'On');
+        //$browser->setValue('Pavlinka', '1');
+        $browser->setValue('operators_1', '1');
+        
         $browser->press('Запис');
-    
+        //return $browser->getHtml();
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
             Return Грешка;
