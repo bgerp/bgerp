@@ -99,7 +99,7 @@ class cat_products_VatGroups extends core_Detail
     		}
     
     		if($form->rec->validFrom < $now) {
-    			$form->setError('validFrom', 'Групата не може да се сменя с минала дата');
+    			//$form->setError('validFrom', 'Групата не може да се сменя с минала дата');
     		}
     	}
     }
@@ -247,8 +247,10 @@ class cat_products_VatGroups extends core_Detail
     		$query->orderBy("#validFrom", "DESC");
     		$query->limit(1);
     		 
-    		$rec = $query->fetch();
-    		$value = ($rec) ? $rec : FALSE;
+    		$value = FALSE;
+    		if($rec = $query->fetch()){
+    			$value = acc_VatGroups::fetch($rec->vatGroup);
+    		}
     		static::$cache[$productId] = $value;
     	}
     	
