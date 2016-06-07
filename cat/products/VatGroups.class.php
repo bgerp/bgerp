@@ -99,7 +99,7 @@ class cat_products_VatGroups extends core_Detail
     		}
     
     		if($form->rec->validFrom < $now) {
-    			//$form->setError('validFrom', 'Групата не може да се сменя с минала дата');
+    			$form->setError('validFrom', 'Групата не може да се сменя с минала дата');
     		}
     	}
     }
