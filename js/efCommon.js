@@ -3265,6 +3265,8 @@ function render_html(data) {
     var id = data.id;
     var html = data.html;
     var replace = data.replace;
+    var dCss = data.css;
+    var dJs = data.js;
 
     // Ако няма HTML, да не се изпуълнява
     if ((typeof html == 'undefined') || !html) return;
@@ -3292,6 +3294,26 @@ function render_html(data) {
             idObj.append(html);
         }
     }
+    
+    // Зареждаме CSS файловете
+    if (dCss) {
+    	$.each(dCss, function(i, css) {
+    		var a = $("<link/>", {
+    		   rel: "stylesheet",
+    		   type: "text/css",
+    		   href: css
+    		}).appendTo("head");
+    	})
+    }
+    
+    // Зареждаме JS файловете
+    if (dJs) {
+        if ( typeof refreshForm.loadedFiles == 'undefined' ) {
+            refreshForm.loadedFiles = [];
+        }
+        loadFiles(data.js, refreshForm.loadedFiles);
+    }
+    
     scrollLongListTable();
 }
 
