@@ -2333,6 +2333,7 @@ span.sharing-history-title {
 
 #cmsNavigation div.nav_item {
   padding: 1px;
+  border: 1px solid transparent;
   line-height: normal;
   font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
   display: block;
