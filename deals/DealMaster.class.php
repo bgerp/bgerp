@@ -855,6 +855,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	
 	    	if($rec->deliveryLocationId){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
+	    		$row->deliveryLocationIdTop = $row->deliveryLocationId;
 	    	}
 	    	
 	    	if($rec->deliveryTime){
