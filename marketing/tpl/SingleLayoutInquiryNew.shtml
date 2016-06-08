@@ -18,38 +18,38 @@
     
     <!--ET_BEGIN QUANTITY-->
     [#QUANTITY#]
-    <table class='styled-table'>
-            <tr>
-                <th colspan='2' style='padding:7px 0px'>|Количества|*</th>
-            </tr>
+    <fieldset class="detail-info">
+		    <legend class="groupTitle">|Количества|*</legend>
+		    <table>
             <!--ET_BEGIN quantity1-->
             <tr>
-                <td>|Количество|*</td>
+                <td class='quiet'>|Количество|*:</td>
                 <td  style='text-align:right'>[#quantity1#]</td>
             </tr>
             <!--ET_END quantity1-->
             
             <!--ET_BEGIN quantity2-->
             <tr>
-                <td>|Количество|* 2</td>
+                <td class='quiet'>|Количество|* 2:</td>
                 <td  style='text-align:right'>[#quantity2#]</td>
             </tr>
             <!--ET_END quantity2-->
             
             <!--ET_BEGIN quantity3-->
             <tr>
-                <td>|Количество|* 3</td>
+                <td class='quiet'>|Количество|* 3:</td>
                 <td  style='text-align:right'>[#quantity3#]</td>
             </tr>
             <!--ET_END quantity3-->
             
             <!--ET_BEGIN QUANTITY_ROW-->
             <tr>
-                <td>|Количество|*</td>
+                <td class='quiet'>|Количество|*</td>
                 <td  style='text-align:right'>[#QUANTITY_ROW#]</td>
             </tr>
             <!--ET_END QUANTITY_ROW-->
     </table>
+	</fieldset>
     <!--ET_END QUANTITY-->
     
     <div class='scrolling-holder'>
