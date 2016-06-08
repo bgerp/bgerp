@@ -2122,10 +2122,14 @@ function addLinkOnCopy(text, symbolCount) {
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
 
-    $(document.body).on('click', ".transparent.more-btn", function (e) {
-        if(e.offsetX > 22) {
+    $(".transparent.more-btn").on('click', function (e) {
+        if(e.button == 1 || e.offsetX > 22) {
             $(this).contextMenu('close');
-            window.location.href = $(this).attr('href');
+            if(e.button == 1) {
+                window.open($(this).attr('href'),'_blank');
+            } else {
+                window.location.href = $(this).attr('href');
+            }
         } else {
             var url = $(this).attr("data-url");
             if(!url) return;
