@@ -390,22 +390,6 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Поставя бутони за генериране на други банкови документи възоснова
-     * на този, само ако документа е "чернова".
-     */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        if($data->rec->state == 'draft') {
-            $rec = $data->rec;
-            
-            if(bank_CashWithdrawOrders::haveRightFor('add')){
-                $data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
-            }
-        }
-    }
-    
-    
-    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
