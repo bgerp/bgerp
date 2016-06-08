@@ -108,14 +108,17 @@ class cms_DefaultTheme extends core_ProtoInner {
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
         }
 
-        if ($this->innerForm->baseColor) {
+        if ($this->innerForm->activeColor) {
             $activeColor = ltrim($this->innerForm->activeColor, "#");
+
         } else {
             $colorObj =  new color_Object($baseColor);
             list($r, $g, $b) = array($colorObj->r, $colorObj->g, $colorObj->b);
 
             $colorObj =  new color_Object($mixColor);
             list($r1, $g1, $b1) = array($colorObj->r, $colorObj->g, $colorObj->b);
+
+
 
             if($r + $g + $b) {
                 $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
@@ -133,10 +136,12 @@ class cms_DefaultTheme extends core_ProtoInner {
                 $colorObj->b = $b * $colorMultiplier;
 
                 $activeColor = $colorObj->getHex("");
+
             } else {
                 $activeColor = "333";
             }
         }
+
 
         if ($this->innerForm->bgColor) {
             $background = ltrim($this->innerForm->bgColor, "#");
@@ -149,9 +154,19 @@ class cms_DefaultTheme extends core_ProtoInner {
         if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
+            if(color_Colors::compareColorLightness("#" + $activeColor, "#666") == -1) {
+                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
+            }
         } else {
-            $fontColor = $baseColor;
+            if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
+                $fontColor = $baseColor;
+            } else {
+                $fontColor = phpcolor_Adapter::changeColor($baseColor, 'mix', 1, "#333");
+            }
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 15);
+            if(color_Colors::compareColorLightness($activeColor, "#aaa") == 1) {
+                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#000 !important; text-shadow: 0px 0px 2px #fff}";
+            }
         }
 
         $colorObj =  new color_Object($bgcolorActive);
