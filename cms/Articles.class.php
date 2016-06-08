@@ -670,7 +670,7 @@ class cms_Articles extends core_Master
 
     protected static function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId));
+        $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId), "ef_icon=img/16/concatenate.png");
         
         if ($mvc->haveRightFor('add')) {
             $data->toolbar->addBtn('Нова статия', array(
