@@ -822,7 +822,10 @@ class crm_Companies extends core_Master
         
         if ($dRec) {
             if ($dRec->baseColor) {
-                $baseColor = $dRec->baseColor;
+                $activeColor = $dRec->activeColor;
+            }
+            if ($dRec->baseColor) {
+                $activeColor = $dRec->activeColor;
             }
         }
 
