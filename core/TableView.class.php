@@ -78,7 +78,9 @@ class core_TableView extends core_BaseClass
     		// Ако има поне един запис със стойност за нея, не я скриваме
     		if(is_array($rows)){
     			foreach ($rows as $id => $row){
-    				if(!empty($row->{$name})){
+    				$row1 = (object)$row;
+    				
+    				if(!empty($row1->{$name})){
     					$hide = FALSE;
     					break;
     				} 
