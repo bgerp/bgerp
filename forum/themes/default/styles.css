@@ -432,7 +432,6 @@
   height: 1.9em !important;
   margin-right: 5px !important; }
 
-.forumbtn:hover,
 .wide form[method="post"] input[type="submit"]:hover {
   background-color: #e5e5e5 !important; }
 
@@ -504,16 +503,4 @@
   font-style: italic;
   font-weight: bold;
   color: #333333; }
-
-.narrow #simpleSearch {
-  margin-top: 8px; }
-
-#simpleSearch input {
-  height: 31px;
-  float: left;
-  position: relative;
-  top: 1px; }
-
-.narrow #simpleSearch input {
-  width: 10.7em; }
 

@@ -40,7 +40,7 @@ class unit_MinkP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('name', 'Труд');
         $browser->setValue('code', 'work');
-        $browser->setValue('measureId', '13');
+        $browser->setValue('measureId', 'час');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -49,12 +49,13 @@ class unit_MinkP extends core_Manager {
         } 
         
         $browser->click('Цени');
+        //Задаване на ценова група
         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
         $browser->click('Задаване на ценова група');
         $browser->refresh('Запис');
         $browser->setValue('groupId', '1');
         $browser->press('Запис');
-        
+        //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
         $browser->refresh('Запис');
@@ -64,7 +65,7 @@ class unit_MinkP extends core_Manager {
     }
     
     /**
-     * 2.Създава нов артикул - електроенергия със себестойност
+     * 2.Създава нов артикул - Електричество със себестойност
      * (За да записва себестойността - трябва да е продаваем и да има въведена ценова група, иначе не зарежда името на артикула)
      */
     //http://localhost/unit_MinkP/CreateElectricity/
@@ -80,13 +81,13 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
     
-        // Правим нов артикул - ел.
+        // Правим нов артикул - Електричество
         $browser->click('Каталог');
         $browser->click('Външни услуги');
         $browser->press('Артикул');
         $browser->setValue('name', 'Електричество');
         $browser->setValue('code', 'electricity');
-        $browser->setValue('measureId', '14');
+        $browser->setValue('measureId', 'киловатчас');
         $browser->press('Запис');
        
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -94,26 +95,23 @@ class unit_MinkP extends core_Manager {
             $browser->click('Електричество');
         } 
         
+        //Задаване на ценова група
+        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
         $browser->click('Цени');
         $browser->click('Задаване на ценова група');
         $browser->refresh('Запис');
         $browser->setValue('groupId', '1');
         $browser->press('Запис');
-       
+        //Добавяне на мениджърска себестойност
         $browser->click('Цени');
-             
-        //bp($browser->gettext());
-           
         $browser->click('Добавяне на нова мениджърска себестойност');
         $browser->setValue('price', '0,68');
         $browser->refresh('Запис');
-        return $browser->getHtml();
-       
+        
     }
     
     /**
      * 3.Създава нов артикул - опаковка
-     * (За да записва себестойността - трябва да е продаваем и да има въведена ценова група, иначе не зарежда името на артикула)
      */
     //http://localhost/unit_MinkP/CreatePackage/
     function act_CreatePackage()
@@ -134,31 +132,18 @@ class unit_MinkP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('name', 'Опаковка');
         $browser->setValue('code', 'package');
-        $browser->setValue('measureId', '9');
+        $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            $browser->click('Опаковка');
         }
-        // Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
-       
-        $browser->click('Цени');
-        $browser->click('Добавяне на нова мениджърска себестойност');
-        $browser->refresh('Запис');
-        $browser->setValue('price', '0.9');
-        $browser->press('Запис');
         
     }
+    
     /**
      * 4.Създава нов артикул - материал 1
-     * (За да записва себестойността - трябва да е продаваем и да има въведена ценова група, иначе не зарежда името на артикула)
-     */
+    */
     //http://localhost/unit_MinkP/CreateMaterial1/
     function act_CreateMaterial1()
     {
@@ -172,22 +157,144 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
     
-        // Правим нов артикул - опаковка
+        // Правим нов артикул - материал 1
         $browser->click('Каталог');
         $browser->click('Суровини и материали');
         $browser->press('Артикул');
         $browser->setValue('name', 'Материал 1');
         $browser->setValue('code', 'Mat1');
-        $browser->setValue('measureId', '9');
+        $browser->setValue('measureId', 'килограм');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            $browser->click('Материал 1');
         }
            
     }
+    
+    /**
+     * 5.Създава нов артикул - материал 2
+     */
+    //http://localhost/unit_MinkP/CreateMaterial2/
+    function act_CreateMaterial2()
+    {
+         
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+    
+        // Правим нов артикул - материал 2
+        $browser->click('Каталог');
+        $browser->click('Суровини и материали');
+        $browser->press('Артикул');
+        $browser->setValue('name', 'Материал 2');
+        $browser->setValue('code', 'Mat2');
+        $browser->setValue('measureId', 'литър');
+        $browser->press('Запис');
+        
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+         
+     } 
      
+     /**
+      * 6.Създава нов артикул - отпадък 1
+      */
+     //http://localhost/unit_MinkP/CreateWaste1/
+     function act_CreateWaste1()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - отпадък 1
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Отпадък 1');
+         $browser->setValue('code', 'Waste1');
+         $browser->setValue('measureId', 'литър');
+         $browser->press('Запис');
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+     
+     /**
+      * 7.Създава нов артикул - отпадък 2
+      */
+     //http://localhost/unit_MinkP/CreateWaste2/
+     function act_CreateWaste2()
+     {
+     
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+          
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+          
+         // Правим нов артикул - отпадък 2
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Отпадък 2');
+         $browser->setValue('code', 'Waste2');
+         $browser->setValue('measureId', 'килограм');
+         $browser->press('Запис');
+         
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+     
+     }
+     
+     /**
+      * 8.Създава нов артикул - отпадък 3
+      */
+     //http://localhost/unit_MinkP/CreateWaste3/
+     function act_CreateWaste3()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - отпадък 3
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Отпадък 3');
+         $browser->setValue('code', 'Waste3');
+         $browser->setValue('measureId', 'килограм');
+         $browser->press('Запис');
+          
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+    
     /**
      * 8.Създава доставка на материалите
      */
@@ -286,7 +393,7 @@ class unit_MinkP extends core_Manager {
             //  $browser->press('Контиране');
             //}
         
-            // Фактура
+            // Фактура  № се сменя при повторен тест
             $browser->press('Вх. фактура');
             $browser->setValue('number', '1176');
             $browser->press('Чернова');

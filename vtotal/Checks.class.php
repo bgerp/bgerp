@@ -4,8 +4,18 @@
 
 class vtotal_Checks extends core_Master
 {
+    /**
+     * @var Url нужно на VirusTotal за Api-то
+     */
+    private static $VTScanUrl = "https://www.virustotal.com/vtapi/v2/file/report";
 
+    /**
+     * Плъгини за зареждане
+     */
     public $loadList = "plg_Created";
+
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -15,17 +25,59 @@ class vtotal_Checks extends core_Master
         $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
-        $this->FLD('timesScanеd', 'int', 'caption=Пъти сканиран този файл');
+        $this->FLD('timesScanеd', 'int', 'caption=Пъти сканиран този файл, notNull ,value=0');
         $this->setDbUnique('filemanDataId');
     }
 
 
-    public function act_CheckFiles()
+    /**
+     * @param $VTResult обект от тип stdClass VirusTotalRespone
+     * @return type_Percent колко опасен е съответния файл
+     */
+    public function getDangerRate($VTResult)
     {
-        return $this->cron_MoveFilesFromFilemanLog();
+        return $VTResult->positives/$VTResult->total;
     }
 
 
+    /**
+     * @param $md5Hash Хеш за проверка на файл през VirusTotal MD5
+     * @return mixed
+     * При неуспешно повикване връща int respone_code
+     * При успешно повикване връща stdClass Обект от VirusTotal отговор
+     */
+    public static function VTGetReport($md5Hash)
+    {
+        $post = array(
+            "resource" => $md5Hash,
+            "apikey" => vtotal_Setup::get('VIRUSTOTAL_API_KEY'),
+        );
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, self::$VTScanUrl);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $responce = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode == '429') {
+            return array(
+                'response_code' => -3
+            );
+        } elseif ($httpCode == '403') {
+            return array(
+                'response_code' => -1
+            );
+        } else
+            return json_decode($responce);
+    }
+
+    /**
+     * Функция по крон, която проверява по 4 файла взети от fileman_Files и
+     * ги поставя в този модел за инспекция
+     */
     public function cron_MoveFilesFromFilemanLog()
     {
         $dangerExtensions = array(
@@ -39,7 +91,7 @@ class vtotal_Checks extends core_Master
             //Macro
             'REG', 'DOC', 'XLS', 'PPT', 'DOCM',
             'DOTM', 'XLSM', 'XLTM', 'XLAM',
-            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM', 'ZIP', 'TXT'
+            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM'
         );
 
         $query = fileman_Files::getQuery();
@@ -63,6 +115,11 @@ class vtotal_Checks extends core_Master
         }
     }
 
+
+    /**
+     * Функция по крон, която врема запосите от този модел и
+     * прави определени функции според техния вид
+     */
     public function cron_VTCheck()
     {
         $now = dt::now();
@@ -74,65 +131,50 @@ class vtotal_Checks extends core_Master
         $query->limit(4);
 
 
-        $testArray = array();
+        $array = array();
         while($rec = $query->fetch())
         {
 
             $result = self::VTGetReport($rec->md5);
-            array_push($testArray, $result);
+            array_push($array, $result);
 
-            if($result->timesScanеd >= 2)
+
+            if($rec->timesScanеd >= 2)
             {
-                fileman_Files::fetch(array("#dataId = {$rec->filemanDataId}"));
+                $fRec = fileman_Files::fetch(array("#dataId = {$rec->filemanDataId}"));
+                $fRec->dangerRate = -1;
+                fileman_Files::save($fRec);
             }
             else{
                 if($result == -1 || $result == -3 || $result->response_code == 0)
                 {
-                    $rec->timesScanеd++;
+                    $rec->timesScanеd = $rec->timesScanеd + 1;
                     $rec->lastCheck = $now;
-                    fileman_Files::save($rec);
+                    $this->save($rec);
                 }
                 elseif ($result->response_code == 1)
                 {
+                    $dangerRate = $this->getDangerRate($result);
                     $rec->firstCheck = $result->scan_date;
                     $rec->lastCheck = $now;
-                    fileman_Files::save($rec);
+                    $this->save($rec, 'firstCheck, lastCheck');
+                    $fRec = fileman_Files::fetch(array("#dataId = {$rec->filemanDataId}"));
+                    $fRec->dangerRate = $dangerRate;
+                    fileman_Files::save($fRec);
                 }
             }
         }
-        bp($testArray);
 
     }
 
-    private static $VTScanUrl = "https://www.virustotal.com/vtapi/v2/file/report";
 
-    public static function VTGetReport($md5Hash)
+    public function act_CheckFiles()
     {
-        $post = array(
-            "resource" => $md5Hash,
-            //Api key here
-            "apikey" => "",
-        );
+        return $this->cron_MoveFilesFromFilemanLog();
+    }
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, self::$VTScanUrl);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $responce = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode == '429') {
-            return array(
-                'response_code' => -3
-            );
-        } elseif ($httpCode == '403') {
-            return array(
-                'response_code' => -1
-            );
-        } else
-            return json_decode($responce);
-
+    public function act_VTCheck()
+    {
+        return $this->cron_VTCheck();
     }
 }

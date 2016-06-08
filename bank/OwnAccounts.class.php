@@ -527,7 +527,8 @@ class bank_OwnAccounts extends core_Master {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
-       
+        $query->where("#state != 'rejected' && #state != 'closed'");
+        
         while($rec = $query->fetch()) {
         	if(isset($rec->bankAccountId)){
         		$account = bank_Accounts::fetch($rec->bankAccountId);

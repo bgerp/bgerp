@@ -62,7 +62,7 @@ class cms_DefaultTheme extends core_ProtoInner {
 
     
     public function prepareWrapper($tpl)
-    {   
+    {
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
         
@@ -97,19 +97,13 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
             $mixColor = "#aaa";
-            $css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 1px #000}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
-            $formColor = phpcolor_Adapter::changeColor($baseColor, 'lighten', 20);
-            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'lighten', 20);
-
+            $css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#fff !important;}";
         } else {
-            $mixColor = "#555";
+            $mixColor = "#666";
             // стилове за тъмен цвят
             $css .= "\n    .foorterAdd, #cmsMenu a {color:#000 !important; text-shadow: none}";
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
-
-            $formColor = phpcolor_Adapter::changeColor($baseColor, 'darken', 5);
-            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'darken', 5);
         }
 
         $colorObj =  new color_Object($baseColor);
@@ -140,20 +134,23 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         // изчисления за фон и рамка на линковете
         if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
-            $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit]  {color: #fff !important}";
-
-
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
         } else {
-            $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#000 !important; text-shadow: 0px 0px 2px #fff}";
-
             $fontColor = $baseColor;
-            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 10);
+            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 20);
         }
 
-        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor} !important;}";
+        $colorObj =  new color_Object($bgcolorActive);
+        list($tempR, $tempG, $tempB) = array($colorObj->r, $colorObj->g, $colorObj->b);
+
+        $tempBalance = ($tempR + $tempB + $tempG)/3;
+
+        if ($tempBalance < 200 && phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20) != "#ffffff") {
+           $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
+        }
+
+        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor};}";
 
         // стилове за меню и футър
         $css .= "\n    #cmsMenu {background-color:#{$baseColor};}";
@@ -161,9 +158,8 @@ class cms_DefaultTheme extends core_ProtoInner {
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
         // цветове на формите в зависимост от основния цвят
-        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$activeColor} !important; border: 1px solid #{$bordercolor} !important}";
-        $css .= "\n    .vertical .formTitle {background-color:#{$activeColor} !important; border-color:#{$bordercolor};}";
-        $css .= "\n    .vertical .formGroup {background-color:#{$formSubcolor} !important;}";
+        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
+        $css .= "\n    .vertical .formTitle, .vertical .formGroup {background-color:#{$baseColor} !important; border-color:#{$bordercolor};}";
 
         $linkBorder =  phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
 
@@ -171,7 +167,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
         $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor} !important;}";
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor}; border:none !important}";
-        $css .= "\n    .richtext h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
+        $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
 
         if($css) {
             $tpl->append($css, 'STYLES');
