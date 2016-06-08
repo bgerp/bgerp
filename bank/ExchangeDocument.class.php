@@ -154,6 +154,18 @@ class bank_ExchangeDocument extends core_Master
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'peroFrom')){
+    		$requiredRoles = 'no_one';
+    	}
+    }
+    
+    
+    /**
      * Подготовка на филтър формата
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
