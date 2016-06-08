@@ -336,7 +336,7 @@ class acc_ReportDetails extends core_Manager
                
                 // Ако има записи показваме таблицата
                 if(count($rows)){
-                	
+                	$fields = core_TableView::filterEmptyColumns($rows, $fields, 'tools');
                 	$tableHtml = $table->get($rows, $fields);
                 	
                 	if($data->canSeePrices !== FALSE){
