@@ -48,9 +48,9 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('headerColor', 'color_Type', "caption=Цветове за темата->Цвят на хедъра");
 
         // Фон на менюто 
-        $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Фирмен цвят");
+        $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Базов цвят");
         $form->FLD('activeColor', 'color_Type', "caption=Цветове за темата->Активен цвят");
-        $form->FLD('bgColor', 'color_Type', "caption=Цветове за темата->Фонов цвят");
+        $form->FLD('bgColor', 'color_Type', "caption=Цветове за темата->Фон на страницата");
     }
 
 
