@@ -478,7 +478,7 @@
 	display:inline-block;
 	height:2.1em !important;
 	padding:4px 5px 3px 32px !important;
-	background-repeat:no-repeat !important; 
+	background-repeat:no-repeat !important;
 	background-position:left center;
 	background-color:#ddd;
     border:1px solid #bbb !important;
@@ -505,7 +505,7 @@
 	margin-right:5px !important;
 }
 
-.forumbtn:hover,.wide form[method="post"] input[type="submit"]:hover{
+.wide form[method="post"] input[type="submit"]:hover{
 	background-color:#e5e5e5 !important;
 }
 
@@ -588,19 +588,4 @@
 	font-style:italic;
 	font-weight:bold;
 	color:#333;
-}
-
-.narrow #simpleSearch{
-	margin-top: 8px;
-}
-
-#simpleSearch input{
-	height: 31px;
-	float: left;
-	position: relative;
-	top: 1px;
-}
-
-.narrow #simpleSearch input{
-	width:10.7em;
 }

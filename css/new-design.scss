@@ -448,7 +448,9 @@ body {
 #nav-panel ul , #nav-panel ul li {
 	margin: 0;
 	padding: 0;
+    display: block;
 }
+
 #nav-panel > ul {
     border-bottom: 1px solid #666;
 }

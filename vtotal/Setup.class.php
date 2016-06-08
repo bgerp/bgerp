@@ -4,7 +4,6 @@
 /**
  * Коя да е основната мярка на универсалните артикули
  */
-
 defIfNot('VTOTAL_VIRUSTOTAL_API_KEY', '');
 
 
@@ -47,11 +46,20 @@ class vtotal_Setup extends core_ProtoSetup
      */
     var $cronSettings = array(
         array(
-            'systemId' => "CheckFiles",
-            'description' => "Прошерка на файлошете с virustotal",
+            'systemId' => "MoveFilesFromFilemanLog",
+            'description' => "Преместване на съмнителните файлове в vtotal_Checks",
             'controller' => "vtotal_Checks",
-            'action' => "CheckFiles",
+            'action' => "MoveFilesFromFilemanLog",
             'period' => 1,
+            'timeLimit' => 200
+        ),
+
+        array(
+            'systemId' => "VTCheck",
+            'description' => "Проверка на файловете с virustotal",
+            'controller' => "vtotal_Checks",
+            'action' => "VTCheck",
+            'period' => 1.2,
             'timeLimit' => 200
         ),
     );

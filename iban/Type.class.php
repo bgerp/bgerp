@@ -21,7 +21,8 @@ class iban_Type extends type_Varchar
     
     function __construct()
     {
-        require_once(iban_Setup::get('CODE_VERSION') . '/php-iban.php');
+        
+        require_once('php-iban-' . iban_Setup::get('CODE_VERSION') . '/php-iban.php');
     }
     
     

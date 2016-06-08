@@ -2598,9 +2598,25 @@ class doc_Containers extends core_Manager
             $html = '<td>' . $row->created . '</td>' . $html;
         }
         
+        
+        $htmlArg = array('id' => $rowId, 'html' => $html, 'replace' => TRUE);
+        
+        // Добавяме CSS и JS файловете
+        if ($row && $row->document instanceof core_ET) {
+            $cssArr = $row->document->getArray('CSS', FALSE);
+            foreach ($cssArr as $css) {
+                $htmlArg['css'][] = sbf($css, '');
+            }
+            
+            $jsArr = $row->document->getArray('JS', FALSE);
+            foreach ($jsArr as $js) {
+                $htmlArg['js'][] = sbf($js, '');
+            }
+        }
+        
         $resObj = new stdClass();
 		$resObj->func = "html";
-		$resObj->arg = array('id' => $rowId, 'html' => $html, 'replace' => TRUE);
+		$resObj->arg = $htmlArg;
         
         $resStatus = array($resObj);
         
