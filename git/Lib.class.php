@@ -21,7 +21,8 @@ class git_Lib
      * Изпълнява git команда и връща стрингoвия резултат
      *
      * @param string $cmd - Git командни параметри
-     * @param array() $output - масив с резултати
+     * @param array() $lines - масив с резултати
+     * @param $path - път до репозиторито
      * @return boolean - При успешна команда - TRUE
      */
     private static function cmdExec($cmd, &$lines, $path)
@@ -48,7 +49,7 @@ class git_Lib
         $command = "rev-parse --abbrev-ref HEAD 2>&1";
 
         // Първият ред съдържа резултата
-        if (self::cmdExec($command, $repoPath, $res)) {
+        if (self::cmdExec($command, $res, $repoPath)) {
             
             return trim($res[0]);
         }
@@ -161,7 +162,7 @@ class git_Lib
         
         // За по голяма прецизност е добре да се пусне и git fetch
         
-        if (!self::cmdExec($commandFetch, $repoPath, $lines)) {
+        if (!self::cmdExec($commandFetch, $lines, $repoPath)) {
             foreach ($lines as $val) {
                 $log[] = (!empty($val))?("[$repoName]: грешка при fetch: " . $val):"";
             }
@@ -169,7 +170,7 @@ class git_Lib
             return FALSE;
         }
       
-        if (!self::cmdExec($commandMerge, $repoPath, $lines)) {
+        if (!self::cmdExec($commandMerge, $lines, $repoPath)) {
             foreach ($lines as $val) {
                 $log[] = (!empty($val))?("[$repoName]: грешка при merge origin/" . $currBranch .": " . $val):"";
             }
@@ -200,10 +201,10 @@ class git_Lib
         if (!self::pull($repoPath, $log)) return FALSE;
         
         $commandMerge = " --work-tree=\"{$repoPath}\" merge --no-commit {$branch1}";
-        $res = self::cmdExec($commandMerge, $repoPath, $lines);
+        $res = self::cmdExec($commandMerge, $lines, $repoPath);
         
         $commandMergeAbort = " --work-tree=\"{$repoPath}\" merge --abort";
-        self::cmdExec($commandMergeAbort, $repoPath, $lines);
+        self::cmdExec($commandMergeAbort, $lines, $repoPath);
             
         if (!$res) {
             $log[] = "Бъдещ ПРОБЛЕМЕН merge.";
@@ -234,7 +235,7 @@ class git_Lib
 
         $commandMerge = " --work-tree=\"{$repoPath}\" merge {$branch1}";
 
-        if(!self::cmdExec($commandMerge, $repoPath, $lines)) return FALSE;
+        if(!self::cmdExec($commandMerge, $lines, $repoPath)) return FALSE;
 
         $log[] = "Успешен merge $branch1 -> $branch2";
         
@@ -257,7 +258,7 @@ class git_Lib
         
         $commandPush = " push origin {$currBranch}";
 
-        if(!self::cmdExec($commandPush, $repoPath, $lines)) return FALSE;
+        if(!self::cmdExec($commandPush, $lines, $repoPath)) return FALSE;
 
         $log[] = "[{$repoName}]: успешен push {$currBranch}";
         
