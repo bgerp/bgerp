@@ -2956,7 +2956,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
 
-        	var text = 'Connection error <br>ReadyStatus: ' + res.readyState + '<br>Status: ' + res.status;
+        	var text = 'Connection error';
 
         	if (res.status == 404) {
         		text = 'Липсващ ресурс';
@@ -2964,13 +2964,15 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         		text = 'Грешка в сървъра';
         	}
 
-        	getEO().log('Грешка при извличане на данни по AJAX');
-
-        	setTimeout(function(){
-
-        		getEfae().AJAXHaveError = true;
-                getEfae().AJAXErrorRepaired = false;
-
+        	getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
+    		
+        	getEfae().AJAXHaveError = true;
+            getEfae().AJAXErrorRepaired = false;
+        	
+        	setTimeout(function() {
+    			
+        		if (getEfae().AJAXErrorRepaired) return ;
+        		
 	        	if (typeof showToast != 'undefined') {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
