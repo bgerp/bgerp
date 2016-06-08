@@ -2,6 +2,12 @@
 
 
 /**
+ * Отдалечен сървър за генериране на лого на фирма
+ */
+defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'http://experta.bg/api_Companies/getLogo/apiKey/crm123/');
+
+
+/**
  * Мениджър на фирмите
  * 
  * 
@@ -831,7 +837,8 @@ class crm_Companies extends core_Master
 
         $tpl = getTplFromFile('bgerp/tpl/svg.svg');
         $cRec = crm_Companies::fetchOwnCompany();
-        $tpl->append(transliterate(tr($cRec->company)), 'myCompanyName');
+        $companyName = transliterate(tr($cRec->company));
+        $tpl->append($companyName, 'myCompanyName');
         
         // Подготвяме адреса
         $fAddres = '';
@@ -866,8 +873,50 @@ class crm_Companies extends core_Master
     
         $content = $tpl->getContent();
         
+        $pngHnd = '';
+        
         try {
             $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $companyConstName);
+        } catch (Exception $e) {
+            reportException($e);
+        }
+        
+        // Ако не може да се генерира локално лого на фирмата, се прави опит да се генерира отдалечено
+        try {
+            if (!$pngHnd) {
+                if (defined('CRM_REMOTE_COMPANY_LOGO_CREATOR')) {
+                    $url = CRM_REMOTE_COMPANY_LOGO_CREATOR;
+            
+                    $data = array('myCompanyName' => $companyName,
+                            'address' => $fAddres,
+                            'tel' => $cRec->tel,
+                            'fax' => $cRec->fax,
+                            'site' => $cRec->website,
+                            'baseColor' => $baseColor,
+                            'activeColor' => $activeColor,
+                            'lg' => core_Lg::getCurrent()
+                    );
+            
+                    $options = array(
+                            'http' => array(
+                                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                                    'method'  => 'POST',
+                                    'content' => http_build_query($data),
+                            ),
+                    );
+            
+                    $context = stream_context_create($options);
+                    $result  = @file_get_contents($url, FALSE, $context);
+            
+                    if ($result) {
+                        $result = json_decode($result);
+                        if ($result && $url = $result->url) {
+                            $bucketId = fileman_Buckets::fetchByName('pictures');
+                            $pngHnd = fileman_Get::getFile((object)array('url' => $url, 'bucketId' => $bucketId));
+                        }
+                    }
+                }
+            }
         } catch (Exception $e) {
             reportException($e);
         }
