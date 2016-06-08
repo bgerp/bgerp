@@ -2122,10 +2122,14 @@ function addLinkOnCopy(text, symbolCount) {
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
 
-    $(document.body).on('click', ".transparent.more-btn", function (e) {
-        if(e.offsetX > 22) {
+    $(".transparent.more-btn").on('click', function (e) {
+        if(e.button == 1 || e.offsetX > 22) {
             $(this).contextMenu('close');
-            window.location.href = $(this).attr('href');
+            if(e.button == 1) {
+                window.open($(this).attr('href'),'_blank');
+            } else {
+                window.location.href = $(this).attr('href');
+            }
         } else {
             var url = $(this).attr("data-url");
             if(!url) return;
@@ -2748,6 +2752,9 @@ function efae() {
 
     // Флаг, който се вдига преди обновяване на страницата
     Experta.prototype.isReloading = false;
+	
+    // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
+    Experta.prototype.isWaitingResponse = false;
 }
 
 
@@ -2902,7 +2909,11 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         // Добавяме флаг, който указва, че заявката е по AJAX
         dataObj['ajax_mode'] = 1;
-
+        
+        // Преди да пратим заявката, вдигаме флага, че е пратена заявката, за да не се прати друга
+        // докато не завърши текущата
+        this.isWaitingResponse = true;
+        
         // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
         $.ajax({
             async: async,
@@ -2956,7 +2967,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
 
-        	var text = 'Connection error <br>ReadyStatus: ' + res.readyState + '<br>Status: ' + res.status;
+        	var text = 'Connection error';
 
         	if (res.status == 404) {
         		text = 'Липсващ ресурс';
@@ -2964,13 +2975,15 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         		text = 'Грешка в сървъра';
         	}
 
-        	getEO().log('Грешка при извличане на данни по AJAX');
-
-        	setTimeout(function(){
-
-        		getEfae().AJAXHaveError = true;
-                getEfae().AJAXErrorRepaired = false;
-
+        	getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
+    		
+        	getEfae().AJAXHaveError = true;
+            getEfae().AJAXErrorRepaired = false;
+        	
+        	setTimeout(function() {
+    			
+        		if (getEfae().AJAXErrorRepaired) return ;
+        		
 	        	if (typeof showToast != 'undefined') {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
@@ -2991,6 +3004,10 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	            }
         	}, 3000);
         }).always(function(res) {
+        	
+        	// След приключване на процеса сваляме флага
+        	getEfae().isWaitingResponse = false;
+        	
         	// Ако е имало грешка и е оправенена, премахваме статуса
         	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
 
@@ -3049,7 +3066,7 @@ efae.prototype.getSubscribed = function() {
         // Променяме флага
         this.isSendedAfterRefresh = true;
     }
-
+    
     // Разликата между текущото време и последното извикване
     var diff = now - this.ajaxLastTime;
     
@@ -3057,6 +3074,14 @@ efae.prototype.getSubscribed = function() {
     // Ако е заспало устройството да се уеднаквят табовете при събуждане
     if (diff >= this.forceStartInterval) {
     	this.resetTimeout();
+    }
+    
+    // След една минута без заявка, не се проверява дали има висяща заявка
+    if (diff <= this.maxIncreaseInterval) {
+    	
+    	// Ако има друга заявка, която все още не е изпълнена изчакваме да приключи
+    	// Преди да пратим следваща
+    	if (this.isWaitingResponse) return resObj;
     }
     
     // Ако времето от последното извикване и е по - голяма от интервала

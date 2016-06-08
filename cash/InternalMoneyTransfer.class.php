@@ -362,18 +362,6 @@ class cash_InternalMoneyTransfer extends core_Master
     }
     
     
-    /**
-     * Поставя бутони за генериране на други банкови документи възоснова
-     * на този, само ако документа е "чернова".
-     */
-	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	if($data->rec->state == 'draft') {
-	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png, title=Създаване на вносна бележка');
-    	}
-    }
-    
-    
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка

@@ -578,4 +578,31 @@ class color_Colors {
 		
 		$this->values = array('h' => $h, 's' => $s, 'v' => $v);
 	}
+
+
+	/**
+	 * Сравнява два цвята
+	 *
+	 * @param string $color1 - първи цвят
+	 * @param string $color2 - втори цвят
+	 * @return  int - Ако $color2 е по-светъл: -1. Ако са еднакво светли: 0. Ако $color1 е по-светъл: 1
+	 */
+	public static function compareColorLightness($color1, $color2)
+	{
+		$colorObj =  new color_Object($color1);
+		list($r1, $g1, $b1) = array($colorObj->r, $colorObj->g, $colorObj->b);
+
+		$colorObj =  new color_Object($color2);
+		list($r2, $g2, $b2) = array($colorObj->r, $colorObj->g, $colorObj->b);
+
+		$colorDivider = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r2*$r2 + $g2*$g2 + $b2*$b2));
+
+		if($colorDivider > 1) {
+			return 1;
+		} else if($colorDivider < 1) {
+			return -1;
+		} else {
+			return 0;
+		}
+	}
 }
