@@ -48,7 +48,9 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('headerColor', 'color_Type', "caption=Цветове за темата->Цвят на хедъра");
 
         // Фон на менюто 
-        $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Фирмен цвят");
+        $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Базов цвят");
+        $form->FLD('activeColor', 'color_Type', "caption=Цветове за темата->Активен цвят");
+        $form->FLD('bgColor', 'color_Type', "caption=Цветове за темата->Фон на страницата");
     }
 
 
@@ -106,39 +108,65 @@ class cms_DefaultTheme extends core_ProtoInner {
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
         }
 
-        $colorObj =  new color_Object($baseColor);
-        list($r, $g, $b) = array($colorObj->r, $colorObj->g, $colorObj->b);
-        
-        $colorObj =  new color_Object($mixColor);
-        list($r1, $g1, $b1) = array($colorObj->r, $colorObj->g, $colorObj->b);
+        if ($this->innerForm->activeColor) {
+            $activeColor = ltrim($this->innerForm->activeColor, "#");
 
-        if($r + $g + $b) {
-            $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
-
-            if($colorMultiplier > 0.9) {
-                if($colorMultiplier <= 1){
-                    $colorMultiplier -= 0.2;
-                } else if($colorMultiplier <= 1.1) {
-                    $colorMultiplier += 0.2;
-                }
-            }
-
-            $colorObj->r = $r * $colorMultiplier;
-            $colorObj->g = $g * $colorMultiplier;
-            $colorObj->b = $b * $colorMultiplier;
-
-            $activeColor = $colorObj->getHex("");
         } else {
-            $activeColor = "333";
+            $colorObj =  new color_Object($baseColor);
+            list($r, $g, $b) = array($colorObj->r, $colorObj->g, $colorObj->b);
+
+            $colorObj =  new color_Object($mixColor);
+            list($r1, $g1, $b1) = array($colorObj->r, $colorObj->g, $colorObj->b);
+
+
+
+            if($r + $g + $b) {
+                $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
+
+                if($colorMultiplier > 0.9) {
+                    if($colorMultiplier <= 1){
+                        $colorMultiplier -= 0.2;
+                    } else if($colorMultiplier <= 1.1) {
+                        $colorMultiplier += 0.2;
+                    }
+                }
+
+                $colorObj->r = $r * $colorMultiplier;
+                $colorObj->g = $g * $colorMultiplier;
+                $colorObj->b = $b * $colorMultiplier;
+
+                $activeColor = $colorObj->getHex("");
+
+            } else {
+                $activeColor = "333";
+            }
+        }
+
+
+        if ($this->innerForm->bgColor) {
+            $background = ltrim($this->innerForm->bgColor, "#");
+        } else {
+            $background = phpcolor_Adapter::changeColor($baseColor, 'lighten', 30);
+            $background = phpcolor_Adapter::changeColor($background, 'mix', 1, "#fff");
         }
 
         // изчисления за фон и рамка на линковете
         if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
+            if(color_Colors::compareColorLightness("#" + $activeColor, "#666") == -1) {
+                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
+            }
         } else {
-            $fontColor = $baseColor;
-            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 20);
+            if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
+                $fontColor = $baseColor;
+            } else {
+                $fontColor = phpcolor_Adapter::changeColor($baseColor, 'mix', 1, "#333");
+            }
+            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 15);
+            if(color_Colors::compareColorLightness($activeColor, "#aaa") == 1) {
+                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#000 !important; text-shadow: 0px 0px 2px #fff}";
+            }
         }
 
         $colorObj =  new color_Object($bgcolorActive);
@@ -150,6 +178,7 @@ class cms_DefaultTheme extends core_ProtoInner {
            $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
 
+        $css .= "\n    .background-holder {background-color:#{$background};}";
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor};}";
 
         // стилове за меню и футър
@@ -166,7 +195,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         // Цвятове за линковете и h2 заглавията
         $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
         $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor} !important;}";
-        $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor}; border:none !important}";
+        $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor};}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
 
         if($css) {

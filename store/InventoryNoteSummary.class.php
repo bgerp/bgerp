@@ -755,7 +755,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$cache = core_Cache::get($this->Master->className, $key);
     	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
     	
-    	// Ако има кеш за зашисите
+    	// Ако има кеш за записите
     	if(!empty($cache)){
     		$data->rows = $cache;
     		

@@ -821,9 +821,12 @@ class sales_Invoices extends deals_InvoiceMaster
    	 */
    	public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
    	{
+   		// Ако фактурата е вече контирана не правим проверка за дата
+   		if($form->rec->state == 'active') return;
+   		
    		$newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
    		if($newDate > $rec->date) {
-   	
+   			
    			// Най-новата валидна ф-ра в БД е по-нова от настоящата.
    			$form->setError('date',
    					'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
