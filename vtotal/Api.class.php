@@ -21,7 +21,8 @@ class vtotal_Api extends core_Master
         $post = array(
             "resource" => $md5Hash,
 //            "apikey" => vtotal_Setup::get('VIRUSTOTAL_API_KEY'),
-            "apikey" => "7bd9b8cf8075a43624ea21db550e3caf04d201a99b8ddc634d47995ea5822148",
+        //Api key here
+            "apikey" => "",
         );
 
         $ch = curl_init();

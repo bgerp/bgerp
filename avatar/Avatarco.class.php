@@ -483,8 +483,8 @@ class avatar_Avatarco
      */
     public function ShowPicture()
     {
-        header('Content-type: image/png');
-        echo imagePng($this->CreatePicture());
+        header('Content-type: image/jpeg');
+        echo imagejpeg($this->CreatePicture());
         imageDestroy($this->_avatarco);
     }
     
@@ -496,8 +496,8 @@ class avatar_Avatarco
     {
         if(!is_dir($path) || !is_writeable($path)) return false;
         
-        $path = rtrim($path, '/') . '/' . $this->_hash . '.png';
-        imagePng($this->CreatePicture(), $path, 0);
+        $path = rtrim($path, '/') . '/' . $this->_hash . '.jpg';
+        imagejpg($this->CreatePicture(), $path, 0);
         imageDestroy($this->_avatarco);
         
         return $path;

@@ -608,7 +608,8 @@ class cat_BomDetails extends doc_Detail
     		$row->primeCost = ht::createHint($row->primeCost, 'Няма себестойност', 'warning', FALSE);
     	}
     	
-    	if(is_numeric($rec->propQuantity)){
+    	$compare = str_replace(',', '.', $rec->propQuantity);
+    	if(is_numeric($compare)){
     		$row->propQuantity = "<span style='float:right'>{$row->propQuantity}</span>";
     	} 
     	

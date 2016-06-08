@@ -524,7 +524,64 @@ class doc_FolderPlg extends core_Plugin
             if ($mvc->autoCreateFolder == 'instant') {
                 $mvc->forceCoverAndFolder($rec);
             }
-        }   
+        }
+        
+        // При променя на споделените потребители прави или чисти нотификацията
+        if (isset($rec->__mustNotify)) {
+            $sArr = type_Keylist::getDiffArr($rec->__oShared, $rec->shared);
+            
+            $currUserNick = core_Users::getCurrent('nick');
+            $currUserNick = type_Nick::normalize($currUserNick);
+            
+            $folderTitle = $mvc->getFolderTitle($rec->id);
+            
+            $notifyArr = array();
+            if (!empty($sArr['add'])) {
+                $notifyArr = $sArr['add'];
+            }
+            
+            $delNotifyArr = array();
+            if (!empty($sArr['delete'])) {
+                $delNotifyArr = $sArr['delete'];
+            }
+            
+            if ($notifyArr) {
+                foreach ($notifyArr as $notifyUserId) {
+            
+                    if (!$notifyUserId) continue;
+            
+                    $url = array();
+                    $msg = '';
+            
+                    if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
+                         
+                        if(doc_Folders::haveRightFor('single', $rec->folderId, $notifyUserId)){
+                            $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+                        }
+            
+                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
+                    }
+            
+                    if (empty($url)) {
+                        if (($mvc instanceof core_Master) && $mvc->haveRightFor('single', $rec, $notifyUserId)) {
+                            $url = array($mvc, 'single', $rec->id);
+                            $msg = $currUserNick . ' |сподели|* "|' . $mvc->singleTitle . '|*"';
+                        } else {
+                            $url = array($mvc, 'list');
+                            $msg = $currUserNick . ' |сподели|* "|' . $mvc->title . '|*"';
+                        }
+                    }
+            
+                    bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
+                }
+            } else if ($delNotifyArr) {
+                foreach ($delNotifyArr as $clearUser) {
+                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'list'), 'yes', $clearUser);
+                }
+            }
+        }
     }
     
     
@@ -551,7 +608,7 @@ class doc_FolderPlg extends core_Plugin
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if($fField = $mvc->listFieldForFolderLink) {
             $folderTitle = $mvc->getFolderTitle($rec->id);
-            if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
+            if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {   
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
@@ -778,41 +835,10 @@ class doc_FolderPlg extends core_Plugin
         
         if ($form->isSubmitted()) {
             
-            // При променя на споделените потребители прави или чисти нотификацията
             if ($rec->id) {
                 $oRec = $mvc->fetch($form->rec->id);
-                
-                $sArr = type_Keylist::getDiffArr($oRec->shared, $rec->shared);
-                
-                $currUserNick = core_Users::getCurrent('nick');
-                $currUserNick = type_Nick::normalize($currUserNick);
-                
-        		if(doc_Folders::haveRightToObject($rec) && ($mvc instanceof core_Master)) {
-        			$url = array($mvc, 'single', $rec->id);
-        		} else {
-        			$url = array($mvc, 'list');
-        		}
-                
-        		$folderTitle = $mvc->getFolderTitle($rec->id);
-        		
-        		$notifyArr = $sArr['add'];
-        		$delNotifyArr = $sArr['delete'];
-        		
-        		if ($rec->inCharge != $oRec->inCharge) {
-        		    $notifyArr[$rec->inCharge] = $rec->inCharge;
-        		    $delNotifyArr[$oRec->inCharge] = $oRec->inCharge;
-        		}
-        		
-                if ($notifyArr) {
-                    foreach ($notifyArr as $notifyUserId) {
-                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
-                        bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
-                    }
-                } else if ($delNotifyArr) {
-                    foreach ($delNotifyArr as $clearUser) {
-                        bgerp_Notifications::setHidden($url, 'yes', $clearUser);
-                    }
-                }
+                $rec->__mustNotify = TRUE;
+                $rec->__oShared = $oRec->shared;
             }
         }
     }
