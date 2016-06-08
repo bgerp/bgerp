@@ -485,7 +485,7 @@ class doc_Threads extends core_Manager
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
         if ($folderRec->state == 'closed') {
-        	$folderRow->title = ht::createHint($folderRow->title, 'Намирате се в затворена папка', 'warning');
+        	$folderRow->title = ht::createHint($folderRow->title, 'Папката е затворена', 'warning');
         }
         
         $title->append($folderRow->title, 'folder');
