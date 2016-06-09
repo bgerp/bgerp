@@ -67,7 +67,7 @@ class core_String
             $text = str_replace($upper, $cap, $text);
         }
         
-        $text = @iconv("UTF-8", "ASCII//TRANSLIT", $text);
+//         $text = @iconv("UTF-8", "ASCII//TRANSLIT", $text);
         
         return $text;
     }
