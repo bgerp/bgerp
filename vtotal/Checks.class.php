@@ -176,7 +176,7 @@ class vtotal_Checks extends core_Master
         $query = self::getQuery();
         $query->where("#lastCheck IS NULL OR DATEDIFF( '{$now}', #lastCheck) * 24 * 60 * 60 >" . vtotal_Setup::get("VIRUSTOTAL_BETWEEN_TIME_SCANS"));
         $query->orderBy("#createdOn", "DESC");
-        $query->limit(vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTA"));
+        $query->limit(vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"));
 
         while($rec = $query->fetch())
         {
