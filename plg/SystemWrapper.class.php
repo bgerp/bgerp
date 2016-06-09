@@ -24,7 +24,8 @@ class plg_SystemWrapper extends plg_ProtoWrapper
     {
         $this->pageMenu = 'Система';
         
-        $this->TAB('core_Packs', 'Пакети', 'admin');
+        $this->TAB('core_Packs', 'Пакети->Списък', 'admin');
+        $this->TAB('core_Updates', 'Пакети->Обновяване', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
         $this->TAB('core_Lg', 'Превод', 'admin');

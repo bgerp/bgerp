@@ -27,6 +27,7 @@ class unit_MinkPbgERP extends core_Manager {
      */
      
     //http://localhost/unit_MinkPbgERP/CreatePurchaseOverpaid/
+    // Фактура - № се сменя при повторен тест!
     function act_CreatePurchaseOverpaid()
     {
     
@@ -54,7 +55,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Покупка');
         }
          
-        //$browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        //$browser->setValue('bankAccountId', '');
         $valior=strtotime("-2 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('note', 'MinkPTestCreatePurchaseOverpaid');
@@ -69,7 +70,7 @@ class unit_MinkPbgERP extends core_Manager {
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'. Ако е с дес. запетая - също апостроф.
        
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '0100-06*08');//52
         $browser->setValue('packPrice', '0,0100+3*0,8');//2,41
@@ -86,7 +87,7 @@ class unit_MinkPbgERP extends core_Manager {
              
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Други услуги');
+        $browser->setValue('productId', 'Други външни услуги');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 01);
         $browser->setValue('packPrice', '1,0202');
@@ -124,7 +125,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // Фактура - № се сменя при повторен тест!
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '17893');
+        $browser->setValue('number', '17923');
         $browser->setValue('date', date('d-m-Y', $valior));
         $valior=strtotime("+1 Day");
         $browser->setValue('dueDate', date('d-m-Y', $valior));
@@ -141,7 +142,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // РБД
         $browser->press('РБД');
-        $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('ownAccount', '');
         $browser->setValue('amountDeal', '01251,36');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -186,7 +187,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Покупка');
         }
          
-        //$browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        //$browser->setValue('bankAccountId', '');
         $valior=strtotime("-2 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('note', 'MinkPTestCreatePurchaseWait');
@@ -217,7 +218,7 @@ class unit_MinkPbgERP extends core_Manager {
              
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
-            $browser->setValue('productId', 'Други услуги');
+            $browser->setValue('productId', 'Други външни услуги');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '017');
             $browser->setValue('packPrice', '1.07');
@@ -259,7 +260,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // Фактура
             $browser->press('Вх. фактура');
-            $browser->setValue('number', '7819');
+            $browser->setValue('number', '78319');
             $browser->setValue('date', date('d-m-Y', $valior));
             $valior=strtotime("+1 Day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
@@ -276,7 +277,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->setValue('ownAccount', '');
             $browser->setValue('amountDeal', '0126,36');
             $browser->press('Чернова');
             $browser->press('Контиране');
@@ -320,7 +321,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Покупка');
         }
          
-        //$browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        //$browser->setValue('bankAccountId', '');
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('note', 'MinkPTestCreatePurchaseOverdue');
@@ -351,7 +352,7 @@ class unit_MinkPbgERP extends core_Manager {
          
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Други услуги');
+        $browser->setValue('productId', 'Други външни услуги');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 107);
         $browser->setValue('packPrice', '0,027');
@@ -411,7 +412,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->setValue('ownAccount', '');
             $browser->setValue('amountDeal', '0126,36');
             $browser->setValue('valior', date('d-m-Y', $valior));
             $browser->press('Чернова');
@@ -457,7 +458,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Покупка');
         }
          
-        //$browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        //$browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -469,7 +470,7 @@ class unit_MinkPbgERP extends core_Manager {
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
     
             $browser->press('Артикул');
-            $browser->setValue('productId', 'Други продукти');
+            $browser->setValue('productId', 'Чувал голям 50 L');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '008+03*08');//32
             $browser->setValue('packPrice', '010+3*0.8');//12.4
@@ -492,6 +493,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('discount', 4);
     
             // Записваме артикула и добавяме нов - услуга
+            // Категория Услуги да се маркира като 'купуваем'
             $browser->press('Запис и Нов');
             $browser->setValue('productId', 'Други услуги');
             $browser->refresh('Запис');
@@ -555,7 +557,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->setValue('ownAccount', '');
             $browser->press('Чернова');
             $browser->press('Контиране');
     
@@ -723,7 +725,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('deliveryTime[t]', '10:30');
     
         $browser->setValue('reff', 'MinkP');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreateSale');
         $browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -835,7 +837,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // ПБД
             $browser->press('ПБД');
-            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->setValue('ownAccount', '');
             //$browser->setValue('amountDeal', '100');
             $browser->press('Чернова');
             $browser->press('Контиране');
@@ -891,7 +893,7 @@ class unit_MinkPbgERP extends core_Manager {
         $valior=strtotime("-2 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'Wait');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreateSaleWait');
         $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -979,7 +981,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // ПБД
             $browser->press('ПБД');
-            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->setValue('ownAccount', '');
             $browser->setValue('amountDeal', '100');
             $browser->press('Чернова');
             $browser->press('Контиране');
@@ -1026,7 +1028,7 @@ class unit_MinkPbgERP extends core_Manager {
         $valior=strtotime("-3 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'MomentWaitP');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreateSaleMomentWaitP');
         $browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "На момента");
@@ -1288,7 +1290,7 @@ class unit_MinkPbgERP extends core_Manager {
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'Overpaid');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateOverpaid');
         $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -1343,7 +1345,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('ownAccount', '');
         $browser->setValue('amountDeal', '100');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->press('Чернова');
@@ -1397,7 +1399,7 @@ class unit_MinkPbgERP extends core_Manager {
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'exp1');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateSaleE1');
         $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -1452,7 +1454,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('ownAccount', '');
         $browser->setValue('amountDeal', '100');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->press('Чернова');
@@ -1506,7 +1508,7 @@ class unit_MinkPbgERP extends core_Manager {
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior)); 
         $browser->setValue('reff', 'exp');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreateSaleE');
         $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -1576,7 +1578,7 @@ class unit_MinkPbgERP extends core_Manager {
         
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('ownAccount', '');
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -1649,7 +1651,7 @@ class unit_MinkPbgERP extends core_Manager {
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'А1234');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreateSaleOverdue');
         $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -1739,7 +1741,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('ownAccount', '');
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -1785,7 +1787,7 @@ class unit_MinkPbgERP extends core_Manager {
         $valior=strtotime("-7 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'А1234');
-        $browser->setValue('bankAccountId', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreateSaleWaitP');
         $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 7 дни след фактуриране");
@@ -1877,7 +1879,7 @@ class unit_MinkPbgERP extends core_Manager {
         
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('ownAccount', '');
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -2279,6 +2281,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('fax', '333333');
         $browser->setValue('tel', '222222');
         $browser->setValue('uicId', '200021786');
+        $browser->setValue('Доставчици', '2');
         $browser->press('Запис');
         return ' Фирма-запис на редакцията';
          
@@ -2286,6 +2289,7 @@ class unit_MinkPbgERP extends core_Manager {
     
     /**
      * 5.Създаване на нова фирма и папка към нея, допуска дублиране - ОК
+     * Select2 трябва да се деинсталира
      */
     //http://localhost/unit_MinkPbgERP/CreateCompany/
     function act_CreateCompany()
@@ -2332,7 +2336,7 @@ class unit_MinkPbgERP extends core_Manager {
      * 4.Създава нов артикул - продукт през папката. Добавя рецепта.
      */
     //http://localhost/unit_MinkPbgERP/CreateProductBom/
-    function act_CreateProduct1()
+    function act_CreateProductBom()
     {
     
         $browser = cls::get('unit_Browser');
@@ -2415,6 +2419,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->click('Чувал голям 50 L');
             $browser->press('Редакция');
             $browser->setValue('info', 'прозрачен');
+            $browser->setValue('meta_canBuy', 'canBuy');
             $browser->setValue('groups[8]', '8'); 
             $browser->press('Запис');
             
@@ -2514,8 +2519,9 @@ class unit_MinkPbgERP extends core_Manager {
          
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
     
-        $browser->setValue('iban', 'BG21 CREX 9260 3114 5487 01');
-        //$browser->setValue('iban', '#BG21 CREX 9260 3114 5490 03');
+        $browser->setValue('iban', '#BG11CREX92603114548401');
+        //$browser->setValue('iban', '#BG33UNCR70001519562303');
+        //$browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
         //$browser->setValue('Pavlinka', '1');
         $browser->setValue('operators_1', '1');
@@ -2580,6 +2586,28 @@ class unit_MinkPbgERP extends core_Manager {
     
     }
       
+    /**
+     * 0. Select2 трябва да се деинсталира
+     */
+    //http://localhost/unit_MinkPbgERP/DeinstallSelect2/
+    function act_DeinstallSelect2()
+    {
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
     
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+        $browser->click('Админ');
+        $browser->setValue('search', 'select2');
+        $browser->press('Филтрирай');
+        //return $browser->getHtml();
+        //$browser->click('Деактивиране на пакета');
+/////////////  не работи        
+        $browser->click('select2-deinstall');
+        return $browser->getHtml();
+    }
 }
    
