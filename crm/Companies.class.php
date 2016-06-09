@@ -868,6 +868,7 @@ class crm_Companies extends core_Master
         $tpl->append($cRec->tel, 'tel');
         $tpl->append($cRec->fax, 'fax');
         $tpl->append($cRec->website, 'site');
+        $tpl->append($cRec->email, 'email');
         $tpl->append($baseColor, 'baseColor');
         $tpl->append($activeColor, 'activeColor');
     
