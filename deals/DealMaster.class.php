@@ -119,7 +119,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			// Ако е по-голямо приемаме че сделката е просрочена
-			if($balance > $valueToCompare) return 'overdue';
+			if(trim($balance) > trim($valueToCompare)) return 'overdue';
 		} else {
 			
 			// Ако няма фактури, гледаме имали платежен план
