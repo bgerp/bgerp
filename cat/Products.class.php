@@ -273,6 +273,14 @@ class cat_Products extends embed_Manager {
 	public $exportableCsvFields = 'code, name, measureId, groups, meta';
     
 	
+	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'originId';
+	
+	
     /**
      * Описание на модела
      */
@@ -553,15 +561,6 @@ class cat_Products extends embed_Manager {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
     	}
-    }
-
-    
-    /**
-     * Преди запис на клониран запис
-     */
-    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
-    {
-    	unset($nRec->originId);
     }
     
     
