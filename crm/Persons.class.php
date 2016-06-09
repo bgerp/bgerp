@@ -2302,7 +2302,7 @@ class crm_Persons extends core_Master
         $fieldsArr = array();
         
         // Правим проверка за дублиране с друг запис
-        $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
+        $nameL = plg_Search::normalizeText($rec->name);
         
         $oQuery = self::getQuery();
         self::restrictAccess($oQuery);

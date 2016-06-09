@@ -300,6 +300,14 @@ class forum_Boards extends core_Master {
 	function prepareSearchForm($data)
 	{
 		$form = cls::get('core_Form');
+		$form->FLD('q', 'varchar', 'input,silent,placeholder=Търсене');
+		$form->input(NULL, 'silent');
+		$form->input();
+		$form->method = 'GET';
+		$form->view = 'horizontal';
+		
+		$form->toolbar->addSbBtn('', NULL, "ef_icon=img/16/find.png");
+		
  		$data->searchForm = $form;
 	}
 	
@@ -340,9 +348,6 @@ class forum_Boards extends core_Master {
 	function renderSearchForm_(&$data)
     {
  		if($data->searchForm){
-	    	$data->searchForm->layout = $data->ForumTheme->getSearchFormLayout();
-	 		$data->searchForm->layout->replace(toUrl(array('forum_Postings', 'search')), 'ACTION');
-			$data->searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
 			
 			return $data->searchForm->renderHtml();
  		}
@@ -408,7 +413,7 @@ class forum_Boards extends core_Master {
                     	$catTpl->append($rowTpl, 'BOARDS');
                     }
                 } else {
-                       $catTpl->replace(new ET("<li class='no-boards'>" . tr("Няма Дъски") . "</li>"), 'BOARDS');
+                       $catTpl->replace(new ET("<li class='no-boards'>" . tr("Няма дъски") . "</li>"), 'BOARDS');
                 }
                 
 				$catTpl->removeBlocks();
@@ -420,7 +425,7 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL,  array('class' => 'forumbtn workshop')), 'TOOLBAR');
 		}
 		
-		if($data->searchUrl){
+		if($data->searchUrl && count($data->categories)){
 			$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL,  array('class' => 'forumbtn find')), 'TOOLBAR');
 		}
 		

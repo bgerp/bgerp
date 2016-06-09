@@ -261,6 +261,7 @@ class core_Setup extends core_ProtoSetup {
         'migrate::loginLogTruncate',
         'core_Settings',
         'core_Forwards',
+        'core_Updates',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
@@ -350,14 +351,14 @@ class core_Setup extends core_ProtoSetup {
         $html .= core_Cron::addOnce($rec);
         
         
-        // Нагласяване на Крон оптимизира таблиците
+        // Нагласяване на Крон да се проверява за нови версии
         $rec = new stdClass();
-        $rec->systemId = 'OptimizeTables';
-        $rec->description = 'Оптимизиране на таблиците';
-        $rec->controller = 'core_Mvc';
-        $rec->action = 'OptimizeTables';
+        $rec->systemId = 'CheckForCodeUpdates';
+        $rec->description = 'Проверка за нови версии';
+        $rec->controller = 'core_Updates';
+        $rec->action = 'checkForUpdates';
         $rec->period = 24*60;
-        $rec->offset = mt_rand(0, 2*60);
+        $rec->offset = mt_rand(8*60, 12*60);
         $rec->delay = 0;
         $rec->timeLimit = 300;
         $html .= core_Cron::addOnce($rec);

@@ -2227,6 +2227,16 @@ span.sharing-history-title {
   .drawing img {
     max-width: 380px; }
 
+@media handheld,
+only screen and (max-width: 1600px) {
+  .sidemenu-push-toright.sidemenu-push-toleft .drawing {
+    float: none; } }
+
+@media handheld,
+only screen and (max-width: 1400px) {
+  .sidemenu-push .drawing {
+    float: none; } }
+
 /*
  * стилове за външната част при потребител контрактор
  */
@@ -3646,7 +3656,7 @@ only screen and (min-width: 1240px) {
     min-width: 760px; } }
 
 @media handheld,
-only screen and (min-width: 1550px) {
+only screen and (min-width: 1500px) {
   #cmsNavigation div.nav_item {
     font-size: 1.02em; } }
 

@@ -170,6 +170,14 @@ class planning_Jobs extends core_Master
     public $preventCache = TRUE;
     
     
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -840,16 +848,6 @@ class planning_Jobs extends core_Master
     	// Обновяваме произведеното к-то по заданието
     	$rec->quantityProduced = $producedQuantity;
     	self::save($rec, 'quantityProduced');
-    }
-    
-    
-    /**
-     * Изпълянява се преди клониране
-     */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
-    {
-    	unset($nRec->quantityProduced);
-    	unset($nRec->history);
     }
     
     

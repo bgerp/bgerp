@@ -450,7 +450,11 @@ class label_Labels extends core_Master
                 }
             }
             
-            $redirectUrl['ret_url'] = TRUE;
+            if($redirect){
+            	$redirectUrl['ret_url'] = $retUrl;
+            } else {
+            	$redirectUrl['ret_url'] = TRUE;
+            }
             
             // Редиректваме към екшъна за добавяне
             return new Redirect($redirectUrl);
