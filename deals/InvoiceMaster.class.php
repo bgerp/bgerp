@@ -696,7 +696,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		if($rec->type != 'invoice'){
     			if(isset($rec->changeAmount)){
     				if($rec->changeAmount == 0){
-    					$form->setError('changeAmount', 'не може да се създаде известие с нулева стойност');
+    					$form->setError('changeAmount', 'Не може да се създаде известие с нулева стойност');
     					
     					return;
     				}
