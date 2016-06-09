@@ -448,30 +448,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$Detail = $mvc->mainDetail;
 	   	$dQuery = $mvc->$Detail->getQuery();
 	   	$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
-	   	
-	   	if($rec->type == 'dc_note'){
-	   		$cached = $mvc->getInvoiceDetailedInfo($rec->originId);
-	   		
-	   		$cloneQuery = clone $dQuery;
-	   		while($dRec = $cloneQuery->fetch()){
-	   			$difQuantity = $dRec->quantity - $cached[$dRec->productId][$dRec->packagingId]['quantity'];
-	   			$difPrice = $dRec->packPrice - $cached[$dRec->productId][$dRec->packagingId]['price'];
-	   			
-	   			if(round($difQuantity, 5) != 0 || round($difPrice, 5) != 0){
-	   				$res = TRUE;
-	   				return;
-	   			}
-	   		}
-	   		
-	   		// Ако няма детайли и има сума за промяна може да се активира
-	   		if(!$dRec && isset($rec->changeAmount)){
-	   			$res = TRUE;
-	   			return;
-	   		}
-	   		
-	   		$res = FALSE;
-	   	}
-	   	
 	   	$dQuery->where("#quantity = 0");
 	   	
 	   	// Ако има поне едно 0-во к-во документа, не може да се активира
