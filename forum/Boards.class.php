@@ -408,7 +408,7 @@ class forum_Boards extends core_Master {
                     	$catTpl->append($rowTpl, 'BOARDS');
                     }
                 } else {
-                       $catTpl->replace(new ET("<li class='no-boards'>" . tr("Няма Дъски") . "</li>"), 'BOARDS');
+                       $catTpl->replace(new ET("<li class='no-boards'>" . tr("Няма дъски") . "</li>"), 'BOARDS');
                 }
                 
 				$catTpl->removeBlocks();
@@ -420,7 +420,7 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL,  array('class' => 'forumbtn workshop')), 'TOOLBAR');
 		}
 		
-		if($data->searchUrl){
+		if($data->searchUrl && count($data->categories)){
 			$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL,  array('class' => 'forumbtn find')), 'TOOLBAR');
 		}
 		

@@ -218,7 +218,7 @@ class forum_Postings extends core_Detail {
 	         	$themeTpl->append2master();
 	         } 
         } else {
-            $tpl->replace("<h2>" . tr("Няма теми") . "</h2>");
+            $tpl->replace("<div class='no-boards'>" . tr("Няма теми") . "</div>");
           }
         
          $layout->replace($tpl, 'THEMES');
@@ -598,7 +598,7 @@ class forum_Postings extends core_Detail {
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec)) { 
 			$addUrl = array($this, 'Add', 'boardId' => $data->board->id , 'themeId' => $data->rec->id, 'ret_url' => TRUE );
-			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'class=btnComment', 'ef_icon = img/16/star_2.png'), 'ADD_COMMENT');
+			$tpl->replace(ht::createBtn('Коментар', $addUrl, NULL, NULL, 'class=btnComment, ef_icon=img/16/comment_add.png'), 'ADD_COMMENT');
 		}
 		
 		$tpl = $this->renderTopicToolbar($data, $tpl);
@@ -863,7 +863,7 @@ class forum_Postings extends core_Detail {
 	         	$themeTpl->append2master();
 	      }
 		} else {
-			$tableTpl->replace("<h3>" . tr("Няма теми") . "</h3>");
+			$tableTpl->replace("<div class='no-boards'>" . tr("Няма теми") . "</div>");
 		}
 		
 		$tableTpl->replace($data->pager->getHtml(), 'PAGER');
