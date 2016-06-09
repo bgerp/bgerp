@@ -864,14 +864,35 @@ class crm_Companies extends core_Master
             $fAddres .= transliterate(tr($cRec->address));
         }
         
+        if (trim($cRec->tel)) {
+            $telArr = drdata_PhoneType::toArray($cRec->tel);
+            if ($telArr && $telArr[0]) {
+                $tel = $telArr[0]->original;
+            }
+        }
+        
+        if (trim($cRec->fax)) {
+            $faxArr = drdata_PhoneType::toArray($cRec->fax);
+            if ($faxArr && $faxArr[0]) {
+                $fax = $faxArr[0]->original;
+            }
+        }
+        
+        if (trim($cRec->email)) {
+            $emailsArr = type_Emails::toArray($cRec->email);
+            if ($emailsArr) {
+                $email = $emailsArr[0];
+            }
+        }
+        
         $tpl->append($fAddres, 'address');
-        $tpl->append($cRec->tel, 'tel');
-        $tpl->append($cRec->fax, 'fax');
+        $tpl->append($tel, 'tel');
+        $tpl->append($fax, 'fax');
         $tpl->append($cRec->website, 'site');
-        $tpl->append($cRec->email, 'email');
+        $tpl->append($email, 'email');
         $tpl->append($baseColor, 'baseColor');
         $tpl->append($activeColor, 'activeColor');
-    
+        
         $content = $tpl->getContent();
         
         $pngHnd = '';
@@ -890,8 +911,9 @@ class crm_Companies extends core_Master
             
                     $data = array('myCompanyName' => $companyName,
                             'address' => $fAddres,
-                            'tel' => $cRec->tel,
-                            'fax' => $cRec->fax,
+                            'tel' => $tel,
+                            'fax' => $fax,
+                            'email' => $email,
                             'site' => $cRec->website,
                             'baseColor' => $baseColor,
                             'activeColor' => $activeColor,
