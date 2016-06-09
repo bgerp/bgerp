@@ -1,13 +1,63 @@
 <?php
 
-//require_once __DIR__ . "/Api.class.php";
 
 class vtotal_Checks extends core_Master
 {
+
+
+    /**
+     * Заглавие
+     */
+    public $title = "Проверки във VirusTotal";
+
+
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'debug, admin';
+
+
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'no_one';
+
+
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'no_one';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'debug, admin';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'debug, admin';
+
+
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'debug, admin';
+
+
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'debug, admin';
+
+
     /**
      * @var Url нужно на VirusTotal за Api-то
      */
     private static $VTScanUrl = "https://www.virustotal.com/vtapi/v2/file/report";
+
 
     /**
      * Плъгини за зареждане
@@ -15,13 +65,12 @@ class vtotal_Checks extends core_Master
     public $loadList = "plg_Created";
 
 
-
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('firstCheck', 'datetime', 'caption=Последно от вирус тотал'); //
+        $this->FLD('firstCheck', 'datetime', 'caption=Последно от вирус тотал');
         $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
@@ -50,7 +99,7 @@ class vtotal_Checks extends core_Master
     {
         $post = array(
             "resource" => $md5Hash,
-            "apikey" => vtotal_Setup::get('VIRUSTOTAL_API_KEY'),
+            "apikey" => vtotal_Setup::get("VIRUSTOTAL_API_KEY"),
         );
 
         $ch = curl_init();
@@ -74,6 +123,7 @@ class vtotal_Checks extends core_Master
             return json_decode($responce);
     }
 
+
     /**
      * Функция по крон, която проверява по 4 файла взети от fileman_Files и
      * ги поставя в този модел за инспекция
@@ -86,18 +136,18 @@ class vtotal_Checks extends core_Master
             'MSI', 'MSP', 'COM', 'SCR', 'HTA', 'CPL',
             'MSC', 'JAR', 'BAT', 'CMD', 'VB', 'VBS',
             'JS', 'JSE', 'WS', 'WSH', 'WSC', 'WSF',
-            "PS1", 'PS1XML', 'PS2', 'PS2XML', 'PSC1',
+            'PS1', 'PS1XML', 'PS2', 'PS2XML', 'PSC1',
             'PSC2', 'SCF', 'LNK', 'INF',
             //Macro
             'REG', 'DOC', 'XLS', 'PPT', 'DOCM',
             'DOTM', 'XLSM', 'XLTM', 'XLAM',
-            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM'
+            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM', 'PHP',
         );
 
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
-        $query->limit(4);
+        $query->limit(1000);
 
         while($rec = $query->fetch()) {
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
@@ -106,11 +156,11 @@ class vtotal_Checks extends core_Master
                 $rec->dangerRate = 0;
                 fileman_Files::save($rec, 'dangerRate');
             }
-            elseif (!$this->fetch("#filemanDataId = {$rec->dataId}")) {
-                $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 0);
-                $this->save($checkFile);
+            else {
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
+                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 1);
+                    $this->save($checkFile, NULL, "IGNORE");
             }
         }
     }
@@ -123,15 +173,11 @@ class vtotal_Checks extends core_Master
     public function cron_VTCheck()
     {
         $now = dt::now();
-        //#firstCheck IS NULL OR #lastCheck IS NULL OR
         $query = self::getQuery();
-        //Тук има константа
-        $query->where("#lastCheck IS NULL OR DATEDIFF( '{$now}', #lastCheck) > 10");
+        $query->where("#lastCheck IS NULL OR DATEDIFF( '{$now}', #lastCheck) * 24 * 60 * 60 >" . vtotal_Setup::get("VIRUSTOTAL_BETWEEN_TIME_SCANS"));
         $query->orderBy("#createdOn", "DESC");
-        $query->limit(4);
+        $query->limit(vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTA"));
 
-
-        $array = array();
         while($rec = $query->fetch())
         {
 
@@ -141,9 +187,14 @@ class vtotal_Checks extends core_Master
 
             if($rec->timesScanеd >= 2)
             {
-                $fRec = fileman_Files::fetch(array("#dataId = {$rec->filemanDataId}"));
-                $fRec->dangerRate = -1;
-                fileman_Files::save($fRec);
+                $query = fileman_Files::getQuery();
+                $query->where("#dataId = {$rec->filemanDataId}");
+
+                while($fRec = $query->fetch())
+                {
+                    $fRec->dangerRate = -1;
+                    fileman_Files::save($fRec);
+                }
             }
             else{
                 if($result == -1 || $result == -3 || $result->response_code == 0)
@@ -158,23 +209,17 @@ class vtotal_Checks extends core_Master
                     $rec->firstCheck = $result->scan_date;
                     $rec->lastCheck = $now;
                     $this->save($rec, 'firstCheck, lastCheck');
-                    $fRec = fileman_Files::fetch(array("#dataId = {$rec->filemanDataId}"));
-                    $fRec->dangerRate = $dangerRate;
-                    fileman_Files::save($fRec);
+
+                    $query = fileman_Files::getQuery();
+                    $query->where("#dataId = {$rec->filemanDataId}");
+
+                    while($fRec = $query->fetch())
+                    {
+                        $fRec->dangerRate = $dangerRate;
+                        fileman_Files::save($fRec);
+                    }
                 }
             }
         }
-
-    }
-
-
-    public function act_CheckFiles()
-    {
-        return $this->cron_MoveFilesFromFilemanLog();
-    }
-
-    public function act_VTCheck()
-    {
-        return $this->cron_VTCheck();
     }
 }

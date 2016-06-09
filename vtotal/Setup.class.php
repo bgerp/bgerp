@@ -5,8 +5,8 @@
  * Коя да е основната мярка на универсалните артикули
  */
 defIfNot('VTOTAL_VIRUSTOTAL_API_KEY', '');
-
-
+defIfNot('VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL', '3');
+defIfNot('VTOTAL_VIRUSTOTAL_TIME_BETWEEN_SCANS', '864000'); // Десет дена
 
 
 
@@ -39,12 +39,16 @@ class vtotal_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         'VTOTAL_VIRUSTOTAL_API_KEY' => array("varchar", 'caption=Ключ за API системата на '),
+        'VTOTAL_VIRUSTOTAL_BETWEEN_TIME_SCANS' => array ('time(suggestions=5 дена|10 дена)', 'caption=Времете между което ще се пуска VirusTotal за неопределените, миналото
+        сканирване файлове'),
+        'VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL' => array("int", 'caption=По колко файла да се вземат от VirusTotal за сканирване'),
     );
 
     /**
      * Настройки за Cron
      */
     var $cronSettings = array(
+
         array(
             'systemId' => "MoveFilesFromFilemanLog",
             'description' => "Преместване на съмнителните файлове в vtotal_Checks",
