@@ -300,6 +300,14 @@ class forum_Boards extends core_Master {
 	function prepareSearchForm($data)
 	{
 		$form = cls::get('core_Form');
+		$form->FLD('q', 'varchar', 'input,silent,placeholder=Търсене');
+		$form->input(NULL, 'silent');
+		$form->input();
+		$form->method = 'GET';
+		$form->view = 'horizontal';
+		
+		$form->toolbar->addSbBtn('', NULL, "ef_icon=img/16/find.png");
+		
  		$data->searchForm = $form;
 	}
 	
@@ -340,9 +348,6 @@ class forum_Boards extends core_Master {
 	function renderSearchForm_(&$data)
     {
  		if($data->searchForm){
-	    	$data->searchForm->layout = $data->ForumTheme->getSearchFormLayout();
-	 		$data->searchForm->layout->replace(toUrl(array('forum_Postings', 'search')), 'ACTION');
-			$data->searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
 			
 			return $data->searchForm->renderHtml();
  		}
