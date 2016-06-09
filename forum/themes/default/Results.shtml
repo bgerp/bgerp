@@ -3,7 +3,7 @@
         [#NAVIGATION#]
     </div>
     <div class='results-row'>
-        <div class='fleft results'>Резултати за <span class='search-text'>[#SEARCH_FOR#]</span></div>
+        <div class='fleft results'>Резултати за "<span class='search-text'>[#SEARCH_FOR#]</span>"</div>
         <div class='fright'>[#SEARCH_FORM#]</div>
         <div class='clearfix21'></div>
     </div>
