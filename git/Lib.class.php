@@ -62,6 +62,30 @@ class git_Lib
 
 
     /**
+     * Връща отдалеченото git URL на репозиторито 
+     * 
+     * @param string $repoPath - път до git репозитори
+     * @param array() $log - масив с логове
+     * @return boolean - При неуспех - FALSE или URL
+     */
+    public static function getRemoteUrl($repoPath, &$log)
+    {
+        $command = "config --get remote.origin.url 2>&1";
+
+        // Първият ред съдържа резултата
+        if (self::cmdExec($command, $res, $repoPath)) {
+            
+            return trim($res[0]);
+        }
+
+        $repoName = basename($repoPath);
+        $log[] = "[{$repoName}]: Неуспешно извличане на отдалечено URL";
+        
+        return FALSE;
+    }
+
+
+    /**
      * Извлича информация за последния комит
      */
     public static function getLastCommit($repoPath, &$log = NULL)
@@ -264,5 +288,36 @@ class git_Lib
         
         return TRUE;
     }
+
+
+    /**
+     * Извикаване на URL от GitHub API
+     */
+    public static function gitHubApiCall($url)
+    {
+        // Initialize session and set URL.
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+                    
+        // Set so curl_exec returns the result instead of outputting it.
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+  
+        $headers = array('User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0');
+            
+        if($token = git_Setup::get('GITHUB_TOKEN')) {  
+            $headers[] = 'Authorization: token ' . $token;
+        }
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            
+        // Get the response and close the channel.
+        $result = curl_exec($ch);
+        curl_close($ch);
+ 
+        return $result;
+    }
+
 }
 
