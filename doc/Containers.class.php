@@ -2605,12 +2605,16 @@ class doc_Containers extends core_Manager
         if ($row && $row->document instanceof core_ET) {
             $cssArr = $row->document->getArray('CSS', FALSE);
             foreach ($cssArr as $css) {
-                $htmlArg['css'][] = sbf($css, '');
+                if(!preg_match('#^[^/]*//#', $css)) {
+                    $htmlArg['css'][] = sbf($css, '');
+                }
             }
             
             $jsArr = $row->document->getArray('JS', FALSE);
             foreach ($jsArr as $js) {
-                $htmlArg['js'][] = sbf($js, '');
+                if(!preg_match('#^[^/]*//#', $js)) {
+                    $htmlArg['js'][] = sbf($js, '');
+                }
             }
         }
         
