@@ -709,6 +709,9 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 	background: $gray3;
 	border: solid 1px #aaa;
 	min-width: 100px;
+	select& {
+		max-width: 36em;
+	}
 }
 
 .calendar, .calendar table {
