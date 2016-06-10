@@ -33,6 +33,12 @@
                         [#vatId#]
                     </div>
                     <!--ET_END vatId-->
+                    <!--ET_BEGIN deliveryLocationId-->
+                    <hr style="margin: 3px 0 1px;">
+                    <div>
+                        To location: [#deliveryLocationId#]
+                    </div>
+                    <!--ET_END deliveryLocationId-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->

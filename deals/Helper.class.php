@@ -635,4 +635,36 @@ abstract class deals_Helper
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Помощен метод връщащ дали не може да бъде избран документ от посочения вид
+	 * използва се за проверка дали при контиране/възстановяване/оттегляне дали потребителя
+	 * може да избере посочения обект: каса/б. сметка/склад
+	 * 
+	 * @param string $action             - действие с документа
+	 * @param stdClass $rec              - запис на документа
+	 * @param string $ObjectManager - мениджър на обекта, който ще проверяваме можели да се избере
+	 * @param string $objectIdField      - поле на ид-то на обекта, който ще проверяваме можели да се избере
+	 * @return void|boolean              - можели да се избере обекта или не
+	 */
+	public static function canSelectObjectInDocument($action, $rec, $ObjectManager, $objectIdField)
+	{
+		// Ако действието е контиране/възстановяване/оттегляне
+		if(($action == 'conto' || $action == 'restore' || $action == 'reject') && isset($rec)){
+			
+			// Ако документа е чернова не проверяваме дали потребителя може да избере обекта
+			if($action == 'reject' && $rec->state == 'draft') return TRUE;
+			
+			// Ако документа е бил чернова не проверяваме дали потребителя може да избере обекта
+			if($action == 'restore' && $rec->brState == 'draft') return TRUE;
+			
+			// Ако има избран обект и потребитеяле не може да го избере връщаме FALSE
+			if(isset($rec->{$objectIdField}) && !$ObjectManager::haveRightFor('select', $rec->{$objectIdField})){
+				return FALSE;
+			}
+		}
+		
+		return TRUE;
+	}
 }

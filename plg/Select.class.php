@@ -252,10 +252,10 @@ class plg_Select extends core_Plugin
         if(!count($data->rows)) return;
         
         $tpl = new ET($tpl);
+        $urlArr = array('ret_url' => getCurrentUrl());
+        core_Request::addUrlHash($urlArr);
         
-        $retUrl = toUrl(getCurrentUrl(), 'local');
-        
-        $tpl->append("<input type='hidden' name='ret_url' value='{$retUrl}'>");
+        $tpl->append("<input type='hidden' name='ret_url' value='{$urlArr['ret_url']}'>");
         
         $tpl->append('</form>');
         

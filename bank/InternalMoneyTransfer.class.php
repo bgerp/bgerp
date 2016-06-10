@@ -169,9 +169,21 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'creditBank')){
+    		$requiredRoles = 'no_one';
+    	}
+    }
+    
+    
+    /**
      * Подготовка на филтър формата
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме към формата за търсене търсене по Каса
         bank_OwnAccounts::prepareBankFilter($data, array('creditBank', 'debitBank'));
@@ -218,7 +230,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Подготвяме формата от която ще избираме посоката на движението
      */
-    static function prepareReasonForm()
+    public static function prepareReasonForm()
     {
         $form = cls::get('core_Form');
         $form->method = 'GET';
@@ -238,7 +250,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Подготовка на формата за добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
         
@@ -270,7 +282,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Проверка след изпращането на формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         if ($form->isSubmitted()){
             
@@ -297,7 +309,7 @@ class bank_InternalMoneyTransfer extends core_Master
      *
      * @param core_Form $form
      */
-    function validateForm($form)
+    public function validateForm($form)
     {
         $rec = &$form->rec;
         $creditInfo = bank_OwnAccounts::getOwnAccountInfo($rec->creditBank);
@@ -347,7 +359,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
         
@@ -372,22 +384,6 @@ class bank_InternalMoneyTransfer extends core_Master
             
             if($rec->debitBank){
                 $row->debitBank = bank_OwnAccounts::getHyperLink($rec->debitBank, TRUE);
-            }
-        }
-    }
-    
-    
-    /**
-     * Поставя бутони за генериране на други банкови документи възоснова
-     * на този, само ако документа е "чернова".
-     */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        if($data->rec->state == 'draft') {
-            $rec = $data->rec;
-            
-            if(bank_CashWithdrawOrders::haveRightFor('add')){
-                $data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
             }
         }
     }

@@ -2514,6 +2514,10 @@ fieldset.sharing-history {
 
 .wide #login-form{
 	padding:40px;
+	.button {
+		padding: 5px 7px !important;
+		font-size: 1.0em;
+	}
 }
 
 .wide #login-form .formTable {
@@ -2526,9 +2530,21 @@ fieldset.sharing-history {
 
 .drawing {
 	float: right;
-	max-width: 400px;
+	max-width: 380px;
 	img {
-		max-width: 400px;
+		max-width: 380px;
+	}
+}
+
+@media handheld , only screen and (max-width: 1600px) {
+	.sidemenu-push-toright.sidemenu-push-toleft .drawing{
+		float: none;
+	}
+}
+
+@media handheld , only screen and (max-width: 1400px) {
+	.sidemenu-push .drawing{
+		float: none;
 	}
 }
 
@@ -2676,7 +2692,8 @@ fieldset.sharing-history {
 
 #cmsNavigation a {
 	@include border-radius(3px);
-	padding: 1px 4px; 
+	padding: 1px 4px;
+	border: 1px solid transparent;
 	display: inline-block;
 }
 
@@ -4021,10 +4038,11 @@ body.narrow {
 	}
 }
 
-@media handheld , only screen and (min-width: 1550px) {
+@media handheld , only screen and (min-width: 1500px) {
     #cmsNavigation div.nav_item {
         font-size:1.02em;
     }
+
 }
 
 @media handheld , only screen and (min-width: 1600px) {

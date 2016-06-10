@@ -305,7 +305,7 @@ class trans_Lines extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        
+       
         $row = (object)array(
             'title'    => $rec->title,
             'authorId' => $rec->createdBy,
@@ -403,7 +403,6 @@ class trans_Lines extends core_Master
     		$this->save($rec);
     	}
     	
-    	
     	// Намират се затворените линии, които не са повторени и
     	// имат повторение и не са повторени
     	$query2->where("#state = 'closed'");
@@ -412,27 +411,14 @@ class trans_Lines extends core_Master
     	while($rec = $query2->fetch()){
     		
     		// Генерира се новата линия
+    		core_Users::sudo($rec->createdBy);
     		$newRec = $this->getNewLine($rec);
     		$this->save($newRec);
+    		core_Users::exitSudo();
     		
     		// Линията се отбелязва като повторена
     		$rec->isRepeated = 'yes';
-    		$this->save($rec);
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се преди запис
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	// Специално поле, кеото го има само ако се създава от крон
-    	if($rec->_createdBy){
-    		
-    		// doc_DocumentPlg слага за createdBy '-1', така запазваме на
-    		// новата линия, за createdBy този, който е създал първата
-    		$rec->createdBy = $rec->_createdBy;
+    		$this->save($rec, 'isRepeated');
     	}
     }
     
@@ -446,7 +432,7 @@ class trans_Lines extends core_Master
     {
     	$newRec = new stdClass();
     	$newRec->repeat            = $rec->repeat;
-    	$newRec->_createdBy        = $rec->createdBy;
+    	$newRec->createdBy         = $rec->createdBy;
     	$newRec->folderId          = $rec->folderId;
     	$newRec->vehicleId 		   = $rec->vehicleId;
     	$newRec->forwarderId 	   = $rec->forwarderId;

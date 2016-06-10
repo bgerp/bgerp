@@ -927,7 +927,8 @@ input.more-btn {
   width: 1.9em;
   height: 2em \9; }
 
-.more-btn:not(.toolbar-btn) {
+.more-btn:not(.toolbar-btn,
+.transparent) {
   background-repeat: no-repeat !important;
   background-image: url(../img/16/toggle-expand.png) !important; }
 
@@ -940,6 +941,13 @@ input.more-btn {
     transition-property: opacity;
     transition-duration: 0.5s;
     transition-timing-function: ease-in-out; }
+
+  .small .modal-toolbar .linkWithIcon {
+    height: auto !important;
+    font-size: 1em; }
+
+.small .fileHolder {
+  display: block; }
 
 a.more-btn {
   padding-left: 17px !important;
@@ -1255,6 +1263,16 @@ table.listTable {
 
 .narrow table.listTable {
   margin-bottom: 12px; }
+
+.more-btn.transparentBtn {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  cursor: pointer;
+  background: none !important; }
 
 .wide .singleView table.listTable > tbody > tr > td {
   max-width: 70% !important; }

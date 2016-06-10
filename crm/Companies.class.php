@@ -2,6 +2,12 @@
 
 
 /**
+ * Отдалечен сървър за генериране на лого на фирма
+ */
+defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'http://experta.bg/api_Companies/getLogo/apiKey/crm123/');
+
+
+/**
  * Мениджър на фирмите
  * 
  * 
@@ -816,7 +822,7 @@ class crm_Companies extends core_Master
     protected static function setCompanyLogo($companyConstName)
     {
         $baseColor = 'yellow';
-        $activColor = 'green';
+        $activeColor = '#ccc';
         
         $dRec = cms_Domains::getPublicDomain('form');
         
@@ -824,15 +830,15 @@ class crm_Companies extends core_Master
             if ($dRec->baseColor) {
                 $baseColor = $dRec->baseColor;
             }
-            
             if ($dRec->activeColor) {
-                $activColor = $dRec->activeColor;
+                $activeColor = $dRec->activeColor;
             }
         }
-        
+
         $tpl = getTplFromFile('bgerp/tpl/svg.svg');
         $cRec = crm_Companies::fetchOwnCompany();
-        $tpl->append(transliterate(tr($cRec->company)), 'myCompanyName');
+        $companyName = transliterate(tr($cRec->company));
+        $tpl->append($companyName, 'myCompanyName');
         
         // Подготвяме адреса
         $fAddres = '';
@@ -858,17 +864,82 @@ class crm_Companies extends core_Master
             $fAddres .= transliterate(tr($cRec->address));
         }
         
+        if (trim($cRec->tel)) {
+            $telArr = drdata_PhoneType::toArray($cRec->tel);
+            if ($telArr && $telArr[0]) {
+                $tel = $telArr[0]->original;
+            }
+        }
+        
+        if (trim($cRec->fax)) {
+            $faxArr = drdata_PhoneType::toArray($cRec->fax);
+            if ($faxArr && $faxArr[0]) {
+                $fax = $faxArr[0]->original;
+            }
+        }
+        
+        if (trim($cRec->email)) {
+            $emailsArr = type_Emails::toArray($cRec->email);
+            if ($emailsArr) {
+                $email = $emailsArr[0];
+            }
+        }
+        
         $tpl->append($fAddres, 'address');
-        $tpl->append($cRec->tel, 'tel');
-        $tpl->append($cRec->fax, 'fax');
+        $tpl->append($tel, 'tel');
+        $tpl->append($fax, 'fax');
         $tpl->append($cRec->website, 'site');
+        $tpl->append($email, 'email');
         $tpl->append($baseColor, 'baseColor');
-        $tpl->append($activColor, 'activColor');
-    
+        $tpl->append($activeColor, 'activeColor');
+        
         $content = $tpl->getContent();
+        
+        $pngHnd = '';
         
         try {
             $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $companyConstName);
+        } catch (Exception $e) {
+            reportException($e);
+        }
+        
+        // Ако не може да се генерира локално лого на фирмата, се прави опит да се генерира отдалечено
+        try {
+            if (!$pngHnd) {
+                if (defined('CRM_REMOTE_COMPANY_LOGO_CREATOR')) {
+                    $url = CRM_REMOTE_COMPANY_LOGO_CREATOR;
+            
+                    $data = array('myCompanyName' => $companyName,
+                            'address' => $fAddres,
+                            'tel' => $tel,
+                            'fax' => $fax,
+                            'email' => $email,
+                            'site' => $cRec->website,
+                            'baseColor' => $baseColor,
+                            'activeColor' => $activeColor,
+                            'lg' => core_Lg::getCurrent()
+                    );
+            
+                    $options = array(
+                            'http' => array(
+                                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                                    'method'  => 'POST',
+                                    'content' => http_build_query($data),
+                            ),
+                    );
+            
+                    $context = stream_context_create($options);
+                    $result  = @file_get_contents($url, FALSE, $context);
+            
+                    if ($result) {
+                        $result = json_decode($result);
+                        if ($result && $url = $result->url) {
+                            $bucketId = fileman_Buckets::fetchByName('pictures');
+                            $pngHnd = fileman_Get::getFile((object)array('url' => $url, 'bucketId' => $bucketId));
+                        }
+                    }
+                }
+            }
         } catch (Exception $e) {
             reportException($e);
         }
@@ -1082,8 +1153,12 @@ class crm_Companies extends core_Master
      */
     public static function fetchOurCompany()
     {
+
         $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
-        $rec->classId = core_Classes::getId('crm_Companies');
+
+        if($rec) {
+            $rec->classId = core_Classes::getId('crm_Companies');
+        }
         
         return $rec;
     }

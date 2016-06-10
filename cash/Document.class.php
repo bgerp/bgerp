@@ -525,4 +525,16 @@ abstract class cash_Document extends deals_PaymentDocument
     		}
     	}
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')){
+    		$requiredRoles = 'no_one';
+    	}
+    }
 }

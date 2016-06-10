@@ -2211,6 +2211,9 @@ span.sharing-history-title {
 
 .wide #login-form {
   padding: 40px; }
+  .wide #login-form .button {
+    padding: 5px 7px !important;
+    font-size: 1em; }
 
 .wide #login-form .formTable {
   margin: 0; }
@@ -2220,9 +2223,19 @@ span.sharing-history-title {
 
 .drawing {
   float: right;
-  max-width: 400px; }
+  max-width: 380px; }
   .drawing img {
-    max-width: 400px; }
+    max-width: 380px; }
+
+@media handheld,
+only screen and (max-width: 1600px) {
+  .sidemenu-push-toright.sidemenu-push-toleft .drawing {
+    float: none; } }
+
+@media handheld,
+only screen and (max-width: 1400px) {
+  .sidemenu-push .drawing {
+    float: none; } }
 
 /*
  * стилове за външната част при потребител контрактор
@@ -2345,6 +2358,7 @@ span.sharing-history-title {
   -ms-border-radius: 3px;
   border-radius: 3px;
   padding: 1px 4px;
+  border: 1px solid transparent;
   display: inline-block; }
 
   #cmsNavigation.articles-menu .nav_item a,
@@ -3642,7 +3656,7 @@ only screen and (min-width: 1240px) {
     min-width: 760px; } }
 
 @media handheld,
-only screen and (min-width: 1550px) {
+only screen and (min-width: 1500px) {
   #cmsNavigation div.nav_item {
     font-size: 1.02em; } }
 

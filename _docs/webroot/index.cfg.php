@@ -1,6 +1,7 @@
 <?php
 // Игнорираме нотисите
 DEFINE('CORE_ERROR_REPORTING_LEVEL', E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+error_reporting(CORE_ERROR_REPORTING_LEVEL);
 
 // Дали да са включени финкциите за дебъг и настройка
 DEFINE('EF_DEBUG', TRUE);

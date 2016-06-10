@@ -63,6 +63,11 @@ class deals_Setup extends core_ProtoSetup
     		'DEALS_BALANCE_TOLERANCE' => array("percent(min=0)", 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
     );
     
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "deals_reports_ArrearsImpl";
+    
     
     /**
      * Де-инсталиране на пакета

@@ -168,6 +168,18 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')){
+    		$requiredRoles = 'no_one';
+    	}
+    }
+    
+    
+    /**
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
