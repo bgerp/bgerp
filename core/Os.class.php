@@ -458,7 +458,7 @@ class core_Os
      *
      * @param $val Memory size shorthand notation string
      */
-    public function getBytes($val) {
+    public static function getBytes($val) {
         $val = trim($val);
         $last = strtolower($val[strlen($val)-1]);
         switch($last) {
