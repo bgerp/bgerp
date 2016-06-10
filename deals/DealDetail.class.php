@@ -278,7 +278,10 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     		} else {
     			$price = $rec->packPrice / $rec->quantityInPack;
-    			$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			
+    			if(!$form->gotErrors() || ($form->gotErrors() && Request::get('Ignore'))){
+    				$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			}
     		}
     		 
     		$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
