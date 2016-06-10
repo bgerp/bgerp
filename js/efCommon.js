@@ -4520,10 +4520,11 @@ function mailServerSettings() {
  * Вика url-то w data-url на линка и спира норматлноното му действие
  *
  * @param event
+ * @param stopOnClick
  *
  * @return boolean
  */
-function startUrlFromDataAttr(obj)
+function startUrlFromDataAttr(obj, stopOnClick)
 {
 	if (this.event) {
 		stopBtnDefault(this.event);
@@ -4531,9 +4532,13 @@ function startUrlFromDataAttr(obj)
 
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
-
-	getEfae().process(resObj);
-
+	
+	if (stopOnClick) {
+		$(obj).css('pointer-events', 'none');
+	}
+	
+	getEfae().process(resObj); 
+	
 	return false;
 }
 

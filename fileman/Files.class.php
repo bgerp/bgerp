@@ -811,6 +811,7 @@ class fileman_Files extends core_Master
         $nRec->id = $fRec->id;
         $nRec->name = $newFileName;
         $nRec->fileHnd = $fRec->fileHnd;
+        $nRec->dangerRate = NULL;
         $saveId = static::save($nRec);
         
         if (!$saveId) return FALSE;

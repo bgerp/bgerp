@@ -380,7 +380,7 @@ class cat_Categories extends core_Master
     		if($driverId){
     			$query->where("#{$Products->driverClassField} = {$driverId}");
     		}
-    		bp();
+    		
     		$query->where("#state = 'active' AND #folderId IN ({$catList})");
     		if($limit){
     			$query->limit($limit);

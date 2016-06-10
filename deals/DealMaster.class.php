@@ -1376,6 +1376,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$allowedFields = $me->selectFields("#input != 'none' AND #input != 'hidden'");
     	$allowedFields['originId'] = TRUE;
     	$allowedFields['currencyRate'] = TRUE;
+    	$allowedFields['deliveryTermId'] = TRUE;
     	
     	// Проверяваме подадените полета дали са позволени
     	if(count($fields)){
