@@ -275,14 +275,9 @@ class cms_Feeds extends core_Manager {
         $typeUrl = cls::get('type_Url');
 		$row->url = $typeUrl->toVerbal(toUrl($rssLink, 'absolute'));
 		
-		if($fields['-feeds']) {
-			// Преобразуваме логото на фийда да е  img
-			$imgUrl = sbf('cms/img/' . $rec->type . '.png', '\'');
-			
-			$row->title = ht::createLink($row->title, $rssLink, NULL, 
-                array('class' => 'linkWithIcon', 'style' => "padding-left:45px !important; background-image:url({$imgUrl})"));
-			
-		}
+		// Преобразуваме логото на фийда да е  img
+		$icon = 'cms/img/' . $rec->type . '.png';
+		$row->title = ht::createLink($row->title, $rssLink, NULL, "ef_icon={$icon}");
 	}
 	
 	
