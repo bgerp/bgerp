@@ -47,11 +47,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	{
 		if($action == 'createproduct'){
 			if(isset($rec)){
+				$requiredRoles = $mvc->getRequiredRoles('add', $rec);
+				if($requiredRoles == 'no_one') return;
 				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-				if($masterRec->state == 'active' || $masterRec->state == 'closed' || $masterRec->state == 'rejected'){
-					$requiredRoles = 'no_one';
-					return;
-				}
 				
 				$options = cat_Categories::getProtoOptions(NULL, $mvc->filterProtoByMeta, 1);
 				
