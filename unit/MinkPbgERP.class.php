@@ -142,7 +142,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // РБД
         $browser->press('РБД');
-        $browser->setValue('ownAccount', '');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->setValue('amountDeal', '01251,36');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -277,7 +277,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', '');
+            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
             $browser->setValue('amountDeal', '0126,36');
             $browser->press('Чернова');
             $browser->press('Контиране');
@@ -412,7 +412,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', '');
+            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
             $browser->setValue('amountDeal', '0126,36');
             $browser->setValue('valior', date('d-m-Y', $valior));
             $browser->press('Чернова');
@@ -557,7 +557,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', '');
+            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
             $browser->press('Чернова');
             $browser->press('Контиране');
     
@@ -628,7 +628,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис и Нов');
         
         // Записваме артикула и добавяме нов
-        $browser->setValue('productId', 'Други резервни части');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '089,00-03*8');//65
         $browser->setValue('packPrice', '010,020+0.3*07');//12.12
@@ -837,7 +837,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // ПБД
             $browser->press('ПБД');
-            $browser->setValue('ownAccount', '');
+            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
             //$browser->setValue('amountDeal', '100');
             $browser->press('Чернова');
             $browser->press('Контиране');
@@ -914,7 +914,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Запис и Нов');
              
             // Записваме артикула и добавяме нов
-            $browser->setValue('productId', 'Други резервни части');
+            $browser->setValue('productId', 'Чувал голям 50 L');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '0100-05*8');//60
             $browser->setValue('packPrice', '010.21+0.3*08');//12.61
@@ -981,7 +981,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // ПБД
             $browser->press('ПБД');
-            $browser->setValue('ownAccount', '');
+            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
             $browser->setValue('amountDeal', '100');
             $browser->press('Чернова');
             $browser->press('Контиране');
@@ -1049,7 +1049,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис и Нов');
              
         // Записваме артикула и добавяме нов
-        $browser->setValue('productId', 'Други резервни части');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '0100-03*8');//76
         $browser->setValue('packPrice', '010.20+0.3*08');//12.6
@@ -1180,7 +1180,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Запис и Нов');
              
             // Записваме артикула и добавяме нов
-            $browser->setValue('productId', 'Други резервни части');
+            $browser->setValue('productId', 'Чувал голям 50 L');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '0100-03*8');//76
             $browser->setValue('packPrice', '010.20-0.3*08');//7.8
@@ -1311,7 +1311,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис и Нов');
     
         // Записваме артикула и добавяме нов
-        $browser->setValue('productId', 'Други резервни части');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '021-03*4');//9
         $browser->setValue('packPrice', '09,28+0,3*04');//10.48
@@ -1345,7 +1345,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', '');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->setValue('amountDeal', '100');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->press('Чернова');
@@ -1420,7 +1420,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис и Нов');
         
         // Записваме артикула и добавяме нов
-        $browser->setValue('productId', 'Други резервни части');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '021-03*4');//9
         $browser->setValue('packPrice', '09,20+0,3*04');//10.4
@@ -1454,7 +1454,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', '');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->setValue('amountDeal', '100');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->press('Чернова');
@@ -1528,7 +1528,7 @@ class unit_MinkPbgERP extends core_Manager {
        
         // Записваме артикула и добавяме нов
         
-        $browser->setValue('productId', 'Други резервни части');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '068-03*8');//44
         $browser->setValue('packPrice', '07.20+0.3*08');//9.6
@@ -1578,7 +1578,7 @@ class unit_MinkPbgERP extends core_Manager {
         
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', '');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -1673,7 +1673,7 @@ class unit_MinkPbgERP extends core_Manager {
        
         // Записваме артикула и добавяме нов
     
-        $browser->setValue('productId', 'Други резервни части');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '03*08-010');//14
         $browser->setValue('packPrice', '01.20+0.3*08');//3.6
@@ -1741,7 +1741,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', '');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -1809,7 +1809,7 @@ class unit_MinkPbgERP extends core_Manager {
         
         // Записваме артикула и добавяме нов
         
-        $browser->setValue('productId', 'Други резервни части');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '0100-03*8');//76
         $browser->setValue('packPrice', '09.20+0.3*08');//11.6
@@ -1879,7 +1879,7 @@ class unit_MinkPbgERP extends core_Manager {
         
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', '');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -2436,6 +2436,41 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Запис');
         }
         
+    }
+    
+    /**
+     * 5.Създава нова категория.
+     */
+    //http://localhost/unit_MinkPbgERP/CreateCategory/
+    function act_CreateCategory()
+    {
+         
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+    
+        // Правим нова категория
+        $browser->click('Каталог');
+        $browser->click('Категории');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Заготовки');
+        $browser->setValue('meta_canStore', 'canStore');
+        $browser->setValue('meta_canConvert', 'canConvert');
+        $browser->setValue('meta_canManifacture', 'canManifacture');
+        $browser->press('Запис');
+    
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             
+            $browser->press('Отказ');
+           
+        } else {
+        }
+    
     }
     
     /**
