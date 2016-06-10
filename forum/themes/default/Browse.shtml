@@ -9,7 +9,7 @@
     <div class='fleft toolbar'>
         <div>[#TOOLBAR#]</div>
     </div>
-    <div class='fright search-form-holder'>[#SEARCH_FORM#]</div>
+    <div class='fright forumSearch' id="simpleSearch">[#SEARCH_FORM#]</div>
     <div class='clearfix21'></div>
     <!--ET_BEGIN THEMES-->
     [#THEMES#]
