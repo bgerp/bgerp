@@ -152,6 +152,18 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Масив с имена на имейли, които ще се изключват от списъка с имейли, при отговор
+     */
+    protected static $removeEmailsUserNameArr = array('webmaster',
+                                                      'no-reply',
+                                                      'noreply',
+                                                      'no_reply',
+                                                      'mailer-daemon',
+                                                      'autoreply'
+                                                      );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -1065,7 +1077,7 @@ class email_Inboxes extends core_Master
         foreach ($allEmailsArr as $key => $email) {
             
             // Вземаме домейна на имейла
-            list(, $domain) = explode('@', $email);
+            list($nick, $domain) = explode('@', $email);
             
             // Домейна в долен регистър
             $domain = mb_strtolower($domain);
@@ -1075,6 +1087,14 @@ class email_Inboxes extends core_Master
                 
                 // Премахваме от масива
                 unset($allEmailsArr[$key]);
+                
+                continue;
+            }
+            
+            foreach (self::$removeEmailsUserNameArr as $emailNick) {
+                if (stripos($nick, $emailNick) !== FALSE) {
+                    unset($allEmailsArr[$key]);
+                }
             }
         }
 
