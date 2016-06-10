@@ -25,7 +25,6 @@ RewriteRule ^(.*)$ index.php?virtual_url=$1 [QSA,L]
 
 # Lifetime of PHP session
 php_value session.gc_maxlifetime 3600
-php_value memory_limit 512M
 
 # Uncomment the next line to see startup errors
 php_flag display_errors on
