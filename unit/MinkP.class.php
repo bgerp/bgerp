@@ -295,8 +295,135 @@ class unit_MinkP extends core_Manager {
           
      }
     
+     /**
+      * 9.Създава нов артикул - машина 1 (машинно време 1 етап)
+      */
+     //http://localhost/unit_MinkP/CreateMash1/
+     function act_CreateMash1()
+     {
+     
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+          
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+          
+         // Правим нов артикул - машина 1
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Машина 1');
+         $browser->setValue('code', 'Mash1');
+         $browser->setValue('measureId', 'час');
+         $browser->press('Запис');
+     
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+     
+     }
+     
+     /**
+      * 10.Създава нов артикул - машина 2 (машинно време 2 етап)
+      */
+     //http://localhost/unit_MinkP/CreateMash2/
+     function act_CreateMash2()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - машина 2
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Машина 2');
+         $browser->setValue('code', 'Mash2');
+         $browser->setValue('measureId', 'час');
+         $browser->press('Запис');
+          
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+      
+     /**
+      * 11.Създава нов артикул - машина 3 (машинно време 3 етап)
+      */
+     //http://localhost/unit_MinkP/CreateMash3/
+     function act_CreateMash3()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - машина 3
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Машина 3');
+         $browser->setValue('code', 'Mash3');
+         $browser->setValue('measureId', 'час');
+         $browser->press('Запис');
+          
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+  
+     /**
+      * 12.Създава нов артикул - заготовка 1 (резултат от 1 етап)
+      */
+     //http://localhost/unit_MinkP/CreateStage1/
+     function act_CreateStage1()
+     {
+     
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+          
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+          
+         // Правим нов артикул - заготовка 1
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Заготовка 1');
+         $browser->setValue('code', 'Stage1');
+         $browser->setValue('measureId', 'килограм');
+         $browser->press('Запис');
+     
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+     
+     }
+     
+     
+     
+     
     /**
-     * 8.Създава доставка на материалите
+     * 20.Създава доставка на материалите
      */
     //http://localhost/unit_MinkP/CreatePurchase/
     function act_CreatePurchase()
@@ -355,7 +482,7 @@ class unit_MinkP extends core_Manager {
             $browser->press('Запис и Нов');
 ///////////// Записваме артикула и добавяме нов - материал 2
         
-            $browser->setValue('productId', 'Материал 1');
+            $browser->setValue('productId', 'Материал 2');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '023 + 012*03');//59
             $browser->setValue('packPrice', '091 - 023*02');//45
