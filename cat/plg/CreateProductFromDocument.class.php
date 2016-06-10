@@ -48,12 +48,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 		if($action == 'createproduct'){
 			if(isset($rec)){
 				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-				if($masterRec->state == 'active' || $masterRec->state == 'active'){
+				if($masterRec->state == 'active' || $masterRec->state == 'closed' || $masterRec->state == 'rejected'){
 					$requiredRoles = 'no_one';
 					return;
 				}
 				
-				$options = self::getProtoOptions($mvc->filterProtoByMeta, 1);
+				$options = cat_Categories::getProtoOptions(NULL, $mvc->filterProtoByMeta, 1);
 				
 				if(isset($rec->cloneId)){
 					$cloneRec = $mvc->fetch($rec->cloneId);
@@ -114,7 +114,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance,placeholder=Популярни продукти,mandatory,before=packagingId");
 			
 			// Наличните прототипи + клонирания
-			$protos = self::getProtoOptions($mvc->filterProtoByMeta);
+			$protos = cat_Categories::getProtoOptions(NULL, $mvc->filterProtoByMeta);
 			
 			if(isset($cloneRec)){
 				$protos[$cloneRec->productId] = cat_Products::getTitleById($cloneRec->productId, FALSE);
@@ -256,32 +256,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			// Връщаме FALSE за да се прекъсне ивента
 			return FALSE;
 		}
-	}
-	
-	
-	/**
-	 * Кои са прототипните артикули
-	 * 
-	 * @param string $meta - мета свойство
-	 * @param int $limit - ограничение
-	 * @return array $options - опции
-	 */
-	private static function getProtoOptions($meta, $limit = NULL)
-	{
-		$options = cat_Categories::getProtoOptions();
-		
-		$count = 0;
-		foreach ($options as $id => $opt){
-			$metaValue = cat_Products::fetchField($id, $meta);
-			if($metaValue != 'yes'){
-				unset($options[$id]);
-			} else {
-				$count++;
-				if(isset($limit) && $count == $limit) return $options;
-			}
-		}
-		
-		return $options;
 	}
 	
 	
