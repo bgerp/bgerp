@@ -4,7 +4,7 @@
     </div>
     <div class='results-row'>
         <div class='fleft results'>|Резултати за|* "<span class='search-text'>[#SEARCH_FOR#]</span>"</div>
-        <div class='fright'>[#SEARCH_FORM#]</div>
+        <div class='fright forumSearch' id="simpleSearch" style="margin-bottom: 20px">[#SEARCH_FORM#]</div>
         <div class='clearfix21'></div>
     </div>
     <div class='thread-header'>

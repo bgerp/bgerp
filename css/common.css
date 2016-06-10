@@ -430,22 +430,33 @@ input[type="search"]::-webkit-search-decoration {
   position: relative;
   height: 1.5em; }
 
-.narrow #simpleSearch {
-  height: 1.3em; }
+#simpleSearch.forumSearch .button {
+  top: -1px; }
 
-#simpleSearch input {
+.narrow #cmsNavigation #simpleSearch {
+  height: 1.5em;
+  border: none;
+  margin-top: 10px !important; }
+
+.narrow #searchform {
+  margin-bottom: 10px !important; }
+
+#simpleSearch input[type='text'],
+#simpleSearch #searchInput {
   top: 0.1em;
   position: absolute;
   display: inline-block;
-  border: none;
+  border: none !important;
   outline: none;
   height: 1.2em;
+  box-shadow: none;
   font-size: 0.95em;
   width: 90%;
   padding: 0px;
   padding-left: 0.2em; }
 
-#simpleSearch button {
+#simpleSearch button,
+#simpleSearch .button {
   width: 10%;
   margin-right: 0px;
   padding: 0;
@@ -458,7 +469,7 @@ input[type="search"]::-webkit-search-decoration {
   display: inline-block; }
 
 .narrow #simpleSearch button {
-  margin-right: 3px; }
+  right: 15px; }
 
 /*
  * *
