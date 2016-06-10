@@ -473,6 +473,7 @@ class core_Form extends core_FieldSet
                 $this->layout = new ET(
                     "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
                     "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
+                    "[#BEFORE_MAIN_TABLE#]" . 
                     "\n<div  class='clearfix21 vertical' style='margin-top:5px;'>" .
                     "\n<table class=\"formTable\">\n" .
                     "\n<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
@@ -482,6 +483,7 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
                     "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "[#AFTER_MAIN_TABLE#]" .
                     "\n</div>" .
                     "\n</form>\n");
                 
