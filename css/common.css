@@ -433,15 +433,20 @@ input[type="search"]::-webkit-search-decoration {
 #simpleSearch.forumSearch .button {
   top: -1px; }
 
-.narrow #simpleSearch {
-  height: 1.3em; }
+.narrow #cmsNavigation #simpleSearch {
+  height: 1.5em;
+  border: none;
+  margin-top: 10px !important; }
+
+.narrow #searchform {
+  margin-bottom: 10px !important; }
 
 #simpleSearch input[type='text'],
-#simpleSearch .searchInput {
+#simpleSearch #searchInput {
   top: 0.1em;
   position: absolute;
   display: inline-block;
-  border: none;
+  border: none !important;
   outline: none;
   height: 1.2em;
   box-shadow: none;
@@ -464,7 +469,7 @@ input[type="search"]::-webkit-search-decoration {
   display: inline-block; }
 
 .narrow #simpleSearch button {
-  margin-right: 3px; }
+  right: 15px; }
 
 /*
  * *
