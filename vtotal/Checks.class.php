@@ -99,7 +99,7 @@ class vtotal_Checks extends core_Master
     {
         $post = array(
             "resource" => $md5Hash,
-            "apikey" => vtotal_Setup::get("VIRUSTOTAL_API_KEY"),
+            "apikey" => vtotal_Setup::get("API_KEY"),
         );
 
         $ch = curl_init();
@@ -150,17 +150,46 @@ class vtotal_Checks extends core_Master
         $query->limit(1000);
 
         while($rec = $query->fetch()) {
+
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
 
             if (!in_array(strtoupper($extension), $dangerExtensions)) {
-                $rec->dangerRate = 0;
-                fileman_Files::save($rec, 'dangerRate');
+
+                $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+
+                if($cRec)
+                {
+                    $rec->dangerRate = $cRec->dangerRate;
+                    fileman_Files::save($rec, "dangerRate");
+                }
+                else
+                {
+                    $rec->dangerRate = 0;
+
+                    $fQuery = fileman_Files::getQuery();
+                    $fQuery->where("#dataId = {$rec->dataId}");
+
+                    while ($fRec = $fQuery->fetch()) {
+                        $extensionFRec = pathinfo($fRec->name, PATHINFO_EXTENSION);
+                        if (!isset($fRec->dangerRate) && !in_array(strtoupper($extensionFRec), $dangerExtensions)) {
+                            $fRec->dangerRate = 0;
+                            fileman_Files::save($fRec, "dangerRate");
+                        }
+                    }
+                }
             }
-            else {
-                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 1);
-                    $this->save($checkFile, NULL, "IGNORE");
+            elseif ($rec->dangerRate == NULL) {
+                $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                $checkFile = (object)array('filemanDataId' => $rec->dataId,
+                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 1);
+                $result = $this->save($checkFile, NULL, "IGNORE");
+
+                if(!$result)
+                {
+                    $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+                    $rec->dangerRate = $cRec->dangerRate;
+                    fileman_Files::save($rec, "dangerRate");
+                }
             }
         }
     }
@@ -174,23 +203,22 @@ class vtotal_Checks extends core_Master
     {
         $now = dt::now();
         $query = self::getQuery();
-        $query->where("#lastCheck IS NULL OR DATEDIFF( '{$now}', #lastCheck) * 24 * 60 * 60 >" . vtotal_Setup::get("VIRUSTOTAL_BETWEEN_TIME_SCANS"));
+        $query->where("#lastCheck IS NULL");
+        $query->orWhere("ADDDATE(#lastCheck, INTERVAL " . vtotal_Setup::get("BETWEEN_TIME_SCANS") . " SECOND) < '{$now}'");
         $query->orderBy("#createdOn", "DESC");
         $query->limit(vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"));
 
+
         while($rec = $query->fetch())
         {
-
             $result = self::VTGetReport($rec->md5);
-            array_push($array, $result);
-
 
             if($rec->timesScanеd >= 2)
             {
-                $query = fileman_Files::getQuery();
-                $query->where("#dataId = {$rec->filemanDataId}");
+                $fQuery = fileman_Files::getQuery();
+                $fQuery->where("#dataId = {$rec->filemanDataId}");
 
-                while($fRec = $query->fetch())
+                while($fRec = $fQuery->fetch())
                 {
                     $fRec->dangerRate = -1;
                     fileman_Files::save($fRec);

@@ -435,8 +435,7 @@ input[type="search"]::-webkit-search-decoration {
 
 .narrow #cmsNavigation #simpleSearch {
   height: 1.5em;
-  border: none;
-  margin-top: 10px !important; }
+  margin-top: 15px !important; }
 
 .narrow #searchform {
   margin-bottom: 10px !important; }
@@ -469,7 +468,7 @@ input[type="search"]::-webkit-search-decoration {
   display: inline-block; }
 
 .narrow #simpleSearch button {
-  right: 15px; }
+  right: 2px; }
 
 /*
  * *
@@ -1649,7 +1648,6 @@ input:focus[type=button] {
  * вертикални форми
  */
 .vertical .formTitle {
-  padding: 10px;
   font-size: 1.2em;
   border-bottom: none;
   padding: 8px;
@@ -1661,13 +1659,14 @@ input:focus[type=button] {
   .vertical .formTitle img {
     vertical-align: middle !important; }
 
-#all .vertical .formTitle img {
+.wide #all .vertical .formTitle img {
   vertical-align: top !important; }
 
 .narrow .vertical .formTitle {
   font-size: 1.2em;
   font-family: Verdana;
-  background-image: none; }
+  background-image: none;
+  padding: 9px 7px 7px; }
 
 .vertical .formGroup {
   padding: 5px;
