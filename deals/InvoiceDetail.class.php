@@ -450,9 +450,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 	
 			} else {
+				
 				// Изчисляване цената за единица продукт в осн. мярка
 				$rec->price  = $rec->packPrice  / $rec->quantityInPack;
-				$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
+				$packPrice = NULL;
+				if(!$form->gotErrors() || ($form->gotErrors() && Request::get('Ignore'))){
+					$rec->packPrice = deals_Helper::getPurePrice($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
+				} else {
+					$packPrice = deals_Helper::getPurePrice($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
+				}
 			}
 	
 			$rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
@@ -492,7 +498,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$index = array_search($rec->id, $recs);
 				$cache = $cache[$index][$rec->productId];
 				
-				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && round($cache['price'], 5) != round($rec->packPrice, 5)){
+				$pPrice = isset($packPrice)? $packPrice : $rec->packPrice;
+				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && (isset($rec->packPrice) && round($cache['price'], 5) != round($pPrice, 5))){
 					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
 				}
 			}
