@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Постинги
  *
@@ -7,7 +9,7 @@
  * @category  bgerp
  * @package   forum
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,67 +19,73 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Заглавие на страницата
 	 */
-	var $title = 'Постинги';
+	public $title = 'Постинги';
 
+	
+	/**
+	 * Единично заглавие
+	 */
+	public $singleTitle = 'Постинг';
+	
 	
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
+	public $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
 	
 	
 	/** 
 	 *  Полета по които ще се търси
 	 */
-	var $searchFields = 'title, body';
+	public $searchFields = 'title, body';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'forum, ceo, admin, cms';
+	public $canList = 'forum, ceo, admin, cms';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'forum, ceo, admin, cms';
+	public $canSingle = 'forum, ceo, admin, cms';
 	
 	
 	/**
 	 * Поле за лентата с инструменти
 	 */
-	var $rowToolsField = 'tools';
+	public $rowToolsField = 'tools';
 	
 	
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'tools=Пулт, id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
+	public $listFields = 'tools=Пулт, id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
 	
 	
 	/**
 	 *  Брой теми на страница
 	 */
-	var $listItemsPerPage = "30";
+	public $listItemsPerPage = "30";
 	
 	
 	/**
 	 * Мастър ключ към дъските
 	 */
-	var $masterKey = 'boardId';
+	public $masterKey = 'boardId';
 	
 	
 	/**
 	 * Кой може да листва дъските
 	 */
-	var $canRead = 'forum, cms, ceo, admin';
+	public $canRead = 'forum, cms, ceo, admin';
 	
 	
 	/**
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
-	var $canWrite = 'forum, admin, cms, user, ceo';
+	public $canWrite = 'forum, admin, cms, user, ceo';
 	
 	
 	/**
@@ -218,7 +226,7 @@ class forum_Postings extends core_Detail {
 	         	$themeTpl->append2master();
 	         } 
         } else {
-            $tpl->replace("<h2>" . tr("Няма теми") . "</h2>");
+            $tpl->replace("<div class='no-boards'>" . tr("Няма теми") . "</div>");
           }
         
          $layout->replace($tpl, 'THEMES');
@@ -598,7 +606,7 @@ class forum_Postings extends core_Detail {
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec)) { 
 			$addUrl = array($this, 'Add', 'boardId' => $data->board->id , 'themeId' => $data->rec->id, 'ret_url' => TRUE );
-			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'class=btnComment', 'ef_icon = img/16/star_2.png'), 'ADD_COMMENT');
+			$tpl->replace(ht::createBtn('Коментар', $addUrl, NULL, NULL, 'class=btnComment, ef_icon=img/16/comment_add.png'), 'ADD_COMMENT');
 		}
 		
 		$tpl = $this->renderTopicToolbar($data, $tpl);
@@ -778,6 +786,7 @@ class forum_Postings extends core_Detail {
         $layout->push($data->ForumTheme->getStyles(), 'CSS');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
+        $layout->replace($data->q, 'SEARCH_FOR');
         
         return $layout;
 	}
@@ -856,18 +865,19 @@ class forum_Postings extends core_Detail {
 		if(count($data->rows)) {
 	      foreach($data->rows as $row) {
 	      		$themeTpl = clone $tableTpl;
+	      		$row->ICON = ($row->locked == "заключена") ? $lockedIcon : $openIcon;
 	      		$themeTpl->placeObject($row);
-	      		($row->locked == "заключена") ? $icon = $lockedIcon : $icon = $openIcon;
-	         	$themeTpl->replace($icon, 'ICON');
 	         	$themeTpl->removeBlocks();
-	         	$themeTpl->append2master();
+	         	$themeTpl->removePlaces();
+	         	
+	         	$tpl->append($themeTpl, "ROW");
 	      }
 		} else {
-			$tableTpl->replace("<h3>" . tr("Няма теми") . "</h3>");
+			$tpl->replace("<div class='no-boards'>" . tr("Няма теми") . "</div>", 'ROW');
 		}
 		
-		$tableTpl->replace($data->pager->getHtml(), 'PAGER');
-		$tableTpl->append2master();
+		$tpl->replace($data->pager->getHtml(), 'PAGER');
+		
     	return $tpl;
     }
     
@@ -970,7 +980,7 @@ class forum_Postings extends core_Detail {
    /**
     *  Модификации на вербалните стойности на някои полета, взависимост от екшъна
     */
-   function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+   protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    {
    	 	if($rec->themeId === NULL) { 
    	 		 
@@ -1042,7 +1052,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Премахваме тези теми, които принадлежат на дъски, до които нямаме достъп
 	 */
-	function on_AfterPrepareListRecs($mvc, $res, $data)
+	protected static function on_AfterPrepareListRecs($mvc, $res, $data)
 	{
 		if(!$mvc->masterMvc) {
 			
@@ -1051,8 +1061,8 @@ class forum_Postings extends core_Detail {
 				foreach($data->recs as $rec) {
 					
 					// за всяка тема проверяваме достъпа до дъската и, ако не я премахваме
-					$board = $this->Master->fetch($rec->boardId);
-					if(!$this->Master->haveRightToObject($board, $cu)) {
+					$board = $mvc->Master->fetch($rec->boardId);
+					if(!$mvc->Master->haveRightToObject($board, $cu)) {
 						unset($data->recs[$rec->id]);
 					}
 				}

@@ -159,7 +159,8 @@ class core_Updates extends core_Manager
         } 
    
         $query = self::getQuery(); 
-
+        $cQuery = clone $query;
+        
         while($rec = $query->fetch()) {
  
             $lastState = $rec->state;
@@ -187,12 +188,12 @@ class core_Updates extends core_Manager
                 }
             }
         }
-
+        
         if($flagNew) {
             $roleId = core_Roles::fetchByName('admin');
             $adminsArr = core_Users::getByRole($roleId);
-            while($rec = $query->fetch()) {
-                $errType = $this->getVerbal($rec, 'type');
+            
+            while($rec = $cQuery->fetch()) {
                 $msg = '|Има налични обновления за системата';
                 $urlArr = array('core_Updates', 'list');
                 
@@ -251,6 +252,18 @@ class core_Updates extends core_Manager
     {
         // Сортиране на записите по състояние и по времето им на започване
         $data->query->orderBy('ghPublishedAt', 'DESC');
+    }
+    
+    
+    /**
+     * 
+     * @param core_Updates $mvc
+     * @param core_ET $tpl
+     * @param stdObject $data
+     */
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        bgerp_Notifications::clear(array('core_Updates', 'list'));
     }
 
 

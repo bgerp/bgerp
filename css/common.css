@@ -694,6 +694,8 @@ input[type=checkbox]:checked + label {
   background: #dddddd;
   border: solid 1px #aaaaaa;
   min-width: 100px; }
+  select.readonly {
+    max-width: 36em; }
 
 .calendar,
 .calendar table {
