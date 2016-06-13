@@ -154,8 +154,11 @@ class core_Html
             $attr['id'] = $selectId;
             $name = $attr['name'] = $selectId;
 
-            // Долното кара да не работи селекта в firefox-mobile
-            //$attr['tabindex'] = "-1";
+            // Долното кара да не работи селекта в firefox-mobile, но е добре за  
+            // декстоп-браузърите, когато се работи с tab за превключване на полетата
+            if(!Mode::is('screenMode', 'narrow')) {
+                $attr['tabindex'] = "-1";
+            }
 
             unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
 
