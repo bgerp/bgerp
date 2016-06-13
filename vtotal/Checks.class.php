@@ -62,7 +62,7 @@ class vtotal_Checks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created";
+    public $loadList = "plg_Created, plg_Sorting";
 
 
     /**
@@ -182,7 +182,7 @@ class vtotal_Checks extends core_Master
 
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 1);
+                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanеd' => 1);
                 $result = $this->save($checkFile, NULL, "IGNORE");
 
                 if(!$result) {
