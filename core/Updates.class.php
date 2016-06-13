@@ -21,7 +21,13 @@ class core_Updates extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'Версии на системата';
+    public $title = 'Нови версии на системата';
+
+
+    /**
+     * Заглавие на мениджъра
+     */
+    public $singleTitle = 'Нова версия на системата';
 
 
     /**
@@ -43,15 +49,20 @@ class core_Updates extends core_Manager
 
 
     /**
-     * Кой може да добавя, редактира и изтрива?
+     * Кой може да добавя?
      */
     var $canAdd = 'no_one';
 
 
     /**
-     * Кой може да добавя, редактира и изтрива?
+     * Кой може да редактира?
      */
     var $canEdit   = 'debug';
+
+
+    /**
+     * Кой може да изтрива?
+     */
     var $canDelete = 'debug';
 
 
@@ -264,6 +275,24 @@ class core_Updates extends core_Manager
     static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         bgerp_Notifications::clear(array('core_Updates', 'list'));
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if($rec->state == 'opened') {
+            $row->description .= "<div style='margin-top:5px;margin-bottom:5px;'>" .
+                                 ht::createBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), NULL, FALSE,
+                                               'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn') .
+                                 "</div>";
+        }
     }
 
 
