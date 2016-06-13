@@ -17,6 +17,12 @@ class doc_Comments extends core_Master
     
     
     /**
+     * Шаблон (ET) за заглавие на перо
+     */
+    public $recTitleTpl = '[#subject#]';
+    
+    
+    /**
      * Дали да се споделя създадели на оригиналния документ
      */
     public $autoShareOriginCreator = TRUE;

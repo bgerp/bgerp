@@ -34,6 +34,8 @@ class zbar_Reader
         
         if (($errorCode !== 0) && ($errorCode !== 4)) {
             
+            log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$downloadUrl}'", NULL, 'debug');
+            
             throw new fileman_Exception('Възникна грешка при обработка.');
         }
         

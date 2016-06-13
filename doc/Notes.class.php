@@ -16,6 +16,12 @@ class doc_Notes extends core_Master
     
     
     /**
+     * Шаблон (ET) за заглавие на перо
+     */
+    public $recTitleTpl = '[#subject#]';
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'doc_Articles';
