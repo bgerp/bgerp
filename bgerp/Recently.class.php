@@ -287,7 +287,7 @@ class bgerp_Recently extends core_Manager
         $query->limit(1);
         $query->orderBy("#last", 'DESC');
         $lastRec = $query->fetch();
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch'));
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
         $now = dt::now();
         list($tpl, $createdOn)  = core_Cache::get('RecentDoc', $key);
  
