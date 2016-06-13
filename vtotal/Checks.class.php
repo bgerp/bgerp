@@ -141,54 +141,56 @@ class vtotal_Checks extends core_Master
             //Macro
             'REG', 'DOC', 'XLS', 'PPT', 'DOCM',
             'DOTM', 'XLSM', 'XLTM', 'XLAM',
-            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM', 'PHP',
+            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM',
         );
 
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
-        $query->limit(1000);
+
+        $counter = 0;
 
         while($rec = $query->fetch()) {
+            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
+            else{
+                $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
 
-            $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
+                if (!in_array(strtoupper($extension), $dangerExtensions)) {
 
-            if (!in_array(strtoupper($extension), $dangerExtensions)) {
+                    $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
-                $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+                    if($cRec) {
+                        $rec->dangerRate = $cRec->dangerRate;
+                        fileman_Files::save($rec, "dangerRate");
+                    } else {
+                        $rec->dangerRate = 0;
 
-                if($cRec)
-                {
-                    $rec->dangerRate = $cRec->dangerRate;
-                    fileman_Files::save($rec, "dangerRate");
-                }
-                else
-                {
-                    $rec->dangerRate = 0;
+                        $fQuery = fileman_Files::getQuery();
+                        $fQuery->where("#dataId = {$rec->dataId}");
 
-                    $fQuery = fileman_Files::getQuery();
-                    $fQuery->where("#dataId = {$rec->dataId}");
-
-                    while ($fRec = $fQuery->fetch()) {
-                        $extensionFRec = pathinfo($fRec->name, PATHINFO_EXTENSION);
-                        if (!isset($fRec->dangerRate) && !in_array(strtoupper($extensionFRec), $dangerExtensions)) {
-                            $fRec->dangerRate = 0;
-                            fileman_Files::save($fRec, "dangerRate");
+                        while ($fRec = $fQuery->fetch()) {
+                            $extensionFRec = pathinfo($fRec->name, PATHINFO_EXTENSION);
+                            if (!isset($fRec->dangerRate) && !in_array(strtoupper($extensionFRec), $dangerExtensions)) {
+                                $fRec->dangerRate = 0;
+                                fileman_Files::save($fRec, "dangerRate");
+                            }
                         }
                     }
                 }
-            }
-            elseif ($rec->dangerRate == NULL) {
-                $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 1);
-                $result = $this->save($checkFile, NULL, "IGNORE");
+                elseif ($rec->dangerRate == NULL) {
 
-                if(!$result)
-                {
-                    $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                    $rec->dangerRate = $cRec->dangerRate;
-                    fileman_Files::save($rec, "dangerRate");
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
+                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 1);
+                    $result = $this->save($checkFile, NULL, "IGNORE");
+
+                    if(!$result) {
+                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+                        $rec->dangerRate = $cRec->dangerRate;
+                        fileman_Files::save($rec, "dangerRate");
+                    } else {
+                        $counter++;
+                    }
                 }
             }
         }
