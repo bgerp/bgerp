@@ -447,16 +447,29 @@ class core_Os
         if (!isset($memoryLimit)) {
             $memoryLimit = ini_get('memory_limit');
         }
-        
-        if (preg_match("/^(?'size'\d+)(?'type'.)$/", $memoryLimit, $matches)) {
-            
-            if ($matches['type'] == 'M') {
-                $memoryLimit = $matches['size'] * 1024 * 1024;
-            } else if ($matches['type'] == 'K') {
-                $memoryLimit = $matches['size'] * 1024;
-            }
-        }
-        
-        return (int) $memoryLimit;
+
+        return self::getBytes($memoryLimit);
     }
+
+    
+    /**
+     * Converts shorthand memory notation value to bytes
+     * From http://php.net/manual/en/function.ini-get.php
+     *
+     * @param $val Memory size shorthand notation string
+     */
+    public static function getBytes($val) {
+        $val = trim($val);
+        $last = strtolower($val[strlen($val)-1]);
+        switch($last) {
+            // The 'G' modifier is available since PHP 5.1.0
+            case 'g':
+                $val *= 1024;
+            case 'm':
+                $val *= 1024;
+            case 'k':
+                $val *= 1024;
+        }
+        return $val;
+    }    
 }

@@ -3177,10 +3177,10 @@ div.location.public {
   display: inline-block;
   margin-bottom: -12px; }
   .textWithIcons a,
-  .textWithIcons span {
+  .textWithIcons span:not(.highlight) {
     float: left;
     margin-right: 5px; }
-  .textWithIcons span {
+  .textWithIcons span:not(.highlight) {
     position: relative;
     top: -3px !important; }
 
