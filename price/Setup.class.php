@@ -122,4 +122,36 @@ class price_Setup extends core_ProtoSetup
     {
     	price_ProductCosts::truncate();
     }
+    
+    
+    function transferGroups()
+    {
+    	$CatGroups = cls::get('cat_Groups');
+    	$CatGroups->setupMvc();
+    	
+    	$PriceGroups = cls::get('price_Groups');
+    	$PriceGroups->setupMvc();
+    	
+    	$parentId = cat_Groups::fetchField("#sysId = 'priceGroup'", 'id');
+    	
+    	$res = array();
+    	$gQuery = price_Groups::getQuery();
+    	while($rec = $gQuery->fetch()){
+    		$id = cat_Groups::fetchField(array("#parentId = {$parentId} AND #name = '[#1#]'", $rec->title));
+    		if(!$id){
+    			$recToSave = (object)array('name' => $rec->title, 'parentId' => $parentId);
+    			$id = $CatGroups->save_($recToSave, NULL, 'REPLACE');
+    		}
+    		
+    		if($id){
+    			$rec->groupId = $id;
+    			$PriceGroups->save_($rec, 'groupId');
+    		}
+    		$res[$rec->id] = $rec->groupId;
+    	}
+    	bp($res);
+    	
+    	//if($parentId = $mvc->fetchField(array("#name = '[#1#]'", $rec->csv_parentId), 'id')){
+    	//bp();
+    }
 }

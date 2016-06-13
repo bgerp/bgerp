@@ -39,7 +39,7 @@ class price_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, description, productsCount=Продукти';
+    var $listFields = 'id, title, description, productsCount=Продукти,groupId';
     
     
     /**
@@ -112,7 +112,8 @@ class price_Groups extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');
-		
+        $this->FLD('groupId', 'varchar(128)', 'mandatory,caption=Група,input=none');
+        
         $this->setDbUnique('title');
     }
     
