@@ -345,7 +345,10 @@ class sales_Invoices extends deals_InvoiceMaster
     			$defInfo .= tr('|Съгласно сделки|*: ') . $closedDocuments . PHP_EOL;
     		} else {
     			$handle = sales_Sales::getHandle($firstRec->id);
-    			$defInfo .= tr("Съгласно сделка") . " :#{$handle}/{$firstDoc->getVerbal('valior')}";
+    			Mode::push('text', 'plain');
+    			$valior = $firstDoc->getVerbal('valior');
+    			Mode::pop('text');
+    			$defInfo .= tr("Съгласно сделка") . " :#{$handle}/{$valior}";
     			
     			// Ако продажбата има референтен номер, попълваме го в забележката
     			if($firstRec->reff){
