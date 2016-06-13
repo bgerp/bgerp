@@ -62,7 +62,7 @@ class vtotal_Checks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created";
+    public $loadList = "plg_Created, plg_Sorting";
 
 
     /**
