@@ -74,7 +74,7 @@ class vtotal_Checks extends core_Master
         $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
-        $this->FLD('timesScaned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScanеd');
+        $this->FLD('timesScanned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScaned');
         $this->FLD('rateByVT', 'varchar(8)', 'caption=Опастност');
         $this->setDbUnique('filemanDataId');
     }
@@ -182,7 +182,7 @@ class vtotal_Checks extends core_Master
 
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScaned' => 1);
+                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 1);
                 $result = $this->save($checkFile, NULL, "IGNORE");
 
                 if(!$result) {
@@ -216,7 +216,7 @@ class vtotal_Checks extends core_Master
         {
             $result = self::VTGetReport($rec->md5);
 
-            if($rec->timesScaned >= 2)
+            if($rec->timesScanned >= 2)
             {
                 $fQuery = fileman_Files::getQuery();
                 $fQuery->where("#dataId = {$rec->filemanDataId}");
@@ -230,7 +230,7 @@ class vtotal_Checks extends core_Master
             else{
                 if($result == -1 || $result == -3 || $result->response_code == 0)
                 {
-                    $rec->timesScaned = $rec->timesScaned + 1;
+                    $rec->timesScanned = $rec->timesScanned + 1;
                     $rec->lastCheck = $now;
                     $this->save($rec);
                 }
