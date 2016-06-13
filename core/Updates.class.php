@@ -84,7 +84,7 @@ class core_Updates extends core_Manager
     function description()
     {
         $this->FLD('version', 'varchar(64)', 'caption=Версия,tdClass=centered');
-        $this->FLD('ghPublishedAt', 'datetime(format=smartTime)', 'caption=Публикуване,tdClass=centered');
+        $this->FLD('ghPublishedAt', 'datetime(format=smartTime)', 'caption=Публикуване');
         $this->FLD('repo', 'varchar(64)', 'caption=Репозитори,tdClass=centered');
         $this->FLD('branch', 'varchar(64)', 'caption=Бранч,tdClass=centered');
         $this->FLD('tag', 'varchar(64)', 'caption=Бранч,column=none');
