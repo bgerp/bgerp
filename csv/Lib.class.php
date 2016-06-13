@@ -241,7 +241,9 @@ class csv_Lib
         }
         
         $delimiter = str_replace(array('comma', 'semicolon', 'colon', 'vertica', '&Tab;', '&comma;', '&vert;'), array(',', ';', ':', '|', "\t", ',', '|'), $delimiter);
-        $delimiter = html_entity_decode(csv_Setup::get('DELIMITER'), ENT_HTML5);
+        if(strlen($delimiter) > 1) {
+            $delimiter = html_entity_decode(csv_Setup::get('DELIMITER'), ENT_HTML5);
+        }
 
         setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
         setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE)));
