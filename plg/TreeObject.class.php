@@ -206,7 +206,7 @@ class plg_TreeObject extends core_Plugin
 		foreach ($data->recs as $br){
 			$tree[$br->parentId][] = $br;
 		}
-		
+		//bp($data->recs,$tree);
 		// Подготвяме дървото започвайки от обектите без бащи (корените)
 		$tree = self::createTree($tree, $tree[NULL]);
 		
@@ -264,16 +264,18 @@ class plg_TreeObject extends core_Plugin
 		$round++;
 		$tree = array();
 	    
-	    foreach ($parent as $k => $l){
-	    	if(is_null($l->parentId)){
-	    		$round = 0;
-	    	}
-	        if(isset($list[$l->id])){
-	            $l->children = self::createTree($list, $list[$l->id], $round);
-	        }
-	        $l->_level = $round;
-	        $tree[] = $l;
-	    } 
+		if(is_array($parent)){
+			foreach ($parent as $k => $l){
+				if(is_null($l->parentId)){
+					$round = 0;
+				}
+				if(isset($list[$l->id])){
+					$l->children = self::createTree($list, $list[$l->id], $round);
+				}
+				$l->_level = $round;
+				$tree[] = $l;
+			}
+		}
 	    
 	    return $tree;
 	}
