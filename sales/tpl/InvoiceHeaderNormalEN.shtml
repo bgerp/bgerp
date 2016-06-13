@@ -19,11 +19,11 @@
                                         <div class='invInfo bigData'>
                                             <div class='original'>[#INV_STATUS#]</div>
                                             <!--ET_BEGIN originInv-->
-                                            <div id='origin-title'>for Invoice <b>[#originInv#]</b> from [#originInvDate#]</div>
+                                            <div id='origin-title'>at Invoice <b>[#originInv#]</b> from [#originInvDate#]</div>
                                             <!--ET_END originInv-->
                                         </div>
                                         <!--ET_BEGIN state-->
-                                        <div class="[#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
+                                        <div class="state [#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Seller</b> </td>
@@ -134,16 +134,12 @@
                                         <!--ET_BEGIN accountId-->
                                         <div>
                                             <span class='quiet'>Bank Account:</span> [#accountId#]
+                                            <!--ET_BEGIN bankInfo-->
+                                            [#bankInfo#]
                                             <div class="smallData">
-                                                <!--ET_BEGIN bank-->
-                                                <div>
-                                                    [#bank#]
-                                                    <!--ET_END bank-->
-                                                    <!--ET_BEGIN bic-->
-                                                    , BIC: [#bic#]
-                                                </div>
-                                                <!--ET_END bic-->
+                                                <!--ET_BEGIN bank-->[#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, BIC: [#bic#]<!--ET_END bic-->
                                             </div>
+                                            <!--ET_END bankInfo-->
                                         </div>
                                         <!--ET_END accountId-->
                                         <!--ET_BEGIN deliveryInfo-->
@@ -214,8 +210,8 @@
                                         <hr>
                                         <table class='centered special-borders' style='width:100%;'>
                                             <tr>
-                                                <td class='centered border-right' style='width:50%;'>Receiver By:</td>
-                                                <td class='centered'>Prepared By:</td>
+                                                <td class='centered border-right' style='width:50%;'>Received by:</td>
+                                                <td class='centered'>Prepared by:</td>
                                             </tr>
                                             <tr>
                                                 <td style='height:40px;' class='border-right'>&nbsp;</td>

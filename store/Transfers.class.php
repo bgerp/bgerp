@@ -46,7 +46,7 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
 
     
@@ -113,7 +113,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
 
 
     /**
@@ -143,15 +143,15 @@ class store_Transfers extends core_Master
 
    
     /**
-     * Групиране на документите
+     * Файл за единичния изглед в мобилен
      */
-    public $newBtnGroup = "4.5|Логистика";
+    public $singleLayoutFileNarrow = 'store/tpl/SingleLayoutTransfersNarrow.shtml';
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * Групиране на документите
      */
-    public $rowToolsField = 'tools';
+    public $newBtnGroup = "4.5|Логистика";
     
     
     /**
@@ -164,8 +164,14 @@ class store_Transfers extends core_Master
      * Как се казва полето в което е избран склада
      */
     public $storeFieldName = 'fromStore';
-    
-    
+
+
+	/**
+	 * Икона на единичния изглед
+	 */
+	public $singleIcon = 'img/16/transfers.png';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -187,6 +193,18 @@ class store_Transfers extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 
             'caption=Статус, input=none'
         );
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'fromStore')){
+    		$requiredRoles = 'no_one';
+    	}
     }
     
     

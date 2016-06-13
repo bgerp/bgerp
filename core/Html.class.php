@@ -20,9 +20,18 @@ class core_Html
     /**
      * Композира xHTML елемент
      */
-    static function createElement($name, $attributes, $body = NULL, $closeTag = FALSE)
+    static function createElement($name, $attributes = array(), $body = NULL, $closeTag = FALSE)
     {   
         $attrStr = '';
+
+        if($name == 'img') {
+            if(!is_array($attributes)) {
+                $attributes = array();
+            }
+            if(!isset($attributes['alt'])) {
+                $attributes['alt'] = '';   
+            }
+        }
 
         if ($name) {
 
@@ -45,6 +54,7 @@ class core_Html
                     
                     $attrStr .= " " . $atr . "=\"" . $content . "\"";                 
                 }
+
             }
 
             if ( ( $body === NULL || $body === FALSE)  && !$closeTag) {
@@ -79,56 +89,81 @@ class core_Html
     /**
      * Създава редактируем комбо-бокс, съчетавайки SELECT с INPUT
      */
-    static function createCombo($name, $value, $attr, $options)
+    static function createCombo($name, $value, $attr = array(), $options = array())
     {
-        $tpl = new ET();
-
-
-        // За съвместимост с IE
-        $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
-        $tpl->appendOnce("\n<!--[if IE 6]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
-
         $attr['name'] = $name;
-
+        
         self::setUniqId($attr);
- 
-        $attr['class'] .= ' combo';
-        $attr['value'] = $value;
-        $id = $attr['id'];
-        
-        $suffix = '_cs';
-        list($l, $r) = explode('[', $id);
-        $selectId = $l . $suffix . $r;
 
-        if ($attr['ajaxAutoRefreshOptions']) {
-            $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
-            $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
-            if($attr['onchange']) {
-                $attr['onchange'] = "if(isOptionExists('" . $selectId . "', this.value)) {" . $attr['onchange'] . "} ";
+        if(Mode::is('javascript', 'no')) {
+            
+            $listId = $attr['id'] . '_list';
+
+            $attr['list'] = $listId;
+
+            $tpl = self::createElement('input', $attr);
+            
+            $tpl->append(self::createElement('datalist', array('id' =>$listId)));
+            if(is_array($options)) {
+                unset($options['']);
+                foreach($options as $key => $v) {
+                    $tpl->append("\n" . self::createElement('option', array('value' => $v)));
+                }
             }
-            $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
-            unset($attr['ajaxAutoRefreshOptions']);
+            $tpl->append(self::createElement('/datalist'));
+
+        } else {
+
+            $tpl = new ET();
+
+            // За съвместимост с IE
+            $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
+            $tpl->appendOnce("\n<!--[if IE 6]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
+
+
+     
+            $attr['class'] .= ' combo';
+            $attr['value'] = $value;
+            $id = $attr['id'];
+            
+            $suffix = '_cs';
+            list($l, $r) = explode('[', $id);
+            $selectId = $l . $suffix . $r;
+
+            if ($attr['ajaxAutoRefreshOptions']) {
+                $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
+                $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
+                if($attr['onchange']) {
+                    $attr['onchange'] = "if(isOptionExists('" . $selectId . "', this.value)) {" . $attr['onchange'] . "} ";
+                }
+                $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
+                unset($attr['ajaxAutoRefreshOptions']);
+            }
+
+            unset($attr['onblur']);
+            $attr['type'] = 'text';
+            $attr['autocomplete'] = 'off';
+            $tpl->append(self::createElement('input', $attr));
+            
+            unset($attr['autocomplete'], $attr['type']);
+
+            $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
+
+            jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", TRUE);
+
+            $attr['id'] = $selectId;
+            $name = $attr['name'] = $selectId;
+
+            // Долното кара да не работи селекта в firefox-mobile, но е добре за  
+            // декстоп-браузърите, когато се работи с tab за превключване на полетата
+            if(!Mode::is('screenMode', 'narrow')) {
+                $attr['tabindex'] = "-1";
+            }
+
+            unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
+
+            $tpl->prepend(self::createSelect($name, $options, $value, $attr));
         }
-
-        unset($attr['onblur']);
-        $attr['type'] = 'text';
-        $tpl->append(self::createElement('input', $attr));
-        
-        unset($attr['autocomplete'], $attr['type']);
-
-        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
-
-        $tpl->appendOnce("\n runOnLoad(function(){comboBoxInit('{$attr['id']}', '{$selectId}');})", 'JQRUN');
-
-        $attr['id'] = $selectId;
-        $name = $attr['name'] = $selectId;
-
-        // Долното кара да не работи селекта в firefox-mobile
-        //$attr['tabindex'] = "-1";
-
-        unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
-
-        $tpl->prepend(self::createSelect($name, $options, $value, $attr));
 
         return $tpl;
     }
@@ -167,10 +202,16 @@ class core_Html
     
                 $groups[$lastGroup = trim($group)][$index] = trim($caption);
         	}
-        	 //bp($groups);
+            
+            // bp($groups);
+
         	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
         	if(count($groups)){
-        		
+        		if(isset($groups[''])) {
+                    asort($groups['']);
+                    $newOptions += $groups[''];
+                    unset($groups['']);
+                }
         		foreach($groups as $group => $optArr) {
         		    // Добавяме името като OPTGROUP
                     if($group) {
@@ -179,6 +220,7 @@ class core_Html
                                     'group' => TRUE,
                             );
                     }
+                    asort($optArr);
                     $newOptions += $optArr;
                 }
 
@@ -254,7 +296,7 @@ class core_Html
 
                 // Хак за добавяне на плейс-холдер
                 if($selAttr['placeholder'] &&
-                    empty($attr['value']) && !trim($title)) {
+                    strlen($attr['value'])==0 && !trim($title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
                 }
@@ -307,7 +349,9 @@ class core_Html
         $columns = NULL)
     {
         $optionsCnt = self::countOptions($options);
-
+        
+        setIfNot($attr['data-hiddenName'], $name);
+        
         // Очакваме да има поне една опция
         expect($optionsCnt > 0, "'Липсват опции за '{$name}'");
         
@@ -490,6 +534,8 @@ class core_Html
         return $input;
     }
 
+
+
    
     /**
      * Създава бутон, който при натискане предизвиква съобщение за грешка
@@ -511,9 +557,9 @@ class core_Html
      */
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
+        
         $title = tr($title);
-
-        $attr = arr::make($attr);
 
         // Ако URL-то е празно - забраняваме бутона
         if((is_array($url) && count($url) == 0) || !$url) {
@@ -553,14 +599,11 @@ class core_Html
         }
 
         // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
+        if (!Mode::is('screenMode', 'narrow') ) {
+            $attr = self::addBackgroundIcon($attr);
+        } else {
             unset($attr['ef_icon']);
         }
-
 
         // Ако нямаме JavaScript правим хипервръзка
         if ( Mode::is('javascript', 'no') ) {
@@ -575,12 +618,6 @@ class core_Html
 
             return self::createElement('a', $attr, "$title");
         }
-
-        // Вкарваме предупреждението
-        if ($warning) {
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
-        }
-
         
         // Вкарваме JavaScript-a
         if ($newWindow) {
@@ -613,12 +650,7 @@ class core_Html
      */
     static function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
     {
-        $attr = arr::make($attr);
-
-        // Вкарваме предупреждението
-        if ($warning) {
-            $attr['onclick'] = " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; " . $attr['onclick'];
-        }
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
 
         $attr['name'] .= "Cmd[{$cmd}]";
 
@@ -646,11 +678,9 @@ class core_Html
         }
         
         // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
+        if (!Mode::is('screenMode', 'narrow') ) {
+            $attr = self::addBackgroundIcon($attr);
+        } else {
             unset($attr['ef_icon']);
         }
 
@@ -668,13 +698,7 @@ class core_Html
      */
     static function createFnBtn($title, $function, $warning = NULL, $attr = array())
     {
-        $attr = arr::make($attr);
-
-        // Вкарваме предупреждението, ако има такова
-        if ($warning) {
-            $attr['onclick'] .= " if (!confirm('" .
-            str_replace("'", "\'", tr($warning)) . "')) return false; ";
-        }
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
 
         $attr['onclick'] .= $function;
 
@@ -690,11 +714,9 @@ class core_Html
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
         
         // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
+        if (!Mode::is('screenMode', 'narrow') ) {
+            $attr = self::addBackgroundIcon($attr);
+        } else {
             unset($attr['ef_icon']);
         }
 
@@ -717,12 +739,7 @@ class core_Html
      */
     static function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
     {
-        $attr = arr::make($attr);
-
-        if ($warning) {
-            $attr['onclick'] = "if (!confirm('" . str_replace("'", "\'", $warning) .
-            "')) return false; " . $attr['onclick'];
-        }
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
@@ -754,15 +771,24 @@ class core_Html
             }
         }
 
-        if($attr['ef_icon']) {
-            $iconSrc = sbf($attr['ef_icon'], '', Mode::is('text', 'xhtml'));
+        if($icon = $attr['ef_icon']) {
             
-            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-                $icon    = "<img src='$iconSrc' width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
+            if ( (Mode::is('text', 'xhtml') || Mode::is('printing'))) {
+
+                $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
+                $srcset  = '';
+
+                if(log_Browsers::isRetina()) {
+                    $icon2 = str_replace('/16/', '/32/', $icon);
+                    if(getFullPath($icon2)) {
+                        $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
+                    }
+                }
+                $icon    = "<img src='$iconSrc' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
                 $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
-                $attr['class'] .= ' linkWithIcon';
-                $attr['style'] .= "background-image:url('{$iconSrc}');";
+                // Добавяме икона на бутона, ако има
+                $attr = self::addBackgroundIcon($attr);
             }
 
             unset($attr['ef_icon']);
@@ -850,6 +876,37 @@ class core_Html
 
 
     /**
+     * Връща <img ..> таг с подадените атрибути
+     */
+    public static function createImg($attr)
+    {
+        if($path = $attr['path']) {
+            $src = sbf($path, '');
+            unset($attr['path']);
+            if((log_Browsers::isRetina())) {
+                if($dotPos = mb_strrpos($path, '.')) {
+                    $path2x = mb_substr($path, 0, $dotPos) . '2x' . mb_substr($path, $dotPos);
+                    if(getFullPath($path2x)) {
+                        $url2x = sbf($path2x, '');
+                        $attr['srcset']   = "{$url2x} 2x";
+                    }
+                }
+
+            }
+            $attr['src'] = $src;
+        }
+
+        if(!isset($attr['alt'])) {
+            $attr['alt'] = '';
+        }
+
+        $res = self::createElement('img', $attr);
+
+        return $res;
+    }
+
+
+    /**
      * Създава лейаут, по зададени блокове, като плейсхолдери
      */
     static function createLayout($blocks)
@@ -892,16 +949,18 @@ class core_Html
     	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
     	
     	if($appendToEnd === TRUE){
-    		$elementTpl = "[#body#] <span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+    		$elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
     	} else {
-    		$elementTpl = "<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+    		$elementTpl = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
     	}
+    	
+    	$hint = str_replace("'", '"', $hint);
     	
     	$element = new core_ET($elementTpl);
         $element->append($body, 'body');
         $element->append($hint, 'hint');
         $element->append($iconHtml, 'icon');
-               
+        
     	return $element;
     }
     
@@ -1110,7 +1169,7 @@ class core_Html
     /**
      * Прави dump на масив в html представяне
      */
-    public static function arrayToHtml($arr)
+    public static function arrayToHtml($arr, $openLevels = 3, $viewLevels = 5)
     {
         $result = '';
 
@@ -1126,7 +1185,7 @@ class core_Html
             } else {
                 $prefix = '';
             }
-            $result .= self::mixedToHtml($item, 3, 5, $prefix);
+            $result .= self::mixedToHtml($item, $openLevels, $viewLevels, $prefix);
             $result .= "</div>";
         }
 
@@ -1165,4 +1224,73 @@ class core_Html
         
         return $text; 
     } 
+
+
+    /**
+     * Добавя икона като бекграунд в атрибутите
+     */
+    public static function addBackgroundIcon($attr, $icon = NULL)
+    {
+        if(!$icon) {
+            $icon = $attr['ef_icon'];
+            unset($attr['ef_icon']);
+        }
+
+        if(!empty($icon) && getFullPath($icon)) {
+
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            
+            $attr['style'] = self::getIconStyle($icon, $attr['style']);
+        }
+
+        return $attr;
+    }
+
+
+    /**
+     * Връща стил с включен бекграунд за икона
+     */
+    static function getIconStyle($icon, $style = 'background-size:16px 16px;')
+    {
+        if(!empty($icon)) {
+            if(log_Browsers::isRetina()) {
+                $icon2 = str_replace('/16/', '/32/', $icon);
+                if(getFullPath($icon2)) {
+                    $icon = $icon2;
+                }
+            }
+
+            $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
+            
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            
+            $style = rtrim($style, ' ;');
+
+            $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";
+        }
+
+        return $style;
+    }
+    
+    
+    /**
+     * Подготвя атрибутите на бутон или хипервръзка
+     */
+    private static function prepareLinkAndBtnAttr($attr, $warning = '')
+    {
+        $attr = arr::make($attr);
+        
+        if($attr['title']) {
+            $attr['title'] = tr($attr['title']);
+        }
+
+        // Вкарваме предупреждението
+        if ($warning) {
+            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
+        }
+
+        return $attr;
+    }
+
+
 }

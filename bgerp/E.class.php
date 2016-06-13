@@ -121,6 +121,14 @@ class bgerp_E extends core_Manager
         
         $form->setDefault('validity', 86400);
         
+        // Ако линка ще сочи към частна мрежа, показваме предупреждение
+        if (core_App::checkCurrentHostIsPrivate()) {
+            
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в интернет|*.") . "</div>";
+        }
+        
         if ($form->isSubmitted()) {
             
             $rec = $form->rec;
@@ -187,7 +195,7 @@ class bgerp_E extends core_Manager
             self::save($rec);
             
             $downloadUrl = self::getUrlForDownload($rec->key);
-            $form->info = "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
+            $form->info .= "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
             
             $form->setField('format, validity', 'input=none');
 			
@@ -196,8 +204,8 @@ class bgerp_E extends core_Manager
             
             $form->title = "Линк за сваляне";
         } else {
-            $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = Избор');
-            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+            $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title= ' . tr('Прекратяване на действията'));
         }
         
         $tpl = $inst->renderWrapping($form->renderHtml());

@@ -17,6 +17,26 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Масив с IP-та, които се приемат за рискови и контрагента, ако не е от същата държава
+     * Трбва да дава предупреждение за измама
+     * 
+     * GH - Ghana
+     * NG - Nigeria
+     * VN - Viet Nam
+     * SN - Senegal
+     * SL - Sierra Leone
+     * HK - Hong Kong
+     */
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK');
+    
+    
+    /**
+     * Шаблон (ET) за заглавие на перо
+     */
+    public $recTitleTpl = '[#subject#]';
+    
+    
+    /**
      * Флаг, който указва, че документа е партньорски
      */
     public $visibleForPartners = TRUE;
@@ -99,8 +119,7 @@ class email_Incomings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, 
     				plg_RowTools, plg_Printing, email_plg_Document, 
-    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank,
-    				plg_AutoFilter';
+    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank';
     
     
     /**
@@ -685,8 +704,18 @@ class email_Incomings extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
+        $haveErr = FALSE;
         if(!$rec->subject) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
+        }
+		
+        if ($rec->headers) {
+            $xResentFrom = email_Mime::getHeadersFromArr($rec->headers, 'X-ResentFrom');
+        	
+            if ($xResentFrom && ($xEmailStr = email_Mime::getAllEmailsFromStr($xResentFrom))) {
+                $tEmails = cls::get('type_Emails');
+                $row->fromEml .= ' ' . tr('чрез') . ' ' . $tEmails->toVerbal($xEmailStr);
+            }
         }
         
         if($fields['-single']) {
@@ -719,6 +748,7 @@ class email_Incomings extends core_Master
             if ($rec->AllTo && $rec->headers) {
                 if (!self::checkNamesInEmails($rec->AllTo)) {
                     $row->AllTo = self::addErrToEmailStr($row->AllTo, $errEmailInNameStr, 'error');
+                    $haveErr = TRUE;
                 }
             
                 if ($clostStr = $mvc->getClosestEmail($rec->AllTo)) {
@@ -734,6 +764,7 @@ class email_Incomings extends core_Master
             if ($rec->AllCc && $rec->headers) {
                 if (!self::checkNamesInEmails($rec->AllCc)) {
                     $row->AllCc = self::addErrToEmailStr($row->AllCc, $errEmailInNameStr,'error');
+                    $haveErr = TRUE;
                 }
                 
                 if ($clostStr = $mvc->getClosestEmail($rec->AllCc)) {
@@ -748,6 +779,7 @@ class email_Incomings extends core_Master
             if (trim($rec->fromEml) && $rec->headers) {
                 if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+                    $haveErr = TRUE;
                 }
             }
             
@@ -755,7 +787,7 @@ class email_Incomings extends core_Master
             if ($rec->headers) {
                 $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
                 $returnPathEmails = type_Email::extractEmails($returnPath);
-                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
+                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails, FALSE, TRUE)) {
                     $returnPathEmailsUniq = array_unique($returnPathEmails);
                     $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
                     $rEmailsStr = type_Varchar::escape($rEmailsStr);
@@ -765,6 +797,7 @@ class email_Incomings extends core_Master
                     }
                     
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, "Имейлът не съвпада с {$w} в|* Return-Path: " . $rEmailsStr, 'warning');
+                    $haveErr = TRUE;
                 }
             }
             
@@ -774,6 +807,20 @@ class email_Incomings extends core_Master
                 // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на контрагента|*.', 'error');
+                    $haveErr = TRUE;
+                }
+            }
+            
+            // Ако IP-то на изпращача е от рискова зона
+            // Показваме предупреждение след имейла
+            if ($rec->fromIp) {
+                $badIpArr = $mvc->getBadIpArr(array($rec->fromIp), $rec->folderId);
+                
+                if (!empty($badIpArr)) {
+                    $countryCode = $badIpArr[$rec->fromIp];
+                    $errIpCountryName = ' - ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+                    
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова зона|*{$errIpCountryName}!", 'error');
                 }
             }
         }
@@ -795,6 +842,55 @@ class email_Incomings extends core_Master
                 $row->fromEml .= ' (' . trim($row->fromName) . ')';
             }
         }
+
+
+        if ($haveErr) {
+            if ($row->fromEml instanceof core_ET) {
+                $row->fromEml->prepend('<span class="textWithIcons">');
+                $row->fromEml->append('</span>');
+            } else {
+                $row->fromEml = '<span class="textWithIcons">' . trim($row->fromName) . '</span>';
+            }
+        }
+    }
+    
+    
+    /**
+     * От подадения масив с IP адреси връща само лошите (от рискова зона)
+     * Изключват се IP-та от държавите със същата корица и подадените в масива за изключения
+     * 
+     * @param array $ipArr
+     * @param NULL|integer $folderId
+     * @param array $skipCountryArr
+     */
+    public static function getBadIpArr($ipArr, $folderId = NULL, $skipCountryArr = array())
+    {
+        $resArr = array();
+        
+        foreach ($ipArr as $ip) {
+            if (!trim($ip)) continue ;
+            
+            $ipCoutryCode = drdata_IpToCountry::get($ip);
+            
+            if (!in_array($ipCoutryCode, self::$riskIpArr)) continue ;
+            
+            if (isset($folderId)) {
+                $cData = doc_Folders::getContragentData($folderId);
+                
+                // Ако папката е от рисковите държави
+                // Ip-то не се добавя към рисковите
+                if (isset($cData) && isset($cData->countryId)) {
+                    $coutryCode = drdata_Countries::fetchField((int)$cData->countryId, 'letterCode2');
+                    if ($coutryCode == $ipCoutryCode) continue ;
+                }
+            }
+            
+            if (!empty($skipCountryArr) && isset($skipCountryArr[$ipCoutryCode])) continue ;
+            
+            $resArr[$ip] = $ipCoutryCode;
+        }
+        
+        return $resArr;
     }
     
     
@@ -861,11 +957,22 @@ class email_Incomings extends core_Master
      * 
      * @return string
      */
-    protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
+    public static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
     {
-        $hint = 'Възможен проблем|*' . '! ' . $errStr;
+        $hint = 'Възможен проблем|*!';
+
         
-        return ht::createHint($emailStr, $hint, $type);
+        if ($type != 'warning') {
+            $hint = "Възможност за измама|*! |Проверете по още един канал данните при превод на пари|*.";
+            $type = '/img/24/danger.png';
+        } else {
+            $type = '/img/24/warning.png';
+        }
+        
+        $hint .= " |" . $errStr;
+        
+        
+        return  ht::createHint($emailStr, $hint, $type);
     }
     
     
@@ -938,15 +1045,16 @@ class email_Incomings extends core_Master
     /**
      * Проверява дали имейла може да е еднакъв с подадения масив
      * Публичните трябва да съвпадат точно
-     * При останалите домейна трябва да съвпада
+     * При останалите - домейна трябва да съвпада
      * 
      * @param string $email
      * @param array $emailsArr
      * @param boolean $emailsArr
+     * @param boolean $removeSubdomains
      * 
      * @return boolean
      */
-    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE)
+    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE, $removeSubdomains = FALSE)
     {
         if (!$emailsArr) {
             if ($mandatory) {
@@ -979,6 +1087,16 @@ class email_Incomings extends core_Master
             } else {
                 $cDomain = type_Email::domain($emailCheck);
                 $cDomain = strtolower($cDomain);
+                
+                // Правим проверка без да сравняваме поддомейните
+                if ($removeSubdomains) {
+                    $cDomain = core_Url::parseUrl($cDomain);
+                    $cDomain = $cDomain['domain'];
+                
+                    $domain = core_Url::parseUrl($domain);
+                    $domain = $domain['domain'];
+                }
+                
                 if ($domain == $cDomain) {
                     
                     return TRUE;
@@ -1725,10 +1843,14 @@ class email_Incomings extends core_Master
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото наимей по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id, $forward)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
         $mvc = cls::get('email_Incomings');
         

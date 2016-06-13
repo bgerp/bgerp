@@ -106,7 +106,7 @@ class core_App
         // Разрешаваме грешките, ако инсталацията е Debug
         //ini_set("display_errors", EF_DEBUG);
         //ini_set("display_startup_errors", EF_DEBUG);
-
+        
 
         // Вътрешно кодиране
         mb_internal_encoding("UTF-8");
@@ -338,6 +338,11 @@ class core_App
         
         // На кой бранч от репозиторито е кода?
         defIfNot('BGERP_GIT_BRANCH', 'dev');
+        
+        // Ако паметта за скрипта е под 512М я правим на 512М
+        if (core_Os::getBytesFromMemoryLimit() < core_Os::getBytes("512M")) {
+            ini_set("memory_limit", "512M");
+        }
     }
 
 
@@ -362,11 +367,63 @@ class core_App
  
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
-
+        
+        // Проверяваме състоянието на системата и ако се налага репорва
+        self::checkHitStatus();
+        
         // Излизаме със зададения статус
-        exit($status);
+        exit();
     }
-
+    
+    
+    
+    /**
+     * Проверява състоянието на системата и ако се налага репортва
+     */
+    public static function checkHitStatus()
+    {
+        $memUsagePercentLimit = 80;
+        $executionTimePercentLimit = 70;
+        
+        $memoryLimit = core_Os::getBytesFromMemoryLimit();
+        
+        $realUsage = TRUE;
+        
+        $peakMemUsage = memory_get_peak_usage($realUsage);
+        if (is_numeric($memoryLimit)) {
+            $peakMemUsagePercent = ($peakMemUsage / $memoryLimit) * 100;
+            
+            // Ако сме доближили до ограничението на паметта
+            if ($peakMemUsagePercent > $memUsagePercentLimit) {
+                wp();
+            }
+        }
+        
+        $memUsage = memory_get_usage($realUsage);
+        if (is_numeric($memUsage)) {
+            $memUsagePercent = ($memUsage / $memoryLimit) * 100;
+            
+            // Ако сме доближили до ограничението на паметта
+            if ($memUsagePercent > $memUsagePercentLimit) {
+                wp();
+            }
+        }
+        
+        $maxExecutionTime = ini_get('max_execution_time');
+        if (core_Debug::$startMicroTime) {
+            if (core_Debug::$startMicroTime) {
+                $executionTime = core_Datetime::getMicrotime() - core_Debug::$startMicroTime;
+                
+                $maxExecutionTimePercent = ($executionTime / $maxExecutionTime) * 100;
+                
+                // Ако сме доближили до ограничението за времето
+                if ($maxExecutionTimePercent > $executionTimePercentLimit) {
+                    wp();
+                }
+            }
+        }
+    }
+    
     
     /**
      * Изпраща всичко буферирано към браузъра и затваря връзката
@@ -475,6 +532,25 @@ class core_App
     
     
     /**
+     * Проверява текущия хост (или ако е дефиниран, хоста от константа) дали е от частна мрежа
+     * 
+     * @return boolean
+     */
+    public static function checkCurrentHostIsPrivate()
+    {
+        static $status;
+        
+        if (!isset($status)) {
+            $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $status = core_Url::isPrivate($sHost);
+        }
+        
+        return $status;
+    }
+    
+    
+    /**
      * Връща резултата, като JSON и спира процеса
      * 
      * $resArr array
@@ -518,7 +594,7 @@ class core_App
             }
         }
         
-        if ($parentUrlArr) {
+        if (!empty($parentUrlArr)) {
             $params = $parentUrlArr;
         } else {
             // Всички параметри в рекуеста
@@ -531,7 +607,7 @@ class core_App
         }
         
         // Ако има параметри
-        if ($params) {
+        if (!empty($params)) {
             
             // Премахваме ненужните
             unset($params['virtual_url'], $params['ajax_mode']);
@@ -598,7 +674,7 @@ class core_App
     public static function getRetUrl()
     {
         $retUrl = core_Request::get('ret_url');
-        
+ 
         $res = self::parseLocalUrl($retUrl);
 
         return $res;
@@ -752,9 +828,7 @@ class core_App
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
-        if(is_array($params['ret_url'])) {  
-            $params['ret_url'] = self::toUrl($params['ret_url'], 'local');
-        }
+        core_Request::addUrlHash($params);  
         
         if($protect) {
             $Request->doProtect($params);
@@ -797,7 +871,7 @@ class core_App
         unset($params['Ctr'], $params['App'], $params['Act'], $params['id']);
         
         // Ако е сетнат масива
-        if ($preParamsArr) {
+        if (!empty($preParamsArr)) {
             
             // В пътя допускаме само букви, цифри , тере, долна черта и точка
             $pattern = "/^[A-Za-z0-9_\-\.]*$/";

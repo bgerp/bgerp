@@ -462,6 +462,9 @@ tr.row-removed {
   .wide .user-profile .listBlock .listRows > table.listTable {
     width: 100%; }
 
+.narrow .user-profile .listBlock .listRows > table.listTable {
+  width: 100%; }
+
 /*
  * потребителски профил
  */
@@ -534,9 +537,6 @@ tr.row-removed {
     .user-profile .profile-image div img {
       width: auto;
       height: 100px; }
-  .user-profile .linkWithIcon {
-    height: 19px;
-    padding-top: 1px; }
   .user-profile > .groupList {
     margin-left: 10px; }
   .user-profile .card-profile {
@@ -818,6 +818,8 @@ div.mobile {
   padding-top: 2px;
   margin-bottom: 4px;
   display: block; }
+  .namelist .icon {
+    margin: 0 5px; }
 
 .number-block {
   padding: 2px;
@@ -834,6 +836,13 @@ div.mobile {
   -ms-border-radius: 3px;
   border-radius: 3px;
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); }
+
+.document-handler {
+  font-size: 0.8em;
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  padding: 2px;
+  display: inline-block; }
 
 /*
  * край на стилове за CRM
@@ -1025,6 +1034,9 @@ div.acc-detail {
       .portal.planning .state-closed:hover,
       .portal.detail-info .state-closed:hover {
         background-color: #d0d0d0; }
+    .portal.planning table.listTable th,
+    .portal.detail-info table.listTable th {
+      vertical-align: middle !important; }
   .portal .legend {
     position: absolute;
     top: -16px;
@@ -1158,7 +1170,6 @@ td.portal-date {
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 20px;
-  float: left;
   line-height: 120%;
   margin-top: 10px; }
   .document .corrected {
@@ -1240,6 +1251,9 @@ td.portal-date {
     white-space: nowrap; }
   .document .tab-control .detail-info {
     font-size: 0.9em; }
+  .document .business-doc-summary-table > tbody > tr > td {
+    padding: 3px !important;
+    border: 0px !important; }
 
 .small-padding td {
   padding: 3px !important; }
@@ -1322,6 +1336,20 @@ td.portal-date {
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
 
+.narrow .document-settings,
+.narrow .document-settings-left,
+.narrow .document-title-group {
+  display: inline;
+  float: none; }
+  .narrow .document-settings .liked,
+  .narrow .document-settings .disliked,
+  .narrow .document-settings-left .liked,
+  .narrow .document-settings-left .disliked,
+  .narrow .document-title-group .liked,
+  .narrow .document-title-group .disliked {
+    position: relative;
+    top: 3px; }
+
 .document-settings-left,
 .document-title-group {
   float: left;
@@ -1331,13 +1359,17 @@ td.portal-date {
   position: relative; }
 
 .narrow .docBgIcon {
-  font-size: 0.9em; }
+  font-size: 0.9em;
+  padding-right: 20px; }
 
 .narrow .document-settings {
   position: absolute;
   right: 2px;
   top: 50%;
   margin-top: -10px; }
+
+.narrow .document-settings-left span {
+  white-space: nowrap; }
 
 .snapshot {
   margin-top: 10px;
@@ -1369,9 +1401,6 @@ td.portal-date {
 .lighterBold {
   color: #666666; }
 
-.selectRows .listTable > tbody > tr > td:first-child {
-  text-align: center; }
-
 .document-title {
   font-size: 16pt;
   font-weight: bold;
@@ -1387,6 +1416,9 @@ td.rowtools-column {
 
 .small-field {
   width: 1%; }
+
+.medium-field {
+  width: 200px; }
 
 .large-field {
   width: 50%; }
@@ -1439,7 +1471,6 @@ pre.document {
   -webkit-box-shadow: none;
   box-shadow: none;
   padding: 0;
-  float: left;
   margin: 2px 0 0 0; }
 
 .antetka {
@@ -1487,7 +1518,8 @@ pre.document {
   margin-top: 3px; }
 
 .cell {
-  border: 1px solid #999999; }
+  border: 1px solid #999999;
+  vertical-align: top; }
 
 .topCell {
   max-width: 400px !important; }
@@ -2158,6 +2190,8 @@ span.sharing-history-title {
   display: block;
   margin: 0 auto;
   text-align: left; }
+  #all #searchform {
+    margin-bottom: 20px; }
 
 .wide #all {
   min-width: 500px; }
@@ -2177,6 +2211,9 @@ span.sharing-history-title {
 
 .wide #login-form {
   padding: 40px; }
+  .wide #login-form .button {
+    padding: 5px 7px !important;
+    font-size: 1em; }
 
 .wide #login-form .formTable {
   margin: 0; }
@@ -2186,9 +2223,19 @@ span.sharing-history-title {
 
 .drawing {
   float: right;
-  max-width: 400px; }
+  max-width: 380px; }
   .drawing img {
-    max-width: 400px; }
+    max-width: 380px; }
+
+@media handheld,
+only screen and (max-width: 1600px) {
+  .sidemenu-push-toright.sidemenu-push-toleft .drawing {
+    float: none; } }
+
+@media handheld,
+only screen and (max-width: 1400px) {
+  .sidemenu-push .drawing {
+    float: none; } }
 
 /*
  * стилове за външната част при потребител контрактор
@@ -2300,7 +2347,10 @@ span.sharing-history-title {
 #cmsNavigation div.nav_item {
   padding: 1px;
   line-height: normal;
-  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif; }
+  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
+  display: block;
+  clear: both;
+  margin-bottom: 3px; }
 
 #cmsNavigation a {
   -moz-border-radius: 3px;
@@ -2308,12 +2358,29 @@ span.sharing-history-title {
   -ms-border-radius: 3px;
   border-radius: 3px;
   padding: 1px 4px;
+  border: 1px solid transparent;
   display: inline-block; }
+
+  #cmsNavigation.articles-menu .nav_item a,
+  #cmsNavigation.articles-menu .nav_item span {
+    float: left;
+    border: 1px solid transparent; }
+  #cmsNavigation.articles-menu .nav_item:after {
+    content: '';
+    display: block;
+    clear: both; }
+
+#cmsNavigation a.linkWithIcon {
+  display: inline-block;
+  height: 21px;
+  float: left;
+  margin-left: 5px;
+  background-position: center !important; }
 
 #cmsNavigation .level1 {
   font-size: 16px;
   font-weight: bold;
-  margin-top: 10px;
+  padding-top: 10px;
   margin-bottom: 2px; }
 
 #cmsNavigation div:first-child {
@@ -2333,6 +2400,14 @@ span.sharing-history-title {
 
 #cmsNavigation div.nav_item {
   font-size: 1em; }
+
+#cmsNavigation .addPage {
+  clear: both;
+  padding: 2px;
+  border: solid 1px #cccccc;
+  background-color: #eeeeee;
+  margin: 5px 0;
+  font-size: 0.7em; }
 
 .narrow .articles-navigation {
   background-color: #cccccc;
@@ -3098,6 +3173,17 @@ div.location.public {
   .email-class h3 {
     margin: 10px 0 12px; }
 
+.textWithIcons {
+  display: inline-block;
+  margin-bottom: -12px; }
+  .textWithIcons a,
+  .textWithIcons span:not(.highlight) {
+    float: left;
+    margin-right: 5px; }
+  .textWithIcons span:not(.highlight) {
+    position: relative;
+    top: -3px !important; }
+
 .state-error-email {
   background-color: #f3bbaf; }
 
@@ -3570,7 +3656,7 @@ only screen and (min-width: 1240px) {
     min-width: 760px; } }
 
 @media handheld,
-only screen and (min-width: 1550px) {
+only screen and (min-width: 1500px) {
   #cmsNavigation div.nav_item {
     font-size: 1.02em; } }
 
@@ -4614,13 +4700,13 @@ only screen and (max-width: 320px) {
   .treeView .hidden {
     display: none; }
   .treeView .treeLevel1 .leafName {
-    text-indent: 50px; }
+    text-indent: 40px; }
   .treeView .treeLevel2 .leafName {
-    text-indent: 80px; }
+    text-indent: 60px; }
   .treeView .treeLevel3 .leafName {
-    text-indent: 110px; }
+    text-indent: 80px; }
   .treeView .treeLevel4 .leafName {
-    text-indent: 140px; }
+    text-indent: 100px; }
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
@@ -4695,6 +4781,9 @@ only screen and (max-width: 320px) {
   right: 10px;
   left: auto;
   margin: 0; }
+
+.narrow .elem-holder .endTooltip {
+  float: right; }
 
 /*
  * край на стилове за външната част при потребител контрактор

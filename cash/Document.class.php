@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class cash_Document extends core_Master
+abstract class cash_Document extends deals_PaymentDocument
 {
     
 	
@@ -34,10 +34,10 @@ abstract class cash_Document extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
-                     bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues';
+                     bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg';
     
     
     /**
@@ -49,13 +49,7 @@ abstract class cash_Document extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = "valior, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
     
     
     /**
@@ -83,9 +77,15 @@ abstract class cash_Document extends core_Master
     
     
     /**
-     * Кой може да пише?
+     * Кой може да създава?
      */
-    public $canWrite = 'cash, ceo';
+    public $canAdd = 'cash, ceo, purchase, sales';
+    
+    
+    /**
+     * Кой може да редактира?
+     */
+    public $canEdit = 'cash, ceo, purchase, sales';
     
     
     /**
@@ -127,6 +127,15 @@ abstract class cash_Document extends core_Master
     
     
     /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, cash';
+    
+    
+    /**
      * Добавяне на дефолтни полета
      * 
      * @param core_Mvc $mvc
@@ -140,7 +149,7 @@ abstract class cash_Document extends core_Master
     	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('number', 'int', 'caption=Номер');
-    	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name)', 'caption=Каса');
+    	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
@@ -154,7 +163,7 @@ abstract class cash_Document extends core_Master
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
     	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Контиран)',	'caption=Статус, input=none');
+    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 
     	// Поставяне на уникален индекс
@@ -216,15 +225,15 @@ abstract class cash_Document extends core_Master
     	// Поставяме стойности по подразбиране
     	$form->setDefault('valior', dt::today());
     	
-    	$form->setDefault('peroCase', cash_Cases::getCurrent());
+    	if(empty($form->rec->id) && $form->cmd != 'refresh'){
+    		$form->setDefault('peroCase', cash_Cases::getCurrent('id', FALSE));
+    		$form->setDefault('peroCase', $caseId);
+    	}
+    	
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
     	 
     	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
-    	
-    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
-    		$form->setField('amount', 'input');
-    	}
     	
     	if($contragentClassId == crm_Companies::getClassId()){
     		$form->setSuggestions($mvc->personDocumentField, crm_Companies::getPersonOptions($contragentId, FALSE));
@@ -251,6 +260,14 @@ abstract class cash_Document extends core_Master
     protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
+    	
+    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
+    		$form->setField('amount', 'input');
+    	}
+    	
+    	if(!isset($form->rec->peroCase)){
+    		$form->setField('currencyId', 'input=hidden');
+    	}
     	
     	if ($form->isSubmitted()){
     		if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
@@ -289,8 +306,6 @@ abstract class cash_Document extends core_Master
     			$form->setError('amountDeal', $msg);
     		}
     	}
-    	
-    	acc_Periods::checkDocumentDate($form, 'valior');
     }
     
     
@@ -310,6 +325,20 @@ abstract class cash_Document extends core_Master
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$tpl->push('cash/tpl/styles.css', 'CSS');
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	
+    	// Ако не е избрана каса, показваме бутона за контиране но с грешка
+    	if($rec->state == 'draft' && !isset($rec->peroCase) && $mvc->haveRightFor('conto')){
+    		$data->toolbar->addBtn('Контиране', array(), "id=btnConto,error=Не е избрана каса", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+    	}
     }
     
     
@@ -402,15 +431,17 @@ abstract class cash_Document extends core_Master
 
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$self = cls::get(get_called_class());
-    	
-    	$handle = static::getHandle($id);
-    	$title = mb_strtolower($self->singleTitle);
+    	$handle = $this->getHandle($id);
+    	$title = mb_strtolower($this->singleTitle);
     	$tpl = new ET(tr("Моля запознайте се с нашия {$title}") . ': #[#handle#]');
     	$tpl->append($handle, 'handle');
     	
@@ -465,9 +496,10 @@ abstract class cash_Document extends core_Master
     			unset($row->rate);
     		}
     		 
-    		$spellNumber = cls::get('core_SpellNumber');
-    		$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-    		$row->amountVerbal = $amountVerbal;
+    		$SpellNumber = cls::get('core_SpellNumber');
+    		$currecyCode = currency_Currencies::getCodeById($rec->currencyId);
+    		$amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', FALSE, $currecyCode);
+    		$row->amountVerbal = str::mbUcfirst($amountVerbal);
     		 
     		// Вземаме данните за нашата фирма
     		$ownCompanyData = crm_Companies::fetchOwnCompany();
@@ -480,12 +512,29 @@ abstract class cash_Document extends core_Master
     		$cashierRow = core_Users::recToVerbal($cashierRec);
     		$row->cashier = $cashierRow->names;
     
-    		$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
+    		if(isset($rec->peroCase)){
+    			$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
+    		} else {
+    			$row->peroCase = tr('Предстои да бъде уточнена');
+    			$row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";
+    		}
     		
     		if($origin = $mvc->getOrigin($rec)){
     			$options = $origin->allowedPaymentOperations;
     			$row->operationSysId = $options[$rec->operationSysId]['title'];
     		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')){
+    		$requiredRoles = 'no_one';
     	}
     }
 }

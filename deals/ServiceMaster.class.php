@@ -18,12 +18,6 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
-	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-	 */
-	public $rowToolsField = 'tools';
-	
-	
-	/**
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
 	public $rowToolsSingleField = 'title';
@@ -37,7 +31,7 @@ abstract class deals_ServiceMaster extends core_Master
 		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
 		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
 		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
-		$mvc->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС,input=hidden');
+		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=ДДС,input=hidden');
 		
 		$mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
 		$mvc->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,summary=amount,input=none');
@@ -56,7 +50,7 @@ abstract class deals_ServiceMaster extends core_Master
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Сторниран)',
+				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -171,8 +165,7 @@ abstract class deals_ServiceMaster extends core_Master
 		$Companies = cls::get('crm_Companies');
 		$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 		$row->MyCompany = transliterate(tr($row->MyCompany));
-		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-		$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
 		
 		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
 		if($uic != $ownCompanyData->vatNo){
@@ -185,7 +178,6 @@ abstract class deals_ServiceMaster extends core_Master
 		$cData = $ContragentClass->getContragentData($rec->contragentId);
 		$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
 		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-		$row->contragentAddress  = core_Lg::transliterate($row->contragentAddress);
 	}
 
 
@@ -409,15 +401,18 @@ abstract class deals_ServiceMaster extends core_Master
      }
 
 
-     /**
-      * Интерфейсен метод на doc_ContragentDataIntf
-      * Връща тялото на имейл по подразбиране
-      */
-     static function getDefaultEmailBody($id)
+    /**
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody($id, $forward = FALSE)
      {
-     	$handle = static::getHandle($id);
-     	$self = cls::get(get_called_class());
-     	$title = tr(mb_strtolower($self->singleTitle));
+     	$handle = $this->getHandle($id);
+     	$title = tr(mb_strtolower($this->singleTitle));
      	
      	$tpl = new ET(tr("Моля запознайте се с нашия") . " {$title}: #[#handle#]");
      	$tpl->append($handle, 'handle');

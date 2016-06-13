@@ -236,7 +236,12 @@ abstract class deals_DealDetail extends doc_Detail
     	
     		// Извличане на информация за продукта - количество в опаковка, единична цена
     		if(!isset($rec->packQuantity)){
-    			$rec->packQuantity = 1;
+    			$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
+    			if(!empty($defQuantity)){
+    				$rec->packQuantity = $defQuantity;
+    			} else {
+    				$form->setError('packQuantity', 'Не е въведено количество');
+    			}
     		}
     		
     		// Закръгляме количеството спрямо допустимото от мярката
@@ -273,17 +278,22 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     		} else {
     			$price = $rec->packPrice / $rec->quantityInPack;
-    			$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			
+    			if(!$form->gotErrors() || ($form->gotErrors() && Request::get('Ignore'))){
+    				$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			}
     		}
     		 
     		$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     		$rec->price  = $price;
     		
-    		// Ако има такъв запис, сетваме грешка
-    		$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
-    		if($exRec){
-    			$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
-    			unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
+    		if(Request::get('Act') != 'CreateProduct'){
+    			// Ако има такъв запис, сетваме грешка
+    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
+    			if($exRec){
+    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
+    				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
+    			}
     		}
     	
     		// При редакция, ако е променена опаковката слагаме преудпреждение
@@ -313,7 +323,7 @@ abstract class deals_DealDetail extends doc_Detail
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		
     		if($rec->notes){

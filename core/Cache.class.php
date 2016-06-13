@@ -96,6 +96,8 @@ class core_Cache extends core_Manager
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
         $this->setDbUnique('key');
+        
+        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -307,8 +309,8 @@ class core_Cache extends core_Manager
      */
     function getKey(&$type, &$handler)
     {
-        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE, 12);
-        $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE, 8);
+        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE-4, 12);
+        $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE-3, 8);
         
         $prefix = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT);
         $prefix = substr($prefix, 0, 6);
@@ -409,15 +411,18 @@ class core_Cache extends core_Manager
         $keepSeconds = $keepMinutes * 60;
 
         if (function_exists('apc_store')) {
-            apc_store($key, $data, $keepSeconds);
-            $saved = TRUE;
+            $saved = apc_store($key, $data, $keepSeconds);
+            if (!$saved) {
+                self::logNotice('Грешка при записване в APC_STORE');
+            }
         } elseif (function_exists('xcache_set')) {
-            xcache_set($key, serialize($data), $keepSeconds);
-            $saved = TRUE;
+            $saved = xcache_set($key, serialize($data), $keepSeconds);
+            if (!$saved) {
+                self::logNotice('Грешка при записване в XCACHE');
+            }
         }
 
         $rec = new stdClass();
-        
         
         // Задаваме ключа
         $rec->key = $key;

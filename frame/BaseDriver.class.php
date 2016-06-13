@@ -142,4 +142,18 @@ abstract class frame_BaseDriver extends core_ProtoInner
     {
 
     }
+    
+    
+    /**
+     * Инпутва формата
+     * 
+     * @param core_Form $form
+     */
+    public static function inputForm($form)
+    {
+        if (($form instanceof core_Form) && (strtolower(core_Request::get('Ctr') == 'frame_reports'))) {
+        
+            $form->input();
+        }
+    }
 }

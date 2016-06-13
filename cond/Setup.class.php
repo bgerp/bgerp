@@ -53,15 +53,19 @@ class cond_Setup  extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+			'cond_Texts',
+			'cond_Groups',
         	'cond_PaymentMethods',
         	'cond_DeliveryTerms',
         	'cond_Parameters',
         	'cond_ConditionsToCustomers',
     		'cond_Payments',
+    		'cond_Countries',
     		'migrate::oldPosPayments',
     		'migrate::removePayment',
     		'migrate::deleteOldPaymentTime1',
-    		'migrate::deleteParams',
+    		'migrate::deleteParams2',
+
         );
 
         
@@ -98,7 +102,12 @@ class cond_Setup  extends core_ProtoSetup
     	if($roleRec = core_Roles::fetch("#role = 'salecond'")){
     		core_Roles::delete("#role = 'salecond'");
     	}
-    	
+
+		$Plugins = cls::get('core_Plugins');
+
+		// Замества handle' ите на документите с линк към документа
+		$html .= $Plugins->installPlugin('Плъгин за пасажи в RichEdit', 'cond_RichTextPlg', 'type_Richtext', 'private');
+
     	return $html;
     }
     
@@ -152,9 +161,16 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Изтрива параметри
      */
-    function deleteParams()
+    function deleteParams2()
     {
-    	cond_Parameters::delete("#sysId = 'commonConditionQuote'");
-    	cond_Parameters::delete("#sysId = 'commonConditionQuoteEng'");
+    	if($f1 = cond_Parameters::fetch("#name = 'Текст за фактура'")){
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f1->id}");
+    		cond_Parameters::delete($f1->id);
+    	}
+    	
+    	if($f2 = cond_Parameters::fetch("#name = 'Други условия към фактура (английски)'")){
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f2->id}");
+    		cond_Parameters::delete($f2->id);
+    	}
     }
 }

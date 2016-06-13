@@ -145,6 +145,14 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'progress';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -159,7 +167,7 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
     	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
     	
-    	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=hidden,notNull');
+    	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
     	
     	$this->setDbIndex('classId');
     	
@@ -350,7 +358,7 @@ class tasks_Tasks extends embed_Manager
     	
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pendingandactive=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активен, pending=Чакащ, pendingandactive=Активни+Чакащи,closed=Приключен, stopped=Спрян, wakeup=Събуден', TRUE));
     		$data->listFilter->setField('state', 'placeholder=Всички');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
@@ -444,8 +452,7 @@ class tasks_Tasks extends embed_Manager
     	
     	$cu = core_Users::getCurrent();
     	$form->setDefault('inCharge', keylist::addKey('', $cu));
-    	$form->setDefault('classId', $mvc->getClassId());
-    		
+    	
     	// Ако задачата идва от дефолт задача на продуктов драйвер
     	if(isset($rec->systemId)){
     			
@@ -661,7 +668,7 @@ class tasks_Tasks extends embed_Manager
      */
     public static function getHandle($id)
     {
-    	$rec = static::fetch($id);
+    	$rec = static::fetch($id, 'classId,id');
     	if(isset($rec->classId) && cls::load($rec->classId, TRUE)){
     		$self = cls::get($rec->classId);
     		
@@ -679,7 +686,7 @@ class tasks_Tasks extends embed_Manager
     {
     	if(is_array($res)){
     		foreach ($res as $id => &$title){
-    			$title =  " {$title}" . " (#" . $mvc->getHandle($id) . ")";
+    			$title =  "{$mvc->getHandle($id)}/{$title}";
     		}
     	}
     }
@@ -727,19 +734,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Преди клонирането на запис
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     * @param stdClass $nRec
-     */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
-    {
-    	unset($nRec->progress);
-    }
-    
-    
-    /**
      * Подготвя задачите към заданията
      */
     public function prepareTasks($data)
@@ -757,6 +751,7 @@ class tasks_Tasks extends embed_Manager
     		
     	// Подготвяме данните
     	while($rec = $query->fetch()){
+    		if(!cls::load($rec->classId, TRUE)) continue;
     		$Class = cls::get($rec->classId);
     		
     		$data->recs[$rec->id] = $rec;
@@ -799,7 +794,7 @@ class tasks_Tasks extends embed_Manager
     	// Ако няма намерени записи, не се рендира нищо
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = 'progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+    	$fields = 'name=Документ,progress=Прогрес,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
     	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	

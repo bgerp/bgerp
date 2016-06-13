@@ -196,7 +196,7 @@ class callcenter_Fax extends core_Manager
     static function getTemplateForAddNum($num, $uniqId)
     {
         // Аттрибути за стилове 
-        $companiesAttr['title'] = tr('Нова фирма');
+        $companiesAttr['title'] = 'Нова фирма';
         
         // Икона на фирмите
         $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
@@ -205,7 +205,7 @@ class callcenter_Fax extends core_Manager
         $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'fax' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
         
         // Аттрибути за стилове 
-        $personsAttr['title'] = tr('Ново лице');
+        $personsAttr['title'] = 'Ново лице';
         
         // Икона на изображенията
         $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
@@ -260,7 +260,7 @@ class callcenter_Fax extends core_Manager
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
         
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';

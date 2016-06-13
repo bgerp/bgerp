@@ -131,7 +131,7 @@ class change_Plugin extends core_Plugin
         $inputFields .= ',id';
         
         // Въвеждаме полетата
-        $form->input($inputFields, 'silent');
+        $form->input($inputFields);
         
         // Очакваме потребителя да има права за съответния запис
         $mvc->requireRightFor('single', $fRec);
@@ -599,24 +599,9 @@ class change_Plugin extends core_Plugin
     {
         // URL' то за промяна
         $changeUrl = $mvc->getChangeUrl($id);
-        
-        // Иконата за промяна
-        $editSbf = sbf("img/16/edit.png");
-        
-        // Ако е подаде заглавието
-        if ($title) {
-            
-            // Създаваме линк с загллавието
-            $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . $editSbf . ');';
-            
-            $res = ht::createLink($title, $changeUrl, NULL, $attr); 
-        } else {
-            
-            // Ако не е подадено заглавиет, създаваме линк с иконата
-            $res = ht::createLink('<img src=' . $editSbf . ' width="16" height="16">', $changeUrl);
-        }
+
+        // Създаваме линк с загллавието
+        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/16/edit.png"); 
     }
     
     
@@ -666,5 +651,21 @@ class change_Plugin extends core_Plugin
             
             $res = TRUE;
         } 
+    }
+    
+    
+    /**
+     * Преди записване при клониране
+     * 
+     * @see plg_Clone
+     * 
+     * @param core_Manager $mvc
+     * @param stdObject $rec
+     * @param stdObject $nRec
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        $nRec->version = 0;
+        $nRec->subVersion = 1;
     }
 }

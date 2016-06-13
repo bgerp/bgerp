@@ -38,7 +38,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals, doc_plg_HidePrices,
+    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals2, doc_plg_HidePrices,
         Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_SaveAndNew';
     
     
@@ -117,18 +117,18 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('reason', 'varchar', 'caption=Информация');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember,allowEmpty)',
-            'silent,caption=Дебит->Сметка и пера,mandatory,input,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount', 'tdClass=articleCell,silent');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember,refreshForm,silent,input=none');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember,refreshForm,silent,input=none');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember,refreshForm,silent,input=none');
+            'caption=Дебит->Сметка и пера,mandatory,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount,tdClass=articleCell,silent');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember,input=none');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember,input=none');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember,input=none');
         $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember,allowEmpty)',
-            'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell,removeAndRefreshForm=creditEnt1|creditEnt2|creditEnt3|creditQuantity|creditPrice|amount,silent');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember,refreshForm,silent,input=none');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember,refreshForm,silent,input=none');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember,refreshForm,silent,input=none');
+            'caption=Кредит->Сметка и пера,mandatory,tdClass=articleCell,removeAndRefreshForm=creditEnt1|creditEnt2|creditEnt3|creditQuantity|creditPrice|amount,silent');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember,input=none');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember,input=none');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember,input=none');
         $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
@@ -196,6 +196,11 @@ class acc_ArticleDetails extends doc_Detail
         
         $form->setField('debitAccId', 'caption=Дебит->Сметка');
         $form->setField('creditAccId', 'caption=Кредит->Сметка');
+        
+        if(isset($rec->id)){
+        	$form->setReadOnly('debitAccId');
+        	$form->setReadOnly('creditAccId');
+        }
         
         if(isset($rec->debitAccId)){
         	$debitAcc = acc_Accounts::getAccountInfo($rec->debitAccId);
@@ -342,7 +347,16 @@ class acc_ArticleDetails extends doc_Detail
              * аналитичности на дебит и кредит сметките са едни и същи.
              */
         } else {
-            foreach ($accs as $type => $acc) {
+            
+        	foreach ($accs as $type => $acc) {
+        		if ($acc->isDimensional && !isset($rec->amount)) {
+        			if(isset($rec->{"{$type}Price"}) && isset($rec->{"{$type}Quantity"})){
+        				@$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
+        			}
+        		}
+        	}
+        	
+        	foreach ($accs as $type => $acc) {
                 if ($acc->isDimensional) {
                     
                     /**
@@ -380,7 +394,7 @@ class acc_ArticleDetails extends doc_Detail
                         $rec->{"{$type}Amount"} = $rec->amount;
                     }
                     
-                    if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && $rec->amount != $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"}) {
+                    if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && trim($rec->amount) != trim($rec->{"{$type}Price"} * $rec->{"{$type}Quantity"})) {
                         $form->setError("{$type}Quantity, {$type}Price, amount", 'Невъзможни стойности на оборотите');
                     }
                 } else {

@@ -82,8 +82,12 @@ class type_Set extends core_Type {
         $col = $this->params['columns'] ? $this->params['columns'] :
        min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
             round(sqrt(max(0, count($this->suggestions) + 1))));
-        
-        $tpl = new ET("\n<table class='keylist'>[#OPT#]\n</table>");
+
+        if(count($this->suggestions) < 4) {
+            $className .= " shrinked";
+        }
+
+        $tpl = new ET("\n<table class='keylist {$className}'>[#OPT#]\n</table>");
         
         $i = 0; $html = ''; $trOpen = TRUE;
         

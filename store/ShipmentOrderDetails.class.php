@@ -127,7 +127,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
-        $this->FLD('info', "text(rows=2)", 'caption=Разпределение по колети->Номера,after=showMode', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
+        $this->FLD('info', "text(rows=2)", 'caption=Разпределение по логистични единици->Номера,after=showMode', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
     }
 
@@ -144,57 +144,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     	
     	return $products;
-    }
-    
-    
-	/**
-     * След извличане на записите от базата данни
-     */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
-        // Преброява броя на колетите, само ако се показва тази информация
-        if(isset($data->listFields['info'])){
-        	$data->masterData->row->colletsCount = cls::get('type_Int')->toVerbal($mvc->countCollets($data->recs));
-        }
-    }
-    
-    
-    /**
-     * Преброява общия брой на колетите
-     * @param array $recs - записите от модела
-     */
-    private function countCollets($recs)
-    {
-    	$count = 0;
-    	
-    	if(!count($recs)) return 0;
-    	
-    	foreach ($recs as $rec){
-    		
-    		// За всяка информация за колети
-    		if($rec->info){
-    			
-    			// Разбиване на записа
-    			$info = explode(',', $rec->info);
-	    		foreach ($info as &$seq){
-	    			
-	    			// Ако е посочен интервал от рода 1-5
-	    			$seq = explode('-', $seq);
-	    			if(count($seq) == 1){
-	    				
-	    				// Ако няма такова разбиване, се увеличава броя
-	    				$count += 1;
-	    			} else {
-	    				
-	    				// Ако е посочен интервал, броя се увеличава с разликата
-	    				$count += $seq[1] - $seq[0] +1;
-	    			}
-	    		}
-    		}
-    	}
-    	
-    	// Връщане на броя на колетите
-    	return $count;
     }
     
     
@@ -245,11 +194,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     		
     		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning');
+    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     		}
     	}
     }
@@ -260,12 +209,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
+    	core_Lg::push($data->masterData->rec->tplLang);
+    	
     	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     			
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
                 batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
                 
     			if($rec->notes){
@@ -273,6 +224,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     			}
     		}
     	}
+    	
+    	core_Lg::pop();
     }
     
     

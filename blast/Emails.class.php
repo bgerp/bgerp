@@ -222,6 +222,8 @@ class blast_Emails extends core_Master
         
         $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
         
+        $this->FLD('errMsg', 'varchar', 'caption=Съобщение за грешка, input=none');
+        
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
     
@@ -277,10 +279,10 @@ class blast_Emails extends core_Master
      */
     public static function activateEmail($id, $sendPerCall = 5)
     {   
-        self::logWrite('Активиран бласт имейл', $id);
-
         // Записа
         $rec = self::getRec($id);
+        
+        self::logWrite('Активиран бласт имейл', $rec->id);
         
         expect($rec, 'Няма такъв запис');
         
@@ -356,6 +358,26 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Проверява дали не трябва да се спира процеса
+     * 
+     * @return boolean
+     */
+    protected static function checkTimelimit()
+    {
+        static $deadLine;
+        
+        if (!isset($deadLine)) {
+            $deadLine = time() + blast_Setup::get('EMAILS_CRON_TIME_LIMIT');
+            $deadLine -= 2;
+        }
+        
+        if ($deadLine > time()) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * Проверява дали има имейли за изпращане, персонализира ги и ги изпраща
      * Вика се от `cron`
      */
@@ -374,6 +396,27 @@ class blast_Emails extends core_Master
         
         //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
         while ($rec = $query->fetch()) {
+            
+            // Ако се изпраща от частна мрежа, спираме процеса
+            if (core_App::checkCurrentHostIsPrivate()) {
+                $this->logErr('Прекъснато изпращане на циркулярни имейли. Прави се опит за изпращане от частна мрежа', $rec->id);
+                
+                $rec->state = 'stopped';
+                $rec->errMsg = '|Спряно разпращане, поради опит за изпращане от частен адрес.';
+                
+                $this->save($rec, 'state, errMsg');
+                $this->touchRec($rec->id);
+                
+                break;
+            }
+            
+            // Ако е свършило времето
+            if (!$this->checkTimelimit()) {
+                
+                $this->logNotice('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                
+                break;
+            }
             
             $now = dt::now();
             $nextStartTime = self::getNextStartTime($rec, $now);
@@ -406,7 +449,7 @@ class blast_Emails extends core_Master
             $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
             
             // Ако няма данни, затваряме 
-            if (!$dataArr) {
+            if (empty($dataArr)) {
                 $rec->state = 'closed';
                 $rec->progress = 1;
                 $this->save($rec, 'state, progress');
@@ -427,10 +470,23 @@ class blast_Emails extends core_Master
             $emailPlaceArr = self::getEmailFields($descArr);
             
             // Ако няма полета за имейли, няма смисъл да се праща
-            if (!$emailPlaceArr) continue;
+            if (empty($emailPlaceArr)) continue;
+            
+            $notSendDataArr = $dataArr;
             
             // Обхождаме всички получени данни
             foreach ((array)$dataArr as $detId => $detArr) {
+                
+                // Ако е свършило времето
+                if (!$this->checkTimelimit()) {
+                    
+                    // Маркираме неизпратените имейли
+                    blast_EmailSend::removeMarkAsSent($notSendDataArr);
+                    
+                    $this->logNotice('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                    
+                    break;
+                }
                 
                 $toEmail = '';
                 
@@ -523,8 +579,10 @@ class blast_Emails extends core_Master
                     blast_EmailSend::setTimeAndEmail(array($detId => $toEmail));
                 } else {
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
-                    doclog_Documents::returned($body->__mid);
+                    $this->logWarning("Върнато писмо", $rec->id);
                 }
+                
+                unset($notSendDataArr[$detId]);
             }
             
             $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
@@ -603,8 +661,8 @@ class blast_Emails extends core_Master
      * Връща URL за отписване
      * 
      * @param integer $id
-     * @param string $lg
-     * @param string $addMidPlace
+     * @param string|NULL $lg
+     * @param string|NULL $midPlace
      * @param array $otherParams
      * 
      * @return array
@@ -643,7 +701,7 @@ class blast_Emails extends core_Master
      * Връща тялото на съобщението
      *
      * @param object $rec - Данни за имейла
-     * @param int $detId - id на детайла на данните
+     * @param array $detArr - масив с id на детайлите
      * @param boolen $sending - Дали ще изпращаме имейла
      *
      * @return object $body - Обект с тялото на съобщението
@@ -965,6 +1023,8 @@ class blast_Emails extends core_Master
                     $form->setError('sendingTo, sendingFrom', 'Началният час трябва да е преди крайния');
                 }
             }
+            
+            $this->checkHost($form, 'sendPerCall');
         }
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
@@ -988,8 +1048,10 @@ class blast_Emails extends core_Master
                 $form->rec->state = 'pending';
             }
             
+            $form->rec->errMsg = NULL;
+            
             // Упдейтва състоянието и данните за имейл-а
-            blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo');
+            blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo, errMsg');
             
             // Обновяваме списъка с имейлите
             $updateCnt = self::updateEmailList($form->rec->id);
@@ -1061,6 +1123,25 @@ class blast_Emails extends core_Master
         $tpl->append($preview);
         
         return self::renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Помощна функция, за проверка дали се изпраща от частна мрежа и линковете ще са коректни
+     * 
+     * @param core_Form $form
+     * @param string $errField
+     */
+    protected function checkHost($form, $errField)
+    {
+        if (core_App::checkCurrentHostIsPrivate()) {
+            
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в интернет|*.";
+            
+            $form->setWarning($errField, $err);
+        }
     }
     
     
@@ -1340,17 +1421,19 @@ class blast_Emails extends core_Master
                 
                 $msg = '|Няма източник, който да може да се използва за персонализация';
                 
+                $redirectUrl = array();
+                
                 if (($defPerSrcClassId != $listClassId) && ($cover && $cover->instance)) {
                     if ($cover->instance->haveRightFor('single', $cover->that)) {
                         $redirectUrl = array($cover->instance, 'single', $cover->that);
                     }
                 }
                 
-                if (!$redirectUrl && $perClsInst->haveRightFor('list')) {
+                if (empty($redirectUrl) && $perClsInst->haveRightFor('list')) {
                     $redirectUrl = array($perClsInst, 'list');
                 }
                 
-                if (!$redirectUrl) {
+                if (empty($redirectUrl)) {
                     $redirectUrl = getRetUrl();
                 }
                 
@@ -1379,7 +1462,7 @@ class blast_Emails extends core_Master
             $allLangArr = arr::make(EF_LANGUAGES);
             $currLg = core_Lg::getCurrent();
             
-            if (!$allLangArr) {
+            if (empty($allLangArr)) {
                 $allLangArr = arr::make($currLg, TRUE);
             }
             
@@ -1405,7 +1488,8 @@ class blast_Emails extends core_Master
             $jsonData  = json_encode(array('hint' => tr('Смяна на езика'), 'lg' => $defLg, 'data' => $bodyLangArr, 'id' => 'unsId'));
             
             $form->layout = new ET($data->form->renderLayout());
-            $form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . $jsonData . ")}); ", 'JQRUN', TRUE);
+            
+            jquery_Jquery::run($form->layout, "prepareLangBtn(" . $jsonData . ");");
         }
         
         try {
@@ -1548,6 +1632,8 @@ class blast_Emails extends core_Master
             // Вземаме всички шаблони, които се използват
             $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
             
+            $fieldsArr = array();
+            
             // Полетата и описаниите им, които ще се използва за персонализация
             $onlyAllFieldsArr = $classInst->getPersonalizationDescr($rec->perSrcObjectId);
             
@@ -1629,6 +1715,10 @@ class blast_Emails extends core_Master
                 }
             }
         }
+        
+        if ($form->isSubmitted()) {
+            $mvc->checkHost($form, 'body');
+        }
     }
     
     
@@ -1686,6 +1776,11 @@ class blast_Emails extends core_Master
                     $row->srcLink = $inst->getPersonalizationSrcLink($rec->perSrcObjectId);
                 }
             }
+        }
+        
+        if ($rec->errMsg) {
+            $row->errMsg = tr('|*' . $rec->errMsg);
+            $row->errMsg = type_Varchar::escape($row->errMsg);
         }
     }
     
@@ -1821,9 +1916,9 @@ class blast_Emails extends core_Master
      * Връща времето на следващото стартиране
      * 
      * @param object $rec
-     * @param NULL|datetime $nextStartTime
+     * @param NULL|datetime|FALSE $nextStartTime
      * 
-     * @return datetime
+     * @return datetime|string
      */
     protected static function getNextStartTime($rec, $nextStartTime = NULL)
     {
@@ -1851,7 +1946,7 @@ class blast_Emails extends core_Master
         
         $haveNextStartTime = FALSE;
         
-        if (!$sendingArr || ($sendingArr[$dayOfWeek])) {
+        if (empty($sendingArr) || ($sendingArr[$dayOfWeek])) {
             if ((($nextStartTime >= $sendingFrom) || !$sendingFrom) && (($nextStartTime < $sendingTo) || !$sendingTo)) {
                 $haveNextStartTime = TRUE;
             }

@@ -217,6 +217,38 @@ class core_Array
 
 
     /**
+     * Сортиране на масив от обекти, по дадено поле използвайки 'natural order' алгоритъма
+     * подреждащ стринговете по начин по който човек би ги подредил, запазвайки ключовете
+     * 
+     * Пример:
+     * Стандартно сортиране
+     * 
+     * [3] => img1.png
+     * [1] => img10.png
+     * [0] => img12.png
+     * [2] => img2.png
+     * 
+     * Natural order sorting
+     * [3] => img1.png
+     * [2] => img2.png
+     * [1] => img10.png
+     * [0] => img12.png
+     * 
+     * @param array $array - масив за сортиране
+     * @param string $field - поле по което ще се сортира
+     * @return void
+     */
+    public static function natOrder(&$array, $field)
+    {
+    	// Ако има такива сортираме ги по име
+    	uasort($array, function($a, $b) use ($field){
+    		if($a->{$field} == $b->{$field}) return 0;
+    		return (strnatcasecmp($a->{$field}, $b->{$field}) < 0) ? -1 : 1;
+    	});
+    }
+    
+    
+    /**
      * Групира масив от записи (масиви или обекти) по зададено поле-признак
      *
      * @param array $data масив от асоциативни масиви и/или обекти
@@ -245,8 +277,8 @@ class core_Array
      * 
      * @return string $str - Стринга, който ще връщаме
      */
-    function extractMultidimensionArray($array, $field=FALSE, $delimiter=', ') 
-    { 
+    public static function extractMultidimensionArray($array, $field=FALSE, $delimiter=', ') 
+    {
         // Стринга, който ще връщаме
         $str = '';
         
@@ -517,5 +549,30 @@ class core_Array
             // Очаква се или масив или == FALSE
             expect(!$arr, $arr);
         }
+    }
+    
+    
+    /**
+     * Допълва в един масив ключовете, които липсват в него
+     * 
+     * @param stdClass|array $objectToFill - масив или запис, който ще се допълва
+     * @param stdClass|array $fillFromObject - масив или запис, от който ще се допълват
+     * @return array $arrayToFill - оригиналния масив или запис, но с допълнени стойности
+     */
+    public static function fillMissingKeys($objectToFill, $fillFromObject)
+    {
+    	// Подсигуряваме се, че работим с масиви
+    	$arrayToFill = (array)$objectToFill;
+    	$arraySource = (array)$fillFromObject;
+    	
+    	// Обхождаме източника, и ако няма такъв ключ в подадения масив, се добавя
+    	foreach ($arraySource as $key => $value){
+    		if(!array_key_exists($key, $arrayToFill)){
+    			$arrayToFill[$key] = $value;
+    		}
+    	}
+    	
+    	// Връщаме допълнения масив
+    	return $arrayToFill;
     }
 }

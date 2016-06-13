@@ -32,6 +32,12 @@ defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
 
 
 /**
+ * При търсене на складова себестойност до колко месеца на зад да се търси
+ */
+defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 3);
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -41,7 +47,7 @@ defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -90,6 +96,7 @@ class cat_Setup extends core_ProtoSetup
             'cat_products_Params',
             'cat_products_Packagings',
     		'cat_products_VatGroups',
+    		'cat_products_SharedInFolders',
             'cat_Params',
     		'cat_Boms',
     		'cat_BomDetails',
@@ -100,9 +107,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateDocs',
     		'migrate::truncatCache',
             'migrate::fixProductsSearchKeywords',
-    		'migrate::replacePackagings',
     		'migrate::updateProductsNew',
-    		'migrate::deleteCache1',
+    		'migrate::deleteCache2',
     		'migrate::updateParams',
     		'migrate::addClassIdToParams',
     		'migrate::updateBomType'
@@ -133,11 +139,12 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    		'CAT_BOM_REMEMBERED_RESOURCES' => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
+    		'CAT_BOM_REMEMBERED_RESOURCES'          => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
     		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
-    		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
-    		'CAT_DEFAULT_MEASURE_ID' => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
-    		'CAT_BOM_MAX_COMPONENTS_LEVEL' => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
+    		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER'   => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
+    		'CAT_DEFAULT_MEASURE_ID'                => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на артикулите->Мярка'),
+    		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
+    		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
     );
 
     
@@ -226,13 +233,15 @@ class cat_Setup extends core_ProtoSetup
     public function migrateProformas()
     {
     	if(core_Packs::fetch("#name = 'sales'")){
-    		if(sales_ProformaDetails::count()){
-    			$query = sales_ProformaDetails::getQuery();
+    		$Detail = cls::get('sales_ProformaDetails');
+    		
+    		if($Detail::count()){
+    			$query = $Detail->getQuery();
     			$productId = cat_Products::getClassId();
     			while($rec = $query->fetch()){
     				if($rec->classId != $productId){
     					$rec->classId = $productId;
-    					sales_ProformaDetails::save_($rec);
+    					$Detail->save_($rec);
     				}
     			}
     		}
@@ -357,210 +366,6 @@ class cat_Setup extends core_ProtoSetup
     }
     
     
-    function replacePackagings()
-    {
-    	core_App::setTimeLimit(400);
-    	 
-    	if(!cls::load('cat_Packagings', TRUE)) return;
-    	 
-    	$Packs = cls::get('cat_Packagings');
-    	$Packs->setupMvc();
-    	 
-    	$Pos = cls::get('pos_Reports');
-    	$Pos->setupMvc();
-    	 
-    	$Cat = cls::get('cat_Categories');
-    	$Cat->setupMvc();
-    	 
-    	$Uom = cls::get('cat_UoM');
-    	$Uom->setupMvc();
-    	 
-    	$Products = cls::get('cat_Products');
-    	$Products->setupMvc();
-    	 
-    	$Pl = cls::get('price_ListDocs');
-    	$Pl->setupMvc();
-    	 
-    	acc_Balances::logInfo("Започване на миграцията на ОПАКОВКИТЕ");
-    	 
-    	$packs = array();
-    	$pQuery = cat_Packagings::getQuery();
-    	while($pRec = $pQuery->fetch()){
-    		$name = mb_strtolower($pRec->name);
-    		if($name == '(брой)' || $name == 'бройка'){
-    			$name = 'брой';
-    		} elseif($name == 'хил.бр.'){
-    			$name = 'хиляди бройки';
-    		}
-    
-    		if($name == 'хиляди бройки' || $name == 'брой'){
-    			$pRec->showContents = 'no';
-    		}
-    
-    		$nRec = (object)array('name' => $name, 'shortName' => $name, 'type' => 'packaging', 'round' => $pRec->round, 'showContents' => $pRec->showContents);
-    		if(!$Uom->isUnique($nRec, $fields, $exRec)){
-    			$nRec->id = $exRec->id;
-    			$nRec->type = $exRec->type;
-    			 
-    			if($exRec->shortName){
-    				$nRec->shortName = $exRec->shortName;
-    			}
-    			 
-    			$exRecs[$nRec->id] = $exRec;
-    		}
-    
-    		$Uom->save($nRec, NULL, 'IGNORE');
-    		$packs[$pRec->id] = $nRec->id;
-    	}
-    	 
-    	$brRec = cat_UoM::fetch("#name = 'брой'");
-    	$brRec->showContents = 'no';
-    	$Uom->save($brRec);
-    	 
-    	$hbrRec = cat_UoM::fetch("#name = 'хиляди бройки'");
-    	$hbrRec->showContents = 'no';
-    	$Uom->save($hbrRec);
-    	 
-    	$packQuery = cat_products_Packagings::getQuery();
-    	 
-    	while($pRec = $packQuery->fetch()){
-    		$pRec->packagingId = $packs[$pRec->packagingId];
-    		cls::get('cat_products_Packagings')->save_($pRec, NULL, 'REPLACE');
-    	}
-    	 
-    	$lQuery = price_ListDocs::getQuery();
-    	$lQuery->where('#packagings IS NOT NULL');
-    	$lQuery->show('packagings');
-    	while($lRec = $lQuery->fetch()){
-    		$packagings = keylist::toArray($lRec->packagings);
-    
-    		$newPacks = array();
-    		foreach ($packagings as $p){
-    			$val = $packs[$p];
-    			$newPacks[$val] = $val;
-    		}
-    
-    		$keylist = keylist::fromArray($newPacks);
-    		$lRec->packagings = $keylist;
-    
-    		try{
-    			cls::get('price_ListDocs')->save_($lRec, 'packagings');
-    		} catch(core_exception_Expect $e){
-    		    
-    		    reportException($e);
-    		}
-    	}
-    	 
-    	sales_Sales::logInfo(ht::arrayToHtml($packs));
-    	
-    	$details = array('sales_SalesDetails',
-    			'purchase_PurchasesDetails',
-    			'store_ShipmentOrderDetails',
-    			'store_ReceiptDetails',
-    			'sales_InvoiceDetails',
-    			'sales_QuotationsDetails',
-    			'purchase_InvoiceDetails',
-    			'cat_BomDetails',
-    			'pos_Favourites',
-    			'sales_ProformaDetails',
-    			'store_TransfersDetails',
-    			'planning_ConsumptionNoteDetails',
-    			'planning_ProductionNoteDetails',
-    			'planning_DirectProductNoteDetails',
-    			'store_ConsignmentProtocolDetailsReceived',
-    			'store_ConsignmentProtocolDetailsSend',
-    			'sales_ServicesDetails',
-    			'purchase_ServicesDetails',
-    	);
-    	 
-    	foreach ($details as $Det){
-    		$Det = cls::get($Det);
-    		$Det->setupMvc();
-    
-    		$query = $Det->getQuery();
-    
-    		$count = 0;
-    		$recsToSave = array();
-    		while($dRec = $query->fetch()){
-    			if($dRec->packagingId){
-    				if(isset($packs[$dRec->packagingId])){
-    					$dRec->packagingId = $packs[$dRec->packagingId];
-    
-    					$recsToSave[] = $dRec;
-    				}
-    			} else {
-    				if($Det->className == 'cat_BomDetails'){
-    					if(!$dRec->resourceId) continue;
-    						
-    					if(empty($measureArr[$dRec->resourceId])){
-    						$measureArr[$dRec->resourceId] = cat_Products::fetchField($dRec->resourceId, 'measureId');
-    					}
-    					$dRec->packagingId = $measureArr[$dRec->resourceId];
-    					$recsToSave[] = $dRec;
-    						
-    				} else {
-    					if(empty($measureArr[$dRec->productId]) && isset($dRec->productId)){
-    						$measureArr[$dRec->productId] = cat_Products::fetchField($dRec->productId, 'measureId');
-    					}
-    					$dRec->packagingId = $measureArr[$dRec->productId];
-    					$recsToSave[] = $dRec;
-    				}
-    			}
-    			 
-    			$count++;
-    		}
-    
-    		if(count($recsToSave)){
-    			sales_Sales::logInfo("$Det->className: {$count}");
-    			$Det->saveArray_($recsToSave);
-    		}
-    	}
-    	 
-    	$recsToSave = array();
-    	$repQuery = pos_Reports::getQuery();
-    	while($repRec = $repQuery->fetch()){
-    		$add = FALSE;
-    		if($repRec->details['receiptDetails']){
-    
-    			foreach ($repRec->details['receiptDetails'] as $d){
-    				if($d->action != 'sale') continue;
-    				 
-    				if(isset($packs[$d->pack])){
-    					$d->pack = $packs[$d->pack];
-    					$add = TRUE;
-    				}
-    			}
-    
-    			if($add){
-    				$recsToSave[] = $repRec;
-    			}
-    		}
-    	}
-    
-    	cls::get('pos_Reports')->setupMvc();
-    	if(count($recsToSave)){
-    		cls::get('pos_Reports')->saveArray_($recsToSave);
-    	}
-    
-    	$recsToSave = $measureArr = array();
-    
-    	cls::get('pos_ReceiptDetails')->setupMvc();
-    	$rQuery = pos_ReceiptDetails::getQuery();
-    	 
-    	$rQuery->where("#action LIKE '%sale%'");
-    	while($rRec = $rQuery->fetch()){
-    		if(isset($packs[$rRec->value])){
-    			$rRec->value = $packs[$rRec->value];
-    			$recsToSave[] = $rRec;
-    		}
-    	}
-    
-    	if(count($recsToSave)){
-    		cls::get('pos_ReceiptDetails')->saveArray_($recsToSave);
-    	}
-    }
-    
-    
     /**
      * Миграция на артикулите
      */
@@ -587,7 +392,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Изчистване на кеша на артикулите
      */
-    public function deleteCache1()
+    public function deleteCache2()
     {
     	cat_ProductTplCache::truncate();
     }

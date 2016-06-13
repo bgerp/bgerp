@@ -68,7 +68,7 @@ class core_Lg extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools2,plg_AutoFilter';
+    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools2';
     
     
     /**
@@ -76,7 +76,7 @@ class core_Lg extends core_Manager
      */
     function description()
     {
-        $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,autoFilter,optionsFunc=core_Lg::getLangOptions, suggestions=');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,optionsFunc=core_Lg::getLangOptions, suggestions=');
         $this->FLD('kstring', 'varchar', 'caption=Стринг,export, width=100%, mandatory');
         $this->FLD('translated', 'text',  'caption=Превод,export, width=100%, class=translated, mandatory');
 
@@ -260,7 +260,6 @@ class core_Lg extends core_Manager
         
         $key = static::prepareKey($key);
         
-        
         if(!count($this->dict)) {
             $this->dict = core_Cache::get('translation', $lg, 2 * 60 * 24, array('core_Lg'));
             
@@ -301,8 +300,10 @@ class core_Lg extends core_Manager
                 $rec->translated = $translated;
                 $rec->lg = $lg;
                 
-                // Записваме в модела
-                $this->save($rec);
+                // Само потребители с определена роля могат да добавят (автоматично) в превода
+                if (haveRole('translate') || !haveRole('powerUser')) {
+                    $this->save($rec);
+                }
                 
                 // Записваме в кеш-масива
                 $this->dict[$key][$lg] = type_Varchar::escape($rec->translated);

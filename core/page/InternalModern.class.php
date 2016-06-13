@@ -71,16 +71,13 @@ class core_page_InternalModern extends core_page_Active
         // Забраняваме мащабирането
         $this->append("disableScale();", "START_SCRIPTS");
 
-        // Акордеона в менюто
-        $this->append("runOnLoad(sidebarAccordeonActions);", "JQRUN");
-
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
 
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         $url  = toUrl(array('bgerp_Portal', 'Show'));
-        $attr = array('id' => 'nCntLink', 'title' => tr('Неразгледани известия'));
+        $attr = array('id' => 'nCntLink', 'title' => 'Неразгледани известия');
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
@@ -101,15 +98,16 @@ class core_page_InternalModern extends core_page_Active
     {
     	if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
     		$openMenuInfo = $_COOKIE['menuInfo'];
+    		$winWidth = intval($openMenuInfo);
     		$mainContainerClass = '';
     		
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
-			if(strrpos($openMenuInfo, "l") !== FALSE) {
+			if(($winWidth > 700) && strrpos($openMenuInfo, "l") !== FALSE) {
 				$openLeftBtn = ' menu-active ';
 				$openLeftMenu = ' sidemenu-open ';
 				$mainContainerClass .= ' sidemenu-push-toright ';
 			}
-			if(strrpos($openMenuInfo, "r") !== FALSE) {
+			if(($winWidth > 700) && strrpos($openMenuInfo, "r") !== FALSE) {
 				$openRightBtn = ' menu-active ';
 				$openRightMenu = ' sidemenu-open';
 				$mainContainerClass .= ' sidemenu-push-toleft ';
@@ -125,7 +123,7 @@ class core_page_InternalModern extends core_page_Active
     	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}", 'alt' => 'pin'));
         $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
     	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}", 'alt' => 'unpin'));
-    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
+    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 28);
     	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
@@ -142,10 +140,10 @@ class core_page_InternalModern extends core_page_Active
 	    					    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
 	    					</span>
 	    					<a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
-	    					<span class='fright'>
-		    						<span class='menu-options user-options'>
+	    					<div class='fright'>
+		    						<div class='menu-options user-options'>
 		    							" . $img .
-    			    					"<span class='menu-holder'>
+    			    					"<div class='menu-holder'>
 			     		   					[#USERLINK#]
 		    								[#CHANGE_MODE#]
                                             [#LANG_CHANGE#]
@@ -153,9 +151,9 @@ class core_page_InternalModern extends core_page_Active
     			    						[#DEBUG_BTN#]
 	    									<div class='divider'></div>
 			     		   					[#SIGN_OUT#]
-		    							</span>
-	    							</span>
-	     		   			</span>
+		    							</div>
+	    							</div>
+	     		   			</div>
 	    				<div class='clearfix21'></div>
 	    				</div>  " ;
     	 
@@ -176,11 +174,13 @@ class core_page_InternalModern extends core_page_Active
     	}
     	
         // Опаковките и главното съдържание заемат екрана до долу
-    	$tpl->append("runOnLoad( slidebars );", "JQRUN");
-    	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
-    	
+    	jquery_Jquery::run($tpl, "slidebars();");
+        jquery_Jquery::run($tpl, "scrollToHash();");
+     	
     	if(Mode::is('screenMode', 'narrow')){
-        	$tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+        	jquery_Jquery::run($tpl, "checkForElementWidthChange();");
+        	jquery_Jquery::run($tpl, "sumOfChildrenWidth();");
+        	jquery_Jquery::run($tpl, "removeNarrowScroll();");
     	}
     	
         // Добавяме кода, за определяне параметрите на браузъра
@@ -267,7 +267,7 @@ class core_page_InternalModern extends core_page_Active
                 if($lastMenu != $rec->menu) {
                     $html .= ($html ? "\n</ul></li>" : '') . "\n<li{$mainClass} data-menuid = '{$rec->id}'>";
                     $html .= "\n    <div><span class='arrow'></span>{$rec->menuTr}</div>";
-                    $html .= "\n<ul>";
+                    $html .= "\n<ul class='submenuBlock'>";
                 }
                 $lastMenu = $rec->menu;
                 $html .= "\n<li{$subClass}>" . ht::createLink($rec->subMenuTr, array($rec->ctr, $rec->act)) . "</li>";

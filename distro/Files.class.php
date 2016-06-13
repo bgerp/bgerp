@@ -788,8 +788,12 @@ class distro_Files extends core_Detail
                 
                 try {
                     
+                    $repoRec = fileman_Repositories::fetch($repoId);
+                    
+                    if ($repoRec->state == 'rejected') continue;
+                    
                     // Вземаме всички достъпни файлове в хранилището, само от основната директория
-                    $reposFileArr = fileman_Repositories::retriveFiles($repoId, $subPath, FALSE, 0);
+                    $reposFileArr = fileman_Repositories::retriveFiles($repoRec, $subPath, FALSE, 0);
                 } catch (core_exception_Expect $e) {
                     
                     // Ако възникне грешка
@@ -935,7 +939,9 @@ class distro_Files extends core_Detail
         }
         
         // Изтриваме всички записи, за файлове които не се намират в някое хранилище
-        $resArr['delete'] = static::delete("#repos IS NULL OR #repos = '|'");
+        if ($delCnt = static::delete("#repos IS NULL OR #repos = '|'")) {
+            $resArr['delete'] = $delCnt;
+        }
         
         return $resArr;
     }
@@ -1068,7 +1074,7 @@ class distro_Files extends core_Detail
                     
                     // Линк за изтриване от хранилището
                     $delLink = ht::createLink($delImg, array($mvc, 'removeFromRepo', $id, 'repoId' => $repoId, 'ret_url' => TRUE),
-                                       tr('Наистина ли желаете да изтриете файла от хранилището?'), array('title' => tr('Изтриване')));
+                                       tr('Наистина ли желаете да изтриете файла от хранилището?'), array('title' => 'Изтриване'));
                 }
                 
                 // Ако имаме права за редактиране
@@ -1076,7 +1082,7 @@ class distro_Files extends core_Detail
                     
                     // Линк за редактиране
                     $editLink = ht::createLink($editImg, array($mvc, 'edit', $id, 'ret_url' => TRUE),
-                                       NULL, array('title' => tr('Редактиране')));
+                                       NULL, array('title' => 'Редактиране'));
                 }
                 
                 // Ако има линк за редактиране
@@ -1302,7 +1308,7 @@ class distro_Files extends core_Detail
     {
         
         // Извикваме функцията и връщаме резултата му
-        return static::syncFiles();
+        return core_Type::mixedToString(static::syncFiles());
     }
     
     

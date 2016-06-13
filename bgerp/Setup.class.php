@@ -14,6 +14,20 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 
 
 /**
+ * FileHandler на логото на фирмата на английски
+ * Генерирано от svg файл
+ */
+defIfNot(BGERP_COMPANY_LOGO_SVG_EN, '');
+
+
+/**
+ * FileHandler на логото на фирмата на български
+ * Генерирано от svg файл
+*/
+defIfNot(BGERP_COMPANY_LOGO_SVG, '');
+
+
+/**
  * След колко време, ако не работи крона да бие нотификация
  */
 defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
@@ -115,7 +129,8 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Recently',
             'bgerp_Bookmark',
             'bgerp_LastTouch',
-            'bgerp_E'
+            'bgerp_E',
+            'bgerp_F',
         );
         
         $instances = array();
@@ -147,7 +162,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Folders = cls::get('doc_Folders');
         
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,select2,help,toast,compactor,rtac,hljs,pixlr,tnef";
+            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,select2,help,toast,minify,rtac,hljs,pixlr,tnef";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
@@ -204,34 +219,12 @@ class bgerp_Setup extends core_ProtoSetup {
             // Форсираме системния потребител
             core_Users::forceSystemUser();
             
-            // Извършваме инициализирането на всички включени в списъка пакети
-            foreach (arr::make($packs) as $p) {
-                if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
-                    $packsInst[$p] = cls::get($p . '_Setup');
-                    
-                    if (method_exists($packsInst[$p], 'loadSetupData')) {
-                        try {
-                            $html .= "<h2>Инициализиране на $p</h2>";
-                            $html .= "<ul>";
-                            $html .= $packsInst[$p]->loadSetupData();
-                            $html .= "</ul>";
-                            $isLoad[$p] = TRUE;
-                            
-                            // Махаме грешките, които са възникнали, но все пак са се поправили
-                            // в не дебъг режим
-                            if (!isDebug()) {
-                                unset($haveError[$p]);
-                            }
-                        } catch(core_exception_Expect $exp) {
-                            //$haveError = TRUE;
-                            file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
-                            $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
-                            reportException($exp);
-                        }
-                    }
-                }
-            }
+            // Първа итерация за захранване с данни
+            $this->loadSetupDataProc($packs, $haveError, $html);
             
+            // Втора итерация за захранване с данни
+            $this->loadSetupDataProc($packs, $haveError, $html, '2');
+
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
             
@@ -283,4 +276,51 @@ class bgerp_Setup extends core_ProtoSetup {
         
         return $html;
     }
+
+    
+    /**
+     * Захранва с начални данни посочените пакети
+     * 
+     * @param array $packs    Масив с пакети
+     * @param int   $itr      Номер на итерацията
+     *
+     * @return array          Грешки
+     */
+    function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
+    {
+        // Кои пакети дотук сме засели с данни
+        $isLoad = array();
+        
+        // Инстанции на пакетите;
+        $packsInst = array();
+
+        // Извършваме инициализирането на всички включени в списъка пакети
+        foreach (arr::make($packs) as $p) {
+            if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
+                $packsInst[$p] = cls::get($p . '_Setup');
+                
+                if (method_exists($packsInst[$p], 'loadSetupData')) {
+                    try {
+                        $html .= "<h2>Инициализиране на $p</h2>";
+                        $html .= "<ul>";
+                        $html .= $packsInst[$p]->loadSetupData($itr);
+                        $html .= "</ul>";
+                        $isLoad[$p] = TRUE;
+                        
+                        // Махаме грешките, които са възникнали, но все пак са се поправили
+                        // в не дебъг режим
+                        if (!isDebug()) {
+                            unset($haveError[$p]);
+                        }
+                    } catch(core_exception_Expect $exp) {
+                        //$haveError = TRUE;
+                        file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
+                        $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
+                        reportException($exp);
+                    }
+                }
+            }
+        }
+    }
 }
+

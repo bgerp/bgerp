@@ -1,10 +1,4 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <table style='width:100%;'>
-        <tbody>
-            <tr>
-                <td>
-                    <div class='scrolling-holder'>
-                        <div class='display-table'>
                             <table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
@@ -16,7 +10,7 @@
                                                 <span class="bigData">[#valior#]</span>
                                             </div>
                                             <!--ET_BEGIN state-->
-                                            <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                                            <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
                                         <td class="cell custom-header-bg vtop" style='width:33%;'><b>|До склад|*</b></td>
@@ -38,8 +32,10 @@
                                 </tbody>
                             </table>
                             <div class="lines"></div>
-                            <div class="details">
-                                [#store_TransfersDetails#]
+                            <div class='scrolling-holder'>
+	                            <div class="details">
+	                                [#store_TransfersDetails#]
+	                            </div>
                             </div>
                             <div class="lines"></div>
                             <table class="innerTable footer-notes paddingCells" style='width:100%;'>
@@ -78,15 +74,4 @@
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                    <!--ET_BEGIN DETAILS-->
-                    <div class='details'>
-                        [#DETAILS#]
-                    </div>
-                    <!--ET_END DETAILS-->
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -112,9 +112,19 @@ class page_Html extends core_ET {
         
         // Вземане на времето на бездействие в съответния таб
         static::idleTimerJs($tpl);
+       
+        $tpl->push('context/lib/contextMenu.css', "CSS");
+        $tpl->push('context/lib/contextMenu.js', "JS");
         
-        $tpl->append("runOnLoad(scrollLongListTable);", "JQRUN");
-      
+        jquery_Jquery::run($tpl, "getContextMenuFromAjax();", TRUE);
+        jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
+        
+        jquery_Jquery::run($tpl, 'scrollLongListTable();');
+        jquery_Jquery::run($tpl, 'editCopiedTextBeforePaste();');
+        jquery_Jquery::run($tpl, 'smartCenter();');
+        jquery_Jquery::run($tpl, 'showTooltip();');
+        jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
+        
         return $tpl;
     }
     
@@ -148,8 +158,8 @@ class page_Html extends core_ET {
      */
     static function saveSelTextJs(&$tpl)
     {
-        // Скрипт, за вземане на инстанция на efae
-        $tpl->appendOnce("\n runOnLoad(function(){getEO().saveSelText();});", 'SCRIPTS');
+        // Скрипт, за вземане на инстанция на efae        
+        jquery_Jquery::run($tpl, "getEO().saveSelText();", TRUE);
     }
     
     

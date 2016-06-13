@@ -33,13 +33,13 @@ class jqdatepick_Plugin extends core_Plugin {
     {
     	$conf = core_Packs::getConfig('jqdatepick');
     	
-        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.css", "CSS");
-        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.plugin.min.js", "JS");
-        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.js", "JS");
-        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS");
+        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.css", "CSS", TRUE);
+        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.plugin.min.js", "JS", TRUE);
+        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.js", "JS", TRUE);
+        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS", TRUE);
 
         // custom стилове за плъгина
-        $tpl->push("jqdatepick/css/jquery.datepick-custom.css", "CSS");
+        $tpl->push("jqdatepick/css/jquery.datepick-custom.css", "CSS", TRUE);
         
         $alignment = Mode::is('screenMode', 'narrow') ? 'top' : 'bottom';
         

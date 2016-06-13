@@ -38,19 +38,40 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Файл за единичния изглед
+     */
+    public $singleLayoutFile = 'store/tpl/SingleStoreDocument.shtml';
+    
+    
+    /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
                           acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices';
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
 
+    
+    /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, store';
+    
     
     /**
      * Кой има право да чете?
@@ -79,13 +100,13 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,store,sales,purchase';
     
     
     /**
@@ -97,7 +118,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
     /**
@@ -115,13 +136,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/shipment.png';
-    
-    
-    /**
-     * Файл за единичния изглед
-     */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutReceipt.shtml';
+    public $singleIcon = 'img/16/store-receipt.png';
 
    
     /**
@@ -211,32 +226,28 @@ class store_Receipts extends store_DocumentMaster
     	if(count($data->receipts)){
     		$table = cls::get('core_TableView');
     		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
-    		 
+    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount');
+    		
     		return $table->get($data->receipts, $fields);
     	}
     }
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = static::getHandle($id);
+        $handle = $this->getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата складова разписка") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
-    }
-     
-     
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        return tr("|Складова разписка|* №") . $rec->id;
     }
     
     
@@ -247,10 +258,10 @@ class store_Receipts extends store_DocumentMaster
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Складова разписка', 
-    					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 
+    					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Складова разписка с цени', 
-    					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg',
+    					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);

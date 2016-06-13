@@ -138,8 +138,8 @@ class crm_Profiles extends core_Master
      */
     function description()
     {
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull,smartCenter');
-        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,smartCenter');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
+        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,tdClass=nowrap');
         $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none,smartCenter');
         $this->XPR('lastTime',  'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)', 'input=none,smartCenter');
 
@@ -302,7 +302,7 @@ class crm_Profiles extends core_Master
                 $changePassUrl =  array('crm_Profiles', 'changePassword', 'ret_url'=>TRUE);
                 
                 // Линк за промяна на URL
-                $changePasswordLink = ht::createLink('(' . tr('cмяна') . ')', $changePassUrl, FALSE, 'title=' . tr('Смяна на парола'));
+                $changePasswordLink = ht::createLink('(' . tr('cмяна') . ')', $changePassUrl, FALSE, 'title=Смяна на парола');
                 
                 // Променяме паролата
                 $data->User->row->password = str_repeat('*', 7) . " " . $changePasswordLink;
@@ -323,7 +323,7 @@ class crm_Profiles extends core_Master
                 $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
                     
                 // Създаме линка
-                $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на потребителски данни'));  
+                $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=Редактиране на потребителски данни');  
             }
             
             if($data->User->rec->state != 'active') {
@@ -370,11 +370,8 @@ class crm_Profiles extends core_Master
                         reset($userTeams);
                         $userId = key($userTeams);
                         
-                        $attr = array();
-                        $attr['class'] = 'linkWithIcon';
-        		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-        		        $attr['title'] = tr('Логвания на потребителя');
-                        
+                        $attr = array('ef_icon' => '/img/16/page_go.png', 'title' => 'Логвания на потребителя');
+                         
                         // URL за промяна
                         $loginLogUrl = array('core_LoginLog', 'list', 'users' => $userId, 'ret_url' => TRUE);
                         
@@ -411,7 +408,7 @@ class crm_Profiles extends core_Master
                     $attr = array();
                     $attr['class'] = 'linkWithIcon';
     		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-    		        $attr['title'] = tr('Екшън лог на потребителя');
+    		        $attr['title'] = 'Екшън лог на потребителя';
                     
                     // URL за промяна
                     $loginLogUrl = array('log_Data', 'list', 'users' => $userId, 'ret_url' => TRUE);
@@ -1000,7 +997,7 @@ class crm_Profiles extends core_Master
     				$attr['class'] .= ' state-' . $userRec->state;
     			}
     			
-    			$attr['title'] = $userRec->names;
+    			$attr['title'] = "|*" . $userRec->names;
     			
     			$link = ht::createLink($title, $url, $warning, $attr);
     		} else {

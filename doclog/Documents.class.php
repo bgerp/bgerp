@@ -1410,13 +1410,103 @@ class doclog_Documents extends core_Manager
     
     
     /**
-     * Извлича записа по подаден cid
+     * Извлича записите по подаден cid
+     * 
+     * @param integer $cid
+     * @param NULL|string|array $action
+     * 
+     * @return array
      */
-    protected static function fetchByCid($cid)
+    public static function fetchByCid($cid, $action = NULL)
     {
-        return static::fetch(array("#containerId = [#1#]", $cid));
+        $resArr = array();
+        
+        if (!$cid) return $resArr;
+        
+        $query = self::getQuery();
+        $query->where(array("#containerId = [#1#]", $cid));
+        
+        if (isset($action)) {
+            $action = arr::make($action, TRUE);
+            $query->orWhereArr('action', $action);
+            
+        }
+        
+        while ($rec = $query->fetch()) {
+            $resArr[] = $rec;
+        }
+        
+        return $resArr;
     }
-
+    
+    
+    /**
+     * Връща масив с IP-адреси от които е видян/свален документа
+     * 
+     * @param unknown $cid
+     * @param NULL|string|array $action
+     * 
+     * @return array
+     */
+    public static function getViewIp($cid, $action = NULL)
+    {
+        $recsArr = self::fetchByCid($cid, $action);
+        
+        $viewIpArr = array();
+        
+        if (!$cid) return $viewIpArr;
+        
+        foreach ($recsArr as $recObj) {
+            if (isset($recObj->data->seenFromIp)) {
+                $viewIpArr[$recObj->data->seenFromIp] = $recObj->data->seenFromIp;
+            }
+            
+            if (!empty($recObj->data->open)) {
+                foreach ($recObj->data->open as $ip => $d) {
+                    $viewIpArr[$ip] = $ip;
+                }
+            }
+            
+            if (!empty($recObj->data->download)) {
+                foreach ($recObj->data->download as $fh => $dArr) {
+                    if (!empty($dArr)) {
+                        foreach ($dArr as $ip => $d) {
+                            $viewIpArr[$ip] = $ip;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $viewIpArr;
+    }
+    
+    
+    /**
+     * Връща масив с имейлите до които е изпратен документа
+     * 
+     * @param integer $cid
+     * 
+     * @return array
+     */
+    public static function getSendEmails($cid)
+    {
+        $resArr = self::fetchByCid($cid, self::ACTION_SEND);
+        
+        $toEmails = '';
+        
+        foreach ($resArr as $recObj) {
+            if (!isset($recObj->data->to)) continue ;
+            
+            $toEmails .= ($toEmails) ? ', ' : '';
+            $toEmails .= $recObj->data->to;
+        }
+        
+        $resArr = type_Emails::toArray($toEmails);
+        
+        return $resArr;
+    }
+    
     
     /**
      * Отбелязва имейла за върнат
@@ -1450,23 +1540,28 @@ class doclog_Documents extends core_Manager
             'threadId'    => $sendRec->threadId,
             'parentId'    => $sendRec->id
         );
-    
+        
         static::save($retRec);
-
-        $msg = tr("Върнато писмо|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
-    
-        // Нотификация за връщането на писмото до изпращача му
-        $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
-        bgerp_Notifications::add(
-            $msg, // съобщение
-            $linkArr, // URL
-            $sendRec->createdBy, // получател на нотификацията
-            'alert' // Важност (приоритет)
-        );
         
 		// Съобщение в лога
         $doc = doc_Containers::getDocument($sendRec->containerId);
-		$docInst = $doc->getInstance();
+        $docInst = $doc->getInstance();
+        
+        // Ако не е циркулярен имейл
+        if (!($docInst instanceof blast_Emails)) {
+            $msg = tr("Върнато писмо|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
+            
+            // Нотификация за връщането на писмото до изпращача му
+            $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
+            bgerp_Notifications::add(
+                            $msg, // съобщение
+                            $linkArr, // URL
+                            $sendRec->createdBy, // получател на нотификацията
+                            'alert' // Важност (приоритет)
+            );
+        }
+        
+		// Съобщение в лога
 		$docInst->logInfo("Върнато писмо", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;

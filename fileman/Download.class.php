@@ -236,6 +236,8 @@ class fileman_Download extends core_Manager {
         // Вземаме записа на манипулатора
         $fRec = $this->Files->fetchByFh($fh);
         
+        fileman::updateLastUse($fRec);
+        
         // Очакваме да има такъв запис
         expect($fRec, 'Няма такъв запис.');
         
@@ -429,86 +431,6 @@ class fileman_Download extends core_Manager {
         $rec->offset = mt_rand(0,60);
         $rec->delay = 0;
         $res .= core_Cron::addOnce($rec);
-    }
-
-
-    /**
-     * Екшън за генериране на линк за сваляне на файла
-     */
-    function act_GenerateLink()
-    {
-        //Права за работа с екшън-а
-        requireRole('user');
-        
-        // Манипулатора на файла
-        $fh = Request::get('fh');
-        
-        // Очакваме да има подаден манипулатор на файла
-        expect($fh, 'Липсва манупулатора на файла');
-        
-        // Ескейпваме манипулатора
-        $fh = $this->db->escape($fh);
-
-        // Записа за съответния файл
-        $fRec = $this->Files->fetchByFh($fh);
-        
-        // Очакваме да има такъв запис
-        expect($fRec, 'Няма такъв запис.');
-        
-        // Проверяваме за права за сваляне на файла
-        $this->Files->requireRightFor('download', $fRec);
-        
-        
-        $this->FNC('activeMinutes', 'enum(
-    										0.5 = Половин час, 
-    										1=1 час,
-    										3=3 часа,
-    										5=5 часа,
-    										12=12 часа,
-    										24=1 ден,
-    										168=1 седмица
-    								 	  )', 'caption=Валидност, mandatory');
-        
-        
-        //URL' то където ще се редиректва при отказ
-        $retUrl = getRetUrl();
-        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fh));
-        
-        // Вземаме формата към този модел
-        $form = $this->getForm();
-        
-        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
-        $form->input(NULL, 'silent');
-        
-        // Въвеждаме съдържанието на полетата
-        $form->input('activeMinutes');
-        
-        // Ако формата е изпратена без грешки, показваме линка за сваляне
-        if($form->isSubmitted()) {
-            
-            // Вземаме линка, за да може да се запише новото време до когато е активен линка
-            $link = self::getDownloadUrl($fRec->fileHnd, $form->rec->activeMinutes);
-            
-            // Редиректваме на страницата за информация
-            return new Redirect(array('fileman_Files', 'single', $fh, 'currentTab' => 'info', '#' => 'fileDetail'));
-        }
-        
-        // По подразбиране 12 часа да е активен
-        $form->setDefault('activeMinutes', 12);
-        
-        // Задаваме да се показват само полетата, които ни интересуват
-        $form->showFields = 'activeMinutes';
-        
-        // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
-
-        $fileName = fileman_Files::getVerbal($fRec, 'name');
-        
-        // Добавяме титлата на формата
-        $form->title = "Генериране на линк за|* {$fileName}";
-        
-        return $this->renderWrapping($form->renderHtml());
     }
     
     

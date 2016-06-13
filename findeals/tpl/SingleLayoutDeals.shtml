@@ -37,7 +37,7 @@
                         <td class = 'nowrap'>[#amountDeal#]</td>
                         <td class = 'nowrap'>[#debitAmount#] </td>
                         <td class = 'nowrap'>[#creditAmount#]</td>
-                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;'>
+                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;width:1%'>
                         	<span style='font-weight:normal'>|Контрагент|* : [#contragentName#]</span>
                         	<!--ET_BEGIN secondContragentId-->
                         	<br><span style='font-weight:normal'>|Втори контрагент|* : [#secondContragentId#]</span>

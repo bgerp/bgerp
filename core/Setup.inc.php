@@ -478,6 +478,9 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 // 6. Показване на прогрес барове
 // 7. Стартиране на инсталацията
 
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
 
 // Стъпка 1: Лиценз
 if($step == 1) {
@@ -497,18 +500,21 @@ if($step == 2) {
     $log = array();
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
 
+    if(!defined(PRIVATE_GIT_BRANCH)) {
+        define(PRIVATE_GIT_BRANCH, BGERP_GIT_BRANCH);
+    }
+
     if(defined('EF_PRIVATE_PATH')) {
-        $repos = array(EF_PRIVATE_PATH, EF_APP_PATH);
+        $repos = array(EF_PRIVATE_PATH => PRIVATE_GIT_BRANCH, EF_APP_PATH => BGERP_GIT_BRANCH);
     } else {
-        $repos = array(EF_APP_PATH);
+        $repos = array(EF_APP_PATH => PRIVATE_GIT_BRANCH);
     }
     switch ($checkUpdate) {
         // Не се изисква сетъп
         case FALSE :
             $reposLastDate = "<table>";
-            $reposLastDate  .= "<tr><td align='right' >Бранч: </td><td align='left' style='font-weight: bold;'>" . BGERP_GIT_BRANCH . "</td></tr>";
-            foreach($repos as $repoPath) {
-                $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . gitLastCommitDate($repoPath, $log) . "</td></tr> ";
+            foreach($repos as $repoPath => $branch) {
+                $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . gitLastCommitDate($repoPath, $log) . " (" . gitCurrentBranch($repoPath, $log) . ")</td></tr> ";
             }
             $reposLastDate .= "</table>";             
             // Показваме бутони за ъпдейтване и информация за състоянието
@@ -543,48 +549,47 @@ if($step == 2) {
             $newVer = 0;
             $changed = 0;
     
-            foreach($repos as $repoPath) {
+            foreach($repos as $repoPath => $branch) {
                 
                 $repoName = basename($repoPath);
                 
                 // Превключваме репозиторито в зададения в конфигурацията бранч
-                if (!gitSetBranch($repoPath, $log)) {
+                if (!gitSetBranch($repoPath, $log, $branch)) {
                     continue;
                 }
                      
                 // Ако имаме команда за revert на репозиторито - изпълняваме я
-                if($revert == $repoName) {
+                if ($revert == $repoName) {
                     gitRevertRepo($repoPath, $log);
                 }
                 
                 // Ако имаме команда за обновяване на репозитори - изпълняваме я
-                if($update == $repoName ||  $update == 'all') {
-                    gitPullRepo($repoPath, $log);
+                if ($update == $repoName ||  $update == 'all') {
+                    gitPullRepo($repoPath, $log, $branch);
                 }
                  
                 // Проверяваме за променени файлове в репозитори или за нова версия
-                if(gitHasChanges($repoPath, $log)) {
+                if (gitHasChanges($repoPath, $log)) {
                     $links[] = "wrn|{$selfUrl}&amp;revert={$repoName}|В <b>[{$repoName}]</b> има променени файлове. Възстановете ги »";
                     $changed++;
-                } elseif(gitHasNewVersion($repoPath, $log)) {
+                } elseif (gitHasNewVersion($repoPath, $log, $branch)) {
                     $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
                     $newVer++;
                 }
             }
-            if($newVer > 1 && !$changed) {
+            if ($newVer > 1 && !$changed) {
                 $links[] = "new|$selfUrl&amp;update=all|Обновете едновременно цялата система »";
             }
             
-            if($newVer || $changed) {
+            if ($newVer || $changed) {
                 $links[] = "wrn|{$nextUrl}|Продължете, без да променяте системата »";
             } else {
                 $links[] = "inf|{$nextUrl}|Вие имате последната версия на <b>bgERP</b>, може да продължите »";
             }
             
             break;
-        }
+    }
         
-    
     $texts['body'] = linksToHtml($links);
             
     // Статистика за различните класове съобщения
@@ -728,6 +733,7 @@ if($step == 3) {
         );
         
     if (file_exists($paths['config'])) {
+        $resetCache = FALSE;
         $src = file_get_contents($paths['config']);
         // В конфигурационния файл задаваме незададените константи
         if (!empty($consts)) {
@@ -735,12 +741,13 @@ if($step == 3) {
                 $src .= "\n";
                 $src .= "// Добавено от setup.inc.php \n";
                 $src .= "DEFINE('" . $name . "', '{$value}');\n";
-                $constsLog .= $name . " ";
+                $constsLog .= ($constsLog) ? ', ' . $name : $name;
             }
             if (FALSE === @file_put_contents($paths['config'], $src)) {
                 $log[] = "err: Недостатъчни права за добавяне в <b>`" . $paths['config'] . "`</b>";
             } else {
-                $log[] = "inf: Записани константи <b>{$constsLog}</b>";
+                $log[] = "new: Записани константи <b>{$constsLog}</b>";
+                $resetCache = TRUE;
             }
         }
         if (defined('EF_DB_USER') && defined('EF_DB_PASS') && is_writable($paths['config'])) {
@@ -751,13 +758,17 @@ if($step == 3) {
                 if ($returnVar == 0) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
-                    $log[] = "inf: Паролата на root на mysql-a е сменена";
-                    if (function_exists('opcache_reset')) {
-                        opcache_reset();
-                    }
+                    $log[] = "new: Паролата на root на mysql-a е сменена";
+                    $resetCache = TRUE;
                 } else {
                     $log[] = "wrn: Паролата на root на mysql-a не е сменена - използвате шаблонна парола, която се разпространява с имиджите на bgERP";
                 }
+            }
+        }
+        
+        if ($resetCache) {
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
             }
         }
     }
@@ -820,8 +831,8 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 177000;
-    $totalTables = 328;
+    $totalRecords = 200000; // 200 800
+    $totalTables = 340; //352
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
 
@@ -1125,20 +1136,18 @@ function gitCurrentBranch($repoPath, &$log)
 /**
  * Сетва репозиторито в зададен бранч. Ако не е зададен го взима от конфигурацията
  */
-function gitSetBranch($repoPath, &$log, $branch=NULL)
+function gitSetBranch($repoPath, &$log, $branch = NULL)
 {
 
     $repoName = basename($repoPath);
 
     $currentBranch = gitCurrentBranch($repoPath, $log);
 
-    if (isset($branch)) {
+    if(isset($branch)) {
         if ($currentBranch == $branch) {
             return TRUE;
         }
         $requiredBranch = $branch;
-    } elseif ($currentBranch == BGERP_GIT_BRANCH) {
-        return TRUE;
     } else {
         $requiredBranch = BGERP_GIT_BRANCH;
     }
@@ -1178,12 +1187,12 @@ function gitSetBranch($repoPath, &$log, $branch=NULL)
 /**
  * Дали има по-нова версия на това репозитори в зададения бранч?
  */
-function gitHasNewVersion($repoPath, &$log)
+function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
 {
     $repoName = basename($repoPath);
     
     // Команда за SHA1 на локалния бранч 
-    $command = " --git-dir=\"{$repoPath}/.git\" rev-parse " . BGERP_GIT_BRANCH;
+    $command = " --git-dir=\"{$repoPath}/.git\" rev-parse " . $branch;
 
     if (!gitExec($command, $arrResLocal)) {
         foreach ($arrResLocal as $val) {
@@ -1194,7 +1203,7 @@ function gitHasNewVersion($repoPath, &$log)
     }
   
     // Команда за SHA1 на отдалечения бранч
-    $command = " --git-dir=\"{$repoPath}/.git\" ls-remote origin " . BGERP_GIT_BRANCH;
+    $command = " --git-dir=\"{$repoPath}/.git\" ls-remote origin " . $branch;
 
     if (!gitExec($command, $arrResRemote)) {
         foreach ($arrResRemote as $val) {
@@ -1268,14 +1277,14 @@ function gitHasChanges($repoPath, &$log)
 /**
  * Синхронизира с последната версия на зададения бранч
  */
-function gitPullRepo($repoPath, &$log)
+function gitPullRepo($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
 {
     
     $repoName = basename($repoPath);
     
-    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin " . BGERP_GIT_BRANCH . " 2>&1";
+    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin " . $branch . " 2>&1";
 
-    $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge FETCH_HEAD"; //origin/" . BGERP_GIT_BRANCH ." 2>&1";
+    $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge FETCH_HEAD";
     
     // За по голяма прецизност е добре да се пусне и git fetch
     
@@ -1289,7 +1298,7 @@ function gitPullRepo($repoPath, &$log)
   
     if (!gitExec($commandMerge, $arrResMerge)) {
         foreach ($arrResMerge as $val) {
-            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при merge origin/" . BGERP_GIT_BRANCH .": " . $val):"";
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при merge origin/" . $branch.": " . $val):"";
         }
         
         return FALSE;

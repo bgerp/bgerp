@@ -60,26 +60,13 @@ class jquery_Jquery
      */
     static function run(&$tpl, $code, $once = FALSE)
     {
-        $tpl->appendOnce(static::getCodeTpl(), "JQRUN");
+        $code = trim($code);
         
         if($once) {
-            $tpl->appendOnce($code, 'JQUERY_CODE');
+            $tpl->appendOnce("\n$(document).ready(function(){ {$code} });", 'JQRUN');
         } else {
-            $tpl->append($code, 'JQUERY_CODE');
+            $tpl->append("\n$(document).ready(function(){ {$code} });", 'JQRUN');
         }
-    }
-    
-    
-    /**
-     * Връща шаблон в който да се изпълни кода след зареждане на страницата
-     * 
-     * @return core_ET
-     */
-    static function getCodeTpl()
-    {
-        $runTpl = new ET("\n$(document).ready(function(){ \n[#JQUERY_CODE#]\n });\n");
-        
-        return $runTpl;
     }
     
     

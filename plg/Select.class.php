@@ -83,6 +83,8 @@ class plg_Select extends core_Plugin
     	} else {
     		$data->listClass .= " selectRows";
     	}
+    	
+    	$mvc->FNC('_checkboxes', 'html', 'tdClass=centered');
     }
     
     
@@ -250,10 +252,10 @@ class plg_Select extends core_Plugin
         if(!count($data->rows)) return;
         
         $tpl = new ET($tpl);
+        $urlArr = array('ret_url' => getCurrentUrl());
+        core_Request::addUrlHash($urlArr);
         
-        $retUrl = toUrl(getCurrentUrl(), 'local');
-        
-        $tpl->append("<input type='hidden' name='ret_url' value='{$retUrl}'>");
+        $tpl->append("<input type='hidden' name='ret_url' value='{$urlArr['ret_url']}'>");
         
         $tpl->append('</form>');
         
@@ -261,9 +263,7 @@ class plg_Select extends core_Plugin
             $js .= "chRwCl('{$id}');";
         }
         
-        $js .= 'SetWithCheckedButton();';
-        
-        $tpl->appendOnce("\n runOnLoad(function(){{$js};});", 'JQRUN');
+        jquery_Jquery::run($tpl, "SetWithCheckedButton();", TRUE);
     }
     
     

@@ -1,6 +1,12 @@
 <?php
 
+defIfNot('JPEGOPTIM_CMD', 'jpegoptim [#path#]');
 
+defIfNot('JPEGTRAN_CMD', 'jpegtran -copy none -optimize -outfile [#path#] [#path#]');
+
+defIfNot('OPTIPNG_CMD', 'optipng [#path#]');
+
+defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]');
 
 
 /**
@@ -148,6 +154,12 @@ class thumb_Img
      * @var string Пътят във файловата система, където да бъде записано изображението
      */
     protected $thumbPath;
+
+
+    /**
+     * @var thumb_Img Копие на обекта с дройно по-големи рамери
+     */
+    private $size2x;
     
 
     /**
@@ -208,6 +220,12 @@ class thumb_Img
                 default:
                     expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
             }
+        }
+ 
+        if($this->boxWidth && $this->boxHeight) {
+            $this->size2x = clone($this);
+            $this->size2x->boxWidth *= 2;
+            $this->size2x->boxHeight *= 2;
         }
     }
 
@@ -579,6 +597,17 @@ class thumb_Img
                     file_put_contents($path, $asString);
                 }
             }
+
+            $type = $this->getThumbFormat();
+
+            if(!$type && $path) {
+                $type = fileman_Files::getExt($path);
+            }
+
+            if(thumb_Setup::get('OPTIMIZATORS') && !empty($path) && $type) {
+                $M = cls::get('thumb_M');
+                $M->forOptimization[$path] = $type;
+            }
         }
     }
 
@@ -597,12 +626,18 @@ class thumb_Img
         $this->getSize();  
         setIfNot($attr['width'], $this->scaledWidth);
         setIfNot($attr['height'], $this->scaledHeight);
+     
+        if(log_Browsers::isRetina() && $this->size2x) {
+            // За случаите, когато имаме дисплей с по-висока плътност
+            $url2x = $this->size2x->getUrl();
+            $attr['srcset']   = "{$url2x} 2x";
+        }
         
         setIfNot($attr['alt'], $this->verbalName);
         
         unset($attr['isAbsolute']);
 
-        $img = ht::createElement('img', $attr);
+        $img = ht::createImg($attr);
 
         return $img;
     }

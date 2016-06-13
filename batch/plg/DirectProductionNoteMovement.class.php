@@ -44,7 +44,9 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 			
 			if(is_object($BatchClass)){
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, $rec));
+				if(!isset($rec->id)){
+					$form->setDefault('batch', $BatchClass->getAutoValue($mvc, $rec));
+				}
 			} else {
 				$form->setField('batch', 'input=none');
 				unset($rec->batch);
@@ -53,9 +55,11 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 		
 		if($form->isSubmitted()){
 			if(is_object($BatchClass)){
-				$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-				if(!$BatchClass->isValid($rec->batch, $rec->quantity, $msg)){
-					$form->setError('batch', $msg);
+				if(!empty($rec->batch)){
+					$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+					if(!$BatchClass->isValid($rec->batch, $rec->quantity, $msg)){
+						$form->setError('batch', $msg);
+					}
 				}
 			}
 		}
@@ -73,8 +77,9 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 	{
 		$BatchClass = batch_Defs::getBatchDef($data->rec->productId);
 		if(is_object($BatchClass)){
+			
 			// Ако не е въведена партида, сетваме грешка
-			if(empty($data->rec->batch)){
+			if(empty($data->rec->batch) && $data->rec->state == 'draft'){
 				$data->row->productId = ht::createHint($data->row->productId, 'Не е въведен партиден номер', 'warning');
 			}
 		}

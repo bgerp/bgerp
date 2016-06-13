@@ -78,6 +78,29 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * Енджина за таблицата в DB
+     */
+    protected $dbEngine;
+    
+
+    /**
+     *  Колация за символите в DB
+     */
+    protected $dbCollation;
+
+
+    /**
+     * Какъв да е минималния брой за кеширане при подготовката на MakeArray4Select
+     */
+    public $makeArray4selectLimit4Cache = 500;
+    
+    
+    /**
+     * Кеш за резултатите от makeArray4select(), когато са по-малко от $makeArray4selectLimit4Cache
+     */
+    public $makeArray4selectCache = array();
+
+    /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свързан към базата.
@@ -527,16 +550,22 @@ class core_Mvc extends core_FieldSet
             $query->orderBy($orderBy ? $orderBy : $fields);
         }
         
-        $res = FALSE;
-	
-        if($query->count() > 500) {
+        $res = NULL;
 
-            $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
-
-            $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
+        $handler = md5("{$fields} . {$where} . {$index} . {$orderBy} . {$this->className}");
+        
+        $res = $this->makeArray4selectCache[$handler];
+        
+        if($res === NULL) {
+            // Колко записа биха влезли в масива?
+            $cnt = $query->count($where, $this->makeArray4selectLimit4Cache);
+            if($cnt >= $this->makeArray4selectLimit4Cache) {
+                $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
+            }  
         }
-
-        if($res === FALSE) {
+        
+        if(!is_array($res)) {
+            
             $res = array();
 
             while ($rec = $query->fetch($where)) {
@@ -557,12 +586,14 @@ class core_Mvc extends core_FieldSet
 
                 $res[$rec->{$index}] = str_replace(array('&lt;', '&amp;'), array("<", "&"), $res[$rec->{$index}]);
             }
-            
+
+            if($cnt >= $this->makeArray4selectLimit4Cache) {
+                core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
+            } else {
+                $this->makeArray4selectCache[$handler] = $res;
+            }
        }
         
-        if($handler) {
-            core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
-        }
  
  
         return $res;
@@ -834,12 +865,17 @@ class core_Mvc extends core_FieldSet
             $tableName = $this->dbTableName;
 
             $db = $this->db;     // За краткост
+
+            // Параметри на таблицата
+            $tableParams = array('ENGINE' => $this->dbEngine, 
+                                 'CHARACTER' => $this->dbCharacter,
+                                 'COLLATION' => $this->dbCollation);
             // Създаваме таблицата, ако не е създадена
-            $action = $db->forceTable($tableName) ?
+            $action = $db->forceTable($tableName, $tableParams, $debugLog) ?
             '<li class="debug-new">Създаване на таблица:  ' :
             '<li class="debug-info">Съществуваща от преди таблица:  ';
 
-            $html .= "{$action}<b>{$this->dbTableName}</b></li>";
+            $html .= "{$action}<b>{$this->dbTableName}</b></li>" . $debugLog;
 
             foreach ($fields as $name => $field) {
 
@@ -1364,6 +1400,9 @@ class core_Mvc extends core_FieldSet
      */
     public function cron_OptimizeTables()
     {
+        // Временно спрян процеса по оптимизиране на таблиците
+        return;
+
         $db = cls::get('core_Db');
         
         $dbName = $db->escape($db->dbName);
@@ -1381,7 +1420,7 @@ class core_Mvc extends core_FieldSet
             
             if (!$name) continue;
             
-            $dbTableRes = $dbTable->query("OPTIMIZE TABLE $name");
+            $dbTableRes = $dbTable->query("OPTIMIZE TABLE `{$name}`");
             
             if (!is_object($dbTableRes)) continue;
             

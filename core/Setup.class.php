@@ -189,6 +189,12 @@ class core_Setup extends core_ProtoSetup {
     
     
     /**
+     * Роли, които ще се добавят при инсталация
+     */
+    public $roles = 'translate';
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
@@ -255,10 +261,12 @@ class core_Setup extends core_ProtoSetup {
         'migrate::loginLogTruncate',
         'core_Settings',
         'core_Forwards',
+        'core_Updates',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
-        'migrate::clearApcCache3'
+        'migrate::clearApcCache3',
+        'migrate::removeFalseTranslate'
     );
     
     
@@ -343,14 +351,14 @@ class core_Setup extends core_ProtoSetup {
         $html .= core_Cron::addOnce($rec);
         
         
-        // Нагласяване на Крон оптимизира таблиците
+        // Нагласяване на Крон да се проверява за нови версии
         $rec = new stdClass();
-        $rec->systemId = 'OptimizeTables';
-        $rec->description = 'Оптимизиране на таблиците';
-        $rec->controller = 'core_Mvc';
-        $rec->action = 'OptimizeTables';
-        $rec->period = 22*60;
-        $rec->offset = mt_rand(0, 4*60);
+        $rec->systemId = 'CheckForCodeUpdates';
+        $rec->description = 'Проверка за нови версии';
+        $rec->controller = 'core_Updates';
+        $rec->action = 'checkForUpdates';
+        $rec->period = 24*60;
+        $rec->offset = mt_rand(8*60, 12*60);
         $rec->delay = 0;
         $rec->timeLimit = 300;
         $html .= core_Cron::addOnce($rec);
@@ -498,6 +506,37 @@ class core_Setup extends core_ProtoSetup {
             apc_clear_cache();
         }
     }
+    
+    
+    /**
+     * Премахва ненужните преводи, добавени по погрешка
+     */
+    static function removeFalseTranslate()
+    {
+        $query = core_Lg::getQuery();
+        $query->where("1=1");
+        
+        $deleteArr = array();
+        
+        // Ако намери стрингкове, които не са преведени, ги премахваме от модела
+        while ($rec = $query->fetch()) {
+            $translated = str_ireplace(array("\n\r", "\r\n", "\n", "\r"), '<br />', $rec->translated);
+        
+            $translated = core_Lg::prepareKey($translated);
+            
+            if ($translated == $rec->kstring) {
+                $deleteArr[$rec->id] = $rec->id;
+            }
+        }
+        
+        if (!empty($deleteArr)) {
+            $in = implode(', ', $deleteArr);
+            $delCnt = core_Lg::delete("#id IN ({$in})");
+            
+            core_Lg::logNotice("Изтрити {$delCnt} брой ненужни записи");
+        }
+    }
+    
 
     /**
      * Връща JS файлове, които са подходящи за компактиране

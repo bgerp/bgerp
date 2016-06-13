@@ -25,7 +25,7 @@
               <td class = 'nowrap'>[#amountInvoiced#]</td>
               <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
-                  <span style='font-weight:normal'>|Плащане|*</span>: [#paymentState#]<br>
+                  <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
                   <!--ET_BEGIN initiatorId-->
                   <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
@@ -33,6 +33,12 @@
                   <!--ET_BEGIN dealerId-->
                   <span style='font-weight:normal'>|Търговец|*</span>: [#dealerId#]<br>
                   <!--ET_END dealerId-->
+                  <!--ET_BEGIN shipmentStoreIdTop-->
+                  <span style='font-weight:normal'>|От склад|*</span>: [#shipmentStoreIdTop#]<br>
+                  <!--ET_END shipmentStoreIdTop-->
+                  <!--ET_BEGIN deliveryLocationIdTop-->
+                  <span style='font-weight:normal'>|До обект|*</span>: [#deliveryLocationIdTop#]<br>
+                  <!--ET_END deliveryLocationIdTop-->
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>
                   <!--ET_END originId-->

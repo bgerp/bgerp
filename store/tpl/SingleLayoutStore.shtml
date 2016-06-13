@@ -3,7 +3,7 @@
     <div class='scrolling-holder'>
         <div class="folder-cover [#STATE_CLASS#]">
             <div class="inner-folder">
-                <div class="block_title state-active special-title">[#SingleIcon#] |Склад|* <b style="color:green;">[#name#]</b></div>
+                <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Склад|* <b style="color:green;">[#name#]</b></div>
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Информация|*</legend>
                     <div class="groupList">
@@ -28,12 +28,6 @@
                                 <td> [#locationId#]</td>
                             </tr>
                             <!--ET_END locationId-->
-                            <!--ET_BEGIN strategy-->
-                            <tr>
-                                <td class='dt'>|Стратегия|*:</td>
-                                <td> [#strategy#]</td>
-                            </tr>
-                            <!--ET_END strategy-->
                             <!--ET_BEGIN creation-->
                             <tr>
                                 [#creation#]

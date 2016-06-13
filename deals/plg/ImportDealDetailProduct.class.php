@@ -18,7 +18,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -45,7 +45,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	{
 		if($action == 'import'){
 			$mvc->requireRightFor('import');
-	
+			expect($masterId = Request::get($mvc->masterKey, 'int'));
+			$mvc->requireRightFor('import', (object)array($mvc->masterKey => $masterId));
+			
+			$mvc->requireRightFor('import');
 			$form = cls::get('core_Form');
 			
 			$cu = core_Users::getCurrent();
@@ -167,7 +170,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$msg .= "<ul>";
 			foreach($err as $j => $r){
 				$errMsg = implode(', ', $r);
-				$msg .= "<li>|Ред|* '{$j}'- {$errMsg}" . "</li>";
+				$msg .= "|*<li>|Ред|* '{$j}' - {$errMsg}" . "</li>";
 			}
 			$msg .= "</ul>";
 		}
@@ -270,10 +273,23 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	{
 		$masterRec = $data->masterData->rec;
 		
-		if($mvc->haveRightFor('add', (object)array("{$mvc->masterKey}" => $masterRec->id))){
-			if($mvc->haveRightFor('import', (object)array("{$mvc->masterKey}" => $masterRec->id))){
-				$data->toolbar->addBtn('Импорт', array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
-				"id=btnAdd-import,{$error},title=Импортиране на артикули", 'ef_icon = img/16/import16.png,order=15');
+		if($mvc->haveRightFor('import', (object)array("{$mvc->masterKey}" => $masterRec->id))){
+			$data->toolbar->addBtn('Импортиране', array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
+			"id=btnAdd-import,{$error},title=Импортиране на артикули", 'ef_icon = img/16/import16.png,order=15');
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($requiredRoles == 'no_one') return;
+		
+		if($action == 'import' && isset($rec->{$mvc->masterKey})){
+			if(!$mvc->haveRightFor('add', $rec)){
+				$requiredRoles = 'no_one';
 			}
 		}
 	}

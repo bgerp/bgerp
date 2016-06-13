@@ -75,21 +75,21 @@ class crm_Formatter extends core_Manager
     {
     	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на класа
-        $icon = sbf("img/16/telephone2.png", '', $isAbsolute);
-      		
+              		
 	    $PhonesVerbal = cls::get('drdata_PhoneType');
 	        		
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toVerbal($numbers);
-        	
+        
+        // Стил за иконата на класа
+        $style = ht::getIconStyle('img/16/telephone2.png', '');
+        
         if ($prefix != NULL) {
         	        	
-        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $parsTel . "</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">" . $prefix. " ". $parsTel . "</span>";
 
         } else {
-        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $parsTel ."</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">". $parsTel ."</span>";
         }
  
         return $res;
@@ -108,8 +108,6 @@ class crm_Formatter extends core_Manager
     	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
-        // Иконата на класа
-        $icon = sbf("img/16/fax2.png", '', $isAbsolute);
       		
 	    $PhonesVerbal = cls::get('drdata_PhoneType');
 	        		
@@ -124,12 +122,15 @@ class crm_Formatter extends core_Manager
 	    	$fax = $numbers;
 	    }
 
+        // Стил за иконата на класа
+        $style = ht::getIconStyle("img/16/fax2.png", '');
+
 		if ($prefix != NULL) {
 		     	
-			$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $fax ."</span>";
+			$res = "<span class='linkWithIcon' style=\"{$style}\">" . $prefix. " ". $fax ."</span>";
 
 		} else {
-			$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $fax ."</span>";
+			$res = "<span class='linkWithIcon' style=\"{$style}\">". $fax ."</span>";
 		}
 
         return $res;
@@ -147,21 +148,21 @@ class crm_Formatter extends core_Manager
     {
     	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на класа
-        $icon = sbf("img/16/mobile2.png", '', $isAbsolute);
-      		
+              		
 	    $PhonesVerbal = cls::get('drdata_PhoneType');
 	        		
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toVerbal($numbers);
-        	
+        
+        // Стил за иконата на класа
+        $style = ht::getIconStyle("img/16/mobile2.png", '');
+
         if ($prefix != NULL) {
         	        	
-        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $prefix. " ". $parsTel . "</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">" . $prefix. " ". $parsTel . "</span>";
 
         } else {
-        	$res = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>". $parsTel ."</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">". $parsTel ."</span>";
         }
  
         return $res;

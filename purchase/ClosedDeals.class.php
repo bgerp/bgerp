@@ -29,7 +29,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=purchase_transaction_CloseDeal';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=purchase_transaction_CloseDeal';
     
     
     /**
@@ -147,20 +147,6 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     	if($rec->closeWith){
     		$row->closeWith = ht::createLink($row->closeWith, array('purchase_Purchases', 'single', $rec->closeWith));
     	}
-    }
-    
-    
-    /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
-     */
-    static function getDefaultEmailBody($id)
-    {
-        $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашия документ") . ': #[#handle#]');
-        $tpl->append($handle, 'handle');
-        
-        return $tpl->getContent();
     }
     
     

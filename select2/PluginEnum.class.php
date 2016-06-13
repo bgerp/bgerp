@@ -73,7 +73,7 @@ class select2_PluginEnum extends core_Plugin
         // Ако ще са радиобутони
         if ($invoker->params['maxRadio'] && ($invoker->params['maxRadio'] >= $optionsCnt)) return ;
         
-        $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
+        $select = ($attr['placeholder']) ? ($attr['placeholder']) :  '';
         
         if ($invoker->params['allowEmpty'] || isset($invoker->options['']) || isset($invoker->options[' '])) {
             $allowClear = true;

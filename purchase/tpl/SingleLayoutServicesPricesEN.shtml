@@ -14,7 +14,7 @@
                             <span class="bigData">[#valior#]</span>
                         </div>
                         <!--ET_BEGIN state-->
-                        <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                        <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class="cell custom-header-bg" style='width:35%'><b>Supplier</b></td>
@@ -70,6 +70,12 @@
                                 <td><span class='cCode'>[#currencyId#]</span></td>
                             </tr>
                             <!--ET_END currencyId-->
+                            <!--ET_BEGIN activityCenterId-->
+                            <tr>
+                                <td class='quiet nowrap aright' style='width:1%'>Activity center:</td>
+                                <td>[#activityCenterId#]</td>
+                            </tr>
+                            <!--ET_END activityCenterId-->
                         </table>
                         <!--ET_BEGIN note-->
                         <hr>

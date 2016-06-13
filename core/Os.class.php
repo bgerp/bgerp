@@ -379,5 +379,97 @@ class core_Os
         
         return $res;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown $file
+     * @param number $limit
+     * @param string $trim
+     * 
+     * @return array
+     */
+    public static function getLastLinesFromFile($file, $limit = 0, $trim = TRUE, &$errStr = '')
+    {
+        $linesArr = array();
+        
+        if (!is_file($file)) {
+            
+            $errStr = 'Не е подаден валиден файл';
+            
+            return $linesArr;
+        }
+        
+        $fp = @fopen($file, "r");
+        
+        if (!$fp) {
+            
+            $errStr = 'Не може да се отвори файла';
+            
+            return $linesArr;
+        }
+        
+        $pos = 0;
+        $cnt = 0;
+        $fs = 0;
+        $linesArr = array();
+        while ($fs != -1) {
+            $fs = fseek($fp, $pos, SEEK_END);
+            $t = fgetc($fp);
+            $pos -= 1;
+            if ($t == "\n") {
+                $line = fgets($fp);
+                if (($line !== FALSE) && (!$trim || trim($line))) {
+                    $cnt++;
+                    $linesArr[] = $line;
+                }
+            }
+            
+            if ($cnt >= $limit) break;
+        }
+        
+        if (!@fclose($fp)) {
+            wp($fp);
+        }
+        
+        return $linesArr;
+    }
+    
+    
+    /**
+     * Връща размера на memory_limit в байтове
+     * 
+     * @return integer
+     */
+    public static function getBytesFromMemoryLimit($memoryLimit = NULL)
+    {
+        if (!isset($memoryLimit)) {
+            $memoryLimit = ini_get('memory_limit');
+        }
 
+        return self::getBytes($memoryLimit);
+    }
+
+    
+    /**
+     * Converts shorthand memory notation value to bytes
+     * From http://php.net/manual/en/function.ini-get.php
+     *
+     * @param $val Memory size shorthand notation string
+     */
+    public static function getBytes($val) {
+        $val = trim($val);
+        $last = strtolower($val[strlen($val)-1]);
+        switch($last) {
+            // The 'G' modifier is available since PHP 5.1.0
+            case 'g':
+                $val *= 1024;
+            case 'm':
+                $val *= 1024;
+            case 'k':
+                $val *= 1024;
+        }
+        return $val;
+    }    
 }

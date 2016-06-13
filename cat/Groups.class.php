@@ -38,7 +38,7 @@ class cat_Groups extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,productCnt';
+    var $listFields = 'id,name,productCnt,orderProductBy';
     
     
     /**
@@ -136,9 +136,10 @@ class cat_Groups extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
+        $this->FLD('orderProductBy', 'enum(name=Име,code=Код)', 'caption=Сортиране по,notNull,value=name,after=parentId');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,

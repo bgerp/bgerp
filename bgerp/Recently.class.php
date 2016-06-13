@@ -163,13 +163,13 @@ class bgerp_Recently extends core_Manager
                 $state = $threadRec->state;
                 
                 $attr = array();
-                $attr['class'] .= "linkWithIcon state-{$state}";
-                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docRec->id)) . ');';
+                $attr['class'] .= "state-{$state}";
+                $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
                 
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 
                 if(mb_strlen($docRow->title) > self::maxLenTitle) {
-                    $attr['title'] = $docRow->title;
+                    $attr['title'] = '|*' . $docRow->title;
                 }
                 
                 // Ако имамем права, тогава генерирам линк
@@ -177,7 +177,7 @@ class bgerp_Recently extends core_Manager
                     $linkUrl = array($docProxy->getInstance(), 'single',
                         'id' => $docRec->id);
                 }
-                
+
                 $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
                     $linkUrl,
                     NULL, $attr);
@@ -287,7 +287,7 @@ class bgerp_Recently extends core_Manager
         $query->limit(1);
         $query->orderBy("#last", 'DESC');
         $lastRec = $query->fetch();
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch'));
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch'));
         $now = dt::now();
         list($tpl, $createdOn)  = core_Cache::get('RecentDoc', $key);
  
@@ -326,7 +326,7 @@ class bgerp_Recently extends core_Manager
             // Рендираме изгледа
             $tpl = $Recently->renderPortal($data);
 
-            core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), 5);
+            core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         return $tpl;

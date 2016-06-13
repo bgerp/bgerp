@@ -600,7 +600,7 @@ en,Задължения,Duties
 en,Задължително п_f3a5,Mandatory displaying documents in thread
 en,Заето,Busy
 en,Заключвания,Lockings
-en,Закриване,Blocking
+en,Закриване,Block
 en,Закупчик,Buyer
 en,Заличен,Deleted
 en,Запетая,Comma
@@ -722,6 +722,7 @@ en,Именници във в_afabd,Name-day celebrating in Contacts
 en,Именници,Name days
 en,Името ви (задължително)|Your name (required)
 en,Импорт,Import
+en,Импортиране,Import
 en,Инвентарна книга,Inventory book
 en,Индекс,Index
 en,Индекси,Indexes
@@ -844,7 +845,6 @@ en,Копие,Copy
 en,Корекции на ст_8f058,Value adjustments
 en,Корекции,Corrections
 en,Корекционна,Correctional
-en,Корекция на грешки от закръгления,Error correction rounding
 en,Корекция на грешки от закръгляне,Balance repairs from rounding
 en,Корекция,Correction
 en,Коригиращи дей_d8b4,Correcting actions
@@ -998,7 +998,7 @@ en,Молби,Applications
 en,Моля запознайт_181f,Please see the attached invoice:
 en,Моля запознайте се с нашата вносна бележка,Please see our deposit slip
 en,Моля запознайте се с нашата декларация за съответствие,Please see our declaration of compliance
-en,Моля запознайте се с нашата оферта,Please see our quotations
+en,Моля запознайте се с нашата оферта,Please see our quotation
 en,Моля запознайте се с нашата складова разписка,Please see our store receipt
 en,Моля запознайте се с нашата,Please see our
 en,Моля запознайте се с нашето експедиционно нареждане,Please see our shipping order
@@ -1288,6 +1288,7 @@ en,Офис,Office
 en,Оценка на сигнал,Issue Evaluation
 en,Оценки,Ratings
 en,Очаквано начало,Estimated start
+en,Очаквано,Expected
 en,Още...,More...
 en,П - почивка,R - rest
 en,П. код,Post code
@@ -1334,6 +1335,7 @@ en,Персонализиране,Customize
 en,Пет,Fri
 en,Печалба по арт_373cd,Profit per articles
 en,Печалба по кли_0b887,Profit per customers
+en,Печат на страницата,Print page
 en,Печат,Print
 en,Писма,Letters
 en,Писмо,Letter
@@ -1600,13 +1602,16 @@ en,Пропуснати,Missed
 en,Проследяване,Follower
 en,Просрочени,Overdue
 en,Просрочено,Overdue
-en,Протокол за отговорно пазене,Consignment Protocols
+en,Протокол за отговорно пазене,Consignment Protocol
 en,Протокол за пр_2df4e,Protocol for changing LTA
 en,Протокол,Protocol
 en,Протокол за производство,Production note
 en,Протокол за влагане в производство,Consumption note
 en,Протоколи за в_19dc8,Production notes
 en,Протоколи за в_b4591,Protocols for return of manufacturing
+en,Протоколи за инвентаризация,Inventory notes
+en,Протокол за инвентаризация,Inventory note
+en,протокол за инвентаризация,inventory note
 en,Протоколи за г_e1584,Group production notes
 en,Протоколи за извършени услуги,Protocols for services
 en,Протоколи за о_8f834,Protocols for safekeeping
@@ -1650,6 +1655,7 @@ en,Разглеждане,View
 en,Разговори,Calls
 en,Разделител,Delimiter
 en,Разкачане на в_800a0,Disconnect the business card from the user
+en,Разлика,Difference
 en,Размер,Size
 en,Размер:,Size:
 en,Размерност,Dimensionality
@@ -1729,7 +1735,7 @@ en,Само моите,Only mine
 en,Само фирми,Companies only
 en,Самостоятелна,Separate
 en,Свален файл,Downloaded file
-en,Сваляне на док_7060b,Document download
+en,Сваляне на док_7060b,Download document
 en,Сваляне,Download
 en,Сваляния,Downloads
 en,Свойства,Properties
@@ -2361,3 +2367,16 @@ bg,Export CSV,Експорт CSV
 en,по проформа,from pro forma
 en,по фактура,from invoice
 en,Словом,Say words
+en,Папка към,Folder for
+en,Създаване на папка за документи към,Create folder for documents for
+en,Отваряне на папката,Open folder
+en,Показване на debug информация,Show debug info
+en,Превключване на системата в мобилен режим,Switch to mobile view
+en,Превключване на системата в десктоп режим,Switch to desktop view
+en,Излизане от системата,Logout from the system
+en,Изпращане на сигнал към разработчиците на bgERP,Send signal to bgERP developers
+en,Прекъсване на сесията,Logout from the system
+en,Деактивиране,Deactivate
+en,УниКредит Булбанк АД,UniCredit Bulbank
+en,Пасаж,Passage
+en,Минимална поръчка,Minimal order

@@ -62,9 +62,15 @@ class cat_UoM extends core_Manager
     
     
     /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'мерна единица';
+    
+    
+    /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents";
+    var $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents,defQuantity";
     
     
     /**
@@ -86,6 +92,7 @@ class cat_UoM extends core_Manager
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка');
+        $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique('name');
@@ -318,7 +325,8 @@ class cat_UoM extends core_Manager
 	    	5 => "sysId",
 	    	6 => "sinonims",
     		7 => "round",
-    		8 => "type");
+    		8 => "type",
+    		9 => "defQuantity");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
@@ -442,6 +450,7 @@ class cat_UoM extends core_Manager
     	$rec = $data->form->rec;
     	
     	if($rec->type == 'packaging'){
+    		$mvc->currentTab = 'Мерки->Опаковки';
     		$data->form->setField('name', 'caption=Опаковка');
     	}
     	

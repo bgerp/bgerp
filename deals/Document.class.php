@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class deals_Document extends core_Master
+abstract class deals_Document extends deals_PaymentDocument
 {
     
 	/**
@@ -58,7 +58,7 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
-    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     }
 	

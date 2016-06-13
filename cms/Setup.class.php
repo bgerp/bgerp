@@ -14,6 +14,12 @@ defIfNot('CMS_COPY_DEFAULT_TEXT', 'Виж още на');
 
 
 /**
+ * При какъв брой символи да да се добавя текста
+ */
+defIfNot('CMS_COPY_ON_SYMBOL_COUNT', 200);
+
+
+/**
  * Добавка при копиране изключване за определени роли
  */
 defIfNot('CMS_COPY_DISABLE_FOR', '');
@@ -84,6 +90,8 @@ class cms_Setup extends core_ProtoSetup
             'CMS_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
 			
             'CMS_COPY_DEFAULT_TEXT' => array ('text(rows=1)', 'caption=Добавка при копиране->Текст,width=100%'),
+
+            'CMS_COPY_ON_SYMBOL_COUNT' => array ('int', 'caption=Добавка при копиране->Брой символи,width=100%'),
 	
 			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role)', 'caption=Добавка при копиране->Изключване за'),
 			

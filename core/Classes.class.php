@@ -40,12 +40,18 @@ class core_Classes extends core_Manager
      * Никой потребител не може да добавя или редактира тази таблица
      */
     var $canWrite = 'no_one';
-
+    
     
     /**
      * Работен кеш за извлечените интерфейсни методи
      */
     static $interfaceMehods = array();
+    
+    
+    /**
+     * Работен кеш за извлечените статичните интерфейсни методи
+     */
+    static $staticInterfaceMehods = array();
     
 
     /**
@@ -186,8 +192,10 @@ class core_Classes extends core_Manager
         
         $options = self::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
         
-        foreach($options as $cls => &$name) {
-            $name = tr($name);
+        if(is_array($options)){
+        	foreach($options as $cls => &$name) {
+        		$name = tr($name);
+        	}
         }
  
         return $options;
@@ -369,15 +377,25 @@ class core_Classes extends core_Manager
     	if(count($intArray)){
     		foreach ($intArray as $id){
     			$intName = core_Interfaces::fetchField($id, 'name');
-    			if(!static::$interfaceMehods[$intName]){
-    				static::$interfaceMehods[$intName] = cls::getAccessibleMethods($intName);
+    			if(!self::$interfaceMehods[$intName]){
+    				self::$interfaceMehods[$intName] = cls::getAccessibleMethods($intName);
     			}
-    			$methods = static::$interfaceMehods[$intName];
+    			
+    			if (!self::$staticInterfaceMehods[$intName]) {
+    			    self::$staticInterfaceMehods[$intName] = cls::getAccessibleMethods($intName, TRUE);
+    			}
+    			
+    			$methods = self::$interfaceMehods[$intName];
     			
     			// Намират се всички неимплементирани методи от класа
     			$notImplemented = array_diff_assoc($methods, $ClassMethods);
     			$verbalInterfaces .= $verbalInterfaces ? ',' : '';
-    			if(!count($notImplemented)){
+    			
+    			if (self::$staticInterfaceMehods[$intName]) {
+    			    $hint = implode(', ', self::$staticInterfaceMehods[$intName]);
+    			    $hint = 'Статични методи: ' . $hint;
+    			    $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:red;'  title='{$hint}'>{$intName}</span>";
+    			} else if(!count($notImplemented)){
     				$verbalInterfaces .= " <span class='interface-container not-implemented' style='color:green;'>{$intName}</span>";
     			} else {
     				$hint = implode(', ', $notImplemented);

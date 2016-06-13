@@ -50,6 +50,12 @@ defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 
 
 /**
+ * Срок по подразбиране за плащане на фактурата
+ */
+defIfNot('SALES_INVOICE_DEFAULT_VALID_FOR', 60 * 60 * 24 * 3);
+
+
+/**
  * Колко продажби да се приключват автоматично брой
  */
 defIfNot('SALE_CLOSE_OLDER_NUM', 15);
@@ -59,18 +65,6 @@ defIfNot('SALE_CLOSE_OLDER_NUM', 15);
  * Кой да е по подразбиране драйвера за фискален принтер
  */
 defIfNot('SALE_FISC_PRINTER_DRIVER', '');
-
-
-/**
- * Основание за неначисляване на ДДС за контрагент контрагент от държава в ЕС (без България)
- */
-defIfNot('SALES_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
-
-
-/**
- * Основание за неначисляване на ДДС за контрагент извън ЕС
- */
-defIfNot('SALES_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
 
 
 /**
@@ -116,6 +110,12 @@ defIfNot('SALES_USE_RATE_IN_CONTRACTS', 'no');
 
 
 /**
+ * Дали да се въвежда курс в продажбата
+ */
+defIfNot('SALE_INVOICES_SHOW_DEAL', 'yes');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -158,28 +158,28 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'SALE_OVERDUE_CHECK_DELAY'    => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
-			'SALE_MAX_FUTURE_PRICE'       => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В бъдещето'),
-			'SALE_MAX_PAST_PRICE'         => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В миналото'),
-			'SALE_CLOSE_OLDER_THAN'       => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
-			'SALE_CLOSE_OLDER_NUM'        => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
-			'SALE_FISC_PRINTER_DRIVER'    => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
-			'SALE_INV_VAT_DISPLAY'        => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
-			'SALE_INV_MIN_NUMBER1'        => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
-			'SALE_INV_MAX_NUMBER1'        => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
-			'SALE_INV_MIN_NUMBER2'        => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
-			'SALE_INV_MAX_NUMBER2'        => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
-			'SALE_INV_HAS_FISC_PRINTERS'  => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
+			'SALE_OVERDUE_CHECK_DELAY'        => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
+			'SALE_MAX_FUTURE_PRICE'           => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В бъдещето'),
+			'SALE_MAX_PAST_PRICE'             => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Допустим ценови период за продажбата->В миналото'),
+			'SALE_CLOSE_OLDER_THAN'           => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
+			'SALE_CLOSE_OLDER_NUM'            => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
+			'SALE_FISC_PRINTER_DRIVER'        => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
+			'SALE_INV_VAT_DISPLAY'            => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
+			'SALE_INV_MIN_NUMBER1'            => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER1'            => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
+			'SALE_INV_MIN_NUMBER2'            => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER2'            => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
+			'SALE_INV_HAS_FISC_PRINTERS'      => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
 			
-			'SALE_SALE_DEF_TPL_BG'        => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
-			'SALE_SALE_DEF_TPL_EN'        => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+			'SALE_SALE_DEF_TPL_BG'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
+			'SALE_SALE_DEF_TPL_EN'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
 	
-			'SALE_INVOICE_DEF_TPL_BG'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
-			'SALE_INVOICE_DEF_TPL_EN'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
+			'SALE_INVOICE_DEF_TPL_BG'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
+			'SALE_INVOICE_DEF_TPL_EN'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
+			'SALE_INVOICES_SHOW_DEAL'         => array("enum(auto=Автоматично,no=Никога,yes=Винаги)", 'caption=Показвеане на сделката в описанието на фактурата->Избор'),
 			
-			'SALES_VAT_REASON_OUTSIDE_EU' => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
-			'SALES_VAT_REASON_IN_EU'      => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
-			'SALES_USE_RATE_IN_CONTRACTS' => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
+			'SALES_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
+			'SALES_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
 	);
 	
 	
@@ -199,6 +199,7 @@ class sales_Setup extends core_ProtoSetup
             'sales_InvoiceDetails',
     		'sales_Proformas',
     		'sales_ProformaDetails',
+    		'migrate::cacheInvoicePaymentType',
         );
 
         
@@ -220,6 +221,20 @@ class sales_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = 'sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl';
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array('systemId'    => "Close invalid quotations",
+    			  'description' => "Затваряне на остарелите оферти",
+    			  'controller'  => "sales_Quotations",
+    			  'action'      => "CloseQuotations",
+    			  'period'      => 1440,
+    			  'timeLimit'   => 360,
+    		),
+    );
     
     
 	/**
@@ -263,9 +278,9 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Зареждане на данни
      */
-    function loadSetupData()
+    function loadSetupData($itr = '')
     {
-    	$res = parent::loadSetupData();
+    	$res = parent::loadSetupData($itr);
     	
     	// Ако няма посочени от потребителя сметки за синхронизация
     	$config = core_Packs::getConfig('sales');
@@ -295,5 +310,32 @@ class sales_Setup extends core_ProtoSetup
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Ъпдейт на кеширването на начина на плащане на ф-те
+     */
+    function cacheInvoicePaymentType()
+    {
+    	core_App::setTimeLimit(300);
+    	$Invoice = cls::get('sales_Invoices');
+    	$Invoice->setupMvc();
+    	
+    	$iQuery = $Invoice->getQuery();
+    	$iQuery->where("#autoPaymentType IS NULL");
+    	$iQuery->where("#threadId IS NOT NULL");
+    	$iQuery->show('threadId,dueDate,date,folderId');
+    	
+    	while($rec = $iQuery->fetch()){
+    		try{
+    			$rec->autoPaymentType = $Invoice->getAutoPaymentType($rec);
+    			if($rec->autoPaymentType){
+    				$Invoice->save_($rec, 'autoPaymentType');
+    			}
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
     }
 }

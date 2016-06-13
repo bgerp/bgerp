@@ -83,7 +83,7 @@ class core_Packs extends core_Manager
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         $this->FLD('deinstall', 'enum(no,yes)', 'caption=Деинсталиране,input=none,column=none');
         
-        $this->FLD('state', 'enum(active=Инсталирани, draft=Неинсталирани, closed=Деактивирани, hidden=Без инсталатор, deprecated=За изтриване)', 'caption=Състояние,refreshForm,column=none,input=none,notNull,hint=Състояние на пакетите');
+        $this->FLD('state', 'enum(active=Инсталирани, draft=Неинсталирани, closed=Деактивирани, hidden=Без инсталатор, deprecated=За изтриване)', 'caption=Състояние,column=none,input=none,notNull,hint=Състояние на пакетите');
         
         // Съхранение на данните за конфигурацията
         $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
@@ -447,6 +447,7 @@ class core_Packs extends core_Manager
         $stateField = $data->listFilter->getField('state');
         unset($stateField->type->options['deprecated']);
         $stateField->type->options = array('all' => 'Всички') + $stateField->type->options;
+        $stateField->autoFilter = 'autoFilter';
         
         $data->listFilter->setDefault('state', 'all');
         
@@ -605,16 +606,18 @@ class core_Packs extends core_Manager
         
         if ($rec->state == 'active' || $rec->state == 'hidden') {
             
+            $cls = $rec->name . "_Setup";
+            $row->config = '';
+            
             if ($conf->getConstCnt()) {
-        
-                $cls = $rec->name . "_Setup";
                 $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
-                if (cls::load($cls, TRUE)) {
-                    $setup = cls::get($cls);
-                    if(method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
-                        $row->config = ht::createHint($row->config, $errMsg, 'error');
-                    }
-                } 
+            }
+            
+            if (cls::load($cls, TRUE)) {
+                $setup = cls::get($cls);
+                if(method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
+                    $row->config = ht::createHint($row->config, $errMsg, 'error');
+                }
             }
         }
         

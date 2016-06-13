@@ -27,7 +27,7 @@ class email_Inboxes extends core_Master
      * Плъгини за работа
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
-    				 plg_Modified, doc_FolderPlg, plg_RowTools, 
+    				 plg_Modified, doc_FolderPlg, plg_RowTools2, 
     				 plg_Rejected';
     
     
@@ -136,7 +136,7 @@ class email_Inboxes extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, email, accountId, inCharge, access, shared, createdOn, createdBy';
+    var $listFields = 'email, accountId, inCharge, access, shared, createdOn, createdBy';
     
     
     /**
@@ -149,6 +149,18 @@ class email_Inboxes extends core_Master
      * Дефолт достъп до новите корици
      */
     public $defaultAccess = 'private';
+    
+    
+    /**
+     * Масив с имена на имейли, които ще се изключват от списъка с имейли, при отговор
+     */
+    protected static $removeEmailsUserNameArr = array('webmaster',
+                                                      'no-reply',
+                                                      'noreply',
+                                                      'no_reply',
+                                                      'mailer-daemon',
+                                                      'autoreply'
+                                                      );
     
     
     /**
@@ -193,7 +205,7 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
-        $form->FLD('userSelect' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
+        $form->FLD('userSelect' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, autoFilter');
         $form->FLD('emailSearch' , 'varchar', 'caption=Имейл, allowEmpty');
         
         // Вземам всички акаунти за които може да се създаде имейл
@@ -1065,7 +1077,7 @@ class email_Inboxes extends core_Master
         foreach ($allEmailsArr as $key => $email) {
             
             // Вземаме домейна на имейла
-            list(, $domain) = explode('@', $email);
+            list($nick, $domain) = explode('@', $email);
             
             // Домейна в долен регистър
             $domain = mb_strtolower($domain);
@@ -1075,6 +1087,14 @@ class email_Inboxes extends core_Master
                 
                 // Премахваме от масива
                 unset($allEmailsArr[$key]);
+                
+                continue;
+            }
+            
+            foreach (self::$removeEmailsUserNameArr as $emailNick) {
+                if (stripos($nick, $emailNick) !== FALSE) {
+                    unset($allEmailsArr[$key]);
+                }
             }
         }
 

@@ -57,14 +57,14 @@ class core_Request
             self::push(array_map(array(
                         'core_Request',
                         '_stripSlashesDeep'
-                    ), $_GET), '_GET');
-            self::push(array_map(array(
+                    ), $_GET), '_GET', FALSE, TRUE);
+            self::push(self::checkUrlHash(array_map(array(
                         'core_Request',
                         '_stripSlashesDeep'
-                    ), $_POST), '_POST');
+                    ), $_POST)), '_POST', FALSE, TRUE);
         } else {
-            self::push($_GET, '_GET');
-            self::push($_POST, '_POST');
+            self::push($_GET, '_GET', FALSE, TRUE);
+            self::push($_POST, '_POST', FALSE, TRUE);
         }
         
         // Ако имаме 'Protected' поле - декодираме го
@@ -301,9 +301,10 @@ class core_Request
     /**
      * Вкарва в стека масив с входни параметри - "променливи => стойности"
      */
-    static function push($array, $name = NULL, $unShift = FALSE)
+    static function push($array, $name = NULL, $unShift = FALSE, $mustValidUrlHash = FALSE)
     {
-        
+        self::checkUrlHash($array, $mustValidUrlHash);
+
         if ($name) {
             $element[$name] = $array;
         } else {
@@ -442,4 +443,46 @@ class core_Request
 
         return $content;
     }
+
+    
+    /**
+     * Защитава служебно някои параметри на URL-то
+     */
+    public static function addUrlHash(&$params, $mustValidUrlHash = FALSE)
+    {
+        if(!is_array($params)) return;
+
+        if(isset($params['ret_url'])) {
+            if(is_array($params['ret_url'])) {
+                $params['ret_url'] = toUrl($params['ret_url'], 'local');
+            }
+            if(!str::checkHash($params['ret_url'], 8, 'ret_url')) {
+                $params['ret_url'] = str::addHash($params['ret_url'], 8, 'ret_url');
+            }
+        }
+     }
+
+
+    /**
+     * Проверява дали в посочените параметри, служебно защитените променливи са с коректен хеш
+     * 
+     * Ако $mustValidUrlHash == TRUE, тогава в случай на несъответсвие, изтрива параметрите с лош хеш
+     */
+    public static function checkUrlHash(&$params, $mustValidUrlHash = FALSE)
+    {
+        if(!is_array($params)) return;
+        
+        if(isset($params['ret_url'])) {
+        
+            $retUrl = str::checkHash($params['ret_url'], 8, 'ret_url');
+
+            if($retUrl) {
+                $params['ret_url'] = $retUrl;
+            } elseif($mustValidUrlHash) {
+                 $params['ret_url'] = $retUrl;
+            }
+        }
+    }
+
+
 }

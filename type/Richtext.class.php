@@ -150,17 +150,19 @@ class type_Richtext extends type_Blob
             $line = is_numeric($this->params['appendQuote']) ? $this->params['appendQuote'] : 0;
             
             // Добавяме функцията за апендване на цитата
-            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}', {$line});});", 'SCRIPTS');
+            jquery_Jquery::run($tpl, "appendQuote('{$attr['id']}', {$line});");
         }
         
-    	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "hideRichtextEditGroups();");
+
+        jquery_Jquery::run($tpl, "prepareRichtextAddElements();");
     	
-    	$tpl->append("\n runOnLoad(function(){getEO().saveSelTextInTextarea('{$attr['id']}');});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');");
     	
-    	$tpl->append("\n runOnLoad(function(){bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'))});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'));");
     	 
     	if(Mode::is('screenMode', 'wide')) {
-    		$tpl->append("\n runOnLoad(function(){setRicheditWidth('{$attr['id']}');});", 'SCRIPTS');
+    		jquery_Jquery::run($tpl, "setRicheditWidth('{$attr['id']}');");
     	}
     	
     	return $tpl;
@@ -680,7 +682,7 @@ class type_Richtext extends type_Blob
             if ($boldTextPattern) {
                 
                 // Добавяме текста в шаблона
-                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n|^$]+))/ui";    
+                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n]+))/ui";    
             } else {
                 
                 // Добавяме FALSE, за да не се опитваме да го определим пак
@@ -1051,7 +1053,7 @@ class type_Richtext extends type_Blob
 
         $id = 'hide' . rand(1, 1000000);
         
-        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon' style=\"font-weight:bold; background-image:url(" . sbf('img/16/plus.png', "'") . ");\" 
+        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle-expand.png', "'") . ");\"
                    >{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>";
         
         $this->_htmlBoard[$place] =  $html;
@@ -1396,12 +1398,14 @@ class type_Richtext extends type_Blob
             
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP3');
             $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group6', event);\"><img src=" . sbf('img/16/paper_clip.png') . " height='15' width='15'></a>", 'TBL_GROUP3');
+           
             $emot6 = 'richtext-holder-group-after';
-            $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons6 richtext-holder-group {$emot6} left'>", 'TBL_GROUP3');
+            $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons6 richtext-holder-group {$emot6} addElements left'>", 'TBL_GROUP3');
         	$toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP3');
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"var linkTo = prompt('" . tr("Добавете линк") . "','http://'); if(linkTo) { s('[link=' + linkTo + ']', '[/link]', document.getElementById('{$formId}'))}\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.020);
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.010);
-    	    $toolbarArr->add("</span>", 'TBL_GROUP3');
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr("Добавяне на линк") . "' onclick=\"var linkTo = prompt('" . tr("Добавете линк") . "','http://'); if(linkTo) { s('[link=' + linkTo + ']', '[/link]', document.getElementById('{$formId}'))}\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.010);
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Добавяне на линия') .  "' onclick=\"rp('[hr]\\n', document.getElementById('{$formId}'), true)\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.030);
+
+            $toolbarArr->add("</span>", 'TBL_GROUP3');
             $toolbarArr->add("</span><div class='clearfix21'></div>", 'TBL_GROUP3');
         } else {
             $toolbarArr->add("<span class='richtext-relative-group simple-toolbar'>", 'TBL_GROUP1');

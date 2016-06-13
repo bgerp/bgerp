@@ -107,6 +107,12 @@
 DEFINE('EF_REMOTE_ERROR_REPORT_URL','http://experta.bg/ci_Errors/add/apiKey/rmon123/');
 
 
+/**
+ * Отдалечен сървър за генериране на лого на фирма
+ */
+DEFINE('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'http://experta.bg/api_Companies/getLogo/apiKey/crm123/');
+
+
 /*****************************************************************************
  *                                                                           *
  * Конфигурация на EF                                                        *

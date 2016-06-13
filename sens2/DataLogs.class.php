@@ -19,7 +19,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sens2_Wrapper, plg_Sorting, plg_RefreshRows, plg_AlignDecimals, plg_AutoFilter,plg_Chart';
+    public $loadList = 'plg_RowTools, sens2_Wrapper, plg_Sorting, plg_RefreshRows, plg_AlignDecimals,plg_Chart';
 
     
     /**
@@ -81,6 +81,8 @@ class sens2_DataLogs extends core_Manager
         $this->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input=silent,autoFilter');
 
         $this->setDbIndex('time');
+        
+        $this->dbEngine = 'InnoDB';
     }
     
     

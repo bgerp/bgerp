@@ -37,7 +37,7 @@ class cms_Content extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter,cms_DomainPlg';
+    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,cms_DomainPlg';
 
 
     /**
@@ -127,17 +127,10 @@ class cms_Content extends core_Manager
      */
     static function setLang($lang)
     {
-        cms_Domains::getPublicDomain(NULL, $lang);
-        
         core_Lg::set($lang, !haveRole('user'));
+        cms_Domains::getPublicDomain(NULL, $lang);
     }
 
-    function act_Migrate()
-    {
-        $s = cls::get('cms_Setup');
-        return $s->contentOrder111();
-    }
- 
 
     /**
      * Екшън за избор на език на интерфейса за CMS часта
@@ -222,7 +215,9 @@ class cms_Content extends core_Manager
             $cMenuId = Request::get('cMenuId', 'int');
             Mode::set('cMenuId', $cMenuId);
         }
-        
+
+        $loginLink = FALSE;
+
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
                 
@@ -240,14 +235,19 @@ class cms_Content extends core_Manager
                 $url = $this->getContentUrl($rec);
 
                 if(!$url) $url = '#';
-                
+                $urlS = toUrl($url);
+                if(strpos( $urlS,'/core_Users/')  !== FALSE || strpos($urlS, 'Portal/Show/') !== FALSE){
+                    $loginLink = TRUE;
+                }
+
                 $tpl->append(ht::createLink($rec->menu, $url, NULL, $attr));
             }    
         }
-        
+
+
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
- 
+        
         if(count($usedLangsArr) == 2) {
 
             // Премахваме текущия език
@@ -268,15 +268,44 @@ class cms_Content extends core_Manager
                 }
                 
                 $url = array($this, 'SelectLang', 'lang' => $lg);
- 
+
 
                 $tpl->append(ht::createLink($img, $url, NULL, $attr));
             }
         } elseif(count($usedLangsArr) > 1) {
             $attr['class'] = 'selectLang';
             $attr['title'] = implode(', ', $usedLangsArr);
+            if(Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
+                $attr['class'] = 'selected';
+            }
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), NULL, $attr));
         }
+
+
+        // Поставяне на иконка за Вход
+        if($loginLink == FALSE) {
+
+            $dRec = cms_Domains::getPublicDomain('form');
+
+            $filePath = 'img/32/login';
+
+            if((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) &&  Request::get('Ctr') != 'core_Users') ||
+                (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) &&  Request::get('Ctr') == 'core_Users')) {
+                $filePath .= 'Dark';
+            } else {
+                $filePath .= 'Light';
+            }
+
+            if(Mode::is('screenMode', 'narrow')) {
+                $filePath .= 'M';
+            }
+
+            $filePath .= '.png';
+
+            $tpl->append(ht::createLink(ht::createImg(array('path' => $filePath)), 
+                array('Portal', 'Show'), NULL, array('title' => "Вход||Log in", 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')));
+        }
+
 
         return $tpl;
     }
@@ -300,7 +329,9 @@ class cms_Content extends core_Manager
             // expect(FALSE);
             $url = '';
         }
- 
+        
+        core_Request::addUrlHash($url);  
+       
         if($absolute && is_array($url)) {
             $domain = cms_Domains::fetch($rec->domainId)->domain;
             if($domain != 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
@@ -483,7 +514,8 @@ class cms_Content extends core_Manager
         Mode::set('cMenuId', $menuId);
         
         if ($rec && ($url = $this->getContentUrl($rec))) {
- 
+            
+     
             return Request::forward($url);
         } else {
 
@@ -554,6 +586,52 @@ class cms_Content extends core_Manager
                list($lastOrder, ) = explode('.', $typeOrder->toVerbal_($lastOrder)); 
             } 
             $rec->order = $typeOrder->fromVerbal($lastOrder + 10);
+        }
+    }
+
+
+    /**
+     * Добавя към шаблона каноничното URL
+     */
+    public static function addCanonicalUrl($url, $tpl) 
+    {   
+        
+        $selfUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . rtrim($_SERVER['HTTP_HOST'], '/') . '/' . ltrim($_SERVER['REQUEST_URI'], '/');
+ 
+        if($url != $selfUrl) {
+            $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\">", 'HEAD');
+        }
+    }
+
+
+
+    /**
+     * Добавя параметрите за SEO оптимизация
+     */
+    public static function setSeo($content, $sRec)
+    {
+        expect(is_object($sRec), $sRec);
+ 
+        $rec = clone($sRec);
+
+        if($rec->seoTitle) {
+            $content->prependOnce(type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle)))) . " » ", 'PAGE_TITLE');
+        }
+
+        if(!$rec->seoDescription) {
+            $rec->seoDescription =  cms_Domains::getPublicDomain('seoDescription');
+        }
+        
+        if($rec->seoDescription) {
+            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription)))), 'META_DESCRIPTION');
+        }
+        
+        if(!$rec->seoKeywords) {
+            $rec->seoKeywords = cms_Domains::getPublicDomain('seoKeywords');
+        }
+
+        if($rec->seoKeywords) {
+            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords)))), 'META_KEYWORDS');
         }
     }
 

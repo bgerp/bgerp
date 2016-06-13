@@ -201,14 +201,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Връща дефолтната основна мярка, специфична за технолога
+	 * Връща задължителната основна мярка
 	 *
-	 * @param string $measureName - име на мярка
-	 * @return FALSE|int - ид на мярката
+	 * @return int|NULL - ид на мярката, или NULL ако може да е всяка
 	 */
-	public function getDefaultUom($measureName = NULL)
+	public function getDefaultUomId()
 	{
-		return FALSE;
+		return NULL;
 	}
 	
 	
@@ -251,6 +250,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$tpl = new ET(tr("|*
                     <div class='groupList'>
                         <div class='richtext' style='margin-top: 5px; font-weight:bold;'>{$title}</div>
+                        <!--ET_BEGIN info-->
+                        <div style='margin-top:5px;'>[#info#]</div>
+                        <!--ET_END info-->
 						<table class = 'no-border small-padding' style='margin-bottom: 5px;'>
 							[#INFO#]
 						</table>
@@ -262,6 +264,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $form = cls::get('core_Form');
         $this->addFields($form);
 		$driverFields = $form->fields;
+		$tpl->replace($data->row->info, 'info');
 
 		if(is_array($driverFields)){
  

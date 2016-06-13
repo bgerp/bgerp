@@ -243,8 +243,8 @@ class cal_Calendar extends core_Master
     	$cu = core_Users::getCurrent();
 
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px,autoFilter');
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
@@ -329,16 +329,18 @@ class cal_Calendar extends core_Master
        
         // TODO
         $attr = array();
-        $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
-        	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
+        	$attr['ef_icon'] = 'img/16/leaves.png';
         } elseif($rec->type == 'sickday') {
-        	$attr['style'] = 'background-image:url(' . sbf("img/16/sick.png") . ');';
+        	$attr['ef_icon'] = 'img/16/sick.png';
         }elseif($rec->type == 'trip'){
-			$attr['style'] = 'background-image:url(' . sbf("img/16/working-travel.png") . ');';    		
+			$attr['ef_icon'] = 'img/16/working-travel.png';    		
         }else{
-         	$attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
+         	$attr['ef_icon'] = "img/16/{$lowerType}.png";
     	}
+
+        $attr = ht::addBackgroundIcon($attr);
+
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
         }

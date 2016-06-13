@@ -2,6 +2,12 @@
 
 
 /**
+ * Отдалечен сървър за генериране на лого на фирма
+ */
+defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'http://experta.bg/api_Companies/getLogo/apiKey/crm123/');
+
+
+/**
  * Мениджър на фирмите
  * 
  * 
@@ -27,7 +33,6 @@ class crm_Companies extends core_Master
 
         // Интерфейс за счетоводни пера, отговарящи на фирми
         'crm_CompanyAccRegIntf',
-
         
         // Интерфейс за всякакви счетоводни пера
         'acc_RegisterIntf',
@@ -230,12 +235,12 @@ class crm_Companies extends core_Master
      * Предефинирани подредби на листовия изглед
      */
     var $listOrderBy = array(
-        'alphabetic'    => array('Азбучно', '#nameT=ASC'),
-        'last'          => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
-        'modified'      => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
+        'alphabetic' => array('Азбучно', '#nameT=ASC'),
+        'last'       => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
+        'modified'   => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
         'vatId'      => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
         'pCode'      => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
-        'website'       => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
+        'website'    => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
         );
     
     
@@ -286,7 +291,7 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,autoFilter');
         
         // Вземаме стойността по подразбиране, която може да се покаже
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
@@ -302,11 +307,11 @@ class crm_Companies extends core_Master
         }
         $orderType = cls::get('type_Enum');
         $orderType->options = $options;
-        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent,refreshForm');
+        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent,autoFilter');
         
         // Филтриране по група
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)',
-            'placeholder=Всички групи,caption=Група,input,silent,refreshForm');
+            'placeholder=Всички групи,caption=Група,input,silent,autoFilter');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -368,12 +373,13 @@ class crm_Companies extends core_Master
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
-                    
-        if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
-            $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
+
+        if(!empty($data->listFilter->rec->groupId)){
+        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
+        	$keylist = keylist::fromArray($descendants);
+        	$data->query->likeKeylist("groupList", $keylist);
         }
     }
-    
     
     
     /**
@@ -650,8 +656,9 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
+        	
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
-            $mvc->Groups->getTitleById($data->groupId) . "|*</b>\"";
+            $mvc->Groups->getTitleById($data->listFilter->rec->groupId) . "|*</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Фирми отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
@@ -742,7 +749,7 @@ class crm_Companies extends core_Master
         	$country = $currentCountry;
         }
                 
-        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
 
         $row->id = $mvc->getVerbal($rec, 'id');  
         
@@ -766,7 +773,12 @@ class crm_Companies extends core_Master
     
     
     /**
-     * След всеки запис (@see core_Mvc::save_())
+     * След добавяне на запис в модела
+     * 
+     * @param crm_Companies $mvc
+     * @param integer $id
+     * @param stdObject $rec
+     * @param string|NULL $saveFileds
      */
     protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = NULL)
     {
@@ -781,6 +793,160 @@ class crm_Companies extends core_Master
         
         // Обновяме номерата
         $mvc->updateNumbers($rec);
+        
+        // Ако се редактира текущата фирма, генерираме лог от данните
+        if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
+            $mvc->prepareCompanyLogo();
+        }
+    }
+    
+    
+    /**
+     * Сетваме лого за компанията
+     */
+    protected static function prepareCompanyLogo()
+    {
+        self::setCompanyLogo('BGERP_COMPANY_LOGO_SVG');
+    
+        core_Lg::push('en');
+        self::setCompanyLogo('BGERP_COMPANY_LOGO_SVG_EN');
+        core_Lg::pop();
+    }
+    
+    
+    /**
+     * Помощна функция за сетване на лого на компанията
+     *
+     * @param string $companyConstName
+     */
+    protected static function setCompanyLogo($companyConstName)
+    {
+        $baseColor = 'yellow';
+        $activeColor = '#ccc';
+        
+        $dRec = cms_Domains::getPublicDomain('form');
+        
+        if ($dRec) {
+            if ($dRec->baseColor) {
+                $baseColor = $dRec->baseColor;
+            }
+            if ($dRec->activeColor) {
+                $activeColor = $dRec->activeColor;
+            }
+        }
+
+        $tpl = getTplFromFile('bgerp/tpl/svg.svg');
+        $cRec = crm_Companies::fetchOwnCompany();
+        $companyName = transliterate(tr($cRec->company));
+        $tpl->append($companyName, 'myCompanyName');
+        
+        // Подготвяме адреса
+        $fAddres = '';
+        if ($cRec->country) {
+            $fAddres .= transliterate($cRec->country);
+        }
+        
+        if (trim($cRec->pCode)) {
+            $fAddres .= (trim($fAddres)) ? ', ' : '';
+            $fAddres .= transliterate($cRec->pCode);
+        }
+
+        if (trim($cRec->place)) {
+            if (trim($fAddres)) {
+                $fAddres .= (trim($cRec->pCode)) ? ' ' : ', ';
+            }
+            
+            $fAddres .= transliterate(tr($cRec->place));
+        }
+
+        if (trim($cRec->address)) {
+            $fAddres .= (trim($fAddres)) ? ', ' : '';
+            $fAddres .= transliterate(tr($cRec->address));
+        }
+        
+        if (trim($cRec->tel)) {
+            $telArr = drdata_PhoneType::toArray($cRec->tel);
+            if ($telArr && $telArr[0]) {
+                $tel = $telArr[0]->original;
+            }
+        }
+        
+        if (trim($cRec->fax)) {
+            $faxArr = drdata_PhoneType::toArray($cRec->fax);
+            if ($faxArr && $faxArr[0]) {
+                $fax = $faxArr[0]->original;
+            }
+        }
+        
+        if (trim($cRec->email)) {
+            $emailsArr = type_Emails::toArray($cRec->email);
+            if ($emailsArr) {
+                $email = $emailsArr[0];
+            }
+        }
+        
+        $tpl->append($fAddres, 'address');
+        $tpl->append($tel, 'tel');
+        $tpl->append($fax, 'fax');
+        $tpl->append($cRec->website, 'site');
+        $tpl->append($email, 'email');
+        $tpl->append($baseColor, 'baseColor');
+        $tpl->append($activeColor, 'activeColor');
+        
+        $content = $tpl->getContent();
+        
+        $pngHnd = '';
+        
+        try {
+            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $companyConstName);
+        } catch (Exception $e) {
+            reportException($e);
+        }
+        
+        // Ако не може да се генерира локално лого на фирмата, се прави опит да се генерира отдалечено
+        try {
+            if (!$pngHnd) {
+                if (defined('CRM_REMOTE_COMPANY_LOGO_CREATOR')) {
+                    $url = CRM_REMOTE_COMPANY_LOGO_CREATOR;
+            
+                    $data = array('myCompanyName' => $companyName,
+                            'address' => $fAddres,
+                            'tel' => $tel,
+                            'fax' => $fax,
+                            'email' => $email,
+                            'site' => $cRec->website,
+                            'baseColor' => $baseColor,
+                            'activeColor' => $activeColor,
+                            'lg' => core_Lg::getCurrent()
+                    );
+            
+                    $options = array(
+                            'http' => array(
+                                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                                    'method'  => 'POST',
+                                    'content' => http_build_query($data),
+                            ),
+                    );
+            
+                    $context = stream_context_create($options);
+                    $result  = @file_get_contents($url, FALSE, $context);
+            
+                    if ($result) {
+                        $result = json_decode($result);
+                        if ($result && $url = $result->url) {
+                            $bucketId = fileman_Buckets::fetchByName('pictures');
+                            $pngHnd = fileman_Get::getFile((object)array('url' => $url, 'bucketId' => $bucketId));
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            reportException($e);
+        }
+        
+        if ($pngHnd) {
+            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
+        }
     }
     
     
@@ -885,11 +1051,13 @@ class crm_Companies extends core_Master
     public function updateGroupsCnt()
     {
         $query = $this->getQuery();
-        
+        $groupsCnt = array();
+
         while($rec = $query->fetch()) {
             $keyArr = keylist::toArray($rec->groupList);
-            
+
             foreach($keyArr as $groupId) {
+
                 $groupsCnt[$groupId]++;
             }
         }
@@ -985,8 +1153,12 @@ class crm_Companies extends core_Master
      */
     public static function fetchOurCompany()
     {
+
         $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
-        $rec->classId = core_Classes::getId('crm_Companies');
+
+        if($rec) {
+            $rec->classId = core_Classes::getId('crm_Companies');
+        }
         
         return $rec;
     }
@@ -1132,7 +1304,7 @@ class crm_Companies extends core_Master
     	} else {
     		
     		// Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
-    		if(drdata_Countries::isEu($rec->country)){
+    		if(drdata_Countries::isEur($rec->country)){
     			
     			return 'EUR';
     		}
@@ -1280,6 +1452,7 @@ class crm_Companies extends core_Master
             $contrData->place = $company->place;
             $contrData->address = $company->address;
             $contrData->email = $company->email;
+            $contrData->website = $company->website;
             
             // Вземаме груповите имейли
             $contrData->groupEmails = crm_Persons::getGroupEmails($company->id);    
@@ -1501,10 +1674,12 @@ class crm_Companies extends core_Master
                 }
             }
 
+            $newCTel = "";
             // Обхождаме останалия масив
             foreach ($cTelArr as $cTel) {
                 
                 // Добавяме в стринга телефона
+
                 $newCTel .= ($newCTel) ? ', ' . $cTel->original : $cTel->original;
             }
             
@@ -1536,11 +1711,12 @@ class crm_Companies extends core_Master
                     }
                 }
             }
-            
+            $newCFax = '';
             // Обхождаме останалия масив
             foreach ($cFaxArr as $cFax) {
                 
                 // Добавяме в стринга факса
+
                 $newCFax .= ($newCFax) ? ', ' . $cFax->original : $cFax->original;
             }
             
@@ -1634,22 +1810,33 @@ class crm_Companies extends core_Master
      * Връща пълния конкатениран адрес на контрагента
      * 
      * @param int $id - ид на контрагент
+     * @param boolean $translitarate - дали да се транслитерира адреса
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id)
+    public function getFullAdress($id, $translitarate = FALSE)
     {
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
+    	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
+    	
+    	// Показваме държавата само ако е различна от тази на моята компания
     	if($rec->country){
-    		$obj->country = $this->getVerbal($rec, 'country');
+    		$ourCompany = crm_Companies::fetchOurCompany();
+    		if($ourCompany->country != $rec->country){
+    			$obj->country = $this->getVerbal($rec, 'country');
+    		}
     	}
-    
+    	
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
-    		if($rec->$fld){
-    			$obj->$fld = $Varchar->toVerbal($rec->$fld);
+    		if($rec->{$fld}){
+    			$obj->{$fld} = $Varchar->toVerbal($rec->{$fld});
+    			if($translitarate === TRUE){
+    				if($fld != 'pCode'){
+    					$obj->$fld = transliterate(tr($obj->{$fld}));
+    				}
+    			}
     		}
     	}
     	

@@ -257,7 +257,7 @@ class blogm_Articles extends core_Master {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent,refreshForm');
+        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent,autoFilter');
 
         $data->listFilter->showFields = 'search,category';
 
@@ -385,7 +385,11 @@ class blogm_Articles extends core_Master {
        
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
-		$tpl->prepend($data->ogp->siteInfo['Title'] . ' » ', 'PAGE_TITLE');
+        
+        $rec = clone($data->rec);
+        setIfNot($rec->seoTitle, $data->ogp->siteInfo['Title']);
+        cms_Content::setSeo($tpl, $rec);
+
 
 		// Генерираме и заместваме OGP информацията в шаблона
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
@@ -402,8 +406,10 @@ class blogm_Articles extends core_Master {
         }
 
         // Добавя канонично URL
-        $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
-        $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+        $url = self::getUrl($data->rec, TRUE);
+        $url = toUrl($url, 'absolute');
+        
+        cms_Content::addCanonicalUrl($url, $tpl);
         
 		return $tpl;
 	}
@@ -599,10 +605,7 @@ class blogm_Articles extends core_Master {
 
         // Рендираме списъка
         $tpl = $this->renderBrowse($data);
-        
-        // Поставяме титлата
-        $tpl->prepend( strip_tags($data->title) . ' » ', 'PAGE_TITLE');
-
+     
         // Добавяме стиловете от темата
         $tpl->push($data->ThemeClass->getStyles(), 'CSS');
 
@@ -610,6 +613,9 @@ class blogm_Articles extends core_Master {
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
         $tpl->append($ogpHtml);
         
+        $row = (object) array('seoTitle' => $data->title);
+        cms_Content::setSeo($tpl, $row);
+
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->title ? str_replace('&nbsp;', ' ', strip_tags($data->title)) : tr('БЛОГ'));
         }
@@ -1029,7 +1035,7 @@ class blogm_Articles extends core_Master {
      */
     static function getUrl($rec, $canonical = FALSE)
     {
-        $res = array('A', 'B', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+        $res = array('A', 'B', $rec->vid ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
 
         return $res;
     }

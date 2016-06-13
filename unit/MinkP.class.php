@@ -15,869 +15,588 @@
  */
 class unit_MinkP extends core_Manager {
     
-    /////http://test.bags.bg/unit_MinkP/CreateCase/
-    //return  $browser->getHtml();
-    //bp($browser->getText());
-    /**
-     * Запитване от съществуваща фирма с папка
-     */
-    function act_CreateInq()
-    {
-    
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://test.bags.bg/');
-                
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-       
-        //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        //bp($browser->getHtml());
-            
-        $Company = "1 MINK INTERNATIONAL GMBH";
-        
-        $browser->click($Company);
-        
-        //Проверка дали сме в папката на фирмата
-        //$browser->hasText($Company );
-    
-        $browser->press('Папка');
-        
-        // ново запитване
-        
-        $browser->press('Нов...');
-        $browser->press('Запитване');
-        //$browser->hasText('Създаване на запитване в');
-       
-        $browser->setValue('innerClass', 'Универсален артикул');
-       
-        $browser->setValue('title', 'Торбички');
-        $browser->setValue('inqDescription', 'Цена за торбички 1000 бр.');
-        $browser->setValue('measureId', 'брой');
-        $browser->setValue('quantity1', '1000');
-        $browser->setValue('name', 'Peter Neumann');
-        $browser->setValue('country', 'Германия');
-        $browser->setValue('email', 'pneumann@gmail.com');
-       
-        $browser->press('Чернова');
-        return  $browser->getHtml();
-        $browser->press('Артикул');
-        $browser->setValue('name', 'Торбички');
-        $browser->press('Запис');
-       
-    }    
-    
-    /**
-     * Нова оферта на съществуваща фирма с папка
-     */
-    function act_CreateQuotation()
-    {
-    
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://test.bags.bg/');
-       
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-              
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-        
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-        //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $Company = "1 MINK INTERNATIONAL GMBH";
-        //$browser->hasText($Company);
-        $browser->click($Company);
-    
-        //Проверка дали сме в папката на фирмата
-        //$browser->hasText($Company );
-    
-        $browser->press('Папка');
-    
-        // нова оферта
-    
-        $browser->press('Нов...');
-        $browser->press('Оферта');
-        //$browser->hasText('Създаване на оферта в');
-        $browser->setValue('paymentMethodId', "50% авансово и 50% преди експедиция");
-        $browser->press('Чернова');
-        
-        // Добавяме артикул - нестандартен
-        $browser->press('Артикул');
-        $browser->setValue('productId', 'торби');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 100);
-        $browser->setValue('packPrice', 1);
-        //$browser->setValue('discount', 1);
-                
-        // Записваме артикула и добавяме нов
-        $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Чувал 50х60 HD - ролка/звезда (13-20)');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 100);
-        $browser->setValue('packPrice', 2);
-        //$browser->setValue('discount', 2);
-        // Записваме артикула 
-        $browser->press('Запис');
+    //Създава рецепта с 3 етапа, преди това - съставните артикули
 
-        // Записваме артикула и добавяме опционален - услуга
-        $browser->press('Опционален артикул');
-        //$browser->setValue('productId', 'Изработка на клише (fpp)');
-        
-        $browser->setValue('productId', 'Други услуги (services)');
-        
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1);
-        $browser->setValue('packPrice', 100);
-        //$browser->setValue('discount', 2);
-        // Записваме артикула
-        $browser->press('Запис');
-        
-        // Активираме офертата
-        $browser->press('Активиране');
-        
-        //продажба оттук?
-        $browser->press('Продажба');
-        //$browser->setValue('', 1); -количество на опц. артикул
-    }
-  
-    
     /**
-     * Нова продажба на съществуваща фирма с папка
+     * 1.Създава нов артикул - труд със себестойност 
+     * (За да записва себестойността - трябва да е продаваем и да има въведена ценова група, иначе не зарежда името на артикула)
      */
-    function act_CreateSale()
+    //http://localhost/unit_MinkP/CreateProductWork/
+    function act_CreateProductWork()
     {
-    
+         
         $browser = cls::get('unit_Browser');
-        $browser->start('http://test.bags.bg/');
-       
+        $browser->start('http://localhost/');
+    
         // Логваме се
         $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
+        $browser->setValue('nick', 'Pavlinka');
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
-        
     
-        //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $Company = "1 MINK INTERNATIONAL GMBH";
-        //$browser->hasText($Company);
-    
-        $browser->click($Company);
-    
-        //Проверка дали сме в папката на фирмата
-        //$browser->hasText($Company );
-    
-        $browser->press('Папка');
-    
-        // нова продажба - има ли бутон?
-    
-        if(strpos($browser->gettext(), 'Продажба')) {
-            $browser->press('Продажба');
-        } else {
-            $browser->press('Нов...');
-            $browser->press('Продажба');
-        }
-         
-        //$browser->hasText('Създаване на продажба');
-    
-        $endhour=strtotime("+5 hours");
-        $enddate=strtotime("+1 Month");
-        //$enddate = strtotime("+3 weeks");
-         
-        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-        //$browser->setValue('deliveryTime[d]', date('d-m-Y'));
-    
-        $browser->setValue('deliveryTime[t]', date('h:i:sa', $endhour));
-        //$browser->setValue('deliveryTime[t]', '10:30');
-        //$browser->setValue('reff', 'А1234455');
-        $browser->setValue('caseId', 1);
-        //$browser->setValue('note', 'С куриер');
-        $browser->setValue('paymentMethodId', "50% авансово и 50% преди експедиция");
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
-         
-        // Записваме дотук черновата на продажбата
-        $browser->press('Чернова');
-        
-        // Добавяме нов артикул
+        // Правим нов артикул - труд
+        $browser->click('Каталог');
+        $browser->click('Труд');
         $browser->press('Артикул');
-        $browser->setValue('productId', 'торби');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 10);
-        $browser->setValue('packPrice', 1);
-        //$browser->setValue('discount', 1);
-    
-        // Записваме артикула и добавяме нов
-        $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Чувал 50х60 HD - ролка/звезда (13-20)');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 10);
-        $browser->setValue('packPrice', 2);
-        //$browser->setValue('discount', 2);
-        
-        // Записваме артикула и добавяме нов - услуга
-        $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Други услуги (services)');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1);
-        $browser->setValue('packPrice', 22);
-    
-        // Записваме артикула
+        $browser->setValue('name', 'Труд');
+        $browser->setValue('code', 'work');
+        $browser->setValue('measureId', 'час');
         $browser->press('Запис');
-        // Игнорираме предупреждението за липсваща стока
-        //$browser->setValue('Ignore', 1);
-        //$browser->press('Запис');
     
-        // активираме продажбата
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            $browser->click('Труд (work)');
+        } 
         
-        $browser->press('Активиране');
-       
+        $browser->click('Цени');
+        //Задаване на ценова група
+        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
+        $browser->click('Задаване на ценова група');
+        $browser->refresh('Запис');
+        $browser->setValue('groupId', '1');
+        $browser->press('Запис');
+        //Добавяне на мениджърска себестойност
+        $browser->click('Цени');
+        $browser->click('Добавяне на нова мениджърска себестойност');
+        $browser->refresh('Запис');
+        $browser->setValue('price', '10');
+        $browser->press('Запис');
         
-        if(strpos($browser->gettext(), 'Активиране/Контиране')) {
-            $browser->press('Активиране/Контиране');
-        }
-      
-        // експедиционно нареждане
-        $browser->press('Експедиране');
-        $browser->setValue('storeId', 1);
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        // тази проверка не работи
-        //if(strpos($browser->gettext(), 'Контиране')) {
-        //$browser->press('Контиране');
-            //}
-         
-             
-        // протокол
+    }
     
-        $browser->press('Пр. услуги');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Контиране')) {
-        //  $browser->press('Контиране');
-        //}
-    
-        // Фактура
-        $browser->press('Фактура');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        
-        // ПКО
-        //$browser->press('ПКО');
-        //$browser->setValue('depositor', 'Иван Петров');
-        //$browser->press('Чернова');
-      
-        //$browser->press('Контиране');
-    
-        // ПБД
-        $browser->press('ПБД');
-      
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-       
-        
-        // Приключване
-            
-        //$browser->press('Приключване');
-        //$browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
-        //$browser->press('Чернова');
-        //return $browser->getHtml();
-        //$browser->press('Контиране');
-        
-        }
-        
     /**
-    * Създава задание за производство
-    */
-    function act_CreatePlanningjob()
-    { 
+     * 2.Създава нов артикул - Електричество със себестойност
+     * (За да записва себестойността - трябва да е продаваем и да има въведена ценова група, иначе не зарежда името на артикула)
+     */
+    //http://localhost/unit_MinkP/CreateElectricity/
+    function act_CreateElectricity()
+    {
+         
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
     
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+    
+        // Правим нов артикул - Електричество
+        $browser->click('Каталог');
+        $browser->click('Външни услуги');
+        $browser->press('Артикул');
+        $browser->setValue('name', 'Електричество');
+        $browser->setValue('code', 'electricity');
+        $browser->setValue('measureId', 'киловатчас');
+        $browser->press('Запис');
+       
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            $browser->click('Електричество');
+        } 
+        
+        //Задаване на ценова група
+        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
+        $browser->click('Цени');
+        $browser->click('Задаване на ценова група');
+        $browser->refresh('Запис');
+        $browser->setValue('groupId', '1');
+        $browser->press('Запис');
+        //Добавяне на мениджърска себестойност
+        $browser->click('Цени');
+        $browser->click('Добавяне на нова мениджърска себестойност');
+        $browser->setValue('price', '0,68');
+        $browser->refresh('Запис');
+        
+    }
+    
+    /**
+     * 3.Създава нов артикул - опаковка
+     */
+    //http://localhost/unit_MinkP/CreatePackage/
+    function act_CreatePackage()
+    {
+         
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+    
+        // Правим нов артикул - опаковка
+        $browser->click('Каталог');
+        $browser->click('Стоки');
+        $browser->press('Артикул');
+        $browser->setValue('name', 'Опаковка');
+        $browser->setValue('code', 'package');
+        $browser->setValue('measureId', 'брой');
+        $browser->press('Запис');
+    
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+        
+    }
+    
+    /**
+     * 4.Създава нов артикул - материал 1
+    */
+    //http://localhost/unit_MinkP/CreateMaterial1/
+    function act_CreateMaterial1()
+    {
+         
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+    
+        // Правим нов артикул - материал 1
+        $browser->click('Каталог');
+        $browser->click('Суровини и материали');
+        $browser->press('Артикул');
+        $browser->setValue('name', 'Материал 1');
+        $browser->setValue('code', 'Mat1');
+        $browser->setValue('measureId', 'килограм');
+        $browser->press('Запис');
+    
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+           
+    }
+    
+    /**
+     * 5.Създава нов артикул - материал 2
+     */
+    //http://localhost/unit_MinkP/CreateMaterial2/
+    function act_CreateMaterial2()
+    {
+         
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+    
+        // Правим нов артикул - материал 2
+        $browser->click('Каталог');
+        $browser->click('Суровини и материали');
+        $browser->press('Артикул');
+        $browser->setValue('name', 'Материал 2');
+        $browser->setValue('code', 'Mat2');
+        $browser->setValue('measureId', 'литър');
+        $browser->press('Запис');
+        
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+         
+     } 
+     
+     /**
+      * 6.Създава нов артикул - отпадък 1
+      */
+     //http://localhost/unit_MinkP/CreateWaste1/
+     function act_CreateWaste1()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - отпадък 1
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Отпадък 1');
+         $browser->setValue('code', 'Waste1');
+         $browser->setValue('measureId', 'литър');
+         $browser->press('Запис');
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+     
+     /**
+      * 7.Създава нов артикул - отпадък 2
+      */
+     //http://localhost/unit_MinkP/CreateWaste2/
+     function act_CreateWaste2()
+     {
+     
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+          
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+          
+         // Правим нов артикул - отпадък 2
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Отпадък 2');
+         $browser->setValue('code', 'Waste2');
+         $browser->setValue('measureId', 'килограм');
+         $browser->press('Запис');
+         
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+     
+     }
+     
+     /**
+      * 8.Създава нов артикул - отпадък 3
+      */
+     //http://localhost/unit_MinkP/CreateWaste3/
+     function act_CreateWaste3()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - отпадък 3
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Отпадък 3');
+         $browser->setValue('code', 'Waste3');
+         $browser->setValue('measureId', 'килограм');
+         $browser->press('Запис');
+          
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+    
+     /**
+      * 9.Създава нов артикул - машина 1 (машинно време 1 етап)
+      */
+     //http://localhost/unit_MinkP/CreateMash1/
+     function act_CreateMash1()
+     {
+     
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+          
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+          
+         // Правим нов артикул - машина 1
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Машина 1');
+         $browser->setValue('code', 'Mash1');
+         $browser->setValue('measureId', 'час');
+         $browser->press('Запис');
+     
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+     
+     }
+     
+     /**
+      * 10.Създава нов артикул - машина 2 (машинно време 2 етап)
+      */
+     //http://localhost/unit_MinkP/CreateMash2/
+     function act_CreateMash2()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - машина 2
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Машина 2');
+         $browser->setValue('code', 'Mash2');
+         $browser->setValue('measureId', 'час');
+         $browser->press('Запис');
+          
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+      
+     /**
+      * 11.Създава нов артикул - машина 3 (машинно време 3 етап)
+      */
+     //http://localhost/unit_MinkP/CreateMash3/
+     function act_CreateMash3()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - машина 3
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Машина 3');
+         $browser->setValue('code', 'Mash3');
+         $browser->setValue('measureId', 'час');
+         $browser->press('Запис');
+          
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+          
+     }
+  
+     /**
+      * 12.Създава нов артикул - заготовка 1 (резултат от 1 етап)
+      */
+     //http://localhost/unit_MinkP/CreateStage1/
+     function act_CreateStage1()
+     {
+     
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+          
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+          
+         // Правим нов артикул - заготовка 1
+         $browser->click('Каталог');
+         $browser->click('Суровини и материали');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Заготовка 1');
+         $browser->setValue('code', 'Stage1');
+         $browser->setValue('measureId', 'килограм');
+         $browser->press('Запис');
+     
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+         }
+     
+     }
+     
+     
+     
+     
+    /**
+     * 20.Създава доставка на материалите
+     */
+    //http://localhost/unit_MinkP/CreatePurchase/
+    function act_CreatePurchase()
+    { 
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
         
         // Логваме се
         $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
+        $browser->setValue('nick', 'Pavlinka');
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
-         
+        
         //Отваряме папката на фирмата
         $browser->click('Визитник');
-        //bp($browser->getHtml());
-        
-        $Company = "1 MINK INTERNATIONAL GMBH";
-        
+        $browser->click('F');
+        $Company = 'Фирма bgErp';
         $browser->click($Company);
-        
-        //Проверка дали сме в папката на фирмата
-        //$browser->hasText($Company );
-        
         $browser->press('Папка');
         
-        // нова продажба - има ли бутон?
-        
-        if(strpos($browser->gettext(), 'Продажба')) {
-            $browser->press('Продажба');
+        // нова покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
         } else {
             $browser->press('Нов...');
-            $browser->press('Продажба');
+            $browser->press('Покупка');
         }
          
-        //$browser->hasText('Създаване на продажба');
-        
-        $endhour=strtotime("+5 hours");
-        $enddate=strtotime("+2 weeks");
-           
-        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-        //$browser->setValue('deliveryTime[d]', date('d-m-Y'));
-        
-        $browser->setValue('deliveryTime[t]', date('h:i:sa', $endhour));
-        //$browser->setValue('deliveryTime[t]', '10:30');
-        //$browser->setValue('reff', 'А1234455');
-        $browser->setValue('caseId', 1);
-        //$browser->setValue('note', 'С куриер');
-        $browser->setValue('paymentMethodId', "50% авансово и 50% преди експедиция");
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
-        
-        
-        $browser->setValue('template', 'Договор за изработка');
-        $browser->setValue('template', '');
-        
-        // Записваме дотук черновата на продажбата
+        //$browser->setValue('bankAccountId', 1);
+        $browser->setValue('note', 'MinkTestCreatePurchase');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
         
-    }
-    
-    
-    
-    /**
-     * Създава нова каса
-     */
-    function act_CreateCase()
-    {
-    
-        $browser = cls::get('unit_Browser');
-    
-        // bgERP
-        $url = 'http://Localhost/';
-        $nick = 'Pdainovska';
-        $pass = '111111';
-    
-        // Reload
-        //$url = 'http://reload.bgerp.com/';
-        //$nick = 'Ceo1';
-        //$pass = '123456';
-    
-        $browser->start($url);
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', $nick);
-        $browser->setValue('pass', $pass);
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-    
-        //return  $browser->getHtml();
-    
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-        // Правим нова каса
-        $browser->click('Каси');
-        $browser->press('Нов запис');
+        // Записваме черновата на покупката
          
-        //$browser->hasText('Добавяне на запис в "Фирмени каси"');
-    
-        $browser->setValue('name', 'КАСА 2');
-        
-        $browser->setValue('Pdainovska', '2');
-        
-        $browser->press('Запис');
-         
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        // Добавяме нов артикул - опаковка
+//////////////       
+            $browser->press('Артикул');
+            $browser->setValue('productId', 'Опаковка');
+            $browser->refresh('Запис');
+            $browser->setValue('packQuantity', '008+03*08');//32
+            $browser->setValue('packPrice', '010+3*0.8');//12.4
+            $browser->setValue('discount', 3);
+            $browser->press('Запис и Нов');
+            //return  $browser->getHtml();
+////////////// Записваме артикула и добавяме нов - материал 1
+            //Материал 1
             
-             return  $browser->getHtml();
-             $browser->press('Отказ');
-        }
-    
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }
-    
-    }
-    
-    
-    
-    /**
-     * Създава нова банкова сметка
-     */
-    function act_CreateBankAcc()
-    {
-         
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://Localhost/');
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-    
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-        // Правим нова банка
-        $browser->click('Банки');
-        $browser->press('Нов запис');
-         
-        //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
-    
-        $browser->setValue('iban', 'BG21 CREX 9260 3114 5487 01');
-        $browser->setValue('currencyId', '1');
-        $browser->setValue('Pdainovska', '1');
-        //$browser->setValue('Оператори....', 'On');
-        $browser->press('Запис');
-    
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-    
-        if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }
-    
-    }
-    
-    
-    
-    /**
-     * Създава нов склад
-     */
-    function act_CreateStore()
-    {
-     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://Localhost/');
-        //return  $browser->getHtml();
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-       
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-    
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-        // Правим нов склад
-        //return  $browser->getHtml();
-        $browser->click('Склад');
-        $browser->click('Складове');
-        $browser->press('Нов запис');
-         
-        //$browser->hasText('Добавяне на запис в "Складове"');
+           
+            $browser->setValue('productId', 'Материал 1');
+            $browser->refresh('Запис');
+            $browser->setValue('packQuantity', '0100-07*8');//44
+            $browser->setValue('packPrice', '010.20+0.3*08');//12.6
+            $browser->setValue('discount', 2);
+            $browser->press('Запис и Нов');
+///////////// Записваме артикула и добавяме нов - материал 2
+        
+            $browser->setValue('productId', 'Материал 2');
+            $browser->refresh('Запис');
+            $browser->setValue('packQuantity', '023 + 012*03');//59
+            $browser->setValue('packPrice', '091 - 023*02');//45
+            $browser->setValue('discount', 4);
+        
+            // Записваме артикула
+            $browser->press('Запис');
              
-        $browser->setValue('name', 'Склад 1');
-        //$browser->setValue('Екип "Главен офис"', '1');
-        $browser->setValue('Pdainovska', '1');
-       
-        $browser->press('Запис');
-    
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
+            // активираме покупката
+            $browser->press('Активиране');
+            //return  $browser->getHtml();
+            //$browser->press('Активиране/Контиране');
+             
+            if(strpos($browser->gettext(), '967,64')) {
+            } else {
+                return "Грешно ДДС";
+            }
         
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }     
+            if(strpos($browser->gettext(), 'Пет хиляди осемстотин и пет BGN и 0,83')) {
+            } else {
+                return "Грешна обща сума";
+            }
+        
+            // Складова разписка
+            $browser->press('Засклаждане');
+            $browser->setValue('storeId', 1);
+            $browser->press('Чернова');
+            $browser->press('Контиране');
+        
+            // протокол
+            $browser->press('Приемане');
+            $browser->press('Чернова');
+            $browser->press('Контиране');
+            //if(strpos($browser->gettext(), 'Контиране')) {
+            //  $browser->press('Контиране');
+            //}
+        
+            // Фактура  № се сменя при повторен тест
+            $browser->press('Вх. фактура');
+            $browser->setValue('number', '1176');
+            $browser->press('Чернова');
+            $browser->press('Контиране');
+        
+            // РКО
+            $browser->press('РКО');
+            $browser->setValue('beneficiary', 'Иван Петров');
+            $browser->setValue('amountDeal', '100');
+            $browser->setValue('peroCase', '1');
+            $browser->press('Чернова');
+            $browser->press('Контиране');
+        
+            // РБД
+            $browser->press('РБД');
+            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->press('Чернова');
+            $browser->press('Контиране');
+        
+            $browser->press('Приключване');
+            $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+            $browser->press('Чернова');
+            $browser->press('Контиране');
+            if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+            } else {
+                return "Грешно чакащо плащане";
+            }
+        
+        
         
     }
-   
     
     /**
-     * Създава нов артикул - продукт през папката - Добавяне рецепти?
+     *9.Добавя рецепта
+     *
      */
-    
-    function act_CreateProduct1()
+    //http://localhost/unit_MinkPbgERP/CreateBom/
+    function act_CreateBom()
     {
-         
+    
         $browser = cls::get('unit_Browser');
-        $browser->start('http://Localhost/');
+        $browser->start('http://localhost/');
     
         // Логваме се
         $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
+        $browser->setValue('nick', 'Pavlinka');
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
-            
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-        // Правим нов артикул - продукт
-    
+         
         $browser->click('Каталог');
         $browser->click('Продукти');
-        $browser->press('Артикул');
-         
-        
-        $browser->setValue('name', 'Плик 1 л');
-        $browser->setValue('code', 'plik1');
-        $browser->setValue('measureId', '9');
-        $browser->press('Запис');
-    
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-        //Добавяне рецепти?
+        $browser->click('Други продукти');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
+         
         //$browser->hasText('Добавяне на търговска рецепта към');
-        
-    }
-    
-    
-    /**
-     * Създава нов артикул - продукт
-     */
-    
-    function act_CreateProduct()
-    {
-       
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://Localhost/');
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-    
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-        // Правим нов артикул - продукт
-    
-        $browser->click('Каталог');
-        $browser->press('Нов запис');
+        $browser->setValue('notes', 'CreateBom');
+        $browser->setValue('expenses', '8');
+        $browser->setValue('quantityForPrice', '100');
+        $browser->press('Чернова');
+        $browser->press('Влагане');
          
-        //$browser->hasText('Избор на папка');
-        //$browser->hasText('Категория');
-        
-        $browser->setValue('catcategorieId', '7');
-        $browser->press('Напред');
-        
-        $browser->setValue('name', 'Чувал голям');
-        $browser->setValue('code', 'smet1');
-        $browser->setValue('measureId', '9');
-        //$browser->setValue('groups[8]', 'On');
+        $browser->setValue('resourceId', '1');
+        $browser->setValue('propQuantity', '1,6');
+        $browser->refresh('Запис');
+        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
+    
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', '2');
+        $browser->setValue('propQuantity', '1 + $Начално= 10');
+        $browser->refresh('Запис');
         $browser->press('Запис');
-        
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-        }
-        //Добавяне рецепти?  
-        $browser->click('Рецепти');
-  
-        
-    }
+        $browser->press('Активиране');
     
-   /**
-     * Търсим фирма, ако я има - отваряме и редактираме, ако не - създаваме нова фирма
-     */
-    
-    function act_CreateEditCompany()
-    {
-          
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://Localhost/');
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-    
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-        $browser->click('Визитник');
-        // търсим фирмата
-        //return  $browser->getHtml();
-        //$browser->hasText( $Company);
-        
-        $Company = "4 MINK GMBH";
-              
-            if(strpos($browser->gettext(), $Company)) {
-            //bp($browser->gettext());
-            //има такава фирма - редакция
-           
-            $browser->click($Company);
-            $browser->press('Редакция');
-            //return  'редакция';
-            //Проверка дали сме в редакция
-            //$browser->hasText('Редактиране на запис в "Фирми"');
-                        
-        } else {
-             
-            // Правим нова фирма
-            $browser->press('Нова фирма');
-            //return  'добавяне';
-            //Проверка дали сме в добавяне
-            //$browser->hasText('Добавяне на запис в "Фирми"');
-                        
-        }
-            $browser->setValue('name', $Company);
-            $browser->setValue('country', 'Германия');
-            $browser->setValue('place', 'Stuttgart');
-            $browser->setValue('pCode', '70376');
-            $browser->setValue('address', 'Brückenstraße 44');
-            //$browser->setValue('uicId', '564749');
-            $browser->setValue('website', 'http://www.mink-international.com');
-            
-            //$browser->setValue('Клиенти', '1'); // не минава в test/bags, минава вbgERP
-            //$browser->setValue('groupList[1]', 'on'); // не минава в test/bags и bgERP
-            $browser->setValue('info', 'Тестове с Mink 4');
-            
-            $browser->press('Запис');
-            //return  $browser->getHtml();
-            // Създаване на папка на нова фирма/отваряне на папката на стара
-            //return  $browser->getHtml();
-            $browser->press('Папка');
-           
-            //if(strpos($browser->gettext(), $Company)) {
-            //$browser->press('Папка');
-            //}
-           
-    }
-       
-    /**
-     * Търсим фирма, ако я има - отваряме и редактираме, ако не - създаваме нова фирма
-     */
-       function act_Test5()
-    {
-        
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-       
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-        
-        $browser->click('Визитник'); 
-        // търсим фирмата
-       
-        $Company = "Песен";
-        $browser->open("/crm_Companies/?id=&Rejected=&alpha=&Cmd[default]=1&search={$Company}&users=all_users&order=alphabetic&groupId=&Cmd[default]=Филтрирай");
-     
-        if(strpos($browser->gettext(), $Company)) {
-           //bp($browser->gettext());
-           //има такава фирма - редакция
-           
-            $browser->click($Company);
-            $browser->press('Редакция');
-            
-            //Проверка дали сме в редакция
-            //$browser->hasText('Редактиране');
-            //$browser->hasText('Фирма');
-            
-            $browser->setValue('place', 'Пирот');
-            $browser->setValue('fax', '77777');
-           
-            $browser->press('Запис');
-            return 'Фирма-редакция';  
-        } else {
          
-            // Правим нова фирма
-             
-            $browser->press('Нова фирма');
-             
-            //$browser->hasText('Добавяне на запис');
-            //$browser->hasText('Фирма');
-        
-            $browser->setValue('name', $Company);
-            $browser->setValue('place', 'Плевен');
-            $browser->setValue('pCode', '7800');
-            $browser->setValue('address', 'ул.Днепър, №11');
-            $browser->setValue('fax', '086898989');
-            $browser->setValue('tel', '086777777');
-            $browser->setValue('info', 'Тази фирма е ...');
-            $browser->setValue('Клиенти', '1');
-            
-            $browser->press('Запис');
-            // Създаване на папка на нова фирма
-            
-            $browser->press('Папка');
-            return 'Фирма-добавяне';
-          }
-    
     }
      
-    
-    /**
-     * редакция на фирма OK
-     */
-    function act_EditCompany()
-    { 
-        // редакция на фирма OK
-        
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://test.bags.bg/');
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-    
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-    
-       
-        //Отваряме папката на фирма Фирма-тест 3
-        $browser->click('Визитник');
-    
-        //$browser->hasText('Фирма-тест 3');
-    
-        $browser->click('Фирма-тест 3');
-    
-        //Проверка дали сме в Фирма-тест 3
-        //$browser->hasText('Фирма-тест 3 - Самоводене');
-         
-        $browser->press('Редакция');
-        //Проверка дали сме в редакция
-    
-        //$browser->hasText('Редактиране на запис в "Фирми"');
-        $browser->setValue('address', 'ул.Първа');
-        $browser->setValue('pCode', '5400');
-        $browser->setValue('fax', '333333');
-        $browser->setValue('tel', '222222');
-        $browser->setValue('uicId', '200021786');
-        $browser->press('Запис');
-       
-        return ' Фирма-запис на редакцията';
-       
-    }
-    
-    /**
-     * Създаване на нова фирма и папка към нея, допуска дублиране - ОК
-     */
-    function act_CreateCompany()
-    {
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://test.bags.bg/');
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-    
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pdainovska');
-        
-        // Правим нова фирма
-        
-        $browser->click('Визитник');
-        $browser->press('Нова фирма');
-           
-        //$browser->hasText('Добавяне на запис в "Фирми"');
-        //$browser->hasText('Фирма');      
-        
-        $browser->setValue('name', 'MINK INTERNATIONAL GMBH');
-        //$browser->setValue('country', 'Франция');
-        $browser->setValue('place', 'Ст. Загора');
-        $browser->setValue('pCode', '6400');
-        $browser->setValue('address', 'ул.Бояна, №122');       
-        $browser->setValue('fax', '036111111');
-        $browser->setValue('tel', '036111111');
-        $browser->setValue('uicId', '110001322');
-        $browser->setValue('Клиенти', '1');
-        $browser->press('Запис');
-        
-        if (strpos($browser->getText(),"Предупреждение:")){
-            $browser->setValue('Ignore', 1);
-            $browser->press('Запис');
-        }
-        
-        // Създаване на папка на нова фирма
-        
-        $browser->press('Папка');
-        
-                
-    }
-    
-    
-    function act_Test1()
-    {
-        //добавяне и редакция Reload
-        
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://reload.bgerp.com/');
-        
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Ceo1');
-        $browser->setValue('pass', '123456');
-        $browser->press('Вход');
-        
-       // $browser->hasText('Известия');
-       // $browser->hasText('Ceo1');
-       // $browser->hasText('Reload ERP');
-        
-        
-        //Опит за добавяне 
-        $browser->click('Визитник');
-        $browser->press('Нова фирма');
-        
-        //return  $browser->getHtml();
-        //$browser->hasText('Държава');
-        //$browser->hasText('Фирма');      
-        
-        $browser->setValue('name', 'Фирма-тест 3');
-        $browser->setValue('place', 'Сливен');
-        $browser->setValue('pCode', '6400');
-        $browser->setValue('address', 'ул.Бояна, №122');     
-        $browser->setValue('uicId', '110001322');
-        $browser->setValue('fax', '036111111');
-        $browser->setValue('tel', '036111111');
-     
-        $browser->press('Запис');
-        if (strpos($browser->getText(),"Предупреждение:")){
-            $browser->setValue('Ignore', 1);
-            $browser->press('Запис');
-        }
-        return ' Фирма-запис';
-                
-    }
    
 }

@@ -43,7 +43,7 @@ class core_Cron extends core_Manager
     /**
      * Списък с плъгини, които се прикачат при конструиране на мениджъра
      */
-    var $loadList = "plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows,plg_State2";
+    var $loadList = "plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows,plg_State2,plg_Search";
     
     
     /**
@@ -77,6 +77,12 @@ class core_Cron extends core_Manager
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'systemId,description,controller,action';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -94,6 +100,8 @@ class core_Cron extends core_Manager
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
 
         $this->setDbUnique('systemId,offset,delay');
+		
+        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -176,9 +184,13 @@ class core_Cron extends core_Manager
     /**
      * Преди извличането на записите за листовия изглед
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('period'); 
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	$data->query->orderBy('period'); 
         $data->query->orderBy('offset');
         $data->query->orderBy('systemId');
     }
@@ -197,7 +209,7 @@ class core_Cron extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Логове на Cron', array(
                 'log_System',
@@ -228,7 +240,7 @@ class core_Cron extends core_Manager
         $query = $this->getQuery();
         $query->where("#state = 'locked'");
         $now = dt::verbal2mysql();
-        $query->where("ADDTIME(#lastStart, SEC_TO_TIME(#timeLimit)) < '{$now}'");
+        $query->where("DATE_ADD(#lastStart, INTERVAL #timeLimit SECOND) < '{$now}'");
         
         while ($rec = $query->fetch()) {
             $rec->state = 'free';
@@ -281,7 +293,7 @@ class core_Cron extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Екшън за стартиране на единичен процес
      */
     function act_ProcessRun()
     {
@@ -338,7 +350,7 @@ class core_Cron extends core_Manager
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
             sleep($rec->delay);
-            Debug::log('Sleep {$rec->delay} sec. in' . __CLASS__);
+            Debug::log("Sleep {$rec->delay} sec. in" . __CLASS__);
         }
         
         // Стартираме процеса
@@ -427,7 +439,7 @@ class core_Cron extends core_Manager
     /**
      * Изпълнява се след поготовка на формата за редактиране
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setOptions('state', array('free' => 'Свободно',
                 'stopped' => 'Спряно'
@@ -438,7 +450,7 @@ class core_Cron extends core_Manager
     /**
      * Изпълнява се при всяко преобразуване на запис към вербални стойности
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // За по-голяма точност, показваме и секундите
         $row->lastStart = dt::mysql2verbal($rec->lastStart, "d.m.y  H:i:s");
@@ -650,7 +662,7 @@ class core_Cron extends core_Manager
      * 
      * @param string $systemId
      * 
-     * @return date $nextStartTime
+     * @return date|NULL|FALSE $nextStartTime
      */
     static function getNextStartTime($systemId)
     {

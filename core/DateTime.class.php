@@ -276,7 +276,7 @@ class core_DateTime
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = TRUE, $callRecursive = TRUE)
     {
         // Опцията "относително време" да не работи в абсолутен или печатен режим
-        if( Mode::is('text', 'xhtml') || Mode::is('printing')) {
+        if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf')) {
             if($mask == 'smartTime') {
                 $mask = "d.m.y H:i";
             }
@@ -335,6 +335,8 @@ class core_DateTime
         if (($year == $yearNow)) {
             $mask = str_replace('-YEAR', '', $mask);
             $mask = str_replace('-year', '', $mask);
+            $mask = str_replace('.YEAR', '', $mask);
+            $mask = str_replace('.year', '', $mask);
         }
         
         $mask = str_replace('YEAR', 'Y', $mask);

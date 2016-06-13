@@ -16,9 +16,16 @@
 class thumb_M extends core_Mvc
 {
     
-    
     /**
+     * Масив с файлове за оптимизиране от външни програми
      * 
+     * $path => $type
+     */
+    public $forOptimization = array();
+    
+
+    /**
+     * Имидж, който е бил зареден през екшъна
      */
     protected $thumb;
     
@@ -67,10 +74,60 @@ class thumb_M extends core_Mvc
 
     
     /**
-     * 
+     * Изпълнява се на затваряне
      */
     function on_Shutdown()
+    {   
+        if(isset($this->thumb)) {
+            $this->thumb->getUrl('forced');
+        }
+
+        if(count($this->forOptimization)) {
+
+            $optmizators = arr::make(thumb_Setup::get('OPTIMIZATORS'), TRUE);
+
+            foreach($this->forOptimization as $path => $type) {
+            
+                foreach($optmizators as $o) {
+                    list($program, $t) = explode('/', $o);
+                    $program = trim($program);
+                    $t = trim($t);
+                    if($t == $type) {
+                        $this->execCmd($program, $path);
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     *  Изпълнява команда за оптимизиране на графичен файл
+     */
+    private function execCmd($optimizer, $path)
+    {   
+        $out = array();
+        $status = 0;
+        $path = escapeshellarg($path);
+        $cmd = constant(strtoupper($optimizer) . '_CMD');
+        $cmd = str_replace('[#path#]', $path, $cmd);
+        exec($cmd, $out, $status);
+        if($status > 0) {
+            $err = implode(' | ', $out);
+            log_System::add('tumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'err');
+        } else {
+            log_System::add('tumb_Img', 'Оптимизирано: ' . $cmd , NULL, 'debug');
+        }
+    }
+
+
+    /**
+     * Изтриване на кешираните изображения
+     */
+    function act_Clear()
     {
-        $this->thumb->getUrl('forced');
+        $deleted = core_Os::deleteOldFiles(thumb_Setup::get('IMG_PATH'), 1);
+
+        return followRetUrl(NULL, "Изтрити са|* {$deleted} |файла.");
     }
 }

@@ -9,7 +9,7 @@
  * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -17,6 +17,8 @@
  */
 class core_Manager extends core_Mvc
 {
+    
+    
     /****************************************************************************************
      *                                                                                      *
      *        ОПИСАТЕЛНА ЧАСТ                                                               *
@@ -27,13 +29,13 @@ class core_Manager extends core_Mvc
     /**
      * Заглавие на мениджъра
      */
-    var $title = '?Мениджър?';
+    public $title = '?Мениджър?';
     
     
     /**
      * Заглавие на единичния обект
      */
-    var $singleTitle = '?Обект?';
+    public $singleTitle = '?Обект?';
     
     
     /**
@@ -45,7 +47,7 @@ class core_Manager extends core_Mvc
     /**
      * По подразбиране колко резултата да показва на страница
      */
-    var $listItemsPerPage = 20;
+    public $listItemsPerPage = 20;
     
     
     /**
@@ -77,13 +79,26 @@ class core_Manager extends core_Mvc
      */
     var $canAdmin = 'admin';
     
+    
     /****************************************************************************************
      *                                                                                      *
      *       ПРЕДЕФИНИРАНИ ДЕЙСТВИЯ (ЕКШЪНИ) НА МЕНИДЖЪРА                                   *
      *                                                                                      *
      ****************************************************************************************/
     
-
+    
+    /**
+     * Конструктора на таблицата. По подразбиране работи със singleton
+     * адаптор за база данни на име "db". Разчита, че адапторът
+     * е вече свързан към базата.
+     */
+    function init($params = array())
+    {
+    	parent::init($params);
+    	$this->declareInterface('core_ManagerIntf');
+    }
+    
+    
     /**
      * Връща линк към подадения обект
      * 
@@ -333,7 +348,7 @@ class core_Manager extends core_Mvc
         $tpl = $data->form->renderHtml();
         
         $formId = $data->form->formAttr['id'];
-        $tpl->append("\n runOnLoad(function(){preventDoubleSubmission('{$formId}');});", 'JQRUN');
+        jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
@@ -679,6 +694,7 @@ class core_Manager extends core_Mvc
         $tpl->append($this->renderListPager($data), 'ListPagerBottom');
         
         // Попълваме таблицата с редовете
+        setIfNot($data->listTableMvc, clone $this);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме долния тулбар
@@ -764,8 +780,13 @@ class core_Manager extends core_Mvc
      */
     function renderListTable_($data)
     {
-        $table = cls::get('core_TableView', array('mvc' => $this));
+        setIfNot($data->listTableMvc, $this);
+    	$table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
         
+        if($data->action == 'list') {
+            $table->tableClass ='listTable listAction';
+        }
+
         // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, TRUE);
         

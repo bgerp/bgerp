@@ -50,8 +50,26 @@ class plg_Clone extends core_Plugin
         // Подготвяме формата
         $data = new stdClass();
         $data->action = 'clone';
-        $mvc->prepareEditForm($data);
+        
+        // Подготвяме формата, но без да генерираме ивент, ивента ръчно ще го инвоукнем
+        // след като сме махнали от река зададените полета
+        $mvc->prepareEditForm_($data);
         $form = &$data->form;
+        
+        // Проверяваме имали полета, които не искаме да се клонират
+        $dontCloneFields = arr::make($mvc->fieldsNotToClone, TRUE);
+        
+        // Ако има махаме ги от $form->rec
+        if(count($dontCloneFields)){
+        	foreach ($dontCloneFields as $unsetField){
+        		unset($form->rec->{$unsetField});
+        	}
+        }
+        
+        // Инвоукваме ръчно ивента за подготовка на формата, след като сме махнали от
+        // $form->rec -а полетата, които не искаме да се копират, така ако в ивента
+        // добавяме дефолти ще се запишат на чисто
+        $mvc->invoke('AfterPrepareEditForm', array(&$data, &$data));
         
         // Задаваме екшъна
         $form->setAction($mvc, 'clonefields');
@@ -149,7 +167,7 @@ class plg_Clone extends core_Plugin
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param core_Mvc $mvc
+     * @param core_Manager $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
@@ -250,7 +268,7 @@ class plg_Clone extends core_Plugin
         $cloneSbf = sbf("img/16/clone.png");
         
         // Ако не е подадено заглавиет, създаваме линк с иконата
-        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=' . tr('Клониране'));
+        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=Клониране');
     }
     
     

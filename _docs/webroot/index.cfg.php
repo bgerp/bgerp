@@ -1,9 +1,10 @@
 <?php
 // Игнорираме нотисите
-error_reporting( E_ALL & ~E_NOTICE  & ~E_DEPRECATED);
+DEFINE('CORE_ERROR_REPORTING_LEVEL', E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+error_reporting(CORE_ERROR_REPORTING_LEVEL);
 
 // Дали да са включени финкциите за дебъг и настройка
-DEFINE('EF_DEBUG', FALSE);
+DEFINE('EF_DEBUG', TRUE);
 
 // Името на папката със статичните ресурсни файлове:
 // css, js, png, gif, jpg, flv, swf, java, xml, txt, html ...
@@ -27,4 +28,4 @@ DEFINE('EF_DEBUG', FALSE);
 
 // Името на приложението. Допускат се само малки латински букви и цифри
 // Ако не е дефинирано, системата се опитва да го открие сама
- # DEFINE('EF_APP_CODE_NAME', 'PROJECT_CODE_NAME');
+ # DEFINE('EF_APP_CODE_NAME', 'bgerp');

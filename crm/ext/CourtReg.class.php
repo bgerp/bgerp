@@ -49,6 +49,12 @@ class crm_ext_CourtReg extends core_Detail
      * Кой може да редактира
      */
     var $canEdit = 'powerUser';
+
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'на';  
     
     
     /**
@@ -119,7 +125,7 @@ class crm_ext_CourtReg extends core_Detail
 	            $tpl->append(
 	                ht::createLink(
 	                    $img, $url, FALSE,
-	                    'title=' . tr('Промяна на данните')
+	                    'title=Промяна на данните'
 	                ),
 	                'title'
 	            );

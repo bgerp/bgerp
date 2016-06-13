@@ -44,7 +44,7 @@ class doc_Search extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'hnd=Номер,title=Заглавие,author=Автор,createdOn=Създаване,modifiedOn=Модифициране||Modified';
+    var $listFields = 'title=Заглавие,author=Автор,createdOn=Създаване,hnd=Номер,modifiedOn=Модифициране||Modified';
     
     
     /**
@@ -103,7 +103,7 @@ class doc_Search extends core_Manager
         $data->listFilter->setField('scopeFolderId', 'input');
     	
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
-    	$data->listFilter->setField('search', 'refreshForm,caption=Ключови думи');
+    	$data->listFilter->setField('search', 'autoFilter,caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
     
         $data->listFilter->setDefault('author', 'all_users');
@@ -359,19 +359,19 @@ class doc_Search extends core_Manager
         // Ако няма информация, да не се изпълнява
         if ($info && $info['className'] && $info['id']) {
             $className = $info['className'];
-        
+            
             $rec = $className::fetchByHandle($info);
             
             // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
-            redirect(array($info['className'], 'single', $rec->id));
+            redirect($className::getSingleUrlArray($rec->id));
         } else {
             $search = ltrim($search, '#');
             
             $rec = cat_Products::fetch(array("#code = '[#1#]'", $search));
             
-            if ($rec && cat_Products::haveRightFor('single', $rec)) {
+            if ($rec && ($singleUrl = cat_Products::getSingleUrlArray($rec->id))) {
                 
-                redirect(array('cat_Products', 'single', $rec->id));
+                redirect($singleUrl);
             }
         }
     }
@@ -486,11 +486,7 @@ class doc_Search extends core_Manager
             $row->author = $docRow->author;
         }
     
-        $row->hnd = "<div class='rowtools'>";
-        $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
-        $row->hnd .= $handle;
-        $row->hnd .= '</div>';
-        $row->hnd .= '</div>';
+        $row->hnd = "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
     }
     
     

@@ -549,7 +549,11 @@ tr.row-removed {
         width: 100%;
     }
 }
-	
+
+.narrow .user-profile .listBlock .listRows > table.listTable{
+    width: 100%;
+}
+
 /*потребителски профил*/
 .user-profile {
 	max-width: 760px;
@@ -594,10 +598,6 @@ tr.row-removed {
 			width: auto;
 			height: 100px;
 		}
-	}
-	.linkWithIcon {
-		height: 19px;
-		padding-top: 1px;
 	}
 	> .groupList {
 		margin-left: 10px;
@@ -922,6 +922,9 @@ div.mobile {
 	padding-top:2px;
     margin-bottom: 4px;
     display: block;
+    .icon {
+        margin: 0 5px;
+    }
 }
 
 .number-block{
@@ -936,6 +939,14 @@ div.mobile {
 	position: relative;
 	@include border-radius(3px);
 	box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.document-handler {
+    font-size: 0.8em; 
+    border-radius:3px; 
+    border:solid 1px #bbb;
+    padding:2px;
+    display:inline-block;
 }
 
 /*край на стилове за CRM*/
@@ -1158,6 +1169,9 @@ div.acc-detail {
     			background-color: #d0d0d0;
     		}
     	}
+    	table.listTable th {
+    	   vertical-align: middle !important;
+    	}
     }
 	.legend {
 		position: absolute;
@@ -1307,7 +1321,6 @@ td.portal-date {
 	@include border-radius(5px);
 	padding: 10px;
 	margin-bottom: 20px;
-	float: left;
 	line-height: 120%;
 	margin-top: 10px;
 	.corrected {
@@ -1411,6 +1424,11 @@ td.portal-date {
 	.tab-control .detail-info {
 		font-size: 0.9em;
 	}
+	.business-doc-summary-table > tbody > tr > td{
+		padding:3px !important ;
+		border:0px !important;
+	}
+
 }
 
 .small-padding td {
@@ -1492,6 +1510,15 @@ td.portal-date {
 	}
 }
 
+.narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
+	display: inline;
+	float: none;
+	.liked, .disliked {
+		position: relative;
+		top: 3px;
+	}
+}
+
 .document-settings-left, .document-title-group {
 	float: left;
 	display: inline-block;
@@ -1503,6 +1530,7 @@ td.portal-date {
 
 .narrow .docBgIcon {
 	font-size: 0.9em;
+	padding-right: 20px;
 }
 
 .narrow .document-settings {
@@ -1510,6 +1538,10 @@ td.portal-date {
     right: 2px;
     top:50%;
     margin-top: -10px;
+}
+
+.narrow .document-settings-left span {
+	white-space: nowrap;
 }
 
 .snapshot {
@@ -1547,10 +1579,6 @@ td.portal-date {
 	color: #666;
 }
 
-.selectRows .listTable > tbody > tr > td:first-child {
-	text-align: center;
-}
-
 .document-title{
 	font-size: 16pt;
 	font-weight: bold;
@@ -1569,6 +1597,10 @@ td.rowtools-column {
 
 .small-field{
 	width:1%;
+}
+
+.medium-field{
+	width: 200px;
 }
 
 .large-field{
@@ -1634,7 +1666,6 @@ pre.document {
 	background: transparent;
 	@include no-shadow();
 	padding: 0;
-	float: left;
 	margin: 2px 0 0 0;
 }
 
@@ -1693,6 +1724,7 @@ pre.document {
 
 .cell {
 	border: 1px solid #999;
+	vertical-align: top;
 }
 
 .topCell {
@@ -2454,6 +2486,9 @@ fieldset.sharing-history {
 	display: block;
 	margin: 0 auto;
 	text-align: left;
+	#searchform {
+		margin-bottom: 20px;
+	}
 }
 
 .wide #all {
@@ -2479,6 +2514,10 @@ fieldset.sharing-history {
 
 .wide #login-form{
 	padding:40px;
+	.button {
+		padding: 5px 7px !important;
+		font-size: 1.0em;
+	}
 }
 
 .wide #login-form .formTable {
@@ -2491,9 +2530,21 @@ fieldset.sharing-history {
 
 .drawing {
 	float: right;
-	max-width: 400px;
+	max-width: 380px;
 	img {
-		max-width: 400px;
+		max-width: 380px;
+	}
+}
+
+@media handheld , only screen and (max-width: 1600px) {
+	.sidemenu-push-toright.sidemenu-push-toleft .drawing{
+		float: none;
+	}
+}
+
+@media handheld , only screen and (max-width: 1400px) {
+	.sidemenu-push .drawing{
+		float: none;
 	}
 }
 
@@ -2634,18 +2685,42 @@ fieldset.sharing-history {
 	padding: 1px;
 	line-height: normal;
 	font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
+	display: block; 
+	clear: both;
+	margin-bottom: 3px;
 }
 
 #cmsNavigation a {
 	@include border-radius(3px);
-	padding: 1px 4px; 
+	padding: 1px 4px;
+	border: 1px solid transparent;
 	display: inline-block;
+}
+
+#cmsNavigation.articles-menu .nav_item {
+	a, span {
+		float: left;
+		border: 1px solid transparent;
+	}
+	&:after {
+	    content: '';
+	    display: block;
+	    clear: both;
+	}
+}
+
+#cmsNavigation a.linkWithIcon {
+    display: inline-block;
+    height: 21px;
+    float: left;
+    margin-left: 5px;
+    background-position: center !important; 
 }
 
 #cmsNavigation .level1 {
 	font-size: 16px;
 	font-weight: bold;
-	margin-top: 10px;
+	padding-top: 10px;
 	margin-bottom: 2px;
 }
 
@@ -2669,6 +2744,14 @@ fieldset.sharing-history {
 
 #cmsNavigation div.nav_item {
     font-size:1em;
+}
+#cmsNavigation .addPage {
+	clear: both;
+	padding:2px; 
+	border:solid 1px #ccc; 
+	background-color:#eee;
+	margin:5px 0;
+	font-size:0.7em;
 }
 
 .narrow .articles-navigation {
@@ -3458,6 +3541,18 @@ div.location.public {
 		margin: 10px 0 12px;
 	}
 }
+.textWithIcons {
+	display: inline-block;
+	margin-bottom: -12px;
+	a, span:not(.highlight) {
+		float: left;
+		margin-right:5px;
+	}
+	span:not(.highlight) {
+		position: relative;
+		top: -3px !important;
+	}
+}
 
 .state-error-email {
     background-color: #f3bbaf;
@@ -3941,10 +4036,11 @@ body.narrow {
 	}
 }
 
-@media handheld , only screen and (min-width: 1550px) {
+@media handheld , only screen and (min-width: 1500px) {
     #cmsNavigation div.nav_item {
         font-size:1.02em;
     }
+
 }
 
 @media handheld , only screen and (min-width: 1600px) {
@@ -5069,16 +5165,16 @@ body.narrow {
         display: none;
     }
     .treeLevel1 .leafName {
-        text-indent: 50px;
+        text-indent: 40px;
     }
     .treeLevel2 .leafName {
-        text-indent: 80px;
+        text-indent: 60px;
     }
     .treeLevel3 .leafName {
-        text-indent: 110px;
+        text-indent: 80px;
     }
     .treeLevel4 .leafName {
-        text-indent: 140px;
+        text-indent: 100px;
     }
     .leafName {
         min-width: 250px;
@@ -5179,6 +5275,9 @@ body.narrow {
     margin: 0;
 }
 
+.narrow .elem-holder .endTooltip {
+	float: right;
+}
 /* край на стилове за външната част при потребител контрактор */
 .cd-l1{
     color: green;

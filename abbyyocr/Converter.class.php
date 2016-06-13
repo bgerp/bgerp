@@ -40,6 +40,18 @@ class abbyyocr_Converter extends core_Manager
     
     
     /**
+     * Масив с програмите и функциите за определяне на пътя до тях
+     */
+    public $fconvProgramPaths = array('abbyyocr9' => 'abbyyocr_Setup::ABBYYOCR_PATH');
+    
+    
+    /**
+     * Кода, който ще се изпълнява
+     */
+    public $fconvLineExec = 'abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]';
+    
+    
+    /**
      * Добавя бутон за стартиране на OCR процеса
      * 
      * @param core_Toolbar $toolbar
@@ -53,22 +65,25 @@ class abbyyocr_Converter extends core_Manager
             
             $btnParams = array();
             
-            // Ако вече е извлечена текстовата част
-            if (static::isTextIsExtracted($rec)) {
-                    
-                // Правим бутона на disabled
-                $btnParams['disabled'] = 'disabled';    
-            }
-            
             $btnParams['order'] = 60;
             
             $Setup = cls::get('abbyyocr_Setup');
+            $checkConf = $Setup->checkConfig();
             
-            if ($Setup->checkConfig() === NULL) {
+            if ($checkConf === NULL) {
                 // URL за създаване
                 $url = toUrl(array(get_called_class(), 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
             } else {
                 $url = array();
+                $btnParams['title'] = $checkConf;
+            }
+            
+            // Ако вече е извлечена текстовата част
+            if (static::isTextIsExtracted($rec)) {
+            
+                // Правим бутона на disabled
+                $btnParams['disabled'] = 'disabled';
+                $btnParams['title'] = 'Файлът е преминал през тази обработка';
             }
             
             // Добавяме бутона
@@ -134,7 +149,7 @@ class abbyyocr_Converter extends core_Manager
         $retUrl = getRetUrl();
         
         // Ако не може да се определи
-        if (!$retUrl) {
+        if (empty($retUrl)) {
             
             // URL' то където ще редиректваме
             $retUrl = array('fileman_Files', 'single', $rec->fileHnd);
@@ -176,14 +191,12 @@ class abbyyocr_Converter extends core_Manager
         
         // Заместваме програмата с пътя от конфига
         $Script->setProgram('abbyyocr9', abbyyocr_Setup::get('PATH'));
-        
-        // Добавяме към изпълнимия скрипт
-        $lineExecStr = "abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]";
+        $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
         
         $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($textPath);
         
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
+        $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);
@@ -191,9 +204,9 @@ class abbyyocr_Converter extends core_Manager
         $params['errFilePath'] = $errFilePath;
         
         // Други допълнителни параметри
-        $Script->outFilePath = $textPath;
-        $Script->params = serialize($params);
-        $Script->fh = $fileHnd;
+        $params['outFilePath'] = $textPath;
+        $params['fh'] = $fileHnd;
+        $Script->params = $params;
         
         // Стартираме скрипта
         $Script->run($params['asynch']);
@@ -213,10 +226,10 @@ class abbyyocr_Converter extends core_Manager
     function afterGetTextByAbbyyOcr($script)
     {
         // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
+        $params = $script->params;
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
+        if (fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);
@@ -225,7 +238,7 @@ class abbyyocr_Converter extends core_Manager
         }
         
         // Вземаме съдържанието на файла
-        $params['content'] = file_get_contents($script->outFilePath);
+        $params['content'] = file_get_contents($params['outFilePath']);
         
         // Записваме данните
         $saveId = fileman_Indexes::saveContent($params);
@@ -266,6 +279,8 @@ class abbyyocr_Converter extends core_Manager
                 return TRUE;
             }
         }
+        
+        return FALSE;
     }
     
     

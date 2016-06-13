@@ -49,6 +49,12 @@ class crm_ext_IdCards extends core_Detail
      * Кой може да редактира
      */
     var $canEdit = 'powerUser';
+
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'на';  
     
     
     /**
@@ -114,7 +120,7 @@ class crm_ext_IdCards extends core_Detail
 	            $tpl->append(
 	                ht::createLink(
 	                    $img, $url, FALSE,
-	                    'title=' . tr('Промяна ЛК')
+	                    'title=Промяна ЛК'
 	                ),
 	                'title'
 	            );

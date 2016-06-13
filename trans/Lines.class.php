@@ -129,6 +129,12 @@ class trans_Lines extends core_Master
 
     
     /**
+     * Файл за единичния изглед в мобилен
+     */
+    public $singleLayoutFileNarrow = 'trans/tpl/SingleLayoutLinesNarrow.shtml';
+    		
+    		
+    /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/lorry_go.png';
@@ -159,6 +165,7 @@ class trans_Lines extends core_Master
     	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Превозвач->Превозно средство');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
+    	$this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
     }
     
     
@@ -284,7 +291,8 @@ class trans_Lines extends core_Master
 	    	
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
 	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-	    	$row->logistic = core_Users::getCurrent('names');
+	    	
+	    	$row->logistic = core_Users::getVerbal($rec->createdBy, 'names');
     	}
     	
     	$row->handler = $mvc->getLink($rec->id, 0);
@@ -297,7 +305,7 @@ class trans_Lines extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        
+       
         $row = (object)array(
             'title'    => $rec->title,
             'authorId' => $rec->createdBy,
@@ -395,7 +403,6 @@ class trans_Lines extends core_Master
     		$this->save($rec);
     	}
     	
-    	
     	// Намират се затворените линии, които не са повторени и
     	// имат повторение и не са повторени
     	$query2->where("#state = 'closed'");
@@ -404,27 +411,14 @@ class trans_Lines extends core_Master
     	while($rec = $query2->fetch()){
     		
     		// Генерира се новата линия
+    		core_Users::sudo($rec->createdBy);
     		$newRec = $this->getNewLine($rec);
     		$this->save($newRec);
+    		core_Users::exitSudo();
     		
     		// Линията се отбелязва като повторена
     		$rec->isRepeated = 'yes';
-    		$this->save($rec);
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се преди запис
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	// Специално поле, кеото го има само ако се създава от крон
-    	if($rec->_createdBy){
-    		
-    		// doc_DocumentPlg слага за createdBy '-1', така запазваме на
-    		// новата линия, за createdBy този, който е създал първата
-    		$rec->createdBy = $rec->_createdBy;
+    		$this->save($rec, 'isRepeated');
     	}
     }
     
@@ -438,7 +432,7 @@ class trans_Lines extends core_Master
     {
     	$newRec = new stdClass();
     	$newRec->repeat            = $rec->repeat;
-    	$newRec->_createdBy        = $rec->createdBy;
+    	$newRec->createdBy         = $rec->createdBy;
     	$newRec->folderId          = $rec->folderId;
     	$newRec->vehicleId 		   = $rec->vehicleId;
     	$newRec->forwarderId 	   = $rec->forwarderId;

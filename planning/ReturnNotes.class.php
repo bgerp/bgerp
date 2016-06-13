@@ -39,7 +39,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 	
 	
@@ -119,12 +119,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-	 */
-	public $rowToolsField = 'tools';
-	
-	
-	/**
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
 	public $rowToolsSingleField = 'title';
@@ -133,7 +127,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	/**
 	 * Икона на единичния изглед
 	 */
-	public $singleIcon = 'img/16/page_paste.png';
+	public $singleIcon = 'img/16/produce_out.png';
 	
 	
 	/**
@@ -143,5 +137,19 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	{
 		parent::setDocumentFields($this);
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане->Избор,notNull,default=yes,maxRadio=2,before=note');
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат изписани от незавършеното производство един по един' : 'Артикулите ще бъдат изписани от незавършеното производството сумарно';
+		$row->useResourceAccounts = tr($row->useResourceAccounts);
 	}
 }

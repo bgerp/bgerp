@@ -20,145 +20,153 @@ class cal_Reminders extends core_Master
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
-    var $defaultFolder = FALSE;
+    public $defaultFolder = FALSE;
     
     
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
+    public $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
     				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin';
     
 
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    var $groupByDateField = 'timeStart';
+    public $groupByDateField = 'timeStart';
+    
+    
+    /**
+     * Какви детайли има този мастер
+     */
+    public $details = 'cal_ReminderSnoozes';
 
 
     /**
      * Заглавие
      */
-    var $title = "Напомняния";
+    public $title = "Напомняния";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Напомняне";
+    public $singleTitle = "Напомняне";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, timeStart, timePreviously, repetition=Повторение, action, nextStartTime, sharedUsers';
+    public $listFields = 'id, title, timeStart, timePreviously, repetition=Повторение, action, nextStartTime, sharedUsers';
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'description';
+    public $searchFields = 'description';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'powerUser';
+    public $canChangerec = 'powerUser';
     
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
  
     
     /**
      * Кой може да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
 
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'powerUser';
+    public $canDelete = 'powerUser';
     
     
     /**
      * Кой има право да приключва?
      */
-    var $canChangeTaskState = 'powerUser';
+    public $canChangeTaskState = 'powerUser';
     
     
     /**
      * Кой има право да затваря задачите?
      */
-    var $canClose = 'powerUser';
+    public $canClose = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'powerUser';
+	public $canList = 'powerUser';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'powerUser';
+	public $canSingle = 'powerUser';
     
+	
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canSnooz = 'powerUser';
+	
 	
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/alarm_clock.png';
+    public $singleIcon = 'img/16/alarm_clock.png';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'cal/tpl/SingleLayoutReminders.shtml';
+    public $singleLayoutFile = 'cal/tpl/SingleLayoutReminders.shtml';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Rem";
+    public $abbr = "Rem";
+    
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "1.4|Общи"; 
-    
-    
-    /**
-     * 
-     */
-    //var $cloneFields = 'title, priority, ';
-    
+    public $newBtnGroup = "1.4|Общи"; 
+
     
     /**
      * 
@@ -177,17 +185,17 @@ class cal_Reminders extends core_Master
      */
     function description()
     {
-        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%, changable');
+        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%, changable,silent');
         $this->FLD('priority', 'enum(low=Нисък,
                                      normal=Нормален,
                                      high=Висок,
                                      critical=Критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,changable');
         
-        $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable');
+        $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable,silent');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable,silent');
         
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
@@ -202,7 +210,7 @@ class cal_Reminders extends core_Master
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
         
         // Колко пъти ще се повтаря напомнянето? 
-        $this->FLD('repetitionEach', 'int(Min=0)',     'caption=Повторение->Всеки,changable');
+        $this->FLD('repetitionEach', 'int(Min=0)',     'caption=Повторение->Всеки,changable,autohide');
         
         // По какво ще се повтаря напомненето - дни, седмици, месеци, години
         $this->FLD('repetitionType', 'enum(   days=дена,
@@ -210,7 +218,7 @@ class cal_Reminders extends core_Master
 			                                  months=месецa,
 			                                  weekDay=месецa-ден от началото на седмицата,
 			                                  monthDay=месецa-ден от началото на месеца)',  
-           'caption=Повторение->Мярка, maxRadio=5,columns=1,notNull,value=days,changable');
+           'caption=Повторение->Мярка, maxRadio=5,columns=1,notNull,value=days,changable,autohide=any');
         
         // За кой път се среща деня
         $this->FLD('monthsWeek',    'varchar(12)', 'caption=Срещане,notNull,input=none');
@@ -255,31 +263,20 @@ class cal_Reminders extends core_Master
 		}
 
 		$data->form->setSuggestions('repetitionEach', static::$suggestions);
-        
-		if($data->form->rec->originId){
-			// Ако напомнянето е по  документ задача намираме кой е той
-    		$doc = doc_Containers::getDocument($data->form->rec->originId);
-    		$class = $doc->className;
-    		$dId = $doc->that;
-    		$rec = $class::fetch($dId);
-    		
-    		// Извличаме каквато информация можем от оригиналния документ
-    		if($rec->timeStart){
-    			$data->form->setDefault('title', tr("Начало на задача "). "\"".$rec->title. "\"");
-    		} elseif($rec->timeEnd){
-    			$data->form->setDefault('title', tr("Изтичаща задача "). "\"".$rec->title. "\"");
-    		}
-    		$data->form->setDefault('priority', $rec->priority);
-    		$data->form->setDefault('sharedUsers', $rec->sharedUsers);
-    		if($rec->timeStart){ 
-    			$data->form->setDefault('timeStart', $rec->timeStart);
-    		} elseif($rec->timeEnd) {
-    			$data->form->setDefault('timeStart', $rec->timeEnd);
-    		}
-    		$data->form->setDefault('timePreviously', tr("15 мин."));
-    	    $data->form->setDefault('repetitionEach', " ");
 
-		}
+        if ($data->form->rec->threadId) {
+            //Добавяме в полето Заглавие отговор на съобщението
+            $titleThread = doc_Threads::getTitleForId($data->form->rec->threadId);
+            $for = tr('|За|*: ');
+            $title = $for . html_entity_decode($titleThread, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+              
+            $todey = dt::now();
+            $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
+            $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
+
+            $data->form->setDefault('timeStart', $time);
+            $data->form->setDefault('title', $title);
+        }
         
 		if(Mode::is('screenMode', 'narrow')){
 			$data->form->fields[priority]->maxRadio = 2;
@@ -295,8 +292,7 @@ class cal_Reminders extends core_Master
 					$data->form->rec->timeStart = $nextStartTime;
 				}
 			}
-		}
-		
+		}	
     }
 
 
@@ -340,8 +336,8 @@ class cal_Reminders extends core_Master
         		$form->rec->nextStartTime = $mvc->calcNextStartTime($form->rec);
         	}
         } 
+        
     	$rec = $form->rec;
-
     }
     
 
@@ -387,7 +383,7 @@ class cal_Reminders extends core_Master
     	
         // Добавяме поле във формата за търсене
        
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
                 
         $data->listFilter->view = 'horizontal';
         
@@ -528,14 +524,24 @@ class cal_Reminders extends core_Master
 	                    $mvc,
 	                    'Stop',
 	                    $data->rec->id
-	                ),
+	               ),
 	                array('ef_icon'=>'img/16/gray-close.png',
 	                	'title'=>'Спиране на напомнянето'
-	                ));
-	                
-	                
+	                ));     
 	     }
-	       
+	     
+	     if ($mvc->haveRightFor('snooz', $data->rec)) {
+	         $data->toolbar->addBtn('Отлагане',array(
+	             'cal_ReminderSnoozes', 
+	             'add', 
+	             'remId' => $data->rec->id, 
+	             'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
+	         ), 
+	             array('ef_icon'=>'img/16/snooz.png', 
+	                    'title'=>'Олагане на напомнянето'
+	         ));
+	     }
+
 	     if ($data->rec->state == 'closed' || $data->rec->state == 'active') {
 	     	$data->toolbar->removeBtn('btnActivate');
 	     }
@@ -583,11 +589,26 @@ class cal_Reminders extends core_Master
     		$oRec = $mvc->fetch($rec->id);
     	    		
     		if ($action == 'stop') {
-                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) { 
+                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($rec->state !== 'active') { 
                     	$requiredRoles = 'no_one';
                     } 
                 }
+    		}
+
+    		$last7days = dt::timestamp2Mysql(dt::mysql2timestamp(dt::now()) - 7*24*60*60);
+    		if ($action == 'snooz') {
+    		    if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
+    		        $requiredRoles = 'no_one';
+    		    }  
+    		    
+        		if($rec->state !== 'closed') {
+        		    $requiredRoles = 'no_one';
+        		}
+        		
+        		if ($rec->notifySent !== 'yes' && !($rec->nextStartTime >= $last7days && $rec->nextStartTime <= dt::now())){
+                    $requiredRoles = 'no_one';
+        		}
     		}
     	}
     }
@@ -639,7 +660,7 @@ class cal_Reminders extends core_Master
         return new Redirect($link, "|Успешно спряхте напомнянето");
     }
 
-
+    
     /**
      * Връща приоритета на задачата за отразяване в календара
      */
@@ -668,7 +689,6 @@ class cal_Reminders extends core_Master
 
         return $res;
     }
-
 
 
     /**
@@ -713,6 +733,7 @@ class cal_Reminders extends core_Master
 
     }
 
+    
     public function doReminderingForActiveRecs()
     {
     	 $now = dt::verbal2mysql();
@@ -735,7 +756,6 @@ class cal_Reminders extends core_Master
     	 	 
     	 	 self::save($rec);
     	 }
-
     }
     
     
@@ -777,7 +797,6 @@ class cal_Reminders extends core_Master
 				}
 			}
 		}
-
     }
     
     
@@ -841,9 +860,8 @@ class cal_Reminders extends core_Master
 		    	}
 
 		    	return $nextStartTime;
-	
-		    	
 	        }
+	        
 	        // Типа на повторението е месец
 	        for ($i = 1; $i <= 10000; $i++){
 	        		
@@ -878,10 +896,9 @@ class cal_Reminders extends core_Master
 				    
 				    if($rec->timePreviously !== NULL){
 				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds] - $rec->timePreviously, $newMonth, $newDay, $data[year]));
+				    	
 				    	return $nextStartTime;
 				    }
-				    
-				    
 				    
 				    return $nextStartTime;
 				        		
@@ -933,8 +950,7 @@ class cal_Reminders extends core_Master
 				    	return $nextStartTime;
 					}
 					        		
-					return $nextStartTime;
-				        		
+					return $nextStartTime;        		
 				}
  	
 		    }

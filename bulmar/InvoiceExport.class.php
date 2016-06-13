@@ -208,10 +208,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
-    	
-    	if(empty($rec->paymentType)){
-    		$rec->paymentType = $this->Invoices->getAutoPaymentType($rec);
-    	}
+    	$rec->paymentType = ($rec->paymentType) ? $rec->paymentType : $rec->autoPaymentType;
     	
     	if($rec->paymentType == 'cash'){
     		$nRec->amountPaid = $nRec->amount;

@@ -511,11 +511,7 @@ class change_Log extends core_Manager
             // Флаг, да маркираме последната
             $markLast = TRUE;
         }
-        
-        // Аттрибутите на класа
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
-        
+                
         // Ескейпваме стринга
         $versionStrRaw = static::escape($versionStr);
            
@@ -523,7 +519,7 @@ class change_Log extends core_Manager
         $link = array('change_Log', 'logVersion', 'docClass' => $rec->docClass, 'docId' => $rec->docId, 'versionStr' => $versionStr, 'versionId' => $versionId, 'tab' => Request::get('Tab'), 'action' => $action);
         
         // Връщаме линка
-        $linkEt = ht::createLink($versionStrRaw, $link, NULL, $attr);
+        $linkEt = ht::createLink($versionStrRaw, $link, NULL, "ef_icon={$icon}");
         
         // Ако е избран или е вдигнат флага
         if ($markLast || static::isSelected($rec->docClass, $rec->docId, $versionId)) {

@@ -16,6 +16,10 @@
  */
 class csv_Lib
 {
+    
+    
+    static $mapCharts = array("comma"=>",","semicolon"=>";","colon"=>":","vertical"=>"|");
+    
     /**
      * Импортира CSV файл в указания модел
      */
@@ -239,9 +243,12 @@ class csv_Lib
             }
         }
         
-        setIfNot($csvDelimiter, $params['delimiter'], csv_Setup::get('DELIMITER'));
+        $setUp = csv_Setup::get('DELIMITER');
+        $delimiter = static::$mapCharts[$setUp];
+        setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
         setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE)));
         setIfNot($dateFormat, $params['dateFormat'], core_Setup::get('EF_DATE_FORMAT', TRUE));
+        setIfNot($datetimeFormat, $params['datetimeFormat'], 'd.m.y H:i');
         setIfNot($thousandsSep, $params['thousandsSep'], '');
         setIfNot($enclosure, $params['enclosure'], '"');
         setIfNot($decimals, $params['decimals'], 2);
@@ -281,6 +288,9 @@ class csv_Lib
                     $type->params['thousandsSep'] = $thousandsSep;
                     $type->params['decimals'] = $decimals;
                     $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof type_Datetime) {
+                    $value = dt::mysql2verbal($rec->{$name}, $datetimeFormat);
+                    $value = strip_tags($value);
                 } elseif ($type instanceof type_Date) {
                     $value = dt::mysql2verbal($rec->{$name}, $dateFormat);
                     $value = strip_tags($value);
@@ -291,6 +301,8 @@ class csv_Lib
                 } elseif ($type instanceof fileman_FileType) {
                     $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
                 } elseif ($type instanceof type_Enum) {
+                    $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof fileman_FileSize) {
                     $value = $type->toVerbal($rec->{$name});
                 } else {
                     $value = $rec->{$name};

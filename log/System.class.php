@@ -19,7 +19,13 @@ class log_System extends core_Manager
     
     
     /**
-     * Максимален брой записи, които ще се извличат
+     * Максимален брой редове, които ще се извличат от error_log
+     */
+    static $phpErrMaxLinesLimit = 200;
+    
+    
+    /**
+     * Максимален брой записи, които ще се записват при всяк извикване
      */
     static $phpErrMaxLimit = 20;
     
@@ -108,6 +114,8 @@ class log_System extends core_Manager
         $this->setDbIndex('type');
         
         $this->setDbIndex('type, createdOn, className');
+        
+        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -115,7 +123,7 @@ class log_System extends core_Manager
      * Добавяне на събитие в лога
      * 
      * @param string $className
-     * @param integer|NULL $objectId
+     * @param integer|NULL|stdObject $objectId
      * @param string $action
      * @param string $type
      * @param integer $lifeDays
@@ -126,41 +134,16 @@ class log_System extends core_Manager
             $className = cls::getClassName($className);
         }
         
+        if (is_object($objectId)) {
+            $objectId = $objectId->id;
+        }
+        
         $logStr = $className;
         $logStr .= $objectId ? " - " . $objectId : '';
         $logStr .=  ": " . $action;
         Debug::log($logStr);
         
         expect(is_string($className));
-        
-        // Ако има предупреждения, които се повтарят за определн период от време, да стават на грешки
-        if ($type == 'warning') {
-            
-            $query = self::getQuery();
-            $time = dt::subtractSecs(log_Setup::get('WARNING_TO_ERR_PERIOD'));
-            $query->where("#type = 'warning'");
-            $query->where("#createdOn >= '{$time}'");
-            $query->where(array("#className = '[#1#]'", $className));
-            $query->where(array("#detail = '[#1#]'", $action));
-            $query->show('id');
-            
-            // Ако сме достигнали лимита за предупреждения, тогава трябва да стане грешка
-            if ($query->count() >= log_Setup::get('WARNING_TO_ERR_CNT')) {
-                
-                $queryErr = self::getQuery();
-                $queryErr->where("#type = 'err'");
-                $queryErr->where("#createdOn >= '{$time}'");
-                $queryErr->where(array("#className = '[#1#]'", $className));
-                $queryErr->where(array("#detail = '[#1#]'", $action));
-                $queryErr->show('id');
-                $queryErr->limit(1);
-                
-                // Ако вече е добавен грешка, да не се добавя пак
-                if (!$queryErr->count()) {
-                    $type = 'err';
-                }
-            }
-        }
         
         $rec = new stdClass();
         $rec->className = $className;
@@ -191,11 +174,11 @@ class log_System extends core_Manager
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
-        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас,refreshForm, allowEmpty, silent');
+        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас,autoFilter, allowEmpty, silent');
         
         $data->listFilter->fields['type']->caption = 'Тип';
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
-        $data->listFilter->fields['type']->refreshForm = 'refreshForm';
+        $data->listFilter->fields['type']->autoFilter = 'autoFilter';
         
         $data->listFilter->setSuggestions('class', core_Classes::makeArray4Select('name'));
         $data->listFilter->showFields = 'date, class, type';
@@ -290,6 +273,46 @@ class log_System extends core_Manager
         $period = core_Cron::getPeriod(self::$notifySysId);
         $period += 59;
         
+        // Преобразуваме повтарящите се `warning` в `err`
+        $wQuery = $this->getQuery();
+        $time = dt::subtractSecs(log_Setup::get('WARNING_TO_ERR_PERIOD') + $period);
+        $wQuery->where("#createdOn >= '{$time}'");
+        $wQuery->where("#type = 'warning'");
+        $wQuery->orWhere("#type = 'err'");
+        $wQuery->orderBy('type', 'ASC');
+        $wQuery->orderBy('createdOn', 'DESC');
+        
+        $errArr = array();
+        $wArr = array();
+        while ($wRec = $wQuery->fetch()) {
+            $dHash = md5($wRec->detail);
+            
+            // Ако вече warning е променен на err - да не се променят другите подобни
+            if (isset($errArr[$dHash])) continue;
+            
+            if ($wRec->type == 'err') {
+                $errArr[$dHash] = TRUE;
+                
+                continue;
+            }
+            
+            if (!isset($wArr[$dHash])) {
+                $wArr[$dHash] = array();
+                $wArr[$dHash]['cnt'] = 1;
+                $wArr[$dHash]['rec'] = $wRec;
+            } else {
+                $wArr[$dHash]['cnt']++;
+                
+                // Ако сме достигнали лимита за предупреждения, тогава трябва да стане грешка
+                if ($wArr[$dHash]['cnt'] > log_Setup::get('WARNING_TO_ERR_CNT')) {
+                    $errArr[$dHash] = TRUE;
+                    $nRec = $wArr[$dHash]['rec'];
+                    $nRec->type = 'err';
+                    $this->save($nRec, 'type');
+                }
+            }
+        }
+        
         $from = dt::subtractSecs($period);
         
         $query = $this->getQuery();
@@ -336,32 +359,29 @@ class log_System extends core_Manager
         // Пътя до файла с грешки
         $errLogPath = get_cfg_var("error_log");
         
-        if (!$errLogPath) return;
+        if (!$errLogPath) return "Не е дефиниран 'error_log'";
         
-        if (!is_file($errLogPath)) return;
+        $resStr = 'Няма записи';
         
-        $content = file_get_contents($errLogPath);
+        $linesArr = core_Os::getLastLinesFromFile($errLogPath, self::$phpErrMaxLinesLimit, TRUE, $resStr);
         
-        if (!$content) return;
-        
-        $contentArr = explode("\n", $content);
-        $contentArr = array_reverse($contentArr);
+        if (empty($linesArr)) return $resStr;
         
         $i = 0;
         
         $arrSave = array();
         $hashArr = array();
         
-        foreach ($contentArr as $errStr) {
-            $errStr = trim($errStr);
-            if (!strlen($errStr)) continue;
+        foreach ($linesArr as $resStr) {
+            $resStr = trim($resStr);
+            if (!strlen($resStr)) continue;
             
-            // Максимумалния лимит, който може да се извлече
+            // Максимумалния лимит, който ще се записва при извикване
             // Да не претовари сървъра, когато се пуска за първи път или след дълго време
             if ($i >= self::$phpErrMaxLimit) break;
             
             // Парсираме и записваме грешката
-            $errArr = self::parsePhpErr($errStr);
+            $errArr = self::parsePhpErr($resStr);
             
             $nErrStr = $errArr['type'] . ': ' . $errArr['err'];
             
@@ -385,13 +405,19 @@ class log_System extends core_Manager
             $rec = new stdClass();
             $rec->className = get_called_class();
             $rec->detail = $nErrStr;
-            if ($errArr['time']) {
+            if (isset($errArr['time'])) {
                 $rec->createdOn = $errArr['time'];
             }
             $rec->type = $errType;
             
+            if ($rec->createdOn) {
+                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]' AND #createdOn = '[#4#]'", $rec->className, $rec->detail, $rec->type, $rec->createdOn));
+            } else {
+                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]'", $rec->className, $rec->detail, $rec->type));
+            }
+            
             // Ако сме достигнали до съществуващ запис спираме процеса
-            if (self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #createdOn = '[#3#]' AND #type = '[#4#]'", $rec->className, $rec->detail, $rec->createdOn, $rec->type))) break;
+            if ($oRec) break;
             
             // Да не се добавят стари записи, които ще се изтрият веднага по крон
             $before = dt::subtractSecs($lifeDays * 86400);
@@ -404,9 +430,15 @@ class log_System extends core_Manager
         
         // Първо да се записват най-старите записи, както са във файла
         $arrSave = array_reverse($arrSave);
+        
+        $cnt = 0;
         foreach ($arrSave as $rSave) {
-            self::save($rSave);
+            if (self::save($rSave)) $cnt++;
         }
+        
+        if ($cnt > 0) return 'Записани грешки - ' . $cnt;
+        
+        return 'Няма нови грешки';
     }
     
     
@@ -491,7 +523,10 @@ class log_System extends core_Manager
         if (strpos($errStr, '[') === 0) {
             $timeEdnPos = strpos($errStr, '] ');
             $resArr['time'] = substr($errStr, 1, $timeEdnPos-1);
-            $resArr['time'] = dt::verbal2mysql($resArr['time']);
+            $resArr['time'] = strtotime($resArr['time']);
+            if ($resArr['time']) {
+                $resArr['time'] = dt::timestamp2Mysql($resArr['time']);
+            }
         }
         
         $errEndPos = strpos($errStr, ': ');

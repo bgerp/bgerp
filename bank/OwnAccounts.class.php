@@ -19,141 +19,135 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, bank_OwnAccRegIntf';
+    public $interfaces = 'acc_RegisterIntf, bank_OwnAccRegIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, bank_Wrapper, acc_plg_Registry,
+    public $loadList = 'plg_Created, plg_RowTools2, bank_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    var $lastUsedKeys = 'bankAccountId';
+    public $lastUsedKeys = 'bankAccountId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
+    public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**
      * Кое поле отговаря на кой работи с дадена сметка
      */
-    var $inChargeField = 'operators';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    public $inChargeField = 'operators';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'bank, ceo';
+    public $canRead = 'bank, ceo';
     
     
     /**
      * Кой може да селектира?
      */
-    var $canSelect = 'ceo,bank';
+    public $canSelect = 'ceo,bank';
     
     
     /**
      * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
      */
-    var $coverMasterRoles = 'ceo, bankMaster';
+    public $coverMasterRoles = 'ceo, bankMaster';
     
     
     /**
      * Кой може да пише
      */
-    var $canCreatenewfolder = 'ceo, bank';
+    public $canCreatenewfolder = 'ceo, bank';
     
     
     /**
      * Кой може да пише
      */
-    var $canReject = 'ceo, bankMaster';
+    public $canReject = 'ceo, bankMaster';
     
     
     /**
      * Кой може да пише
      */
-    var $canRestore = 'ceo, bankMaster';
+    public $canRestore = 'ceo, bankMaster';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'bankMaster, ceo';
+    public $canWrite = 'bankMaster, ceo';
     
     
     /**
      * Кой може да селектира всички записи
      */
-    var $canSelectAll = 'ceo, bankMaster';
+    public $canSelectAll = 'ceo, bankMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'bank,ceo';
+    public $canList = 'bank,ceo';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'bank,ceo';
+    public $canSingle = 'bank,ceo';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Банкови сметки на фирмата';
+    public $title = 'Банкови сметки на фирмата';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Банкова сметка';
+    public $singleTitle = 'Банкова сметка';
     
     
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    var $canAddacclimits = 'ceo,bankMaster,accMaster';
+    public $canAddacclimits = 'ceo,bankMaster,accMaster';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
      * $autoList
      */
-    var $autoList = 'bankAcc';
+    public $autoList = 'bankAcc';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'bank/tpl/SingleLayoutOwnAccount.shtml';
+    public $singleLayoutFile = 'bank/tpl/SingleLayoutOwnAccount.shtml';
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/own-bank.png';
+    public $singleIcon = 'img/16/own-bank.png';
     
     
     /**
@@ -214,16 +208,17 @@ class bank_OwnAccounts extends core_Master {
         	if($mvc->haveRightFor('select', $rec)){
         		
         		$bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        		$rec->blAmount = 0;
         		
         		// Намираме всички записи от текущия баланс за това перо
-        		$balRec = acc_Balances::getLastBalance();
-        		$bQuery = acc_BalanceDetails::getQuery();
-        		acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $bankItem->id);
-        		 
-        		// Събираме ги да намерим крайното салдо на перото
-        		$rec->blAmount = NULL;
-        		while($bRec = $bQuery->fetch()){
-        			$rec->blAmount += $bRec->blAmount;
+        		if($balRec = acc_Balances::getLastBalance()){
+        			$bQuery = acc_BalanceDetails::getQuery();
+        			acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $bankItem->id);
+        			 
+        			// Събираме ги да намерим крайното салдо на перото
+        			while($bRec = $bQuery->fetch()){
+        				$rec->blAmount += $bRec->blAmount;
+        			}
         		}
         		
         		// Обръщаме го във четим за хората вид
@@ -260,7 +255,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * След рендиране на лист таблицата
      */
-    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         if(!count($data->rows)) return;
         
@@ -289,6 +284,7 @@ class bank_OwnAccounts extends core_Master {
     
     /**
      * Обработка по формата
+     * 
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param stdClass $data
@@ -304,11 +300,6 @@ class bank_OwnAccounts extends core_Master {
         if(Request::get('fromOurCompany', 'int')){
         	$form->rec->fromOurCompany = TRUE;
         }
-        
-    	$optionAccounts = $mvc->getPossibleBankAccounts();
-    	if(count($optionAccounts)){
-    		$form->setSuggestions('iban', array('' => '') + $optionAccounts);
-    	}
         
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
@@ -327,7 +318,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Пренасочва URL за връщане след запис към сингъл изгледа
      */
-    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
     	// Ако има форма, и тя е събмитната и действието е 'запис'
     	if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
@@ -340,40 +331,12 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Подготовка на списъка от банкови сметки, между които можем да избираме
-     * @return array $options - масив от потребители
-     */
-    function getPossibleBankAccounts()
-    {
-        $bankAccounts = cls::get('bank_Accounts');
-        
-        // Извличаме само онези сметки, които са на нашата фирма и не са
-        // записани в bank_OwnAccounts
-        $ourCompany        = crm_Companies::fetchOurCompany();
-        $queryBankAccounts = $bankAccounts->getQuery();
-        $queryBankAccounts->where("#contragentId = {$ourCompany->id}");
-        $queryBankAccounts->where("#contragentCls = {$ourCompany->classId}");
-        $options = array();
-        
-        while($rec = $queryBankAccounts->fetch()) {
-            if (!static::fetchField("#bankAccountId = " . $rec->id , 'id')) {
-            	
-            	$iban = $bankAccounts->getVerbal($rec, 'iban');
-                $options[$rec->iban] = $iban;
-            }
-        }
-        
-        return $options;
-    }
-    
-    
-    /**
      * Проверка дали може да се добавя банкова сметка в ownAccounts(Ако броя
      * на собствените сметки отговаря на броя на сметките на Моята компания в
      * bank_Accounts то не можем да добавяме нова сметка от този мениджър
      * @return boolean TRUE/FALSE - можем ли да добавяме нова сметка
      */
-    function canAddOwnAccount()
+    public function canAddOwnAccount()
     {
         $ourCompany = crm_Companies::fetchOurCompany();
         
@@ -404,8 +367,13 @@ class bank_OwnAccounts extends core_Master {
         } else {
             $ownAcc = static::fetch(static::getCurrent());
         }
+        expect($ownAcc);
         
+        if(!$ownAcc) return FALSE;
+
         $acc = bank_Accounts::fetch($ownAcc->bankAccountId);
+        $acc->currencyCode = currency_Currencies::getCodeById($acc->currencyId);
+        expect($acc, $ownAcc);
         
         if(!$acc->bank) {
             $acc->bank = bglocal_Banks::getBankName($acc->iban);
@@ -559,7 +527,8 @@ class bank_OwnAccounts extends core_Master {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
-       
+        $query->where("#state != 'rejected' && #state != 'closed'");
+        
         while($rec = $query->fetch()) {
         	if(isset($rec->bankAccountId)){
         		$account = bank_Accounts::fetch($rec->bankAccountId);

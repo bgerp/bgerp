@@ -26,7 +26,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
    /**
@@ -39,7 +39,7 @@ abstract class deals_ManifactureMaster extends core_Master
 		$mvc->FLD('deadline', 'datetime', 'caption=Срок до');
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Сторниран)',
+				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
 				'caption=Статус, input=none'
 		);
 	}
@@ -48,7 +48,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * След рендиране на сингъла
 	 */
-	public static function on_AfterRenderSingle($mvc, $tpl, $data)
+	protected static function on_AfterRenderSingle($mvc, $tpl, $data)
 	{
 		if(Mode::is('printing') || Mode::is('text', 'xhtml')){
 			$tpl->removeBlock('header');
@@ -59,21 +59,24 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * След преобразуване на записа в четим за хора вид
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-	    if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-	        $row->storeId = store_Stores::getHyperlink($rec->storeId);
+	    if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+	    	if(isset($rec->storeId)){
+	    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+	    	}
 	    }
 		
 		if($fields['-single']){
-			$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
-			if($storeLocation){
-				$row->storeLocation = crm_Locations::getAddress($storeLocation);
+			if(isset($rec->storeId)){
+				$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
+				if($storeLocation){
+					$row->storeLocation = crm_Locations::getAddress($storeLocation);
+				}
 			}
 		}
 		
 		if($fields['-list']){
-			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			$row->title = $mvc->getLink($rec->id, 0);
 		}
 	}
@@ -82,7 +85,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Преди показване на форма за добавяне/промяна
 	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$data->form->setDefault('valior', dt::now());
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
@@ -142,7 +145,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Добавя ключови думи за пълнотекстово търсене
 	 */
-	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
 	{
 		if($rec->id){
 			$detailsKeywords = '';
@@ -213,7 +216,7 @@ abstract class deals_ManifactureMaster extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'activate' && empty($rec->id)){
     		$requiredRoles = 'no_one';

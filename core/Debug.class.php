@@ -1,6 +1,9 @@
 <?php
 
-// Дали знака '@' преди функция да предизвиква подтискане на грешките в нея?
+
+/**
+ * Дали знака '@' преди функция да предизвиква подтискане на грешките в нея?
+ */
 defIfNot('CORE_ENABLE_SUPRESS_ERRORS', TRUE);
 
 // Кои грешки да се показват?
@@ -11,10 +14,16 @@ if(defined('BGERP_GIT_BRANCH') && (BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH
     defIfNot('CORE_ERROR_LOGGING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING);
 }
 
-// Кои грешки да се логват
+
+/**
+ * Кои грешки да се логват
+ */
 defIfNot('CORE_ERROR_LOGGING_LEVEL', CORE_ERROR_REPORTING_LEVEL);
 
-// Колко секунди да е валидно cookie за дебъг режим?
+
+/**
+ * Колко секунди да е валидно cookie за дебъг режим?
+ */
 defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
 
 
@@ -32,30 +41,61 @@ defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
  */
 class core_Debug
 {
-	static $startMicroTime;
-
-	static $lastMicroTime;
-
-    static $debugTime = array();
-
-    static $timers = array();
+    
+    
+    /**
+     * 
+     */
+	public static $startMicroTime;
+    
+	
+	/**
+	 * 
+	 */
+	public static $lastMicroTime;
+    
+	
+	/**
+	 * 
+	 */
+    public static $debugTime = array();
+    
+    
+    /**
+     * 
+     */
+    public static $timers = array();
+    
     
     /**
      * Дали дебъгера да записва
      * Това е един начин, да се изключат логовете на дебъгера
      */
-    static $isLogging = TRUE;
+    public static $isLogging = TRUE;
     
-
+    
     /**
      * Дали се рапортуват грешки на отдалечен компютър
      */
-    static $isErrorReporting = TRUE;
-
+    public static $isErrorReporting = TRUE;
+    
+    
     /**
      * Кеш - дали се намираме в DEBUG режим
      */
-    static $isDebug;
+    public static $isDebug;
+
+
+    /**
+     * При дъмп - колко нива преглеждаме
+     */
+    public static $dumpOpenLevels = 3;
+    
+    
+    /**
+     * При дъмп - колко нива са отворени
+     */
+    public static $dumpViewLevels = 5;
 
 
     /**
@@ -410,6 +450,7 @@ class core_Debug
             'bp:debug',
             'errorhandler:core_debug',
             'bp:',
+            'wp:',
             'trigger:core_error',
             'error:',
             'expect:'
@@ -432,7 +473,10 @@ class core_Debug
         return array($stack, $breakFile, $breakLine);
     }
 
-
+    
+    /**
+     * Рендира стека
+     */
     private static function renderStack($stack)
     {
         $result = '';
@@ -463,7 +507,7 @@ class core_Debug
         // Дъмп
         if(!empty($state['dump'])) {
             $data['tabNav'] .= ' <li><a href="#">Дъмп</a></li>';
-            $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Html::arrayToHtml($state['dump']) . '</div>';
+            $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Html::arrayToHtml($state['dump'], self::$dumpOpenLevels, self::$dumpViewLevels) . '</div>';
         }
 
         // Подготовка на стека
@@ -582,6 +626,46 @@ class core_Debug
      */
     public static function prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update = NULL)
     {
+        // Добавяме времето и паметта от настройките и от хита към контекста
+        if (is_array($contex)) {
+            $contex['MEMORY_LIMIT_VERBAL'] = ini_get('memory_limit');
+            $contex['MEMORY_LIMIT'] = core_Os::getBytesFromMemoryLimit($contex['MEMORY_LIMIT_VERBAL']);
+            
+            $realUsage = TRUE;
+            
+            $contex['PEAK_MEMORY_USAGE'] = memory_get_peak_usage($realUsage);
+            
+            if (is_numeric($contex['MEMORY_LIMIT'])) {
+                $contex['PEAK_MEMORY_USAGE_PERCENT'] = number_format(($contex['PEAK_MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100, 2) . '%';
+            }
+            
+            $contex['MEMORY_USAGE'] = memory_get_usage($realUsage);
+            if (is_numeric($contex['MEMORY_LIMIT'])) {
+                $contex['MEMORY_USAGE_PERCENT'] = number_format(($contex['MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100, 2) . '%';
+            }
+            
+            $contex['MAX_EXECUTION_TIME'] = ini_get('max_execution_time');
+            
+            if (self::$startMicroTime) {
+                $contex['DEBUG_LAST_TIMER'] = core_Datetime::getMicrotime() - self::$startMicroTime;
+                if ($contex['MAX_EXECUTION_TIME']) {
+                    $contex['EXECUTION_TIME_PERCENT'] = number_format(($contex['DEBUG_LAST_TIMER'] / $contex['MAX_EXECUTION_TIME']) * 100, 2) . '%';
+                }
+            }
+            
+            $contex['OS_INFO'] = php_uname();
+            $contex['PHP_VERSION'] = phpversion();
+            
+            try {
+                $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
+            } catch (Exception $e) {
+                // Не се прави нищо
+            }
+            
+            $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
+            $contex['BGERP_LAST_STABLE_VERSION'] = '16.11';
+        }
+        
         $state = array( 'errType'   => $errType, 
                         'errTitle'  => $errTitle, 
                         'errDetail' => $errDetail, 
@@ -593,8 +677,7 @@ class core_Debug
                         'update'    => $update,
                         
             );
-
-
+        
         // Изваждаме от титлата httpStatusCode, ако е наличен
         if($state['httpStatusCode'] = (int) $errTitle) {
             $pos = strpos($errTitle, $state['httpStatusCode']);

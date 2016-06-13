@@ -1,6 +1,8 @@
 <?php
 
 
+defIfNot('IBAN_CODE_VERSION', '1.4.7');
+
 /**
  * Клас 'iban_Setup'
  *
@@ -35,6 +37,14 @@ class iban_Setup extends core_ProtoSetup
 	 * Пакет без инсталация
 	 */
 	public $noInstall = TRUE;
-	
+
+
+	/**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+	         
+	        'IBAN_CODE_VERSION' => array ('enum(1.1.2, 1.4.7, 2.5.6)', 'caption=Версия на IBAN модула->Версия'),
+	);
 }
 

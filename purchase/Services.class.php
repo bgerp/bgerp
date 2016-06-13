@@ -14,6 +14,8 @@
  */
 class purchase_Services extends deals_ServiceMaster
 {
+	
+	
     /**
      * Заглавие
      */
@@ -29,16 +31,25 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealIntf,acc_TransactionSourceIntf=purchase_transaction_Service';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealIntf,acc_TransactionSourceIntf=purchase_transaction_Service';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,plg_Search';
+					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,plg_Search, doc_SharablePlg';
 
+    
+    /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, purchase';
+    
     
     /**
      * Кой има право да чете?
@@ -79,7 +90,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior,title=Документ, folderId, amountDelivered, createdOn, createdBy';
+    public $listFields = 'valior,title=Документ, folderId, amountDelivered, createdOn, createdBy';
 
 
     /**
@@ -182,16 +193,16 @@ class purchase_Services extends deals_ServiceMaster
     protected function setTemplates(&$res)
     {
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги', 
-    					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
+    					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги с цени', 
-    					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
+    					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	$tplArr[] = array('name' => 'Acceptance protocol',
-		    			'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrowEN.shtml',
 		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Acceptance protocol with prices',
-		    			'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrowEN.shtml',
 		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	 
         $res .= doc_TplManager::addOnce($this, $tplArr);

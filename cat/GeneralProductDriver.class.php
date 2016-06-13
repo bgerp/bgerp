@@ -15,12 +15,6 @@
 class cat_GeneralProductDriver extends cat_ProductDriver
 {
 	
-
-	/**
-	 * Дефолт мета данни за всички продукти
-	 */
-	protected $defaultMetaData = 'canSell,canBuy';
-	
 	
 	/**
 	 * Добавя полетата на драйвера към Fieldset
@@ -29,13 +23,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		// Добавя полетата само ако ги няма във формата
-		if(!$fieldset->getField('info', FALSE)){
-			$fieldset->FLD('info', 'richtext(rows=4, bucket=Notes)', "caption=Описание,mandatory");
-		} else {
-			$fieldset->setField('info', 'input');
-		}
-		
 		if(!$fieldset->getField('photo', FALSE)){
 			$fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение");
 		} else {
@@ -64,10 +51,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			$form->setField('photo', 'input=none');
-			$form->setField('info', 'input=none');
-			$measureName = $Driver->getDefaultUom();
-			$form->setDefault('measureId', cat_UoM::fetchBySinonim($measureName)->id);
 			$form->setField('measureId', 'display=hidden');
+			
+			if($Embedder instanceof marketing_Inquiries2){
+				$form->setField('inqDescription', 'mandatory');
+			}
 		}
 		
 		// Само при добавянето на нов артикул
@@ -302,42 +290,5 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		return $tpl;
-	}
-	
-	
-	/**
-	 * Добавя ключови думи за пълнотекстово търсене
-	 * 
-	 * @param cat_ProductDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $res
-	 * @param stdClass $rec
-	 */
-	public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
-	{
-		$RichText = cls::get('type_Richtext');
-		$info = strip_tags($RichText->toVerbal($rec->info));
-		$res .= " " . plg_Search::normalizeText($info);
-	}
-	
-	
-	/**
-	 * Връща дефолтната основна мярка, специфична за технолога
-	 *
-	 * @param int $measureId - мярка
-	 * @return int - ид на мярката
-	 */
-	public function getDefaultUom($measureName = NULL)
-	{
-		if(!isset($measureName)){
-			$defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
-			$defMeasure = (!empty($defMeasure)) ? $defMeasure : NULL;
-			$measureName = cat_UoM::getShortName($defMeasure);
-			
-			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
-			return $measureName;
-		}
-	
-		return $measureName;
 	}
 }

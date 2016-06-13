@@ -11,7 +11,7 @@
                             <span class="bigData">[#createdDate#]</span>
                         </div>
                         <!--ET_BEGIN stateText-->
-                        <div class="[#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
+                        <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                         <!--ET_END stateText-->
                         <!--ET_BEGIN originLink-->
                         <div>|към|* [#originLink#]</div>

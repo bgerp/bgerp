@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -23,7 +23,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public static function on_AfterDescription(&$mvc)
     {
         if(!$mvc->fields['folderId']) {
             
@@ -161,10 +161,10 @@ class doc_FolderPlg extends core_Plugin
             }
         } else {
         	if ($mvc->haveRightFor('createnewfolder', $data->rec)) {
-        		$title = $mvc->getFolderTitle($data->rec->id);
+        		$title = $mvc->getFolderTitle($data->rec->id, FALSE);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
-        		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
+        		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$title}"));
         	}
         }
     }
@@ -199,7 +199,7 @@ class doc_FolderPlg extends core_Plugin
                 $attr = array();
                 $attr['class'] = 'linkWithIcon';
 		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-		        $attr['title'] = tr('Екшън лог на потребителя');
+		        $attr['title'] = 'Екшън лог на потребителя';
                 
                 $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
                 
@@ -379,7 +379,33 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-        if($action != 'createfolder' || $mvc->className == 'doc_Folders') return;
+    	// Екшън за форсиране на документ в папка на корица
+    	if($action == 'forcedocumentinfolder'){
+    		
+    		expect($id = Request::get('id', 'int'));
+    		expect($documentClassId = Request::get('documentClassId', 'class(interface=doc_DocumentIntf)'));
+    		
+    		// Форсираме папката на корицата
+    		$folderId = $mvc->forceCoverAndFolder($id);
+    		
+    		// Въпросния документ трябва да може да бъде създаден в папката
+    		$Document = cls::get($documentClassId);
+    		expect($Document->haveRightFor('add', (object)array('folderId' => $folderId)));
+    		
+    		// Редирект към екшъна за добавяне на документа
+    		$url = array($Document, 'add', 'folderId' => $folderId);
+    		if($retUrl = getRetUrl()){
+    			$url['ret_url'] = $retUrl;
+    		}
+    		
+    		// Редирект
+    		$res = new Redirect($url);
+    		
+    		// Спираме изпълнението на други плъгини
+    		return FALSE;
+    	}
+    	
+    	if($action != 'createfolder' || $mvc->className == 'doc_Folders') return;
         
         // Входни параметри и проверка за права
         expect($id = Request::get('id', 'int'));
@@ -498,7 +524,64 @@ class doc_FolderPlg extends core_Plugin
             if ($mvc->autoCreateFolder == 'instant') {
                 $mvc->forceCoverAndFolder($rec);
             }
-        }   
+        }
+        
+        // При променя на споделените потребители прави или чисти нотификацията
+        if (isset($rec->__mustNotify)) {
+            $sArr = type_Keylist::getDiffArr($rec->__oShared, $rec->shared);
+            
+            $currUserNick = core_Users::getCurrent('nick');
+            $currUserNick = type_Nick::normalize($currUserNick);
+            
+            $folderTitle = $mvc->getFolderTitle($rec->id);
+            
+            $notifyArr = array();
+            if (!empty($sArr['add'])) {
+                $notifyArr = $sArr['add'];
+            }
+            
+            $delNotifyArr = array();
+            if (!empty($sArr['delete'])) {
+                $delNotifyArr = $sArr['delete'];
+            }
+            
+            if ($notifyArr) {
+                foreach ($notifyArr as $notifyUserId) {
+            
+                    if (!$notifyUserId) continue;
+            
+                    $url = array();
+                    $msg = '';
+            
+                    if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
+                         
+                        if(doc_Folders::haveRightFor('single', $rec->folderId, $notifyUserId)){
+                            $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+                        }
+            
+                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
+                    }
+            
+                    if (empty($url)) {
+                        if (($mvc instanceof core_Master) && $mvc->haveRightFor('single', $rec, $notifyUserId)) {
+                            $url = array($mvc, 'single', $rec->id);
+                            $msg = $currUserNick . ' |сподели|* "|' . $mvc->singleTitle . '|*"';
+                        } else {
+                            $url = array($mvc, 'list');
+                            $msg = $currUserNick . ' |сподели|* "|' . $mvc->title . '|*"';
+                        }
+                    }
+            
+                    bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
+                }
+            } else if ($delNotifyArr) {
+                foreach ($delNotifyArr as $clearUser) {
+                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'list'), 'yes', $clearUser);
+                }
+            }
+        }
     }
     
     
@@ -525,7 +608,7 @@ class doc_FolderPlg extends core_Plugin
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if($fField = $mvc->listFieldForFolderLink) {
             $folderTitle = $mvc->getFolderTitle($rec->id);
-            if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
+            if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {   
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
@@ -538,12 +621,36 @@ class doc_FolderPlg extends core_Plugin
             	if($mvc->hasPlugin('plg_RowTools2')){
             		if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
             			core_RowToolbar::createIfNotExists($row->_rowTools);
-            			$row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадетe папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
+            			$row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадетe папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
             		}
             	}
             }
         }
 
+        // В лист изгледа
+        if($fields['-list']) {
+        
+        	// Имали бързи бутони
+        	if($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)){
+        		$managersIds = doc_Threads::getFastButtons($mvc, $rec->id);
+        		if(count($managersIds)){
+        		
+        			// За всеки документ който може да се създаде от бърз бутон
+        			foreach ($managersIds as $classId){
+        				$Cls = cls::get($classId);
+        				
+        				if($Cls->haveRightFor('add', (object)array('folderId' => $mvc->forceCoverAndFolder($rec->id, FALSE)))){
+        					$btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
+        					$url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $classId, 'ret_url' => TRUE);
+        		
+        					// Добавяме го в rowToolbar-а
+        					core_RowToolbar::createIfNotExists($row->_rowTools);
+        					$row->_rowTools->addLink($btnTitle, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        				}
+        			}
+        		}
+        	}
+        }
     }
     
     
@@ -591,8 +698,13 @@ class doc_FolderPlg extends core_Plugin
                 $conditions[] = "#folderAccess = 'private'";
             }
         }
-        
-        if ($teammates) {
+
+        if(core_Users::haveRole('ceo')) {
+            
+            // ceo има достъп до всички team папки, дори, когато са на друг ceo, който не е от неговия екип
+            $conditions[] = "#folderAccess = 'team'";
+        } elseif ($teammates) {
+
             // Всеки има достъп до екипните папки, за които отговаря негов съекипник
             $conditions[] = "#folderAccess = 'team' AND #folderInCharge IN ({$teammates})";
         }
@@ -723,41 +835,10 @@ class doc_FolderPlg extends core_Plugin
         
         if ($form->isSubmitted()) {
             
-            // При променя на споделените потребители прави или чисти нотификацията
             if ($rec->id) {
                 $oRec = $mvc->fetch($form->rec->id);
-                
-                $sArr = type_Keylist::getDiffArr($oRec->shared, $rec->shared);
-                
-                $currUserNick = core_Users::getCurrent('nick');
-                $currUserNick = type_Nick::normalize($currUserNick);
-                
-        		if(doc_Folders::haveRightToObject($rec) && ($mvc instanceof core_Master)) {
-        			$url = array($mvc, 'single', $rec->id);
-        		} else {
-        			$url = array($mvc, 'list');
-        		}
-                
-        		$folderTitle = $mvc->getFolderTitle($rec->id);
-        		
-        		$notifyArr = $sArr['add'];
-        		$delNotifyArr = $sArr['delete'];
-        		
-        		if ($rec->inCharge != $oRec->inCharge) {
-        		    $notifyArr[$rec->inCharge] = $rec->inCharge;
-        		    $delNotifyArr[$oRec->inCharge] = $oRec->inCharge;
-        		}
-        		
-                if ($notifyArr) {
-                    foreach ($notifyArr as $notifyUserId) {
-                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
-                        bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
-                    }
-                } else if ($delNotifyArr) {
-                    foreach ($delNotifyArr as $clearUser) {
-                        bgerp_Notifications::setHidden($url, 'yes', $clearUser);
-                    }
-                }
+                $rec->__mustNotify = TRUE;
+                $rec->__oShared = $oRec->shared;
             }
         }
     }
@@ -815,7 +896,7 @@ class doc_FolderPlg extends core_Plugin
      * @param core_Mvc $mvc
      * @param core_Query $query
      */
-    static function on_AfterPrepareExportQuery($mvc, $query)
+    public static function on_AfterPrepareExportQuery($mvc, $query)
     {
         if (!Request::get('Rejected')) {
             $query->where("#state != 'rejected'");

@@ -50,13 +50,13 @@ class cat_Categories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected, plg_Modified';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,meta=Свойства,useAsProto=Прототипи';
+    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи';
     
     
     /**
@@ -75,12 +75,6 @@ class cat_Categories extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
     
     
     /**
@@ -182,12 +176,12 @@ class cat_Categories extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
-        $this->FLD('prefix', 'varchar(64)', 'caption=Представка');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
         $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като прототипи->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
+        $this->FLD('prefix', 'varchar(64)', 'caption=Настройки - препоръчителни за артикулите в категорията->Начало код');
         $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Маркери,columns=2');
         $this->FLD('params', 'keylist(mvc=cat_Params,select=name,makeLinks)', 'caption=Настройки - препоръчителни за артикулите в категорията->Параметри');
         
@@ -361,15 +355,18 @@ class cat_Categories extends core_Master
     /**
      * Връща възможните за избор прототипни артикули с дадения драйвер
      * 
-     * @param int $driverId - ид на продуктов драйвер
+     * @param int|NULL $driverId - Ид на продуктов драйвер
+     * @param string|NULL $meta  - Мета свойства на артикулите
+     * @param int|NULL $limit - Ограничаване на резултатите
      * @return array $opt - прототипните артикули
      */
-    public static function getProtoOptions($driverId)
+    public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL)
     {
     	$opt = $cArr = array();
     	
     	// В кои категории може да има прототипни артикули
     	$cQuery = self::getQuery();
+    	$cQuery->show('folderId');
     	while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
     		$cArr[] = $cRec->folderId;
     	}
@@ -380,7 +377,20 @@ class cat_Categories extends core_Master
     		$Products = cls::get('cat_Products');
     		
     		$query = cat_Products::getQuery();
-    		while($pRec = $query->fetch("#{$Products->driverClassField} = {$driverId} AND #state = 'active' AND #folderId IN ({$catList})")) {
+    		if($driverId){
+    			$query->where("#{$Products->driverClassField} = {$driverId}");
+    		}
+    		
+    		$query->where("#state = 'active' AND #folderId IN ({$catList})");
+    		if($limit){
+    			$query->limit($limit);
+    		}
+    		
+    		if(isset($meta)){
+    			$query->where("#{$meta} = 'yes'");
+    		}
+    		
+    		while($pRec = $query->fetch()) {
     			$opt[$pRec->id] = cat_Products::getTitleById($pRec->id, FALSE);
     		}
     	}

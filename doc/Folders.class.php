@@ -173,8 +173,8 @@ class doc_Folders extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
      	// Добавяме поле във формата за търсене
-		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,refreshForm');
-		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,refreshForm');
+		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
+		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,autoFilter');
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		// Показваме само това поле. Иначе и другите полета
@@ -315,6 +315,11 @@ class doc_Folders extends core_Master
                 // Да сочи към коша
                 $link['Rejected'] = 1;
             }
+            
+            if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+            	$link = array();
+            }
+            
             $row->title = ht::createLink($row->title, $link, NULL, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
@@ -661,7 +666,7 @@ class doc_Folders extends core_Master
      *
      * @param core_Query $query
      * @param int $userId key(mvc=core_Users)
-     * @param boolean $fullAccess - Възможно най - много права за папката
+     * @param boolean $viewAccess - Възможно най - много права за папката
      */
     static function restrictAccess_(&$query, $userId = NULL, $viewAccess = TRUE)
     {
@@ -1268,9 +1273,10 @@ class doc_Folders extends core_Master
      * Връща опции за избор на папки, чиито корици имат определен интерфейс
      *
      * @param string $interface - име на интерфейс
+     * @param array $ignoreFolders - масив с ид-та на папки за игнориране
      * @return array $options - масив с опции
      */
-    public static function getOptionsByCoverInterface($interface)
+    public static function getOptionsByCoverInterface($interface, $ignoreFolders = array())
     {
     	$options = array();
     
@@ -1279,9 +1285,15 @@ class doc_Folders extends core_Master
     	$contragents = array_keys($contragents);
     	$query->in('coverClass', $contragents);
     	$query->where("#state != 'rejected'");
+    	doc_Folders::restrictAccess($query);
+    	
+    	if($ignoreFolders){
+    		$query->notIn('id', $ignoreFolders);
+    	}
+    	
     	$query->show('title');
     	while($rec = $query->fetch()){
-    		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
+    		$options[$rec->id] = doc_Folders::getTitleById($rec->id, FALSE);
     	}
     
     	return $options;

@@ -13,7 +13,7 @@
  * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -25,7 +25,7 @@ class plg_Search extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public static function on_AfterDescription(&$mvc)
     {
         // Добавя поле за ключовите думи към обекта
         if (!isset($mvc->fields['searchKeywords'])) {
@@ -43,7 +43,7 @@ class plg_Search extends core_Plugin
      * Извиква се преди запис в MVC класа. Генерира ключовите
      * думи за записа, които се допълват в полето searchKeywords
      */
-    function on_BeforeSave($mvc, $id, $rec, &$fields=NULL)
+    public static function on_BeforeSave($mvc, $id, $rec, &$fields=NULL)
     {
         if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords')) {
             if ($fields !== NULL) {
@@ -57,9 +57,9 @@ class plg_Search extends core_Plugin
     
     
     /**
-     * @todo Чака за документация...
+     * След подготовка на ключовите думи
      */
-    static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         if ($searchKeywords) return;
         
@@ -68,9 +68,9 @@ class plg_Search extends core_Plugin
     
     
     /**
-     * @todo Чака за документация...
+     * Намира ключови думи
      */
-    static function getKeywords($mvc, $rec)
+    public static function getKeywords($mvc, $rec)
     {
         $searchKeywords = '';
         $searchFields = $mvc->getSearchFields();
@@ -123,12 +123,12 @@ class plg_Search extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC($mvc->searchInputField, 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
-    	$data->listFilter->input(null, 'silent');
+    	$data->listFilter->input(NULL, 'silent');
         
         $filterRec = $data->listFilter->rec;
         if ($filterRec->{$mvc->searchInputField}) {
@@ -142,7 +142,14 @@ class plg_Search extends core_Plugin
     }
        
     
-    static function applySearch($search, $query, $field = 'searchKeywords')
+    /**
+     * Прилага търсене по ключови думи
+     * 
+     * @param string $search
+     * @param core_Query $query
+     * @param string $field
+     */
+    public static function applySearch($search, $query, $field = 'searchKeywords')
     {
         if ($words = static::parseQuery($search)) {
             foreach($words as $w) {
@@ -199,7 +206,7 @@ class plg_Search extends core_Plugin
      * @param string $str
      * @return string
      */
-    static function normalizeText($str)
+    public static function normalizeText($str)
     {
         $conf = core_Packs::getConfig('core');
         
@@ -223,7 +230,7 @@ class plg_Search extends core_Plugin
     /**
      * Парсира заявка за търсене на отделни думи и фрази
      */
-    static function parseQuery($str, $latin = TRUE)
+    public static function parseQuery($str, $latin = TRUE)
     {
         $str = trim($str);
         
@@ -284,7 +291,7 @@ class plg_Search extends core_Plugin
     /**
      * Maркира текста, отговарящ на заявката
      */
-    static function highlight($text, $query, $class = 'document')
+    public static function highlight($text, $query, $class = 'document')
     {   
         $qArr = self::parseQuery($query, FALSE);
       
@@ -303,7 +310,7 @@ class plg_Search extends core_Plugin
     /**
      * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         $i = 0;
     	if(!$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
@@ -340,7 +347,7 @@ class plg_Search extends core_Plugin
      * @param core_Mvc $mvc
      * @param array $searchFieldsArr
      */   
-    function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
+    public static function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
     {
         $searchFieldsArr = arr::make($mvc->searchFields);
     }

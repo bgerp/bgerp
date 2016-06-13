@@ -299,7 +299,7 @@ class fileman_webdrv_Generic extends core_Manager
                     // TODO
                     
                     // Добавяме стринг
-                    $barcodeStr .= "Тип: {$barcodeObj->type}\nБаркод: {$barcodeObj->code}\n\n";
+                    $barcodeStr .= "Тип: {$barcodeObj->type}\nБаркод: <span onmouseUp='selectInnerText(this);'>{$barcodeObj->code}</span>\n\n";
                 }
             }
         }
@@ -358,39 +358,19 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Записите за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
-    
-        // Текста пред линковете
-        $linkText = tr("Линк|*: ");
         
-        // URL' то за генериране на линкове
-        $linkUrl = array('fileman_Download', 'GenerateLink', 'fh' => $fileHnd, 'ret_url' => array('fileman_Files', 'single', $fileHnd, 'currentTab' => 'info', '#' => 'fileDetail'));
-        
-        // Ако има активен линк за сваляне
-        if (($dRec = fileman_Download::fetch("#fileId = {$fRec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
+        // Линк за сваляне
+        $link = bgerp_F::getLink($fileHnd, $expireOn);
+        $linkText = '';
+        if ($link) {
+            $linkText = tr("Линк|*: ");
             
-            // Линк за сваляне
-            $link = fileman_Download::getSbfDownloadUrl($dRec, TRUE);
-
-            // До кога е активен линка
-            $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
+            $expireOn = dt::mysql2verbal($expireOn, 'smartTime');
             
-            // Датата, когато изтича да е линк, към генериране на линкове
-            $expireOnLink = ht::createLink($expireOn, $linkUrl);
+            $linkText .= tr("|*<span onmouseUp='selectInnerText(this);'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
             
-            // Линка, който ще се показва
-            $linkText .= tr("|*<span onmouseUp='selectInnerText(this);'>{$link}</span> <small>(|Изтича|*: {$expireOnLink})</small>");
-            
-        } else {
-            
-            // Създаваме линк, за генерира на линкове
-            $link = ht::createLink('[' . tr('Вземи') . ']', $linkUrl);
-            
-            // Добавяме към текста на линка
-            $linkText .= $link;
+            $linkText .= "\n";
         }
-        
-        // Добавяме към съдържанието
-        $linkText .= "\n";
         
         try {
 		    
@@ -400,11 +380,18 @@ class fileman_webdrv_Generic extends core_Manager
 	        // Няма да се показват документите
 		}
 		
+		$dangerRate = '';
+		if (fileman_Files::isDanger($fRec)) {
+		    $dangerRate = fileman_Files::getVerbal($fRec, 'dangerRate');
+		    $dangerRate = '<span class = "dangerFile">' . tr("Ниво на опасност|*: ") . $dangerRate . "</span>\n";
+		}
+		
 		// Ако сме намерили някой файлове, където се използва
+		$containsIn = '';
         if ($documentWithFile) {
             
             // Добавяме към съдържанието на инфото
-            $containsIn = tr("Съдържа се в|*: ") . $documentWithFile . "\n";    
+            $containsIn = tr("Съдържа се в|*: ") . $documentWithFile . "\n";
         }
         
         // Типа на файла
@@ -412,6 +399,8 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вербалния размер на файла
         $size = fileman_Data::getFileSize($fRec->dataId);
+        
+        $sizeText = '';
         
         // Ако има размер
         if ($size) {
@@ -431,7 +420,7 @@ class fileman_webdrv_Generic extends core_Manager
         $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}") . "\n";
         
         // Добавяме в текста
-        $content = $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
+        $content = $dangerRate . $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
         
         // Инстанция на класа
         $pageInst = cls::get(Mode::get('wrapper'));

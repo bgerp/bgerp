@@ -35,7 +35,7 @@ class pixlr_Plugin extends core_Plugin
                      
                     // Добавяме бутона
                     $data->toolbar->addBtn('Pixlr', $url, 
-                    	"id='btn-pixlr',ef_icon=pixlr/img/pixlr.png", 
+                    	"id='btn-pixlr', checkPrivateHost, ef_icon=pixlr/img/pixlr.png", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }

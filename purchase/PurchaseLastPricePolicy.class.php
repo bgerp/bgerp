@@ -16,8 +16,10 @@
 * @since     v 0.1
 * @title     Политика "По последна покупна цена"
 */
-class purchase_PurchaseLastPricePolicy extends core_Manager
+class purchase_PurchaseLastPricePolicy extends core_Mvc
 {
+    
+    
     /**
      * Заглавие
      */
@@ -35,7 +37,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
        if(!$date){
        	   $date = dt::today();

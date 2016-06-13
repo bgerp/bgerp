@@ -9,19 +9,14 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class cond_PaymentMethods extends core_Master
 {
     
-    /**
-     * Старо име на класа
-     */
-	var $oldClassName = 'salecond_PaymentMethods';
-	
-	
+    
     /**
      * Плъгини за зареждане
      */
@@ -31,7 +26,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, description, state';
+    var $listFields = 'id, title, state';
     
     
     /**
@@ -91,7 +86,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    var $rowToolsSingleField = 'title';
     
     
     /**
@@ -102,11 +97,8 @@ class cond_PaymentMethods extends core_Master
         // Съкратено име на плащането
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
 
-        // Съкратено име на плащането
-        $this->FLD('name', 'varchar(32)', 'caption=Име,  mandatory');
-
         // Текстово описание
-        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory, translate');
+        $this->FLD('title', 'varchar', 'caption=Описание, mandatory, translate,oldFieldName=description');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
@@ -121,14 +113,14 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
         $this->setDbUnique('sysId');
-        $this->setDbUnique('name');
+        $this->setDbUnique('title');
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
 	    	
@@ -153,10 +145,10 @@ class cond_PaymentMethods extends core_Master
     	// Ако няма избран метод се приема, че е COD
     	if(!$payment) return TRUE;
     	
-    	$where = (is_numeric($payment)) ? $payment : "#name = '{$payment}'";
-    	expect($name = static::fetchField($where, 'name'));
+    	$where = (is_numeric($payment)) ? $payment : "#sysId = '{$payment}'";
+    	$sysId = static::fetchField($where, 'sysId');
     	
-    	return ($name == 'Cash on Delivery');
+    	return ($sysId == 'COD');
     }
     
     
@@ -192,11 +184,17 @@ class cond_PaymentMethods extends core_Master
 
         $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipping - $rec->downpayment;
         $paymentAfterInvoice = round($paymentAfterInvoice * $amount, 4);
-        
         $res['timeBalancePayment'] = $rec->timeBalancePayment;
+        
         if($paymentAfterInvoice > 0) {
             $res['paymentAfterInvoice']       = $paymentAfterInvoice;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeBalancePayment, $invoiceDate);
+            $res['deadlineForBalancePayment'] = dt::verbal2mysql($res['deadlineForBalancePayment'], FALSE);
+        }
+        
+        // Ако плащането е на момента, крайната дата за плащане е подадената дата
+        if($rec->sysId == 'COD'){
+        	$res['deadlineForBalancePayment'] = dt::verbal2mysql($invoiceDate, FALSE);
         }
         
         return $res;
@@ -230,23 +228,23 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Дали документа е просрочен
+     * Дали платежния план е просрочен
+     * 
      * @param array $payment - платежния план (@see static::getPaymentPlan)
      * @param double $restAmount - оставаща сума за плащане
-     * @param datetime $today - дата
      * @return boolean
      */
-    public static function isOverdue($payment, $restAmount, $today = NULL)
+    public static function isOverdue($payment, $restAmount)
     {
     	expect(is_array($payment) && isset($restAmount));
-    	if(!$today){
-    		$today = dt::verbal2mysql();
-    	}
-    	
+    	$today = dt::today();
     	$restAmount = round($restAmount, 4);
     	
     	// Ако остатъка за плащане е 0 или по-малко
     	if($restAmount <= 0) return FALSE;
+    	
+    	// Ако няма крайна дата на плащане, не е просрочена
+    	if(!$payment['deadlineForBalancePayment']) return FALSE;
     	
     	// Ако текущата дата след крайния срок за плащане, документа е просрочен
     	return ($today > $payment['deadlineForBalancePayment']);
@@ -272,9 +270,9 @@ class cond_PaymentMethods extends core_Master
     /**
      * Сортиране по name
      */
-    static function on_BeforePrepareListFilter($mvc, &$res, $data)
+    protected static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('#name');
+        $data->query->orderBy('#title');
     }
     
     
@@ -286,12 +284,11 @@ class cond_PaymentMethods extends core_Master
     	$file = "cond/csv/PaymentMethods.csv";
     	$fields = array(
             0 => 'sysId',
-	    	1 => 'name', 
-	    	2 => 'description',
-            3 => 'downpayment',
-            4 => 'paymentBeforeShipping',
-            5 => 'paymentOnDelivery',
-            6 => 'timeBalancePayment');
+	    	1 => 'title',
+            2 => 'downpayment',
+            3 => 'paymentBeforeShipping',
+            4 => 'paymentOnDelivery',
+            5 => 'timeBalancePayment');
             
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;

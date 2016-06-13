@@ -165,10 +165,9 @@ class acc_ReportDetails extends core_Manager
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
         
-        $attr = array();
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
-        $attr['title'] = tr("Хронологична справка");
+		// Може ли потребителя да вижда хронологията на сметката
+        $attr = array('title' => "Хронологична справка");
+        $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
         
         if(is_array($data->recs)) {
             foreach ($data->recs as $dRec){
@@ -270,7 +269,7 @@ class acc_ReportDetails extends core_Manager
     	if(isset($data->balanceRec->periodId)){
     		$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    			$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => tr("Обротна ведомост за|* \"{$link}\"")));
+    			$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => "Оборотна ведомост за|* \"{$link}\""));
     		}
     		 
     		$tpl->replace($link, 'periodId');
@@ -337,7 +336,7 @@ class acc_ReportDetails extends core_Manager
                
                 // Ако има записи показваме таблицата
                 if(count($rows)){
-                	
+                	$fields = core_TableView::filterEmptyColumns($rows, $fields, 'tools');
                 	$tableHtml = $table->get($rows, $fields);
                 	
                 	if($data->canSeePrices !== FALSE){

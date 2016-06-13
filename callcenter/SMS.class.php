@@ -78,7 +78,7 @@ class callcenter_SMS extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter, callcenter_ListOperationsPlg, plg_Modified';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows, callcenter_ListOperationsPlg, plg_Modified';
     
     
     /**
@@ -422,15 +422,16 @@ class callcenter_SMS extends core_Master
         // Сменяме статуса и времето на получаване
         $rec->status = $status;
         
+        $rec->receivedTime = NULL;
+        if (isset($receivedTimestamp)) {
+            $rec->receivedTime = dt::timestamp2Mysql($receivedTimestamp);
+        }
+        
         // Ако няма време на получаване или е подадено време преди създаването му
-        if (!$receivedTimestamp || ($rec->createdOn > $receivedTimestamp)) {
+        if (!isset($rec->receivedTime) || ($rec->createdOn > $rec->receivedTime)) {
             
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
-        } else {
-            
-            // Преобразуваме времето
-            $rec->receivedTime = dt::timestamp2Mysql($receivedTimestamp);
         }
         
         // Ъпдейтваме записите
@@ -543,6 +544,7 @@ class callcenter_SMS extends core_Master
                     
                     // Преобразуваме в ASCII
                     $rec->text = str::utf2ascii($rec->text);
+                    $rec->sender = str::utf2ascii($rec->sender);
                 }
                 
                 // Ако е зададен ascii
@@ -550,6 +552,7 @@ class callcenter_SMS extends core_Master
                     
                     // Преобразуваме в ASCII
                     $rec->text = str::utf2ascii($rec->text);
+                    $rec->sender = str::utf2ascii($rec->sender);
                 }
                 
                 // Ако е зададен максималната дължина
@@ -594,9 +597,11 @@ class callcenter_SMS extends core_Master
             // Изпращаме SMS-a
             $sendedId = self::send($rec->mobileNum, $rec->text, $rec->sender, $rec->service, $rec->encoding);
             
+            self::logWrite('Изпратено съобщение', $sendedId);
+            
             $msg = self::getServiceStatus($sendedId);
             
-            return new Redirect($retUrl, '|' . $msg);
+            return new Redirect($retUrl, $msg);
         }
         
         // Добавяме бутоните на формата
@@ -731,7 +736,7 @@ class callcenter_SMS extends core_Master
         $personsAttr = array();
         
         // Аттрибути за стилове 
-        $companiesAttr['title'] = tr('Нова фирма');
+        $companiesAttr['title'] = 'Нова фирма';
         
         // Икона на фирмите
         $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
@@ -740,7 +745,7 @@ class callcenter_SMS extends core_Master
         $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
         
         // Аттрибути за стилове 
-        $personsAttr['title'] = tr('Ново лице');
+        $personsAttr['title'] = 'Ново лице';
         
         // Икона на изображенията
         $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
@@ -775,7 +780,7 @@ class callcenter_SMS extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {    
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
         
         // Поле за търсене по номера
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');

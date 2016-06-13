@@ -125,6 +125,8 @@ class fileman_Files extends core_Master
         
         $this->FLD("fileLen", "fileman_FileSize", 'caption=Размер');
         
+        $this->FLD("dangerRate", "percent(decimals=0)", 'caption=Риск от опасност');
+        
         // Индекси
         $this->setDbUnique('fileHnd');
         $this->setDbUnique('name,bucketId', 'uniqName');
@@ -668,10 +670,15 @@ class fileman_Files extends core_Master
         }
         
         //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-
+        $isAbsolute = (boolean) Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf');
+        
+        $dangerFileClass = '';
+        if (!$isAbsolute && fileman_Files::isDanger($rec)) {
+            $dangerFileClass .= ' dangerFile';
+        }
+        
         // Вербалното име на файла
-        $row->fileName = "<span class='linkWithIcon' style='margin-left:-7px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
+        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style='margin-left:-7px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
         
         // Иконата за редактиране     
         $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
@@ -804,6 +811,7 @@ class fileman_Files extends core_Master
         $nRec->id = $fRec->id;
         $nRec->name = $newFileName;
         $nRec->fileHnd = $fRec->fileHnd;
+        $nRec->dangerRate = NULL;
         $saveId = static::save($nRec);
         
         if (!$saveId) return FALSE;
@@ -886,11 +894,11 @@ class fileman_Files extends core_Master
     /**
      * Връща разширението на файла, от името му
      */
-    static function getExt($name)
+    static function getExt($name, $maxLen = 10)
     {
         if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
             $ext =  mb_strtolower(mb_substr($name, $dotPos + 1));
-            $pattern = "/^[a-zA-Z0-9_\$]{1,10}$/i";
+            $pattern = "/^[a-zA-Z0-9_\$]{1," . $maxLen . "}$/i";
             if(!preg_match($pattern, $ext)) {
                 $ext = '';
             }
@@ -986,6 +994,7 @@ class fileman_Files extends core_Master
         // Добавяме бутон за сваляне
         $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
         $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
+        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
         
         // Вземаме конфигурацията за fileman
         $conf = core_Packs::getConfig('fileman');
@@ -1000,7 +1009,9 @@ class fileman_Files extends core_Master
                 // Добавяме бутон в тулбара
                 $OcrInst->addOcrBtn($data->toolbar, $data->rec);
             }
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        }
     }
     
     
@@ -1105,8 +1116,8 @@ class fileman_Files extends core_Master
         
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('fName', 'varchar', 'caption=Име на файл,input,silent');
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
-        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent,autoFilter');
         
         // В хоризонтален вид
         $data->listFilter->view = 'vertical';
@@ -1217,7 +1228,7 @@ class fileman_Files extends core_Master
             }
         }
     }
-    
+
     
     /**
      * 
@@ -1254,7 +1265,8 @@ class fileman_Files extends core_Master
     {
         // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
         // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
-        if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
+        $idLen = mb_strlen($id);
+        if ($idLen > FILEMAN_HANDLER_LEN && (($idLen - EF_ID_CHECKSUM_LEN) == FILEMAN_HANDLER_LEN)) {
             
             // Променлива, в която държим старото състояние
             $old = $this->protectId;
@@ -1317,7 +1329,9 @@ class fileman_Files extends core_Master
         //Намираме записа на файла
         $fRec = static::fetchByFh($fh);
         
-        //Проверяваме дали сме отркили записа
+        fileman::updateLastUse($fRec);
+        
+        //Проверяваме дали сме открили записа
         if(!$fRec) {
             
             sleep(2);
@@ -1370,7 +1384,7 @@ class fileman_Files extends core_Master
         // Ограничаваме максиманата дължина на името на файла
         $nameFix = str::limitLen($name, 32);
 
-        if($nameFix != $name) {
+        if ($nameFix != $name) {
             $attr['title'] = $name;
         }
 
@@ -1390,7 +1404,7 @@ class fileman_Files extends core_Master
             $url  = static::generateUrl($fh, $isAbsolute);
             
             // Ако сме в текстов режим
-            if(Mode::is('text', 'plain')) {
+            if (Mode::is('text', 'plain')) {
                 
                 //Добаваме линка към файла
                 $link = "{$linkFileTitlePlain}$name ( $url )";
@@ -1402,24 +1416,47 @@ class fileman_Files extends core_Master
                 //Преобразуваме големината на файла във вербална стойност
                 $size = $FileSize->toVerbal($fileLen);
                 
-                if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
                         
                     // Линка да се отваря на нова страница
                     $attr['target'] = '_blank';    
                 } else {
                     // Ако линка е в iframe да се отваря в родителския(главния) прозорец
                     $attr['target'] = "_parent";
+                    
+                    if (self::isDanger($fRec)) {
+                        $attr['class'] .= ' dangerFile';
+                    }
                 }
                 
                 //Заместваме &nbsp; с празен интервал
                 $size =  str_ireplace('&nbsp;', ' ', $size);
                     
                 //Добавяме към атрибута на линка информация за размера
-                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер|*: {$size}");
+                $attr['title'] .= ($attr['title'] ? "\n" : '') . "|Размер|*: {$size}";
                 
                 $attr['rel'] = 'nofollow';
                 
+                $link = new core_ET($link);
+
+                if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+                    if(static::haveRightFor('single', $fRec)){
+                    	$attr['class'] .= " more-btn transparent";
+                    	$attr['name'] = 'context-holder';
+                    	ht::setUniqId($attr);
+                    	$replaceId = $attr['id'];
+                    	unset($attr['name'], $attr['id']);
+                    	
+                    	$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id, 'replaceId' => $replaceId), 'local');
+                        $attr['data-id'] = $replaceId;
+                        $attr['data-url'] = $dataUrl;
+                    }
+                }
+
                 $link = ht::createLink($nameFix, $url, NULL, $attr);
+                $link->prepend("<span class='fileHolder'>");
+                $link->append("</span>");
+
             }
         } else {
             
@@ -1434,12 +1471,32 @@ class fileman_Files extends core_Master
                 if(!file_exists($path)) {
     				$attr['style'] .= ' color:red;';
     			}
+    			
                 //Генерираме името с иконата
                 $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
             }
         }
         
         return $link;
+    }
+    
+    
+    /**
+     * Проверява дали файла е опасен
+     * 
+     * @param stdObject $rec
+     * 
+     * @return boolean
+     */
+    public static function isDanger($rec)
+    {
+        expect(is_object($rec));
+        
+        $dangerLevel = 0.1; // 10%
+        
+        if (isset($rec->dangerRate) && ($rec->dangerRate > $dangerLevel)) return TRUE;
+        
+        return FALSE;
     }
     
     
@@ -1471,5 +1528,71 @@ class fileman_Files extends core_Master
         $fh = static::fetchField($id, 'fileHnd');
         
         return static::getLink($fh);
+    }
+    
+    
+    /**
+     * Екшън връщащ бутоните за контектстното меню
+     */
+    function act_getContextMenu()
+    {
+    	$this->requireRightFor('single');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = static::fetch($id));
+    	expect($replaceId = Request::get('replaceId', 'varchar'));
+    	$this->requireRightFor('single', $rec);
+    	
+    	$fh = fileman::idToFh($rec->id);
+    
+    	$fRec = fileman_Files::fetchByFh($fh);
+    	
+    	//Разширението на файла
+    	$ext = fileman_Files::getExt($fRec->name);
+    
+    	//Иконата на файла, в зависимост от разширението на файла
+    	$icon = "fileman/icons/{$ext}.png";
+    
+    	//Ако не можем да намерим икона за съответното разширение
+    	if (!is_file(getFullPath($icon))) {
+    		// Използваме иконата по подразбиране
+    		$icon = "fileman/icons/default.png";
+    	}
+    
+    	// Вземаме линка към сингъла на файла таб преглед
+    	$urlPreview = array('fileman_Files', 'single', $fh);
+    	$urlPreview['currentTab'] = 'preview';
+    	$urlPreview['#'] = 'fileDetail';
+    
+    	$tpl = new core_ET();
+    	$preview = ht::createBtn('Преглед', $urlPreview, NULL, NULL,  array('ef_icon' => $icon));
+    	$tpl->append($preview);
+    
+    	// Вземаме линка към сингъла на файла таб информация
+    	$url = array('fileman_Files', 'single', $fh);
+    	$url['currentTab'] = 'info';
+    	$url['#'] = 'fileDetail';
+    	$infoBtn = ht::createBtn('Информация', $url, NULL, NULL,  array('ef_icon' => 'img/16/info-16.png'));
+    	$tpl->append($infoBtn);
+    
+    
+    	$linkBtn = ht::createBtn('Линк', array('F', 'GetLink', 'fileHnd' =>$fh, 'ret_url' => TRUE), NULL, NULL, array('ef_icon' => 'img/16/link.png', 'title'=> tr('Генериране на линк за сваляне')));
+    	$tpl->append($linkBtn);
+    
+    	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
+    	$download  =  ht::createBtn('Сваляне', $downloadUrl, NULL, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png'));
+    	$tpl->append($download);
+    
+    	// Ако сме в AJAX режим
+    	if(Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => $replaceId, 'html' => $tpl->getContent(), 'replace' => TRUE);
+    
+    		$res = array_merge(array($resObj));
+    
+    		return $res;
+    	} else {
+    		return $tpl;
+    	}
     }
 }

@@ -12,6 +12,11 @@ defIfNot('THUMB_IMG_DIR', '_tb_');
 defIfNot('THUMB_IMG_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . THUMB_IMG_DIR);
 
 
+/**
+ * Кои външни програми - оптимизатори да се използват за картинките
+ */
+defIfNot('THUMB_OPTIMIZATORS',  '');
+
 
 /**
  * Клас 'thumb_Setup'
@@ -32,8 +37,25 @@ class thumb_Setup extends core_ProtoSetup {
      */
     public $version = '0.1';
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        
+       'THUMB_OPTIMIZATORS' => array ('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор')
+
+     );
+    
     
     /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+        array('title' => 'Изтриване', 'url' => array('thumb_M', 'clear', 'ret_url' => TRUE), 'params' => array('title' => 'Изтриване на кешираните изобажения'))
+    );
+
+     
+     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = '';

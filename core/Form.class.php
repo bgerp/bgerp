@@ -175,13 +175,21 @@ class core_Form extends core_FieldSet
             $value = Request::get($name);
             
             $captions = str_replace('->', '|* » |', $field->caption);
-
+            
             // Ако $silent, не сме критични към празните стойности
-            if(($value === NULL) && $silent) continue;
+            if ($silent) {
+                if ($value === NULL) continue;
+                
+                // Когато полето е скрито и няма стойност, гледаме да не е NULL
+                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === NULL)) continue;
+            }
             
             if ($value === "" && $field->mandatory && $this->cmd != 'refresh') {
                 $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$captions}|*'</b>!");
+
+                $this->fields[$name]->input = 'input';
+                
                 continue;
             }
             
@@ -234,6 +242,9 @@ class core_Form extends core_FieldSet
                 if (($value === NULL || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
                     $this->setError($name, "Непопълнено задължително поле" .
                         "|* <b>'|{$captions}|*'</b>!");
+                    
+                    $this->fields[$name]->input = 'input';
+                    
                     continue;
                 }
                 
@@ -300,13 +311,21 @@ class core_Form extends core_FieldSet
             $value = isset($values[$name]) ? $values[$name] : Request::get($name);
         
             // Ако $silent, не сме критични към празните стойности
-            if(($value === NULL) && $silent) continue;
+            if ($silent) {
+                if ($value === NULL) continue;
+                
+                // Когато полето е скрито и няма стойност, гледаме да не е NULL
+                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === NULL)) continue;
+            }
            
             $captions = str_replace('->', '|* » |', $field->caption);
             
             if ($value === "" && $field->mandatory) {
                 $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$captions}|*'</b>!");
+                
+                $this->fields[$name]->input = 'input';
+                
                 continue;
             }
         
@@ -360,6 +379,9 @@ class core_Form extends core_FieldSet
                 if (($value === NULL || $value === '') && $field->mandatory) {
                     $this->setError($name, "Непопълнено задължително поле" .
                         "|* <b>'|{$captions}|*'</b>!");
+                    
+                    $this->fields[$name]->input = 'input';
+                    
                     continue;
                 }
         
@@ -451,6 +473,7 @@ class core_Form extends core_FieldSet
                 $this->layout = new ET(
                     "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
                     "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
+                    "[#BEFORE_MAIN_TABLE#]" . 
                     "\n<div  class='clearfix21 vertical' style='margin-top:5px;'>" .
                     "\n<table class=\"formTable\">\n" .
                     "\n<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
@@ -460,11 +483,15 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
                     "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "[#AFTER_MAIN_TABLE#]" .
                     "\n</div>" .
                     "\n</form>\n");
                 
                 jquery_Jquery::run($this->layout, "setFormElementsWidth();");
                 jquery_Jquery::runAfterAjax($this->layout, "setFormElementsWidth");
+
+                jquery_Jquery::run($this->layout, "markElementsForRefresh();");
+
                 jquery_Jquery::run($this->layout, "$(window).resize(function(){setFormElementsWidth();});");
             }
             
@@ -619,14 +646,13 @@ class core_Form extends core_FieldSet
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
             	if($field->hideIfOne) {
+                    if($field->type instanceof type_Key) {
+                        $field->type->prepareOptions();
+                    }
 	                if((isset($field->options) && count($field->options) == 1)) {
 	                	unset($fields[$name]);
-                        $this->setField($name, 'input=hidden');
-                        $this->setDefault($name, key($field->options));
 	                } elseif(isset($field->type->options) && count($field->type->options) == 1) {
 	                	unset($fields[$name]);
-	                	$this->setField($name, 'input=hidden');
-	                	$this->setDefault($name, key($field->type->options));
 	                }
             	}
             }
@@ -669,8 +695,10 @@ class core_Form extends core_FieldSet
                 if($field->removeAndRefreshForm) {
                     $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
                     $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
-                } elseif($field->refreshForm) {
+                } elseif($field->refreshForm) { 
                     $attr['onchange'] .= "refreshForm(this.form);";
+                } elseif($field->autoFilter && strtolower($this->getMethod()) == 'get') {
+                    $attr['onchange'] = 'this.form.submit();';
                 }
                 
                 if ($field->placeholder) {
@@ -755,13 +783,13 @@ class core_Form extends core_FieldSet
                 
                 $fieldsLayout->replace($input, $name);
             }
-            
+        
             if(Mode::is('staticFormView')) {
             	$fieldsLayout->prepend("<div class='staticFormView'>");
             	$fieldsLayout->append("</div>");
             } else {
             	if ($idForFocus) {
-            		$fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
+            		jquery_Jquery::run($fieldsLayout, "$('#{$idForFocus}').focus();", TRUE);
             	}
             }
         }
@@ -887,7 +915,7 @@ class core_Form extends core_FieldSet
 
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $group) { 
-                if(!$usedGroups[$group]) {
+                if(!$usedGroups[$group] && !Mode::is('javascript', 'no')) {
                     $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
                     $tpl->replace(" class='fs-toggle{$id}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
                     $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
@@ -961,6 +989,7 @@ class core_Form extends core_FieldSet
                     $hiddens[$field->name] = $vars[$field->name];
                 }
             }
+            core_Request::addUrlHash($hiddens);
         }
         
         // Вкарваме скритите полета
@@ -1061,11 +1090,40 @@ class core_Form extends core_FieldSet
             $method = 'render' . $view;
             $tpl->append($this->$method(), "FORM_{$view}");
         }
+
+        if($this->cmd == 'refresh' && Request::get('ajax_mode')) {
+            $this->ajaxOutput($tpl);
+        }
         
         return $tpl;
     }
     
-    
+
+    /**
+     * Отпечатва съдържанието на шаблона като JSPN масив за ajax
+     */
+    public function ajaxOutput($tpl)
+    {
+        $res = new stdClass();
+        $res->css = array_keys(array_flip($tpl->getArray('CSS')));
+        foreach($res->css as $key => $file) {
+            $res->css[$key] = sbf($file, '');
+        }
+        
+        $res->js = array_keys(array_flip($tpl->getArray('JS')));
+        
+        foreach($res->js as $key => $file) {
+            $res->js[$key] = sbf($file, '');
+        }
+        $ajaxPage = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
+        "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $tpl);
+        $res->html = str_replace("</form>", '', $ajaxPage->getContent()) . '</form>';
+        $res->html = substr($res->html, strpos($res->html, '<form'));
+
+        core_App::getJson($res);
+    }
+
+
     /**
      * Добавя стойност/и на атрибут за INPUT елемент. Ако не е посочен елемент, то е за всички
      */
@@ -1260,7 +1318,7 @@ class core_Form extends core_FieldSet
         Mode::pop();
 
         $this->setOptions($name, array(
-                $value => $verbal
+                "{$value}" => $verbal
             ));
         
         $field->type->params['isReadOnly'] = TRUE;  

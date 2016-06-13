@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Токен за работа с GitHub API 
+ */
+defIfNot('GIT_GITHUB_TOKEN', '');
+
+/**
+ * Ключ за извикване от GitHub на hooks 
+ */
+defIfNot('GIT_GITHUB_HOOK_KEY', '');
+
 
 /**
  * Клас 'git_Setup'
@@ -34,6 +44,16 @@ class git_Setup extends core_ProtoSetup
 	 * Пакет без инсталация
 	 */
 	public $noInstall = TRUE;
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+            'GIT_GITHUB_TOKEN' => array('password(show)', 'caption=GitHub API->Token'),
+            'GIT_GITHUB_HOOK_KEY' => array('password(show)', 'caption=GitHub API->Hook key'),
+
+    );
 	
 }
 

@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Локален файлов архив
  */
-class backup_Local extends core_Master
+class backup_Local extends core_BaseClass
 {
     
     
@@ -40,15 +40,15 @@ class backup_Local extends core_Master
      *
      * @return boolean
      */
-    static function getFile($fileName)
+    static function getFile($sourceFile, $destFile)
     {
         $conf = core_Packs::getConfig('backup');
-        $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $fileName, EF_TEMP_PATH . "/" . $fileName);
+        $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $sourceFile, $destFile);
         
         return $result;
     }
-    
-    
+
+
     /**
      * Записва файл в локалния архив
      *
@@ -56,9 +56,10 @@ class backup_Local extends core_Master
      *
      * @param string $fileName
      *
-     * @return boolean
+     * @param null $subDir
+     * @return bool
      */
-    static function putFile($fileName, $subDir = null)
+    static function putFile($fileName, $subDir = NULL)
     {
         $conf = core_Packs::getConfig('backup');
         if ($subDir) {

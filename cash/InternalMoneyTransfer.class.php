@@ -45,14 +45,14 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
+    var $loadList = 'plg_RowTools2, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
      	plg_Sorting,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
+    var $listFields = "valior, title=Документ, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
     
     
     /**
@@ -65,12 +65,6 @@ class cash_InternalMoneyTransfer extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'ceo,cash';
-	
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
     
     
     /**
@@ -162,17 +156,29 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
     	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Сторниран, closed=Контиран)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран)', 
             'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
     
     
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'creditCase')){
+    		$requiredRoles = 'no_one';
+    	}
+    }
+    
+    
 	/**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		// Добавяме към формата за търсене търсене по Каса
 		cash_Cases::prepareCaseFilter($data, array('creditCase', 'debitCase'));
@@ -219,7 +225,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Подготвяме формата от която ще избираме посоката на движението
      */
-    static function prepareReasonForm()
+    public static function prepareReasonForm()
     {
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
@@ -239,7 +245,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Подготовка на формата за добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
     	$form = &$data->form;
     	
@@ -270,7 +276,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Проверка след изпращането на формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     { 
     	if ($form->isSubmitted()){
     		
@@ -296,7 +302,7 @@ class cash_InternalMoneyTransfer extends core_Master
      *
      * @param core_Form $form 
      */
-    function validateForm($form)
+    public function validateForm($form)
     {
     	$rec = &$form->rec;
     	if($rec->operationSysId == 'case2case') {
@@ -327,7 +333,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
     	
@@ -352,18 +358,6 @@ class cash_InternalMoneyTransfer extends core_Master
 	    	if($rec->debitBank){
 	    		$row->debitBank = bank_OwnAccounts::getHyperLink($rec->debitBank, TRUE);
 	    	}
-    	}
-    }
-    
-    
-    /**
-     * Поставя бутони за генериране на други банкови документи възоснова
-     * на този, само ако документа е "чернова".
-     */
-	static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	if($data->rec->state == 'draft') {
-	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png, title=Създаване на вносна бележка');
     	}
     }
     

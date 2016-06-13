@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   eshop
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,109 +20,97 @@ class eshop_Products extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Продукти в онлайн магазина";
+    public $title = "Продукти в онлайн магазина";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Е-Магазин";
+    public $pageMenu = "Е-Магазин";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,groupId,state';
-    
-    
-    /**
-     * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
-     */
-    var $searchFields = 'name';
-    
-            
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'id';
+    public $listFields = 'name,groupId,state';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Продукт";
+    public $singleTitle = "Продукт";
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/wooden-box.png';
+    public $singleIcon = 'img/16/wooden-box.png';
 
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'eshop,ceo';
+    public $canRead = 'eshop,ceo';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'eshop,ceo';
+    public $canEditsysdata = 'eshop,ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'eshop,ceo';
+    public $canEdit = 'eshop,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'eshop,ceo';
+    public $canAdd = 'eshop,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'eshop,ceo';
+	public $canList = 'eshop,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'eshop,ceo';
+	public $canSingle = 'eshop,ceo';
 	
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'eshop,ceo';
+    public $canWrite = 'eshop,ceo';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'eshop,ceo';
+    public $canView = 'eshop,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
-
-
+    public $canDelete = 'no_one';
+    
+    
     /**
-     * Нов темплейт за показване
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    //var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    public $searchFields = 'code,groupId,name';
     
     
     /**
@@ -142,13 +130,67 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto,silent');
+        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
         $this->FLD('proto', "keylist(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
-        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember,tdClass=centerCol');
-        $this->FLD('quantityCount', 'enum(0=Без количество,1=1 количество,2=2 количества,3=3 количества)', 'caption=Запитване->Брой количества');
-        
-		$this->setDbUnique('code');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
+        $this->FLD('quantityCount', 'enum(3=3 количества,2=2 количества,1=1 количество,0=Без количество)', 'caption=Запитване->Брой количества');
+    }
+
+    
+    /**
+     * Връща мярката от драйвера ако има
+     * 
+     * @param stdClass $rec
+     * @return int|NULL
+     */
+	private function getUomFromDriver($rec)
+	{
+		$uomId = NULL;
+		if(cls::load($rec->coDriver, TRUE)){
+			if($Driver = cls::get($rec->coDriver)){
+				$uomId = $Driver->getDefaultUomId();
+			}
+		}
+		
+		return $uomId;
+	}
+	
+	
+    /**
+     * Проверка за дублиран код
+     */
+    protected static function on_AfterInputeditForm($mvc, $form)
+    {
+    	$rec = $form->rec;
+    	
+    	$isMandatoryMeasure = FALSE;
+    	if($form->rec->coDriver){
+    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
+    	
+    		if(count($protoProducts)){
+    			$form->setField('proto', 'input');
+    			$form->setSuggestions('proto', $protoProducts);
+    		}
+    	
+    		if($uomId = $mvc->getUomFromDriver($rec)){
+    			$form->setField('measureId', 'input=none');
+    		}
+    	}
+    	
+    	if($form->isSubmitted()) {
+            $query = self::getQuery();
+            $query->EXT('menuId', 'eshop_Groups', 'externalName=menuId,externalKey=groupId');
+            if($rec->id) {
+                $query->where("#id != {$rec->id}");
+            }
+
+            $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
+
+            if($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = [#2#]", $rec->code, $menuId))) {
+                $form->setError('code', "Повторение на кода със съществуващ продукт: |* <strong>" . $mvc->getVerbal($rec, 'name') . '</strong>');
+            }
+        }
     }
 
 
@@ -177,10 +219,19 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('title,drvId,protos,moq,quantityCount,lg');
+            	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
-            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'title' => $rec->name, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            		$url = array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'title' => $rec->name, 'ret_url' => TRUE);
+            		$uomId = NULL;
+            		$defUom = cat_Setup::get('DEFAULT_MEASURE_ID');
+            		if(!$defUom){
+            			$defUom = NULL;
+            		}
+            		
+            		setIfNot($uomId, $mvc->getUomFromDriver($rec), $rec->measureId, $defUom, cat_UoM::fetchBySysId('pcs')->id);
+            		$url['measureId'] = $uomId;
+            		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             	}
             }
         }
@@ -193,10 +244,7 @@ class eshop_Products extends core_Master
         	$row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . "</span>";
         }
     }
-
-
-
-
+    
 
     /**
      * Подготвя информация за всички продукти от активните групи
@@ -258,12 +306,13 @@ class eshop_Products extends core_Master
 
         return $layout;
     }
-
-
-
+    
+    
     /**
+     * Рендира списъка с групите
      *
-     * @return $tpl
+     * @param stdClass $data
+     * @return core_ET $layout
      */
     public function renderGroupList_($data)
     {   
@@ -304,7 +353,11 @@ class eshop_Products extends core_Master
      * Показва единичен изглед за продукт във външната част
      */
     function act_Show()
-    {
+    {   
+        // Поставя временно външният език, за език на интерфейса
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
 
@@ -331,13 +384,19 @@ class eshop_Products extends core_Master
         $tpl = eshop_Groups::getLayout();
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
-        $tpl->prepend($data->row->name . ' » ', 'PAGE_TITLE');
+        $rec = clone($data->rec);
+        setIfNot($rec->seoTitle, $data->row->name);
+        if(!$rec->seoDescription) {
+            $rec->seoDescription = $this->getVerbal($rec, 'info');
+        }
+
+        cms_Content::setSeo($tpl, $rec);
 
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
         $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
-        $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+        cms_Content::addCanonicalUrl($url, $tpl);
 
         
         // Страницата да се кешира в браузъра
@@ -347,6 +406,9 @@ class eshop_Products extends core_Master
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add("Продукт «" . $data->rec->name ."»");
         }
+        
+        // Премахва зададения временно текущ език
+        core_Lg::pop();
 
         return $tpl;
     }
@@ -434,7 +496,7 @@ class eshop_Products extends core_Master
     /**
      * Връща кратко URL към продукт
      */
-    static function getShortUrl($url)
+    public static function getShortUrl($url)
     { 
         $vid = urldecode($url['id']);
         $act = strtolower($url['Act']);
@@ -481,15 +543,22 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$form = &$data->form;
-    	
-    	if($form->rec->coDriver){
-    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
-    		 
-    		if(count($protoProducts)){
-    			$form->setField('proto', 'input');
-    			$form->setSuggestions('proto', $protoProducts);
-    		}
-    	}
+        if($id = $data->form->rec->id) {
+            $rec = self::fetch($id);
+            $gRec = eshop_Groups::fetch($rec->groupId);
+            $cRec = cms_Content::fetch($gRec->menuId);
+            cms_Domains::selectCurrent($cRec->domainId);
+        }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }

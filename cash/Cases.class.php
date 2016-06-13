@@ -43,7 +43,7 @@ class cash_Cases extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, cashiers, blAmount=Сума';
+    var $listFields = 'name, cashiers, blAmount=Сума';
     
     
     /**
@@ -61,17 +61,7 @@ class cash_Cases extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
-     * таблицата.
-     * 
-     * @see plg_RowTools
-     * @var $string име на поле от този модел
-     */
-    var $rowToolsField = 'tools';
+    var $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
@@ -226,16 +216,18 @@ class cash_Cases extends core_Master {
         	if($mvc->haveRightFor('select', $rec)){
         		
         		$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-        		 
+        		$rec->blAmount = 0;
+        		
         		// Намираме всички записи от текущия баланс за това перо
-        		$balRec = acc_Balances::getLastBalance();
-        		$bQuery = acc_BalanceDetails::getQuery();
-        		acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
-        		 
-        		// Събираме ги да намерим крайното салдо на перото
-        		$rec->blAmount = NULL;
-        		while($bRec = $bQuery->fetch()){
-        			$rec->blAmount += $bRec->blAmount;
+        		if($balRec = acc_Balances::getLastBalance()){
+        			$bQuery = acc_BalanceDetails::getQuery();
+        			acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
+        			 
+        			// Събираме ги да намерим крайното салдо на перото
+        			
+        			while($bRec = $bQuery->fetch()){
+        				$rec->blAmount += $bRec->blAmount;
+        			}
         		}
         		 
         		// Обръщаме го във четим за хората вид

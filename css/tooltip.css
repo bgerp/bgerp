@@ -64,13 +64,14 @@ div.alphabet div.tab-row .tab.selected{
 	color: #333;
 	display:none;
 	max-width:735px;
-	margin-bottom:8px;
+	margin-bottom:15px;
 	font-family: Arial, sans-serif;
 	font-size: 16px;
 	line-height: 18px !important;
 	padding: 9px 11px;
-	top:-2px;
+	top:-6px;
 }
+
 .tooltip-text .richtext{
 	line-height: 19px !important;
 	display: inline;
@@ -89,6 +90,7 @@ div.alphabet div.tab-row .tab.selected{
 	line-height: 16px;
 	padding: 8px 10px;
 	top:0;
+	margin-bottom:10px;
 }
 
 .tooltip-text .richtext-message {

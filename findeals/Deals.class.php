@@ -37,13 +37,13 @@ class findeals_Deals extends deals_DealBase
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf';
+    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, email_DocumentIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues';
     
     
     /**
@@ -98,6 +98,12 @@ class findeals_Deals extends deals_DealBase
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
+    
+    
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
     
     
     /**
@@ -192,6 +198,14 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'currencyId'   => 'lastDocUser|lastDoc|CoverMethod',
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -201,7 +215,7 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('accountId', "acc_type_Account", 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
-    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код,silent,removeAndRefreshForm=currencyRate');
     	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс');
     	
     	$this->FLD('companyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Втори контрагент->Фирма,input');
@@ -246,7 +260,7 @@ class findeals_Deals extends deals_DealBase
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -282,9 +296,6 @@ class findeals_Deals extends deals_DealBase
     	 
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
-    	 
-    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
-    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	 
     	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
     	
@@ -353,8 +364,6 @@ class findeals_Deals extends deals_DealBase
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
-    	
     	if($fields['-single']){
     		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
     		
@@ -362,11 +371,7 @@ class findeals_Deals extends deals_DealBase
     			$row->secondContragentId = cls::get($rec->secondContragentClassId)->getHyperLink($rec->secondContragentId, TRUE);
     		}
 
-    		$lastBalance = acc_Balances::getLastBalance();
-    		if(acc_Balances::haveRightFor('single', $lastBalance)){
-    			$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
-    			$row->accountId = ht::createLink($row->accountId, $accUrl);
-    		}
+    		$row->accountId = acc_Balances::getAccountLink($rec->accountId, NULL, TRUE, TRUE);
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -507,6 +512,7 @@ class findeals_Deals extends deals_DealBase
     	
     	$row = new stdClass();
     	$row->valior = dt::mysql2verbal($jRec->valior, 'd.m.Y');
+    	$row->ROW_ATTR['class'] = 'state-active';
     	
     	try{
     		$DocType = cls::get($jRec->docType);
@@ -517,10 +523,16 @@ class findeals_Deals extends deals_DealBase
     	
     	if($jRec->debitA){
     		$row->debitA = $Double->toVerbal($jRec->debitA);
+    		if($jRec->debitA < 0){
+    			$row->debitA = "<span class='red'>{$row->debitA}</span>";
+    		}
     	}
     	
     	if($jRec->creditA){
     		$row->creditA = $Double->toVerbal($jRec->creditA);
+    		if($jRec->creditA < 0){
+    			$row->creditA = "<span class='red'>{$row->creditA}</span>";
+    		}
     	}
     	
     	return $row;

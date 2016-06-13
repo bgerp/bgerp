@@ -20,80 +20,95 @@ class cat_products_Params extends doc_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'productId';
+    public $masterKey = 'productId';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Параметри';
+    public $title = 'Параметри';
     
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Параметър';
+    public $singleTitle = 'Параметър';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId=Продукт №, paramId, paramValue';
+    public $listFields = 'productId=Продукт №, paramId, paramValue';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
     
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    var $lastUsedKeys = 'paramId';
+    public $lastUsedKeys = 'paramId';
+    
+    
+    /**
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     * 
+     * @param int
+     * @see plg_RowTools2
+     */
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
      * Поле за пулт-а
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
-    var $tabName = 'cat_Products';
+    public $tabName = 'cat_Products';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'ceo,cat';
+    public $canAdd = 'ceo,cat';
     
     
     /**
      * Кой може да листва
      */
-    var $canList = 'ceo,cat';
+    public $canList = 'ceo,cat';
     
     
     /**
      * Кой може да редактира
      */
-    var $canEdit = 'ceo,cat';
+    public $canEdit = 'ceo,cat';
     
     
     /**
      * Кой може да изтрива
      */
-    var $canDelete = 'ceo,cat';
+    public $canDelete = 'ceo,cat';
     
     
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, productId, paramId';
+    public $fetchFieldsBeforeDelete = 'id, productId, paramId';
     
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'на';  
+
     
     /**
      * Описание на модела (таблицата)
@@ -150,14 +165,9 @@ class cat_products_Params extends doc_Detail
         
     	if(!$form->rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
-	    	expect($productId = $form->rec->productId);
-			$options = self::getRemainingOptions($form->rec->classId, $productId, $form->rec->id);
-			expect(count($options));
-	        
-	        if(!$data->form->rec->id){
-	        	$options = array('' => '') + $options;
-	        }
-	        $form->setOptions('paramId', $options);
+	    	$options = self::getRemainingOptions($form->rec->classId, $form->rec->productId, $form->rec->id);
+			
+	        $form->setOptions('paramId', array('' => '') + $options);
     	} else {
     		$form->setReadOnly('paramId');
     	}
@@ -245,10 +255,13 @@ class cat_products_Params extends doc_Detail
         	$tpl->append($data->changeBtn, 'addParamBtn');
         }
         
+        $mvc = cls::get(get_called_class());
         foreach((array)$data->params as $row) {
         	core_RowToolbar::createIfNotExists($row->_rowTools);
         	if($data->noChange !== TRUE){
-        		$row->tools = $row->_rowTools->renderHtml();
+        		$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
+        	} else {
+        		unset($row->tools);
         	}
         	
             $block = clone $tpl->getBlock('param');
@@ -301,17 +314,19 @@ class cat_products_Params extends doc_Detail
     {
         if($requiredRoles == 'no_one') return;
     	
-        if (($action == 'add' || $action == 'delete') && isset($rec->productId)) {
+        if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec->productId)) {
         	$pRec = cat_Products::fetch($rec->productId);
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
-                $requiredRoles = 'no_one';
-            } elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
-            	
-            	// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
-            	$requiredRoles = 'no_one';
-            }
+        	if($action != 'edit'){
+        		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
+        			$requiredRoles = 'no_one';
+        		} elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
+        			 
+        			// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
+        			$requiredRoles = 'no_one';
+        		}
+        	}
             
             if($pRec->state != 'active' && $pRec->state != 'draft'){
             	$requiredRoles = 'no_one';
@@ -367,6 +382,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+    	cat_Products::touchRec($rec->productId);
     	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
     		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
     	}
@@ -379,6 +395,7 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
+        	cat_Products::touchRec($rec->productId);
         	if(cat_Params::fetchField("#id = '{$rec->paramId}'", 'isFeature') == 'yes'){
         		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
         	}

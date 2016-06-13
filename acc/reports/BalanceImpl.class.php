@@ -141,7 +141,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     {
     	if($form->isSubmitted()){
     		if($form->rec->to < $form->rec->from){
-    		     $form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    		     $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
     		}
     		
     		foreach (range(1, 3) as $i){
@@ -175,8 +175,9 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
         $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE));
+
         $data->recs = $Balance->getBalance($accSysId);
-        
+      
         $productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
         
         foreach ($data->recs as $id => $rec) {
@@ -381,7 +382,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
        			$data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
        		}
         }
-       
+
         if(!empty($data->rec->action)){
         	$data->row->action = ($data->rec->action == 'filter') ? tr('Филтриране по') : tr('Групиране по');
         	$data->row->groupBy = '';
@@ -463,13 +464,29 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
            			}
            		}
            }
-           
+
            if ($rec->measure) { 
                $row->measure = cat_UoM::fetchField($rec->measure,'shortName');
            }
            
            if ($rec->code) {
            	   $row->code = $rec->code;
+           }
+           
+           if ($rec->mark) {
+               $arrMark = keylist::toArray($rec->mark);
+               foreach ($arrMark as $mark) {
+                   if(count($arrMark) > 1) {
+                       $row->mark .= cat_Groups::fetchField($mark,'name') . ", ";
+                       
+                   } else {
+                       $row->mark = cat_Groups::fetchField($mark,'name');
+                   }
+               }
+               
+               if(strpos($row->mark, ",")){
+                   $row->mark = substr($row->mark, 0, strlen($row->mark)-2);
+               }
            }
        
            $row->ROW_ATTR['class'] = ($rec->id % 2 == 0) ? 'zebra0' : 'zebra1';
@@ -629,7 +646,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
 			$form->setReadOnly("grouping{$i}");
 		}
 		 
-		$features = acc_Features::getFeatureOptions(array_keys($items));
+		$features = acc_Features::getFeatureOptions(array_keys(array($items)));
 		$features = array('' => '') + $features + array('*' => $caption);
 		$form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойство|*,width=330px,input");
 		$form->setOptions("feat{$i}", $features);

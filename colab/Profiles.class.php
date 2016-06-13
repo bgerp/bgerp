@@ -149,7 +149,7 @@ class colab_Profiles extends core_Master
     	// Подмяна на линка за смяна на паролата
         $data->User->row->password = substr($data->User->row->password, 0, 7);
         $changePassUrl = array($this, 'ChangePassword', 'ret_url' => TRUE);
-        $data->User->row->password .= " " . ht::createLink('(' . tr('cмяна') . ')', $changePassUrl, FALSE, 'title=' . tr('Смяна на парола'));
+        $data->User->row->password .= " " . ht::createLink('(' . tr('cмяна') . ')', $changePassUrl, FALSE, 'title=Смяна на парола');
     }
     
     

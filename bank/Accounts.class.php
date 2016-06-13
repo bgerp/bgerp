@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,87 +17,75 @@ class bank_Accounts extends core_Master {
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    var $interfaces = 'acc_RegisterIntf';
-    
-    
-    /**
      * Заглавие
      */
-    var $title = 'Всички сметки';
+    public $title = 'Всички сметки';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search';
+    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'iban,bic,bank';
+    public $searchFields = 'iban,bic,bank';
     
     
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'iban, contragent=Контрагент, currencyId';
-    
-    
-    /**
-     * Поле за показване на пулта за редакция
-     */
-    var $rowToolsField = 'tools';
+    public $listFields = 'iban, currencyId, contragent=Контрагент';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Банкова сметка";
+    public $singleTitle = "Банкова сметка";
     
     
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/bank.png';
+    public $singleIcon = 'img/16/bank.png';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsSingleField = 'iban';
+    public $rowToolsSingleField = 'iban';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'bank, ceo';
+    public $canRead = 'bank, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'bank,ceo';
+    public $canList = 'bank,ceo';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'bank,ceo';
+    public $canSingle = 'bank,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'bank, ceo';
+    public $canWrite = 'bank, ceo';
     
     
     /**
      * Файл за единичен изглед
      */
-    var $singleLayoutFile = 'bank/tpl/SingleAccountLayout.shtml';
+    public $singleLayoutFile = 'bank/tpl/SingleAccountLayout.shtml';
     
     
     /**
@@ -109,7 +97,7 @@ class bank_Accounts extends core_Master {
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
         
         // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
-        $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,removeAndRefreshForm=bic|bank|currencyId,silent');
+        $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,removeAndRefreshForm=bic|bank,silent');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
@@ -135,28 +123,9 @@ class bank_Accounts extends core_Master {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
-        
-        $Contragents = cls::get($rec->contragentCls);
-        expect($Contragents instanceof core_Master);
-        $contragentRec   = $Contragents->fetch($rec->contragentId);
-        $data->Contragent = $Contragents;
-        
-        if(!$rec->id) {
-            // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
-            if ($contragentRec->country) {
-                $countryRec = drdata_Countries::fetch($contragentRec->country);
-                $cCode = $countryRec->currencyCode;
-                $data->form->setDefault('currencyId', currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));
-            } else {
-                // По дефолт е основната валута в системата
-                $conf = core_Packs::getConfig('acc');
-                $defaultCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
-                $data->form->setDefault('currencyId', $defaultCurrencyId);
-            }
-        }
         
         if($iban = Request::get('iban')) {
             $data->form->setDefault('iban', $iban);
@@ -179,24 +148,17 @@ class bank_Accounts extends core_Master {
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$url = $data->Contragent->getSingleUrlArray($data->form->rec->contragentId);
-    	$title = $data->Contragent->getTitleById($data->form->rec->contragentId);
-    	$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->Contragent->singleIcon, 'class' => 'linkInTitle'));
-    	
-    	if($data->form->rec->id) {
-    		$data->form->title = "Редактиране на банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
-    	} else {
-    		$data->form->title = "Нова банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
-    	}
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id, 'на');
     }
     
     
     /**
      * След проверка на ролите
      */
-    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
         if (($action == 'edit' || $action == 'delete') && isset($rec->contragentCls)) {
             $productState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
@@ -211,8 +173,25 @@ class bank_Accounts extends core_Master {
     /**
      * След зареждане на форма от заявката. (@see core_Form::input())
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
+		$rec = $form->rec;
+    	$contragentRec = cls::get($rec->contragentCls)->fetch($rec->contragentId);
+    	
+    	if(!$rec->id) {
+    		// По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
+    		if ($contragentRec->country) {
+    			$countryRec = drdata_Countries::fetch($contragentRec->country);
+    			$cCode = $countryRec->currencyCode;
+    			$form->setDefault('currencyId', currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));
+    		} else {
+    			// По дефолт е основната валута в системата
+    			$conf = core_Packs::getConfig('acc');
+    			$defaultCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
+    			$form->setDefault('currencyId', $defaultCurrencyId);
+    		}
+    	}
+        
         // ако формата е събмитната, и банката и бика не са попълнени,  
         // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
         // ако те се разминават с тези в системата
@@ -245,7 +224,7 @@ class bank_Accounts extends core_Master {
     /**
      * Връща иконата за сметката
      */
-    function getIcon($id)
+    public function getIcon($id)
     {
         $rec = $this->fetch($id);
         
@@ -265,20 +244,34 @@ class bank_Accounts extends core_Master {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $cMvc = cls::get($rec->contragentCls);
-        $field = $cMvc->rowToolsSingleField;
-        $cRec = $cMvc->fetch($rec->contragentId);
-        $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
-        $row->contragent = $cRow->{$field};
+        $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, TRUE);
+        
+        if($rec->iban) {
+        	$verbalIban = $mvc->getVerbal($rec, 'iban');
+        	if(strpos($rec->iban, '#') === FALSE){
+        			
+        		$countryCode = iban_Type::getCountryPart($rec->iban);
+        		if ($countryCode) {
+        			$hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+        				
+        			if(isset($fields['-single'])){
+        				$row->iban = ht::createHint($row->iban, $hint);
+        			} else {
+        				$singleUrl = $mvc->getSingleUrlArray($rec->id);
+        				$row->iban = ht::createLink($verbalIban, $singleUrl, NULL, "ef_icon={$mvc->getIcon($rec->id)},title={$hint}");
+        			}
+        		}
+        	}
+        }
     }
     
     
     /**
      * Подготвя данните необходими за рендиране на банковите сметки за даден контрагент
      */
-    function prepareContragentBankAccounts($data)
+    public function prepareContragentBankAccounts($data)
     {
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
@@ -320,7 +313,7 @@ class bank_Accounts extends core_Master {
     /**
      * Рендира данните на банковите сметки за даден контрагент
      */
-    function renderContragentBankAccounts($data)
+    public function renderContragentBankAccounts($data)
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
@@ -365,7 +358,7 @@ class bank_Accounts extends core_Master {
             		$title = 'Добавяне на нова банкова сметка';
             	}
             	
-            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr($title)), 'title');
+            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . $title), 'title');
             }
         }
         
@@ -380,7 +373,7 @@ class bank_Accounts extends core_Master {
      * @param array $editUrl
      * @param stdClass $rec
      */
-    public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
+    protected static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
     	if($rec->ourAccount === TRUE){
     		$retUrl = $editUrl['ret_url'];
@@ -394,7 +387,7 @@ class bank_Accounts extends core_Master {
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Банкови сметки немогат да се добавят от мениджъра bank_Accounts
         $data->toolbar->removeBtn('btnAdd');
@@ -404,7 +397,7 @@ class bank_Accounts extends core_Master {
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         $title = iban_Type::removeDs($rec->iban);
         
@@ -424,7 +417,7 @@ class bank_Accounts extends core_Master {
      * @param int $intKeys - дали ключовете да са инт
      * @return array $suggestions - Масив от сметките на клиента
      */
-    static function getContragentIbans($contragentId, $contragentClass, $intKeys = FALSE)
+    public static function getContragentIbans($contragentId, $contragentClass, $intKeys = FALSE)
     {
         $Contragent = cls::get($contragentClass);
         $suggestions = array('' => '');

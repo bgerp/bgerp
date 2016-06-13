@@ -78,7 +78,7 @@ class core_LoginLog extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate, plg_AutoFilter';
+    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate';
     
     
     /**
@@ -114,6 +114,7 @@ class core_LoginLog extends core_Manager
 									used_timestamp=Използван timestamp,
 									error=Грешка,
 									block=Блокиран,
+									unblock=Отблокиране,
 									reject=Оттеглен,
 									draft=Чернова,
 									user_reg=Регистриране,
@@ -558,7 +559,7 @@ class core_LoginLog extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         // Поле за избор на потребител
-        $data->listFilter->FNC('users', 'users(rolesForAll = admin, rolesForTeams = admin)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll = admin, rolesForTeams = admin)', 'caption=Потребител,input,silent,autoFilter');
         
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

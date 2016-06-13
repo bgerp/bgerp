@@ -154,11 +154,13 @@ class select2_Plugin extends core_Plugin
         if (isset($invoker->params['select2Multiple'])) {
             if ($invoker->params['select2Multiple']) {
                 $selectAttrArray['multiple'] = 'multiple';
+                       
+
             }
         } else if (self::$isMultiple) {
             $selectAttrArray['multiple'] = 'multiple';
         }
-        
+         
         $selectAttrArray['class'] = self::$className . ' ' . $attr['class'];
         $selectAttrArray['id'] = $attr['id'];
         $selectAttrArray['name'] = $name . '[]';
@@ -168,6 +170,7 @@ class select2_Plugin extends core_Plugin
         $tpl->append("<input type='hidden' name='{$name}[" . self::$hiddenName . "]' value=1>");
         
         $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
+        
         if ($invoker->params['allowEmpty']) {
             $allowClear = true;
         } else {

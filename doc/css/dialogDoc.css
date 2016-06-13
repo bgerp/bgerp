@@ -35,3 +35,29 @@
   padding-bottom: 0px;
   color: #335533; }
 
+.wide .passageDialog table.listAction,
+.wide .passageDialog .listTopContainer {
+  width: 100%;
+  min-width: 0; }
+
+.modal-toolbar .linkWithIcon {
+  display: block; }
+
+.rowtools-column {
+  width: 1%; }
+
+  .passageDialog select,
+  .passageDialog input {
+    max-width: 350px; }
+    .passageDialog .passageHolder .file-log-link,
+    .passageDialog .passageHolder .richtext {
+      display: inline-block;
+      float: left; }
+    .passageDialog .passageHolder .richtext .more-btn {
+      position: relative;
+      top: -2px; }
+  .passageDialog .createdInfo {
+    white-space: nowrap;
+    width: 1%;
+    text-align: center; }
+

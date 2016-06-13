@@ -166,7 +166,7 @@ class acc_Periods extends core_Manager
         }
         
         if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
-            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->title}");
+            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->title}");
         }
         
         $curPerEnd = static::getPeriodEnd();
@@ -227,39 +227,29 @@ class acc_Periods extends core_Manager
      * и записва във формата съобщение за грешка или предупреждение
      * грешка или предупреждение няма, ако датата е от началото на активния,
      * до края на насотящия период
+     * 
+     * @param date $dateToCheck - Дата която да се сравни
+     * @param string|FALSE - грешката или FALSE ако няма
      */
-    public static function checkDocumentDate($form, $field = 'date')
+    public static function checkDocumentDate($dateToCheck)
     {
-        $date = $form->rec->{$field};
+    	if(!$dateToCheck) return;
+    	
+    	$rec = self::forceActive();
+    	if($rec->start > $dateToCheck) {
+    		
+    		return "Датата е преди активния счетоводен период|* <b>{$rec->title}</b>";
+    	}
+    	
+    	$rec = self::fetchByDate($dateToCheck);
+    	if(!$rec) return "Датата е в несъществуващ счетоводен период";
         
-        if(!$date) {
+        if($dateToCheck > dt::getLastDayOfMonth()) {
             
-            return;
+        	return "Датата е в бъдещ счетоводен период";
         }
         
-        $rec = self::forceActive();
-        
-        if($rec->start >= $date) {
-            $form->setError($field, "Датата е преди активния счетоводен период| ($rec->title)");
-            
-            return;
-        }
-        
-        $rec = self::fetchByDate($date);
-        
-        if(!$rec) {
-            $form->setError($field, "Датата е в несъществуващ счетоводен период");
-            
-            return;
-        }
-        
-        if($date > dt::getLastDayOfMonth()) {
-            $form->setWarning($field, "Датата е в бъдещ счетоводен период");
-            
-            return;
-        }
-        
-        return TRUE;
+        return FALSE;
     }
     
     
@@ -494,7 +484,7 @@ class acc_Periods extends core_Manager
      * Ако няма дефинирани периоди дефинира период, чийто край е последния ден от предходния
      * месец със state='closed' и период, който е за текущия месец и е със state='active'
      */
-    function loadSetupData()
+    function loadSetupData2()
     {
         // Форсира създаването на периоди от текущия месец до ACC_FIRST_PERIOD_START
         $this->forcePeriod(dt::verbal2mysql());
@@ -654,5 +644,70 @@ class acc_Periods extends core_Manager
     	}
     
     	return (object)array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
+    }
+
+    
+    /**
+     * Помощна функция подготвяща датите за сравняване
+     *
+     * @param string $from 
+     * @param string $to 
+     * @param string $displacement със стойности "months|year" 
+     * @return stdClass $res
+     * 					$res->from - начало на сравнявания период
+     * 					$res->to - край на сравнявания период
+     */
+    public static function comparePeriod($from, $to, $displacement = NULL)
+    {
+        switch ($displacement) {
+        
+            case "months":
+
+                $dFrom = date('d', dt::mysql2timestamp($from));
+
+                if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to)) {
+                    
+                    $toCompare = dt::getLastDayOfMonth($from,-1);
+            
+                    $first = date('Y-m-01', dt::mysql2timestamp($toCompare));
+                    $dFrom = date('d', dt::mysql2timestamp($toCompare));
+                    $mFrom = date('m', dt::mysql2timestamp($toCompare));
+
+                    $date1 = new DateTime($to);
+                    $date2 = new DateTime($from);
+                    $interval = date_diff($date1, $date2);
+                    $months = $interval->m;
+ 
+                    $fromCompare1 = dt::addMonths(-$months,$first);
+                    
+                    if ($dFrom == '28' && $mFrom == '02') { 
+                        $fromCompare1 = dt::addMonths(-$months+1,$toCompare);
+                    } 
+   
+                    $fromCompare = date('Y-m-01', dt::mysql2timestamp($fromCompare1));
+
+                } else {
+                    
+                    $fromCompare = date('Y-m-d', dt::mysql2timestamp($from) - abs(dt::mysql2timestamp($to) - dt::mysql2timestamp($from))-1);
+                    $toCompare = strstr(dt::addDays(-1,$from), " ", TRUE);
+                    
+                }
+                
+                break;
+                
+            case "year":
+                
+                $toCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($to)));
+                $fromCompare = date('Y-m-d', strtotime("-12 months", dt::mysql2timestamp($from)));
+                
+                break;
+                
+            default:
+                
+                $fromCompare = $from;
+                $toCompare = $to;
+        }
+        
+        return (object) array('from'=> $fromCompare , 'to'=> $toCompare);
     }
 }

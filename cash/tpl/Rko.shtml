@@ -1,7 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <div class='display-table'>
-            <table class='border-table cellPadding'>
+            <table class='innerTable border-table paddingCells'>
                 <tr>
                     <td class='custom-header-bg' style="width: 35%"><b>|Платец|*</b></td>
                     <td  rowspan='2' class='centered'>
@@ -12,7 +12,7 @@
                             <span class="bigData">[#valior#]</span>
                         </div>
                         <!--ET_BEGIN state-->
-                        <div class="[#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
+                        <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class='custom-header-bg' style="width: 35%"><b>|Получател|*</b></td>
@@ -48,8 +48,7 @@
                 </tr>
                 <tr>
                     <td class='with-words' colspan='2'>
-                        <b>|словом|*:</b>&nbsp;&nbsp;<span class='cCode'>[#currencyId#]</span>
-                        &nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;<br>
+                        |Словом|*: [#amountVerbal#]<br>
                     </td>
                 </tr>
             </table>
@@ -58,7 +57,7 @@
                 [#rkoRow#]
                 <tr>
                     <td colspan='2'>
-                        <table style='width:100%'>
+                        <table style='width:100%' class="no-border">
                             <tr>
                                 <!--ET_BEGIN notes-->
                                 <td colspan='2' class='notes-block' style='height: auto; padding:10px'>

@@ -55,19 +55,19 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo, store, purchase, sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo, store, purchase, sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo, store, purchase, sales';
     
     
     /**
@@ -145,7 +145,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short');
+    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang);
     			batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     			
     			if($rec->notes){

@@ -26,7 +26,7 @@ class cal_TaskConditions extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,cal_Wrapper,plg_AutoFilter, plg_RowTools';
+    public $loadList = 'plg_Created,cal_Wrapper, plg_RowTools';
 
 
     /**

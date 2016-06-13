@@ -368,13 +368,13 @@ class doc_LikesPlg extends core_Plugin
                         if ($mvc->haveRightFor('dislike', $rec->id)) {
                             $dislikeUrl = array($mvc, 'dislikeDocument', $rec->id);
                             
-                            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+                            $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
                             $attr['data-url'] = toUrl($dislikeUrl, 'local');
                         }
                         
                         $attr['ef_icon'] = 'img/16/redheart.png';
                         $attr['class'] = 'liked';
-                        $attr['title'] = tr('Отказ от харесване');
+                        $attr['title'] = 'Отказ от харесване';
                         
                         $likesLink = ht::createLink('', $dislikeUrl, NULL, $attr);
                     } else {
@@ -386,7 +386,7 @@ class doc_LikesPlg extends core_Plugin
                             if ($mvc->haveRightFor('like', $rec->id)) {
                                 $likeUrl = array($mvc, 'likeDocument', $rec->id);
                                 
-                                $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+                                $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
                                 $attr['data-url'] = toUrl($likeUrl, 'local');
                             } else {
                                 $linkClass .= ' disable';
@@ -394,7 +394,7 @@ class doc_LikesPlg extends core_Plugin
                         
                             $attr['ef_icon'] = 'img/16/grayheart.png';
                             $attr['class'] = $linkClass;
-                            $attr['title'] = tr('Харесване');
+                            $attr['title'] = 'Харесване';
                             
                             $likesLink = ht::createLink('', $likeUrl, NULL, $attr);
                         }

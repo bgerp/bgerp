@@ -237,7 +237,7 @@ class doc_Threads extends core_Manager
      * 
      * 
      * @param integer $id
-     * @param boolean $escape
+     * @param boolean $escaped
      */
     public static function getTitleForId_($id, $escaped = TRUE)
     {
@@ -484,6 +484,10 @@ class doc_Threads extends core_Manager
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
+        if ($folderRec->state == 'closed') {
+        	$folderRow->title = ht::createHint($folderRow->title, 'Папката е затворена', 'warning');
+        }
+        
         $title->append($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         
@@ -518,9 +522,9 @@ class doc_Threads extends core_Manager
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
         $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите)', 
-            'allowEmpty,caption=Подредба,input,silent,refreshForm');
+            'allowEmpty,caption=Подредба,input,silent,autoFilter');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
-        $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
+        $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently,autoFilter');
         
         if(!isset($data->listFilter->fields['Rejected'])) {
         	$data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
@@ -758,14 +762,14 @@ class doc_Threads extends core_Manager
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             $docRow = $docProxy->getDocumentRow();
             $attr = array();
-            $attr['class'] .= 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
-
+            
+            $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docProxy->that));
+            
             if(mb_strlen($docRow->title) > self::maxLenTitle) {
                 $attr['title'] = $docRow->title;
             }
             
-            $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+            $row->onlyTitle = $row->title = ht::createLink(str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
                     'threadId' => $rec->id,
                     'folderId' => $rec->folderId,
@@ -781,11 +785,9 @@ class doc_Threads extends core_Manager
             } else {
                 $row->author = $docRow->author;
             }
-            $row->hnd = "<div class='rowtools'>";
-            $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
-            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
-            $row->hnd .= '</div>';
-            $row->hnd .= '</div>';
+
+            $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
+
         } catch (core_Exception_Expect $expect) {
             $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
             $row->title = '?????????????';
@@ -978,8 +980,10 @@ class doc_Threads extends core_Manager
             foreach($selArr as $threadId) {
                 try {
                     $this->move($threadId, $folderId);
-                    
+					
+                    doc_Folders::logWrite('Преместена нишка от', $threadRec->folderId);
                     doc_Threads::logWrite('Преместена нишка', $threadId);
+                    doc_Folders::logWrite('Преместена нишка в', $folderId);
                     
                     $successCnt++;
                 } catch (core_Exception_Expect $expect) { 
@@ -1249,7 +1253,7 @@ class doc_Threads extends core_Manager
                 $usersArr = bgerp_Notifications::getNotifiedUserArr($urlArr);
                 $nRec = doc_Threads::fetch($id, '*', FALSE);
                 
-                if ($usersArr) {
+                if (!empty($usersArr)) {
                     foreach ((array)$usersArr as $userId => $hidden) {
                         
                         // Ако има права до сингъла
@@ -1632,9 +1636,12 @@ class doc_Threads extends core_Manager
         	$folderState = doc_Folders::fetchField($data->folderId, 'state');
         	if($folderState == 'closed'){
         		$data->toolbar->removeBtn('*');
+        		if($mvc->hasPlugin('plg_Select')){
+        			unset($data->listFields['_checkboxes']);
+        		}
         	} else {
         		// Може да се добавя нов документ, само ако папката не е затворена
-        		if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
+        		if(doc_Folders::haveRightFor('newdoc', $data->folderId)){
         			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
         		$data->rejQuery->where("#folderId = {$data->folderId}");
@@ -1657,8 +1664,11 @@ class doc_Threads extends core_Manager
             	}
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
-            	$managersIds = self::getFastButtons($data->folderId);
-        	    if(count($managersIds)){
+            	$Cover = doc_Folders::getCover($data->folderId);
+            	$managersIds = self::getFastButtons($Cover->getInstance(), $Cover->that);
+        	    
+            	$fState = doc_Folders::fetchField($data->folderId, 'state');
+        	    if(count($managersIds) && ($fState != 'closed' && $fState != 'rejected')){
         	    	
         	    	// Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
         			foreach ($managersIds as $classId){
@@ -1687,13 +1697,11 @@ class doc_Threads extends core_Manager
      * @param int $folderId - ид на папката
      * @return array $res - намерените мениджъри
      */
-    private static function getFastButtons($folderId)
+    public static function getFastButtons($coverClass, $coverId)
     {
-    	$Cover = doc_Folders::getCover($folderId);
-    	if(!$Cover->haveInterface('doc_FolderIntf')) return;
-    	
-    	$managers = $Cover->getDocButtonsInFolder();
-    	
+    	expect($Cover = cls::get($coverClass));
+    	$managers = $Cover->getDocButtonsInFolder($coverId);
+    
     	$res = array();
     	if(is_array($managers) && count($managers)){
     		foreach ($managers as $manager){
@@ -1701,7 +1709,8 @@ class doc_Threads extends core_Manager
     			// Проверяваме дали може да се зареди класа
     			if(cls::load($manager, TRUE)){
     				$Cls = cls::get($manager);
-    				expect(cls::haveInterface('doc_DocumentIntf', $Cls));
+    				
+    				if (!cls::haveInterface('doc_DocumentIntf', $Cls)) continue;
     				
     				$res[$Cls->getClassId()] = $Cls->getClassId();
     			}
@@ -2000,14 +2009,15 @@ class doc_Threads extends core_Manager
      *
      * @param core_Query $query
      * @param int $userId key(mvc=core_Users) текущия по подразбиране
+     * @param boolean $viewAccess
      */
-    static function restrictAccess($query, $userId = NULL)
+    static function restrictAccess($query, $userId = NULL, $viewAccess = FALSE)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
         
-        doc_Folders::restrictAccess($query, $userId, FALSE);
+        doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
         if ($query->mvc->className != 'doc_Threads') {
             // Добавя необходимите полета от модела doc_Threads
@@ -2174,7 +2184,7 @@ class doc_Threads extends core_Manager
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      * 
      * @param string $key
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
      * @see core_SettingsIntf
      */
     static function canModifySettings($key, $userOrRole=NULL)

@@ -20,7 +20,7 @@ class cash_Rko extends cash_Document
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Rko, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Rko, bgerp_DealIntf, email_DocumentIntf';
     
     
     /**
@@ -51,6 +51,12 @@ class cash_Rko extends cash_Document
      * Файл с шаблон за единичен изглед на статия
      */
     public $singleLayoutFile = 'cash/tpl/Rko.shtml';
+    
+    
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    public $singleLayoutFileNarrow = 'cash/tpl/RkoNarrow.shtml';
     
     
     /**

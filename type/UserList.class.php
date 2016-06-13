@@ -126,7 +126,10 @@ class type_UserList extends type_Keylist
                 $key = $uRec->id;
                 if(!isset($this->suggestions[$key])) {
                     $teamMembers++;
-                    $this->suggestions[$key] = core_Users::getVerbal($uRec, 'nick');
+                    $this->suggestions[$key] =  html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
+                    if(EF_USSERS_EMAIL_AS_NICK) {
+                        $this->suggestions[$key] =  html_entity_decode($this->suggestions[$key]);
+                    }
                 }
             }
 

@@ -3,8 +3,8 @@
         [#NAVIGATION#]
     </div>
     <div class='results-row'>
-        <div class='fleft results'>Резултати за <span class='search-text'>[#SEARCH_FOR#]</span></div>
-        <div class='fright'>[#SEARCH_FORM#]</div>
+        <div class='fleft results'>|Резултати за|* "<span class='search-text'>[#SEARCH_FOR#]</span>"</div>
+        <div class='fright forumSearch' id="simpleSearch" style="margin-bottom: 20px">[#SEARCH_FORM#]</div>
         <div class='clearfix21'></div>
     </div>
     <div class='thread-header'>
@@ -18,6 +18,7 @@
     </div>
     <table class="forum-themes no-border" style='width:100%'>
         <!--ET_BEGIN ROW-->	
+        [#ROW#]
         <tr class='theme-row'>
             <td class='theme-row-title' style='width:58%' >
                 <div class='forum-icon'>[#ICON#]</div>

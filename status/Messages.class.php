@@ -74,6 +74,8 @@ class status_Messages extends core_Manager
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор');
         $this->FLD('lifeTime', 'time', 'caption=Живот');
         $this->FLD('hitId', 'varchar(16)', 'caption=ID на хита');
+        
+        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -176,7 +178,6 @@ class status_Messages extends core_Manager
         // Вземаме всички записи за текущия потребител
         // Създадени преди съответното време
         $query = self::getQuery();
-        $query->where(array("#createdOn >= '[#1#]'", $hitTimeB));
         
         // Ако потребителя е логнат
         if ($userId > 0) {
@@ -197,7 +198,7 @@ class status_Messages extends core_Manager
         $query->orderBy('createdOn', 'ASC');
         
         // Записите със зададено hitId да се връщат, се връщат само за съответното hitId
-        $query->where("#hitId IS NULL");
+        $query->where(array("#hitId IS NULL AND #createdOn >= '[#1#]'", $hitTimeB));
         if ($hitId) {
             $query->orWhere(array("#hitId = '[#1#]'", $hitId));
         }
@@ -210,8 +211,8 @@ class status_Messages extends core_Manager
             
             $skip = FALSE;
             
-            // Проверяваме дали е изличан преди
-            $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $idleTime, $sid, $userId);
+            // Проверяваме дали е извличан преди
+            $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $idleTime, $sid, $userId, $hitId);
             
             // Ако е извличан преди в съответния таб, да не се показва пак
             if ($isRetrived) continue;
@@ -243,7 +244,7 @@ class status_Messages extends core_Manager
             }
             
             // Добавяме в извличанията
-            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId);
+            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId, $hitId);
         }
         
         return $resArr;
@@ -325,7 +326,7 @@ class status_Messages extends core_Manager
      * @param integer $idleTime - Време на бездействие на съответния таб
      * @param string $hitId - Уникално ID на хита
      * 
-     * @return string - 'div' със статус съобщенията
+     * @return array
      */
     static function getStatusesData_($hitTime, $idleTime, $hitId=NULL)
     {
@@ -391,18 +392,24 @@ class status_Messages extends core_Manager
         // Текущото време
         $now = dt::verbal2mysql();
         
-        // Вземаме всички статус съобщения, на които име е свършил lifeTime
+        // Вземаме всички статус съобщения, които са изтекли
         $query = self::getQuery();
-        $query->where("ADDTIME(#createdOn, SEC_TO_TIME(#lifeTime)) < '{$now}'");
+        $query->where("DATE_ADD(#createdOn, INTERVAL #lifeTime SECOND) < '{$now}'");
+        
+        $cnt = 0;
         
         while ($rec = $query->fetch()) {
             
             // Изтриваме информцията за изтегляния
             status_Retrieving::removeRetrieving($rec->id);
             
+            $cnt++;
+            
             // Изтриваме записа
             self::delete($rec->id);
         }
+        
+        return $cnt;
     }
     
     
@@ -422,5 +429,20 @@ class status_Messages extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 40;
         $res .= core_Cron::addOnce($rec);
+    }
+    
+    
+    /**
+     * Връща масив със чакащите статуси в момента
+     * @return array
+     */
+    public static function returnStatusesArray()
+    {
+    	$hitTime = Request::get('hitTime', 'int');
+    	$idleTime = Request::get('idleTime', 'int');
+    	$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+    
+    	// Връщаме статусите ако има
+    	return (array)$statusData;
     }
 }
