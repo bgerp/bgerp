@@ -350,7 +350,15 @@ class price_ListDocs extends core_Master
     		$data->rec->date .= ' 23:59:59';
     	}
     	
-    	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date); 
+    	$customerProducts = array();
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#state != 'rejected'");
+    	$pQuery->where("#canSell = 'yes'");
+    	$pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = {$data->rec->folderId})");
+    	
+    	while($pRec = $pQuery->fetch()){
+    		$customerProducts[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
+    	}
     	
     	if($customerProducts){
     		foreach($customerProducts as $id => $product){

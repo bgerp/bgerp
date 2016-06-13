@@ -110,7 +110,7 @@ class price_ListRules extends core_Detail
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС,noChange'); 
         
         // Марж за група
-        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory,remember=info');
+        $this->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,remember=info');
         $this->FLD('calculation', 'enum(forward,reverse)', 'caption=Изчисляване,remember');
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Марж,placeholder=%');
 
@@ -169,13 +169,6 @@ class price_ListRules extends core_Detail
         price_ListToCustomers::canonizeTime($datetime);
 
         $datetime = price_History::canonizeTime($datetime);
-        
-        if($listId != self::PRICE_LIST_COST){
-        	
-        	// В коя ценова група се е намирал продукта към посочената дата?
-        	$productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
-        	if(!$productGroup) return;
-        }
        
         $query = self::getQuery();
         
@@ -300,18 +293,24 @@ class price_ListRules extends core_Detail
 		    $parentTitle = $parentRec->title;
         }
 		
-        $availableProducts = price_GroupOfProducts::getAllProducts(NULL, FALSE);
-        if(count($availableProducts)){
-        	$options = cat_Products::getByProperty('canSell');
-        	$newOptions = array_intersect_key($options, $availableProducts);
-        	$form->setOptions('productId', $newOptions);
-        } else {
+        if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
         	$form->setReadOnly('productId');
+        } else {
+        	$availableProducts = array();
+        	$pQuery = cat_Products::getQuery();
+        	$pQuery->where("#isPublic = 'yes'");
+        	$pQuery->where("#state != 'rejected'");
+        	$pQuery->where("#canSell = 'yes'");
+        	while($pRec = $pQuery->fetch()){
+        		$availableProducts[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
+        	}
+        	
+        	if(count($availableProducts)){
+        		$form->setOptions('productId', $availableProducts);
+        	} else {
+        		$form->setReadOnly('productId');
+        	}
         }
-        
-    	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
-			$form->setReadOnly('productId');
-		}
         
         $form->FNC('targetPrice', 'double', 'caption=Желана цена,after=discount,input');
 
@@ -543,10 +542,12 @@ class price_ListRules extends core_Detail
             if($rec->groupId) {
                 $query->where("#groupId = $rec->groupId");
             } else {
-                $productGroup = price_GroupOfProducts::getGroup($rec->productId, $now);
-                if($productGroup) {
-                    $pgCond = "#groupId = $productGroup OR ";
-                }
+            	$groups = keylist::toArray(cat_Products::fetchField($rec->productId, 'groups'));
+            	if(is_array($groups)){
+            		foreach ($groups as $groupId){
+            			$pgCond .= "#groupId = $groupId OR ";
+            		}
+            	}
                 $query->where("{$pgCond}(#productId = '{$rec->productId}')");
             }
             
@@ -580,7 +581,6 @@ class price_ListRules extends core_Detail
         	}
         } elseif($rec->groupId) {
             $row->domain = tr('група') . " <b>\"" . $mvc->getVerbal($rec, 'groupId') . "\"</b>";
-            $row->domain = ht::createLink($row->domain, array('price_Groups', 'single', $rec->groupId));
         }
         
 		$masterRec = price_Lists::fetch($rec->listId);
@@ -638,7 +638,7 @@ class price_ListRules extends core_Detail
     */
     function loadSetupData()
     {
-        $csvFile = __DIR__ . "/setup/csv/Groups.csv";
+        /*$csvFile = __DIR__ . "/setup/csv/Groups.csv";
         $inserted = 0;
         
         if (($handle = fopen($csvFile, "r")) !== FALSE) {
@@ -668,7 +668,7 @@ class price_ListRules extends core_Detail
             $res = "<li class='debug-error'>Не може да бъде отворен файла '{$csvFile}'";
         }
         
-        return $res;
+        return $res;*/
     }
     
     

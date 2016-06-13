@@ -175,13 +175,6 @@ class price_History extends core_Manager
                 }
             }
 
-            // Вземаме всички времена от групите на продуктите
-            $query = price_GroupOfProducts::getQuery();
-            $query->show('validFrom');
-            while($rec = $query->fetch()) {
-                $timeline[$rec->validFrom] = TRUE;
-            }
-
             // Вземаме всички времена от ценоразписите на клиентите
             $query = price_ListToCustomers::getQuery();
             $query->show('validFrom');

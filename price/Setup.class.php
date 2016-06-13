@@ -59,8 +59,6 @@ class price_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'price_Groups',
-            'price_GroupOfProducts',
             'price_Lists',
             'price_ListToCustomers',
             'price_ListRules',
@@ -131,27 +129,89 @@ class price_Setup extends core_ProtoSetup
     	
     	$PriceGroups = cls::get('price_Groups');
     	$PriceGroups->setupMvc();
+    	$Products = cls::get('cat_Products');
     	
+    	// Кой ще е бащата на новите групи
     	$parentId = cat_Groups::fetchField("#sysId = 'priceGroup'", 'id');
     	
     	$res = array();
+    	
+    	// Извличаме всички ценови групи
     	$gQuery = price_Groups::getQuery();
     	while($rec = $gQuery->fetch()){
-    		$id = cat_Groups::fetchField(array("#parentId = {$parentId} AND #name = '[#1#]'", $rec->title));
-    		if(!$id){
-    			$recToSave = (object)array('name' => $rec->title, 'parentId' => $parentId);
-    			$id = $CatGroups->save_($recToSave, NULL, 'REPLACE');
+    		try{
+    			// Ако не е прехвърляна
+    			$id = cat_Groups::fetchField(array("#parentId = {$parentId} AND #name = '[#1#]'", $rec->title));
+    			
+    			// Прехвърляме я
+    			if(!$id){
+    				$recToSave = (object)array('name' => $rec->title, 'parentId' => $parentId);
+    				$id = $CatGroups->save_($recToSave, NULL, 'REPLACE');
+    			}
+    			
+    			// За всеки случай записваме в модела новото ид
+    			if($id){
+    				$rec->groupId = $id;
+    				$PriceGroups->save_($rec, 'groupId');
+    			}
+    			
+    			// Запомняме прехвърлените ид-та
+    			$res[$rec->id] = $rec->groupId;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
     		}
-    		
-    		if($id){
-    			$rec->groupId = $id;
-    			$PriceGroups->save_($rec, 'groupId');
-    		}
-    		$res[$rec->id] = $rec->groupId;
     	}
-    	bp($res);
     	
-    	//if($parentId = $mvc->fetchField(array("#name = '[#1#]'", $rec->csv_parentId), 'id')){
-    	//bp();
+    	$date = dt::now();
+    	
+    	// Ако има прехвърлени ид-та
+    	if(count($res)){
+    		try{
+    			// Извличаме всички артикули
+    			$pQuery = cat_Products::getQuery();
+    			$pQuery->show('groups');
+    			while($pRec = $pQuery->fetch()){
+    				// Намираме коя е последната им ценова група
+    				$group = price_GroupOfProducts::getGroup($pRec->id, $date);
+    				
+    				// Ако имат такава
+    				if($group){
+    					
+    					// Намираме кое ново ид и съответства
+    					$key = $res[$group];
+    					
+    					// Ако има такова
+    					if(isset($key)){
+    						
+    						// И ид-то му не присъства в маркерите на артикула
+    						if(!keylist::isIn($key, $pRec->groups)){
+    							
+    							// Добавяме го
+    							$newGroups = keylist::addKey($pRec->groups, $key);
+    							$pRec->groups = $newGroups;
+    							$Products->save_($pRec, 'groups');
+    						}
+    					}
+    				}
+    			}
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	
+    	try{
+    		$Lists = cls::get('price_ListRules');
+    		$Lists->setupMvc();
+    		$rQuery = price_ListRules::getQuery();
+    		$rQuery->where("#groupId IS NOT NULL");
+    		while($r = $rQuery->fetch()){
+    			if(isset($res[$r->groupId])){
+    				$r->groupId = $res[$r->groupId];
+    				$Lists->save_($r, 'groupId');
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
     }
 }
