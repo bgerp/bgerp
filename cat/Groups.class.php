@@ -224,6 +224,7 @@ class cat_Groups extends core_Manager
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
+    	// Ако е зададен баща опитваме се да го намерим
     	if(isset($rec->csv_parentId)){
     		if($parentId = $mvc->fetchField(array("#name = '[#1#]'", $rec->csv_parentId), 'id')){
     			$rec->parentId = $parentId;
