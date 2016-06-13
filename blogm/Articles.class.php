@@ -366,11 +366,11 @@ class blogm_Articles extends core_Master {
                     $Comments->logWrite('Добавяне', $id);
                     
                     // Редиректваме към предварително установения адрес
-                    return new Redirect(self::getUrl($data->rec), '|Благодарим за вашия коментар;)');
+                    return new Redirect(self::getUrl($data->rec), '|Благодарим за вашия коментар|*');
                 } else {
 
                     // Връщане на СПАМ съобщение
-                    return new Redirect(self::getUrl($data->rec), '|За съжаление не успяхме да запишем коментара ви|* :(');
+                    return new Redirect(self::getUrl($data->rec), '|За съжаление не успяхме да запишем коментара ви|*');
                 }
                 
             }
