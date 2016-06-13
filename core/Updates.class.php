@@ -23,6 +23,12 @@ class core_Updates extends core_Manager
      */
     public $title = 'Нови версии на системата';
     
+    
+    /**
+     * Заглавие на мениджъра
+     */
+    public $singleTitle = 'Нова версия на системата';
+    
 
     /**
      * Кои полета ще бъдат показани?
@@ -43,15 +49,20 @@ class core_Updates extends core_Manager
     
     
     /**
-     * Кой може да добавя, редактира и изтрива?
+     * Кой може да добавя?
      */
     var $canAdd = 'no_one';
     
     
     /**
-     * Кой може да добавя, редактира и изтрива?
+     * Кой може да редактира?
      */
     var $canEdit   = 'debug';
+    
+    
+    /**
+     * Кой може да изтрива?
+     */
     var $canDelete = 'debug';
 
     
@@ -72,10 +83,10 @@ class core_Updates extends core_Manager
      */
     function description()
     {
-        $this->FLD('version', 'varchar(64)', 'caption=Версия,smartCenter');
+        $this->FLD('version', 'varchar(64)', 'caption=Версия');
         $this->FLD('ghPublishedAt', 'datetime(format=smartTime)', 'caption=Публикуване');
-        $this->FLD('repo', 'varchar(64)', 'caption=Репозитори,smartCenter');
-        $this->FLD('branch', 'varchar(64)', 'caption=Бранч,smartCenter');
+        $this->FLD('repo', 'varchar(64)', 'caption=Репозитори');
+        $this->FLD('branch', 'varchar(64)', 'caption=Бранч');
         $this->FLD('tag', 'varchar(64)', 'caption=Бранч,column=none');
         $this->FLD('description', 'text', 'caption=@Описание');
         $this->FLD('ghCreatedAt', 'datetime', 'caption=Създаване,column=none');
