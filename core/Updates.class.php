@@ -23,6 +23,12 @@ class core_Updates extends core_Manager
      */
     public $title = 'Нови версии на системата';
     
+    
+    /**
+     * Заглавие на мениджъра
+     */
+    public $singleTitle = 'Нова версия на системата';
+    
 
     /**
      * Кои полета ще бъдат показани?
@@ -43,15 +49,20 @@ class core_Updates extends core_Manager
     
     
     /**
-     * Кой може да добавя, редактира и изтрива?
+     * Кой може да добавя?
      */
     var $canAdd = 'no_one';
     
     
     /**
-     * Кой може да добавя, редактира и изтрива?
+     * Кой може да редактира?
      */
     var $canEdit   = 'debug';
+    
+    
+    /**
+     * Кой може да изтрива?
+     */
     var $canDelete = 'debug';
 
     
