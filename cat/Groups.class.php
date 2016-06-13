@@ -191,10 +191,7 @@ class cat_Groups extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        //$row->productCnt = intval($rec->productCnt);
-        
         if($fields['-list']){
-            //$row->name .= " ({$row->productCnt})";
             $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'groupId' => $rec->id));
         }
     }
@@ -215,15 +212,36 @@ class cat_Groups extends core_Manager
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
         	$requiredRoles = 'no_one';
         }
+        
+        if($action == 'edit' && $rec->sysId){
+        	$requiredRoles = 'no_one';
+        }
     }
     
     
+    /**
+     * Преди импорт на записи
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	if(isset($rec->csv_parentId)){
+    		if($parentId = $mvc->fetchField(array("#name = '[#1#]'", $rec->csv_parentId), 'id')){
+    			$rec->parentId = $parentId;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След обновяване на модела
+     */
     protected static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cat/csv/Groups.csv";
     	$fields = array(
     			0 => "name",
     			1 => "sysId",
+    			2 => 'csv_parentId',
     	);
     
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
