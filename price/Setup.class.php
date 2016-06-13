@@ -135,6 +135,7 @@ class price_Setup extends core_ProtoSetup
     	$PriceGroups->setupMvc();
     	
     	if (!$PriceGroups->db->tableExists($PriceGroups->dbTableName)) return;
+    	core_App::setTimeLimit(300);
     	
     	$Products = cls::get('cat_Products');
     	
