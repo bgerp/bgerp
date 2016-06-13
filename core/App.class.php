@@ -106,7 +106,7 @@ class core_App
         // Разрешаваме грешките, ако инсталацията е Debug
         //ini_set("display_errors", EF_DEBUG);
         //ini_set("display_startup_errors", EF_DEBUG);
-
+        
 
         // Вътрешно кодиране
         mb_internal_encoding("UTF-8");
@@ -338,6 +338,11 @@ class core_App
         
         // На кой бранч от репозиторито е кода?
         defIfNot('BGERP_GIT_BRANCH', 'dev');
+        
+        // Ако паметта за скрипта е под 512М я правим на 512М
+        if (core_Os::getBytesFromMemoryLimit() < core_Os::getBytes("512M")) {
+            ini_set("memory_limit", "512M");
+        }
     }
 
 

@@ -73,10 +73,10 @@ class cms_Feeds extends core_Manager {
 	 */
 	public function description()
 	{
+		$this->FLD('source', 'class(interface=cms_FeedsSourceIntf,allowEmpty,select=title)', 'caption=Източник, mandatory,silent');
 		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory');
 		$this->FLD('description', 'text', 'caption=Oписание, mandatory');
 		$this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого');
-		$this->FLD('source', 'class(interface=cms_FeedsSourceIntf,allowEmpty)', 'caption=Източник, mandatory,silent');
 		$this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, notNull, mandatory');
 		$this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
 		$this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
@@ -275,14 +275,9 @@ class cms_Feeds extends core_Manager {
         $typeUrl = cls::get('type_Url');
 		$row->url = $typeUrl->toVerbal(toUrl($rssLink, 'absolute'));
 		
-		if($fields['-feeds']) {
-			// Преобразуваме логото на фийда да е  img
-			$imgUrl = sbf('cms/img/' . $rec->type . '.png', '\'');
-			
-			$row->title = ht::createLink($row->title, $rssLink, NULL, 
-                array('class' => 'linkWithIcon', 'style' => "padding-left:45px !important; background-image:url({$imgUrl})"));
-			
-		}
+		// Преобразуваме логото на фийда да е  img
+		$icon = 'cms/img/' . $rec->type . '.png';
+		$row->title = ht::createLink($row->title, $rssLink, NULL, "ef_icon={$icon}");
 	}
 	
 	

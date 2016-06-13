@@ -449,24 +449,34 @@ input[type="search"]::-webkit-search-decoration {
 	height:1.5em;
 }
 
-.narrow #simpleSearch {
-	height:1.3em;
+#simpleSearch.forumSearch .button {
+	top: -1px;
 }
 
-#simpleSearch input {
+.narrow #cmsNavigation #simpleSearch {
+	height:1.5em;
+	margin-top: 15px !important;
+}
+
+.narrow #searchform {
+	margin-bottom: 10px !important;
+}
+
+#simpleSearch input[type='text'], #simpleSearch #searchInput {
 	top:0.1em;
 	position:absolute;
 	display:inline-block;
-	border:none;
+	border:none !important;
 	outline:none;
 	height:1.2em;
+	box-shadow: none;
 	font-size:0.95em;
  	width:90%;
 	padding:0px;
 	padding-left:0.2em;
 }
 
-#simpleSearch button {
+#simpleSearch button, #simpleSearch .button {
 	width:10%;
 	margin-right:0px;
 	padding:0;
@@ -480,7 +490,7 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 .narrow #simpleSearch button {
-	margin-right:3px;
+	right: 2px;
 }
 
 
@@ -709,6 +719,9 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 	background: $gray3;
 	border: solid 1px #aaa;
 	min-width: 100px;
+	select& {
+		max-width: 36em;
+	}
 }
 
 .calendar, .calendar table {
@@ -1774,8 +1787,7 @@ td.formElement {
 
 
 /*вертикални форми*/
-.vertical .formTitle { 
-    padding: 10px;
+.vertical .formTitle {
     font-size: 1.2em;
 	border-bottom: none;
 	padding: 8px;
@@ -1787,14 +1799,15 @@ td.formElement {
 	}
 }
 
-#all .vertical .formTitle img {
+.wide #all .vertical .formTitle img {
 	vertical-align: top !important;
 }
 
 .narrow .vertical .formTitle {
 	font-size: 1.2em; 
     font-family: Verdana;
-    background-image: none; 
+    background-image: none;
+	padding: 9px 7px 7px;
 }
 
 .vertical .formGroup {

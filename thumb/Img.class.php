@@ -598,7 +598,13 @@ class thumb_Img
                 }
             }
 
-            if(thumb_Setup::get('OPTIMIZATORS') && !empty($path) && ($type = $this->getThumbFormat())) {
+            $type = $this->getThumbFormat();
+
+            if(!$type && $path) {
+                $type = fileman_Files::getExt($path);
+            }
+
+            if(thumb_Setup::get('OPTIMIZATORS') && !empty($path) && $type) {
                 $M = cls::get('thumb_M');
                 $M->forOptimization[$path] = $type;
             }

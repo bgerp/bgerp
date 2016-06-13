@@ -368,7 +368,7 @@ class doc_LikesPlg extends core_Plugin
                         if ($mvc->haveRightFor('dislike', $rec->id)) {
                             $dislikeUrl = array($mvc, 'dislikeDocument', $rec->id);
                             
-                            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+                            $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
                             $attr['data-url'] = toUrl($dislikeUrl, 'local');
                         }
                         
@@ -386,7 +386,7 @@ class doc_LikesPlg extends core_Plugin
                             if ($mvc->haveRightFor('like', $rec->id)) {
                                 $likeUrl = array($mvc, 'likeDocument', $rec->id);
                                 
-                                $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+                                $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
                                 $attr['data-url'] = toUrl($likeUrl, 'local');
                             } else {
                                 $linkClass .= ' disable';

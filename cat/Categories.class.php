@@ -356,15 +356,17 @@ class cat_Categories extends core_Master
      * Връща възможните за избор прототипни артикули с дадения драйвер
      * 
      * @param int|NULL $driverId - Ид на продуктов драйвер
+     * @param string|NULL $meta  - Мета свойства на артикулите
      * @param int|NULL $limit - Ограничаване на резултатите
      * @return array $opt - прототипните артикули
      */
-    public static function getProtoOptions($driverId = NULL, $limit = NULL)
+    public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL)
     {
     	$opt = $cArr = array();
     	
     	// В кои категории може да има прототипни артикули
     	$cQuery = self::getQuery();
+    	$cQuery->show('folderId');
     	while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
     		$cArr[] = $cRec->folderId;
     	}
@@ -378,9 +380,14 @@ class cat_Categories extends core_Master
     		if($driverId){
     			$query->where("#{$Products->driverClassField} = {$driverId}");
     		}
+    		
     		$query->where("#state = 'active' AND #folderId IN ({$catList})");
     		if($limit){
     			$query->limit($limit);
+    		}
+    		
+    		if(isset($meta)){
+    			$query->where("#{$meta} = 'yes'");
     		}
     		
     		while($pRec = $query->fetch()) {

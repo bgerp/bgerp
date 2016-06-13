@@ -3544,13 +3544,11 @@ div.location.public {
 .textWithIcons {
 	display: inline-block;
 	margin-bottom: -12px;
-	a, span {
+	a, span:not(.highlight) {
 		float: left;
 		margin-right:5px;
-
-
 	}
-	span {
+	span:not(.highlight) {
 		position: relative;
 		top: -3px !important;
 	}

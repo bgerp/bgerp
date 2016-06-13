@@ -1945,7 +1945,7 @@ function replaceFormData(frm, data)
 			render_redirect(r1['arg']);
 		}
 	}
-
+	
 	// Разрешаваме кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: true});		
 	
@@ -1961,11 +1961,11 @@ function replaceFormData(frm, data)
 		}
 	});
 	
+	// Зареждаме JS файловете синхронно
+	loadFiles(data.js, refreshForm.loadedFiles, frm, data.html);
+	
 	// Забраняваме отново кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: false});
-	
-	// Заместваме съдържанието на формата
-	frm.replaceWith(data.html);
 	
 	var newParams = $('form').serializeArray();
 	var paramsArray = [];
@@ -1973,7 +1973,7 @@ function replaceFormData(frm, data)
 	$.each(params, function (i, el) {
 		paramsArray[el.name] = el.value;
 	});
-
+	
 	$.each(newParams, function () {
         if (this.name.indexOf('[') == -1 && this.name.indexOf('_') == -1  ) {
             var matchVisibleElements =  ($('*[name="' + this.name + '"]').attr('type') != 'hidden');
@@ -1997,15 +1997,6 @@ function replaceFormData(frm, data)
         }
 	});
 	
-	// Разрешаваме кеширането при зареждане по ajax
-	$.ajaxSetup ({cache: true});		
-	
-	// Зареждаме JS файловете синхронно
-	loadFiles(data.js, refreshForm.loadedFiles);
-	
-	// Забраняваме отново кеширането при зареждане по ajax
-	$.ajaxSetup ({cache: false});		
-
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
 	
@@ -2016,20 +2007,34 @@ function replaceFormData(frm, data)
  * 
  * @param jsFiles
  * @param loadedFiles
+ * @param frm
+ * @param html
  */
-function loadFiles(jsFiles, loadedFiles)
+function loadFiles(jsFiles, loadedFiles, frm, html)
 {
-	if (typeof jsFiles == 'undefined' || (jsFiles.length == 0)) return ;
+	if (typeof jsFiles == 'undefined' || (jsFiles.length == 0)) {
+		if (typeof frm != 'undefined') {
+			frm.replaceWith(html);
+		}
+		
+		return ;
+	}
 	
 	file = jsFiles.shift();
 	
-	if (typeof file == 'undefined') return ;
+	if (typeof file == 'undefined') {
+		if (typeof frm != 'undefined') {
+			frm.replaceWith(html);
+		}
+		
+		return ;
+	}
 	
 	if (loadedFiles.indexOf(file) < 0) {
-		$.getScript(file, function(){loadFiles(jsFiles, loadedFiles)});
+		$.getScript(file, function(){loadFiles(jsFiles, loadedFiles, frm, html)});
 		loadedFiles.push(file);
 	} else {
-		loadFiles(jsFiles, loadedFiles);
+		loadFiles(jsFiles, loadedFiles, frm, html);
 	}
 }
 
@@ -4520,10 +4525,11 @@ function mailServerSettings() {
  * Вика url-то w data-url на линка и спира норматлноното му действие
  *
  * @param event
+ * @param stopOnClick
  *
  * @return boolean
  */
-function startUrlFromDataAttr(obj)
+function startUrlFromDataAttr(obj, stopOnClick)
 {
 	if (this.event) {
 		stopBtnDefault(this.event);
@@ -4531,9 +4537,13 @@ function startUrlFromDataAttr(obj)
 
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
-
-	getEfae().process(resObj);
-
+	
+	if (stopOnClick) {
+		$(obj).css('pointer-events', 'none');
+	}
+	
+	getEfae().process(resObj); 
+	
 	return false;
 }
 

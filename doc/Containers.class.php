@@ -2565,7 +2565,7 @@ class doc_Containers extends core_Manager
             $attr['ef_icon'] = 'img/16/toggle2.png';
             $attr['class'] = 'settings-hide-document';
             $attr['title'] = 'Скриване на документа в нишката';
-            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+            $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
             $attr['data-url'] = toUrl($url, 'local');
 
             $showDocument = ht::createLink('', $url, NULL, $attr);
@@ -2604,13 +2604,18 @@ class doc_Containers extends core_Manager
         // Добавяме CSS и JS файловете
         if ($row && $row->document instanceof core_ET) {
             $cssArr = $row->document->getArray('CSS', FALSE);
+            $pattern = '#^[^/]*//#';
             foreach ($cssArr as $css) {
-                $htmlArg['css'][] = sbf($css, '');
+                if(!preg_match($pattern, $css)) {
+                    $htmlArg['css'][] = sbf($css, '');
+                }
             }
             
             $jsArr = $row->document->getArray('JS', FALSE);
             foreach ($jsArr as $js) {
-                $htmlArg['js'][] = sbf($js, '');
+                if(!preg_match($pattern, $js)) {
+                    $htmlArg['js'][] = sbf($js, '');
+                }
             }
         }
         
@@ -2674,7 +2679,7 @@ class doc_Containers extends core_Manager
             $attr['ef_icon'] = 'img/16/toggle-expand.png';
             $attr['class'] = 'settings-show-document';
             $attr['title'] = 'Показване на целия документ';
-            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+            $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
             $attr['data-url'] = toUrl($url, 'local');
 
             $showDocument = ht::createLink('', $url, NULL, $attr);
