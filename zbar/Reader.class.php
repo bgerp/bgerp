@@ -28,19 +28,19 @@ class zbar_Reader
         $barcodesArr = array();
         
         // Екстрактваме файла и вземаме пътя до екстрактнатия файл
-        $filaPath = fileman::extract($fh);
+        $filePath = fileman::extract($fh);
         
-        if (!$filaPath) return $barcodesArr;
+        if (!$filePath) return $barcodesArr;
         
         // Изпълняваме командата за намиране на баркодове
-        exec("zbarimg " . escapeshellarg($filaPath), $allBarcodesArr, $errorCode);
+        exec("zbarimg " . escapeshellarg($filePath), $allBarcodesArr, $errorCode);
         
         // Изтриване на временния файл
-        fileman::deleteTempPath($filaPath);
+        fileman::deleteTempPath($filePath);
         
         if (($errorCode !== 0) && ($errorCode !== 4)) {
             
-            log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$filaPath}'", NULL, 'debug');
+            log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$filePath}'", NULL, 'debug');
             
             throw new fileman_Exception('Възникна грешка при обработка.');
         }
