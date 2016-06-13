@@ -32,6 +32,8 @@ class zbar_Reader
         // Изпълняваме командата за намиране на баркодове
         exec("zbarimg {$downloadUrl}", $allBarcodesArr, $errorCode);
         
+        log_System::add('zbar_Reader', "Стартиране на \"zbarimg '{$downloadUrl}'\"", NULL, 'debug');
+        
         if (($errorCode !== 0) && ($errorCode !== 4)) {
             
             log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$downloadUrl}'", NULL, 'debug');
