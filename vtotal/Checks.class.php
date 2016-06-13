@@ -240,7 +240,7 @@ class vtotal_Checks extends core_Master
                     $rec->firstCheck = $result->scan_date;
                     $rec->lastCheck = $now;
                     $rec->rateByVT = $result->positives . "|" . $result->total;
-                    $this->save($rec, 'firstCheck, lastCheck');
+                    $this->save($rec, 'firstCheck, lastCheck, rateByVT');
 
                     $query = fileman_Files::getQuery();
                     $query->where("#dataId = {$rec->filemanDataId}");
