@@ -62,18 +62,37 @@ class store_plg_BalanceSync extends core_Plugin
 		}
 		 
 		$dQuery->where("#balanceId = {$balanceRec->id}");
-		 
-		$Items = cls::get('acc_Items');
-		$itemArr = $Items->getCachedItems();
+		$recs = $dQuery->fetchAll();
 		
-		while($rec = $dQuery->fetch()){
+		// Кои са ид-та на перата от баланса
+		$itemIds = array();
+		foreach ($recs as $rec1){
+			foreach (array(1, 2) as $i){
+				if(!array_key_exists($rec1->{"ent{$i}Id"}, $itemIds)){
+					if(isset($rec1->{"ent{$i}Id"})){
+						$itemIds[$rec1->{"ent{$i}Id"}] = $rec1->{"ent{$i}Id"};
+					}
+				}
+			}
+		}
+		
+		// Извличаме наведнъж записите им
+		$cache = array();
+		$itemQuery = acc_Items::getQuery();
+		$itemQuery->in('id', $itemIds);
+		while($i = $itemQuery->fetch()){
+			$cache[$i->id] = $i;
+		}
+		
+		// За всеки запис от баланса
+		foreach ($recs as $rec){
 			if($rec->ent1Id){
 				 
 				// Перо 'Склад'
-				$storeItem = $itemArr['items'][$rec->ent1Id];
+				$storeItem = $cache[$rec->ent1Id];
 		   
 				// Перо 'Артикул'
-				$pItem = $itemArr['items'][$rec->ent2Id];
+				$pItem = $cache[$rec->ent2Id];
 		   		
 				// Съмаризиране на информацията за артикул / склад
 				$index = $storeItem->objectId . "|" . $pItem->classId . "|" . $pItem->objectId;
@@ -93,7 +112,7 @@ class store_plg_BalanceSync extends core_Plugin
 				}
 			}
 		}
-		 
+		
 		// Връщане на групираните крайни суми
 		return $all;
 	}

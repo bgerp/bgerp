@@ -75,6 +75,7 @@ class vtotal_Checks extends core_Master
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
         $this->FLD('timesScanеd', 'int', 'caption=Пъти сканиран този файл, notNull ,value=0');
+        $this->FLD('rateByVT', 'varchar(8)', 'caption=Опастност');
         $this->setDbUnique('filemanDataId');
     }
 
@@ -141,15 +142,17 @@ class vtotal_Checks extends core_Master
             //Macro
             'REG', 'DOC', 'XLS', 'PPT', 'DOCM',
             'DOTM', 'XLSM', 'XLTM', 'XLAM',
-            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM', 'PHP',
+            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM',
         );
 
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
-        $query->limit(1000);
+
+        $counter = 0;
 
         while($rec = $query->fetch()) {
+            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
 
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
 
@@ -157,13 +160,10 @@ class vtotal_Checks extends core_Master
 
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
-                if($cRec)
-                {
+                if($cRec) {
                     $rec->dangerRate = $cRec->dangerRate;
                     fileman_Files::save($rec, "dangerRate");
-                }
-                else
-                {
+                } else {
                     $rec->dangerRate = 0;
 
                     $fQuery = fileman_Files::getQuery();
@@ -179,18 +179,21 @@ class vtotal_Checks extends core_Master
                 }
             }
             elseif ($rec->dangerRate == NULL) {
+
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $checkFile = (object)array('filemanDataId' => $rec->dataId,
                     'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScand' => 1);
                 $result = $this->save($checkFile, NULL, "IGNORE");
 
-                if(!$result)
-                {
+                if(!$result) {
                     $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
                     $rec->dangerRate = $cRec->dangerRate;
                     fileman_Files::save($rec, "dangerRate");
+                } else {
+                    $counter++;
                 }
             }
+
         }
     }
 
@@ -236,6 +239,7 @@ class vtotal_Checks extends core_Master
                     $dangerRate = $this->getDangerRate($result);
                     $rec->firstCheck = $result->scan_date;
                     $rec->lastCheck = $now;
+                    $rec->rateByVT = $result->positives . "|" . $result->total;
                     $this->save($rec, 'firstCheck, lastCheck');
 
                     $query = fileman_Files::getQuery();
