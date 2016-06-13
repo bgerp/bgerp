@@ -75,6 +75,7 @@ class vtotal_Checks extends core_Master
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
         $this->FLD('timesScanеd', 'int', 'caption=Пъти сканиран този файл, notNull ,value=0');
+        $this->FLD('rateByVT', 'varchar(8)', 'caption=Опастност');
         $this->setDbUnique('filemanDataId');
     }
 
@@ -238,6 +239,7 @@ class vtotal_Checks extends core_Master
                     $dangerRate = $this->getDangerRate($result);
                     $rec->firstCheck = $result->scan_date;
                     $rec->lastCheck = $now;
+                    $rec->rateByVT = $result->positives . "|" . $result->total;
                     $this->save($rec, 'firstCheck, lastCheck');
 
                     $query = fileman_Files::getQuery();
