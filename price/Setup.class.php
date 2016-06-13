@@ -68,6 +68,7 @@ class price_Setup extends core_ProtoSetup
     		'price_ProductCosts',
     		'price_Updates',
     		'migrate::truncateProductCosts',
+    		'migrate::transferGroups'
         );
     
 
@@ -122,6 +123,9 @@ class price_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Мигрира ценовите групи към маркерите
+     */
     function transferGroups()
     {
     	$CatGroups = cls::get('cat_Groups');
@@ -129,6 +133,9 @@ class price_Setup extends core_ProtoSetup
     	
     	$PriceGroups = cls::get('price_Groups');
     	$PriceGroups->setupMvc();
+    	
+    	if (!$PriceGroups->db->tableExists($PriceGroups->dbTableName)) return;
+    	
     	$Products = cls::get('cat_Products');
     	
     	// Кой ще е бащата на новите групи

@@ -20,7 +20,7 @@ class cat_PriceDetails extends core_Manager
     /**
      * Кои мениджъри ще се зареждат
      */
-    public $loadList = 'PriceList=price_ListRules,VatGroups=cat_products_VatGroups,PriceGroup=price_GroupOfProducts';
+    public $loadList = 'PriceList=price_ListRules,VatGroups=cat_products_VatGroups';//,PriceGroup=price_GroupOfProducts
     
     
     /**
@@ -59,7 +59,7 @@ class cat_PriceDetails extends core_Manager
     	$listsData = clone $data;
     	$vatData = clone $data;
     	
-    	$this->PriceGroup->preparePriceGroup($groupsData);
+    	//$this->PriceGroup->preparePriceGroup($groupsData);
     	$this->preparePriceInfo($listsData);
     	$this->VatGroups->prepareVatGroups($vatData);
     	
@@ -77,7 +77,7 @@ class cat_PriceDetails extends core_Manager
     	if($data->hide === TRUE) return;
     	
     	$tpl = getTplFromFile('cat/tpl/PriceDetails.shtml');
-    	$tpl->append($this->PriceGroup->renderPriceGroup($data->groupsData), 'PriceGroup');
+    	//$tpl->append($this->PriceGroup->renderPriceGroup($data->groupsData), 'PriceGroup');
     	$tpl->append($this->renderPriceInfo($data->listsData), 'PriceList');
     	$tpl->append($this->VatGroups->renderVatGroups($data->vatData), 'VatGroups');
     	

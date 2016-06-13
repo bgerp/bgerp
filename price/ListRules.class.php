@@ -583,7 +583,7 @@ class price_ListRules extends core_Detail
         		$row->domain = "<span class= 'state-rejected-link'>{$row->domain}</span>";
         	}
         } elseif($rec->groupId) {
-            $row->domain = tr('група') . " <b>\"" . $mvc->getVerbal($rec, 'groupId') . "\"</b>";
+            $row->domain = "<b>" . $mvc->getVerbal($rec, 'groupId') . "</b>";
         }
         
 		$masterRec = price_Lists::fetch($rec->listId);
