@@ -24,25 +24,26 @@ class zbar_Reader
      */
     static function getBarcodesFromFile($fh)
     {
-        // Генерираме URL за сваляне на файл
-        $downloadUrl = fileman_Download::getDownloadUrl($fh);
+        // Масива с намерените баркодове
+        $barcodesArr = array();
         
-        $downloadUrl = escapeshellarg($downloadUrl);
+        // Екстрактваме файла и вземаме пътя до екстрактнатия файл
+        $filaPath = fileman::extract($fh);
+        
+        if (!$filaPath) return $barcodesArr;
         
         // Изпълняваме командата за намиране на баркодове
-        exec("zbarimg {$downloadUrl}", $allBarcodesArr, $errorCode);
+        exec("zbarimg " . escapeshellarg($filaPath), $allBarcodesArr, $errorCode);
         
-        log_System::add('zbar_Reader', "Стартиране на \"zbarimg '{$downloadUrl}'\"", NULL, 'debug');
+        // Изтриване на временния файл
+        fileman::deleteTempPath($filaPath);
         
         if (($errorCode !== 0) && ($errorCode !== 4)) {
             
-            log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$downloadUrl}'", NULL, 'debug');
+            log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$filaPath}'", NULL, 'debug');
             
             throw new fileman_Exception('Възникна грешка при обработка.');
         }
-        
-        // Масива с намерените баркодове
-        $barcodesArr = array();
         
         // Ако има окрит баркод
         if ((is_array($allBarcodesArr)) && count($allBarcodesArr)) {
