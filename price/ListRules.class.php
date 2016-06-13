@@ -174,14 +174,17 @@ class price_ListRules extends core_Detail
         
         // Общи ограничения
         $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
-
-        if($productGroup){
-        	// Конкретни ограничения
-        	$query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
-        } else {
-        	// Конкретни ограничения
-        	$query->where("#productId = {$productId}");
-        }
+		$groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
+		
+		$where = "#productId = {$productId}";
+		if(is_array($groups)){
+			$where .= " OR ";
+			foreach ($groups as $gr){
+				$where .= "#groupId = {$gr} OR ";
+			}
+		}
+		$where = trim($where, " OR ");
+		$query->where($where);
         
         // Вземаме последното правило
         $query->orderBy("#validFrom,#id", "DESC");
