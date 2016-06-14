@@ -182,7 +182,7 @@ class vtotal_Checks extends core_Master
 
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 1);
+                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
                 $result = $this->save($checkFile, NULL, "IGNORE");
 
                 if(!$result) {
@@ -242,10 +242,10 @@ class vtotal_Checks extends core_Master
                     $rec->rateByVT = $result->positives . "|" . $result->total;
                     $this->save($rec, 'firstCheck, lastCheck, rateByVT');
 
-                    $query = fileman_Files::getQuery();
-                    $query->where("#dataId = {$rec->filemanDataId}");
+                    $fsQuery = fileman_Files::getQuery();
+                    $fsQuery->where("#dataId = {$rec->filemanDataId}");
 
-                    while($fRec = $query->fetch())
+                    while($fRec = $fsQuery->fetch())
                     {
                         $fRec->dangerRate = $dangerRate;
                         fileman_Files::save($fRec);
