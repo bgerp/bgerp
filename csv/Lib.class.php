@@ -243,11 +243,11 @@ class csv_Lib
         $delimiter = str_replace(array('&comma;', 'semicolon', 'colon', 'vertica', '&Tab;', 'comma', '&vert;'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
         
         if(strlen($delimiter) > 1) {
-            $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401);
+            $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
 
         setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
-        setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE)));
+        setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
         setIfNot($dateFormat, $params['dateFormat'], core_Setup::get('EF_DATE_FORMAT', TRUE));
         setIfNot($datetimeFormat, $params['datetimeFormat'], 'd.m.y H:i');
         setIfNot($thousandsSep, $params['thousandsSep'], '');
