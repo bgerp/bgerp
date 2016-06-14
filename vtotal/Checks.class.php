@@ -74,7 +74,7 @@ class vtotal_Checks extends core_Master
         $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
-        $this->FLD('timesScanеd', 'int', 'caption=Пъти сканиран този файл, notNull ,value=0');
+        $this->FLD('timesScanned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScaned');
         $this->FLD('rateByVT', 'varchar(8)', 'caption=Опастност');
         $this->setDbUnique('filemanDataId');
     }
@@ -182,7 +182,7 @@ class vtotal_Checks extends core_Master
 
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanеd' => 0);
+                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 1);
                 $result = $this->save($checkFile, NULL, "IGNORE");
 
                 if(!$result) {
@@ -216,12 +216,12 @@ class vtotal_Checks extends core_Master
         {
             $result = self::VTGetReport($rec->md5);
 
-            if($rec->timesScanеd >= 2)
+            if($rec->timesScanned >= 2)
             {
-                $fFirstQuery = fileman_Files::getQuery();
-                $fFirstQuery->where("#dataId = {$rec->filemanDataId}");
+                $fQuery = fileman_Files::getQuery();
+                $fQuery->where("#dataId = {$rec->filemanDataId}");
 
-                while($fRec = $fFirstQuery->fetch())
+                while($fRec = $fQuery->fetch())
                 {
                     $fRec->dangerRate = -1;
                     fileman_Files::save($fRec);
@@ -230,7 +230,7 @@ class vtotal_Checks extends core_Master
             else{
                 if($result == -1 || $result == -3 || $result->response_code == 0)
                 {
-                    $rec->timesScanеd = $rec->timesScanеd + 1;
+                    $rec->timesScanned = $rec->timesScanned + 1;
                     $rec->lastCheck = $now;
                     $this->save($rec);
                 }
@@ -242,10 +242,10 @@ class vtotal_Checks extends core_Master
                     $rec->rateByVT = $result->positives . "|" . $result->total;
                     $this->save($rec, 'firstCheck, lastCheck, rateByVT');
 
-                    $fSecondQuery = fileman_Files::getQuery();
-                    $fSecondQuery->where("#dataId = {$rec->filemanDataId}");
+                    $query = fileman_Files::getQuery();
+                    $query->where("#dataId = {$rec->filemanDataId}");
 
-                    while($fRec = $fSecondQuery->fetch())
+                    while($fRec = $query->fetch())
                     {
                         $fRec->dangerRate = $dangerRate;
                         fileman_Files::save($fRec);

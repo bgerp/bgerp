@@ -16,10 +16,7 @@
  */
 class csv_Lib
 {
-    
-    
-    static $mapCharts = array("comma"=>",","semicolon"=>";","colon"=>":","vertical"=>"|");
-    
+        
     /**
      * Импортира CSV файл в указания модел
      */
@@ -243,8 +240,11 @@ class csv_Lib
             }
         }
         
-        $setUp = csv_Setup::get('DELIMITER');
-        $delimiter = static::$mapCharts[$setUp];
+        $delimiter = str_replace(array('comma', 'semicolon', 'colon', 'vertica', '&Tab;', '&comma;', '&vert;'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
+        if(strlen($delimiter) > 1) {
+            $delimiter = html_entity_decode($delimiter, ENT_HTML5);
+        }
+
         setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
         setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE)));
         setIfNot($dateFormat, $params['dateFormat'], core_Setup::get('EF_DATE_FORMAT', TRUE));
