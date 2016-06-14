@@ -273,12 +273,19 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
-    static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = TRUE, $callRecursive = TRUE)
+    static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = NULL, $callRecursive = TRUE)
     {
         // Опцията "относително време" да не работи в абсолутен или печатен режим
         if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf')) {
             if($mask == 'smartTime') {
                 $mask = "d.m.y H:i";
+            }
+        }
+        
+        // Ако изришно не е зададено да е TRUE, R (за отместване във времето) ще се добавя за смарт време
+        if (!isset($autoTimeZone)) {
+            if ($mask == 'smartTime') {
+                $autoTimeZone = TRUE;
             }
         }
 
