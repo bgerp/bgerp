@@ -529,6 +529,10 @@ class doc_FolderPlg extends core_Plugin
         // При променя на споделените потребители прави или чисти нотификацията
         if (isset($rec->__mustNotify)) {
             
+            // Добавяме и отговорниците към списъка
+            $rec->__oShared = type_Keylist::addKey($rec->__oShared, $rec->__oInCharge);
+            $rec->shared = type_Keylist::addKey($rec->shared, $rec->inCharge);
+            
             $sArr = type_Keylist::getDiffArr($rec->__oShared, $rec->shared);
             
             $currUserNick = core_Users::getCurrent('nick');
@@ -544,12 +548,6 @@ class doc_FolderPlg extends core_Plugin
             $delNotifyArr = array();
             if (!empty($sArr['delete'])) {
                 $delNotifyArr = $sArr['delete'];
-            }
-            
-            // Нотифицираме при смяна на отговорник
-            if ($rec->inCharge != $rec->__oInCharge) {
-                $notifyArr[$rec->inCharge] = $rec->inCharge;
-                $delNotifyArr[$rec->__oInCharge] = $rec->__oInCharge;
             }
             
             // Изтриваме нотификациите от премахнатите потребители 
