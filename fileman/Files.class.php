@@ -1447,7 +1447,7 @@ class fileman_Files extends core_Master
                     	$replaceId = $attr['id'];
                     	unset($attr['name'], $attr['id']);
                     	
-                    	$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id, 'replaceId' => $replaceId), 'local');
+                    	$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', 'fh' => $fh, 'replaceId' => $replaceId), 'local');
                         $attr['data-id'] = $replaceId;
                         $attr['data-url'] = $dataUrl;
                     }
@@ -1537,8 +1537,8 @@ class fileman_Files extends core_Master
     function act_getContextMenu()
     {
     	$this->requireRightFor('single');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = static::fetch($id));
+    	expect($fh = Request::get('fh', 'varchar'));
+    	expect($rec = static::fetchByFh($fh));
     	expect($replaceId = Request::get('replaceId', 'varchar'));
     	$this->requireRightFor('single', $rec);
     	
