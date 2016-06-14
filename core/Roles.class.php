@@ -550,6 +550,12 @@ class core_Roles extends core_Manager
             $name = trim($name);
         }
         
-        $rec->inheritInput = self::getRolesAsKeylist($rolesArr);
+        try {
+            $rec->inheritInput = self::getRolesAsKeylist($rolesArr);
+        } catch (core_exception_Expect $e) {
+            
+            reportException($e);
+            return FALSE;
+        }
     }
 }
