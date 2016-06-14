@@ -153,9 +153,11 @@ class vtotal_Checks extends core_Master
 
         while($rec = $query->fetch()) {
             if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
-
+            
+            if (!$rec->dataId) continue ;
+            
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
-
+            
             if (!in_array(strtoupper($extension), $dangerExtensions)) {
 
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
