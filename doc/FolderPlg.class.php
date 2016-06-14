@@ -528,6 +528,7 @@ class doc_FolderPlg extends core_Plugin
         
         // При променя на споделените потребители прави или чисти нотификацията
         if (isset($rec->__mustNotify)) {
+            
             $sArr = type_Keylist::getDiffArr($rec->__oShared, $rec->shared);
             
             $currUserNick = core_Users::getCurrent('nick');
@@ -545,6 +546,22 @@ class doc_FolderPlg extends core_Plugin
                 $delNotifyArr = $sArr['delete'];
             }
             
+            // Нотифицираме при смяна на отговорник
+            if ($rec->inCharge != $rec->__oInCharge) {
+                $notifyArr[$rec->inCharge] = $rec->inCharge;
+                $delNotifyArr[$rec->__oInCharge] = $rec->__oInCharge;
+            }
+            
+            // Изтриваме нотификациите от премахнатите потребители 
+            if ($delNotifyArr) {
+                foreach ($delNotifyArr as $clearUser) {
+                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'list'), 'yes', $clearUser);
+                }
+            }
+            
+            // Нотифицираме новите споделени потребители
             if ($notifyArr) {
                 foreach ($notifyArr as $notifyUserId) {
             
@@ -573,12 +590,6 @@ class doc_FolderPlg extends core_Plugin
                     }
             
                     bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
-                }
-            } else if ($delNotifyArr) {
-                foreach ($delNotifyArr as $clearUser) {
-                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'yes', $clearUser);
-                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $clearUser);
-                    bgerp_Notifications::setHidden(array($mvc, 'list'), 'yes', $clearUser);
                 }
             }
         }
@@ -839,6 +850,7 @@ class doc_FolderPlg extends core_Plugin
                 $oRec = $mvc->fetch($form->rec->id);
                 $rec->__mustNotify = TRUE;
                 $rec->__oShared = $oRec->shared;
+                $rec->__oInCharge = $oRec->inCharge;
             }
         }
     }
