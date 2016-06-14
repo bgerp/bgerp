@@ -65,13 +65,8 @@ class csv_Lib
                 foreach($fields as $i => $f) {
                     $rec->{$f} = $data[$i];
                 }
-                try {
-                    // Обработка на записа преди импортиране
-                    $mvc->invoke('BeforeImportRec', array(&$rec));
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                    continue;
-                }
+                
+                if ($mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) continue ;
 				
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if($fromZero) {
