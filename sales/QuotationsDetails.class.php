@@ -377,7 +377,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			
     			if (empty($policyInfo->price)) {
     				
-    				$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
+    				$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
     			} else {
     	
     				// Ако се обновява запис се взима цената от него, ако не от политиката
