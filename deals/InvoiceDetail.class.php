@@ -398,7 +398,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			if($masterRec->type == 'dc_note'){
 				if(!isset($rec->packPrice) || !isset($rec->quantity)){
-					$form->setError('packPrice,packQuantity', 'Полето за сума не трябва да е празно');
+					$form->setError('packPrice,packQuantity', 'Количеството и сумата трябва да са попълнени');
 					return;
 				}
 			}
