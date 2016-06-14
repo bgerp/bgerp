@@ -1538,13 +1538,9 @@ class fileman_Files extends core_Master
     {
     	$this->requireRightFor('single');
     	expect($fh = Request::get('fh', 'varchar'));
-    	expect($rec = static::fetchByFh($fh));
+    	expect($fRec = static::fetchByFh($fh));
     	expect($replaceId = Request::get('replaceId', 'varchar'));
-    	$this->requireRightFor('single', $rec);
-    	
-    	$fh = fileman::idToFh($rec->id);
-    
-    	$fRec = fileman_Files::fetchByFh($fh);
+    	$this->requireRightFor('single', $fRec);
     	
     	//Разширението на файла
     	$ext = fileman_Files::getExt($fRec->name);
@@ -1564,22 +1560,22 @@ class fileman_Files extends core_Master
     	$urlPreview['#'] = 'fileDetail';
     
     	$tpl = new core_ET();
-    	$preview = ht::createBtn('Преглед', $urlPreview, NULL, NULL,  array('ef_icon' => $icon));
+    	$preview = ht::createBtn('Преглед', $urlPreview, NULL, NULL,  array('ef_icon' => $icon, 'title' => 'Преглед на файла'));
     	$tpl->append($preview);
     
     	// Вземаме линка към сингъла на файла таб информация
     	$url = array('fileman_Files', 'single', $fh);
     	$url['currentTab'] = 'info';
     	$url['#'] = 'fileDetail';
-    	$infoBtn = ht::createBtn('Информация', $url, NULL, NULL,  array('ef_icon' => 'img/16/info-16.png'));
+    	$infoBtn = ht::createBtn('Информация', $url, NULL, NULL,  array('ef_icon' => 'img/16/info-16.png', 'title' => 'Информация за файла'));
     	$tpl->append($infoBtn);
     
     
-    	$linkBtn = ht::createBtn('Линк', array('F', 'GetLink', 'fileHnd' =>$fh, 'ret_url' => TRUE), NULL, NULL, array('ef_icon' => 'img/16/link.png', 'title'=> tr('Генериране на линк за сваляне')));
+    	$linkBtn = ht::createBtn('Линк', array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => TRUE), NULL, NULL, array('ef_icon' => 'img/16/link.png', 'title'=> 'Генериране на линк за сваляне'));
     	$tpl->append($linkBtn);
     
     	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
-    	$download  =  ht::createBtn('Сваляне', $downloadUrl, NULL, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png'));
+    	$download  =  ht::createBtn('Сваляне', $downloadUrl, NULL, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла'));
     	$tpl->append($download);
     
     	// Ако сме в AJAX режим
