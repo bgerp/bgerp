@@ -502,7 +502,7 @@ class cat_BomDetails extends doc_Detail
     				
     				// Ако артикула не може да се избере сетваме грешка
     				if($canAdd === FALSE){
-    					$form->setError('parentId,resourceId', 'Артикула не може да се повтаря в нивото');
+    					$form->setError('parentId,resourceId', 'Артикулът не може да се повтаря в нивото');
     				}
     			}
     		}
