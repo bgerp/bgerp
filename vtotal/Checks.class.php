@@ -172,7 +172,12 @@ class vtotal_Checks extends core_Master
         while($rec = $query->fetch()) {
             if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
             
-            if (!$rec->dataId) continue ;
+            if (!$rec->dataId) {
+                $rec->dangerRate = 0;
+                fileman_Files::save($rec, "dangerRate");
+                
+                continue;
+            }
             
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
             if(in_array(strtoupper($extension), $archiveExtensions)) {
@@ -202,6 +207,8 @@ class vtotal_Checks extends core_Master
                     continue;
                 }
 				
+                $archiveHaveExt = FALSE;
+                
                 foreach ($entriesArr as $key => $entry) {
                     $size = $entry->getSize();
 
@@ -219,7 +226,9 @@ class vtotal_Checks extends core_Master
 
                     // Проверка на разширението дали е от сканируемите
                     if(!in_array(strtoupper($ext), $dangerExtensions)) continue;
-
+                    
+                    $archiveHaveExt = TRUE;
+                    
                     // След като открием файла който ще пратим към VT
 
                     $extractedPath = $archivInst->extractEntry($path);
@@ -240,7 +249,12 @@ class vtotal_Checks extends core_Master
                     }
                     break;
                 }
-
+                
+                if (!$archiveHaveExt) {
+                    $rec->dangerRate = 0;
+                    fileman_Files::save($rec, "dangerRate");
+                }
+                
                 // Изтриваме временната директория за съхранение на архива.
                 $archivInst->deleteTempPath();
 
