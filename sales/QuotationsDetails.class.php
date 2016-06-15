@@ -919,12 +919,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	$query->EXT('validFor', 'sales_Quotations', 'externalName=validFor,externalKey=quotationId');
     	$query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
     	
-    	// Филтрираме офертите за да намерим на каква цена последно сме
-    	// оферирали артикула за посоченото количество
+    	// Филтрираме офертите за да намерим на каква цена последно сме оферирали артикула за посоченото количество
     	$query->where("#productId = {$productId} AND #quantity = {$quantity}");
     	$query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
     	$query->where("#state = 'active'");
-    	$query->where("#expireOn >= '{$today}'");
+    	$query->where("(#expireOn IS NULL AND #date >= '{$today}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$today}')");
     	$query->orderBy("date,quotationId", 'DESC');
     	
     	$res = (object)array('price' => NULL);
