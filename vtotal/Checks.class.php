@@ -186,9 +186,14 @@ class vtotal_Checks extends core_Master
                 }catch(fileman_Exception $e){
                     continue;
                 }
-
-                $entriesArr = $archivInst->getEntries();
-
+                
+                try {
+                    $entriesArr = $archivInst->getEntries();
+                } catch (core_exception_Expect $e) {
+                    self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
+                    continue;
+                }
+				
                 foreach ($entriesArr as $key => $entry) {
                     $size = $entry->getSize();
 
