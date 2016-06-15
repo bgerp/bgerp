@@ -98,7 +98,7 @@ try {
     
     if($e instanceOf core_exception_Db && ($link = $e->getDbLink())) { 
         
-        if(!isDebug() && $e->isNotExistsDB() ) {   
+        if (BGERP_GIT_BRANCH != 'dev' && $e->isNotExistsDB() ) {   
 
             // Опитваме се да създадем базата и редиректваме към сетъп-а
             try {
@@ -109,7 +109,7 @@ try {
             
             redirect(array('Index', 'SetupKey' => setupKey()));
 
-        } elseif(!isDebug() && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
+        } elseif (BGERP_GIT_BRANCH != 'dev' && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
  
             // При празна база или грешка в базата редиректваме безусловно към сетъп-а
             redirect(array('Index', 'SetupKey' => setupKey()));
