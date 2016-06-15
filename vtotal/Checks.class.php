@@ -184,6 +184,10 @@ class vtotal_Checks extends core_Master
                 try{
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
                 }catch(fileman_Exception $e){
+                    
+                    $rec->dangerRate = 0;
+                    fileman_Files::save($rec, "dangerRate");
+                    
                     continue;
                 }
                 
@@ -191,6 +195,10 @@ class vtotal_Checks extends core_Master
                     $entriesArr = $archivInst->getEntries();
                 } catch (core_exception_Expect $e) {
                     self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
+                    
+                    $rec->dangerRate = 0;
+                    fileman_Files::save($rec, "dangerRate");
+                    
                     continue;
                 }
 				
