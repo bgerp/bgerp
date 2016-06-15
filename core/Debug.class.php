@@ -663,7 +663,7 @@ class core_Debug
             }
             
             $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
-            $contex['BGERP_LAST_STABLE_VERSION'] = '16.11';
+            $contex['BGERP_LAST_STABLE_VERSION'] = '16.24-Ком';
         }
         
         $state = array( 'errType'   => $errType, 
