@@ -125,6 +125,20 @@ class vtotal_Checks extends core_Master
     }
 
 
+    public function putNewFileForCheck($rec, $md5, &$counter)
+    {
+        $checkFile = (object)array('filemanDataId' => $rec->dataId,
+            'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
+        $result = $this->save($checkFile, NULL, "IGNORE");
+        if(!$result) {
+            $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+            $rec->dangerRate = $cRec->dangerRate;
+            fileman_Files::save($rec, "dangerRate");
+        } else {
+            $counter++;
+        }
+    }
+
     /**
      * Функция по крон, която проверява по 4 файла взети от fileman_Files и
      * ги поставя в този модел за инспекция
@@ -145,6 +159,10 @@ class vtotal_Checks extends core_Master
             'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM',
         );
 
+        $archiveExtensions = array(
+          'ZIP', 'RAR', 'GZIP', '7Z', 'GZ', 'ISO'
+        );
+
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
@@ -157,8 +175,63 @@ class vtotal_Checks extends core_Master
             if (!$rec->dataId) continue ;
             
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
-            
-            if (!in_array(strtoupper($extension), $dangerExtensions)) {
+            if(in_array(strtoupper($extension), $archiveExtensions)) {
+                $fileHnd = $rec->fileHnd;
+                $fRec = fileman_Files::fetchByFh($fileHnd);
+
+                // throw fileman_Exception - ако размера е над допустимия за обработка,
+                // трябва да го прихванеш
+                try{
+                    $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
+                }catch(fileman_Exception $e){
+                    continue;
+                }
+
+                $entriesArr = $archivInst->getEntries();
+
+                foreach ($entriesArr as $key => $entry) {
+                    $size = $entry->getSize();
+
+                    if (!$size) continue;
+
+                    // Гледаме размера след разархивиране да не е много голям
+                    // Защита от "бомби" - от препълване на сървъра
+                    if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
+
+                    $path = $entry->getPath();
+
+                    $ext = pathinfo($path, PATHINFO_EXTENSION);
+
+                    if (!$ext) continue;
+
+                    // Проверка на разширението дали е от сканируемите
+                    if(!in_array(strtoupper($ext), $dangerExtensions)) continue;
+
+                    // След като открием файла който ще пратим към VT
+
+                    $extractedPath = $archivInst->extractEntry($path);
+
+                    $md5 = md5_file($extractedPath);
+
+                    // Проверка във VT
+                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
+                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
+                    $result = $this->save($checkFile, NULL, "IGNORE");
+
+                    if(!$result) {
+                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+                        $rec->dangerRate = $cRec->dangerRate;
+                        fileman_Files::save($rec, "dangerRate");
+                    } else {
+                        $counter++;
+                    }
+                    break;
+                }
+
+                // Изтриваме временната директория за съхранение на архива.
+                $archivInst->deleteTempPath();
+
+            } elseif (!in_array(strtoupper($extension), $dangerExtensions)) {
 
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
@@ -195,7 +268,6 @@ class vtotal_Checks extends core_Master
                     $counter++;
                 }
             }
-
         }
     }
 
