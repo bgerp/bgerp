@@ -224,7 +224,7 @@ class planning_ObjectResources extends core_Manager
     	$tpl = getTplFromFile('planning/tpl/ResourceObjectDetail.shtml');
     	
     	if($data->notConvertableAnymore === TRUE){
-    		$title = tr('Артикула вече не е вложим');
+    		$title = tr('Артикулът вече не е вложим');
     		$title = "<small class='red'>{$title}</small>";
     		$tpl->append($title, 'title');
     		$tpl->replace('state-rejected', 'TAB_STATE');
