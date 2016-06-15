@@ -122,7 +122,7 @@ try {
         if(($e->isNotInitializedDB() || $e->isNotExistsDB()) && $link) {
             
             try {
-                if(isDebug() || haveRole('admin')) {
+                if((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
                     if($e->isNotExistsDB()) {
                         try {
                             mysqli_query($link, "CREATE DATABASE " . EF_DB_NAME);
