@@ -232,9 +232,19 @@ class vtotal_Checks extends core_Master
                     // След като открием файла който ще пратим към VT
 
                     $extractedPath = $archivInst->extractEntry($path);
-
-                    $md5 = md5_file($extractedPath);
-
+                    
+                    if (!is_file($extractedPath)) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    }
+                    
+                    $md5 = @md5_file($extractedPath);
+                    
+                    if (!$md5) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    }
+                    
                     // Проверка във VT
                     $checkFile = (object)array('filemanDataId' => $rec->dataId,
                         'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
