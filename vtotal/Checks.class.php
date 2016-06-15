@@ -298,7 +298,7 @@ class vtotal_Checks extends core_Master
                 while($fRec = $fQuery->fetch())
                 {
                     $fRec->dangerRate = -1;
-                    fileman_Files::save($fRec);
+                    fileman_Files::save($fRec, 'dangerRate');
                 }
             }
             else{
@@ -322,7 +322,7 @@ class vtotal_Checks extends core_Master
                     while($fRec = $fsQuery->fetch())
                     {
                         $fRec->dangerRate = $dangerRate;
-                        fileman_Files::save($fRec);
+                        fileman_Files::save($fRec, 'dangerRate');
                     }
                 }
             }
