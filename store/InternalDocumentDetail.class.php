@@ -107,7 +107,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		}
     		
     		if(!isset($rec->packPrice)){
-    			$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
+    			$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
     		}
     		
     		$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
