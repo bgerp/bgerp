@@ -4517,7 +4517,9 @@ function mailServerSettings() {
 
     }
     
-    location.reload();
+    if($('.select2').length){
+        $('select').trigger("change");
+    }
 };
 
 
