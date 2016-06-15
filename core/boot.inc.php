@@ -525,6 +525,6 @@ function setupKey($efSalt = null)
 	defIfNot('BGERP_SETUP_KEY', $key);
 	
 	// Валидност средно 250 сек.
-	return md5($key . round(time()/1000));
+	return md5($key . round(time()/10000));
 }
  
