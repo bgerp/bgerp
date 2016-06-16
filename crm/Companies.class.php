@@ -822,7 +822,7 @@ class crm_Companies extends core_Master
     protected static function setCompanyLogo($companyConstName)
     {
         $baseColor = 'yellow';
-        $activeColor = '#ccc';
+        $activeColor = 'green';
         
         $dRec = cms_Domains::getPublicDomain('form');
         

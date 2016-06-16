@@ -172,7 +172,12 @@ class vtotal_Checks extends core_Master
         while($rec = $query->fetch()) {
             if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
             
-            if (!$rec->dataId) continue ;
+            if (!$rec->dataId) {
+                $rec->dangerRate = 0;
+                fileman_Files::save($rec, "dangerRate");
+                
+                continue;
+            }
             
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
             if(in_array(strtoupper($extension), $archiveExtensions)) {
@@ -184,11 +189,26 @@ class vtotal_Checks extends core_Master
                 try{
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
                 }catch(fileman_Exception $e){
+                    
+                    $rec->dangerRate = 0;
+                    fileman_Files::save($rec, "dangerRate");
+                    
                     continue;
                 }
-
-                $entriesArr = $archivInst->getEntries();
-
+                
+                try {
+                    $entriesArr = $archivInst->getEntries();
+                } catch (core_exception_Expect $e) {
+                    self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
+                    
+                    $rec->dangerRate = 0;
+                    fileman_Files::save($rec, "dangerRate");
+                    
+                    continue;
+                }
+				
+                $archiveHaveExt = FALSE;
+                
                 foreach ($entriesArr as $key => $entry) {
                     $size = $entry->getSize();
 
@@ -206,13 +226,25 @@ class vtotal_Checks extends core_Master
 
                     // Проверка на разширението дали е от сканируемите
                     if(!in_array(strtoupper($ext), $dangerExtensions)) continue;
-
+                    
+                    $archiveHaveExt = TRUE;
+                    
                     // След като открием файла който ще пратим към VT
 
                     $extractedPath = $archivInst->extractEntry($path);
-
-                    $md5 = md5_file($extractedPath);
-
+                    
+                    if (!is_file($extractedPath)) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    }
+                    
+                    $md5 = @md5_file($extractedPath);
+                    
+                    if (!$md5) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    }
+                    
                     // Проверка във VT
                     $checkFile = (object)array('filemanDataId' => $rec->dataId,
                         'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
@@ -227,7 +259,12 @@ class vtotal_Checks extends core_Master
                     }
                     break;
                 }
-
+                
+                if (!$archiveHaveExt) {
+                    $rec->dangerRate = 0;
+                    fileman_Files::save($rec, "dangerRate");
+                }
+                
                 // Изтриваме временната директория за съхранение на архива.
                 $archivInst->deleteTempPath();
 
@@ -298,7 +335,7 @@ class vtotal_Checks extends core_Master
                 while($fRec = $fQuery->fetch())
                 {
                     $fRec->dangerRate = -1;
-                    fileman_Files::save($fRec);
+                    fileman_Files::save($fRec, 'dangerRate');
                 }
             }
             else{
@@ -323,7 +360,7 @@ class vtotal_Checks extends core_Master
                     while($fRec = $fsQuery->fetch())
                     {
                         $fRec->dangerRate = $dangerRate;
-                        fileman_Files::save($fRec);
+                        fileman_Files::save($fRec, 'dangerRate');
                     }
                 }
             }

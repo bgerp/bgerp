@@ -44,7 +44,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Стартов контролер за връзката в системното меню
      */
-    var $startCtr = 'pallet_Movements';
+    var $startCtr = 'store_Stores';
     
     
     /**

@@ -98,7 +98,7 @@ try {
     
     if($e instanceOf core_exception_Db && ($link = $e->getDbLink())) { 
         
-        if(!isDebug() && $e->isNotExistsDB() ) {   
+        if ((!defined('BGERP_GIT_BRANCH') || BGERP_GIT_BRANCH != 'dev') && $e->isNotExistsDB() ) {   
 
             // Опитваме се да създадем базата и редиректваме към сетъп-а
             try {
@@ -109,7 +109,7 @@ try {
             
             redirect(array('Index', 'SetupKey' => setupKey()));
 
-        } elseif(!isDebug() && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
+        } elseif ((!defined('BGERP_GIT_BRANCH') || BGERP_GIT_BRANCH != 'dev') && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
  
             // При празна база или грешка в базата редиректваме безусловно към сетъп-а
             redirect(array('Index', 'SetupKey' => setupKey()));
@@ -122,7 +122,7 @@ try {
         if(($e->isNotInitializedDB() || $e->isNotExistsDB()) && $link) {
             
             try {
-                if(isDebug() || haveRole('admin')) {
+                if((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
                     if($e->isNotExistsDB()) {
                         try {
                             mysqli_query($link, "CREATE DATABASE " . EF_DB_NAME);
@@ -525,6 +525,6 @@ function setupKey($efSalt = null)
 	defIfNot('BGERP_SETUP_KEY', $key);
 	
 	// Валидност средно 250 сек.
-	return md5($key . round(time()/1000));
+	return md5($key . round(time()/10000));
 }
  
