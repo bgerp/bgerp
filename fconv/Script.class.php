@@ -476,7 +476,7 @@ class fconv_Script
         
         // Ако е зададено да се стартира асинхронно
         if ($asynch) {
-            $shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();    
+            $shell = $this->addRunAsinchronWin() . escapeshellarg($shellName) . $this->addRunAsinchronLinux();    
         } else {
             $shell = $shellName;    
         }
