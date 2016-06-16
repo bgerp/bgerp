@@ -348,6 +348,7 @@ class vtotal_Checks extends core_Master
                 elseif ($result->response_code == 1)
                 {
                     $dangerRate = $this->getDangerRate($result);
+                    $rec->timesScanned = $rec->timesScanned + 1;
                     $rec->firstCheck = $result->scan_date;
                     $rec->lastCheck = $now;
                     $rec->rateByVT = $result->positives . "|" . $result->total;
