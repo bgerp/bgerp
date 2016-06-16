@@ -327,41 +327,38 @@ class vtotal_Checks extends core_Master
         {
             $result = self::VTGetReport($rec->md5);
 
-            if($rec->timesScanned >= 2)
-            {
-                $fQuery = fileman_Files::getQuery();
-                $fQuery->where("#dataId = {$rec->filemanDataId}");
-
-                while($fRec = $fQuery->fetch())
+            if($result == -1 || $result == -3 || $result->response_code == 0) {
+                $rec->timesScanned = $rec->timesScanned + 1;
+                if($rec->timesScanned >= 2)
                 {
-                    $fRec->dangerRate = -1;
-                    fileman_Files::save($fRec, 'dangerRate');
-                }
-            }
-            else{
-                if($result == -1 || $result == -3 || $result->response_code == 0)
-                {
-                    $rec->timesScanned = $rec->timesScanned + 1;
-                    $rec->lastCheck = $now;
-                    $this->save($rec);
-                }
-                elseif ($result->response_code == 1)
-                {
-                    $dangerRate = $this->getDangerRate($result);
-                    $rec->timesScanned = $rec->timesScanned + 1;
-                    $rec->firstCheck = $result->scan_date;
-                    $rec->lastCheck = $now;
-                    $rec->rateByVT = $result->positives . "|" . $result->total;
-                    $this->save($rec, 'firstCheck, lastCheck, rateByVT');
+                    $fQuery = fileman_Files::getQuery();
+                    $fQuery->where("#dataId = {$rec->filemanDataId}");
 
-                    $fsQuery = fileman_Files::getQuery();
-                    $fsQuery->where("#dataId = {$rec->filemanDataId}");
-
-                    while($fRec = $fsQuery->fetch())
+                    while($fRec = $fQuery->fetch())
                     {
-                        $fRec->dangerRate = $dangerRate;
+                        $fRec->dangerRate = -1;
                         fileman_Files::save($fRec, 'dangerRate');
                     }
+                }
+                $rec->lastCheck = $now;
+                $this->save($rec);
+            }
+            elseif ($result->response_code == 1) {
+                $dangerRate = $this->getDangerRate($result);
+
+                $rec->timesScanned = $rec->timesScanned + 1;
+                $rec->firstCheck = $result->scan_date;
+                $rec->lastCheck = $now;
+                $rec->rateByVT = $result->positives . "|" . $result->total;
+                $this->save($rec, 'firstCheck, lastCheck, rateByVT');
+
+                $fsQuery = fileman_Files::getQuery();
+                $fsQuery->where("#dataId = {$rec->filemanDataId}");
+
+                while($fRec = $fsQuery->fetch())
+                {
+                    $fRec->dangerRate = $dangerRate;
+                    fileman_Files::save($fRec, 'dangerRate');
                 }
             }
         }
