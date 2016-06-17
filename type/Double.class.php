@@ -86,9 +86,9 @@ class type_Double extends core_Type {
         if(empty($value)) $value = '0';
         $code = "\$val = $value;";
         
-        // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
+        // Шаблон за намиране на повтарящи се знаци или изрази, които завършват с тях
         $signP = '(\*|\/|\+|\-)';
-        $pattern = "/(^(\s*{$signP}\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$)/";
+        $pattern = "/({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$)/";
         
         if(!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
             eval($code);
