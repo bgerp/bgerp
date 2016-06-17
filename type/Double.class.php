@@ -86,7 +86,11 @@ class type_Double extends core_Type {
         if(empty($value)) $value = '0';
         $code = "\$val = $value;";
         
-        if(@eval('return TRUE;' . $code)) {
+        // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
+        $signP = '(\*|\/|\+|\-)';
+        $pattern = "/(^(\s*{$signP}\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$)/";
+        
+        if(!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
             eval($code);
             
             return (float) $val;
