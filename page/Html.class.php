@@ -112,9 +112,11 @@ class page_Html extends core_ET {
         
         // Вземане на времето на бездействие в съответния таб
         static::idleTimerJs($tpl);
-       
-        $tpl->push('context/lib/contextMenu.css', "CSS");
-        $tpl->push('context/lib/contextMenu.js', "JS");
+
+        $conf = core_Packs::getConfig('context');
+
+        $tpl->push('context/'. $conf->CONTEXT_VERSION . '/contextMenu.css', "CSS");
+        $tpl->push('context/'. $conf->CONTEXT_VERSION . '/contextMenu.js', "JS");
         
         jquery_Jquery::run($tpl, "getContextMenuFromAjax();", TRUE);
         jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');

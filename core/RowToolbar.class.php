@@ -216,9 +216,11 @@ class core_RowToolbar extends core_BaseClass
                 $link = ht::createLink(tr($linkObj->title), $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr); 
                 $layout->append($link, 'ROW_LINKS');
             }
-            
-            $layout->push('context/lib/contextMenu.css', "CSS");
-            $layout->push('context/lib/contextMenu.js', "JS");
+            $conf = core_Packs::getConfig('context');
+
+            $layout->push('context/'. $conf->CONTEXT_VERSION . '/contextMenu.css', "CSS");
+            $layout->push('context/'. $conf->CONTEXT_VERSION . '/contextMenu.js', "JS");
+
             jquery_Jquery::run($layout,'prepareContextMenu();', TRUE);
             jquery_Jquery::runAfterAjax($layout, 'prepareContextMenu');
         }
