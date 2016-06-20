@@ -70,8 +70,8 @@ class vtotal_Checks extends core_Master
      */
     public function description()
     {
-        $this->FLD('firstCheck', 'datetime', 'caption=Последно от вирус тотал');
-        $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
+        $this->FLD('firstCheck', 'datetime(format=smartTime)', 'caption=Последно от вирус тотал');
+        $this->FLD('lastCheck', 'datetime(format=smartTime)', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
         $this->FLD('timesScanned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScaned');
