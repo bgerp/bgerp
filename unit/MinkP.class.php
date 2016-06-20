@@ -526,9 +526,8 @@ class unit_MinkP extends core_Manager {
      
      }
      
-     
     /**
-     * 20.Създава доставка на материалите
+     * 15.Създава доставка на материалите
      */
     //http://localhost/unit_MinkP/CreatePurchase/
     function act_CreatePurchase()
@@ -564,49 +563,39 @@ class unit_MinkP extends core_Manager {
         $browser->press('Чернова');
         
         // Записваме черновата на покупката
-         
         // Добавяме нов артикул - опаковка
-//////////////       
             $browser->press('Артикул');
             $browser->setValue('productId', 'Опаковка');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '008+03*08');//32
-            $browser->setValue('packPrice', '010+3*0.8');//12.4
+            $browser->setValue('packQuantity', '1008/4+03*08');//276
+            $browser->setValue('packPrice', '003+4*0.08/2');//3.16
             $browser->setValue('discount', 3);
             $browser->press('Запис и Нов');
-            //return  $browser->getHtml();
-////////////// Записваме артикула и добавяме нов - материал 1
-            //Материал 1
-            
-           
+            // Записваме артикула и добавяме нов - материал 1
             $browser->setValue('productId', 'Материал 1');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100-07*8');//44
-            $browser->setValue('packPrice', '010.20+0.3*08');//12.6
+            $browser->setValue('packQuantity', '010+09*8');//82
+            $browser->setValue('packPrice', '010,20-0.6*08');//5.4
             $browser->setValue('discount', 2);
             $browser->press('Запис и Нов');
-///////////// Записваме артикула и добавяме нов - материал 2
-        
+            // Записваме артикула и добавяме нов - материал 2
             $browser->setValue('productId', 'Материал 2');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '023 + 012*03');//59
-            $browser->setValue('packPrice', '091 - 023*02');//45
+            $browser->setValue('packQuantity', '023 + 012*09');//131
+            $browser->setValue('packPrice', '0,091 - 0,023*02');//0.045
             $browser->setValue('discount', 4);
-        
             // Записваме артикула
             $browser->press('Запис');
-             
             // активираме покупката
             $browser->press('Активиране');
-            //return  $browser->getHtml();
             //$browser->press('Активиране/Контиране');
              
-            if(strpos($browser->gettext(), '967,64')) {
+            if(strpos($browser->gettext(), '257,12')) {
             } else {
                 return "Грешно ДДС";
             }
         
-            if(strpos($browser->gettext(), 'Пет хиляди осемстотин и пет BGN и 0,83')) {
+            if(strpos($browser->gettext(), 'Хиляда петстотин четиридесет и два BGN и 0,72')) {
             } else {
                 return "Грешна обща сума";
             }
@@ -617,34 +606,17 @@ class unit_MinkP extends core_Manager {
             $browser->press('Чернова');
             $browser->press('Контиране');
         
-            // протокол
-            $browser->press('Приемане');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-            //if(strpos($browser->gettext(), 'Контиране')) {
-            //  $browser->press('Контиране');
-            //}
-        
             // Фактура  № се сменя при повторен тест
             $browser->press('Вх. фактура');
-            $browser->setValue('number', '1176');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-        
-            // РКО
-            $browser->press('РКО');
-            $browser->setValue('beneficiary', 'Иван Петров');
-            $browser->setValue('amountDeal', '100');
-            $browser->setValue('peroCase', '1');
+            $browser->setValue('number', '17');
             $browser->press('Чернова');
             $browser->press('Контиране');
         
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
             $browser->press('Чернова');
             $browser->press('Контиране');
-        
             $browser->press('Приключване');
             $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
             $browser->press('Чернова');
@@ -654,16 +626,13 @@ class unit_MinkP extends core_Manager {
                 return "Грешно чакащо плащане";
             }
         
-        
-        
     }
     
     /**
-     *9.Добавя рецепта
-     *
+     *16.Добавя рецепта
      */
-    //http://localhost/unit_MinkPbgERP/CreateBom/
-    function act_CreateBom()
+    //http://localhost/unit_MinkPbgERP/CreateBomStage1/
+    function act_CreateBomStage1()
     {
     
         $browser = cls::get('unit_Browser');
@@ -674,17 +643,17 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('nick', 'Pavlinka');
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
-         
         $browser->click('Каталог');
-        $browser->click('Продукти');
-        $browser->click('Други продукти');
+        $browser->click('Заготовки');
+        $browser->press('Артикул');
+        $browser->setValue('name', 'Заготовка 1');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
          
         //$browser->hasText('Добавяне на търговска рецепта към');
-        $browser->setValue('notes', 'CreateBom');
+        $browser->setValue('notes', 'CreateBomStage1');
         $browser->setValue('expenses', '8');
-        $browser->setValue('quantityForPrice', '100');
+        $browser->setValue('quantityForPrice', '1000');
         $browser->press('Чернова');
         $browser->press('Влагане');
          
@@ -699,7 +668,6 @@ class unit_MinkP extends core_Manager {
         $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
-    
          
     }
     //return $browser->getHtml();
