@@ -232,8 +232,20 @@ class unit_MinkP extends core_Manager {
          $browser->press('Запис');
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Отпадък 1');
          }
-          
+         //Задаване на ценова група
+         //$browser->click('Цени');
+         //$browser->click('Задаване на ценова група');
+         //$browser->refresh('Запис');
+         //$browser->setValue('groupId', '1');
+         //$browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '1');
+         $browser->press('Запис');
      }
      
      /**
@@ -263,8 +275,20 @@ class unit_MinkP extends core_Manager {
          
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Отпадък 2');
          }
-     
+         //Задаване на ценова група
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '2');
+         $browser->press('Запис');
      }
      
      /**
@@ -294,8 +318,20 @@ class unit_MinkP extends core_Manager {
           
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Отпадък 3');
          }
-          
+         //Задаване на ценова група
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '3');
+         $browser->press('Запис');
      }
     
      /**
@@ -460,8 +496,13 @@ class unit_MinkP extends core_Manager {
      
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Заготовка 1');
          }
-     
+         $browser->click('Добавяне на нов параметър');
+         $browser->setValue('paramId', 'Тегло');
+         $browser->refresh('Запис');
+         $browser->setValue('paramValue', '20');
+         $browser->press('Запис');
      }
      
      /**
@@ -491,7 +532,13 @@ class unit_MinkP extends core_Manager {
           
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Заготовка 2');
          }
+         $browser->click('Добавяне на нов параметър');
+         $browser->setValue('paramId', 'Цвят');
+         $browser->refresh('Запис');
+         $browser->setValue('paramValue', '4');
+         $browser->press('Запис');
           
      }
      
@@ -631,7 +678,7 @@ class unit_MinkP extends core_Manager {
     /**
      *16.Добавя рецепта
      */
-    //http://localhost/unit_MinkPbgERP/CreateBomStage1/
+    //http://localhost/unit_MinkP/CreateBomStage1/
     function act_CreateBomStage1()
     {
     
@@ -645,31 +692,44 @@ class unit_MinkP extends core_Manager {
         $browser->press('Вход');
         $browser->click('Каталог');
         $browser->click('Заготовки');
-        $browser->press('Артикул');
-        $browser->setValue('name', 'Заготовка 1');
+        $browser->click('Заготовка 1');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
-         
+        //return $browser->getHtml();
+        
         //$browser->hasText('Добавяне на търговска рецепта към');
-        $browser->setValue('notes', 'CreateBomStage1');
-        $browser->setValue('expenses', '8');
+        $browser->setValue('notes', 'BomStage1');
+        //$browser->setValue('expenses', '8');
         $browser->setValue('quantityForPrice', '1000');
         $browser->press('Чернова');
         $browser->press('Влагане');
          
-        $browser->setValue('resourceId', '1');
-        $browser->setValue('propQuantity', '1,6');
+        $browser->setValue('resourceId', 'Труд (work)');
+        $browser->setValue('propQuantity', '0.002 + $Начално= 20');
         $browser->refresh('Запис');
-        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
-    
         $browser->press('Запис и Нов');
-        $browser->setValue('resourceId', '2');
-        $browser->setValue('propQuantity', '1 + $Начално= 10');
+        $browser->setValue('resourceId', 'Електричество');
+        $browser->setValue('propQuantity', '0.008 + $Начално= 5');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Машина 1');
+        $browser->setValue('propQuantity', '0.002 + $Начално= 21');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Материал 1');
+        $browser->setValue('propQuantity', '0.05*$тегло(кг) + $Начално= 1');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Материал 2');
+        $browser->setValue('propQuantity', '0.99*$тегло(кг) + $Начално= 20');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Отпадък 1');
+        $browser->setValue('propQuantity', '0.04*$тегло(кг) + $Начално= 21');
         $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
          
     }
-    //return $browser->getHtml();
    
 }
