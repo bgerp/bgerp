@@ -1,5 +1,3 @@
-
-
 <?php
 
 
@@ -87,7 +85,7 @@ class unit_MinkPbgERP extends core_Manager {
              
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Други външни услуги');
+        $browser->setValue('productId', 'Транспорт');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 01);
         $browser->setValue('packPrice', '1,0202');
@@ -201,7 +199,7 @@ class unit_MinkPbgERP extends core_Manager {
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'. Ако е с дес. запетая - също апостроф.
     
             $browser->press('Артикул');
-            $browser->setValue('productId', 'Други продукти');
+            $browser->setValue('productId', 'Други стоки');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '004+03*08');//28
             $browser->setValue('packPrice', '010,2');//10.2
@@ -218,7 +216,7 @@ class unit_MinkPbgERP extends core_Manager {
              
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
-            $browser->setValue('productId', 'Други външни услуги');
+            $browser->setValue('productId', 'Транспорт');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '017');
             $browser->setValue('packPrice', '1.07');
@@ -335,7 +333,7 @@ class unit_MinkPbgERP extends core_Manager {
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*08');//34
         $browser->setValue('packPrice', '010+3*0.8');//12.4
@@ -352,7 +350,7 @@ class unit_MinkPbgERP extends core_Manager {
          
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Други външни услуги');
+        $browser->setValue('productId', 'Транспорт');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 107);
         $browser->setValue('packPrice', '0,027');
@@ -495,7 +493,7 @@ class unit_MinkPbgERP extends core_Manager {
             // Записваме артикула и добавяме нов - услуга
             // Категория Услуги да се маркира като 'купуваем'
             $browser->press('Запис и Нов');
-            $browser->setValue('productId', 'Други услуги');
+            $browser->setValue('productId', 'Други външни услуги');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', 113);
             $browser->setValue('packPrice', '1,127');
@@ -503,7 +501,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
-            $browser->setValue('productId', 'Други външни услуги');
+            $browser->setValue('productId', 'Транспорт');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '1000 / 08-09*08');//48
             $browser->setValue('packPrice', '100/02-3*08');//26
@@ -721,8 +719,8 @@ class unit_MinkPbgERP extends core_Manager {
          
         $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
         //$browser->setValue('deliveryTime[d]', date('d-m-Y'));
-        $browser->setValue('deliveryTime[t]', date('h:i:sa', $endhour));
-        //$browser->setValue('deliveryTime[t]', '10:30');
+        //$browser->setValue('deliveryTime[t]', date('h:i:sa', $endhour));
+        $browser->setValue('deliveryTime[t]', '10:30');
     
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
@@ -770,7 +768,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
-            $browser->setValue('productId', 'Други външни услуги');
+            $browser->setValue('productId', 'Транспорт');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '160 / 05-03*08');//8
             $browser->setValue('packPrice', '100/05+3*08');//44
@@ -966,8 +964,8 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('date', date('d-m-Y', $valior));
             $valior=strtotime("+1 day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
-            //$browser->setValue('numlimit', '2000000 - 3000000');
-            $browser->setValue('numlimit', '0 - 2000000');
+            $browser->setValue('numlimit', '2000000 - 3000000');
+            //$browser->setValue('numlimit', '0 - 2000000');
             $browser->press('Чернова');
             $browser->press('Контиране');
     
@@ -1102,8 +1100,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         //$browser->setValue('dueDate', date('d-m-Y', $valior));
         $browser->setValue('dueDate', null);
-        //$browser->setValue('numlimit', '2000000 - 3000000');
-        $browser->setValue('numlimit', '0 - 2000000');
+        $browser->setValue('numlimit', '2000000 - 3000000');
+        //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
@@ -1233,8 +1231,8 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('date', date('d-m-Y', $valior));
             //$browser->setValue('dueDate', date('d-m-Y', $valior));
             $browser->setValue('dueDate', null);
-            //$browser->setValue('numlimit', '2000000 - 3000000');
-            $browser->setValue('numlimit', '0 - 2000000');
+            $browser->setValue('numlimit', '2000000 - 3000000');
+            //$browser->setValue('numlimit', '0 - 2000000');
             $browser->press('Чернова');
             
             $browser->press('Контиране');
@@ -1544,7 +1542,7 @@ class unit_MinkPbgERP extends core_Manager {
           
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Други външни услуги');
+        $browser->setValue('productId', 'Транспорт');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '140 / 05-03*08');//4
         $browser->setValue('packPrice', '100/05+3*08');//44
@@ -1595,8 +1593,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         $valior=strtotime("-1 day");
         $browser->setValue('dueDate', date('d-m-Y', $valior));
-        //$browser->setValue('numlimit', '2000000 - 3000000');
-        $browser->setValue('numlimit', '0 - 2000000');
+        $browser->setValue('numlimit', '2000000 - 3000000');
+        //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
          
         $browser->press('Контиране');
@@ -1725,8 +1723,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         $valior=strtotime("-1 Day");
         $browser->setValue('dueDate', date('d-m-Y', $valior));
-        //$browser->setValue('numlimit', '2000000 - 3000000');
-        $browser->setValue('numlimit', '0 - 2000000');
+        $browser->setValue('numlimit', '2000000 - 3000000');
+        //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
        
         $browser->press('Контиране');
@@ -1863,8 +1861,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         $valior=strtotime("now");
         $browser->setValue('dueDate', date('d-m-Y', $valior));
-        //$browser->setValue('numlimit', '2000000 - 3000000');
-        $browser->setValue('numlimit', '0 - 2000000');
+        $browser->setValue('numlimit', '2000000 - 3000000');
+        //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         
         $browser->press('Контиране');
@@ -1889,8 +1887,6 @@ class unit_MinkPbgERP extends core_Manager {
         }
     }
         
-     
-   
          
     /**
     * 9.Създава задание за производство
@@ -2240,7 +2236,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Клиенти', '1');
         $browser->press('Запис');
         // Създаване на папка
-    
         $browser->press('Папка');
         
         }
@@ -2274,14 +2269,12 @@ class unit_MinkPbgERP extends core_Manager {
          
         $browser->press('Редакция');
         //Проверка дали сме в редакция
-    
         //$browser->hasText('Редактиране на запис в "Фирми"');
         $browser->setValue('address', 'ул.Втора, №2');
         $browser->setValue('pCode', '7000');
         $browser->setValue('fax', '333333');
         $browser->setValue('tel', '222222');
         $browser->setValue('uicId', '200021786');
-        $browser->setValue('Доставчици', '2');
         $browser->press('Запис');
         return ' Фирма-запис на редакцията';
          
@@ -2319,6 +2312,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('tel', '036111111');
         $browser->setValue('uicId', '110001322');
         $browser->setValue('Клиенти', '1');
+        $browser->setValue('Доставчици', '2');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Предупреждение:")){
@@ -2327,7 +2321,6 @@ class unit_MinkPbgERP extends core_Manager {
         }
     
         // Създаване на папка на нова фирма
-    
         $browser->press('Папка');
         
     }
@@ -2468,8 +2461,7 @@ class unit_MinkPbgERP extends core_Manager {
              
             $browser->press('Отказ');
            
-        } else {
-        }
+        } 
     
     }
     
@@ -2639,8 +2631,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
         //return $browser->getHtml();
-        //$browser->click('Деактивиране на пакета');
+        $browser->click('Деактивиране на пакета');
+        //return $browser->getHtml();
 /////////////  не работи        
+        //$browser->click('select2-deinstall');
         $browser->click('select2-deinstall');
         return $browser->getHtml();
     }
