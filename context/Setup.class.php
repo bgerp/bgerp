@@ -41,9 +41,7 @@ class context_Setup extends core_ProtoSetup
      */
     public function getCommonJs()
     {
-        $conf = core_Packs::getConfig('context');
-
-        return 'context/'. $conf->CONTEXT_VERSION . '/contextMenu.js';
+        return 'context/'.  context_Setup::get('VERSION') . '/contextMenu.js';
     }
     
     
@@ -52,9 +50,7 @@ class context_Setup extends core_ProtoSetup
      */
     public function getCommonCss()
     {
-        $conf = core_Packs::getConfig('context');
-
-        return 'context/'. $conf->CONTEXT_VERSION . '/contextMenu.css';
+        return 'context/'.  context_Setup::get('VERSION') . '/contextMenu.css';
     }
 
     

@@ -25,10 +25,8 @@ class context_Plugin extends core_Plugin {
 
     	$toolbar->prepend(ht::createFnBtn(' ', NULL, NULL, array('class'=>'more-btn', 'title'=>tr('Други действия с този документ'))), "ROW0");
 
-        $conf = core_Packs::getConfig('context');
-
-        $toolbar->push('context/'. $conf->CONTEXT_VERSION . '/contextMenu.css', "CSS");
-        $toolbar->push('context/'. $conf->CONTEXT_VERSION . '/contextMenu.js', "JS");
+        $toolbar->push('context/'. context_Setup::get('VERSION') . '/contextMenu.css', "CSS");
+        $toolbar->push('context/'. context_Setup::get('VERSION') . '/contextMenu.js', "JS");
         jquery_Jquery::run($toolbar,'prepareContextMenu();', TRUE);
         jquery_Jquery::runAfterAjax($toolbar, 'prepareContextMenu');
         
