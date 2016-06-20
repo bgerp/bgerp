@@ -1073,6 +1073,8 @@ class blast_Emails extends core_Master
             // След успешен запис редиректваме
             $link = array('blast_Emails', 'single', $rec->id);
             
+            self::logRead('Активиране', $rec->id);
+            
             // Редиректваме
             return new Redirect($link, "|Успешно активирахте бласт имейл-а");
         } else {
@@ -1188,6 +1190,8 @@ class blast_Emails extends core_Master
             $updateMsg = '|Няма нови записи за добавяне';
         }
         
+        self::logRead('Обновяване на списъка', $rec->id);
+        
         return new Redirect($retUrl, $updateMsg);
     }
     
@@ -1218,6 +1222,8 @@ class blast_Emails extends core_Master
         $recUpd->state = 'stopped';
         
         blast_Emails::save($recUpd);
+		
+        self::logRead('Спиране', $rec->id);
         
         // Редиректваме
         return new Redirect($link, "|Успешно спряхте бласт имейл-а");
