@@ -126,17 +126,12 @@ class crm_Locations extends core_Master {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
         $this->FLD('title', 'varchar', 'caption=Наименование');
-        $this->FLD('type', 'enum(correspondence=За кореспонденция,
-            headquoter=Главна квартира,
-            shipping=За получаване на пратки,
-            office=Офис,shop=Магазин,
-            storage=Склад,
-            factory=Фабрика,
-            other=Друг)', 'caption=Тип,mandatory');
+        $this->FLD('type', 'varchar(32)', 'caption=Тип,mandatory');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData');
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
+        $this->FLD('mol', 'varchar(32)', 'caption=Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
@@ -191,8 +186,12 @@ class crm_Locations extends core_Master {
         $data->form->setDefault('pCode', $contragentRec->pCode);
         
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
+
+
+
+        $data->form->setSuggestions('type', self::getTypeSuggestions());
     }
-    
+
     
     /**
      * След подготовката на заглавието на формата
@@ -612,13 +611,7 @@ class crm_Locations extends core_Master {
     	
         // Информация за локацията
         $form->FLD('title', 'varchar', 'caption=Локация->Наименование');
-        $form->FLD('type', 'enum(correspondence=За кореспонденция,
-            headquoter=Главна квартира,
-            shipping=За получаване на пратки,
-            office=Офис,shop=Магазин,
-            storage=Склад,
-            factory=Фабрика,
-            other=Друг)', 'caption=Локация->Тип,mandatory');
+        $form->FLD('type', $this->fields['type']->type, 'caption=Локация->Тип,mandatory', array('suggestions' => self::getTypeSuggestions()));
         $form->FLD('place', 'varchar(64)', 'caption=Локация->Град,class=contactData');
         $form->FLD('pCode', 'varchar(16)', 'caption=Локация->П. код,class=contactData');
         $form->FLD('address', 'varchar(255)', 'caption=Локация->Адрес,class=contactData');
@@ -684,5 +677,32 @@ class crm_Locations extends core_Master {
     	$tpl = $this->renderWrapping($form->renderHtml());
     	
     	return $tpl;
+    }
+
+
+    /**
+     * Връща масив с предложения за типа на локацията
+     */
+    private static function getTypeSuggestions()
+    {
+        $suggArr = array('' => '',
+                         'За кореспонденция' => 'За кореспонденция',
+                         'Главна квартира' => 'Главна квартира',
+                         'За получаване на пратки' => 'За получаване на пратки',
+                         'Офис' => 'Офис',
+                         'Магазин' => 'Магазин',
+                         'Склад' => 'Склад',
+                         'Фабрика' => 'Фабрика',
+                         'Друг' => 'Друг');
+
+        $query = self::getQuery();
+
+        $query->groupBy('type');
+        $query->show('type');
+        while($rec = $query->fetch()) {
+            $suggArr[$rec->type] = $rec->type;
+        }
+
+        return $suggArr;
     }
 }
