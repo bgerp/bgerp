@@ -136,6 +136,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Опаковка');
         $browser->setValue('code', 'package');
         $browser->setValue('measureId', 'брой');
+        $browser->setValue('meta[canConvert]', 'canConvert');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -698,8 +699,6 @@ class unit_MinkP extends core_Manager {
         $browser->click('Заготовка 1');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
-        //return $browser->getHtml();
-        
         //$browser->hasText('Добавяне на търговска рецепта към');
         $browser->setValue('notes', 'BomStage1');
         //$browser->setValue('expenses', '8');
@@ -755,9 +754,7 @@ class unit_MinkP extends core_Manager {
         $browser->click('Заготовка 2');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
-        //return $browser->getHtml();
-    
-        //$browser->hasText('Добавяне на търговска рецепта към');
+      //$browser->hasText('Добавяне на търговска рецепта към');
         $browser->setValue('notes', 'BomStage2');
         //$browser->setValue('expenses', '8');
         $browser->setValue('quantityForPrice', '1000');
@@ -779,7 +776,8 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('resourceId', 'Отпадък 2');
         $browser->setValue('propQuantity', '0.0002');
         $browser->refresh('Запис');
-        $browser->press('Запис и Нов');
+        $browser->press('Запис');
+        $browser->press('Етап');
         $browser->setValue('resourceId', 'Заготовка 1');
         $browser->setValue('propQuantity', '1');
         $browser->refresh('Запис');
@@ -787,5 +785,59 @@ class unit_MinkP extends core_Manager {
         $browser->press('Активиране');
          
     }
-     
+    /**
+     *18.Добавя рецепта етап 3 - крайно изделие
+     */
+    //http://localhost/unit_MinkP/CreateBomStage3/
+    function act_CreateBomStage3()
+    {
+    
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+        $browser->click('Каталог');
+        $browser->click('Продукти');
+        $browser->click('Тест рецепта с етапи');
+        $browser->click('Рецепти');
+        $browser->click('Добавяне на нова търговска технологична рецепта');
+        //$browser->hasText('Добавяне на търговска рецепта към');
+        $browser->setValue('notes', 'BomStage3');
+        //$browser->setValue('expenses', '8');
+        $browser->setValue('quantityForPrice', '10000');
+        $browser->press('Чернова');
+        $browser->press('Влагане');
+         
+        $browser->setValue('resourceId', 'Труд (work)');
+        $browser->setValue('propQuantity', '0.0005 + $Начално= 20');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Електричество');
+        $browser->setValue('propQuantity', '0.5 + $Начално= 3');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Машина 3');
+        $browser->setValue('propQuantity', '0.0005 + $Начално= 20');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Опаковка');
+        $browser->setValue('propQuantity', '0.001');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Отпадък 3');
+        $browser->setValue('propQuantity', '0.0001');
+        $browser->refresh('Запис');
+        $browser->press('Запис');
+        $browser->press('Етап');
+        $browser->setValue('resourceId', 'Заготовка 2');
+        $browser->setValue('propQuantity', '0,0001');
+        $browser->refresh('Запис');
+        $browser->press('Запис');
+        $browser->press('Активиране');
+         
+    }
 }
