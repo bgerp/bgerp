@@ -24,9 +24,9 @@ class context_Plugin extends core_Plugin {
      	if (!is_object($toolbar)) return ;
 
     	$toolbar->prepend(ht::createFnBtn(' ', NULL, NULL, array('class'=>'more-btn', 'title'=>tr('Други действия с този документ'))), "ROW0");
-    	
-        $toolbar->push('context/lib/contextMenu.css', "CSS");
-        $toolbar->push('context/lib/contextMenu.js', "JS");
+
+        $toolbar->push('context/'. context_Setup::get('VERSION') . '/contextMenu.css', "CSS");
+        $toolbar->push('context/'. context_Setup::get('VERSION') . '/contextMenu.js', "JS");
         jquery_Jquery::run($toolbar,'prepareContextMenu();', TRUE);
         jquery_Jquery::runAfterAjax($toolbar, 'prepareContextMenu');
         
