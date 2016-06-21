@@ -96,6 +96,8 @@ class bank_PaymentOrders extends bank_DocumentBlank
         $this->FLD('vatId', 'drdata_VatType', 'caption=Допълнителни данни->ЕИК');
         $this->FLD('EGN', 'varchar(10)', 'caption=Допълнителни данни->ЕГН');
         $this->FLD('LNC', 'varchar(10)', 'caption=Допълнителни данни->ЛНЧ');
+        
+        $this->setDbIndex('valior');
     }
 
 

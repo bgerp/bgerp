@@ -55,6 +55,8 @@ abstract class deals_ServiceMaster extends core_Master
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
 		$mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=411');
+
+		$mvc->setDbIndex('valior');
 	}
 	
 	

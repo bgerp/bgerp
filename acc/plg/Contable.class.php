@@ -48,6 +48,10 @@ class acc_plg_Contable extends core_Plugin
         	// Зареждаме плъгина, така се подсигуряваме, че ивентите му ще се изпълняват винаги след тези на 'acc_plg_Contable'
         	$mvc->load('acc_plg_LockBalanceRecalc');
         }
+        
+        if (!empty($mvc->fields[$mvc->valiorFld]) && !isset($mvc->dbIndexes[$mvc->valiorFld])) {
+            $mvc->setDbIndex($mvc->valiorFld);
+        }
     }
     
     
