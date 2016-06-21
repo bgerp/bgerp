@@ -157,7 +157,7 @@ class price_ListRules extends core_Detail
 	
 	
     /**
-     * Връща цената за посочения продукт
+     * Връща цената за посочения продукт според ценовата политика
      */
     public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {  
@@ -167,64 +167,57 @@ class price_ListRules extends core_Detail
         if(isset($price)) return $price;
         
         price_ListToCustomers::canonizeTime($datetime);
-
         $datetime = price_History::canonizeTime($datetime);
        
         $query = self::getQuery();
         
         // Общи ограничения
         $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
-		$groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
-		
-		$where = "#productId = {$productId}";
-		if(is_array($groups)){
-			$where .= " OR ";
-			foreach ($groups as $gr){
-				$where .= "#groupId = {$gr} OR ";
-			}
-		}
-		$where = trim($where, " OR ");
-		$query->where($where);
-        
-        // Вземаме последното правило
         $query->orderBy("#validFrom,#id", "DESC");
         $query->limit(1);
-		
-        $rec = $query->fetch();
- 
-        if($rec) {
-            if($rec->type == 'value') {
-                
-            	$vat = cat_Products::getVat($productId, $datetime);
-            	$price = self::normalizePrice($rec, $vat, $datetime);
-
-			} else {
-                expect($parent = price_Lists::fetchField($listId, 'parent'));
-                $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
-                
-                if($rec->calculation == 'reverse') {
-                    $price  = $price / (1 + $rec->discount);
-                } else {
-                    $price  = $price * (1 + $rec->discount);
-                }
-            }
-        } else {
-            if($parent = price_Lists::fetchField($listId, 'parent')) {
-            	
-            	if($parent == price_ListRules::PRICE_LIST_COST){
-            		
-            		// Ако няма запис за продукта или групата
-            		// му и бащата на ценоразписа е "себестойност"
-            		// връщаме NULL
-                    // Дали е необходима тази защита или тя може да създаде проблеми?
-            		return NULL;
-            	}
-            	
-                $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
-            }
+        
+        $queryProduct = clone $query;
+        $queryProduct->where("#productId = {$productId}");
+        
+        $rec = $queryProduct->fetch();
+        
+        if(!$rec){
+        	$groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
+        	$gQuery = clone $query;
+        	$gQuery->in('groupId', $groups);
+        	
+        	$rec = $gQuery->fetch();
         }
         
-        $listRec = price_Lists::fetch($listId);
+        if($rec) {
+        	if($rec->type == 'value') {
+        		
+        		$vat = cat_Products::getVat($productId, $datetime);
+        		$price = self::normalizePrice($rec, $vat, $datetime);
+        		
+        	} else {
+        		expect($parent = price_Lists::fetchField($listId, 'parent'));
+        		$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        		
+        		if($rec->calculation == 'reverse') {
+        			$price  = $price / (1 + $rec->discount);
+        		} else {
+        			$price  = $price * (1 + $rec->discount);
+        		}
+        	}
+        	
+        } else {
+        	if($parent = price_Lists::fetchField($listId, 'parent')) {
+        		
+        		// Ако няма запис за продукта или групата
+        		// му и бащата на ценоразписа е "себестойност"
+        		// връщаме NULL
+        		// Дали е необходима тази защита или тя може да създаде проблеми?
+        		if($parent == price_ListRules::PRICE_LIST_COST) return NULL;
+        		 
+        		$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        	}
+        }
         
         if(isset($price)){
         	

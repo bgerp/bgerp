@@ -16,6 +16,14 @@
             <td>[#parent#]</td>
         </tr>
         <!--ET_END parent-->
+        
+        <!--ET_BEGIN searchInParent-->
+        <tr>
+            <td class="title-style">|Цени само от тази политика|*</td>
+            <td>[#searchInParent#]</td>
+        </tr>
+        <!--ET_END searchInParent-->
+        
         <!--ET_BEGIN public-->
         <tr>
             <td class="title-style">|Публичен|*</td>
