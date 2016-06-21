@@ -179,13 +179,4 @@ class price_Groups extends core_Master
        
          return $i;
     }
-    
-    public static function act_Test()
-    {
-    	$productId = '12';
-    	$listId = '2';
-    	$r = price_ListRules::getPrice($listId, $productId);
-    	
-    	bp($r);
-    }
 }
