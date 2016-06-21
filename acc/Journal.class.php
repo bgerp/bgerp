@@ -129,6 +129,8 @@ class acc_Journal extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('docType,docId,state');
+        
+        $this->setDbIndex('valior');
     }
     
     
