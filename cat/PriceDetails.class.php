@@ -20,7 +20,7 @@ class cat_PriceDetails extends core_Manager
     /**
      * Кои мениджъри ще се зареждат
      */
-    public $loadList = 'PriceList=price_ListRules,VatGroups=cat_products_VatGroups';//,PriceGroup=price_GroupOfProducts
+    public $loadList = 'PriceList=price_ListRules,VatGroups=cat_products_VatGroups';
     
     
     /**
