@@ -362,7 +362,7 @@ class fileman_webdrv_Generic extends core_Manager
         // Линк за сваляне
         $link = bgerp_F::getLink($fileHnd, $expireOn);
         $linkText = '';
-        if ($link) {
+        if (!empty($link)) {
             $linkText = tr("Линк|*: ");
             
             $expireOn = dt::mysql2verbal($expireOn, 'smartTime');
