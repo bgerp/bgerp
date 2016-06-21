@@ -333,13 +333,15 @@ class cal_Calendar extends core_Master
         	$attr['ef_icon'] = 'img/16/leaves.png';
         } elseif($rec->type == 'sickday') {
         	$attr['ef_icon'] = 'img/16/sick.png';
-        }elseif($rec->type == 'trip'){
+        } elseif($rec->type == 'trip'){
 			$attr['ef_icon'] = 'img/16/working-travel.png';    		
-        }else{
+        } elseif(!strpos($rec->type, '/')) {
          	$attr['ef_icon'] = "img/16/{$lowerType}.png";
-    	}
+    	} else { 
+            $attr['ef_icon'] = $rec->type;
+        }
 
-        $attr = ht::addBackgroundIcon($attr);
+       $attr = ht::addBackgroundIcon($attr);
 
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
