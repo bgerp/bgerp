@@ -70,8 +70,8 @@ class vtotal_Checks extends core_Master
      */
     public function description()
     {
-        $this->FLD('firstCheck', 'datetime', 'caption=Последно от вирус тотал');
-        $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
+        $this->FLD('firstCheck', 'datetime(format=smartTime)', 'caption=Последно от вирус тотал');
+        $this->FLD('lastCheck', 'datetime(format=smartTime)', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
         $this->FLD('timesScanned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScaned');
@@ -125,7 +125,7 @@ class vtotal_Checks extends core_Master
     }
 
 
-    public function putNewFileForCheck($rec, $md5, &$counter)
+    public function putNewFileForCheck(&$rec, $md5, &$counter)
     {
         $checkFile = (object)array('filemanDataId' => $rec->dataId,
             'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
@@ -170,16 +170,16 @@ class vtotal_Checks extends core_Master
         $counter = 0;
 
         while($rec = $query->fetch()) {
-            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
+            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL")) break;
             
             if (!$rec->dataId) {
                 $rec->dangerRate = 0;
                 fileman_Files::save($rec, "dangerRate");
-                
                 continue;
             }
             
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
+
             if(in_array(strtoupper($extension), $archiveExtensions)) {
                 $fileHnd = $rec->fileHnd;
                 $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -189,12 +189,9 @@ class vtotal_Checks extends core_Master
                 try{
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
                 }catch(fileman_Exception $e){
-
+                    // Проверка във VT
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $this->save($checkFile, NULL, "IGNORE");
-                    
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
                 }
                 
@@ -202,12 +199,9 @@ class vtotal_Checks extends core_Master
                     $entriesArr = $archivInst->getEntries();
                 } catch (core_exception_Expect $e) {
                     self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
-
+                    // Проверка във VT
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $this->save($checkFile, NULL, "IGNORE");
-                    
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
                 }
 				
@@ -251,28 +245,16 @@ class vtotal_Checks extends core_Master
                     if (!$md5) {
                         $archiveHaveExt = FALSE;
                         continue;
-                    }
-                    
-                    // Проверка във VT
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
-                    $result = $this->save($checkFile, NULL, "IGNORE");
-
-                    if(!$result) {
-                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                        $rec->dangerRate = $cRec->dangerRate;
-                        fileman_Files::save($rec, "dangerRate");
                     } else {
-                        $counter++;
+                        // Проверка във VT
+                        $this->putNewFileForCheck($rec, $md5, $counter);
+                        break;
                     }
-                    break;
                 }
                 
                 if (!$archiveHaveExt) {
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $result = $this->save($checkFile, NULL, "IGNORE");
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                 }
                 
                 // Изтриваме временната директория за съхранение на архива.
@@ -301,19 +283,8 @@ class vtotal_Checks extends core_Master
                 }
             }
             elseif ($rec->dangerRate == NULL) {
-
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                $result = $this->save($checkFile, NULL, "IGNORE");
-
-                if(!$result) {
-                    $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                    $rec->dangerRate = $cRec->dangerRate;
-                    fileman_Files::save($rec, "dangerRate");
-                } else {
-                    $counter++;
-                }
+                $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
             }
         }
     }
