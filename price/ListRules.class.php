@@ -189,13 +189,15 @@ class price_ListRules extends core_Detail
         	$rec = $gQuery->fetch();
         }
         
+        $searchInParent = price_Lists::fetchField($listId, 'searchInParent');
+        
         if($rec) {
         	if($rec->type == 'value') {
         		
         		$vat = cat_Products::getVat($productId, $datetime);
         		$price = self::normalizePrice($rec, $vat, $datetime);
         		
-        	} else {
+        	} elseif($searchInParent == 'yes') {
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
         		$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
         		
@@ -206,7 +208,7 @@ class price_ListRules extends core_Detail
         		}
         	}
         	
-        } else {
+        } elseif($searchInParent == 'yes') {
         	if($parent = price_Lists::fetchField($listId, 'parent')) {
         		
         		// Ако няма запис за продукта или групата
