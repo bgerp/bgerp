@@ -189,6 +189,7 @@ class vtotal_Checks extends core_Master
                 try{
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
                 }catch(fileman_Exception $e){
+                    // Проверка във VT
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                     $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
@@ -198,6 +199,7 @@ class vtotal_Checks extends core_Master
                     $entriesArr = $archivInst->getEntries();
                 } catch (core_exception_Expect $e) {
                     self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
+                    // Проверка във VT
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                     $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
@@ -243,11 +245,11 @@ class vtotal_Checks extends core_Master
                     if (!$md5) {
                         $archiveHaveExt = FALSE;
                         continue;
+                    } else {
+                        // Проверка във VT
+                        $this->putNewFileForCheck($rec, $md5, $counter);
+                        break;
                     }
-                    
-                    // Проверка във VT
-                    $this->putNewFileForCheck($rec, $md5, $counter);
-                    break;
                 }
                 
                 if (!$archiveHaveExt) {
@@ -280,7 +282,7 @@ class vtotal_Checks extends core_Master
                     }
                 }
             }
-            elseif ($rec->dangerRate == NULL) { 
+            elseif ($rec->dangerRate == NULL) {
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
             }
