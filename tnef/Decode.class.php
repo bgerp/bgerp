@@ -131,11 +131,7 @@ class tnef_Decode extends core_Manager
         $Script->lineExec('tnef [#INPUTF#] -C [#OUTPUTF#]');
         
         // Стартираме скрипта синхронно синхронно
-        $Script->setChechProgramsArr('tnef');
-        // Стартираме скрипта синхронно
-        if ($Script->run(FALSE) === FALSE) {
-            fileman_Indexes::createError($params);
-        }
+        $Script->run(FALSE);
         
         $fileHndArr = self::uploadResFiles($Script);
         
