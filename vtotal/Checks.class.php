@@ -125,7 +125,7 @@ class vtotal_Checks extends core_Master
     }
 
 
-    public function putNewFileForCheck($rec, $md5, &$counter)
+    public function putNewFileForCheck(&$rec, $md5, &$counter)
     {
         $checkFile = (object)array('filemanDataId' => $rec->dataId,
             'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
@@ -190,17 +190,7 @@ class vtotal_Checks extends core_Master
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
                 }catch(fileman_Exception $e){
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $result = $this->save($checkFile, NULL, "IGNORE");
-
-                    if(!$result) {
-                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                        $rec->dangerRate = $cRec->dangerRate;
-                        fileman_Files::save($rec, "dangerRate");
-                    } else {
-                        $counter++;
-                    }
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
                 }
                 
@@ -208,19 +198,8 @@ class vtotal_Checks extends core_Master
                     $entriesArr = $archivInst->getEntries();
                 } catch (core_exception_Expect $e) {
                     self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
-
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $result = $this->save($checkFile, NULL, "IGNORE");
-
-                    if(!$result) {
-                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                        $rec->dangerRate = $cRec->dangerRate;
-                        fileman_Files::save($rec, "dangerRate");
-                    } else {
-                        $counter++;
-                    }
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
                 }
 				
@@ -267,25 +246,13 @@ class vtotal_Checks extends core_Master
                     }
                     
                     // Проверка във VT
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
-                    $result = $this->save($checkFile, NULL, "IGNORE");
-
-                    if(!$result) {
-                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                        $rec->dangerRate = $cRec->dangerRate;
-                        fileman_Files::save($rec, "dangerRate");
-                    } else {
-                        $counter++;
-                    }
+                    $this->putNewFileForCheck($rec, $md5, $counter);
                     break;
                 }
                 
                 if (!$archiveHaveExt) {
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $result = $this->save($checkFile, NULL, "IGNORE");
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                 }
                 
                 // Изтриваме временната директория за съхранение на архива.
@@ -313,20 +280,9 @@ class vtotal_Checks extends core_Master
                     }
                 }
             }
-            elseif ($rec->dangerRate == NULL) {
-
+            elseif ($rec->dangerRate == NULL) { 
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                $result = $this->save($checkFile, NULL, "IGNORE");
-
-                if(!$result) {
-                    $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                    $rec->dangerRate = $cRec->dangerRate;
-                    fileman_Files::save($rec, "dangerRate");
-                } else {
-                    $counter++;
-                }
+                $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
             }
         }
     }
