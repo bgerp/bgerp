@@ -79,6 +79,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
+        $this->setDbIndex('valior');
     }
 	
 	

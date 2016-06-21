@@ -204,6 +204,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		);
 		
 		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
+
+		$mvc->setDbIndex('valior');
 	}
 
 
