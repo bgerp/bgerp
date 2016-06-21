@@ -322,7 +322,7 @@ class vtotal_Checks extends core_Master
                         fileman_Files::save($fRec, 'dangerRate');
                     }
                 }
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $this->save($rec);
             }
             elseif ($result->response_code == 1) {
@@ -330,7 +330,7 @@ class vtotal_Checks extends core_Master
 
                 $rec->timesScanned = $rec->timesScanned + 1;
                 $rec->firstCheck = $result->scan_date;
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $rec->rateByVT = $result->positives . "|" . $result->total;
                 $this->save($rec);
 
