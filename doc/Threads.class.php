@@ -584,6 +584,11 @@ class doc_Threads extends core_Manager
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
         bgerp_Recently::add('folder', $folderId, NULL, ($folderRec->state == 'rejected') ? 'yes' : 'no');
+        
+        if (Request::get('share')) {
+            $url['share'] = TRUE;
+            bgerp_Notifications::clear($url);
+        }
     }
     
     
