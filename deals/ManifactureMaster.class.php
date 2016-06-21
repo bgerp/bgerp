@@ -42,6 +42,8 @@ abstract class deals_ManifactureMaster extends core_Master
 				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
 				'caption=Статус, input=none'
 		);
+
+		$mvc->setDbIndex('valior');
 	}
 	
 	

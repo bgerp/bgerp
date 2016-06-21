@@ -97,6 +97,8 @@ class bank_DepositSlips extends bank_DocumentBlank
         $this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory');
         $this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка');
         $this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
+
+        $this->setDbIndex('valior');
     }
     
     

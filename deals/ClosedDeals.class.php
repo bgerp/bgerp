@@ -120,6 +120,8 @@ abstract class deals_ClosedDeals extends core_Master
         
         // От кой клас наследник на deals_ClosedDeals идва записа
         $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
+
+        $this->setDbIndex('valior');
     }
     
     
