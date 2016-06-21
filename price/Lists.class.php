@@ -329,6 +329,7 @@ class price_Lists extends core_Master
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat      = 'no';
             $rec->public = 'no';
+            $rec->searchInParent = 'no';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
             $this->save($rec, NULL, 'REPLACE');
@@ -342,6 +343,7 @@ class price_Lists extends core_Master
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat = 'yes';
             $rec->public = 'yes';
+            $rec->searchInParent = 'yes';
             $rec->roundingPrecision = 3;
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
