@@ -166,7 +166,8 @@ class vtotal_Checks extends core_Master
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
-
+        $query->limit(300);
+        
         $counter = 0;
 
         while($rec = $query->fetch()) {
