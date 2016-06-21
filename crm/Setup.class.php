@@ -97,7 +97,8 @@ class crm_Setup extends core_ProtoSetup
             'migrate::movePersonalizationData',
             'migrate::addCountryToCompaniesAndPersons',
             'migrate::updateSettingsKey',
-            'migrate::updateGroupFoldersToUnsorted'
+            'migrate::updateGroupFoldersToUnsorted',
+            'migrate::updateLocationType',
         );
     
 
@@ -329,5 +330,32 @@ class crm_Setup extends core_ProtoSetup
             $unsortedRec->folderId = $rec->id;
             $Unsorted->save($unsortedRec, 'folderId');
         }
+    }
+
+
+    /**
+     * Миграция за обновяване типа на локациите
+     */
+    public static function updateLocationType()
+    {
+        $types = array( 'correspondence' => 'За кореспонденция',
+                        'headquoter' => 'Главна квартира',
+                        'shipping' => 'За получаване на пратки',
+                        'office' => 'Офис',
+                        'shop' => 'Магазин',
+                        'storage' => 'Склад',
+                        'factory' => 'Фабрика',
+                        'other' => 'Друг');
+
+        $query = crm_Locations::getQuery();
+        while($rec = $query->fetch()) {
+            if($type = $types[$rec->type]) {
+                $rec->type = $type;
+                crm_Locations::save($rec, 'type');
+                $upd++;
+            }
+        }
+
+        return "Обновени са {$upd} типа на локации";
     }
 }
