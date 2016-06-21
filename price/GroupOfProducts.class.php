@@ -200,7 +200,7 @@ class price_GroupOfProducts extends core_Detail
             $data->form->setField('productId', 'input');
             $data->form->setReadOnly('productId');
             $pInfo = cat_Products::getProductInfo($rec->productId);
-            expect(isset($pInfo->meta['canSell']), 'Продукта не е продаваем');
+            expect(isset($pInfo->meta['canSell']), 'Продуктът не е продаваем');
             
             if(!isset($rec->groupId)) {
                 $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());

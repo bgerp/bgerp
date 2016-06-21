@@ -58,7 +58,7 @@ class csstoinline_ToInline
                 $value = trim($value);
                 
                 //Проверяваме дали е валидно URL или е файл
-                if (is_file($value) || (URL::isValidUrl2($value))) {
+                if (is_file($value) || (core_Url::isValidUrl($value))) {
                     
                     //Проверява разширението дали е CSS
                     if (($dotPos = mb_strrpos($value, '.')) !== FALSE) {

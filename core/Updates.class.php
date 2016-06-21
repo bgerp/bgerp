@@ -64,8 +64,14 @@ class core_Updates extends core_Manager
      * Кой може да изтрива?
      */
     var $canDelete = 'debug';
-
-
+    
+    
+    /**
+     * Кой може да оттегля?
+     */
+    var $canReject = 'no_one';
+    
+    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */

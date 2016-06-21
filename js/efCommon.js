@@ -1010,7 +1010,9 @@ function prepareContextMenu() {
         $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
             'position': position,
-            'sizeStyle': sizeStyle
+            'sizeStyle': sizeStyle,
+            'verAdjust': $(this).outerHeight(),
+            'horAdjust': - 30
         });
     });
 }
@@ -2121,34 +2123,11 @@ function addLinkOnCopy(text, symbolCount) {
 }
 
 
-/**
- * Подготовка за контекстно меню по ajax
- */
-function getContextMenuFromAjax() {
-    prepareContextHtmlFromAjax();
-
-    $(".transparent.more-btn").on('click', function (e) {
-        if(e.button == 1 || e.offsetX > 22) {
-            $(this).contextMenu('close');
-            if(e.button == 1) {
-                window.open($(this).attr('href'),'_blank');
-            } else {
-                window.location.href = $(this).attr('href');
-            }
-        } else {
-            var url = $(this).attr("data-url");
-            if(!url) return;
-
-            resObj = new Object();
-            resObj['url'] = url;
-            getEfae().process(resObj);
-        }
-    });
-}
 
 function prepareContextHtmlFromAjax() {
-    $( ".transparent.more-btn").parent().css('position', 'relative');
-    $( ".transparent.more-btn").each(function(){
+
+    $( ".ajaxContext").parent().css('position', 'relative');
+    $( ".ajaxContext").each(function() {
         var holder = document.createElement('div');
         $(holder).addClass('modal-toolbar');
         $(holder).attr('id', $(this).attr("data-id"));
@@ -2156,9 +2135,39 @@ function prepareContextHtmlFromAjax() {
 
         $(this).parent().append(holder);
     });
-
-    prepareContextMenu();
 }
+
+
+/**
+ * Подготовка за контекстно меню по ajax
+ */
+function getContextMenuFromAjax() {
+    prepareContextHtmlFromAjax();
+
+    $('.ajaxContext').on('mousedown', function() {
+        openAjaxMenu(this);
+    } );
+
+    $('.ajaxContext').each(function(){
+        var el = $(this);
+        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
+    });
+
+
+
+}
+
+function openAjaxMenu(el) {
+
+    var url = $(el).attr("data-url");
+    if(!url) return;
+
+    resObj = new Object();
+    resObj['url'] = url;
+    getEfae().process(resObj);
+}
+
+
 /**
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */
@@ -4515,9 +4524,10 @@ function mailServerSettings() {
 		    	smtpAuth.value = "no";
 		}
 
+        if($('.select2').length){
+            $('select').trigger("change");
+        }
     }
-    
-    location.reload();
 };
 
 

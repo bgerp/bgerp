@@ -70,8 +70,8 @@ class vtotal_Checks extends core_Master
      */
     public function description()
     {
-        $this->FLD('firstCheck', 'datetime', 'caption=Последно от вирус тотал');
-        $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
+        $this->FLD('firstCheck', 'datetime(format=smartTime)', 'caption=Последно от вирус тотал');
+        $this->FLD('lastCheck', 'datetime(format=smartTime)', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
         $this->FLD('timesScanned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScaned');
@@ -125,6 +125,20 @@ class vtotal_Checks extends core_Master
     }
 
 
+    public function putNewFileForCheck(&$rec, $md5, &$counter)
+    {
+        $checkFile = (object)array('filemanDataId' => $rec->dataId,
+            'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
+        $result = $this->save($checkFile, NULL, "IGNORE");
+        if(!$result) {
+            $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+            $rec->dangerRate = $cRec->dangerRate;
+            fileman_Files::save($rec, "dangerRate");
+        } else {
+            $counter++;
+        }
+    }
+
     /**
      * Функция по крон, която проверява по 4 файла взети от fileman_Files и
      * ги поставя в този модел за инспекция
@@ -145,18 +159,109 @@ class vtotal_Checks extends core_Master
             'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM',
         );
 
+        $archiveExtensions = array(
+          'ZIP', 'RAR', 'GZIP', '7Z', 'GZ', 'ISO'
+        );
+
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
-
+        $query->limit(300);
+        
         $counter = 0;
 
         while($rec = $query->fetch()) {
-            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
-
+            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL")) break;
+            
+            if (!$rec->dataId) {
+                $rec->dangerRate = 0;
+                fileman_Files::save($rec, "dangerRate");
+                continue;
+            }
+            
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
 
-            if (!in_array(strtoupper($extension), $dangerExtensions)) {
+            if(in_array(strtoupper($extension), $archiveExtensions)) {
+                $fileHnd = $rec->fileHnd;
+                $fRec = fileman_Files::fetchByFh($fileHnd);
+
+                // throw fileman_Exception - ако размера е над допустимия за обработка,
+                // трябва да го прихванеш
+                try{
+                    $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
+                }catch(fileman_Exception $e){
+                    // Проверка във VT
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
+                    continue;
+                }
+                
+                try {
+                    $entriesArr = $archivInst->getEntries();
+                } catch (core_exception_Expect $e) {
+                    self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
+                    // Проверка във VT
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
+                    continue;
+                }
+				
+                $archiveHaveExt = FALSE;
+                
+                foreach ($entriesArr as $key => $entry) {
+                    $size = $entry->getSize();
+
+                    if (!$size) continue;
+
+                    // Гледаме размера след разархивиране да не е много голям
+                    // Защита от "бомби" - от препълване на сървъра
+                    if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
+
+                    $path = $entry->getPath();
+
+                    $ext = pathinfo($path, PATHINFO_EXTENSION);
+
+                    if (!$ext) continue;
+
+                    // Проверка на разширението дали е от сканируемите
+                    if(!in_array(strtoupper($ext), $dangerExtensions)) continue;
+                    
+                    $archiveHaveExt = TRUE;
+                    
+                    // След като открием файла който ще пратим към VT
+                    try {
+                        $extractedPath = $archivInst->extractEntry($path);
+                    } catch(Exception $e) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    }
+
+                    if (!is_file($extractedPath)) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    }
+                    
+                    $md5 = @md5_file($extractedPath);
+                    
+                    if (!$md5) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    } else {
+                        // Проверка във VT
+                        $this->putNewFileForCheck($rec, $md5, $counter);
+                        break;
+                    }
+                }
+                
+                if (!$archiveHaveExt) {
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
+                }
+                
+                // Изтриваме временната директория за съхранение на архива.
+                $archivInst->deleteTempPath();
+
+            } elseif (!in_array(strtoupper($extension), $dangerExtensions)) {
 
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
@@ -179,21 +284,9 @@ class vtotal_Checks extends core_Master
                 }
             }
             elseif ($rec->dangerRate == NULL) {
-
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 1);
-                $result = $this->save($checkFile, NULL, "IGNORE");
-
-                if(!$result) {
-                    $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                    $rec->dangerRate = $cRec->dangerRate;
-                    fileman_Files::save($rec, "dangerRate");
-                } else {
-                    $counter++;
-                }
+                $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
             }
-
         }
     }
 
@@ -216,40 +309,38 @@ class vtotal_Checks extends core_Master
         {
             $result = self::VTGetReport($rec->md5);
 
-            if($rec->timesScanned >= 2)
-            {
-                $fQuery = fileman_Files::getQuery();
-                $fQuery->where("#dataId = {$rec->filemanDataId}");
-
-                while($fRec = $fQuery->fetch())
+            if($result == -1 || $result == -3 || $result->response_code == 0) {
+                $rec->timesScanned = $rec->timesScanned + 1;
+                if($rec->timesScanned >= 2)
                 {
-                    $fRec->dangerRate = -1;
-                    fileman_Files::save($fRec);
-                }
-            }
-            else{
-                if($result == -1 || $result == -3 || $result->response_code == 0)
-                {
-                    $rec->timesScanned = $rec->timesScanned + 1;
-                    $rec->lastCheck = $now;
-                    $this->save($rec);
-                }
-                elseif ($result->response_code == 1)
-                {
-                    $dangerRate = $this->getDangerRate($result);
-                    $rec->firstCheck = $result->scan_date;
-                    $rec->lastCheck = $now;
-                    $rec->rateByVT = $result->positives . "|" . $result->total;
-                    $this->save($rec, 'firstCheck, lastCheck, rateByVT');
+                    $fQuery = fileman_Files::getQuery();
+                    $fQuery->where("#dataId = {$rec->filemanDataId}");
 
-                    $query = fileman_Files::getQuery();
-                    $query->where("#dataId = {$rec->filemanDataId}");
-
-                    while($fRec = $query->fetch())
+                    while($fRec = $fQuery->fetch())
                     {
-                        $fRec->dangerRate = $dangerRate;
-                        fileman_Files::save($fRec);
+                        $fRec->dangerRate = -1;
+                        fileman_Files::save($fRec, 'dangerRate');
                     }
+                }
+                $rec->lastCheck = $now;
+                $this->save($rec);
+            }
+            elseif ($result->response_code == 1) {
+                $dangerRate = $this->getDangerRate($result);
+
+                $rec->timesScanned = $rec->timesScanned + 1;
+                $rec->firstCheck = $result->scan_date;
+                $rec->lastCheck = $now;
+                $rec->rateByVT = $result->positives . "|" . $result->total;
+                $this->save($rec);
+
+                $fsQuery = fileman_Files::getQuery();
+                $fsQuery->where("#dataId = {$rec->filemanDataId}");
+
+                while($fRec = $fsQuery->fetch())
+                {
+                    $fRec->dangerRate = $dangerRate;
+                    fileman_Files::save($fRec, 'dangerRate');
                 }
             }
         }

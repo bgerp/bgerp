@@ -366,11 +366,11 @@ class blogm_Articles extends core_Master {
                     $Comments->logWrite('Добавяне', $id);
                     
                     // Редиректваме към предварително установения адрес
-                    return new Redirect(self::getUrl($data->rec), '|Благодарим за вашия коментар;)');
+                    return new Redirect(self::getUrl($data->rec), '|Благодарим за вашия коментар|*');
                 } else {
 
                     // Връщане на СПАМ съобщение
-                    return new Redirect(self::getUrl($data->rec), '|За съжаление не успяхме да запишем коментара ви|* :(');
+                    return new Redirect(self::getUrl($data->rec), '|За съжаление не успяхме да запишем коментара ви|*');
                 }
                 
             }
@@ -718,7 +718,7 @@ class blogm_Articles extends core_Master {
                 error('404 Липсваща категория', array("Липсва категория:  {$data->category}"));
             }
 
-   			$data->title = tr('Статии в') .  '&nbsp;"<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+   			$data->title = tr('Статии в') .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
             if(!count($data->rows)) {
                 $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';

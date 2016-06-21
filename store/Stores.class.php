@@ -232,8 +232,10 @@ class store_Stores extends core_Master
     {
     	$rec = $data->rec;
     	
-    	if(store_InventoryNotes::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
-    		$data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => TRUE), 'ef_icon=img/16/invertory.png,title = Създаване на протокол за инвентаризация');
+    	if($rec->state != 'rejected'){
+    		if(store_InventoryNotes::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
+    			$data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => TRUE), 'ef_icon=img/16/invertory.png,title = Създаване на протокол за инвентаризация');
+    		}
     	}
     }
     

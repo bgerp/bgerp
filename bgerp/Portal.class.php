@@ -163,7 +163,14 @@ class bgerp_Portal extends core_Manager
         if($search = Request::get($mvc->searchInputField)){
             $form->layout->replace($search, 'VALUE');
         }
-        $findIcon = sbf('img/16/find.png');
+        
+        $iconSize = 16;
+        if(log_Browsers::isRetina()) {
+            $iconSize = 32;
+        }
+        
+        $findIcon = sbf("img/{$iconSize}/find.png");
+        
         $form->layout->replace($mvc->className, 'LIST');
         $form->layout->replace($findIcon, 'ICON');
         static::prepareSearchDataList($mvc, $form);

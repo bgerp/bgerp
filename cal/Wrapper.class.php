@@ -31,7 +31,7 @@ class cal_Wrapper extends plg_ProtoWrapper
             $from = dt::verbal2mysql();
         }
 		
-        $from = dt::mysql2verbal($from, 'd.m.Y');
+        $from = dt::mysql2verbal($from, 'd.m.Y', NULL, FALSE);
         
         $this->TAB(array('cal_Calendar', 'list',  'from' => $from), 'Календар->Списък', 'powerUser,admin');
         $this->TAB(array('cal_Calendar', 'day',  'from' => $from), 'Календар->Ден', 'powerUser,admin');

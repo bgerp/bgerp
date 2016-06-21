@@ -2634,8 +2634,11 @@ class crm_Persons extends core_Master
     	// Ако контрагента е в група доставчици'
     	if(keylist::isIn($supplierGroupId, $rec->groupList)){
     		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_SUPPLIER_FOLDER);
-    	} else {
-    		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
+    	}
+    	
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$meta1 = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
+    		$meta = array_merge($meta, $meta1);
     	}
     	
     	return $meta;

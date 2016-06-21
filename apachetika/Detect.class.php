@@ -96,8 +96,17 @@ class apachetika_Detect
         $Script->params = serialize($params);
         $Script->fh = $fileHnd;
         
-        // Стартираме изпълнението
-        $Script->run($params['asynch']);
+        $Script->setChechProgramsArr('java');
+        // Стартираме скрипта Aсинхронно
+        if ($Script->run($params['asynch']) === FALSE) {
+            
+            if (strtolower($params['type']) == 'metadata') {
+                $params['content'] = '';
+                fileman_Indexes::saveContent($params);
+            } else {
+                fileman_Indexes::createError($params);
+            }
+        }
     }
     
     

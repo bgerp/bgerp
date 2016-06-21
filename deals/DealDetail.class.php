@@ -267,7 +267,7 @@ abstract class deals_DealDetail extends doc_Detail
     			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     				
     			if (empty($policyInfo->price) && empty($pRec)) {
-    				$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
+    				$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
     			} else {
     				 
     				// Ако се обновява запис се взима цената от него, ако не от политиката

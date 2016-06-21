@@ -4,7 +4,7 @@
 /**
  * Разделител
  */
-defIfNot('CSV_DELIMITER', ',');
+defIfNot('CSV_DELIMITER', '&comma;');
 
 
 /**
@@ -41,7 +41,7 @@ class csv_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	public $configDescription = array(
-		'CSV_DELIMITER' => array ('enum(comma=\,,semicolon=;,colon=:,vertical=Вертикална черта)', 'caption=Разделител'),
+		'CSV_DELIMITER' => array ('varchar(12)', 'caption=Разделител,suggestions=&Tab;|&comma;|&vert;|;|:'),
 	);
 	
 	

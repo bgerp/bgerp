@@ -396,6 +396,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
     			}
 			}
 			
+			if($masterRec->type == 'dc_note'){
+				if(!isset($rec->packPrice) || !isset($rec->quantity)){
+					$form->setError('packPrice,packQuantity', 'Количеството и сумата трябва да са попълнени');
+					return;
+				}
+			}
+			
 			// Закръгляме количеството спрямо допустимото от мярката
 			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
 			
@@ -412,7 +419,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 			
 			// Ако няма въведена цена
-			if (!isset($rec->packPrice)) {
+			if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
 						
 				// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
 				$origin = $mvc->Master->getOrigin($masterRec);
@@ -437,7 +444,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
 				if (empty($policyInfo->price) && empty($pRec)) {
-					$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
+					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
 				} else {
 							
 					// Ако се обновява запис се взима цената от него, ако не от политиката
@@ -460,7 +467,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$packPrice = deals_Helper::getPurePrice($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
 				}
 			}
-	
+			
 			$rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
 			
 			// Ако има такъв запис, сетваме грешка

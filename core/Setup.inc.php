@@ -816,7 +816,9 @@ if($step == 3) {
 // Ако се намираме на етапа на инициализиране, по-долу стартираме setup-а
 if($step == 4) {
     $texts['body'] .= linksToHtml(array("new|{$selfUrl}&step=5| Стартиране инициализация »"));
-    $texts['body'] .= linksToHtml(array("new|{$selfUrl}&cancel| Стартирай bgERP »"));
+    if (strtolower(BGERP_GIT_BRANCH) == 'dev') {
+        $texts['body'] .= linksToHtml(array("new|{$selfUrl}&cancel| Стартирай bgERP »"));
+    }
 }
 
 if($step == 5) {

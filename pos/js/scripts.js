@@ -363,23 +363,8 @@ function posActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
+		
 		getEfae().process(resObj, {receiptId:receiptId,productId:productId,quantity:quant});
-		calculateWidth();
-	});
-	
-	
-	// Търсене на контрагенти
-	$(document.body).on('click', ".pos-search-contragent-btn", function(e){
-		var searchStr = $("input[name=input-search-contragent]").val();
-		var receiptId = $("input[name=receiptId]").val();
-		
-		var url2 = $(this).attr("data-url");
-		
-		if(!url2) return;
-		
-		resObj = new Object();
-		resObj['url'] = url2;
-		getEfae().process(resObj, {receiptId:receiptId,searchString:searchStr});
 		calculateWidth();
 	});
 	
@@ -425,7 +410,26 @@ function posActions() {
 			getEfae().process(resObj, {receiptId:receiptId,searchString:inpVal});
 			calculateWidth();
 		}, 3000);
+	});
+	
+	// Търсене на контрагенти
+	$(document.body).on('click', ".pos-search-contragent-btn", function(e){
+		var searchStr = $("input[name=input-search-contragent]").val();
+		var receiptId = $("input[name=receiptId]").val();
 		
+		var url2 = $(this).attr("data-url");
+		
+		if(!url2) return;
+		
+		resObj = new Object();
+		resObj['url'] = url2;
+		
+		if (typeof timeout1 != 'undefined') {
+			clearTimeout(timeout1);
+		}
+		
+		getEfae().process(resObj, {receiptId:receiptId,searchString:searchStr});
+		calculateWidth();
 	});
 }
 

@@ -489,7 +489,7 @@ class core_Detail extends core_Manager
         $me = get_called_class();
         $inst = cls::get($me);
         
-        if (isset($objId) && ($masterKey = $inst->masterKey) && is_object($inst->Master)) {
+        if (isset($objId) && ($masterKey = $inst->masterKey) && is_object($inst->Master) && ($inst->Master instanceof core_Master)) {
             $rec = $inst->fetch($objId);
             
             $masterId = $rec->{$masterKey};

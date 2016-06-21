@@ -107,6 +107,12 @@ class fconv_Script
     
     
     /**
+     * Програми, които трябва да се проверят, преди да се изпълни
+     */
+    protected $chechProgramsArr = array();
+    
+    
+    /**
      * Инициализиране на уникално id
      */
     function __construct($tempDir = NULL)
@@ -386,6 +392,26 @@ class fconv_Script
     
     
     /**
+     * Задаваме рограми, които ще се проверяват преди да се пусни обработка
+     */
+    public function setChechProgramsArr($programs)
+    {
+        $programs = arr::make($programs, TRUE);
+        $this->chechProgramsArr += $programs;
+    }
+    
+    
+    /**
+     * Програми, които ще се проверяват преди да се пусни обработка
+     */
+    public function getChechProgramsArr()
+    {
+        
+        return $this->chechProgramsArr;
+    }
+    
+    
+    /**
      * Изпълнява скрипта, като му дава време за изпълнение
      * 
      * @param boolean $asynch
@@ -419,6 +445,24 @@ class fconv_Script
                     log_System::add('fconv_Remote', "Стартиран скрипт: " . $url, $rRec->id);
                     
                     return ;
+                }
+            }
+        }
+        
+        // Ако са зададени програми, които да се проверят преди обработка.
+        if (!empty($this->getChechProgramsArr())) {
+            foreach ($this->getChechProgramsArr() as $program) {
+                
+                if (isset($this->programs[$program])) {
+                    $path = $this->programs[$program];
+                } else {
+                    $path = escapeshellcmd($program);
+                }
+                
+                exec($path . ' --help', $output, $code);
+                if ($code == 127) {
+                    
+                    return FALSE;
                 }
             }
         }
@@ -476,7 +520,7 @@ class fconv_Script
         
         // Ако е зададено да се стартира асинхронно
         if ($asynch) {
-            $shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();    
+            $shell = $this->addRunAsinchronWin() . escapeshellarg($shellName) . $this->addRunAsinchronLinux();    
         } else {
             $shell = $shellName;    
         }

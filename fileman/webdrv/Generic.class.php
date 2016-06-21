@@ -58,7 +58,7 @@ class fileman_webdrv_Generic extends core_Manager
         $tabsArr = array();
         
         // URL за показване на информация за файла
-        $infoUrl = toUrl(array('fileman_webdrv_Office', 'info', $fRec->fileHnd), TRUE);
+        $infoUrl = toUrl(array('fileman_webdrv_Generic', 'Info', $fRec->fileHnd), TRUE);
         // Таб за информация
         $tabsArr['info'] = (object) 
 			array(

@@ -250,7 +250,7 @@ class sales_Setup extends core_ProtoSetup
         // Добавяне на роля за старши продавач
         $html .= core_Roles::addOnce('salesMaster', 'sales');
         
-        // Добавяне на роля за старши касиер
+        // Добавяне на роля за създаване на фактури
         $html .= core_Roles::addOnce('invoicer');
         
         // acc наследява invoicer

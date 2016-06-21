@@ -41,6 +41,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Труд');
         $browser->setValue('code', 'work');
         $browser->setValue('measureId', 'час');
+        $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -88,6 +89,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Електричество');
         $browser->setValue('code', 'electricity');
         $browser->setValue('measureId', 'киловатчас');
+        $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
        
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -105,8 +107,9 @@ class unit_MinkP extends core_Manager {
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
-        $browser->setValue('price', '0,68');
         $browser->refresh('Запис');
+        $browser->setValue('price', '0.60');
+        $browser->press('Запис');
         
     }
     
@@ -229,8 +232,20 @@ class unit_MinkP extends core_Manager {
          $browser->press('Запис');
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Отпадък 1');
          }
-          
+         //Задаване на ценова група
+         //$browser->click('Цени');
+         //$browser->click('Задаване на ценова група');
+         //$browser->refresh('Запис');
+         //$browser->setValue('groupId', '1');
+         //$browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '1');
+         $browser->press('Запис');
      }
      
      /**
@@ -260,8 +275,20 @@ class unit_MinkP extends core_Manager {
          
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Отпадък 2');
          }
-     
+         //Задаване на ценова група
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '2');
+         $browser->press('Запис');
      }
      
      /**
@@ -291,8 +318,20 @@ class unit_MinkP extends core_Manager {
           
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Отпадък 3');
          }
-          
+         //Задаване на ценова група
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '3');
+         $browser->press('Запис');
      }
     
      /**
@@ -318,12 +357,26 @@ class unit_MinkP extends core_Manager {
          $browser->setValue('name', 'Машина 1');
          $browser->setValue('code', 'Mash1');
          $browser->setValue('measureId', 'час');
+         $browser->setValue('meta[canSell]', 'canSell');
          $browser->press('Запис');
      
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Машина 1');
          }
-     
+         //Задаване на ценова група
+         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '5');
+         $browser->press('Запис');
      }
      
      /**
@@ -349,12 +402,26 @@ class unit_MinkP extends core_Manager {
          $browser->setValue('name', 'Машина 2');
          $browser->setValue('code', 'Mash2');
          $browser->setValue('measureId', 'час');
+         $browser->setValue('meta[canSell]', 'canSell');
          $browser->press('Запис');
           
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Машина 2');
          }
-          
+         //Задаване на ценова група
+         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '10');
+         $browser->press('Запис');
      }
       
      /**
@@ -380,12 +447,26 @@ class unit_MinkP extends core_Manager {
          $browser->setValue('name', 'Машина 3');
          $browser->setValue('code', 'Mash3');
          $browser->setValue('measureId', 'час');
+         $browser->setValue('meta[canSell]', 'canSell');
          $browser->press('Запис');
           
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Машина 3');
          }
-          
+         //Задаване на ценова група
+         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
+         //Добавяне на мениджърска себестойност
+         $browser->click('Цени');
+         $browser->click('Добавяне на нова мениджърска себестойност');
+         $browser->refresh('Запис');
+         $browser->setValue('price', '15');
+         $browser->press('Запис');
      }
   
      /**
@@ -406,7 +487,7 @@ class unit_MinkP extends core_Manager {
           
          // Правим нов артикул - заготовка 1
          $browser->click('Каталог');
-         $browser->click('Суровини и материали');
+         $browser->click('Заготовки');
          $browser->press('Артикул');
          $browser->setValue('name', 'Заготовка 1');
          $browser->setValue('code', 'Stage1');
@@ -415,15 +496,85 @@ class unit_MinkP extends core_Manager {
      
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
+             $browser->click('Заготовка 1');
+         }
+         $browser->click('Добавяне на нов параметър');
+         $browser->setValue('paramId', 'Тегло');
+         $browser->refresh('Запис');
+         $browser->setValue('paramValue', '20');
+         $browser->press('Запис');
+     }
+     
+     /**
+      * 13.Създава нов артикул - заготовка 2 (резултат от 2 етап)
+      */
+     //http://localhost/unit_MinkP/CreateStage2/
+     function act_CreateStage2()
+     {
+          
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+     
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+     
+         // Правим нов артикул - заготовка 2
+         $browser->click('Каталог');
+         $browser->click('Заготовки');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Заготовка 2');
+         $browser->setValue('code', 'Stage2');
+         $browser->setValue('measureId', 'килограм');
+         $browser->press('Запис');
+          
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
+             $browser->click('Заготовка 2');
+         }
+         $browser->click('Добавяне на нов параметър');
+         $browser->setValue('paramId', 'Цвят');
+         $browser->refresh('Запис');
+         $browser->setValue('paramValue', '4');
+         $browser->press('Запис');
+          
+     }
+     
+     /**
+      * 14.Създава нов артикул - крайно изделие (резултат от 3 етап)
+      */
+     //http://localhost/unit_MinkP/CreateTestBom/
+     function act_CreateTestBom()
+     {
+     
+         $browser = cls::get('unit_Browser');
+         $browser->start('http://localhost/');
+          
+         // Логваме се
+         $browser->click('Вход');
+         $browser->setValue('nick', 'Pavlinka');
+         $browser->setValue('pass', '111111');
+         $browser->press('Вход');
+          
+         // Правим нов артикул - крайно изделие
+         $browser->click('Каталог');
+         $browser->click('Продукти');
+         $browser->press('Артикул');
+         $browser->setValue('name', 'Тест рецепта с етапи');
+         $browser->setValue('code', 'TestBom');
+         $browser->setValue('measureId', 'брой');
+         $browser->press('Запис');
+     
+         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+             $browser->press('Отказ');
          }
      
      }
      
-     
-     
-     
     /**
-     * 20.Създава доставка на материалите
+     * 15.Създава доставка на материалите
      */
     //http://localhost/unit_MinkP/CreatePurchase/
     function act_CreatePurchase()
@@ -459,49 +610,39 @@ class unit_MinkP extends core_Manager {
         $browser->press('Чернова');
         
         // Записваме черновата на покупката
-         
         // Добавяме нов артикул - опаковка
-//////////////       
             $browser->press('Артикул');
             $browser->setValue('productId', 'Опаковка');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '008+03*08');//32
-            $browser->setValue('packPrice', '010+3*0.8');//12.4
+            $browser->setValue('packQuantity', '1008/4+03*08');//276
+            $browser->setValue('packPrice', '003+4*0.08/2');//3.16
             $browser->setValue('discount', 3);
             $browser->press('Запис и Нов');
-            //return  $browser->getHtml();
-////////////// Записваме артикула и добавяме нов - материал 1
-            //Материал 1
-            
-           
+            // Записваме артикула и добавяме нов - материал 1
             $browser->setValue('productId', 'Материал 1');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100-07*8');//44
-            $browser->setValue('packPrice', '010.20+0.3*08');//12.6
+            $browser->setValue('packQuantity', '010+09*8');//82
+            $browser->setValue('packPrice', '010,20-0.6*08');//5.4
             $browser->setValue('discount', 2);
             $browser->press('Запис и Нов');
-///////////// Записваме артикула и добавяме нов - материал 2
-        
+            // Записваме артикула и добавяме нов - материал 2
             $browser->setValue('productId', 'Материал 2');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '023 + 012*03');//59
-            $browser->setValue('packPrice', '091 - 023*02');//45
+            $browser->setValue('packQuantity', '023 + 012*09');//131
+            $browser->setValue('packPrice', '0,091 - 0,023*02');//0.045
             $browser->setValue('discount', 4);
-        
             // Записваме артикула
             $browser->press('Запис');
-             
             // активираме покупката
             $browser->press('Активиране');
-            //return  $browser->getHtml();
             //$browser->press('Активиране/Контиране');
              
-            if(strpos($browser->gettext(), '967,64')) {
+            if(strpos($browser->gettext(), '257,12')) {
             } else {
                 return "Грешно ДДС";
             }
         
-            if(strpos($browser->gettext(), 'Пет хиляди осемстотин и пет BGN и 0,83')) {
+            if(strpos($browser->gettext(), 'Хиляда петстотин четиридесет и два BGN и 0,72')) {
             } else {
                 return "Грешна обща сума";
             }
@@ -512,34 +653,17 @@ class unit_MinkP extends core_Manager {
             $browser->press('Чернова');
             $browser->press('Контиране');
         
-            // протокол
-            $browser->press('Приемане');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-            //if(strpos($browser->gettext(), 'Контиране')) {
-            //  $browser->press('Контиране');
-            //}
-        
             // Фактура  № се сменя при повторен тест
             $browser->press('Вх. фактура');
-            $browser->setValue('number', '1176');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-        
-            // РКО
-            $browser->press('РКО');
-            $browser->setValue('beneficiary', 'Иван Петров');
-            $browser->setValue('amountDeal', '100');
-            $browser->setValue('peroCase', '1');
+            $browser->setValue('number', '17');
             $browser->press('Чернова');
             $browser->press('Контиране');
         
             // РБД
             $browser->press('РБД');
-            $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
             $browser->press('Чернова');
             $browser->press('Контиране');
-        
             $browser->press('Приключване');
             $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
             $browser->press('Чернова');
@@ -549,16 +673,13 @@ class unit_MinkP extends core_Manager {
                 return "Грешно чакащо плащане";
             }
         
-        
-        
     }
     
     /**
-     *9.Добавя рецепта
-     *
+     *16.Добавя рецепта
      */
-    //http://localhost/unit_MinkPbgERP/CreateBom/
-    function act_CreateBom()
+    //http://localhost/unit_MinkP/CreateBomStage1/
+    function act_CreateBomStage1()
     {
     
         $browser = cls::get('unit_Browser');
@@ -569,34 +690,46 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('nick', 'Pavlinka');
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
-         
         $browser->click('Каталог');
-        $browser->click('Продукти');
-        $browser->click('Други продукти');
+        $browser->click('Заготовки');
+        $browser->click('Заготовка 1');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
-         
+        //return $browser->getHtml();
+        
         //$browser->hasText('Добавяне на търговска рецепта към');
-        $browser->setValue('notes', 'CreateBom');
-        $browser->setValue('expenses', '8');
-        $browser->setValue('quantityForPrice', '100');
+        $browser->setValue('notes', 'BomStage1');
+        //$browser->setValue('expenses', '8');
+        $browser->setValue('quantityForPrice', '1000');
         $browser->press('Чернова');
         $browser->press('Влагане');
          
-        $browser->setValue('resourceId', '1');
-        $browser->setValue('propQuantity', '1,6');
+        $browser->setValue('resourceId', 'Труд (work)');
+        $browser->setValue('propQuantity', '0.002 + $Начално= 20');
         $browser->refresh('Запис');
-        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
-    
         $browser->press('Запис и Нов');
-        $browser->setValue('resourceId', '2');
-        $browser->setValue('propQuantity', '1 + $Начално= 10');
+        $browser->setValue('resourceId', 'Електричество');
+        $browser->setValue('propQuantity', '0.008 + $Начално= 5');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Машина 1');
+        $browser->setValue('propQuantity', '0.002 + $Начално= 21');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Материал 1');
+        $browser->setValue('propQuantity', '0.05*$тегло(кг) + $Начално= 1');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Материал 2');
+        $browser->setValue('propQuantity', '0.99*$тегло(кг) + $Начално= 20');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Отпадък 1');
+        $browser->setValue('propQuantity', '0.04*$тегло(кг) + $Начално= 21');
         $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
-    
          
     }
-     
    
 }

@@ -65,7 +65,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * След преобразуване на записа в четим за хора вид.
 	 */
-	public static function on_AfterRecToVerbal(planning_drivers_ProductionTask $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
+	public static function on_AfterRecToVerbal(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
 	{
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		if(!$rec->totalQuantity){
@@ -81,11 +81,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param cat_ProductDriver $Driver
+	 * @param tasks_BaseDriver $Driver
 	 * @param embed_Manager $Embedder
 	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
+	public static function on_AfterPrepareEditForm(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
 		$rec = $form->rec;
@@ -168,11 +168,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param cat_ProductDriver $Driver
+	 * @param tasks_BaseDriver $Driver
 	 * @param embed_Manager $Embedder
 	 * @param core_Form $form
 	 */
-	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+	public static function on_AfterInputEditForm(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$form)
 	{
 		$rec = $form->rec;
 		if($form->isSubmitted()){

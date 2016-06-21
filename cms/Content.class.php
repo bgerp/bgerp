@@ -103,9 +103,9 @@ class cms_Content extends core_Manager
         $this->FLD('menu',    'varchar(64)', 'caption=Меню,mandatory');
         
         $this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
-        $this->FLD('source',  'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник');
-        $this->FLD('url',  'varchar(128)', 'caption=URL');
-        $this->FLD('layout', 'html', 'caption=Лейаут');
+        $this->FLD('source',  'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник,mandatory');
+        $this->FLD('url',  'varchar(128)', 'caption=URL,input=none');
+        $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
 
         $this->setDbUnique('menu,domainId');
     }
