@@ -70,8 +70,8 @@ class vtotal_Checks extends core_Master
      */
     public function description()
     {
-        $this->FLD('firstCheck', 'datetime', 'caption=Последно от вирус тотал');
-        $this->FLD('lastCheck', 'datetime', 'caption=Последно проверяване от системата');
+        $this->FLD('firstCheck', 'datetime(format=smartTime)', 'caption=Последно от вирус тотал');
+        $this->FLD('lastCheck', 'datetime(format=smartTime)', 'caption=Последно проверяване от системата');
         $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл');
         $this->FLD('timesScanned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScaned');
@@ -125,14 +125,14 @@ class vtotal_Checks extends core_Master
     }
 
 
-    public function putNewFileForCheck($rec, $md5, &$counter)
+    public function putNewFileForCheck(&$rec, $md5, &$counter)
     {
         $checkFile = (object)array('filemanDataId' => $rec->dataId,
             'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
         $result = $this->save($checkFile, NULL, "IGNORE");
         if(!$result) {
             $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-            $rec->dangerRate = $cRec->dangerRate;
+            $rec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
             fileman_Files::save($rec, "dangerRate");
         } else {
             $counter++;
@@ -166,20 +166,21 @@ class vtotal_Checks extends core_Master
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
-
+        $query->limit(300);
+        
         $counter = 0;
 
         while($rec = $query->fetch()) {
-            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
+            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL")) break;
             
             if (!$rec->dataId) {
                 $rec->dangerRate = 0;
                 fileman_Files::save($rec, "dangerRate");
-                
                 continue;
             }
             
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
+
             if(in_array(strtoupper($extension), $archiveExtensions)) {
                 $fileHnd = $rec->fileHnd;
                 $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -189,10 +190,9 @@ class vtotal_Checks extends core_Master
                 try{
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
                 }catch(fileman_Exception $e){
-                    
-                    $rec->dangerRate = 0;
-                    fileman_Files::save($rec, "dangerRate");
-                    
+                    // Проверка във VT
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
                 }
                 
@@ -200,10 +200,9 @@ class vtotal_Checks extends core_Master
                     $entriesArr = $archivInst->getEntries();
                 } catch (core_exception_Expect $e) {
                     self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
-                    
-                    $rec->dangerRate = 0;
-                    fileman_Files::save($rec, "dangerRate");
-                    
+                    // Проверка във VT
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
                 }
 				
@@ -230,9 +229,13 @@ class vtotal_Checks extends core_Master
                     $archiveHaveExt = TRUE;
                     
                     // След като открием файла който ще пратим към VT
+                    try {
+                        $extractedPath = $archivInst->extractEntry($path);
+                    } catch(Exception $e) {
+                        $archiveHaveExt = FALSE;
+                        continue;
+                    }
 
-                    $extractedPath = $archivInst->extractEntry($path);
-                    
                     if (!is_file($extractedPath)) {
                         $archiveHaveExt = FALSE;
                         continue;
@@ -243,26 +246,16 @@ class vtotal_Checks extends core_Master
                     if (!$md5) {
                         $archiveHaveExt = FALSE;
                         continue;
-                    }
-                    
-                    // Проверка във VT
-                    $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                        'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
-                    $result = $this->save($checkFile, NULL, "IGNORE");
-
-                    if(!$result) {
-                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                        $rec->dangerRate = $cRec->dangerRate;
-                        fileman_Files::save($rec, "dangerRate");
                     } else {
-                        $counter++;
+                        // Проверка във VT
+                        $this->putNewFileForCheck($rec, $md5, $counter);
+                        break;
                     }
-                    break;
                 }
                 
                 if (!$archiveHaveExt) {
-                    $rec->dangerRate = 0;
-                    fileman_Files::save($rec, "dangerRate");
+                    $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
+                    $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                 }
                 
                 // Изтриваме временната директория за съхранение на архива.
@@ -273,7 +266,7 @@ class vtotal_Checks extends core_Master
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
                 if($cRec) {
-                    $rec->dangerRate = $cRec->dangerRate;
+                    $rec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
                     fileman_Files::save($rec, "dangerRate");
                 } else {
                     $rec->dangerRate = 0;
@@ -291,19 +284,8 @@ class vtotal_Checks extends core_Master
                 }
             }
             elseif ($rec->dangerRate == NULL) {
-
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
-                $checkFile = (object)array('filemanDataId' => $rec->dataId,
-                    'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                $result = $this->save($checkFile, NULL, "IGNORE");
-
-                if(!$result) {
-                    $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-                    $rec->dangerRate = $cRec->dangerRate;
-                    fileman_Files::save($rec, "dangerRate");
-                } else {
-                    $counter++;
-                }
+                $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
             }
         }
     }
@@ -350,7 +332,7 @@ class vtotal_Checks extends core_Master
                 $rec->firstCheck = $result->scan_date;
                 $rec->lastCheck = $now;
                 $rec->rateByVT = $result->positives . "|" . $result->total;
-                $this->save($rec, 'firstCheck, lastCheck, rateByVT');
+                $this->save($rec);
 
                 $fsQuery = fileman_Files::getQuery();
                 $fsQuery->where("#dataId = {$rec->filemanDataId}");
@@ -362,5 +344,30 @@ class vtotal_Checks extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $rateStr
+     * 
+     * @return number
+     */
+    protected function getDangerRateByRateStr($rateStr)
+    {
+        $rate = 0;
+        
+        if (!trim($rateStr)) return $rate;
+        
+        $obj = new stdClass();
+        
+        list($obj->positives, $obj->total) = explode('|', $rateStr);
+        
+        if (!$obj->positives || !$obj->total) return $rate;
+        
+        $rate = vtotal_Checks::getDangerRate($obj);
+        
+        return $rate;
     }
 }

@@ -2528,26 +2528,22 @@ fieldset.sharing-history {
 	margin-top: 7px;
 }
 
-.drawing {
-	float: right;
+.wide .eprod-form {
+	display: table-row;
+	.drawing, .vertical {
+		display: table-cell;
+		vertical-align: top;
+	}
+}
+
+.wide .drawing img {
 	max-width: 380px;
-	img {
-		max-width: 380px;
-	}
 }
 
-@media handheld , only screen and (max-width: 1600px) {
-	.sidemenu-push-toright.sidemenu-push-toleft .drawing{
-		float: none;
-	}
+.narrow .drawing img{
+	width: 100%;
+	max-width: 460px !important;
 }
-
-@media handheld , only screen and (max-width: 1400px) {
-	.sidemenu-push .drawing{
-		float: none;
-	}
-}
-
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;
@@ -4068,21 +4064,14 @@ body.narrow {
 }
 
 @media handheld, only screen and (max-width: 1200px) {
-    .wide .app-name {
-         font-size: 7.5em;
-    }
-    .wide #all, .wide #cmsTop, .wide #cmsTop img{
-       border-radius: 0;
-    }
-    .drawing {
-		max-width: 350px;
+	.wide .app-name {
+		font-size: 7.5em;
+	}
+	.wide #all, .wide #cmsTop, .wide #cmsTop img {
+		border-radius: 0;
 	}
 }
-@media handheld, only screen and (max-width: 1100px) {
-    .drawing {
-		max-width: 270px;
-	}
-}
+
 @media handheld , only screen and (max-width: 1024px) {
     .document{
         max-width: 52.5em;
@@ -4090,10 +4079,6 @@ body.narrow {
     .wide .app-name {
          font-size: 6.4em;
     }
-    .drawing {
-		max-width: 500px;
-		float: none;
-	}
 }
 
 /* Mobile */

@@ -451,6 +451,7 @@ class crm_Locations extends core_Master {
         /* @var $query core_Query */
         $query = static::getQuery();
         $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
+        $query->where("#state != 'rejected'");
         
         $recs = array();
         
