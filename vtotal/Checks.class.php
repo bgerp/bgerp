@@ -132,7 +132,7 @@ class vtotal_Checks extends core_Master
         $result = $this->save($checkFile, NULL, "IGNORE");
         if(!$result) {
             $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-            $rec->dangerRate = $cRec->dangerRate;
+            $rec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
             fileman_Files::save($rec, "dangerRate");
         } else {
             $counter++;
@@ -166,7 +166,8 @@ class vtotal_Checks extends core_Master
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
         $query->orderBy("#createdOn", "DESC");
-
+        $query->limit(300);
+        
         $counter = 0;
 
         while($rec = $query->fetch()) {
@@ -265,7 +266,7 @@ class vtotal_Checks extends core_Master
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
                 if($cRec) {
-                    $rec->dangerRate = $cRec->dangerRate;
+                    $rec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
                     fileman_Files::save($rec, "dangerRate");
                 } else {
                     $rec->dangerRate = 0;
@@ -343,5 +344,30 @@ class vtotal_Checks extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $rateStr
+     * 
+     * @return number
+     */
+    protected function getDangerRateByRateStr($rateStr)
+    {
+        $rate = 0;
+        
+        if (!trim($rateStr)) return $rate;
+        
+        $obj = new stdClass();
+        
+        list($obj->positives, $obj->total) = explode('|', $rateStr);
+        
+        if (!$obj->positives || !$obj->total) return $rate;
+        
+        $rate = vtotal_Checks::getDangerRate($obj);
+        
+        return $rate;
     }
 }
