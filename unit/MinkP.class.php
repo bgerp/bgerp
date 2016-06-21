@@ -229,17 +229,18 @@ class unit_MinkP extends core_Manager {
          $browser->setValue('name', 'Отпадък 1');
          $browser->setValue('code', 'Waste1');
          $browser->setValue('measureId', 'литър');
+         $browser->setValue('meta[canSell]', 'canSell');
          $browser->press('Запис');
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
              $browser->press('Отказ');
              $browser->click('Отпадък 1');
          }
          //Задаване на ценова група
-         //$browser->click('Цени');
-         //$browser->click('Задаване на ценова група');
-         //$browser->refresh('Запис');
-         //$browser->setValue('groupId', '1');
-         //$browser->press('Запис');
+         $browser->click('Цени');
+         $browser->click('Задаване на ценова група');
+         $browser->refresh('Запис');
+         $browser->setValue('groupId', '1');
+         $browser->press('Запис');
          //Добавяне на мениджърска себестойност
          $browser->click('Цени');
          $browser->click('Добавяне на нова мениджърска себестойност');
@@ -271,6 +272,7 @@ class unit_MinkP extends core_Manager {
          $browser->setValue('name', 'Отпадък 2');
          $browser->setValue('code', 'Waste2');
          $browser->setValue('measureId', 'килограм');
+         $browser->setValue('meta[canSell]', 'canSell');
          $browser->press('Запис');
          
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -314,6 +316,7 @@ class unit_MinkP extends core_Manager {
          $browser->setValue('name', 'Отпадък 3');
          $browser->setValue('code', 'Waste3');
          $browser->setValue('measureId', 'килограм');
+         $browser->setValue('meta[canSell]', 'canSell');
          $browser->press('Запис');
           
          if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -676,7 +679,7 @@ class unit_MinkP extends core_Manager {
     }
     
     /**
-     *16.Добавя рецепта
+     *16.Добавя рецепта етап 1
      */
     //http://localhost/unit_MinkP/CreateBomStage1/
     function act_CreateBomStage1()
@@ -728,8 +731,61 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('propQuantity', '0.04*$тегло(кг) + $Начално= 21');
         $browser->refresh('Запис');
         $browser->press('Запис');
+        //return $browser->gethtml();
         $browser->press('Активиране');
          
     }
-   
+    /**
+     *17.Добавя рецепта етап 2
+     */
+    //http://localhost/unit_MinkP/CreateBomStage2/
+    function act_CreateBomStage2()
+    {
+    
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+        $browser->click('Каталог');
+        $browser->click('Заготовки');
+        $browser->click('Заготовка 2');
+        $browser->click('Рецепти');
+        $browser->click('Добавяне на нова търговска технологична рецепта');
+        //return $browser->getHtml();
+    
+        //$browser->hasText('Добавяне на търговска рецепта към');
+        $browser->setValue('notes', 'BomStage2');
+        //$browser->setValue('expenses', '8');
+        $browser->setValue('quantityForPrice', '1000');
+        $browser->press('Чернова');
+        $browser->press('Влагане');
+         
+        $browser->setValue('resourceId', 'Труд (work)');
+        $browser->setValue('propQuantity', '0.003 + $Начално= (30 + $цвят*20)');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Електричество');
+        $browser->setValue('propQuantity', '0.3 + $Начално= 4 + $цвят');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Машина 2');
+        $browser->setValue('propQuantity', '0.003 + $Начално= (30 + $цвят*20)');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Отпадък 2');
+        $browser->setValue('propQuantity', '0.0002');
+        $browser->refresh('Запис');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', 'Заготовка 1');
+        $browser->setValue('propQuantity', '1');
+        $browser->refresh('Запис');
+        $browser->press('Запис');
+        $browser->press('Активиране');
+         
+    }
+     
 }

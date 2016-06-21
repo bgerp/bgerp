@@ -157,6 +157,8 @@ class pos_Receipts extends core_Master {
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
+
+    	$this->setDbIndex('valior');
     }
     
     
