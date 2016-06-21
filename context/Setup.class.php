@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Версията на chartjs, която се използва
+ */
+defIfNot('CONTEXT_VERSION', '1.4.0');
+
+
 
 /**
  * Клас 'content_Setup' - контекстно меню за бутоните от втория ред на тулбара
@@ -18,23 +24,33 @@ class context_Setup extends core_ProtoSetup
      * контекстно меню за бутоните
      */
     var $info = "Контекстно меню за бутоните от тулбара";
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+
+        'CONTEXT_VERSION' => array ('enum(1.4.0)', 'mandatory, caption=Версията на плъгина->Версия')
+
+    );
+
 
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */
     public function getCommonJs()
     {
-        return 'context/lib/contextMenu.js';
+        return 'context/'.  context_Setup::get('VERSION') . '/contextMenu.js';
     }
     
     
     /**
-     * Връща JS файлове, които са подходящи за компактиране
+     * Връща CSS файлове, които са подходящи за компактиране
      */
     public function getCommonCss()
     {
-        return "context/lib/contextMenu.css";
+        return 'context/'.  context_Setup::get('VERSION') . '/contextMenu.css';
     }
 
     

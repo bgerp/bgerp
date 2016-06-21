@@ -349,7 +349,10 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Когато се геририра от офис документи PDF, и от полученич файл
         // се генерира JPG тогава трябва да се стартира синхронно
         // В другите случаи трябва да е асинхронно за да не чака потребителя
-        $Script->run($params['asynch']);
+        $Script->setChechProgramsArr('gs');
+        if ($Script->run($params['asynch']) === FALSE) {
+            fileman_Indexes::createError($params);
+        }
         
         return TRUE;
     }
