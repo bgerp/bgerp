@@ -170,16 +170,16 @@ class vtotal_Checks extends core_Master
         $counter = 0;
 
         while($rec = $query->fetch()) {
-            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"))break;
+            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL")) break;
             
             if (!$rec->dataId) {
                 $rec->dangerRate = 0;
                 fileman_Files::save($rec, "dangerRate");
-                
                 continue;
             }
             
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
+
             if(in_array(strtoupper($extension), $archiveExtensions)) {
                 $fileHnd = $rec->fileHnd;
                 $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -189,12 +189,18 @@ class vtotal_Checks extends core_Master
                 try{
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
                 }catch(fileman_Exception $e){
-
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                     $checkFile = (object)array('filemanDataId' => $rec->dataId,
                         'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $this->save($checkFile, NULL, "IGNORE");
-                    
+                    $result = $this->save($checkFile, NULL, "IGNORE");
+
+                    if(!$result) {
+                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+                        $rec->dangerRate = $cRec->dangerRate;
+                        fileman_Files::save($rec, "dangerRate");
+                    } else {
+                        $counter++;
+                    }
                     continue;
                 }
                 
@@ -206,8 +212,15 @@ class vtotal_Checks extends core_Master
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                     $checkFile = (object)array('filemanDataId' => $rec->dataId,
                         'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $vtotalFilemanDataObject->md5, 'timesScanned' => 0);
-                    $this->save($checkFile, NULL, "IGNORE");
-                    
+                    $result = $this->save($checkFile, NULL, "IGNORE");
+
+                    if(!$result) {
+                        $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
+                        $rec->dangerRate = $cRec->dangerRate;
+                        fileman_Files::save($rec, "dangerRate");
+                    } else {
+                        $counter++;
+                    }
                     continue;
                 }
 				
