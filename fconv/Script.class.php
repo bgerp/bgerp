@@ -461,7 +461,7 @@ class fconv_Script
                 
                 exec($path . ' --help', $output, $code);
                 if ($code == 127) {
-                    bp($path, $program, $code, $output);
+                    
                     return FALSE;
                 }
             }
