@@ -134,6 +134,12 @@ class price_Setup extends core_ProtoSetup
     	$PriceGroups = cls::get('price_Groups');
     	$PriceGroups->setupMvc();
     	
+    	$Lists = cls::get('price_Lists');
+    	$Lists->setupMvc();
+    	
+    	$Rules = cls::get('price_ListRules');
+    	$Rules->setupMvc();
+    	
     	if (!$PriceGroups->db->tableExists($PriceGroups->dbTableName)) return;
     	core_App::setTimeLimit(300);
     	
@@ -208,15 +214,42 @@ class price_Setup extends core_ProtoSetup
     	}
     	
     	try{
-    		$Lists = cls::get('price_ListRules');
-    		$Lists->setupMvc();
     		$rQuery = price_ListRules::getQuery();
     		$rQuery->where("#groupId IS NOT NULL");
     		while($r = $rQuery->fetch()){
     			if(isset($res[$r->groupId])){
     				$r->groupId = $res[$r->groupId];
-    				$Lists->save_($r, 'groupId');
+    				$Rules->save_($r, 'groupId');
     			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    	
+    	try{
+    		$rQuery2 = price_ListRules::getQuery();
+    		$rQuery2->where("#priority IS NULL");
+    		 
+    		$saveArray = array();
+    		$oId = cat_Groups::fetchField("#sysId = 'group0'");
+    		$aId = cat_Groups::fetchField("#sysId = 'groupA'");
+    		$bId = cat_Groups::fetchField("#sysId = 'groupB'");
+    		$arr = arr::make(array($oId, $aId, $bId), TRUE);
+    		 
+    		while ($r = $rQuery2->fetch()){
+    			$res = (object)array('id' => $r->id);
+    			if($r->type == 'value' || $r->type == 'discount'){
+    				$res->priority = 1;
+    			} else {
+    				$res->priority = (in_array($r->groupId, $arr)) ? 3 : 2;
+    			}
+    		
+    			$saveArray[] = $res;
+    		}
+    		 
+    		if(count($saveArray)){
+    			$Rules = cls::get('price_ListRules');
+    			$Rules->saveArray($saveArray, 'id,priority');
     		}
     	} catch(core_exception_Expect $e){
     		reportException($e);

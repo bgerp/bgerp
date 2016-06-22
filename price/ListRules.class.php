@@ -44,26 +44,20 @@ class price_ListRules extends core_Detail
     /**
      * Брой елементи на страница
      */
-    public $listItemsPerPage = 40;
+    public $listItemsPerPage = 20;
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew';
                     
  
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, domain=Обхват, rule=Правило, validFrom, validUntil, createdOn, createdBy,priority';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
-    
+    public $listFields = 'domain=Обхват, rule=Правило, validFrom, validUntil, createdOn, createdBy, priority';
+   
     
     /**
      * Кой може да го прочете?
@@ -87,12 +81,6 @@ class price_ListRules extends core_Detail
      * Поле - ключ към мастера
      */
     public $masterKey = 'listId';
-
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = 'productId, groupId, price';
     
     
     /**
@@ -113,22 +101,10 @@ class price_ListRules extends core_Detail
         $this->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,remember=info');
         $this->FLD('calculation', 'enum(forward,reverse)', 'caption=Изчисляване,remember');
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Марж,placeholder=%');
-        $this->FLD('priority', 'enum(1,2,3)', 'caption=Приоритет,input=none');
+        $this->FLD('priority', 'enum(1,2,3)', 'caption=Приоритет,input=hidden,silent');
         
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До,remember');
-    }
-    
-    
-    /**
-     * След генериране на ключовите думи
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-     	if($rec->productId){
-     		$code = cat_Products::getVerbal($rec->productId, 'code');
-     		$res .= " " . plg_Search::normalizeText($code);
-     	}
     }
      
      
@@ -140,19 +116,32 @@ class price_ListRules extends core_Detail
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('from', 'date', 'input,caption=В сила');
-		$data->listFilter->setField('id', 'input=none');
-		$data->listFilter->setField('type', 'input=none');
-        $data->listFilter->showFields = 'search, from';
+        $data->listFilter->FNC('product', 'int', 'input,caption=Артикул,silent');
+        $data->listFilter->FNC('group', 'key(mvc=cat_Groups,select=name)', 'input,caption=Група');
+        $data->listFilter->showFields = 'product, group';
 		
+        $options = self::getProductOptions();
+        $data->listFilter->setOptions('product', array('' => '') + $options);
+        $data->listFilter->input(NULL, 'silent');
+        
 		$data->listFilter->input();
 		
 		$data->query->orderBy('#validFrom,#id', 'DESC');
-		if($from = $data->listFilter->rec->from){
-			$data->query->where(array("#validFrom >= '[#1#]'", $from));
-		}
 		
-    	if($search = $data->listFilter->rec->search){
-			plg_Search::applySearch($search, $data->query);
+		if($rec = $data->listFilter->rec){
+			if(isset($rec->from)){
+				$data->query->where(array("#validFrom >= '[#1#]'", $from));
+			}
+			
+			if(isset($rec->product)){
+				$groups = keylist::toArray(cat_Products::fetchField($rec->product, 'groups'));
+				if(count($groups)){
+					$data->query->in("groupId", $groups);
+					$data->query->orWhere("#productId = {$rec->product}");
+				} else {
+					$data->query->where("#productId = {$rec->product}");
+				}
+			}
 		}
 	}
 	
@@ -295,17 +284,9 @@ class price_ListRules extends core_Detail
         if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
         	$form->setReadOnly('productId');
         } else {
-        	$availableProducts = array();
-        	$pQuery = cat_Products::getQuery();
-        	$pQuery->where("#isPublic = 'yes'");
-        	$pQuery->where("#state != 'rejected'");
-        	$pQuery->where("#canSell = 'yes'");
-        	while($pRec = $pQuery->fetch()){
-        		$availableProducts[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-        	}
-        	
+        	$availableProducts = self::getProductOptions();
         	if(count($availableProducts)){
-        		$form->setOptions('productId', $availableProducts);
+        		$form->setOptions('productId', array('' => '') + $availableProducts);
         	} else {
         		$form->setReadOnly('productId');
         	}
@@ -318,17 +299,15 @@ class price_ListRules extends core_Detail
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
-        
-        $masterTitle = price_Lists::getVerbal($masterRec, 'title');
  	    
         switch($type) {
             case 'groupDiscount' :
                 $form->setField('productId,price,currency,vat,targetPrice', 'input=none');
-                $title = "Правило за групов марж в ценова политика|* \"$masterTitle\"";
+                $data->singleTitle = "правило за групов марж";
                 break;
             case 'discount' :
                 $form->setField('groupId,price,currency,vat', 'input=none');
-                $title = "Правило за марж в ценова политика|* \"$masterTitle\"";
+                $data->singleTitle = "правило за марж";
                 
                 $form->getField('targetPrice')->unit = "|*" . $masterRec->currency . ", ";
                 $form->getField('targetPrice')->unit .= ($masterRec->vat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
@@ -336,7 +315,7 @@ class price_ListRules extends core_Detail
                 break;
             case 'value' :
                 $form->setField('groupId,discount,calculation,targetPrice', 'input=none');
-                $title = "Продуктова цена в ценова политика|* \"$masterTitle\"";
+                $data->singleTitle = "правило за продуктова цена";
                 if(!$rec->id){
                     $form->setDefault('currency', $masterRec->currency);
                     $form->setDefault('vat', $masterRec->vat);
@@ -345,21 +324,10 @@ class price_ListRules extends core_Detail
                 break;
         }
 
-        $data->formTitle = $title;
-
         if(!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
             $rec->validUntil = Mode::get('PRICE_VALID_UNTIL');
         }
-    }
-
-    
-    /**
-     * След подготовката на заглавието на формата
-     */
-    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
-    {
-    	$data->form->title = $data->formTitle;
     }
     
     
@@ -368,14 +336,8 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
     {
-    	$rec = $data->form->rec;
-    	if($rec->type == 'groupDiscount'){
-    		$msg = 'Правилото ще анулира всички индивидуални правила за артикулите, включени в групата!';
-    		$data->form->toolbar->setWarning('save', $msg);
-    		$data->form->toolbar->setWarning('saveAndNew', $msg);
-    	}
-    	
-    	if(isset($rec->productId)){
+    	$form = $data->form;
+    	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
     		$data->form->toolbar->removeBtn('saveAndNew');
     	}
     }
@@ -437,9 +399,9 @@ class price_ListRules extends core_Detail
                         $parentPrice = round($parentPrice, 10);
      
                         if($rec->calculation == 'reverse') {
-                            $rec->discount = $parentPrice/$rec->targetPrice - 1;
+                            $rec->discount = ($parentPrice / $rec->targetPrice) - 1;
                         } else {
-                            $rec->discount = $rec->targetPrice/$parentPrice - 1;
+                            $rec->discount = ($rec->targetPrice / $parentPrice) - 1;
                         }
                     }
                 }
@@ -456,20 +418,6 @@ class price_ListRules extends core_Detail
             if(!$form->gotErrors()) {
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
-        }
-    }
-
-  
-    /**
-     * След рендиране на лист тулбара
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {
-        $data->toolbar->removeBtn('*'); 
-        $data->toolbar->addBtn('Стойност', array($mvc, 'add', 'type' => 'value', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE), NULL, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
-        if($data->masterData->rec->parent) {
-            $data->toolbar->addBtn('Марж', array($mvc, 'add', 'type' => 'discount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE), NULL, 'title=Задаване на правило с %,ef_icon=img/16/tag.png');
-            $data->toolbar->addBtn('Групов марж', array($mvc, 'add', 'type' => 'groupDiscount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE), NULL, 'title=Задаване на групово правило с %,ef_icon=img/16/grouping.png');
         }
     }
 
@@ -494,13 +442,13 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
-            if($rec->validFrom <= dt::verbal2mysql()) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        if(($action == 'add' || $action == 'delete') && isset($rec->productId)){
+    	if($rec->validFrom && $action == 'delete') {
+    		if($rec->validFrom <= dt::verbal2mysql()) {
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if(($action == 'add' || $action == 'delete') && isset($rec->productId)){
         	if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
         		$requiredRoles = 'no_one';
         	} elseif(!cat_Products::haveRightFor('single', $rec->productId)){
@@ -529,37 +477,17 @@ class price_ListRules extends core_Detail
         if($rec->validFrom > $now) {
             $state = 'draft';
         } else {
-
-            /*$query = $mvc->getQuery();
-            $query->orderBy('#validFrom,#id', 'DESC');
-            $query->limit(1);
-            
-            $query->where("#listId = {$rec->listId}");
-
-            $query->where("#validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
-
-            if($rec->groupId) {
-                $query->where("#groupId = $rec->groupId");
-            } else {
-            	$groups = keylist::toArray(cat_Products::fetchField($rec->productId, 'groups'));
-            	if(is_array($groups)){
-            		foreach ($groups as $groupId){
-            			$pgCond .= "#groupId = $groupId OR ";
-            		}
-            	}
-                $query->where("{$pgCond}(#productId = '{$rec->productId}')");
-            }
-            
-            $actRec = $query->fetch();
-            if(!$actRec){
-            	wp($query->where, $rec);
-            }
- 
-            if($actRec->id == $rec->id) {
-                $state = 'active';
-            } else {
-                $state = 'closed';
-            }*/
+			
+        	$state = 'active';
+        	if($rec->type == 'groupDiscount'){
+        		if($mvc->fetchField("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
+        			$state = 'closed';
+        		}
+        	} else {
+        		if($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
+        			$state = 'closed';
+        		}
+        	}
         }
 
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
@@ -624,105 +552,12 @@ class price_ListRules extends core_Detail
         }
 
         // Линк към продукта
-        if($rec->productId) {
+        if(isset($rec->productId)) {
             $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         }
 
         $row->ROW_ATTR['class'] .= " state-{$state}";
     }
-
-    
-   /**
-    * Задаваме надценки/отстъпки за началните категории
-    */
-    function loadSetupData()
-    {
-        /*$csvFile = __DIR__ . "/setup/csv/Groups.csv";
-        $inserted = 0;
-        
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
-            while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
-                    if($groupId = price_Groups::fetchField("#title = '{$csvRow[0]}'", 'id')){
-                            
-                            if(!$gRec = static::fetch("#discount = '$csvRow[2]' AND #listId = " . price_ListRules::PRICE_LIST_CATALOG . " AND #groupId = {$groupId}")){
-                                 $rec = new stdClass();
-                                 $rec->listId = price_ListRules::PRICE_LIST_CATALOG;
-                                 $rec->groupId = $groupId;
-                                 $rec->discount = $csvRow[2]; // Задаваме груповата наддценка в проценти
-                                 $rec->type = 'groupDiscount';
-                                 $rec->validFrom = dt::now();
-                                 $rec->createdBy = -1;
-                         
-                                 static::save($rec);
-                                 $inserted++;
-                            }
-                    }
-            }
-            if($inserted) {
-                $res .= "<li class='debug-info'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
-            } else {
-                $res .= "<li>Не са добавени нови групови наддценки/отстъпки</li>";
-            }
-        } else {
-            $res = "<li class='debug-error'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;*/
-    }
-    
-    
-    /**
-     * Подготовка на историята на себестойностите на даден продукт
-     */
-	public function preparePriceList($data)
-	{
-		$pRec = $data->masterData->rec;
-		
-		if($pRec->isPublic == 'no'){
-			$data->dontRender = TRUE;
-		}
-		
-		$listId = static::PRICE_LIST_COST;
-		$data->priceLists = new stdClass();
-		
-		// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
-		if($this->haveRightFor('add', (object)array('productId' => $pRec->id))){
-			$data->priceLists->addUrl = array('price_ListRules', 'add', 'type' => 'value', 
-											  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => TRUE);
-		}
-		
-		$query = static::getQuery();
-		$query->where("#listId = {$listId}");
-		$query->where("#productId = {$pRec->id}");
-		$query->orderBy("validFrom", "DESC");
-		while($rec = $query->fetch()){
-			$row = price_ListRules::recToVerbal($rec);
-			$data->priceLists->rows[$rec->id] = $row;
-		}
-	}
-	
-	
-	/**
-	 *  Рендира на историята на себестойностите на даден продукт
-	 */
-	public function renderPriceList($data)
-	{
-		if($data->dontRender === TRUE) return;
-		
-		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
-		$table = cls::get('core_TableView', array('mvc' => $this));
-		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=От,validUntil=До");
-		
-		$title = 'Себестойности';
-		if($data->priceLists->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->priceLists->addUrl, FALSE, 'title=Добавяне на нова себестойност');
-		}
-		
-        $wrapTpl->append($title, 'TITLE');
-        $wrapTpl->append($tpl, 'CONTENT');
-		
-		return $wrapTpl;
-	}
 	
 	
 	/**
@@ -750,10 +585,146 @@ class price_ListRules extends core_Detail
 	}
 	
 	
-	public function renderDetail1111($data)
+	/**
+	 * Подготвяме  общия изглед за 'List'
+	 */
+	function prepareDetail_($data)
 	{
-		$tpl = new core_ET("love");
+		setIfNot($data->masterKey, $this->masterKey);
+		setIfNot($data->masterMvc, $this->Master);
 		
+		// Ще разделяме записите според техните приоритети
+		$masterRec = $data->masterData->rec;
+		$data->recs1 = $data->recs2 = $data->recs3 = array();
+		$data->rows1 = $data->rows2 = $data->rows3 = array();
+		
+		// Подготовка на заявката
+		$this->prepareDetailQuery($data);
+		
+		// Подготовка на полетата за спицъчния изглед
+		$this->prepareListFields($data);
+		
+		// Подготовка на филтъра
+		$this->prepareListFilter($data);
+		
+		// За всеки приоритет
+		foreach (array(1, 2, 3) as $priority){
+			
+			// Подготвяме пейджър само за него
+			$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+			$pager->setPageVar($this->className, $priority);
+			
+			// Извличаме записите само с този приоритет
+			$query = clone $data->query;
+			$query->where("#priority = $priority");
+			$pager->setLimit($query);
+			
+			// Вербализираме ги
+			while($rec = $query->fetch()){
+				$data->{"recs{$priority}"}[$rec->id] = $rec;
+				$data->{"rows{$priority}"}[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
+				$data->{"rows{$priority}"}[$rec->id]->_rowTools = $data->{"rows{$priority}"}[$rec->id]->_rowTools->renderHtml();
+			}
+			
+			// Записваме подготвения пейджър
+			$data->{"pager{$priority}"} = $pager;
+		}
+		
+		return $data;
+	}
+	
+	
+	/**
+	 * Рендираме детайла
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	public function renderDetail_($data)
+	{
+		$masterRec = $data->masterData->rec;
+		$tpl = getTplFromFile("price/tpl/ListRules.shtml");
+		$rows = &$data->rows;
+		unset($data->listFields['priority']);
+		
+		$img = ht::createElement('img', array('src'=> sbf('img/16/tools.png', "")));
+		$data->listFields =  arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, TRUE));
+		$tpl->append($this->renderListFilter($data), 'ListFilter');
+		
+		// За всеки приоритет
+		foreach (array(1 => 'Правила с висок приоритет', 2 => 'Правила със среден приоритет', 3 => 'Правила с нисък приоритет') as $priority => $title){
+			$block = clone $tpl->getBlock('PRIORITY');
+			$appendTable = TRUE;
+			$fRow = $data->{"rows{$priority}"};
+			
+			$data->listFields['rule'] = tr($title);
+			$table = cls::get('core_TableView', array('mvc' => $this));
+			$toolbar = cls::get('core_Toolbar');
+			
+			// Добавяме бутони за добавяне към всеки приоритет
+			if($priority == 1){
+				if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
+					$toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'priority' => $priority,'ret_url' => TRUE), NULL, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
+				}
+			}
+			
+			// Ако политиката наследява друга, може да се добавят правила за марж
+			if($masterRec->parent) {
+				if($priority == 1){
+					if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
+						$toolbar->addBtn('Марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => TRUE), NULL, 'title=Задаване на правило с %,ef_icon=img/16/tag.png');
+					}
+				} else {
+					if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
+						$toolbar->addBtn('Групов марж', array($this, 'add', 'type' => 'groupDiscount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => TRUE), NULL, 'title=Задаване на групово правило с %,ef_icon=img/16/grouping.png');
+					}
+				}
+			} else {
+				if(!count($fRow) && $priority != 1){
+					$appendTable = FALSE;
+				}
+			}
+			
+			// Дали да показваме таблицата
+			if($appendTable === TRUE){
+				$block->append($table->get($fRow, $data->listFields), 'TABLE');
+				if(isset($data->{"pager{$priority}"})){
+					$block->append($data->{"pager{$priority}"}->getHtml(), 'TABLE_PAGER');
+				}
+			}
+			
+			// Рендираме тулбара
+			$block->append($toolbar->renderHtml(), 'TABLE_TOOLBAR');
+			$block->removeBlocks();
+			
+			$tpl->append($block, 'TABLES');
+		}
+		
+		// Връщаме шаблона
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Връща масив с възможните за избор артикули (стандартни и продаваеми)
+	 * 
+	 * @return array $options - масив с артикули за избор
+	 */
+	private static function getProductOptions()
+	{
+		$options = array();
+		$pQuery = cat_Products::getQuery();
+		$pQuery->where("#isPublic = 'yes' AND #state = 'active' AND #canSell = 'yes'");
+		$pQuery->show('id,name,isPublic,code,createdOn');
+		
+		while($pRec = $pQuery->fetch()){
+			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
+		}
+		
+		if(count($options)){
+			$options = array('pu' => (object)array('group' => TRUE, 'title' => tr('Стандартни'))) + $options;
+		}
+		
+		return $options;
 	}
 }

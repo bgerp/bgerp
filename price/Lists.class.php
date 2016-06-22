@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценоразписи от каталога
@@ -21,91 +21,91 @@ class price_Lists extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Ценови политики';
+    public $title = 'Ценови политики';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Ценова политика";
+    public $singleTitle = "Ценова политика";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_NoChange, plg_Search';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_NoChange, plg_Search';
                     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title,parent';
+    public $searchFields = 'title,parent';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'price_ListRules';
+    public $details = 'price_ListRules';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, parent, createdOn, createdBy';
+    public $listFields = 'id, title, parent, createdOn, createdBy';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'priceMaster,ceo';
+    public $canEdit = 'priceMaster,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'sales,priceMaster,ceo';
+    public $canAdd = 'sales,priceMaster,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'priceMaster,ceo';
+    public $canList = 'priceMaster,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'priceMaster,ceo';
+	public $canSingle = 'priceMaster,ceo';
 	
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'priceMaster,ceo';
+    public $canDelete = 'priceMaster,ceo';
  
      
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'ceo';
+    public $canEditsysdata = 'ceo';
    
     
     /**
      * Поле за връзка към единичния изглед
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
 
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'price/tpl/SingleLayoutLists.shtml';
+    public $singleLayoutFile = 'price/tpl/SingleLayoutLists.shtml';
     
     
     /**
@@ -125,7 +125,7 @@ class price_Lists extends core_Master
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
-        $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка по подразбиране');
+        $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка по подразбиране->Процент');
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
@@ -140,7 +140,7 @@ class price_Lists extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
@@ -194,7 +194,7 @@ class price_Lists extends core_Master
      * @param object $res
      * @param object $data
      */
-    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
     	//Ако създаваме копие, редиректваме до създаденото копие
         if (is_object($data->form) && $data->form->isSubmitted()) {
@@ -245,7 +245,7 @@ class price_Lists extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
@@ -258,7 +258,7 @@ class price_Lists extends core_Master
     /**
      * Изпълнява се след създаване на нов набор от ценови правила
      */
-    function on_AfterCreate($mvc, $rec)
+    public static function on_AfterCreate($mvc, $rec)
     {
         if($rec->cId && $rec->cClass) {
             price_ListToCustomers::setPolicyToCustomer($rec->id,  $rec->cClass, $rec->cId);
@@ -275,7 +275,7 @@ class price_Lists extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if($rec->parent) {
             $row->parent = ht::createLink($row->parent, array('price_Lists', 'Single', $rec->parent));
@@ -294,7 +294,7 @@ class price_Lists extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'delete') {
             if($rec->id && (self::fetch("#parent = {$rec->id}") || price_ListToCustomers::fetch("#listId = {$rec->id}")) ) {
