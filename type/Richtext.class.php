@@ -660,7 +660,7 @@ class type_Richtext extends type_Blob
     static function getRichTextPatternForBold()
     {
         // Ако не е сетнат шаблона
-        if (!isset(static::$boldPattern)) {
+        if (!isset(self::$boldPattern)) {
             
             // Разбиваме текстовете на масив
             $boldTextTypeArr = type_Set::toArray(RICHTEXT_BOLD_TEXT);
@@ -682,16 +682,16 @@ class type_Richtext extends type_Blob
             if ($boldTextPattern) {
                 
                 // Добавяме текста в шаблона
-                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n]+))/ui";    
+                self::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n]+))/ui";    
             } else {
                 
                 // Добавяме FALSE, за да не се опитваме да го определим пак
-                static::$boldPattern = FALSE;
+                self::$boldPattern = FALSE;
             }
         }
         
         // Връщаме резултата
-        return static::$boldPattern;
+        return self::$boldPattern;
     }
     
     

@@ -88,6 +88,9 @@ class acc_JournalDetails extends core_Detail
         // Обща сума на транзакцията
         $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
         $this->FLD('amount', 'double(minDecimals=2)', 'caption=Сума');
+
+        $this->setDbIndex('debitAccId, creditAccId');
+        $this->setDbIndex('debitItem1, debitItem2, debitItem3, creditItem1, creditItem2, creditItem3');
     }
     
     

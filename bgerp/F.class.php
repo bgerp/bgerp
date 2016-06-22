@@ -287,7 +287,7 @@ class bgerp_F extends core_Manager
      * @param string $fileHnd
      * @param string $expireOn
      * 
-     * @return NULL|stdObject
+     * @return NULL|string
      */
     public static function getLink($fileHnd, &$expireOn = '')
     {
