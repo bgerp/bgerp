@@ -62,7 +62,7 @@ class core_ObjectConfiguration extends core_BaseClass
         }
 
         // Търси константата в данните въведени през уеб-интерфейса
-        if(!isset($value) && isset($this->_data[$name]) && !(empty($this->_data[$name]) && $this->_data[$name] !== (double) 0 && $this->_data[$name] !== (int) 0) && isset($this->_description[$name])) {
+        if(!isset($value) && isset($this->_data[$name]) && !(empty($this->_data[$name]) && $this->_data[$name] !== (double) 0 && $this->_data[$name] !== (int) 0)) {
 
             $value = $this->_data[$name];
         }
