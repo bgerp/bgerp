@@ -131,6 +131,8 @@ class compactor_Setup extends core_ProtoSetup
             }
         }
         
+        $data = array();
+        
         // Ако има добавен CSS файл, добавяме ги към конфигурацията
         if ($haveCss) {
             $cssFilesStr = implode(', ', $cssFilesArr);
@@ -146,7 +148,7 @@ class compactor_Setup extends core_ProtoSetup
         }
         
         // Ако има данни за добавяме, обновяваме данние от компактора
-        if ($data) {
+        if (!empty($data)) {
             core_Packs::setConfig('compactor', $data);
         }
         
