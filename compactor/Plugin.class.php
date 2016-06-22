@@ -31,7 +31,7 @@ class compactor_Plugin extends core_Plugin
     function on_BeforeAppendFiles($et, &$res, &$files)
     {
         $conf = core_Packs::getConfig('compactor');
- 
+        
         $files->css = $this->compactFiles($files->css, $conf->COMPACTOR_CSS_FILES, EF_SBF_PATH . '/css', array($this, 'changePaths'));
         $files->js = $this->compactFiles($files->js, $conf->COMPACTOR_JS_FILES, EF_SBF_PATH . '/js');
     }
@@ -64,13 +64,14 @@ class compactor_Plugin extends core_Plugin
         
         // Акумолатор за сборното съдържание на всички файлове
         $content = '';
-
+        
         foreach($configFilesArr as $file) {
             
             // Ако достигне до тук без да са заместени плейсхолдерите
             // Може да се стигне до тук ако е закачен плъгина, но не е инсталиран пакета
             if ((strpos($file, '[#') !== FALSE) && (strpos($file, '#]') !== FALSE)) {
                 $file = compactor_Setup::preparePacksPath('compactor', $file);
+                log_System::add(get_called_class(), "В компактора има неинсталиран пакет: {$file}", NULL, 'notice');
             }
             
             sbf($file);
