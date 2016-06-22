@@ -381,11 +381,8 @@ class fconv_Script
         $url = toUrl(array('fconv_Processes',
                 'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
         
-        if (stristr(PHP_OS, 'WIN')) {
-        
-        } else {
-            $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
-        }
+        $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
+        $this->setChechProgramsArr('wget');
         
         $this->lineExec($cmdLine, array('skipOnRemote' => TRUE));
     }
@@ -452,7 +449,6 @@ class fconv_Script
         // Ако са зададени програми, които да се проверят преди обработка.
         if (!empty($this->getChechProgramsArr())) {
             foreach ($this->getChechProgramsArr() as $program) {
-                
                 if (isset($this->programs[$program])) {
                     $path = $this->programs[$program];
                 } else {
