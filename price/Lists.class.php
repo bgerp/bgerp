@@ -133,7 +133,7 @@ class price_Lists extends core_Master
         $this->setDbUnique('title');
     }
 
-
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
