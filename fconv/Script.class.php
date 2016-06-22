@@ -457,7 +457,13 @@ class fconv_Script
                 }
                 
                 exec($path . ' --help', $output, $code);
-                if ($code == 127 || (stristr(PHP_OS, 'WIN') && $code = 1)) {
+                
+                if ($code == 127 || ($code == 1)) {
+                    if ($code == 1) {
+                        exec($path . ' -h', $output, $code);
+                        
+                        if ($code === 0) continue ;
+                    }
                     
                     return FALSE;
                 }
