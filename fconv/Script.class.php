@@ -446,9 +446,10 @@ class fconv_Script
             }
         }
         
+        $checkProgramsArr = $this->getChechProgramsArr();
         // Ако са зададени програми, които да се проверят преди обработка.
-        if (!empty($this->getChechProgramsArr())) {
-            foreach ($this->getChechProgramsArr() as $program) {
+        if (!empty($checkProgramsArr)) {
+            foreach ($checkProgramsArr as $program) {
                 if (isset($this->programs[$program])) {
                     $path = $this->programs[$program];
                 } else {
