@@ -69,8 +69,8 @@ class compactor_Setup extends core_ProtoSetup
 //        $cssFilesArr = arr::make($conf->COMPACTOR_CSS_FILES, TRUE);
         
         // JS и CSS файловете от конфигурацията от константите
-        $jsFilesArrB = arr::make(COMPACTOR_JS_FILES);
-        $cssFilesArrB = arr::make(COMPACTOR_CSS_FILES);
+        $jsFilesArrB = arr::make(self::get('JS_FILES'));
+        $cssFilesArrB = arr::make(self::get('CSS_FILES'));
         
         $jsFilesArr = array();
         $cssFilesArr = array();
@@ -119,14 +119,12 @@ class compactor_Setup extends core_ProtoSetup
                 if ($commonCss) {
                     $commonCssArr = arr::make($commonCss, TRUE);
                     $cssFilesArr = array_merge((array)$cssFilesArr, (array)$commonCssArr);
-                    $haveCss = TRUE;
                 }
                 
                 // Добавяме зададените JS файлове към главния
                 if ($commonJs) {
                     $commonJsArr = arr::make($commonJs, TRUE);
                     $jsFilesArr = array_merge((array)$jsFilesArr, (array)$commonJsArr);
-                    $haveJs = TRUE;
                 }
             }
         }
@@ -134,14 +132,14 @@ class compactor_Setup extends core_ProtoSetup
         $data = array();
         
         // Ако има добавен CSS файл, добавяме ги към конфигурацията
-        if ($haveCss) {
+        if (!empty($cssFilesArr)) {
             $cssFilesStr = implode(', ', $cssFilesArr);
             $data['COMPACTOR_CSS_FILES'] = $cssFilesStr;
             $res .= '<li>CSS файловете за компактиране: ' . $cssFilesStr;
         }
         
         // Ако има добавен JS файл, добавяме ги към конфигурацията
-        if ($haveJs) {
+        if (!empty($jsFilesArr)) {
             $jsFilesStr = implode(', ', $jsFilesArr);
             $data['COMPACTOR_JS_FILES'] = $jsFilesStr;
             $res .= '<li>JS файловете за компактиране: ' . $jsFilesStr;
