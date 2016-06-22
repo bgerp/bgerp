@@ -56,7 +56,7 @@ class price_ListRules extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, domain=Обхват, rule=Правило, validFrom, validUntil, createdOn, createdBy';
+    public $listFields = 'id, domain=Обхват, rule=Правило, validFrom, validUntil, createdOn, createdBy,priority';
     
     
     /**
@@ -113,7 +113,8 @@ class price_ListRules extends core_Detail
         $this->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,remember=info');
         $this->FLD('calculation', 'enum(forward,reverse)', 'caption=Изчисляване,remember');
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Марж,placeholder=%');
-
+        $this->FLD('priority', 'enum(1,2,3)', 'caption=Приоритет,input=none');
+        
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До,remember');
     }
@@ -189,7 +190,7 @@ class price_ListRules extends core_Detail
         	$rec = $gQuery->fetch();
         }
         
-        $searchInParent = price_Lists::fetchField($listId, 'searchInParent');
+        //$searchInParent = price_Lists::fetchField($listId, 'searchInParent');
         
         if($rec) {
         	if($rec->type == 'value') {
@@ -197,7 +198,7 @@ class price_ListRules extends core_Detail
         		$vat = cat_Products::getVat($productId, $datetime);
         		$price = self::normalizePrice($rec, $vat, $datetime);
         		
-        	} elseif($searchInParent == 'yes') {
+        	} else{
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
         		$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
         		
@@ -208,7 +209,7 @@ class price_ListRules extends core_Detail
         		}
         	}
         	
-        } elseif($searchInParent == 'yes') {
+        } else{
         	if($parent = price_Lists::fetchField($listId, 'parent')) {
         		
         		// Ако няма запис за продукта или групата
@@ -529,7 +530,7 @@ class price_ListRules extends core_Detail
             $state = 'draft';
         } else {
 
-            $query = $mvc->getQuery();
+            /*$query = $mvc->getQuery();
             $query->orderBy('#validFrom,#id', 'DESC');
             $query->limit(1);
             
@@ -558,7 +559,7 @@ class price_ListRules extends core_Detail
                 $state = 'active';
             } else {
                 $state = 'closed';
-            }
+            }*/
         }
 
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
@@ -746,5 +747,13 @@ class price_ListRules extends core_Detail
 							 'currency'  => $currencyCode);
 		
 		return self::save($obj);
+	}
+	
+	
+	public function renderDetail1111($data)
+	{
+		$tpl = new core_ET("love");
+		
+		return $tpl;
 	}
 }
