@@ -304,7 +304,7 @@ class fconv_Script
         }
         
         // Възможност за логване на грешките при изпълняване на скрипт
-        if ($params['errFilePath']) {
+        if ($params['errFilePath'] && !stristr(PHP_OS, 'WIN')) {
             $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
         }
         
@@ -392,7 +392,7 @@ class fconv_Script
     
     
     /**
-     * Задаваме рограми, които ще се проверяват преди да се пусни обработка
+     * Задаваме програми, които ще се проверяват преди да се пусни обработка
      */
     public function setChechProgramsArr($programs)
     {
