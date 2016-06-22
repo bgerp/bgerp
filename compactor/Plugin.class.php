@@ -79,6 +79,12 @@ class compactor_Plugin extends core_Plugin
                 sleep(1);
                 Debug::log('Sleep 1 sec. in' . __CLASS__);
             }
+
+            if(!file_exists($sbfFilePath)) {
+                Debug::log('Skip file {$sbfFilePath}' . __CLASS__);
+                if(!isDebug()) continue;
+            }
+
             $times .= @filemtime($sbfFilePath);
             if(isset($filesArr[$file])) {
                 unset($filesArr[$file]);
