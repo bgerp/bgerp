@@ -77,11 +77,11 @@ class compactor_Plugin extends core_Plugin
             $sbfFilePath = core_Sbf::getSbfFilePath($file);
             if(!file_exists($sbfFilePath)) {
                 sleep(1);
-                Debug::log('Sleep 1 sec. in' . __CLASS__);
+                Debug::log('Sleep 1 sec. in ' . __CLASS__);
             }
 
             if(!file_exists($sbfFilePath)) {
-                Debug::log('Skip file {$sbfFilePath}' . __CLASS__);
+                Debug::log("Skip file {$sbfFilePath} " . __CLASS__);
                 if(!isDebug()) continue;
             }
 
