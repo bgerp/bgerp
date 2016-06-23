@@ -370,6 +370,18 @@ class vtotal_Checks extends core_Master
     
     
     /**
+     * Добавя филтър към перата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->query->orderBy('lastCheck', 'DESC');
+    }
+    
+    
+    /**
      * 
      * 
      * @param string $rateStr
