@@ -68,4 +68,22 @@ class vtotal_Setup extends core_ProtoSetup
             'timeLimit' => 40
         ),
     );
+
+
+
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return NULL|string
+     */
+    function checkConfig()
+    {
+        exec("avast -h", $output, $code);
+        if ($code == 127) {
+            $haveError = TRUE;
+        }
+        if ($haveError) {
+            return "Avast Scan за Linux не е инсталирана.";
+        }
+    }
 }
