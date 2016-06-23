@@ -1,6 +1,9 @@
 <div class="singleView">
     [#SingleToolbar#]
+    <div class='[#STATE_CLASS#]' style='padding-left:8px'>
     <h2> <b style="color:green;">[#SingleTitle#]</b></h2>
+    </div>
+    
     <table class="styled-table" style='min-width:300px'>
         <tr>
             <td class="title-style">№</td>

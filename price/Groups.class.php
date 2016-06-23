@@ -186,13 +186,8 @@ class price_Groups extends core_Master
 
     public static function act_Test()
     {
-    	
-    	bp($saveArray);
-    	
-    	
-    	
-    	$productId = '12';
-    	$listId = '2';
+    	$productId = '1';
+    	$listId = '79';
     	$r = price_ListRules::getPrice($listId, $productId);
     	 
     	bp($r);

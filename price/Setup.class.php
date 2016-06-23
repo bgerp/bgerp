@@ -231,17 +231,13 @@ class price_Setup extends core_ProtoSetup
     		$rQuery2->where("#priority IS NULL");
     		 
     		$saveArray = array();
-    		$oId = cat_Groups::fetchField("#sysId = 'group0'");
-    		$aId = cat_Groups::fetchField("#sysId = 'groupA'");
-    		$bId = cat_Groups::fetchField("#sysId = 'groupB'");
-    		$arr = arr::make(array($oId, $aId, $bId), TRUE);
     		 
     		while ($r = $rQuery2->fetch()){
     			$res = (object)array('id' => $r->id);
     			if($r->type == 'value' || $r->type == 'discount'){
     				$res->priority = 1;
     			} else {
-    				$res->priority = (in_array($r->groupId, $arr)) ? 3 : 2;
+    				$res->priority = 3;
     			}
     		
     			$saveArray[] = $res;

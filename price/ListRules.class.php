@@ -105,6 +105,9 @@ class price_ListRules extends core_Detail
         
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До,remember');
+    
+        $this->setDbIndex('priority');
+        $this->setDbIndex('validFrom');
     }
      
      
@@ -158,28 +161,23 @@ class price_ListRules extends core_Detail
         
         price_ListToCustomers::canonizeTime($datetime);
         $datetime = price_History::canonizeTime($datetime);
-       
-        $query = self::getQuery();
         
-        // Общи ограничения
+        $query = self::getQuery();
         $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
+        $query->where("#productId = {$productId}");
+        
+        if($listId != price_ListRules::PRICE_LIST_COST){
+        	$groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
+        	if(count($groups)){
+        		$query->in('groupId', $groups, FALSE, TRUE);
+        	}
+        }
+        
+        $query->orderBy("#priority", "ASC");
         $query->orderBy("#validFrom,#id", "DESC");
         $query->limit(1);
         
-        $queryProduct = clone $query;
-        $queryProduct->where("#productId = {$productId}");
-        
-        $rec = $queryProduct->fetch();
-        
-        if(!$rec){
-        	$groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
-        	$gQuery = clone $query;
-        	$gQuery->in('groupId', $groups);
-        	
-        	$rec = $gQuery->fetch();
-        }
-        
-        //$searchInParent = price_Lists::fetchField($listId, 'searchInParent');
+        $rec = $query->fetch();
         
         if($rec) {
         	if($rec->type == 'value') {
@@ -191,26 +189,35 @@ class price_ListRules extends core_Detail
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
         		$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
         		
-        		if($rec->calculation == 'reverse') {
-        			$price  = $price / (1 + $rec->discount);
-        		} else {
-        			$price  = $price * (1 + $rec->discount);
+        		if(isset($price)){
+        			if($rec->calculation == 'reverse') {
+        				$price  = $price / (1 + $rec->discount);
+        			} else {
+        				$price  = $price * (1 + $rec->discount);
+        			}
         		}
         	}
         	
         } else{
-        	if($parent = price_Lists::fetchField($listId, 'parent')) {
+        	$defaultSurcharge = price_Lists::fetchField($listId, 'defaultSurcharge');
+        	
+        	// Ако има дефолтна надценка и има наследена политика
+        	if(isset($defaultSurcharge)){ 
+        		if($parent = price_Lists::fetchField($listId, 'parent')) {
         		
-        		// Ако няма запис за продукта или групата
-        		// му и бащата на ценоразписа е "себестойност"
-        		// връщаме NULL
-        		// Дали е необходима тази защита или тя може да създаде проблеми?
-        		if($parent == price_ListRules::PRICE_LIST_COST) return NULL;
-        		 
-        		$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        			// Ако няма запис за продукта или групата
+        			// му и бащата на ценоразписа е "себестойност"
+        			// връщаме NULL
+        			// Дали е необходима тази защита или тя може да създаде проблеми?
+        			if($parent == price_ListRules::PRICE_LIST_COST) return NULL;
+        			 
+        			// Питаме бащата за цената
+        			$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        		}
         	}
         }
         
+        // Ако има цена
         if(isset($price)){
         	
         	// По дефолт правим някакво машинно закръгляне
@@ -220,6 +227,7 @@ class price_ListRules extends core_Detail
         	price_History::setPrice($price, $listId, $datetime, $productId);
         }
 
+        // Връщаме намерената цена
         return $price;
     }
     
@@ -442,7 +450,7 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($rec->validFrom && $action == 'delete') {
+    	if($action == 'delete' && $rec->validFrom) {
     		if($rec->validFrom <= dt::verbal2mysql()) {
     			$requiredRoles = 'no_one';
     		}
@@ -458,6 +466,13 @@ class price_ListRules extends core_Detail
         		if($isPublic == 'no'){
         			$requiredRoles = 'no_one';
         		}
+        	}
+        }
+        
+        if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->listId)){
+        	$listState = price_Lists::fetchField($rec->listId, 'state');
+        	if($listState == 'rejected'){
+        		$requiredRoles = 'no_one';
         	}
         }
     }
@@ -647,8 +662,11 @@ class price_ListRules extends core_Detail
 		$rows = &$data->rows;
 		unset($data->listFields['priority']);
 		
-		$img = ht::createElement('img', array('src'=> sbf('img/16/tools.png', "")));
-		$data->listFields =  arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, TRUE));
+		if($masterRec->state != 'rejected'){
+			$img = ht::createElement('img', array('src'=> sbf('img/16/tools.png', "")));
+			$data->listFields =  arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, TRUE));
+		}
+		
 		$tpl->append($this->renderListFilter($data), 'ListFilter');
 		
 		// За всеки приоритет

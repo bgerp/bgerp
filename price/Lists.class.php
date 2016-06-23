@@ -3,7 +3,7 @@
 
 
 /**
- * Ценоразписи за продукти от каталога
+ * Ценови политики
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ценоразписи от каталога
+ * @title     Ценови политики
  */
 class price_Lists extends core_Master
 {
@@ -51,13 +51,7 @@ class price_Lists extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, parent, createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
+    public $listFields = 'title, parent, createdOn, createdBy,state';
     
     
     /**
@@ -79,6 +73,12 @@ class price_Lists extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo';
+    
+    
+    /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'priceMaster,ceo';
@@ -88,12 +88,6 @@ class price_Lists extends core_Master
      * Кой може да го изтрие?
      */
     public $canDelete = 'priceMaster,ceo';
- 
-     
-    /**  
-     * Кой има право да променя системните данни?  
-     */  
-    public $canEditsysdata = 'ceo';
    
     
     /**
@@ -118,7 +112,6 @@ class price_Lists extends core_Master
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС'); 
-        $this->FNC('customer', 'varchar', 'caption=Прикрепяне->Клиент,input=hidden');
         $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
@@ -131,6 +124,7 @@ class price_Lists extends core_Master
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
         
         $this->setDbUnique('title');
+        $this->setDbIndex('cId,cClass');
     }
 
     
@@ -154,12 +148,10 @@ class price_Lists extends core_Master
             expect($cRec = $cMvc->fetch($rec->cId));
             $cMvc->requireRightFor('single', $rec);
             $form->setField('public', 'input=hidden');
-            $form->setField('customer', 'input');
             $form->setField('validFrom', 'input');
             $title = $cMvc->gettitleById($rec->cId, FALSE);
             $rec->customer =  $title;
             $rec->public = 'no';
-            $form->setReadonly('customer');
         }
         
         if(empty($rec->id)){
@@ -176,6 +168,18 @@ class price_Lists extends core_Master
     }
 
 
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	if($rec->cId && $rec->cClass) {
+    		$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, 'ценова политика', $rec->id, 'на');
+    	}
+    }
+    
+    
     /**
      * Подготовка на филтър формата
      */
@@ -264,9 +268,7 @@ class price_Lists extends core_Master
             price_ListToCustomers::setPolicyToCustomer($rec->id,  $rec->cClass, $rec->cId);
         }
     }
-
-
- 
+    
 
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -277,11 +279,18 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if($rec->parent) {
-            $row->parent = ht::createLink($row->parent, array('price_Lists', 'Single', $rec->parent));
+        if(isset($rec->parent)) {
+            $row->parent = price_Lists::getHyperlink($rec->parent, TRUE);
+            
+        }
+        
+        if(isset($rec->discountCompared)){
+        	$row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, TRUE);
         }
         
         $row->currency = "<span class='cCode'>{$row->currency}</span>";
+        $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : 'state-active';
+        $row->STATE_CLASS = $row->ROW_ATTR['class'];
     }
 
 
@@ -329,7 +338,6 @@ class price_Lists extends core_Master
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat      = 'no';
             $rec->public = 'no';
-            $rec->searchInParent = 'no';
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
             $this->save($rec, NULL, 'REPLACE');
@@ -343,7 +351,7 @@ class price_Lists extends core_Master
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat = 'yes';
             $rec->public = 'yes';
-            $rec->searchInParent = 'yes';
+            $rec->defaultSurcharge = 0.2;
             $rec->roundingPrecision = 3;
             $rec->createdOn = dt::verbal2mysql();
             $rec->createdBy = -1;
