@@ -18,13 +18,13 @@ class price_ListRules extends core_Detail
 	
 	
     /**
-     * ид на политика "Себестойност"
+     * Ид на политика "Себестойност"
      */
     const PRICE_LIST_COST = 1;
 
     
     /**
-     * ид на политика "Каталог"
+     * Ид на политика "Каталог"
      */
     const PRICE_LIST_CATALOG = 2;
 
@@ -94,8 +94,8 @@ class price_ListRules extends core_Detail
         // Цена за продукт 
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent,remember=info');
         $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory,silent');
-        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
-        $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС,noChange'); 
+        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
+        $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС'); 
         
         // Марж за група
         $this->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,remember=info');
@@ -103,8 +103,8 @@ class price_ListRules extends core_Detail
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Марж,placeholder=%');
         $this->FLD('priority', 'enum(1,2,3)', 'caption=Приоритет,input=hidden,silent');
         
-        $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От,remember');
-        $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До,remember');
+        $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
+        $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->До,remember');
     
         $this->setDbIndex('priority');
         $this->setDbIndex('validFrom');
@@ -331,6 +331,9 @@ class price_ListRules extends core_Detail
                 if(!$rec->id){
                     $form->setDefault('currency', $masterRec->currency);
                     $form->setDefault('vat', $masterRec->vat);
+                } else {
+                	$form->setReadOnly('currency');
+                	$form->setReadOnly('vat');
                 }
 
                 break;
@@ -498,13 +501,17 @@ class price_ListRules extends core_Detail
         } else {
 			
         	$state = 'active';
-        	if($rec->type == 'groupDiscount'){
-        		if($mvc->fetchField("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        			$state = 'closed';
-        		}
+        	if(isset($rec->validUntil) && $rec->validUntil < $now){
+        		$state = 'closed';
         	} else {
-        		if($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        			$state = 'closed';
+        		if($rec->type == 'groupDiscount'){
+        			if($mvc->fetchField("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
+        				$state = 'closed';
+        			}
+        		} else {
+        			if($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
+        				$state = 'closed';
+        			}
         		}
         	}
         }
@@ -685,16 +692,19 @@ class price_ListRules extends core_Detail
 			
 			// Добавяме бутони за добавяне към всеки приоритет
 			if($priority == 1){
+				$data->listFields['domain'] = 'Артикул';
 				if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
 					$toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'priority' => $priority,'ret_url' => TRUE), NULL, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
 				}
+			} else {
+				$data->listFields['domain'] = 'Група';
 			}
 			
 			// Ако политиката наследява друга, може да се добавят правила за марж
 			if($masterRec->parent) {
 				if($priority == 1){
 					if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
-						$toolbar->addBtn('Марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => TRUE), NULL, 'title=Задаване на правило с %,ef_icon=img/16/tag.png');
+						$toolbar->addBtn('Продуктов марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => TRUE), NULL, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
 					}
 				} else {
 					if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){

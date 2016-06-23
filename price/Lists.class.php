@@ -280,7 +280,6 @@ class price_Lists extends core_Master
     {
         if(isset($rec->parent)) {
             $row->parent = price_Lists::getHyperlink($rec->parent, TRUE);
-            
         }
         
         if(isset($rec->discountCompared)){
