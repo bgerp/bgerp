@@ -151,7 +151,17 @@ class cat_Groups extends core_Manager
         
         
         $this->setDbUnique("sysId");
-        $this->setDbUnique("name");
+    }
+    
+    
+    /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+    	$mvc->setDbUnique("name,parentId");
     }
     
     
