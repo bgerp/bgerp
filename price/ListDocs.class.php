@@ -540,7 +540,7 @@ class price_ListDocs extends core_Master
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	$tplFile = ($data->rec->showUoms == 'yes') ? $this->singleLayoutFile : $this->singleLayoutFile2;
+    	$tplFile = ($data->rec->showUoms == 'yes') ? $mvc->singleLayoutFile : $mvc->singleLayoutFile2;
     	$tpl = getTplFromFile($tplFile);
     }
     
