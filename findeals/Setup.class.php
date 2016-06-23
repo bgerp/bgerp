@@ -68,7 +68,11 @@ class findeals_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'findeals';
+    var $roles = array(
+    		array('pettyCashReport'),
+    		array('findeals', 'pettyCashReport'),
+    		array('findealsMaster', 'findeals'),
+    );
 
     
     /**
@@ -88,19 +92,6 @@ class findeals_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
-    	$html = parent::install();
-    	
-    	$html .= core_Roles::addOnce('findealsMaster', 'findeals');
-    	
-    	return $html;
     }
     
     
