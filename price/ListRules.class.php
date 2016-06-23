@@ -739,7 +739,7 @@ class price_ListRules extends core_Detail
 	 * 
 	 * @return array $options - масив с артикули за избор
 	 */
-	private static function getProductOptions()
+	public static function getProductOptions()
 	{
 		$options = array();
 		$pQuery = cat_Products::getQuery();
