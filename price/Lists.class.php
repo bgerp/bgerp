@@ -33,7 +33,7 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_NoChange, plg_Search';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_Search';
                     
     
     /**
@@ -51,7 +51,13 @@ class price_Lists extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, parent, createdOn, createdBy,state';
+    public $listFields = 'title, parent, customer=На контрагент,createdOn, createdBy';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'customer';
     
     
     /**
@@ -108,11 +114,10 @@ class price_Lists extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
-        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
+        $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС'); 
-        $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
@@ -139,18 +144,12 @@ class price_Lists extends core_Master
         $form = $data->form;
         $rec = $form->rec;
 		
-        if($rec->parent){
+        if(isset($rec->parent)){
         	$form->setReadOnly('parent');
         }
         
         if($rec->cId && $rec->cClass) {
-            $cMvc = cls::get($rec->cClass);
-            expect($cRec = $cMvc->fetch($rec->cId));
-            $cMvc->requireRightFor('single', $rec);
             $form->setField('public', 'input=hidden');
-            $form->setField('validFrom', 'input');
-            $title = $cMvc->gettitleById($rec->cId, FALSE);
-            $rec->customer =  $title;
             $rec->public = 'no';
         }
         
@@ -288,6 +287,10 @@ class price_Lists extends core_Master
         	$row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, TRUE);
         }
         
+        if(isset($rec->cClass) && isset($rec->cId)){
+        	$row->customer = cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE);
+        }
+        
         $row->currency = "<span class='cCode'>{$row->currency}</span>";
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : 'state-active';
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
@@ -316,6 +319,10 @@ class price_Lists extends core_Master
         	// Ако се създава публична политика и потребителя няма роли price или ceo, да не може да създава
         	if(empty($rec->cClass) || empty($rec->cId)){
         		if(!haveRole('price,ceo')){
+        			$requiredRoles = 'no_one';
+        		}
+        	} elseif(isset($rec->cId) && isset($rec->cClass)){
+        		if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
         			$requiredRoles = 'no_one';
         		}
         	}
