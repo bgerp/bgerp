@@ -118,10 +118,9 @@ class price_ListRules extends core_Detail
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('from', 'date', 'input,caption=В сила');
+        $data->listFilter->FNC('from', 'datetime', 'input,caption=В сила');
         $data->listFilter->FNC('product', 'int', 'input,caption=Артикул,silent');
-        $data->listFilter->FNC('group', 'key(mvc=cat_Groups,select=name)', 'input,caption=Група');
-        $data->listFilter->showFields = 'product, group';
+        $data->listFilter->showFields = 'product,from';
 		
         $options = self::getProductOptions();
         $data->listFilter->setOptions('product', array('' => '') + $options);
@@ -132,8 +131,9 @@ class price_ListRules extends core_Detail
 		$data->query->orderBy('#validFrom,#id', 'DESC');
 		
 		if($rec = $data->listFilter->rec){
+			
 			if(isset($rec->from)){
-				$data->query->where(array("#validFrom >= '[#1#]'", $from));
+				$data->query->where(array("#validFrom >= '[#1#]'", $rec->from));
 			}
 			
 			if(isset($rec->product)){
@@ -175,6 +175,10 @@ class price_ListRules extends core_Detail
         
         $query->orderBy("#priority", "ASC");
         $query->orderBy("#validFrom,#id", "DESC");
+        
+        bp($query->fetchAll());
+        
+        
         $query->limit(1);
         
         $rec = $query->fetch();
@@ -376,7 +380,7 @@ class price_ListRules extends core_Detail
             
             // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
             if($rec->type == 'discount' || $rec->type == 'groupDiscount') {
-                if(!$rec->discount && !$rec->targetPrice) {
+                if(!isset($rec->discount) && !isset($rec->targetPrice)) {
                     $form->setError('discount,targetPrice', 'Трябва да се зададе стойност или за отстъка или за желана цена');
                 } elseif($rec->discount && $rec->targetPrice) {
                     $form->setError('discount,targetPrice', 'Не може да се зададе стойност едновременно за отстъка и за желана цена');
