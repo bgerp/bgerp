@@ -640,6 +640,7 @@ class price_ListDocs extends core_Master
     	}
     	
     	if($data->pager){
+    		$tpl->replace($data->pager->getHtml(), 'PAGER_TOP');
     		$tpl->replace($data->pager->getHtml(), 'PAGER');
     	}
     }
