@@ -40,7 +40,7 @@ class plg_RowNumbering extends core_Plugin
     /**
      * Извиква се след подготовката на $data->recs и $data->rows за табличния изглед
      */
-    function on_AfterPrepareListRows($mvc, &$res, $data)
+    public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if($cnt = count($data->recs)) {
             
