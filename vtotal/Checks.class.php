@@ -60,6 +60,12 @@ class vtotal_Checks extends core_Master
 
 
     /**
+     * @var Команда за сканирване на аваст файл
+     */
+    private static $avastScanCommand = "scan ";
+
+
+    /**
      * Плъгини за зареждане
      */
     public $loadList = "plg_Created, plg_Sorting";
@@ -87,6 +93,20 @@ class vtotal_Checks extends core_Master
     public function getDangerRate($VTResult)
     {
         return $VTResult->positives/$VTResult->total;
+    }
+
+    
+    /**
+     * @param $path Път до файла, който трябва да се сканира
+     * @return int  Краен резултар дали е опасен.
+     * 1 -> да опасен е
+     * 0 -> не е опасе
+     */
+    public function AvastSingleFileScan($path)
+    {
+        $output = shell_exec("scan " . $path);
+        preg_match_all("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
+        return !empty($matches[0]) ? 1 : 0;
     }
 
 
@@ -311,18 +331,20 @@ class vtotal_Checks extends core_Master
 
             if($result == -1 || $result == -3 || $result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
-                if($rec->timesScanned >= 2)
-                {
-                    $fQuery = fileman_Files::getQuery();
-                    $fQuery->where("#dataId = {$rec->filemanDataId}");
 
-                    while($fRec = $fQuery->fetch())
-                    {
-                        $fRec->dangerRate = -1;
-                        fileman_Files::save($fRec, 'dangerRate');
-                    }
+                $dQuery = fileman_Data::getQuery();
+                $dRec = $dQuery->fetch($rec->filemanDataId);
+                $dangerRate = $this->AvastSingleFileScan($dRec->path);
+
+                $fsQuery = fileman_Files::getQuery();
+                $fsQuery->where("#dataId = {$rec->filemanDataId}");
+
+                while($fRec = $fsQuery->fetch())
+                {
+                    $fRec->dangerRate = $dangerRate;
+                    fileman_Files::save($fRec, 'dangerRate');
                 }
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $this->save($rec);
             }
             elseif ($result->response_code == 1) {
@@ -330,7 +352,7 @@ class vtotal_Checks extends core_Master
 
                 $rec->timesScanned = $rec->timesScanned + 1;
                 $rec->firstCheck = $result->scan_date;
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $rec->rateByVT = $result->positives . "|" . $result->total;
                 $this->save($rec);
 
@@ -344,6 +366,18 @@ class vtotal_Checks extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Добавя филтър към перата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->query->orderBy('lastCheck', 'DESC');
     }
     
     

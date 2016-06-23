@@ -68,7 +68,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * Преобразува подадения файл в различни формати
      *
      * @param string $file
-     * @param $to $file - pdf|png
+     * @param string $file - pdf|png
      * @param string $type
      * @param string $name
      * @param boolean $cmyk
