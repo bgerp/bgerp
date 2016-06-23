@@ -501,12 +501,8 @@ class price_ListDocs extends core_Master
     	$row = new stdClass();
     	$row->productId = cat_Products::getVerbal(cat_Products::fetch($rec->productId), 'name');
     	
-    	if(!Mode::is('printing')){
-    		if(cat_Products::haveRightFor('single', $rec->productId)){
-    			$icon = sbf("img/16/wooden-box.png");
-    			$url = array('cat_Products', 'single', $rec->productId);
-    			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
-    		}
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	}
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
@@ -712,7 +708,7 @@ class price_ListDocs extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
+    	$row->policyId = price_Lists::getHyperlink($rec->policyId, TRUE);
     	
     	if(isset($fields['-list'])){
     		$row->handler = $mvc->getLink($rec->id, 0);

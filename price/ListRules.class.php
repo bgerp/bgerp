@@ -175,10 +175,7 @@ class price_ListRules extends core_Detail
         
         $query->orderBy("#priority", "ASC");
         $query->orderBy("#validFrom,#id", "DESC");
-        
-        bp($query->fetchAll());
-        
-        
+       
         $query->limit(1);
         
         $rec = $query->fetch();
