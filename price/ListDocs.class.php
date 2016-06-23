@@ -9,10 +9,10 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ценоразписи
+ * @title     Документ "Ценоразпис"
  */
 class price_ListDocs extends core_Master
 {
@@ -21,7 +21,7 @@ class price_ListDocs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
 
 
     /**
@@ -33,87 +33,75 @@ class price_ListDocs extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Ценоразписи';
+    public $title = 'Ценоразписи';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Cnr";
+    public $abbr = "Cnr";
     
     
      /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc, Products=cat_Products';
+    public $loadList = 'plg_RowTools2, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
     	
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, policyId';
+    public $searchFields = 'title, policyId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, date, handler=Документ, title, policyId, state, createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    public $listFields = 'date, handler=Документ, title, policyId, state, createdOn, createdBy';
     
     
     /**
      * Полето за единичен изглед
      */
-    var $rowToolsSingleField = 'handler';
+    public $rowToolsSingleField = 'handler';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canWrite = 'priceMaster, ceo';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'priceMaster, ceo';
+    public $canWrite = 'priceMaster, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'priceMaster,ceo';
+    public $canList = 'priceMaster,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'sales,priceMaster,ceo';
+	public $canSingle = 'sales,priceMaster,ceo';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "3.6|Търговия";
+    public $newBtnGroup = "3.6|Търговия";
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценоразпис';
+    public $singleTitle = 'Ценоразпис';
     
     
     /**
@@ -125,13 +113,13 @@ class price_ListDocs extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
+    public $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
+    public $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
     
     
     /**
@@ -410,7 +398,7 @@ class price_ListDocs extends core_Master
     		
     		// Изчисляваме цената за продукта в основна мярка
     		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
-    		$vat = $this->Products->getVat($product->productId);
+    		$vat = cat_Products::getVat($product->productId);
     		$displayedPrice = deals_Helper::getDisplayPrice($displayedPrice, $vat, $rec->currencyRate, $rec->vat);
     		if(!empty($rec->listRec->roundingPrecision)){
     			$displayedPrice = round($displayedPrice, $rec->listRec->roundingPrecision);
@@ -480,7 +468,7 @@ class price_ListDocs extends core_Master
     	if(!$price) return;
     	
     	$clone->priceP  = $packagingRec->quantity * $price;
-    	$vat = $this->Products->getVat($product->productId);
+    	$vat = cat_Products::getVat($product->productId);
     	$clone->priceP = deals_Helper::getDisplayPrice($clone->priceP, $vat, $rec->currencyRate, $rec->vat);
     	if(!empty($rec->listRec->roundingPrecision)){
     		$clone->priceP = round($clone->priceP, $rec->listRec->roundingPrecision);

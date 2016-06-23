@@ -164,6 +164,13 @@ class price_Lists extends core_Master
         if(!$rec->currency) {
             $rec->currency = acc_Periods::getBaseCurrencyCode();
         }
+        
+        // За политиката себестойност, скриваме определени полета
+        if($rec->id == price_ListRules::PRICE_LIST_COST){
+        	foreach (array('parent', 'public', 'discountCompared', 'defaultSurcharge', 'minSurcharge', 'maxSurcharge') as $fld){
+        		$form->setField($fld, 'input=hidden');
+        	}
+        }
     }
 
 

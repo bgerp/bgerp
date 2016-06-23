@@ -214,6 +214,21 @@ class price_Setup extends core_ProtoSetup
     	}
     	
     	try{
+    		$costId = price_ListRules::PRICE_LIST_COST;
+    		
+    		$lQuery = price_Lists::getQuery();
+    		$lQuery->where("#defaultSurcharge IS NULL");
+    		$lQuery->where("id != '{$costId}'");
+    		$lQuery->show('defaultSurcharge');
+    		while($lRec = $lQuery->fetch()){
+    			$lRec->defaultSurcharge = ($lRec->id == price_ListRules::PRICE_LIST_CATALOG) ? 0.2 : 0;
+    			$Lists->save_($lRec, 'defaultSurcharge');
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    	
+    	try{
     		$rQuery = price_ListRules::getQuery();
     		$rQuery->where("#groupId IS NOT NULL");
     		while($r = $rQuery->fetch()){
