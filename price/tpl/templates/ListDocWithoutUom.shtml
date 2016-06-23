@@ -77,9 +77,9 @@
         </table>
     </div>
     <!--ET_BEGIN DETAILS-->
+    [#PAGER#]
     <div class='details'>
         [#DETAILS#]
     </div>
     <!--ET_END DETAILS-->
-    [#PAGER#]
 </div>
