@@ -188,7 +188,9 @@ class doc_plg_BusinessDoc extends core_Plugin
     				$newOptions = array();
                     
                     while($rec = $query->fetch()) {
-                        $newOptions[$rec->coverId] = $rec->title;
+                    	if($mvc->haveRightFor('add', (object)array('folderId' => $rec->id))){
+                    		$newOptions[$rec->coverId] = $rec->title;
+                    	}
                     }
 
     		        if ($newOptions) {
