@@ -142,7 +142,7 @@ class price_ListDocs extends core_Master
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->view = 'horizontal';
@@ -154,7 +154,7 @@ class price_ListDocs extends core_Master
     /**
      * Извиква се след подготовката на формата
      */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$form->setDefault('date', dt::now());
@@ -219,7 +219,7 @@ class price_ListDocs extends core_Master
     /**
      * Обработка след изпращане на формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		if(!$form->rec->title){
@@ -234,7 +234,7 @@ class price_ListDocs extends core_Master
     /**
    	 * Обработка на Single изгледа
    	 */
-   	static function on_AfterPrepareSingle($mvc, &$data)
+   	protected static function on_AfterPrepareSingle($mvc, &$data)
     {
     	// Обработваме детайлите ако ги няма записани
     	if(!$data->rec->products){
@@ -315,10 +315,10 @@ class price_ListDocs extends core_Master
     /**
      * Сортира масива първо по код после по сума (ако кодовете съвпадат)
      */
-	function sortResults($a, $b) {
-			 if($a->code == $b->code) return strcmp($b->priceM, $a->priceM);
+	private function sortResults($a, $b) {
+		if($a->code == $b->code) return strcmp($b->priceM, $a->priceM);
 			 
-	         return strcmp($a->code, $b->code);
+	    return strcmp($a->code, $b->code);
 	}
 	
 	
@@ -538,7 +538,7 @@ class price_ListDocs extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tplFile = ($data->rec->showUoms == 'yes') ? $this->singleLayoutFile : $this->singleLayoutFile2;
     	$tpl = getTplFromFile($tplFile);
@@ -548,7 +548,7 @@ class price_ListDocs extends core_Master
     /**
      * Вкарваме css файл за единичния изглед
      */
-	static function on_AfterRenderSingle($mvc, &$tpl, $data)
+	protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$mvc->renderDetails($tpl, $data);
     	$tpl->push("price/tpl/NormStyles.css", "CSS");
@@ -691,7 +691,7 @@ class price_ListDocs extends core_Master
     /**
      * При активиране записваме групираните продукти в модела
      */
-	public static function on_AfterActivation($mvc, &$rec)
+	protected static function on_AfterActivation($mvc, &$rec)
     {
     	$data = new stdClass();
     	$data->rec = $rec;
@@ -710,7 +710,7 @@ class price_ListDocs extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
     	
@@ -765,7 +765,7 @@ class price_ListDocs extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    static function getHandle($id)
+    public static function getHandle($id)
     {
     	$rec = static::fetch($id);
     	$self = cls::get(get_called_class());
