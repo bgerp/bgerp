@@ -98,6 +98,7 @@ class price_ListToCustomers extends core_Detail
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
+        $this->EXT('state', 'price_Lists', 'externalName=state,externalKey=listId', 'caption=Сметка->№');
     }
 
     
@@ -247,6 +248,8 @@ class price_ListToCustomers extends core_Detail
         $query = self::getQuery();
         $query->where("#cClass = {$customerClassId} AND #cId = {$customerId}");
         $query->where("#validFrom <= '{$datetime}'");
+        $query->where("#state != 'rejected'");
+        
         $query->limit(1);
         $query->orderBy("#validFrom,#id", 'DESC');
         $lRec = $query->fetch();
@@ -280,7 +283,7 @@ class price_ListToCustomers extends core_Detail
     public static function preparePricelists($data)
     { 
         static::prepareDetail($data);
-
+		
         $now = dt::verbal2mysql();
 
         $cClassId = core_Classes::getId($data->masterMvc);
@@ -290,6 +293,11 @@ class price_ListToCustomers extends core_Detail
         if(count($data->rows)) {
             foreach($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
+                if($rec->state == 'rejected'){
+                	unset($data->rows[$id]);
+                	continue;
+                }
+                
                 if($rec->validFrom > $now) {
                     $state = 'draft';
                 } elseif($validRec->id == $rec->id) {
