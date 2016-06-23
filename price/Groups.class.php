@@ -97,12 +97,6 @@ class price_Groups extends core_Master
     var $rowToolsSingleField = 'title';
     
     
-    /**
-     * Шаблон за единичния изглед
-     */
-    var $singleLayoutFile = 'price/tpl/SingleLayoutGroups.shtml';
-    
-    
     var $details = 'ProductInGroup=price_GroupOfProducts';
     
     
