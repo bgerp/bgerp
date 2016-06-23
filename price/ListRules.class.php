@@ -368,14 +368,9 @@ class price_ListRules extends core_Detail
     	if($form->isSubmitted()) {
             $now = dt::verbal2mysql();
             
-
             if(!$rec->validFrom) {
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', NULL);
-            }
-
-            if($rec->validFrom < $now) {
-                $form->setError('validFrom', 'Не могат да се задават правила за минал момент');
             }
             
             // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
