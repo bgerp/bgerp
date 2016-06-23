@@ -149,7 +149,6 @@ class cat_Groups extends core_Manager
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2,input=none');
         
-        
         $this->setDbUnique("sysId");
     }
     
