@@ -252,7 +252,7 @@ class price_ListDocs extends core_Master
 			$count += count($products);
     	}
     	
-    	if(!Mode::is('printing')){
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
 	    	$Pager->itemsCount = $count;
 	    	$Pager->calc();
