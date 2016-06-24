@@ -268,7 +268,7 @@ class price_Lists extends core_Master
     /**
      * Изпълнява се след създаване на нов набор от ценови правила
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
         if($rec->cId && $rec->cClass) {
             price_ListToCustomers::setPolicyToCustomer($rec->id,  $rec->cClass, $rec->cId);
