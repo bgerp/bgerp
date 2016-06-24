@@ -92,12 +92,20 @@ class vtotal_Checks extends core_Master
 
     /**
      * Проверява дали Avast е инсталиран на работната машината
+     * 
      * @return bool
      */
     public function isAvastInstalled()
     {
-        exec("which ". self::get('IS_AVAST_INSTALLED_COMMAND'), $output, $code);
-        return $code == 127 ? FALSE : TRUE;
+        $command = escapeshellcmd(self::get('AVAST_COMMAND'));
+        exec($command . ' --help', $output, $code);
+        
+        if ($code == 127) {
+            
+            return FALSE;
+        }
+        
+        return TRUE;
     }
 
 
@@ -111,7 +119,7 @@ class vtotal_Checks extends core_Master
     {
         expect(is_file($path));
         $path = escapeshellarg($path);
-        $command = escapeshellcmd(self::get('IS_AVAST_INSTALLED_COMMAND') . " " . $path);
+        $command = escapeshellcmd(self::get('AVAST_COMMAND') . " " . $path);
         $output = exec($command, $output, $code);
 
         preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
@@ -366,7 +374,7 @@ class vtotal_Checks extends core_Master
                         }
                     }
                 }
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $this->save($rec);
             }
             elseif ($result->response_code == 1) {
@@ -374,7 +382,7 @@ class vtotal_Checks extends core_Master
 
                 $rec->timesScanned = $rec->timesScanned + 1;
                 $rec->firstCheck = $result->scan_date;
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $rec->rateByVT = $result->positives . "|" . $result->total;
                 $this->save($rec);
 
