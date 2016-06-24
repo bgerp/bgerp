@@ -182,13 +182,11 @@ class price_ListRules extends core_Detail
         
         if($rec) {
         	if($rec->type == 'value') {
-        		
         		$vat = cat_Products::getVat($productId, $datetime);
         		$price = self::normalizePrice($rec, $vat, $datetime);
-        		
         	} else{
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
-        		$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        		$price = self::getPrice($parent, $productId, $packagingId, $datetime);
         		
         		if(isset($price)){
         			if($rec->calculation == 'reverse') {
