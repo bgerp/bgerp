@@ -95,17 +95,14 @@ class vtotal_Checks extends core_Master
      * 
      * @return bool
      */
-    public function isAvastInstalled()
+    public static function isAvastInstalled()
     {
-        $command = escapeshellcmd(self::get('AVAST_COMMAND'));
-        exec($command . ' --help', $output, $code);
+        $inst = cls::get('vtotal_Setup');
+        $isInstalled = $inst->checkConfig();
         
-        if ($code == 127) {
-            
-            return FALSE;
-        }
+        if (is_null($isInstalled)) return TRUE;
         
-        return TRUE;
+        return FALSE;
     }
 
 
