@@ -187,10 +187,8 @@ class price_ListDocs extends core_Master
     	 if(cls::haveInterface('doc_ContragentDataIntf', $folderClass)){
     	 	$coverId = doc_Folders::fetchCoverId($rec->folderId);
     	 	
-    	 	$contragentData = $folderClass::getContragentData($coverId);
-    	 	if($contragentData->countryId){
-    	 		$currencyId = drdata_Countries::fetchField($contragentData->countryId, 'currencyCode');
-    	 	}
+    	 	$currencyCode = $folderClass::getDefaultCurrencyId($coverId);
+    	 	$currencyId = currency_Currencies::getIdByCode($currencyCode);
     	 }
     	 
     	 return ($currencyId) ? $currencyId : acc_Periods::getBaseCurrencyCode($rec->date);
