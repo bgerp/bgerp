@@ -262,6 +262,12 @@ class price_ListDocs extends core_Master
 	    	$Pager->itemsCount = $count;
 	    	$Pager->calc();
 	    	$data->pager = $Pager;
+    	} else {
+    		
+    		// Дигаме времето за изпълнение, ако показваме записите без странициране
+    		$total = count($data->rec->products, COUNT_RECURSIVE);
+    		$timeLimit = $total * 0.12;
+    		core_App::setTimeLimit($timeLimit);
     	}
     	
     	$mvc->prepareDetailRows($data);
@@ -522,6 +528,7 @@ class price_ListDocs extends core_Master
     	
 		$row->code = $Varchar->toVerbal($rec->code);
 		$row->eanCode = $Varchar->toVerbal($rec->eanCode);
+		$row->eanCode = "<small>{$row->eanCode}</small>";
 		
     	if($rec->measureId && $rec->priceM){
     		$row->measureId = $measureShort;
