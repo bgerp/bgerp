@@ -13,8 +13,14 @@
  */
 class zbar_Reader
 {
-
     
+    
+    /**
+     * Масив със стойности, които ще се приемат за тип на баркод
+     */
+    protected static $barcodesArr = array('qr', 'ean', 'code', 'datamatrix', 'std', 'int', 'msi', 'codabar');
+	
+	
 	/**
      * Връща баркодовете във файла
      * 
@@ -48,19 +54,49 @@ class zbar_Reader
         // Ако има окрит баркод
         if ((is_array($allBarcodesArr)) && count($allBarcodesArr)) {
             
+            $fBarcodeStr = '';
+            
             // Обикаляме намерените баркодове
             foreach ($allBarcodesArr as $key => $barcode) {
                 
                 // Разделяме типа на баркода от съдържанието му
-                $explodeBarcodeArr = explode(':', $barcode, 2);
-                
-                if (!is_object($barcodesArr[$key])) {
-                    $barcodesArr[$key] = new stdClass();
+                list($barcodeType, $barcodeStr) = explode(':', $barcode, 2);
+                $isBarcodeType = FALSE;
+                foreach (self::$barcodesArr as $bStr) {
+                    if (stripos($barcodeType, $bStr) === 0) {
+                        $isBarcodeType = TRUE;
+                        break;
+                    }
                 }
                 
-                // Записваме намерените резултатис
-                $barcodesArr[$key]->type = $explodeBarcodeArr[0];
-                $barcodesArr[$key]->code = $explodeBarcodeArr[1];
+                if (!$isBarcodeType) {
+                    if ($barcodeType || $barcodeStr) {
+                        $fBarcodeStr .= "\n" . $barcodeType . ':' . $barcodeStr;
+                    }
+                    
+                    continue;
+                } else {
+                    if (!is_object($barcodesArr[$key])) {
+                        $barcodesArr[$key] = new stdClass();
+                    }
+                    
+                    if (!empty($fBarcodeStr)) {
+                        $barcodeStr .= $fBarcodeStr;
+                        $fBarcodeStr = '';
+                    }
+                    
+                    // Записваме намерените резултатис
+                    $barcodesArr[$key]->type = $barcodeType;
+                    $barcodesArr[$key]->code = $barcodeStr;
+                }
+            }
+            
+            if (!empty($fBarcodeStr)) {
+                if (!empty($barcodesArr)) {
+                    end($barcodesArr);
+                    $key = key($barcodesArr);
+                    $barcodesArr[$key]->code .= $fBarcodeStr;
+                }
             }
         }
         

@@ -46,16 +46,16 @@ defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files (x86)
 
 /**
  * Минималната големина на файла, до която ще се търси баркод
- * 15kB
+ * 1kB
  */
-defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 15360);
+defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 1024);
 
 
 /**
  * Максималната големина на файла, до която ще се търси баркод
- * 1 mB
+ * 3 mB
  */
-defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 1048576);
+defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 3145728);
 
 
 /**
