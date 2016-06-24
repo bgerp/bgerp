@@ -95,7 +95,17 @@ class vtotal_Checks extends core_Master
         return $VTResult->positives/$VTResult->total;
     }
 
-    
+
+    /**
+     * Проверява дали Avast е инсталиран на работната машината
+     * @return bool
+     */
+    public function isAvastInstalled()
+    {
+       return exec(vtotal_Setup::get('AVAST_INSTALLED_COMMAND')) == "" ? FALSE : TRUE;
+    }
+
+
     /**
      * @param $path Път до файла, който трябва да се сканира
      * @return int  Краен резултар дали е опасен.
@@ -104,8 +114,11 @@ class vtotal_Checks extends core_Master
      */
     public function AvastSingleFileScan($path)
     {
-        $output = shell_exec("scan " . $path);
-        preg_match_all("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
+        expect(is_file($path));
+        $path = escapeshellarg($path);
+        $output = escapeshellcmd(shell_exec("scan " . $path));
+
+        preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
         return !empty($matches[0]) ? 1 : 0;
     }
 
@@ -332,19 +345,33 @@ class vtotal_Checks extends core_Master
             if($result == -1 || $result == -3 || $result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
 
-                $dQuery = fileman_Data::getQuery();
-                $dRec = $dQuery->fetch($rec->filemanDataId);
-                $dangerRate = $this->AvastSingleFileScan($dRec->path);
+                //Old Shit
+                if($this->isAvastInstalled()) {
+                    $dQuery = fileman_Data::getQuery();
+                    $dRec = $dQuery->fetch($rec->filemanDataId);
+                    $dangerRate = $this->AvastSingleFileScan($dRec->path);
 
-                $fsQuery = fileman_Files::getQuery();
-                $fsQuery->where("#dataId = {$rec->filemanDataId}");
+                    $fsQuery = fileman_Files::getQuery();
+                    $fsQuery->where("#dataId = {$rec->filemanDataId}");
 
-                while($fRec = $fsQuery->fetch())
-                {
-                    $fRec->dangerRate = $dangerRate;
-                    fileman_Files::save($fRec, 'dangerRate');
+                    while($fRec = $fsQuery->fetch())
+                    {
+                        $fRec->dangerRate = $dangerRate;
+                        fileman_Files::save($fRec, 'dangerRate');
+                    }
+                } else {
+                    if($rec->timesScanned >= 2)
+                    {
+                        $fQuery = fileman_Files::getQuery();
+                        $fQuery->where("#dataId = {$rec->filemanDataId}");
+                        while($fRec = $fQuery->fetch())
+                        {
+                            $fRec->dangerRate = -1;
+                            fileman_Files::save($fRec, 'dangerRate');
+                        }
+                    }
                 }
-                $rec->lastCheck = dt::now();
+                $rec->lastCheck = $now;
                 $this->save($rec);
             }
             elseif ($result->response_code == 1) {

@@ -4,6 +4,7 @@
 /**
  * Коя да е основната мярка на универсалните артикули
  */
+defIfNot('VTOTAL_IS_AVAST_INSTALLED_COMMAND', "which scan");
 defIfNot('VTOTAL_API_KEY', '');
 defIfNot('VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL', '3');
 defIfNot('VTOTAL_BETWEEN_TIME_SCANS', '864000'); // Десет дена
@@ -76,14 +77,16 @@ class vtotal_Setup extends core_ProtoSetup
      *
      * @return NULL|string
      */
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return NULL|string
+     */
     function checkConfig()
     {
-        exec("avast -h", $output, $code);
-        if ($code == 127) {
-            $haveError = TRUE;
-        }
-        if ($haveError) {
-            return "Avast Scan за Linux не е инсталирана.";
-        }
+            exec(self::get('AVAST_INSTALLED_COMMAND'), $output, $code);
+            if ($code != 0) {
+                return "Програмата Avast за Linux не е инсталирана. За да инсталирате, моля посетете https://www.avast.com/linux-server-antivirus";
+            }
     }
 }
