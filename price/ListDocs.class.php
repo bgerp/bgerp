@@ -639,7 +639,7 @@ class price_ListDocs extends core_Master
 				}
     		}
     	} else {
-    		$tpl->replace("<tr><td colspan='6'> " . tr("Няма продукти") . "</td></tr>", 'GROUP');
+    		$tpl->replace("<tr><td colspan='6'> " . tr("Няма артикули") . "</td></tr>", 'GROUP');
     	}
     	
     	if($data->pager){
