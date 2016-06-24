@@ -123,6 +123,12 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Работен кеш
+     */
+    public $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -487,31 +493,35 @@ class price_ListDocs extends core_Master
     private function getVerbalDetail($rec, $data)
     {
     	$masterRec = $data->rec;
-    	$varchar = cls::get('type_Varchar');
-    	$double = cls::get('type_Double');
-    	$double->params['smartRound'] = 'smartRound';
+    	$Varchar = cls::get('type_Varchar');
+    	$Double = cls::get('type_Double');
+    	$Double->params['smartRound'] = 'smartRound';
     	
     	$row = new stdClass();
-    	$row->productId = cat_Products::getVerbal(cat_Products::fetch($rec->productId), 'name');
-    	
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	}
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
     		if($rec->$priceFld){
-        		$row->$priceFld = $double->toVerbal($rec->$priceFld);
+        		$row->{$priceFld} = $Double->toVerbal($rec->$priceFld);
         	}
     	}
         
-    	$measureShort = cat_UoM::getShortName($rec->measureId);
+    	if(!array_key_exists($rec->measureId, $this->cache)){
+    		$this->cache[$rec->measureId] = cat_UoM::getShortName($rec->measureId);
+    	}
+    	$measureShort = $this->cache[$rec->measureId];
+    	
 		if($rec->pack){
-    		$row->pack = cat_UoM::getShortName($rec->pack);
-    		$row->pack .= "&nbsp;({$double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
+			if(!array_key_exists($rec->pack, $this->cache)){
+				$this->cache[$rec->pack] = cat_UoM::getShortName($rec->pack);
+			}
+			
+    		$row->pack = $this->cache[$rec->pack];
+    		$row->pack .= "&nbsp;({$Double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
 		}
     	
-		$row->code = $varchar->toVerbal($rec->code);
-		$row->eanCode = $varchar->toVerbal($rec->eanCode);
+		$row->code = $Varchar->toVerbal($rec->code);
+		$row->eanCode = $Varchar->toVerbal($rec->eanCode);
 		
     	if($rec->measureId && $rec->priceM){
     		$row->measureId = $measureShort;
