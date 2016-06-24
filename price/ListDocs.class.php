@@ -339,13 +339,14 @@ class price_ListDocs extends core_Master
     	
     	$customerProducts = price_ListRules::getProductOptions();
     	unset($customerProducts['pu']);
+    	$aGroups = cat_Groups::getDescendantArray($rec->productGroups);
     	
     	if($customerProducts){
     		foreach($customerProducts as $id => $product){
     			$productRec = cat_Products::fetch($id);
     			if(!$productRec) continue;
+    			
 		    	if($rec->productGroups){
-		    		$aGroups = keylist::toArray($rec->productGroups);
 		    		$pGroups = keylist::toArray($productRec->groups);
 		    		$intersectArr = array_intersect($aGroups, $pGroups);
 		    		if(!count($intersectArr)) continue;
