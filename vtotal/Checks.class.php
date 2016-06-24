@@ -60,12 +60,6 @@ class vtotal_Checks extends core_Master
 
 
     /**
-     * @var Команда за сканирване на аваст файл
-     */
-    private static $avastScanCommand = "scan ";
-
-
-    /**
      * Плъгини за зареждане
      */
     public $loadList = "plg_Created, plg_Sorting";
@@ -102,7 +96,8 @@ class vtotal_Checks extends core_Master
      */
     public function isAvastInstalled()
     {
-       return exec(vtotal_Setup::get('AVAST_INSTALLED_COMMAND')) == "" ? FALSE : TRUE;
+        exec("which ". self::get('AVAST_INSTALLED_COMMAND'), $output, $code);
+        return $code == 127 ? FALSE : TRUE;
     }
 
 
@@ -116,7 +111,7 @@ class vtotal_Checks extends core_Master
     {
         expect(is_file($path));
         $path = escapeshellarg($path);
-        $output = escapeshellcmd(shell_exec("scan " . $path));
+        $output = escapeshellcmd((exec(self::get('AVAST_INSTALLED_COMMAND'), $output, $code). " " . $path));
 
         preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
         return !empty($matches[0]) ? 1 : 0;
@@ -345,7 +340,6 @@ class vtotal_Checks extends core_Master
             if($result == -1 || $result == -3 || $result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
 
-                //Old Shit
                 if($this->isAvastInstalled()) {
                     $dQuery = fileman_Data::getQuery();
                     $dRec = $dQuery->fetch($rec->filemanDataId);
