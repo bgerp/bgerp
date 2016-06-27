@@ -433,7 +433,19 @@ class plg_UserReg extends core_Plugin
             
             core_Cache::remove(USERREG_CACHE_TYPE, $id);
 
-            redirect(array('Index'), TRUE, '|Успешно отблокирахте потребителя');
+            redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), TRUE, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
+        } elseif($act == 'unblocklocal' && type_Ip::isLocal()) {
+            Request::setProtected('userId');
+            $userId = Request::get('userId', 'int');
+            if($rec = $mvc->fetch($userId)) {
+                $rec->state = isset($rec->exState) ? $rec->exState : 'active';
+                $mvc->save($rec);
+                
+                $mvc->logLogin('Отблокиран локален потребител', $rec->id);
+                core_LoginLog::add('unblock', $rec->id);
+
+                redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), TRUE, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
+            }
         }
     }
     

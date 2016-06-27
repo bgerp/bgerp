@@ -907,7 +907,9 @@ class core_Query extends core_FieldSet
         }
 
         // Задължително показваме полето id
-        $this->show['id'] = TRUE;
+        if($this->fields['id']) {
+            $this->show['id'] = TRUE;
+        }
         
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);

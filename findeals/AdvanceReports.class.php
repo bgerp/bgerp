@@ -53,43 +53,43 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,findeals';
+    public $canRead = 'ceo,pettyCashReport';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,findeals';
+	public $canList = 'ceo,pettyCashReport';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,findeals';
+	public $canSingle = 'ceo,pettyCashReport';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,findeals';
+    public $canEdit = 'ceo,pettyCashReport';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,findeals';
+    public $canAdd = 'ceo,pettyCashReport';
 
 
     /**
      * Кой може да го види?
      */
-    public $canViewprices = 'ceo,findeals';
+    public $canViewprices = 'ceo,pettyCashReport';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canConto = 'ceo,findeals';
+    public $canConto = 'ceo,pettyCashReport';
     
     
     /**
@@ -253,7 +253,7 @@ class findeals_AdvanceReports extends core_Master
     	$rec = $this->fetchRec($id);
     	$rec->total = 0;
     	
-    	$query = $this->findeals_AdvanceReportDetails->getQuery();
+    	$query = findeals_AdvanceReportDetails::getQuery();
     	$query->where("#reportId = '{$id}'");
     	while($dRec = $query->fetch()){
     		$rec->total += $dRec->amount * (1 + $dRec->vat);

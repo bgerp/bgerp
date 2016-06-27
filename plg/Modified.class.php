@@ -21,7 +21,7 @@ class plg_Modified extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$invoker)
+    public static function on_AfterDescription(&$invoker)
     {
         // Добавяне на необходимите полета
         $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
@@ -32,7 +32,7 @@ class plg_Modified extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
+    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
     {
         // Определяме кой е модифицирал записа
         $rec->modifiedBy = Users::getCurrent();
@@ -45,7 +45,7 @@ class plg_Modified extends core_Plugin
     /**
      * Добавя ново поле, което съдържа датата, в чист вид
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
         if($rec->modifiedBy == -1) {
             $row->modifiedBy = '@system';
@@ -61,7 +61,7 @@ class plg_Modified extends core_Plugin
     /**
      * Изпълнява се след инициализиране на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         if($mvc->count('1=1') && !$mvc->count("#modifiedOn > '1971-01-01 00:00:00'")) {
             $query = $mvc->getQuery();
