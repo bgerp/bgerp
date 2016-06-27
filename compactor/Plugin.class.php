@@ -83,7 +83,7 @@ class compactor_Plugin extends core_Plugin
 
             if(!file_exists($sbfFilePath)) {
                 Debug::log("Skip file {$sbfFilePath} " . __CLASS__);
-                if(!isDebug()) continue;
+                continue;
             }
 
             $times .= @filemtime($sbfFilePath);
