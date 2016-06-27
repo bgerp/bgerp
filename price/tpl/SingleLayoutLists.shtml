@@ -1,21 +1,24 @@
 <div class="singleView">
     [#SingleToolbar#]
+    <div class='[#STATE_CLASS#]' style='padding-left:8px'>
     <h2> <b style="color:green;">[#SingleTitle#]</b></h2>
+    </div>
+    
     <table class="styled-table" style='min-width:300px'>
-        <tr>
-            <td class="title-style">№</td>
-            <td>[#id#]</td>
-        </tr>
-        <tr>
-            <td class="title-style">|Наименование|*</td>
-            <td>[#title#]</td>
-        </tr>
         <!--ET_BEGIN parent-->
         <tr>
             <td class="title-style">|Наследява|*</td>
             <td>[#parent#]</td>
         </tr>
         <!--ET_END parent-->
+        
+        <!--ET_BEGIN defaultSurcharge-->
+        <tr>
+            <td class="title-style">|Надценка по подразбиране|*</td>
+            <td>[#defaultSurcharge#]</td>
+        </tr>
+        <!--ET_END defaultSurcharge-->
+        
         <!--ET_BEGIN public-->
         <tr>
             <td class="title-style">|Публичен|*</td>
@@ -40,22 +43,21 @@
             <td>[#discountCompared#]</td>
         </tr>
         <!--ET_END discountCompared-->
-        <!--ET_BEGIN employersCnt-->
-    <!--ET_BEGIN clientInfo-->
-    [#clientInfo#]
+    	<!--ET_BEGIN clientInfo-->
+    		[#clientInfo#]
         <tr>
             <th colspan="2" style='padding-top: 15px;'>|Прикрепяне|*</th>
         </tr>
         <tr>
-            <td class="title-style">|Клиент|*</td>
+            <td class="title-style">|Контрагент|*</td>
             <td>[#customer#]</td>
         </tr>
+        <!--ET_BEGIN validFrom-->
         <tr>
             <td class="title-style">|В сила от|*</td>
             <td>[#validFrom#]</td>
         </tr>
-        <!--ET_END employersCnt-->
-    
+        <!--ET_END validFrom-->
     <!--ET_END clientInfo-->
     <!--ET_BEGIN roundingPrecisionTable-->
     [#roundingPrecisionTable#]

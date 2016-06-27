@@ -12,6 +12,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  * @title     Групи
  */
 class price_Groups extends core_Master
@@ -39,7 +40,7 @@ class price_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, description, productsCount=Продукти';
+    var $listFields = 'id, title, description, productsCount=Продукти,groupId';
     
     
     /**
@@ -96,12 +97,6 @@ class price_Groups extends core_Master
     var $rowToolsSingleField = 'title';
     
     
-    /**
-     * Шаблон за единичния изглед
-     */
-    var $singleLayoutFile = 'price/tpl/SingleLayoutGroups.shtml';
-    
-    
     var $details = 'ProductInGroup=price_GroupOfProducts';
     
     
@@ -112,7 +107,8 @@ class price_Groups extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Група');
         $this->FLD('description', 'text', 'caption=Описание');
-		
+        $this->FLD('groupId', 'varchar(128)', 'mandatory,caption=Група,input=none');
+        
         $this->setDbUnique('title');
     }
     
@@ -154,41 +150,6 @@ class price_Groups extends core_Master
     {
         $int = cls::get('type_Int');
     	$row->productsCount = $int->toVerbal($mvc->countProductsInGroup($rec->id));
-    }
-    
-    
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res) 
-    {
-    	// Подготвяме пътя до файла с данните 
-    	$file = "price/setup/csv/Groups.csv";
-    	
-    	// Кои колонки ще вкарваме
-    	$fields = array( 
-    		0 => "title", 
-    		1 => "description",
-    		2 => "csv_createdBy",
-    	);
-    	    	
-    	// Импортираме данните от CSV файла. 
-    	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL); 
-    	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res .= $cntObj->html;
-    }
-    
-    
-    /**
-     * Изпълнява се преди импортирването на данните
-     */
-    public static function on_BeforeImportRec($mvc, &$rec)
-    {
-    	if (isset($rec->csv_createdBy)) {
-
-    		$rec->createdBy = -1;
-    	}
     }
     
     
