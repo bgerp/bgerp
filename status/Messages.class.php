@@ -199,7 +199,7 @@ class status_Messages extends core_Manager
         
         // Записите със зададено hitId да се връщат, се връщат само за съответното hitId
         $query->where(array("#hitId IS NULL AND #createdOn >= '[#1#]'", $hitTimeB));
-        if ($hitId) {
+        if (!empty($hitId)) {
             $query->orWhere(array("#hitId = '[#1#]'", $hitId));
         }
         

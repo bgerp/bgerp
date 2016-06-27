@@ -2,7 +2,7 @@
 
 
 /**
- * Клас  'tests_Test' - Разни тестове на PHP-to
+ *  Клас  'unit_MinkPbgErp' - PHP тестове 
  *
  * @category  bgerp
  * @package   tests
@@ -18,7 +18,22 @@ class unit_MinkPbgERP extends core_Manager {
    /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
     *return $browser->getHtml();
     */
-  
+    
+    
+    /**
+     * Логване
+     */
+    public function SetUp()
+    {
+        $browser = cls::get('unit_Browser');
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+        return $browser;
+    }
     /**
      * 16. Нова покупка от съществуваща фирма с папка
      * Проверка състояние чакащо плащане - надплатено
@@ -28,16 +43,9 @@ class unit_MinkPbgERP extends core_Manager {
     // Фактура - № се сменя при повторен тест!
     function act_CreatePurchaseOverpaid()
     {
-    
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-    
+        $browser = $this->SetUp();
+            
         //Отваряме папката на фирмата
         $browser->click('Визитник');
         $browser->click('F');
@@ -161,15 +169,9 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreatePurchaseWait()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-    
+        $browser = $this->SetUp();
+        
         //Отваряме папката на фирмата
         $browser->click('Визитник');
         $browser->click('F');
@@ -295,15 +297,9 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreatePurchaseOverdue()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-    
+        $browser = $this->SetUp();
+        
         //Отваряме папката на фирмата
         $browser->click('Визитник');
         $browser->click('F');
@@ -432,14 +428,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreatePurchase()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -577,14 +567,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSaleMoment()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
        
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -689,14 +673,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSale()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -863,14 +841,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSaleWait()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -998,14 +970,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSaleMomentWaitP()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
                 
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -1130,14 +1096,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSaleMomentOverdueNull()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -1260,14 +1220,8 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateSaleOverpaid/
     function act_CreateSaleOverpaid()
     {
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -1370,14 +1324,8 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateSaleExped1/
     function act_CreateSaleExped1()
     {
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -1478,14 +1426,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSaleExped()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
           
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -1622,14 +1564,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSaleOverdue3days()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
          
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -1758,14 +1694,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateSaleWaitP()
         {
                 
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
                               
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -1896,14 +1826,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreatePlanningJob()
     {
         
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
         
         // Избираме артикул
         $browser->click('Каталог');
@@ -1976,14 +1900,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateBom()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
          
         $browser->click('Каталог');
         $browser->click('Продукти');
@@ -2022,14 +1940,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateQuotation()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-       
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
                 
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -2086,14 +1998,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateInq()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-         
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser->click('Визитник');
@@ -2128,14 +2034,9 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateEditCompany()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
+        
         $browser->click('Визитник');
         // търсим фирмата
         $browser->click('N');
@@ -2190,14 +2091,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_TestFirm()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
          
         //$browser->hasText('Известия');
         //$browser->hasText('Pavlinka');
@@ -2248,14 +2143,8 @@ class unit_MinkPbgERP extends core_Manager {
     {
         // редакция на фирма OK
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
          
         //Отваряме папката на фирма Фирма bgErp
         $browser->click('Визитник');
@@ -2287,14 +2176,8 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateCompany/
     function act_CreateCompany()
     {
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
         
         // Правим нова фирма
     
@@ -2332,14 +2215,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateProductBom()
     {
     
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
            
         // Правим нов артикул - продукт
         $browser->click('Каталог');
@@ -2385,14 +2262,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateProduct()
     {
          
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+       // Логваме се
+        $browser = $this->SetUp();
         
         // Правим нов артикул - продукт
         $browser->click('Каталог');
@@ -2438,14 +2309,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateCategory()
     {
          
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
     
         // Правим нова категория
         $browser->click('Каталог');
@@ -2528,14 +2393,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateBankAcc()
     {
          
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
         // проверка потребител/парола
         //Грешка:Грешна парола или ник!
         //$browser->hasText('Известия');
@@ -2574,14 +2433,8 @@ class unit_MinkPbgERP extends core_Manager {
     function act_CreateStore()
     {
          
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-         
-        $browser->press('Вход');
+        $browser = $this->SetUp();
         // проверка потребител/парола
         //Грешка:Грешна парола или ник!
         //$browser->hasText('Известия');
@@ -2619,14 +2472,9 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/DeinstallSelect2/
     function act_DeinstallSelect2()
     {
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-    
         // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
+        $browser = $this->SetUp();
+        
         $browser->click('Админ');
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
@@ -2638,5 +2486,28 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('select2-deinstall');
         return $browser->getHtml();
     }
-}
+
    
+    /**
+    * 0.Създаване на потребител
+    */
+    //http://localhost/unit_MinkPbgERP/CreateUser/
+    function act_CreateUser()
+    {
+
+    // Логваме се
+    $browser = $this->SetUp();
+    $browser->click('Админ');
+    //Отваряме папката на фирмата
+    $browser->click('Потребители');
+    $browser->press('Нов запис');
+    $browser->setValue('nick', 'User1');
+    $browser->setValue('passNew', '123456');
+    $browser->setValue('passRe', '123456');
+    $browser->setValue('names', 'Потребител 1');
+    $browser->setValue('email', 'u@abv.bg');
+    $browser->setValue('Дилър', '75');
+    $browser->press('Запис');
+    
+    }
+}

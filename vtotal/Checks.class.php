@@ -91,6 +91,40 @@ class vtotal_Checks extends core_Master
 
 
     /**
+     * Проверява дали Avast е инсталиран на работната машината
+     * 
+     * @return bool
+     */
+    public static function isAvastInstalled()
+    {
+        $inst = cls::get('vtotal_Setup');
+        $isInstalled = $inst->checkConfig();
+        
+        if (is_null($isInstalled)) return TRUE;
+        
+        return FALSE;
+    }
+
+
+    /**
+     * @param $path Път до файла, който трябва да се сканира
+     * @return int  Краен резултар дали е опасен.
+     * 1 -> да опасен е
+     * 0 -> не е опасе
+     */
+    public function AvastSingleFileScan($path)
+    {
+        expect(is_file($path));
+        $path = escapeshellarg($path);
+        $command = escapeshellcmd(self::get('AVAST_COMMAND') . " " . $path);
+        $output = exec($command, $output, $code);
+
+        preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
+        return !empty($matches[0]) ? 1 : 0;
+    }
+
+
+    /**
      * @param $md5Hash Хеш за проверка на файл през VirusTotal MD5
      * @return mixed
      * При неуспешно повикване връща int respone_code
@@ -308,21 +342,42 @@ class vtotal_Checks extends core_Master
         while($rec = $query->fetch())
         {
             $result = self::VTGetReport($rec->md5);
-
-            if($result == -1 || $result == -3 || $result->response_code == 0) {
+            if($result->response_code == -1) {
+                self::logErr('403: Нямате права за достъп, моля прегледайте API ключа за VirusTotal', $rec->id); break;
+            }
+            else if ($result->response_code == -3) {
+                self::logWarning('429: Твърде много заявки към системата на VirusTotal, моля намалете броя на заявките от настройките на пакета или
+                увеличете вашият абонамент на един от платените във VirusTotal', $rec->id); break;
+            }
+            else if( $result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
-                if($rec->timesScanned >= 2)
-                {
-                    $fQuery = fileman_Files::getQuery();
-                    $fQuery->where("#dataId = {$rec->filemanDataId}");
 
-                    while($fRec = $fQuery->fetch())
+                if($this->isAvastInstalled()) {
+                    $dQuery = fileman_Data::getQuery();
+                    $dRec = $dQuery->fetch($rec->filemanDataId);
+                    $dangerRate = $this->AvastSingleFileScan($dRec->path);
+
+                    $fsQuery = fileman_Files::getQuery();
+                    $fsQuery->where("#dataId = {$rec->filemanDataId}");
+
+                    while($fRec = $fsQuery->fetch())
                     {
-                        $fRec->dangerRate = -1;
+                        $fRec->dangerRate = $dangerRate;
                         fileman_Files::save($fRec, 'dangerRate');
                     }
+                } else {
+                    if($rec->timesScanned >= 2)
+                    {
+                        $fQuery = fileman_Files::getQuery();
+                        $fQuery->where("#dataId = {$rec->filemanDataId}");
+                        while($fRec = $fQuery->fetch())
+                        {
+                            $fRec->dangerRate = -1;
+                            fileman_Files::save($fRec, 'dangerRate');
+                        }
+                    }
                 }
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $this->save($rec);
             }
             elseif ($result->response_code == 1) {
@@ -330,7 +385,7 @@ class vtotal_Checks extends core_Master
 
                 $rec->timesScanned = $rec->timesScanned + 1;
                 $rec->firstCheck = $result->scan_date;
-                $rec->lastCheck = $now;
+                $rec->lastCheck = dt::now();
                 $rec->rateByVT = $result->positives . "|" . $result->total;
                 $this->save($rec);
 
@@ -344,6 +399,18 @@ class vtotal_Checks extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Добавя филтър към перата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->query->orderBy('lastCheck', 'DESC');
     }
     
     

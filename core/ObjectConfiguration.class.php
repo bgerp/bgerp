@@ -66,7 +66,7 @@ class core_ObjectConfiguration extends core_BaseClass
 
             $value = $this->_data[$name];
         }
-
+ 
         // Търси константата като глобално дефинирана
         if(!isset($value) && defined($name)) {
 

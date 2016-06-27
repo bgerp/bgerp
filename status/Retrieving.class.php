@@ -159,7 +159,7 @@ class status_Retrieving extends core_Manager
         
         $or = FALSE;
         
-        if ($hitId) {
+        if (!empty($hitId)) {
             $query->where(array("#hitId = '[#1#]'", $hitId));
             $or = TRUE;
         }

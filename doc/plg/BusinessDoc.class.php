@@ -182,13 +182,15 @@ class doc_plg_BusinessDoc extends core_Plugin
     			    
                     $coverClassId = core_Classes::getId($coverId);
                     $query = doc_Folders::getQuery();
-                    $query->where("#coverClass = {$coverClassId} AND #state != 'rejected'");
+                    $query->where("#coverClass = {$coverClassId} AND #state != 'rejected' AND #state != 'closed'");
                     $mvc->RestrictQueryOnlyFolderForDocuments($query);
                     $query->orderBy('#modifiedOn', 'DESC');
     				$newOptions = array();
                     
                     while($rec = $query->fetch()) {
-                        $newOptions[$rec->coverId] = $rec->title;
+                    	if($mvc->haveRightFor('add', (object)array('folderId' => $rec->id))){
+                    		$newOptions[$rec->coverId] = $rec->title;
+                    	}
                     }
 
     		        if ($newOptions) {
