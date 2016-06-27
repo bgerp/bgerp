@@ -343,11 +343,11 @@ class vtotal_Checks extends core_Master
         {
             $result = self::VTGetReport($rec->md5);
             if($result->response_code == -1) {
-                self::logErr('403: Нямате права за достъп, моля прегледайте API ключа за VirusTotal', $rec->id);
+                self::logErr('403: Нямате права за достъп, моля прегледайте API ключа за VirusTotal', $rec->id); break;
             }
             else if ($result->response_code == -3) {
-                self::logErr('429: Твърде много заявки към системата на VirusTotal, моля намалете броя на заявките от настройките на пакета или
-                увеличете вашият абонамент на един от платените във VirusTotal', $rec->id);
+                self::logWarning('429: Твърде много заявки към системата на VirusTotal, моля намалете броя на заявките от настройките на пакета или
+                увеличете вашият абонамент на един от платените във VirusTotal', $rec->id); break;
             }
             else if( $result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
