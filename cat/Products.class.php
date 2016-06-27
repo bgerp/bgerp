@@ -1437,9 +1437,9 @@ class cat_Products extends embed_Manager {
     				foreach ($groups as $grId){
     					$groupTitle = cat_Groups::getVerbal($grId, 'name');
     					$groupLink = ht::createLink($groupTitle, array($mvc, 'list', 'groupId' => $grId), FALSE, 'class=group-link');
-    					$row->groups .= $groupLink . ", ";
+    					$row->groups .= $groupLink . " ";
     				}
-    				$row->groups = trim($row->groups, ', ');
+    				$row->groups = trim($row->groups, ' ');
     			}
     		} else {
     			$row->groups = "<i>" . tr("Няма") . "</i>";

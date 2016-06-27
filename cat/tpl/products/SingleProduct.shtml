@@ -11,7 +11,7 @@
     
     <!--ET_BEGIN groups-->
     <fieldset class="detail-info">
-         <legend class="groupTitle">|Групи|* [#editGroupBtn#]</legend>
+         <legend class="groupTitle nowrap">|Групи|* [#editGroupBtn#]</legend>
          <div class="groupList">
               [#groups#]
          </div>
