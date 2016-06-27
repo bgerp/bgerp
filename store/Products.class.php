@@ -214,7 +214,7 @@ class store_Products extends core_Manager
         		}
         	}
         	
-        	// Филтър по маркери на артикула
+        	// Филтър по групи на артикула
         	if (!empty($rec->groupId)) {
         		$descendants = cat_Groups::getDescendantArray($rec->groupId);
         		$keylist = keylist::fromArray($descendants);

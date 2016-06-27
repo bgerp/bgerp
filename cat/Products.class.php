@@ -293,7 +293,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
         $this->FNC('price', 'double(minDecimals=2,maxDecimals=6)', 'input=none,caption=Цена,smartCenter');
@@ -600,7 +600,7 @@ class cat_Products extends embed_Manager {
 	    $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory');
 	    $fields['name'] = array('caption' => 'Наименование');
 	    $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
-	    $fields['groups'] = array('caption' => 'Маркери');
+	    $fields['groups'] = array('caption' => 'Групи');
 	    $fields['meta'] = array('caption' => 'Свойства');
 	    
 	    $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
@@ -608,7 +608,7 @@ class cat_Products extends embed_Manager {
 	    $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)';
 	    
 	    $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => TRUE, 'type' => $categoryType);
-	    $fields['Groups'] = array('caption' => 'Допълнителен избор->Маркери', 'notColumn' => TRUE, 'type' => $groupType);
+	    $fields['Groups'] = array('caption' => 'Допълнителен избор->Групи', 'notColumn' => TRUE, 'type' => $groupType);
 	    $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => TRUE, 'type' => $metaType);
 
 	    if (!$mvc->fields['Category']) {
@@ -701,7 +701,7 @@ class cat_Products extends embed_Manager {
             }
     	}
     	
-    	// Обединяваме маркерите с избраните от потребителя
+    	// Обединяваме групите с избраните от потребителя
     	if ($rec->Groups) {
     	    $rec->groups = type_Keylist::merge($rec->groups, $rec->Groups);
     	}
@@ -769,7 +769,7 @@ class cat_Products extends embed_Manager {
     	$listFilter->setDefault('order', 'standard');
     	
     	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-    			'placeholder=Маркери,input,silent,remember,autoFilter');
+    			'placeholder=Групи,input,silent,remember,autoFilter');
     	
     	$listFilter->view = 'horizontal';
     	$listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -825,7 +825,7 @@ class cat_Products extends embed_Manager {
         		break;
         }
         
-        // Филтър по маркери
+        // Филтър по групи
         if (!empty($data->listFilter->rec->groupId)) {
         	$descendants = cat_Groups::getDescendantArray($data->listFilter->rec->groupId);
         	$keylist = keylist::fromArray($descendants);
@@ -2340,7 +2340,7 @@ class cat_Products extends embed_Manager {
     	$form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
     	$form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
     	$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
-    	$form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
+    	$form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
 		
     	$Driver = static::getDriver($id);
     	$Driver->addFields($form);

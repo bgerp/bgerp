@@ -124,7 +124,7 @@ class price_Setup extends core_ProtoSetup
     
     
     /**
-     * Мигрира ценовите групи към маркерите
+     * Мигрира ценовите групи към групите
      */
     function transferGroups()
     {
@@ -197,7 +197,7 @@ class price_Setup extends core_ProtoSetup
     					// Ако има такова
     					if(isset($key)){
     						
-    						// И ид-то му не присъства в маркерите на артикула
+    						// И ид-то му не присъства в групите на артикула
     						if(!keylist::isIn($key, $pRec->groups)){
     							
     							// Добавяме го

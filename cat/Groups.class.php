@@ -20,7 +20,7 @@ class cat_Groups extends core_Manager
 	/**
      * Заглавие
      */
-    var $title = "Маркери на артикулите";
+    var $title = "Групи на артикулите";
     
     
     /**
@@ -262,7 +262,7 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Връща кейлист от систем ид-та на маркерите
+     * Връща кейлист от систем ид-та на групите
      * 
      * @param mixed $sysIds - масив със систем ид-та
      * @return string
