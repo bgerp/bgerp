@@ -66,8 +66,8 @@ class unit_MinkPbgERP extends core_Manager {
     
         // Логване
         $browser = $this->SetUp();
+        // Създаване на потребител
         $browser->click('Админ');
-        //Отваряме папката на фирмата
         $browser->click('Потребители');
         $browser->press('Нов запис');
         $browser->setValue('nick', 'User1');
@@ -75,7 +75,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('passRe', '123456');
         $browser->setValue('names', 'Потребител 1');
         $browser->setValue('email', 'u1@abv.bg');
-    
         //$browser->setValue('rolesInput[]', '76');
         $browser->setValue('Дилър', '76');
         $browser->press('Запис');
@@ -304,7 +303,6 @@ class unit_MinkPbgERP extends core_Manager {
         return $browser->getHtml();
     }
     
-    
     /**
      *7. Създаване на рецепта
      *
@@ -345,7 +343,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         return $browser->getHtml();
     }
-    
     
     /**
      * 8. Създаване на фирма и папка към нея, допуска дублиране - ОК
@@ -483,7 +480,7 @@ class unit_MinkPbgERP extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        //Отваряме папката на фирмата
+        //Отваряне на папката на фирмата
         $browser->click('Визитник');
         $browser->click('N');
         $Company = "NEW INTERNATIONAL GMBH";
@@ -596,7 +593,6 @@ class unit_MinkPbgERP extends core_Manager {
         $enddate=strtotime("+2 Days");
         $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
         $browser->setValue('deliveryTime[t]', '10:30');
-    
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
@@ -739,7 +735,6 @@ class unit_MinkPbgERP extends core_Manager {
             //$browser->press('Произвеждане'); -разпознава бутона за приключване в заданието
             $browser->press('Добавяне на произведен артикул');
             $browser->setValue('quantity', '1000');
-                
             $browser->press('Запис');
             $browser->press('Влагане');
             $browser->setValue('taskProductId', 'Други суровини и материали');
@@ -769,8 +764,6 @@ class unit_MinkPbgERP extends core_Manager {
         }
         return $browser->getHtml();
     }
-    
-    
     
     
     /**
