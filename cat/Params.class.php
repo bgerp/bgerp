@@ -190,6 +190,7 @@ class cat_Params extends embed_Manager
     public static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
     {
     	$query = static::getQuery();
+    	$query->show('name,suffix');
     	if(strlen($where)){
     		$query->where = $where;
     	}
@@ -267,7 +268,7 @@ class cat_Params extends embed_Manager
     /**
      * Изпълнява се преди импортирването на данните
      */
-    public static function on_BeforeImportRec($mvc, &$rec)
+    protected static function on_BeforeImportRec($mvc, &$rec)
     {
     	core_Classes::add($rec->driverClass);
     	$rec->driverClass = cls::get($rec->driverClass)->getClassId();

@@ -144,7 +144,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$paramRec = cat_Params::fetch($rec->paramId);
+    	$paramRec = cat_Params::fetch($rec->paramId, 'driverClass,suffix');
     	
     	if($ParamType = cat_Params::getTypeInstance($paramRec)){
     		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
@@ -203,7 +203,7 @@ class cat_products_Params extends doc_Detail
         
         if(count($options)) {
             $query = self::getQuery();
-            
+            $query->show('paramId');
             if($id) {
                 $query->where("#id != {$id}");
             }
@@ -214,7 +214,7 @@ class cat_products_Params extends doc_Detail
         } else {
             $options = array();
         }
-
+		
         return $options;
     }
     
@@ -296,7 +296,7 @@ class cat_products_Params extends doc_Detail
     	while($rec = $query->fetch()){
     		$data->params[$rec->id] = static::recToVerbal($rec);
     		
-    		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
+    		if(!self::haveRightFor('add', $rec)) {
     			unset($data->params[$rec->id]->tools);
     		}
     	}
@@ -318,7 +318,7 @@ class cat_products_Params extends doc_Detail
         	$pRec = cat_Products::fetch($rec->productId);
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if($action != 'edit'){
+        	if($action == 'add'){
         		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
         			$requiredRoles = 'no_one';
         		} elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
