@@ -246,7 +246,7 @@ class cat_Products extends embed_Manager {
 	/**
 	 * Стратегии за дефолт стойностти
 	 */
-	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc');
+	public static $defaultStrategies = array('groups'  => 'lastDocUser');
 	
 	
 	/**
@@ -1046,7 +1046,6 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if($groupRec = cat_products_VatGroups::getCurrentGroup($productId)){
-    		
     		return $groupRec->vat;
     	}
     	
@@ -1425,6 +1424,25 @@ class cat_Products extends embed_Manager {
     			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     				$row->proto = $mvc->getHyperlink($rec->proto);
     			}
+    		}
+    		
+    		if($mvc->haveRightFor('edit', $rec)){
+    			$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на групите');
+    		}
+    		
+    		$groups = keylist::toArray($rec->groups);
+    		if(count($groups)){
+    			if($mvc->haveRightFor('list')){
+    				$row->groups = '';
+    				foreach ($groups as $grId){
+    					$groupTitle = cat_Groups::getVerbal($grId, 'name');
+    					$groupLink = ht::createLink($groupTitle, array($mvc, 'list', 'groupId' => $grId), FALSE, 'class=group-link');
+    					$row->groups .= $groupLink . ", ";
+    				}
+    				$row->groups = trim($row->groups, ', ');
+    			}
+    		} else {
+    			$row->groups = "<i>" . tr("Няма") . "</i>";
     		}
     	}
         
@@ -2265,7 +2283,6 @@ class cat_Products extends embed_Manager {
     		// Ако не е прототипен, питаме драйвера може ли да се генерира рецепта
     		if($Driver = static::getDriver($rec)){
     			$defaultData = $Driver->getDefaultBom($rec);
-    			//@TODO от драйвера
     		}
     	}
     }
@@ -2344,5 +2361,33 @@ class cat_Products extends embed_Manager {
 		
     	$Driver = static::getDriver($id);
     	$Driver->addFields($form);
+    }
+    
+    
+    function act_EditGroups()
+    {
+    	$this->requireRightFor('edit');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('edit', $rec);
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = "Редакция на групите на|* <b>" . cat_Products::getHyperlink($id, TRUE) . "</b>";
+    	$form->FNC('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
+    	$form->setDefault('groups', $rec->groups);
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$fRec = $form->rec;
+    		if($fRec->groups != $rec->groups){
+    			$this->save((object)array('id' => $id, 'groups' => $fRec->groups));
+    		}
+    		
+    		return followRetUrl();
+    	}
+    	
+    	$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	return $this->renderWrapping($form->renderHtml());
     }
 }
