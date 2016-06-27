@@ -142,7 +142,7 @@ class cat_products_Params extends doc_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$paramRec = cat_Params::fetch($rec->paramId, 'driverClass,suffix');
     	
@@ -159,7 +159,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
         
@@ -310,7 +310,7 @@ class cat_products_Params extends doc_Detail
 	/**
      * След проверка на ролите
      */
-    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
         if($requiredRoles == 'no_one') return;
     	
@@ -380,7 +380,7 @@ class cat_products_Params extends doc_Detail
 	/**
      * След запис се обновяват свойствата на перата
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	cat_Products::touchRec($rec->productId);
     	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
