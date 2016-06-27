@@ -110,7 +110,136 @@ class price_ListRules extends core_Detail
         $this->setDbIndex('validFrom');
     }
      
-     
+    
+    /**
+     * Метод за добавяне на продуктово правило
+     * 
+     * @param int $listId          - към кой ценоразпис
+     * @param string $productCode  - код на артикул
+     * @param double $price        - цена във валута
+     * @param string $currencyCode - код на валута, ако няма от бащата
+     * @param string $vat          - с или без ДДС в цената
+     * @param string $validFrom    - дата на валидност
+     * @param string $validUntill  - крайна дата на валидност
+     */
+    public static function addProductRule($listId, $productCode, $price, $currencyCode = NULL, $vat = NULL, $validFrom = NULL, $validUntill = NULL)
+    {
+    	return self::addRuleToList($listId, 'value', $productCode, NULL, $price, NULL, $currencyCode, $vat, NULL, $validFrom, $validUntil, 1);
+    }
+    
+    
+    /**
+     * Метод за добавяне на продуктов марж
+     *
+     * @param int $listId                  - към кой ценоразпис
+     * @param string $productCode          - код на артикул
+     * @param double $discount             - марж
+     * @param forward|reverse $calculation - Изчисляване спрямо бащата
+     * @param string $validFrom            - дата на валидност
+     * @param string $validUntill          - крайна дата на валидност
+     */
+    public static function addProductDiscountRule($listId, $productCode, $discount, $calculation = 'forward', $validFrom = NULL, $validUntill = NULL)
+    {
+    	return self::addRuleToList($listId, 'discount', $productCode, NULL, NULL, $discount, NULL, NULL, $calculation, $validFrom, $validUntil, 1);
+    }
+    
+    
+    /**
+     * Метод за добавяне на групов марж
+     *
+     * @param int $listId                  - към кой ценоразпис
+     * @param string $groupName            - име на група
+     * @param double $discount             - марж
+     * @param forward|reverse $calculation - Изчисляване спрямо бащата
+     * @param string $validFrom            - дата на валидност
+     * @param string $validUntill          - крайна дата на валидност
+     * @param 2|3 $priority                - приоритет
+     */
+    public static function addGroupRule($listId, $groupName, $discount, $calculation = 'forward', $validFrom = NULL, $validUntill = NULL, $priority = 3)
+    {
+    	return self::addRuleToList($listId, 'groupDiscount', NULL, $groupName, NULL, $discount, NULL, NULL, $calculation, $validFrom, $validUntil, $priority);
+    }
+    
+    
+    /**
+     * Метод за добавяне на ценово правило
+     */
+    private static function addRuleToList($listId, $type, $productCode = NULL, $groupName = NULL, $price = NULL, $discount = NULL, $currencyCode = NULL, $vatPercent = NULL, $calculation = NULL, $validFrom = NULL, $validUntil = NULL, $priority = NULL)
+    {
+    	expect($listRec = price_Lists::fetch($listId));
+    	expect(in_array($type, array('value', 'discount', 'groupDiscount')));
+    	
+    	if(!isset($validFrom)){
+    		$validFrom = dt::now();
+    	} else {
+    		expect($validFrom = dt::verbal2mysql($validFrom));
+    	}
+    	
+    	$rec = (object)array('listId' => $listId, 'type' => $type, 'validFrom' => $validFrom);
+    	
+    	if(isset($validUntil)){
+    		expect($validUntil = dt::verbal2mysql($validUntil));
+    		$rec->validUntil = $validUntil;
+    	}
+    	
+    	if($type != 'groupDiscount'){
+    		expect($productRec = cat_Products::getByCode($productCode));
+    		$productRec = cat_Products::fetch($productRec->productId);
+    		expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
+    		$rec->productId = $productRec->id;
+    		$rec->priority = 1;
+    	}
+    	
+    	if($type == 'value'){
+    		if(isset($currencyCode)){
+    			$currencyCode = mb_strtoupper($currencyCode);
+    			expect(currency_Currencies::getIdByCode($currencyCode));
+    		} else {
+    			$currencyCode = $listRec->currency;
+    		}
+    	
+    		if(isset($vat)){
+    			expect(is_bool($vat));
+    			$vat = ($vat === TRUE) ? 'yes' : 'no';
+    		} else {
+    			$vat = $listRec->vat;
+    		}
+    		
+    		expect(cls::get('type_Double')->fromVerbal($price));
+    		$rec->currency = $currencyCode;
+    		$rec->vat = $vat;
+    		$rec->price = $price;
+    	}
+    	
+    	if($type == 'discount'){
+    		expect(cls::get('type_Double')->fromVerbal($discount));
+    		if(isset($calculation)){
+    			expect(in_array($calculation, array('forward', 'reverse')));
+    		}
+    		expect(isset($listRec->parent));
+    		$rec->calculation = $calculation;
+    		$rec->discount = $discount;
+    	}
+    	
+    	if($type == 'groupDiscount'){
+    		expect(cls::get('type_Double')->fromVerbal($discount));
+    		expect($gRec = cat_groups::fetch(array('name = "[#1#]"', $groupName)));
+    		$rec->groupId = $gRec->id;
+    		$rec->discount = $discount;
+    		
+    		if(isset($calculation)){
+    			expect(in_array($calculation, array('forward', 'reverse')));
+    		}
+    		expect(isset($listRec->parent));
+    		$rec->calculation = $calculation;
+    		expect(in_array($priority, array(2, 3)));
+    		$rec->priority = $priority;
+    	}
+    	
+    	return static::save($rec);
+    }
+    
+    
     /**
 	 *  Подготовка на филтър формата
 	 */
@@ -423,6 +552,7 @@ class price_ListRules extends core_Detail
             if(!$form->gotErrors()) {
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
+            bp($form->rec);
         }
     }
 

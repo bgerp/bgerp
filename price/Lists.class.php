@@ -113,7 +113,7 @@ class price_Lists extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
+        $this->FLD('title', 'varchar(128,ci)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
@@ -132,6 +132,103 @@ class price_Lists extends core_Master
         $this->setDbIndex('cId,cClass');
     }
 
+    
+    /**
+     * Метод за форсиране на ценова политика. 
+     * Ако няма политика с това име я създава. Ако има я модифицира.
+     *
+     * @param string $title                   - заглавие
+     * @param mixed $cClass                   - клас на контрагента
+     * @param int $cId                        - ид на контрагента
+     * @param string $parentTitle             - заглавие на политиката-баща
+     * @param string(3) $currencyCode         - код на валута по подразбиране на политиката
+     * @param boolean $vat                    - дали политиката е с включен ДДС или не
+     * @param double $defaultSurcharge        - дефолтна надценка между 0 и 1
+     * @param string $discountComparedToList  - име на политиката спрямо който ще се показва отстъпка
+     * @param double $roundingPrecision       - закръгляне до десетичен знак
+     * @param double $roundingOffset          - отместване на закръглянето
+     * @return int $id                        - ид на създадения каталог
+     */
+    public static function forceList($title, $cClass, $cId, $public = TRUE, $parentTitle = NULL, $currencyCode = NULL, $vat  = TRUE, $defaultSurcharge = NULL, $discountComparedToList = NULL, $roundingPrecision = NULL, $roundingOffset = NULL)
+    {
+    	// Заглавие на политиката
+    	$title = str::mbUcfirst($title);
+    	$parentId = NULL;
+    	
+    	// Ако искаме да наследява друга политика, то трябва да има такава
+    	if(isset($parentTitle)){
+    		$parentTitle = str::mbUcfirst($parentTitle);
+    		expect($parentId = self::fetchField(array("#title = '[#1#]'", $parentTitle)), 'Няма политика с това име');
+    	}
+    	
+    	// Трябва да е зададен контрагент или да не е зададен
+    	expect((!isset($cClass) && !isset($cId)) || (isset($cClass) && isset($cId)));
+    	
+    	// Ако е зададен контрагент, той трябва да съществува
+    	if(isset($cClass) && isset($cId)){
+    		expect(is_numeric($cId));
+    		expect($ContragentClass = cls::get($cClass), 'Невалиден клас');
+    		expect($ContragentClass->fetch($cId), 'Няма такъв контрагент');
+    		$cClass = $ContragentClass->getClassId();
+    	}
+    	
+    	// Валута на каталога
+    	if(isset($currencyCode)){
+    		$currencyCode = mb_strtoupper($currencyCode);
+    		expect(currency_Currencies::getIdByCode($currencyCode));
+    	} else {
+    		$currencyCode = acc_Periods::getBaseCurrencyCode();
+    	}
+    	
+    	expect(is_bool($public));
+    	expect(is_bool($vat));
+    	
+    	if(isset($defaultSurcharge)){
+    		expect(is_numeric($defaultSurcharge));
+    		expect($defaultSurcharge >= 0 && $defaultSurcharge <= 1);
+    	}
+    	
+    	// Ако искаме да се показват отстъпките към друг каталог то трябва да има такъв
+    	$discountCompareToId = NULL;
+    	if(isset($discountComparedToList)){
+    		$discountComparedToList = str::mbUcfirst($discountComparedToList);
+    		expect($discountCompareToId = self::fetchField(array("#title = '[#1#]'", $discountComparedToList)), 'Няма политика с това име');
+    	}
+    	
+    	if(isset($roundingPrecision)){
+    		expect(is_numeric($roundingPrecision));
+    	}
+    	
+    	if(isset($roundingOffset)){
+    		expect(is_numeric($roundingOffset));
+    	}
+    	
+    	// Записа, който ще записваме
+    	$rec = (object)array('title'             => $title, 
+    						 'parent'            => $parentId, 
+    						 'cClass'            => $cClass,
+    						 'cId'               => $cId,
+    						 'currency'          => $currencyCode,
+    						 'vat'               => ($vat === TRUE) ? 'yes' : 'no',
+    						 'defaultSurcharge'  => $defaultSurcharge,
+    						 'discountCompared'  => $discountCompareToId,
+    						 'roundingPrecision' => $roundingPrecision,
+    						 'roundingOffset'    => $roundingOffset,
+    						 'public'            => ($public == TRUE) ? 'yes' : 'no',
+    	);
+    	
+    	// Ако има политика с такова име, обновяваме я
+    	if($exRec = self::fetch(array("#title = '[#1#]'", $title))){
+    		$rec->id = $exRec->id;
+    	}
+    	
+    	// Запис
+    	$id = static::save($rec);
+    	
+    	// Връщаме ид-то на запазения запис
+    	return $id;
+    }
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
