@@ -24,7 +24,7 @@ class plg_SaveAndNew extends core_Plugin
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareRetUrl($mvc, $data)
+    public static function on_AfterPrepareRetUrl($mvc, $data)
     {
         if ($data->form->cmd == 'save_n_new') {
             
@@ -94,7 +94,7 @@ class plg_SaveAndNew extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id)) {
             $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', NULL, array('id'=>'saveAndNew', 'order'=>'9.99965', 'ef_icon'=>'img/16/save_and_new.png', 'title'=>'Запиши документа и създай нов'));
@@ -105,7 +105,7 @@ class plg_SaveAndNew extends core_Plugin
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if ($data->form->rec->id) {
             return;

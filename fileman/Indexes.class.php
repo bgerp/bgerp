@@ -465,7 +465,7 @@ class fileman_Indexes extends core_Manager
     {
         // Ако няма файл, записваме грешката
         $error = new stdClass();
-        $error->errorProc = "Възникна грешка при обработка...";
+        $error->errorProc = "Възникна грешка при обработка.";
         
         // Текстовата част
         $params['content'] = $error;

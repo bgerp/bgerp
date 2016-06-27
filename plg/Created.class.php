@@ -18,7 +18,7 @@ class plg_Created extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$invoker)
+    public static function on_AfterDescription(&$invoker)
     {
         // Добавяне на необходимите полета
         $invoker->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
@@ -55,7 +55,7 @@ class plg_Created extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL, &$mode = NULL)
+    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL, &$mode = NULL)
     {
         // Записваме полетата, ако записът е нов и дали трябва да има createdOn и createdBy
         if (!$rec->id || strtolower($mode) == 'replace') {
@@ -89,7 +89,7 @@ class plg_Created extends core_Plugin
     /**
      * След поготовката на формата, премахва възможността за редакция на системни полета
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if($data->form->rec->createdBy == core_Users::SYSTEM_USER && $mvc->protectedSystemFields) {
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, TRUE);
@@ -101,5 +101,4 @@ class plg_Created extends core_Plugin
             }
         }
     }
-    
  }

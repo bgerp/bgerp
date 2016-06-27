@@ -395,6 +395,9 @@ class bgerp_F extends core_Manager
             return new Redirect(array('Index'), '|Изтекла или липсваща връзка', 'error');
         }
         
+        $fName = fileman_Files::fetchByFh($rec->fileHnd, 'name');
+        header("Content-Disposition: attachment; filename={$fName}");
+        
         return Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => TRUE));
     }
     

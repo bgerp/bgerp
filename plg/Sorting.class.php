@@ -27,7 +27,7 @@ class plg_Sorting extends core_Plugin
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    public static function on_AfterPrepareListFields($mvc, $data)
     {
         if($sort = Request::get('Sort')) {
             
@@ -75,7 +75,7 @@ class plg_Sorting extends core_Plugin
     /**
      * Извиква се след рендирането на таблицата от табличния изглед
      */
-    function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
         	
