@@ -19,7 +19,7 @@ class fileman_Upload2 extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'Files=fileman_Files,fileman_DialogWrapper';
+    var $loadList = 'fileman_DialogWrapper';
     
     
     /**
@@ -93,11 +93,14 @@ class fileman_Upload2 extends core_Manager
                             // Ако файла е валиден по размер и разширение - добавяме го към собственика му
                             if($Buckets->isValid($err, $bucketId, $_FILES[$inputName]['name'][$id], $_FILES[$inputName]['tmp_name'][$id])) {
                                 
-                                // Създаваме файла
-                                $fh = $this->Files->createDraftFile($_FILES[$inputName]['name'][$id], $bucketId);
-                                
-                                // Записваме му съдържанието
-                                $this->Files->setContent($fh, $_FILES[$inputName]['tmp_name'][$id]);
+                                try {
+                                    $bucketName = fileman_Buckets::fetchField($bucketId, 'name');
+                                    
+                                    $fh = fileman::absorb($_FILES[$inputName]['tmp_name'][$id], $bucketName, $_FILES[$inputName]['name'][$id]);
+                                } catch (Exception $e) {
+                                    reportException($e);
+                                    self::logWarning('Грешка при качване на файл: ' . $e->getMessage());
+                                }
                                 
                                 $resEt->append($Buckets->getInfoAfterAddingFile($fh));
                                 
