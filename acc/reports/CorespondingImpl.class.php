@@ -440,7 +440,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 
     		// Ако има избрано поле за сортиране, сортираме по него
     		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
-    		arr::order($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+    		
+    		if(is_array($data->recsAll)) {
+    		    arr::order($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+    		}
 
     	    if ($mvc->innerForm->compare != 'no') {
     	        if (count($data->recsAll)) {
