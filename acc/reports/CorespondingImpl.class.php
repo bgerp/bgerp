@@ -310,7 +310,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	                    'blAmountNew' => $rNew->blAmount,
     	                    'deltaNew' => $rNew->delta,
     	               );      
-                } else {
+                } /*else {
     	            $obj = &$data->recsAll[$idNew];
     	            $obj->item1 = $rNew->item1;
     	            $obj->item2 = $rNew->item2;
@@ -325,7 +325,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	            $obj->blQuantityNew = $rNew->blQuantity;
     	            $obj->blAmountNew = $rNew->blAmount;
     	            $obj->deltaNew = $rNew->delta;
-                }
+                }*/
     	    }
     	}
 
@@ -437,17 +437,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 
     	// Ако има намерени записи
     	if(count($data->recs)){
-    		
-    		// Подготвяме страницирането
-    		$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
-    		$pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
-    		$data->Pager = $pager;
-    		$data->Pager->itemsCount = count($data->recs);
-    		
+
     		// Ако има избрано поле за сортиране, сортираме по него
-    		//bp($data->recs);
     		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
-    	
+    		arr::order($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+
     	    if ($mvc->innerForm->compare != 'no') {
     	        if (count($data->recsAll)) {
                     foreach ($data->recsAll as $recsAll) {
@@ -455,37 +449,41 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     }
     	        }
     	    } else { 
-    	        foreach ($data->recs as $recs) { 
-    	
-    	           $recs = $data->recs;
-    	        }
+    	        $recs = $data->recs;
     	    }
 
-    	  if(count($recs)) { 
-    		// За всеки запис
-    		foreach ($recs as $id=>$rec){ 
+    	    
+    	    if(count($recs)) { 
+    	        
+    	        // Подготвяме страницирането
+    	        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+    	        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+    	        $data->Pager = $pager;
+    	        $data->Pager->itemsCount = count($recs);
 
-    		    if (is_array($rec)) {
-    		        foreach($rec as $is=>&$r) {
-    		            $r->id = $id + 1;
-    		            // Ако не е за текущата страница не го показваме
-    		            if(!$data->Pager->isOnPage()) continue;
+    	        // За всеки запис
+    	        foreach ($recs as $id=>$rec){ 
+    	            if (is_array($rec)) {
+
+    		            foreach($rec as $is=>&$r) {
+    		                $r->id = $id + 1;
+    		                // Ако не е за текущата страница не го показваме
+    		                if(!$data->Pager->isOnPage()) continue;
     		             
-    		            // Вербално представяне на записа
-    		            $data->rows[] = $mvc->getVerbalRec($r, $data);
-    		        }
-    		    } else {
-    
-        	        $rec->id = $id + 1;
-    
-        			// Ако не е за текущата страница не го показваме
-        			if(!$data->Pager->isOnPage()) continue;
+    		                // Вербално представяне на записа
+    		                $data->rows[] = $mvc->getVerbalRec($r, $data);
+    		            }
+    		        } else {
+    		            $rec->id = $id + 1;
+
+        			    // Ако не е за текущата страница не го показваме
+        			    if(!$data->Pager->isOnPage()) continue;
         			
-        			// Вербално представяне на записа
-        			$data->rows[] = $mvc->getVerbalRec($rec, $data);
-    		    }
-    		}
-    	  }
+        			    // Вербално представяне на записа
+        			    $data->rows[] = $mvc->getVerbalRec($rec, $data);
+    		        }
+    	        }
+    	    }
     	}
     }
     
