@@ -225,7 +225,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Редакция');
             $browser->setValue('info', 'прозрачен');
             $browser->setValue('meta_canBuy', 'canBuy');
-            $browser->setValue('groups[8]', '8');
+            $browser->setValue('groups[4]', '4');
             $browser->press('Запис');
         } else {
             $browser->click('Добавяне на нов параметър');
@@ -749,7 +749,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->press('Чернова');
         $browser->press('Контиране');
-    
+        //Приключване
         $browser->press('Приключване');
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
