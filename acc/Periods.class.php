@@ -677,9 +677,10 @@ class acc_Periods extends core_Manager
                     $date2 = new DateTime($from);
                     $interval = date_diff($date1, $date2);
                     $months = $interval->m;
-              
+
                     if($months == 1) {
-                        $fromCompare1 = $first;
+                        //$fromCompare1 = $first;
+                        $fromCompare1 = dt::addMonths(-$months,$first);
                     } else {
                         $fromCompare1 = dt::addMonths(-$months+1,$first);
                     }
