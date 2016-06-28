@@ -85,6 +85,7 @@ class fileman_DialogWrapper extends core_Plugin
             		
                 .fileman_Buckets { background-image:url('" . sbf('img/16/database.png', '') . "');}
                 .fileman_Upload { background-image:url('" . sbf('img/16/upload.png', '') . "');}
+                .fileman_Upload2 { background-image:url('" . sbf('img/16/upload.png', '') . "');}
                 .fileman_Get { background-image:url('" . sbf('img/16/world_link.png', '') . "');}
                 .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
                 .tab-title.fileman_Log { background-image:url('" . sbf('img/16/databases.png', '') . "');}
@@ -166,6 +167,11 @@ class fileman_DialogWrapper extends core_Plugin
         // Ако има права за добавяне
         if (fileman_Upload::haveRightFor('add')) {
             $tabs['fileman_Upload'] = 'caption=Качване,Ctr=fileman_Upload,Act=Dialog';
+        }
+        
+        // Ако има права за добавяне
+        if (fileman_Upload2::haveRightFor('add') && haveRole('debug')) {
+            $tabs['fileman_Upload2'] = 'caption=К v2,Ctr=fileman_Upload2,Act=Dialog';
         }
         
         // Ако има права за добавяне
