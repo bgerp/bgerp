@@ -9,10 +9,10 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ценоразписи
+ * @title     Документ "Ценоразпис"
  */
 class price_ListDocs extends core_Master
 {
@@ -21,7 +21,7 @@ class price_ListDocs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
 
 
     /**
@@ -33,87 +33,75 @@ class price_ListDocs extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Ценоразписи';
+    public $title = 'Ценоразписи';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Cnr";
+    public $abbr = "Cnr";
     
     
      /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc, Products=cat_Products';
+    public $loadList = 'plg_RowTools2, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
     	
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, policyId';
+    public $searchFields = 'title, policyId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, date, handler=Документ, title, policyId, state, createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    public $listFields = 'date, handler=Документ, title, policyId, state, createdOn, createdBy';
     
     
     /**
      * Полето за единичен изглед
      */
-    var $rowToolsSingleField = 'handler';
+    public $rowToolsSingleField = 'handler';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canWrite = 'priceMaster, ceo';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'priceMaster, ceo';
+    public $canWrite = 'priceMaster, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'priceMaster,ceo';
+    public $canList = 'priceMaster,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'sales,priceMaster,ceo';
+	public $canSingle = 'sales,priceMaster,ceo';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "3.6|Търговия";
+    public $newBtnGroup = "3.6|Търговия";
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценоразпис';
+    public $singleTitle = 'Ценоразпис';
     
     
     /**
@@ -125,13 +113,19 @@ class price_ListDocs extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
+    public $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
+    public $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
+    
+    
+    /**
+     * Работен кеш
+     */
+    public $cache = array();
     
     
     /**
@@ -154,7 +148,7 @@ class price_ListDocs extends core_Master
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->view = 'horizontal';
@@ -166,7 +160,7 @@ class price_ListDocs extends core_Master
     /**
      * Извиква се след подготовката на формата
      */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$form->setDefault('date', dt::now());
@@ -199,10 +193,8 @@ class price_ListDocs extends core_Master
     	 if(cls::haveInterface('doc_ContragentDataIntf', $folderClass)){
     	 	$coverId = doc_Folders::fetchCoverId($rec->folderId);
     	 	
-    	 	$contragentData = $folderClass::getContragentData($coverId);
-    	 	if($contragentData->countryId){
-    	 		$currencyId = drdata_Countries::fetchField($contragentData->countryId, 'currencyCode');
-    	 	}
+    	 	$currencyCode = $folderClass::getDefaultCurrencyId($coverId);
+    	 	$currencyId = currency_Currencies::getIdByCode($currencyCode);
     	 }
     	 
     	 return ($currencyId) ? $currencyId : acc_Periods::getBaseCurrencyCode($rec->date);
@@ -231,7 +223,7 @@ class price_ListDocs extends core_Master
     /**
      * Обработка след изпращане на формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		if(!$form->rec->title){
@@ -246,7 +238,7 @@ class price_ListDocs extends core_Master
     /**
    	 * Обработка на Single изгледа
    	 */
-   	static function on_AfterPrepareSingle($mvc, &$data)
+   	protected static function on_AfterPrepareSingle($mvc, &$data)
     {
     	// Обработваме детайлите ако ги няма записани
     	if(!$data->rec->products){
@@ -264,11 +256,18 @@ class price_ListDocs extends core_Master
 			$count += count($products);
     	}
     	
-    	if(!Mode::is('printing')){
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
+    		$Pager->setPageVar($mvc->className, $data->rec->id);
 	    	$Pager->itemsCount = $count;
 	    	$Pager->calc();
 	    	$data->pager = $Pager;
+    	} else {
+    		
+    		// Дигаме времето за изпълнение, ако показваме записите без странициране
+    		$total = count($data->rec->products, COUNT_RECURSIVE);
+    		$timeLimit = $total * 0.12;
+    		core_App::setTimeLimit($timeLimit);
     	}
     	
     	$mvc->prepareDetailRows($data);
@@ -327,10 +326,10 @@ class price_ListDocs extends core_Master
     /**
      * Сортира масива първо по код после по сума (ако кодовете съвпадат)
      */
-	function sortResults($a, $b) {
-			 if($a->code == $b->code) return strcmp($b->priceM, $a->priceM);
+	private function sortResults($a, $b) {
+		if($a->code == $b->code) return strcmp($b->priceM, $a->priceM);
 			 
-	         return strcmp($a->code, $b->code);
+	    return strcmp($a->code, $b->code);
 	}
 	
 	
@@ -350,14 +349,16 @@ class price_ListDocs extends core_Master
     		$data->rec->date .= ' 23:59:59';
     	}
     	
-    	$customerProducts = price_GroupOfProducts::getAllProducts($data->rec->date); 
+    	$customerProducts = price_ListRules::getProductOptions();
+    	unset($customerProducts['pu']);
+    	$aGroups = cat_Groups::getDescendantArray($rec->productGroups);
     	
     	if($customerProducts){
     		foreach($customerProducts as $id => $product){
     			$productRec = cat_Products::fetch($id);
     			if(!$productRec) continue;
+    			
 		    	if($rec->productGroups){
-		    		$aGroups = keylist::toArray($rec->productGroups);
 		    		$pGroups = keylist::toArray($productRec->groups);
 		    		$intersectArr = array_intersect($aGroups, $pGroups);
 		    		if(!count($intersectArr)) continue;
@@ -402,7 +403,7 @@ class price_ListDocs extends core_Master
     		
     		// Изчисляваме цената за продукта в основна мярка
     		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
-    		$vat = $this->Products->getVat($product->productId);
+    		$vat = cat_Products::getVat($product->productId);
     		$displayedPrice = deals_Helper::getDisplayPrice($displayedPrice, $vat, $rec->currencyRate, $rec->vat);
     		if(!empty($rec->listRec->roundingPrecision)){
     			$displayedPrice = round($displayedPrice, $rec->listRec->roundingPrecision);
@@ -472,7 +473,7 @@ class price_ListDocs extends core_Master
     	if(!$price) return;
     	
     	$clone->priceP  = $packagingRec->quantity * $price;
-    	$vat = $this->Products->getVat($product->productId);
+    	$vat = cat_Products::getVat($product->productId);
     	$clone->priceP = deals_Helper::getDisplayPrice($clone->priceP, $vat, $rec->currencyRate, $rec->vat);
     	if(!empty($rec->listRec->roundingPrecision)){
     		$clone->priceP = round($clone->priceP, $rec->listRec->roundingPrecision);
@@ -498,35 +499,36 @@ class price_ListDocs extends core_Master
     private function getVerbalDetail($rec, $data)
     {
     	$masterRec = $data->rec;
-    	$varchar = cls::get('type_Varchar');
-    	$double = cls::get('type_Double');
-    	$double->params['smartRound'] = 'smartRound';
+    	$Varchar = cls::get('type_Varchar');
+    	$Double = cls::get('type_Double');
+    	$Double->params['smartRound'] = 'smartRound';
     	
     	$row = new stdClass();
-    	$row->productId = cat_Products::getVerbal(cat_Products::fetch($rec->productId), 'name');
-    	
-    	if(!Mode::is('printing')){
-    		if(cat_Products::haveRightFor('single', $rec->productId)){
-    			$icon = sbf("img/16/wooden-box.png");
-    			$url = array('cat_Products', 'single', $rec->productId);
-    			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
-    		}
-    	}
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
     		if($rec->$priceFld){
-        		$row->$priceFld = $double->toVerbal($rec->$priceFld);
+        		$row->{$priceFld} = $Double->toVerbal($rec->$priceFld);
         	}
     	}
         
-    	$measureShort = cat_UoM::getShortName($rec->measureId);
+    	if(!array_key_exists($rec->measureId, $this->cache)){
+    		$this->cache[$rec->measureId] = cat_UoM::getShortName($rec->measureId);
+    	}
+    	$measureShort = $this->cache[$rec->measureId];
+    	
 		if($rec->pack){
-    		$row->pack = cat_UoM::getShortName($rec->pack);
-    		$row->pack .= "&nbsp;({$double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
+			if(!array_key_exists($rec->pack, $this->cache)){
+				$this->cache[$rec->pack] = cat_UoM::getShortName($rec->pack);
+			}
+			
+    		$row->pack = $this->cache[$rec->pack];
+    		$row->pack .= "&nbsp;({$Double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
 		}
     	
-		$row->code = $varchar->toVerbal($rec->code);
-		$row->eanCode = $varchar->toVerbal($rec->eanCode);
+		$row->code = $Varchar->toVerbal($rec->code);
+		$row->eanCode = $Varchar->toVerbal($rec->eanCode);
+		$row->eanCode = "<small>{$row->eanCode}</small>";
 		
     	if($rec->measureId && $rec->priceM){
     		$row->measureId = $measureShort;
@@ -542,9 +544,9 @@ class price_ListDocs extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	$tplFile = ($data->rec->showUoms == 'yes') ? $this->singleLayoutFile : $this->singleLayoutFile2;
+    	$tplFile = ($data->rec->showUoms == 'yes') ? $mvc->singleLayoutFile : $mvc->singleLayoutFile2;
     	$tpl = getTplFromFile($tplFile);
     }
     
@@ -552,7 +554,7 @@ class price_ListDocs extends core_Master
     /**
      * Вкарваме css файл за единичния изглед
      */
-	static function on_AfterRenderSingle($mvc, &$tpl, $data)
+	protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$mvc->renderDetails($tpl, $data);
     	$tpl->push("price/tpl/NormStyles.css", "CSS");
@@ -644,10 +646,11 @@ class price_ListDocs extends core_Master
 				}
     		}
     	} else {
-    		$tpl->replace("<tr><td colspan='6'> " . tr("Няма продукти") . "</td></tr>", 'GROUP');
+    		$tpl->replace("<tr><td colspan='6'> " . tr("Няма артикули") . "</td></tr>", 'GROUP');
     	}
     	
     	if($data->pager){
+    		$tpl->replace($data->pager->getHtml(), 'PAGER_TOP');
     		$tpl->replace($data->pager->getHtml(), 'PAGER');
     	}
     }
@@ -695,7 +698,7 @@ class price_ListDocs extends core_Master
     /**
      * При активиране записваме групираните продукти в модела
      */
-	public static function on_AfterActivation($mvc, &$rec)
+	protected static function on_AfterActivation($mvc, &$rec)
     {
     	$data = new stdClass();
     	$data->rec = $rec;
@@ -714,9 +717,9 @@ class price_ListDocs extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
+    	$row->policyId = price_Lists::getHyperlink($rec->policyId, TRUE);
     	
     	if(isset($fields['-list'])){
     		$row->handler = $mvc->getLink($rec->id, 0);
@@ -769,7 +772,7 @@ class price_ListDocs extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    static function getHandle($id)
+    public static function getHandle($id)
     {
     	$rec = static::fetch($id);
     	$self = cls::get(get_called_class());

@@ -1,0 +1,14 @@
+[#ListFilter#]
+<div>
+[#TABLES#]
+<!--ET_BEGIN PRIORITY-->
+[#PRIORITY#]
+<!--ET_BEGIN TABLE-->
+<div class='price-list-tables'>
+[#TABLE#]
+</div>
+<!--ET_END TABLE-->
+[#TABLE_PAGER#]
+[#TABLE_TOOLBAR#]
+<!--ET_END PRIORITY-->
+</div>

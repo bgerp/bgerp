@@ -214,7 +214,7 @@ class store_Products extends core_Manager
         		}
         	}
         	
-        	// Филтър по маркери на артикула
+        	// Филтър по групи на артикула
         	if (!empty($rec->groupId)) {
         		$descendants = cat_Groups::getDescendantArray($rec->groupId);
         		$keylist = keylist::fromArray($descendants);
@@ -338,15 +338,27 @@ class store_Products extends core_Manager
     
     
     /**
-     * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
+     * Подготвя полетата (колоните) които ще се показват
      */
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    public function prepareListFields_(&$data)
     {
+    	parent::prepareListFields_($data);
+    	
     	if(!core_Packs::isInstalled('pallet')){
     		unset($data->listFields['quantityNotOnPallets']);
     		unset($data->listFields['quantityOnPallets']);
     		$data->listFields['quantity'] = 'Количество';
     	}
+    	
+    	return $data;
+    }
+    
+    
+    /**
+     * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
     	
     	// Тулбара го преместваме преди състоянието

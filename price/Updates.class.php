@@ -61,7 +61,7 @@ class price_Updates extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'debug,admin';
+	public $canList = 'priceMaster,ceo';
 
 
 	/**
