@@ -114,7 +114,7 @@
 
 .uploaded-title{
 	margin-top:5px;
-	padding:5px;
+	padding:6px;
 	border:solid 1px #ccc;
 	background-color:#ffe;
 	margin-bottom:5px;
@@ -205,11 +205,18 @@
 	margin-top:5px;
 }
 
-.progressBar {
+.progressBarBlock {
 	background:url('../img/progress.gif');
 	height: 16px;
-	margin-top: 5px;
+	margin-top: 1px;
 	color: #fff;
 	display: inline-block;
 	text-align: center;
+	padding: 1px;
+	border-radius: 3px;
+	box-shadow: 0 0 1px #999;
+}
+
+.fileNameRow {
+	margin-top: 3px;
 }

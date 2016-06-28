@@ -23,12 +23,12 @@ $(document).ready(function() {
                 $('#inputDiv').hide();
                 
                 // Променлива за име на файл
-                this.fileName = $('<div>' + file.name + '</div>');
+                this.fileName = $('<div class="fileNameRow">' + file.name + '</div>');
                 
                 $('#uploads').append(this.fileName);
                 
                 // Променлива за прогрес бара
-				this.progressBar = $('<div class="progressBar"></div>');
+				this.progressBar = $('<div class="progressBarBlock"></div>');
 				
 				// Процентите на прогрес бара
                 this.progressBarPercent = $('<span>0%</span>');
