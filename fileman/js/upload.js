@@ -28,7 +28,7 @@ $(document).ready(function() {
                 $('#uploads').append(this.fileName);
                 
                 // Променлива за прогрес бара
-				this.progressBar = $('<div class="progressBar" style="background-color: #99f; display: inline-block; text-align: center;"></div>');
+				this.progressBar = $('<div class="progressBar"></div>');
 				
 				// Процентите на прогрес бара
                 this.progressBarPercent = $('<span>0%</span>');
@@ -43,7 +43,6 @@ $(document).ready(function() {
         	
         	// Вика се всеки път, когато се върне прогрес/отговор от сървъра - за всеки файл самосотоятелно
 	    	progress: function(progress) {
-	    		
 	    		var roundProgress = Math.round(progress);
 	    		
 	    		// След като прогреса нарастне над 

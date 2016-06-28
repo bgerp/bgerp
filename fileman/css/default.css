@@ -180,3 +180,11 @@
 .narrow .fileman_Log.switching-display {
   margin-top: 5px; }
 
+.progressBar {
+  background: url('../img/progress.gif');
+  height: 16px;
+  margin-top: 5px;
+  color: white;
+  display: inline-block;
+  text-align: center; }
+
