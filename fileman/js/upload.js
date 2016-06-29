@@ -13,6 +13,8 @@ $(document).ready(function() {
         	// Това се вика един път за всеки файл при стартиране на качването
         	start: function(file) {
         		
+        		this.block = $('<div class="uploadFileBlock"></div>');
+        		
         		// Ако файлът съществува в масива с премахнатите, да не се качва
         		if (ignoreFilePath.length) {
         			var indexOf = ignoreFilePath.indexOf(file.name);
@@ -44,11 +46,25 @@ $(document).ready(function() {
                 // Променлива за прогрес бара
 				this.progressBar = $('<div class="progressBarBlock"></div>');
 				
+        		this.cancelButton = $('<span class="cancelButton">x</span>');
+        		var that = this;
+				this.cancelButton.on('click', function(){
+					that.upload.cancel();
+				});
+				
+				this.cancelButton.on('mouseover', function(){
+					that.cancelButton.css('cursor', 'pointer');
+				});
+				
+				this.progressBar.append(this.cancelButton);
+				
 				// Процентите на прогрес бара
                 this.progressBarPercent = $('<span>0%</span>');
 				this.progressBar.append(this.progressBarPercent);
                 
-				$('#uploads').append(this.progressBar);
+				this.block.append(this.progressBar);
+				
+				$('#uploads').append(this.block);
         	},
         	
         	// Вика се всеки път, когато се върне прогрес/отговор от сървъра - за всеки файл самосотоятелно
@@ -103,6 +119,22 @@ $(document).ready(function() {
 	            }
 	            
 	            $('#add-error-info').append('<div class="upload-еrror">' + uploadErrStr + '<div><b>' + this.fileName.html() + '</b></div></div>');
+	    	},
+	    	
+	    	// При натискане на бутона X за спиране на качването
+	    	cancel: function(){
+	    		
+	    		var that = this;
+				this.block.fadeOut(400, function(){
+					$(this).remove();
+					
+					that.fileName.remove();
+					
+					if (!$('.progressBarBlock').length) {
+		                $('#inputDiv').show();
+		                $('#uploadsTitle').css('display', 'none');
+		            }
+				});
 	    	}
         });
 	});
