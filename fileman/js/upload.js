@@ -1,3 +1,6 @@
+// Масив с премахнатите файлове от multiple поле
+var removeFilePath = [];
+
 // След като се зареди
 $(document).ready(function() {
 	
@@ -9,7 +12,18 @@ $(document).ready(function() {
     		
         	// Това се вика един път за всеки файл при стартиране на качването
         	start: function(file) {
-                
+        		
+        		// Ако файлът съществува в масива с премахнатите, да не се качва
+        		if (removeFilePath.length) {
+        			var indexOf = removeFilePath.indexOf(file.name);
+        			if (indexOf != -1) {
+        				
+        				removeFilePath.splice(indexOf, 1);
+        				
+        				return false;
+        			}
+        		}
+        		
     			// Показваме стринга за качване на файла
                 $('#uploadsTitle').css('display', 'block');
                 
@@ -124,7 +138,6 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
 	
 	if (filesArr) {
 		$(filesArr).each(function(index, fileVal) {
-       			
    			filePath = fileVal['name'];
    			
    			if (!filePath.length) return true;
@@ -173,8 +186,6 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
     // Линк за премахване на файла
     var crossImg = '<img src="' + crossImgPng + '" align="absmiddle" alt="">';
     
-    var show = true;
-    
     $(filePathArr).each(function(index, filePath) {
 		
     	// id на качения файл
@@ -205,11 +216,10 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
 		// Името на файла
 		var fileName = getFileName(filePath);
 		
-		var crossImgLink = ' <a style="color:red;" href="#" onclick="unsetFile(' + btnCntId + ', ' + multiUpload + ', ' + filePathArr.length + ')">' + crossImg + '</a>';
+		var filePathEsc = filePath.replace('"', '\"');
+		var filePathEsc = filePath.replace("'", "\'");
 		
-		if (!show) {
-			crossImgLink = '';
-		}
+		var crossImgLink = ' <a style="color:red;" href="#" onclick="unsetFile(' + btnCntId + ', ' + multiUpload + ', ' + filePathArr.length + ', \'' + filePathEsc + '\')">' + crossImg + '</a>';
 		
 		// В държача за качени файлове добавяме името на файла и линк за премахване
     	$('.uploaded-filenames').append('<span' + uploadedFileTitle + ' class="' + uploadedFileClass + '" id="' + uploadedFileId + '">' + fileName + crossImgLink +' </span>');
@@ -217,8 +227,6 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
     	if (multiUpload) {
     		btnCntId++;
 		}
-    	
-    	show = false;
 	});
 	
     // Ако е зададен качване на много файлове едновременно
@@ -265,8 +273,9 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
  * @param id
  * @param multiUpload
  * @param len
+ * @param filePath
  */
-function unsetFile(id, multiUpload, len)
+function unsetFile(id, multiUpload, len, filePath)
 {
 	var btnIdName = '#btn-ulfile';
 	var inputIdName = '#ulfile';
@@ -285,7 +294,7 @@ function unsetFile(id, multiUpload, len)
 	}
 	
 	// Скриваме бавно качения файл
-	$(uploadedFileId).hide('slow', function() { 
+	$(uploadedFileId).hide('slow', function() {
 		
 		$(this).remove(); 
 		
@@ -295,37 +304,16 @@ function unsetFile(id, multiUpload, len)
 		// Ако е зададено множество качаване
 		if (multiUpload) {
 			
-			if (len > 1) {
-				for(var i=1; i<len; i++) {
-					var ii = id + i;
-					
-					// Премахваме и другите файлове, които са качени заедно
-					$(btnIdName + ii).remove();
-					$(inputIdName + ii).remove();
-					$(uploadedFileIdName + ii).remove();
-				}
-			}
-			
-			
-			// Премахваме всучко за този бутон и файл
-			$(inputId).remove();
 			$(btnId).remove();
 			
-			// Обхождаме всички инпути от зададения клас
-       		$('.ulfile').each(function() {
-       			
-       			// Ако имат стойност
-       			if ($(this).val()) {
-       				
-       				// Да не се деактивира бутона
-       				disableBtn = 'none';
-       				
-       				// Спираме цикъла
-       				return false;
-				}
-			});
+			// Ако в един инпут има повече от един файл, не се премахва инпута
+			// Добавяме файла в масив с игнориране, които няма да се качат
+			if (len > 1) {
+				removeFilePath.push(filePath);
+			} else {
+				$(inputId).remove();
+			}
 		} else {
-			
 			// Показваме бутона
 			$(btnId).show();
 			
@@ -334,7 +322,7 @@ function unsetFile(id, multiUpload, len)
 		}
 		
 		// Ако няма нито един избран файл
-		if (disableBtn == 'yes') {
+		if (!$('.uploaded-file').length) {
 			
 			// Деактивираме бутона
 			$('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
