@@ -56,7 +56,7 @@ class cat_Categories extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи';
+    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи,count=Артикули';
     
     
     /**
@@ -223,6 +223,12 @@ class cat_Categories extends core_Master
     {
     	if($fields['-list']){
     		$row->name .= " {$row->folder}";
+    		
+    		cat_Products::getQuery();
+    		$count = cat_Products::count("#folderId = '{$rec->folderId}'");
+    		
+    		$row->count = cls::get('type_Int')->toVerbal($count);
+    		$row->count = "<span style='float:right'>{$row->count}</span>";
     	}
     }
     
