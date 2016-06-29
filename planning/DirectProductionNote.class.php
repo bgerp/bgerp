@@ -660,7 +660,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $recsToSave, NULL, $rec->expenses);
 		
 		// Записваме, че потребителя е разглеждал този списък
-		cat_Boms::logWrite("Създаване на рецепта от протокол за бързо производство", $newId);
+		cat_Boms::logWrite("Създаване на рецепта от протокол за производство", $newId);
 		
 		// Редирект
 		return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');

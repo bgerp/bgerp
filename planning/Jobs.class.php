@@ -312,10 +312,10 @@ class planning_Jobs extends core_Master
     		}
     	}
 
-    	// Бутон за добавяне на документ за бързо производство
+    	// Бутон за добавяне на документ за производство
     	if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
     	}
     }
     
@@ -850,7 +850,7 @@ class planning_Jobs extends core_Master
     		$producedQuantity += $prodQuery->fetch()->totalQuantity;
     	}
     	
-    	// Взимаме к-та на произведените артикули по заданието в протокола за бързо производство
+    	// Взимаме к-та на произведените артикули по заданието в протокола за производство
     	$directProdQuery = planning_DirectProductionNote::getQuery();
     	$directProdQuery->where("#originId = {$rec->containerId}");
     	$directProdQuery->where("#state = 'active'");

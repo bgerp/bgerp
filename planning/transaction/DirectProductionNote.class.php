@@ -29,7 +29,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason'      => "Протокол за бързо производство №{$rec->id}",
+				'reason'      => "Протокол за производство №{$rec->id}",
 				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
 				'entries'     => array()
