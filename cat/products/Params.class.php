@@ -144,7 +144,7 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$paramRec = cat_Params::fetch($rec->paramId, 'driverClass,suffix');
+    	$paramRec = cat_Params::fetch($rec->paramId);
     	
     	if($ParamType = cat_Params::getTypeInstance($paramRec)){
     		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
