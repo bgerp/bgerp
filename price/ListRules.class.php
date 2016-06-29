@@ -236,6 +236,19 @@ class price_ListRules extends core_Detail
     		$rec->priority = $priority;
     	}
     	
+    	// Форсиране на правилото ако има такова за ценовата политика със същата дата на валидност
+    	$where = "#listId = {$listId} AND #type = '{$type}' AND #validFrom = '{$validFrom}'";
+    	if($type != 'groupDiscount'){
+    		$where .= " AND #productId = {$rec->productId}";
+    	} elseif($type == 'groupDiscount'){
+    		$where .= " AND #groupId = {$rec->groupId}";
+    	}
+    	
+    	$exRec = static::fetch($where);
+    	if(!empty($exRec)){
+    		$rec->id = $exRec->id;
+    	}
+    	
     	return static::save($rec);
     }
     
