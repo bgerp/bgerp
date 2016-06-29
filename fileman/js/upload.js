@@ -126,9 +126,6 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
     $('#add-success-info').html('');
     $('#add-error-info').html('');
             
-	// Грешките за файла
-	var fileError = new Object();
-	
 	// Пътя до файла
 	var filePath = $(inputInst).val();
 	
@@ -156,20 +153,6 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
 	}
 	
 	if (!filePathArr.length) return ;
-	
-	// Ако браузъра поддъжа fileApi
-	if (typeof FileReader !== 'undefined') {
-		
-		// Размера на файла
-        var fileSize = inputInst.files[0].size;
-        
-        // Ако размера на файла е над допусмите
-        if (maxFileSize && fileSize > maxFileSize) {
-        	
-        	// Сетваме грешката
-        	fileError.fileSize = true;
-		}
-    }
 	
 	// id на инпута
 	var inputId = $(inputInst).attr('id');
@@ -202,17 +185,28 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
 		var uploadedFileClass = 'uploaded-file';
 		
         var uploadedFileTitle = '';
-            
-		// Ако размера е над допусмите
-		if (fileError.fileSize) {
-			
-			// Добавяме класа за грешка
-			uploadedFileClass += ' error-filesize';
-			
-			// Титлата на спана
-			uploadedFileTitle = ' title="File size exceeded the maximum size"';
-		}
-		
+        
+        try {
+        	// Ако браузъра поддъжа fileApi
+        	if (typeof FileReader !== 'undefined') {
+        		
+        		// Размера на файла
+                var fileSize = inputInst.files[index].size;
+                
+                // Ако размера на файла е над допусмите
+                if (maxFileSize && fileSize > maxFileSize) {
+
+        			// Добавяме класа за грешка
+        			uploadedFileClass += ' error-filesize';
+        			
+        			// Титлата на спана
+        			uploadedFileTitle = ' title="File size exceeded the maximum size"';
+        		}
+            }
+        } catch(err) {
+        	getEO().log(err);
+        }
+    	
 		// Името на файла
 		var fileName = getFileName(filePath);
 		
