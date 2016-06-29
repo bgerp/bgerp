@@ -362,8 +362,9 @@ class core_Manager extends core_Mvc
      */
     function prepareEditTitle_($data)
     {
+    	setIfNot($data->title, $this->title);
     	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
-    			"|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
+    			"|*" . ($this->title ? ' |в|* ' . '"' . tr($data->title) . '"' : '');
     }
     
     
