@@ -108,7 +108,7 @@ class fileman_Upload2 extends core_Manager
                                     if (isset($fh)) {
                                         $fRec = fileman_Files::fetchByFh($fh);
                                     }
-                                    $resEt->append("<script>  if(window.opener.{$callback}('{$fh}','{$fRec->name}') != true) self.close(); else self.focus();</script>");
+                                    $resEt->append("<script>  if (window.opener) { if(window.opener.{$callback}('{$fh}','{$fRec->name}') != true) self.close(); else self.focus();}</script>");
                                 }
                             }
                         } else {
