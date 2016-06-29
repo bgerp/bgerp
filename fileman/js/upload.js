@@ -35,40 +35,17 @@ $(document).ready(function() {
 				this.progressBar.append(this.progressBarPercent);
                 
 				$('#uploads').append(this.progressBar);
-                
-				// Променливи необходими за блинкване на прогреса
-                this.oldProgress = 0;
-                this.progressBlinkAfterReset = this.progressBlinkAfter = 2;
         	},
         	
         	// Вика се всеки път, когато се върне прогрес/отговор от сървъра - за всеки файл самосотоятелно
 	    	progress: function(progress) {
-	    		var roundProgress = Math.round(progress);
-	    		
 	    		// След като прогреса нарастне над 
-	            if (roundProgress >= 10) {
+	            if (progress >= 10) {
 	                this.progressBar.width(progress + '%');
 	            }
 	            
-	            // Ако няма промяна по прогреса, добавяме ефект за блинк
-	            // За да покажем на потребителя, че нещо се случва
-	            if (roundProgress == this.oldProgress) {
-	                this.progressBlinkAfter--;
-	                if (!this.progressBlinkAfter) {
-	                	var oldCssBgColor = this.progressBar.css('background-color');
-	                    this.progressBar.css('background-color', '#66f');
-	                    var pBar = this.progressBar;
-	                    setTimeout(function(){pBar.css('background-color', oldCssBgColor);} , 500);
-	                    this.progressBlinkAfter = this.progressBlinkAfterReset;
-	                }
-	            } else {
-	                this.progressBlinkAfter = this.progressBlinkAfterReset;
-	            }
-	            
-	            this.oldProgress = roundProgress;
-	            
 	            // Показваме стрингово процентите на качения файл
-	            this.progressBarPercent.html(roundProgress + '%');
+	            this.progressBarPercent.html(Math.round(progress) + '%');
 	    	},
 	        
 	    	// Вика се след приключване на качването на файла
