@@ -119,7 +119,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		if(is_array($dRecs)){
 			
-			if(!count($dRecs) && empty($rec->inputStoreId)){
+			if(!count($dRecs)){
 				$rec->debitAmount = ($rec->debitAmount) ? $rec->debitAmount : 0;
 				
 				$amount = $rec->debitAmount;
@@ -127,9 +127,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$array['quantity'] = $rec->quantity;
 				
 				$entry = array('amount' => $amount,
-							   'debit' => $array,
+							   'debit'  => $array,
 							   'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-				//$total += $amount;
 					
 				$entries[] = $entry;
 			} else {
@@ -226,7 +225,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				
 				$costArray = array(
 						'amount' => $costAmount,
-						'debit' => $array,
+						'debit'  => $array,
 						'credit' => array('61102'),
 						'reason' => 'Разпределени режийни разходи');
 					
