@@ -310,13 +310,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	                    'blAmountNew' => $rNew->blAmount,
     	                    'deltaNew' => $rNew->delta,
     	               );      
-                } /*else {
+                } else {
     	            $obj = &$data->recsAll[$idNew];
-    	            $obj->item1 = $rNew->item1;
+    	            /*$obj->item1 = $rNew->item1;
     	            $obj->item2 = $rNew->item2;
     	            $obj->item3 = $rNew->item3;
     	            $obj->item4 = $rNew->item4;
-    	            $obj->item5 = $rNew->item5;
+    	            $obj->item5 = $rNew->item5;*/
     	            $obj->valiorNew = $rNew->valiors;
     	            $obj->debitQuantityNew = $rNew->debitQuantity;
     	            $obj->debitAmountNew = $rNew->debitAmount;
@@ -325,7 +325,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	            $obj->blQuantityNew = $rNew->blQuantity;
     	            $obj->blAmountNew = $rNew->blAmount;
     	            $obj->deltaNew = $rNew->delta;
-                }*/
+                }
     	    }
     	}
 
