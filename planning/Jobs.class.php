@@ -437,6 +437,10 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+    		$row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
+    		$row->captionNotStored = ($canStore == 'yes') ? tr('Незаскладено') : tr('Неизпълнено');
+    		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
     		}
@@ -468,6 +472,16 @@ class planning_Jobs extends core_Master
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		if(isset($rec->dueDate)){
     			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
+    	}
+    	
+    	if($fields['-single']){
+    		if(!$rec->quantityFromTasks){
+    			unset($row->quantityFromTasks, $row->quantityNotStored);
+    			unset($row->captionNotStored);
+    		} else {
+    			$row->measureId2 = $row->measureId;
+    			$row->quantityFromTasksCaption = tr('Произведено');
     		}
     	}
     }
