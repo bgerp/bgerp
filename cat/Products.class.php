@@ -1427,7 +1427,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if($mvc->haveRightFor('edit', $rec)){
-    			$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на групите');
+    			$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
     		}
     		
     		$groups = keylist::toArray($rec->groups);
@@ -1437,7 +1437,7 @@ class cat_Products extends embed_Manager {
     			$row->groups = '';
     			foreach ($groups as $grId){
     				$groupTitle = cat_Groups::getVerbal($grId, 'name');
-    				$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, 'class=group-link');
+    				$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, "class=group-link,title=Филтриране на артикули по група|* '{$groupTitle}'");
     				$row->groups .= $groupLink . " ";
     			}
     			$row->groups = trim($row->groups, ' ');
@@ -2373,7 +2373,7 @@ class cat_Products extends embed_Manager {
     	$this->requireRightFor('edit', $rec);
     	
     	$form = cls::get('core_Form');
-    	$form->title = "Редакция на групите на|* <b>" . cat_Products::getHyperlink($id, TRUE) . "</b>";
+    	$form->title = "Промяна на групите на|* <b>" . cat_Products::getHyperlink($id, TRUE) . "</b>";
     	$form->FNC('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
     	$form->setDefault('groups', $rec->groups);
     	$form->input();
