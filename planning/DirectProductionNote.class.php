@@ -217,7 +217,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('dealHandler', 'input=none');
 			$form->setField('dealId', 'input=none');
 		} else {
-			if(isset($originRec->saleId)){
+			if(empty($form->rec->id) && isset($originRec->saleId)){
 				
 				// Ако заданието, към което е протокола е към продажба, избираме я по дефолт
 				$saleRec = sales_Sales::fetch($originRec->saleId);
