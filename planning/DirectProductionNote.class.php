@@ -176,13 +176,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
+	 * Подготвя формата за редактиране
 	 */
-	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	public function prepareEditForm_($data)
 	{
+		parent::prepareEditForm_($data);
+		
 		$form = &$data->form;
 		
 		if(isset($form->rec->id)){
@@ -218,9 +217,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('dealHandler', 'input=none');
 			$form->setField('dealId', 'input=none');
 		} else {
+			if(isset($originRec->saleId)){
+				
+				// Ако заданието, към което е протокола е към продажба, избираме я по дефолт
+				$saleRec = sales_Sales::fetch($originRec->saleId);
+				$form->setDefault('contragentFolderId', $saleRec->folderId);
+				$form->setDefault('dealHandler', sales_Sales::getHandle($saleRec->id));
+			}
+				
 			$form->setField('storeId', 'input=none');
 			$form->setField('dealHandler', array('placeholder' => 'Без стойност, когато услугата е вътрешнофирмен разход', 'caption' => 'Кореспондираща сделка->Продажба'));
 		}
+		
+		return $data;
 	}
 	
 	
