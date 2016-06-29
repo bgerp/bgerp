@@ -670,7 +670,7 @@ class acc_Periods extends core_Manager
                 $months = $interval->m;
                 $days = $interval->days;
 
-                if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to)) {
+                if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to) && $interval->y == 0) {
                     
                     $toCompare = dt::getLastDayOfMonth($from,-1);
             
