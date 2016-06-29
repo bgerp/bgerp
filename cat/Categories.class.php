@@ -403,4 +403,46 @@ class cat_Categories extends core_Master
     	// Връщаме готовите опции
     	return $opt;
     }
+    
+    
+    /**
+     * След подготовка на филтъра за филтриране в корицата
+     * 
+     * @param core_mvc $mvc
+     * @param core_Form $threadFilter
+     * @param core_Query $threadQuery
+     */
+    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
+    {
+    	// Добавяме поле за избор на групи
+    	$threadFilter->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
+    	$threadFilter->showFields .= ",groups";
+    	$threadFilter->input('groups');
+    	
+    	if(isset($threadFilter->rec)){
+    		
+    		// Ако търсим по група
+    		if($groups = $threadFilter->rec->groups){
+    			$catClass = cat_Products::getClassId();
+    			
+    			// Подготвяме заявката да се филтрират само нишки с начало Артикул
+    			$threadQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
+    			$threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+    			$threadQuery->where("#docClass = {$catClass}");
+    			
+    			// Разпъваме групите
+    			$descendants = cat_groups::getDescendantArray($groups);
+    			$keylist = keylist::fromArray($descendants);
+    			
+    			// Намираме ид-та на артикулите от тези групи
+    			$catQuery = cat_Products::getQuery();
+    			$catQuery->likeKeylist("groups", $keylist);
+    			$catQuery->show('id');
+    			$productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
+    			
+    			// Искаме от нишките да останат само тези за въпросните артикули
+    			$threadQuery->in('docId', $productIds);
+    		}
+    	}
+    }
 }
