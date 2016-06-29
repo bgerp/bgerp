@@ -240,7 +240,7 @@ class price_ListRules extends core_Detail
     	$where = "#listId = {$listId} AND #type = '{$type}' AND #validFrom = '{$validFrom}'";
     	if($type != 'groupDiscount'){
     		$where .= " AND #productId = {$rec->productId}";
-    	} elseif($type == 'groupDiscount'){
+    	} else($type == 'groupDiscount'){
     		$where .= " AND #groupId = {$rec->groupId}";
     	}
     	
