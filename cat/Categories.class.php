@@ -415,14 +415,14 @@ class cat_Categories extends core_Master
     protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
     {
     	// Добавяме поле за избор на групи
-    	$threadFilter->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
-    	$threadFilter->showFields .= ",groups";
-    	$threadFilter->input('groups');
+    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name)', 'caption=Група');
+    	$threadFilter->showFields .= ",group";
+    	$threadFilter->input('group');
     	
     	if(isset($threadFilter->rec)){
     		
     		// Ако търсим по група
-    		if($groups = $threadFilter->rec->groups){
+    		if($group = $threadFilter->rec->group){
     			$catClass = cat_Products::getClassId();
     			
     			// Подготвяме заявката да се филтрират само нишки с начало Артикул
@@ -431,7 +431,7 @@ class cat_Categories extends core_Master
     			$threadQuery->where("#docClass = {$catClass}");
     			
     			// Разпъваме групите
-    			$descendants = cat_groups::getDescendantArray($groups);
+    			$descendants = cat_groups::getDescendantArray($group);
     			$keylist = keylist::fromArray($descendants);
     			
     			// Намираме ид-та на артикулите от тези групи
