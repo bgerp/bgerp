@@ -679,8 +679,11 @@ class acc_Periods extends core_Manager
                     $months = $interval->m;
 
                     if($months == 1) {
-                        //$fromCompare1 = $first;
-                        $fromCompare1 = dt::addMonths(-$months,$first);
+                        if ($interval->d == 0 || $interval->d == 1) {
+                            $fromCompare1 = $first;
+                        } else {
+                            $fromCompare1 = dt::addMonths(-$months,$first);
+                        }
                     } else {
                         $fromCompare1 = dt::addMonths(-$months+1,$first);
                     }
