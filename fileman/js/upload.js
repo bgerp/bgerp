@@ -67,7 +67,7 @@ $(document).ready(function() {
 	            }
 	            
 	            // Ако няма други файлове за качване, показваме бутона за добавяне на файл
-	            if (!$('.progressBar').length) {
+	            if (!$('.progressBarBlock').length) {
 	                $('#inputDiv').show();
 	                $('#uploadsTitle').css('display', 'none');
 	            }
@@ -83,7 +83,7 @@ $(document).ready(function() {
 	            this.progressBar.remove();
 	            this.fileName.remove();
 	            
-	            if (!$('.progressBar').length) {
+	            if (!$('.progressBarBlock').length) {
 	                $('#inputDiv').show();
 	                $('#uploadsTitle').css('display', 'none');
 	            }
