@@ -219,7 +219,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('dealId', 'input=none');
 		} else {
 			$form->setField('storeId', 'input=none');
-			$form->setField('dealHandler', array('placeholder' => 'Празно = услугата е вътрешнофирмен разход', 'caption' => 'Кореспондираща сделка->Продажба'));
+			$form->setField('dealHandler', array('placeholder' => 'Без стойност, когато услугата е вътрешнофирмен разход', 'caption' => 'Кореспондираща сделка->Продажба'));
 		}
 	}
 	
