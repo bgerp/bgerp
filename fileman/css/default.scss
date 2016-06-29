@@ -212,23 +212,30 @@
 	color: #fff;
 	display: inline-block;
 	text-align: center;
-	padding: 1px;
+	padding: 1px 12px 1px 3px;
 	border-radius: 3px;
 	box-shadow: 0 0 1px #999;
+	position: relative;
+}
+
+.cancelButton {
+	position: absolute;
+	right: 3px;
+	top: 1px;
+	font-size: 0.8em;
+	color: #000;
 }
 
 .fileNameRow {
 	margin-top: 3px;
 }
 
-
-
 .fileman_Buckets {
 	background-image:url('../../img/16/database.png');
 }
 .fileman_Upload {
 	background-image:url('../../img/16/upload.png');
-;}
+}
 .fileman_Upload2 {
 	background-image:url('../../img/16/upload.png');
 }

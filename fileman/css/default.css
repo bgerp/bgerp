@@ -187,9 +187,17 @@
   color: white;
   display: inline-block;
   text-align: center;
-  padding: 1px;
+  padding: 1px 12px 1px 3px;
   border-radius: 3px;
-  box-shadow: 0 0 1px #999999; }
+  box-shadow: 0 0 1px #999999;
+  position: relative; }
+
+.cancelButton {
+  position: absolute;
+  right: 3px;
+  top: 1px;
+  font-size: 0.8em;
+  color: black; }
 
 .fileNameRow {
   margin-top: 3px; }
