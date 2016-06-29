@@ -1,5 +1,5 @@
 // Масив с премахнатите файлове от multiple поле
-var removeFilePath = [];
+var ignoreFilePath = [];
 
 // След като се зареди
 $(document).ready(function() {
@@ -14,11 +14,11 @@ $(document).ready(function() {
         	start: function(file) {
         		
         		// Ако файлът съществува в масива с премахнатите, да не се качва
-        		if (removeFilePath.length) {
-        			var indexOf = removeFilePath.indexOf(file.name);
+        		if (ignoreFilePath.length) {
+        			var indexOf = ignoreFilePath.indexOf(file.name);
         			if (indexOf != -1) {
         				
-        				removeFilePath.splice(indexOf, 1);
+        				ignoreFilePath.splice(indexOf, 1);
         				
         				return false;
         			}
@@ -303,7 +303,7 @@ function unsetFile(id, multiUpload, len, filePath)
 			// Ако в един инпут има повече от един файл, не се премахва инпута
 			// Добавяме файла в масив с игнориране, които няма да се качат
 			if (len > 1) {
-				removeFilePath.push(filePath);
+				ignoreFilePath.push(filePath);
 			} else {
 				$(inputId).remove();
 			}
