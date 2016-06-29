@@ -149,7 +149,7 @@ class price_Lists extends core_Master
      * @param double $roundingOffset          - отместване на закръглянето
      * @return int $id                        - ид на създадения каталог
      */
-    public static function forceList($title, $cClass, $cId, $public = TRUE, $parentTitle = NULL, $currencyCode = NULL, $vat  = TRUE, $defaultSurcharge = NULL, $discountComparedToList = NULL, $roundingPrecision = NULL, $roundingOffset = NULL)
+    public static function forceList($title, $cClass = NULL, $cId = NULL, $public = TRUE, $parentTitle = NULL, $currencyCode = NULL, $vat  = TRUE, $defaultSurcharge = NULL, $discountComparedToList = NULL, $roundingPrecision = NULL, $roundingOffset = NULL)
     {
     	// Заглавие на политиката
     	$title = str::mbUcfirst($title);
