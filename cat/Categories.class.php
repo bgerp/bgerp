@@ -224,7 +224,6 @@ class cat_Categories extends core_Master
     	if($fields['-list']){
     		$row->name .= " {$row->folder}";
     		
-    		cat_Products::getQuery();
     		$count = cat_Products::count("#folderId = '{$rec->folderId}'");
     		
     		$row->count = cls::get('type_Int')->toVerbal($count);
