@@ -1432,15 +1432,16 @@ class cat_Products extends embed_Manager {
     		
     		$groups = keylist::toArray($rec->groups);
     		if(count($groups)){
-    			if($mvc->haveRightFor('list')){
-    				$row->groups = '';
-    				foreach ($groups as $grId){
-    					$groupTitle = cat_Groups::getVerbal($grId, 'name');
-    					$groupLink = ht::createLink($groupTitle, array($mvc, 'list', 'groupId' => $grId), FALSE, 'class=group-link');
-    					$row->groups .= $groupLink . " ";
-    				}
-    				$row->groups = trim($row->groups, ' ');
+    			$listUrl = ($mvc->haveRightFor('list')) ? array($mvc, 'list', 'groupId' => $grId) : array();
+    			
+    			$row->groups = '';
+    			foreach ($groups as $grId){
+    				$groupTitle = cat_Groups::getVerbal($grId, 'name');
+    				$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, 'class=group-link');
+    				$row->groups .= $groupLink . " ";
     			}
+    			$row->groups = trim($row->groups, ' ');
+    			
     		} else {
     			$row->groups = "<i>" . tr("Няма") . "</i>";
     		}
