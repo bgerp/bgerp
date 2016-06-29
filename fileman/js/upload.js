@@ -200,7 +200,7 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
         			uploadedFileClass += ' error-filesize';
         			
         			// Титлата на спана
-        			uploadedFileTitle = ' title="File size exceeded the maximum size"';
+        			uploadedFileTitle = ' title="' + fileSizeErr + '"';
         		}
             }
         } catch(err) {

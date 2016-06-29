@@ -237,7 +237,10 @@ class fileman_Upload2 extends core_Manager
         $uploadErrStr = tr('Грешка при качване на файл') . ': ';
         $uploadErrStr = json_encode($uploadErrStr);
         
-        $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr};", 'SCRIPTS');
+        $fileSizeErr = tr("Файлът е над допустимия размер");
+        $fileSizeErr = json_encode($fileSizeErr);
+        
+        $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr}; var fileSizeErr = {$fileSizeErr};", 'SCRIPTS');
         
         $tpl->push('fileman/js/upload.js', 'JS');
         
