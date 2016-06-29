@@ -219,6 +219,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('dealId', 'input=none');
 		} else {
 			$form->setField('storeId', 'input=none');
+			$form->setField('dealHandler', array('placeholder' => 'Празно = услугата е вътрешнофирмен разход', 'caption' => 'Кореспондираща сделка->Продажба'));
 		}
 	}
 	
@@ -231,7 +232,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param string $handle - хендлъра на сделката
 	 * @param stdClass $rec  - текущия запис
 	 */
-	public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
+	protected static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
 	{
 		if($error) return $error;
 		
@@ -248,7 +249,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param core_Mvc $mvc
 	 * @param core_Form $form
 	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
+	protected static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
 		if($form->isSubmitted()){
