@@ -104,8 +104,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						array($doc->getInstance()->className, $doc->that),
 						array('cat_Products', $rec->productId));
 			} else {
-				$array = array('60020', array('hr_Departments', $rec->centerId),
-										array('cat_Products', $rec->productId));
+				$array = array('61201', array('cat_Products', $rec->productId));
 			}
 		}
 		

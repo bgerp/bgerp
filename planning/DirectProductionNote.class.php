@@ -166,7 +166,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
-		$this->FLD('centerId', 'key(mvc=hr_Departments,allowEmoty)', 'caption=Център на дейност (Само ако не е избрана сделка)->Избор,before=storeId,input=hidden');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
 		$this->FLD('debitAmount', 'double(smartRound)', 'input=none');
@@ -264,7 +263,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($form->isSubmitted()){
 			$productInfo = cat_Products::getProductInfo($form->rec->productId);
 			if(!isset($productInfo->meta['canStore'])){
-				$rec->centerId = (isset($rec->dealId)) ? NULL : hr_Departments::fetchField("#systemId = 'emptyCenter'");
 				$rec->storeId = NULL;
 			} else {
 				$rec->dealId = NULL;
