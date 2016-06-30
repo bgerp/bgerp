@@ -215,7 +215,7 @@ class fileman_Upload2 extends core_Manager
         		.btn-ulfile{background-image:url(' . sbf('img/16/paper_clip.png', '') . ');}
         	</style>
             
-            <div id="uploads"><div id="uploadsTitle" style="display: none;"><b><i>' . $uploadStr . '</i></b></div></div>
+            <div id="uploads" class="uploads-holder"><div id="uploadsTitle" style="display: none;"><b><i>' . $uploadStr . '</i></b></div></div>
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <span class="uploaded-filenames"> </span>
                 <div id="inputDiv">

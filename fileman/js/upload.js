@@ -51,17 +51,7 @@ $(document).ready(function() {
 				this.cancelButton.on('click', function(){
 					that.upload.cancel();
 				});
-				
-				this.cancelButton.on('mouseover', function(){
-					that.cancelButton.css('cursor', 'pointer');
-					that.cancelButton.html('X');
-				});
-				
-				this.cancelButton.on('mouseout', function(){
-					that.cancelButton.css('cursor', 'default');
-					that.cancelButton.html('x');
-				});
-				
+
 				this.progressBar.append(this.cancelButton);
 				
 				// Процентите на прогрес бара

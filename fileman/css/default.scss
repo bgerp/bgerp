@@ -71,7 +71,7 @@
 	top:9px;
 	background-color:#ddd !important; 
 }
-#add-file-info{
+#add-file-info {
 	max-height:334px;
     overflow:auto;
 }
@@ -119,10 +119,10 @@
 	background-color:#ffe;
 	margin-bottom:5px;
 	font-size:0.9em;
+	width: 100%;
 	padding-left:23px !important;
 	background-repeat:no-repeat;
 	background-position: 3px center;
-	
 }
 
  .filemanUpload .tab-title {
@@ -205,6 +205,10 @@
 	margin-top:5px;
 }
 
+#add-success-info {
+	display: table;
+}
+
 .progressBarBlock {
 	background:url('../img/progress.gif');
 	height: 16px;
@@ -212,24 +216,33 @@
 	color: #fff;
 	display: inline-block;
 	text-align: center;
-	padding: 1px 12px 1px 3px;
+	padding: 1px 3px 1px 12px;
 	border-radius: 3px;
 	box-shadow: 0 0 1px #999;
 	position: relative;
+	text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
 }
 
 .cancelButton {
 	position: absolute;
-	right: 3px;
-	top: 1px;
-	font-size: 0.8em;
+	left: 3px;
+	top: 0px;
+	font-size: 0.9em;
 	color: #000;
-}
+	cursor: pointer;
 
+}
+#uploadsTitle {
+	margin-top: 10px;
+}
 .fileNameRow {
 	margin-top: 3px;
 }
 
+.uploads-holder{
+	max-height:100px;
+	overflow:auto;
+}
 .fileman_Buckets {
 	background-image:url('../../img/16/database.png');
 }
