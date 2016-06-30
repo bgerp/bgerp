@@ -325,7 +325,9 @@ class price_ListRules extends core_Detail
         	if($rec->type == 'value') {
         		$vat = cat_Products::getVat($productId, $datetime);
         		$price = self::normalizePrice($rec, $vat, $datetime);
+        		$validFrom = $rec->validFrom;
         	} else{
+        		$validFrom = $rec->validFrom;
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
         		$price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		
@@ -337,7 +339,7 @@ class price_ListRules extends core_Detail
         			}
         		}
         	}
-        	$validFrom = $rec->validFrom;
+        	
         } else{
         	$defaultSurcharge = price_Lists::fetchField($listId, 'defaultSurcharge');
         	
