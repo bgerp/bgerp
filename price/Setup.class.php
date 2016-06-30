@@ -59,8 +59,6 @@ class price_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'price_Groups',
-            'price_GroupOfProducts',
             'price_Lists',
             'price_ListToCustomers',
             'price_ListRules',
@@ -70,6 +68,7 @@ class price_Setup extends core_ProtoSetup
     		'price_ProductCosts',
     		'price_Updates',
     		'migrate::truncateProductCosts',
+    		'migrate::transferGroups'
         );
     
 
@@ -121,5 +120,150 @@ class price_Setup extends core_ProtoSetup
     function truncateProductCosts()
     {
     	price_ProductCosts::truncate();
+    }
+    
+    
+    /**
+     * Мигрира ценовите групи към групите
+     */
+    function transferGroups()
+    {
+    	$CatGroups = cls::get('cat_Groups');
+    	$CatGroups->setupMvc();
+    	
+    	$PriceGroups = cls::get('price_Groups');
+    	$PriceGroups->setupMvc();
+    	
+    	$Lists = cls::get('price_Lists');
+    	$Lists->setupMvc();
+    	
+    	$Rules = cls::get('price_ListRules');
+    	$Rules->setupMvc();
+    	
+    	if (!$PriceGroups->db->tableExists($PriceGroups->dbTableName)) return;
+    	core_App::setTimeLimit(300);
+    	
+    	$Products = cls::get('cat_Products');
+    	
+    	// Кой ще е бащата на новите групи
+    	$parentId = cat_Groups::fetchField("#sysId = 'priceGroup'", 'id');
+    	
+    	$res = array();
+    	
+    	// Извличаме всички ценови групи
+    	$gQuery = price_Groups::getQuery();
+    	while($rec = $gQuery->fetch()){
+    		try{
+    			// Ако не е прехвърляна
+    			$id = cat_Groups::fetchField(array("#parentId = {$parentId} AND #name = '[#1#]'", $rec->title));
+    			
+    			// Прехвърляме я
+    			if(!$id){
+    				$recToSave = (object)array('name' => $rec->title, 'parentId' => $parentId);
+    				$id = $CatGroups->save_($recToSave, NULL, 'REPLACE');
+    			}
+    			
+    			// За всеки случай записваме в модела новото ид
+    			if($id){
+    				$rec->groupId = $id;
+    				$PriceGroups->save_($rec, 'groupId');
+    			}
+    			
+    			// Запомняме прехвърлените ид-та
+    			$res[$rec->id] = $rec->groupId;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	
+    	$date = dt::now();
+    	
+    	// Ако има прехвърлени ид-та
+    	if(count($res)){
+    		try{
+    			// Извличаме всички артикули
+    			$pQuery = cat_Products::getQuery();
+    			$pQuery->show('groups');
+    			while($pRec = $pQuery->fetch()){
+    				// Намираме коя е последната им ценова група
+    				$group = price_GroupOfProducts::getGroup($pRec->id, $date);
+    				
+    				// Ако имат такава
+    				if($group){
+    					
+    					// Намираме кое ново ид и съответства
+    					$key = $res[$group];
+    					
+    					// Ако има такова
+    					if(isset($key)){
+    						
+    						// И ид-то му не присъства в групите на артикула
+    						if(!keylist::isIn($key, $pRec->groups)){
+    							
+    							// Добавяме го
+    							$newGroups = keylist::addKey($pRec->groups, $key);
+    							$pRec->groups = $newGroups;
+    							$Products->save_($pRec, 'groups');
+    						}
+    					}
+    				}
+    			}
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	
+    	try{
+    		$costId = price_ListRules::PRICE_LIST_COST;
+    		
+    		$lQuery = price_Lists::getQuery();
+    		$lQuery->where("#defaultSurcharge IS NULL");
+    		$lQuery->where("id != '{$costId}'");
+    		$lQuery->show('defaultSurcharge');
+    		while($lRec = $lQuery->fetch()){
+    			$lRec->defaultSurcharge = ($lRec->id == price_ListRules::PRICE_LIST_CATALOG) ? 0.2 : 0;
+    			$Lists->save_($lRec, 'defaultSurcharge');
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    	
+    	try{
+    		$rQuery = price_ListRules::getQuery();
+    		$rQuery->where("#groupId IS NOT NULL");
+    		while($r = $rQuery->fetch()){
+    			if(isset($res[$r->groupId])){
+    				$r->groupId = $res[$r->groupId];
+    				$Rules->save_($r, 'groupId');
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    	
+    	try{
+    		$rQuery2 = price_ListRules::getQuery();
+    		$rQuery2->where("#priority IS NULL");
+    		 
+    		$saveArray = array();
+    		 
+    		while ($r = $rQuery2->fetch()){
+    			$res = (object)array('id' => $r->id);
+    			if($r->type == 'value' || $r->type == 'discount'){
+    				$res->priority = 1;
+    			} else {
+    				$res->priority = 3;
+    			}
+    		
+    			$saveArray[] = $res;
+    		}
+    		 
+    		if(count($saveArray)){
+    			$Rules = cls::get('price_ListRules');
+    			$Rules->saveArray($saveArray, 'id,priority');
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
     }
 }

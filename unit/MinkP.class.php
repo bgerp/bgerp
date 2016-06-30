@@ -2,7 +2,7 @@
 
 
 /**
- * Клас  'tests_Test' - Разни тестове на PHP-to
+ * Клас  'unit_MinkP' - тест PHP - рецепта с 3 етапа
  *
  *
  * @category  bgerp
@@ -13,6 +13,7 @@
  * @since     v 0.1
  * @link
  * Създава рецепта с 3 етапа, преди това - съставните артикули
+ * Трябва да се промени според новата система за ценови политики!
  */
 class unit_MinkP extends core_Manager {
    
@@ -21,7 +22,6 @@ class unit_MinkP extends core_Manager {
      */
     public function SetUp()
     {
-        $browser = cls::get('unit_Browser');
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
         $browser->click('Вход');
@@ -580,7 +580,7 @@ class unit_MinkP extends core_Manager {
         
         // Фактура  № се сменя при повторен тест
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '1217');
+        $browser->setValue('number', '12');
         $browser->press('Чернова');
         $browser->press('Контиране');
         

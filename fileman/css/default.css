@@ -105,7 +105,7 @@
 
 .uploaded-title {
   margin-top: 5px;
-  padding: 5px;
+  padding: 6px;
   border: solid 1px #cccccc;
   background-color: #ffffee;
   margin-bottom: 5px;
@@ -179,4 +179,44 @@
 
 .narrow .fileman_Log.switching-display {
   margin-top: 5px; }
+
+.progressBarBlock {
+  background: url('../img/progress.gif');
+  height: 16px;
+  margin-top: 1px;
+  color: white;
+  display: inline-block;
+  text-align: center;
+  padding: 1px 12px 1px 3px;
+  border-radius: 3px;
+  box-shadow: 0 0 1px #999999;
+  position: relative; }
+
+.cancelButton {
+  position: absolute;
+  right: 3px;
+  top: 1px;
+  font-size: 0.8em;
+  color: black; }
+
+.fileNameRow {
+  margin-top: 3px; }
+
+.fileman_Buckets {
+  background-image: url('../../img/16/database.png'); }
+
+.fileman_Upload {
+  background-image: url('../../img/16/upload.png'); }
+
+.fileman_Upload2 {
+  background-image: url('../../img/16/upload.png'); }
+
+.fileman_Get {
+  background-image: url('../../img/16/world_link.png'); }
+
+.empty {
+  background-image: url('../../img/16/new.png'); }
+
+.tab-title.fileman_Log {
+  background-image: url('../../img/16/databases.png'); }
 

@@ -448,6 +448,7 @@ class cat_UoM extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$rec = $data->form->rec;
+    	$data->title = ($rec->type == 'uom') ? 'Мерки' : 'Опаковки';
     	
     	if($rec->type == 'packaging'){
     		$mvc->currentTab = 'Мерки->Опаковки';

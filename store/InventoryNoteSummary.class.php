@@ -119,7 +119,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('charge', 'user', 'caption=Начет');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
@@ -665,7 +665,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	if(!is_array($recs)) return;
     	$ordered = array();
     	
-    	// Вербализираме и подреждаме маркерите
+    	// Вербализираме и подреждаме групите
     	$groups = keylist::toArray($masterRec->groups);
     	cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
     	

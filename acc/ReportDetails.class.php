@@ -230,19 +230,14 @@ class acc_ReportDetails extends core_Manager
         }
         
         if(is_array($accounts)) {
-            // За засегнатите сметки, проверяваме имали зададени сч. лимити за тях
-            foreach ($accounts as $sysId){
-                $limitQuery = acc_Limits::getQuery();
-                $limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
-                 
-                $row1['limits'] = array();
-                while($lRec = $limitQuery->fetch()){
-                     
-                    $lRow = acc_Limits::recToVerbal($lRec);
-                    $lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
-                    $rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
-                }
-            }
+        	
+        	$limitQuery = acc_Limits::getQuery();
+        	$limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
+        	while($lRec = $limitQuery->fetch()){
+        		$lRow = acc_Limits::recToVerbal($lRec);
+        		$lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
+        		$rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
+        	}
         }
         
         $data->totalRow = $Double->toVerbal($data->total);

@@ -111,7 +111,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Преди подготвяне на едит формата
      */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
     	$type = Request::get('type', 'enum(input,pop)');
     	 
@@ -126,7 +126,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -159,7 +159,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	$rec = &$form->rec;
     	
@@ -216,7 +216,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * След подготовка на детайлите, изчислява се общата цена
      * и данните се групират
      */
-    public static function on_AfterPrepareDetail($mvc, $res, $data)
+    protected static function on_AfterPrepareDetail($mvc, $res, $data)
     {
     	$data->inputArr = $data->popArr = array();
     	$countInputed = $countPoped = 1;
@@ -314,7 +314,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	if(!count($data->recs)) return;
     	$storeId = $data->masterData->rec->inputStoreId;

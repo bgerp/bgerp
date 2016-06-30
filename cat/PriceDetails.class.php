@@ -20,7 +20,7 @@ class cat_PriceDetails extends core_Manager
     /**
      * Кои мениджъри ще се зареждат
      */
-    public $loadList = 'PriceList=price_ListRules,VatGroups=cat_products_VatGroups,PriceGroup=price_GroupOfProducts';
+    public $loadList = 'VatGroups=cat_products_VatGroups';
     
     
     /**
@@ -59,7 +59,7 @@ class cat_PriceDetails extends core_Manager
     	$listsData = clone $data;
     	$vatData = clone $data;
     	
-    	$this->PriceGroup->preparePriceGroup($groupsData);
+    	//$this->PriceGroup->preparePriceGroup($groupsData);
     	$this->preparePriceInfo($listsData);
     	$this->VatGroups->prepareVatGroups($vatData);
     	
@@ -77,7 +77,6 @@ class cat_PriceDetails extends core_Manager
     	if($data->hide === TRUE) return;
     	
     	$tpl = getTplFromFile('cat/tpl/PriceDetails.shtml');
-    	$tpl->append($this->PriceGroup->renderPriceGroup($data->groupsData), 'PriceGroup');
     	$tpl->append($this->renderPriceInfo($data->listsData), 'PriceList');
     	$tpl->append($this->VatGroups->renderVatGroups($data->vatData), 'VatGroups');
     	
@@ -98,7 +97,7 @@ class cat_PriceDetails extends core_Manager
     	// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
     	$primeCostListId = price_ListRules::PRICE_LIST_COST;
     	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
-    		$data->addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $primeCostListId, 'productId' => $data->masterId, 'ret_url' => TRUE);
+    		$data->addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $primeCostListId, 'productId' => $data->masterId, 'priority' => 1, 'ret_url' => TRUE);
     	}
     	
     	$now = dt::now();
@@ -178,9 +177,8 @@ class cat_PriceDetails extends core_Manager
     			}
     			
     			if(price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)){
-    				$search = cat_Products::getTitleById($data->masterId);
     				if($hideIcons === FALSE){
-    					$btns .= " " . ht::createLink('', array('price_Lists', 'single', $primeCostListId, 'search' => $search), FALSE, 'ef_icon=img/16/clock_history.png,title=Хронология на себестойноста на артикула');
+    					$btns .= " " . ht::createLink('', array('price_Lists', 'single', $primeCostListId, 'product' => $data->masterId), FALSE, 'ef_icon=img/16/clock_history.png,title=Хронология на себестойноста на артикула');
     				}
     			}
     		}

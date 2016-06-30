@@ -657,6 +657,19 @@ div.productImage {
   .product-component-title .anchor-arrow {
     margin-top: -3px; }
 
+.group-link {
+  font-size: 0.8em;
+  background-color: #e4e4e4;
+  border: 1px solid #aaaaaa;
+  border-radius: 4px;
+  margin-top: 5px;
+  padding: 1px 5px;
+  color: #333333 !important;
+  cursor: pointer; }
+  .group-link:hover {
+    color: black !important;
+    background-color: #f1f1f1; }
+
 .groupList .small-padding .productGroupInfo {
   padding-top: 10px !important;
   text-decoration: underline;

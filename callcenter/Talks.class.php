@@ -554,7 +554,7 @@ class callcenter_Talks extends core_Master
                 }
             } else {
                 // Добавяме грешката
-                $errArr[] = 'Има запис за този вътрешен номер с това id';
+                $errArr[] = 'Дублирана заявка за регистриране на обаждане';
             }
         }
         
@@ -703,7 +703,7 @@ class callcenter_Talks extends core_Master
                     $deviationAnswVerbal = $TimeInst->toVerbal($deviationSecsAnsw);
                     
                     // Записваме в лога
-                    $errArr[] = "Разминаване във времето на сървара и подаденото в URL с {$deviationAnswVerbal} за Време->Отговор";
+                    $errArr[] = "Разминаване във времето на сървъра и подаденото в URL с {$deviationAnswVerbal} за Време->Отговор";
                     
                     // Задаваме текущото време
                     $answerTime = $now;
@@ -772,7 +772,7 @@ class callcenter_Talks extends core_Master
             // Ако няма такъв запис
             
             // Добавяме грешката
-            $errArr[] = 'Няма такъв запис';
+            $errArr[] = 'Няма регистрирано начало на разговор';
         }
         
         // Ако има грешки, ги записваме в лога

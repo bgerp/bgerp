@@ -56,7 +56,7 @@ class cat_Categories extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи';
+    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи,count=Артикули';
     
     
     /**
@@ -182,7 +182,7 @@ class cat_Categories extends core_Master
         $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като прототипи->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('prefix', 'varchar(64)', 'caption=Настройки - препоръчителни за артикулите в категорията->Начало код');
-        $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Маркери,columns=2');
+        $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Групи,columns=2');
         $this->FLD('params', 'keylist(mvc=cat_Params,select=name,makeLinks)', 'caption=Настройки - препоръчителни за артикулите в категорията->Параметри');
         
         // Свойства присъщи на продуктите в групата
@@ -223,6 +223,11 @@ class cat_Categories extends core_Master
     {
     	if($fields['-list']){
     		$row->name .= " {$row->folder}";
+    		
+    		$count = cat_Products::count("#folderId = '{$rec->folderId}'");
+    		
+    		$row->count = cls::get('type_Int')->toVerbal($count);
+    		$row->count = "<span style='float:right'>{$row->count}</span>";
     	}
     }
     
@@ -397,5 +402,47 @@ class cat_Categories extends core_Master
     	
     	// Връщаме готовите опции
     	return $opt;
+    }
+    
+    
+    /**
+     * След подготовка на филтъра за филтриране в корицата
+     * 
+     * @param core_mvc $mvc
+     * @param core_Form $threadFilter
+     * @param core_Query $threadQuery
+     */
+    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
+    {
+    	// Добавяме поле за избор на групи
+    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name)', 'caption=Група');
+    	$threadFilter->showFields .= ",group";
+    	$threadFilter->input('group');
+    	
+    	if(isset($threadFilter->rec)){
+    		
+    		// Ако търсим по група
+    		if($group = $threadFilter->rec->group){
+    			$catClass = cat_Products::getClassId();
+    			
+    			// Подготвяме заявката да се филтрират само нишки с начало Артикул
+    			$threadQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
+    			$threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+    			$threadQuery->where("#docClass = {$catClass}");
+    			
+    			// Разпъваме групите
+    			$descendants = cat_groups::getDescendantArray($group);
+    			$keylist = keylist::fromArray($descendants);
+    			
+    			// Намираме ид-та на артикулите от тези групи
+    			$catQuery = cat_Products::getQuery();
+    			$catQuery->likeKeylist("groups", $keylist);
+    			$catQuery->show('id');
+    			$productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
+    			
+    			// Искаме от нишките да останат само тези за въпросните артикули
+    			$threadQuery->in('docId', $productIds);
+    		}
+    	}
     }
 }

@@ -312,10 +312,10 @@ class planning_Jobs extends core_Master
     		}
     	}
 
-    	// Бутон за добавяне на документ за бързо производство
+    	// Бутон за добавяне на документ за производство
     	if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
     	}
     }
     
@@ -437,6 +437,10 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+    		$row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
+    		$row->captionNotStored = ($canStore == 'yes') ? tr('Незаскладено') : tr('Неизпълнено');
+    		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
     		}
@@ -468,6 +472,16 @@ class planning_Jobs extends core_Master
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		if(isset($rec->dueDate)){
     			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
+    	}
+    	
+    	if($fields['-single']){
+    		if(!$rec->quantityFromTasks){
+    			unset($row->quantityFromTasks, $row->quantityNotStored);
+    			unset($row->captionNotStored);
+    		} else {
+    			$row->measureId2 = $row->measureId;
+    			$row->quantityFromTasksCaption = tr('Произведено');
     		}
     	}
     }
@@ -836,7 +850,7 @@ class planning_Jobs extends core_Master
     		$producedQuantity += $prodQuery->fetch()->totalQuantity;
     	}
     	
-    	// Взимаме к-та на произведените артикули по заданието в протокола за бързо производство
+    	// Взимаме к-та на произведените артикули по заданието в протокола за производство
     	$directProdQuery = planning_DirectProductionNote::getQuery();
     	$directProdQuery->where("#originId = {$rec->containerId}");
     	$directProdQuery->where("#state = 'active'");
