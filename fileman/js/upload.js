@@ -55,7 +55,7 @@ $(document).ready(function() {
 				this.progressBar.append(this.cancelButton);
 				
 				// Процентите на прогрес бара
-                this.progressBarPercent = $('<span>0%</span>');
+                this.progressBarPercent = $('<span class="percent">0%</span>');
 				this.progressBar.append(this.progressBarPercent);
                 
 				this.block.append(this.progressBar);

@@ -184,14 +184,15 @@
   background: url('../img/progress.gif');
   height: 16px;
   margin-top: 1px;
-  color: white;
   display: inline-block;
   text-align: center;
-  padding: 1px 3px 1px 12px;
+  padding: 1px 3px 1px 14px;
   border-radius: 3px;
   box-shadow: 0 0 1px #999999;
-  position: relative;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8); }
+  position: relative; }
+  .progressBarBlock .percent {
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    color: white; }
 
 .cancelButton {
   position: absolute;
@@ -199,6 +200,7 @@
   top: 0px;
   font-size: 0.9em;
   color: black;
+  box-shadow: none !important;
   cursor: pointer; }
 
 #uploadsTitle {
@@ -232,6 +234,6 @@
 .uploaded-title {
   background-image: url('../../img/16/tick-circle-frame.png'); }
 
-#btn-ulfile {
+.btn-ulfile {
   background-image: url('../../img/16/paper_clip.png'); }
 
