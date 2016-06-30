@@ -216,6 +216,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('code', 'smet50big');
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'черен');
+        $browser->setValue('meta_canBuy', 'canBuy');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -224,7 +225,6 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->click('Чувал голям 50 L');
             $browser->press('Редакция');
             $browser->setValue('info', 'прозрачен');
-            $browser->setValue('meta_canBuy', 'canBuy');
             //$browser->setValue('groups[4]', '4');
             $browser->press('Запис');
         } else {
