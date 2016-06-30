@@ -289,6 +289,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 			$row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
 		}
+		
+		$row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : ((isset($rec->dealId)) ? 'Изпълняване на услуга' : 'Разходи за спомагателна дейност');
+		$row->subTitle = tr($row->subTitle);
 	}
 	
 	
