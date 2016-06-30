@@ -393,7 +393,7 @@ class price_ListToCustomers extends core_Detail
         
         // Проверяваме имали последна цена по оферта
         $rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity);
-
+		
         // Ако има връщаме нея
         if(empty($rec->price)){
         	
@@ -440,11 +440,11 @@ class price_ListToCustomers extends core_Detail
         		$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         	}
         }
-       
+        
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if(!is_null($rec->price)){
         	$vat = cat_Products::getVat($productId);
-        	$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat, $listRec->roundingPrecision);
+        	$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
        
         // Връщаме цената
@@ -519,6 +519,11 @@ class price_ListToCustomers extends core_Detail
     				$rec->price  = $comparePrice;
     			}
     		}
+    	}
+    	
+    	// Ако има указано закръгляне на ценоразписа, закръгляме 
+    	if(!is_null($rec->price) && isset($listRec->roundingPrecision)){
+    		$rec->price = round($rec->price, $listRec->roundingPrecision);
     	}
     	
     	return $rec;
