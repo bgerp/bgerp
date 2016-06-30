@@ -81,11 +81,11 @@ $(document).ready(function() {
 	            this.progressBar.remove();
 	            this.fileName.remove();
 	            
+	            $('#add-file-info').stop();
+	            
 	            // Показваме информация за качения файл
 	            if (data.success) {
 	                $('#add-success-info').append(data.res);
-	                
-	                $('#add-file-info').stop();
 	                
 	                $('#add-file-info').animate({
 	                    scrollTop: $("#add-file-info").prop('scrollHeight')
@@ -96,8 +96,6 @@ $(document).ready(function() {
 	                $('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
 		    		$('#ulfile').removeClass('hidden-input');
 					$("#btn-ulfile").show();
-					
-					$('#add-file-info').stop();
 					
 					$('#add-file-info').animate({
 				        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-еrror").prop('scrollHeight')
