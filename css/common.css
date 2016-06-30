@@ -415,6 +415,13 @@ input[type="search"] {
 
 /*
  * *
+ * хак за смяна на цвета на плейсхолдърите в IE11
+ */
+input:-ms-input-placeholder {
+  color: #999999; }
+
+/*
+ * *
  * * Remove inner padding and search cancel button in Safari 5 and Chrome
  * * on OS X.
  */
