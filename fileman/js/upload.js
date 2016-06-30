@@ -84,12 +84,24 @@ $(document).ready(function() {
 	            // Показваме информация за качения файл
 	            if (data.success) {
 	                $('#add-success-info').append(data.res);
+	                
+	                $('#add-file-info').stop();
+	                
+	                $('#add-file-info').animate({
+	                    scrollTop: $("#add-file-info").prop('scrollHeight')
+	                }, 2000);
 	            } else {
 	                $('#add-error-info').append(data.res);
 	                
 	                $('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
 		    		$('#ulfile').removeClass('hidden-input');
 					$("#btn-ulfile").show();
+					
+					$('#add-file-info').stop();
+					
+					$('#add-file-info').animate({
+				        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-еrror").prop('scrollHeight')
+				    }, 2000);
 	            }
 	            
 	            // Ако няма други файлове за качване, показваме бутона за добавяне на файл
