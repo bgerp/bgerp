@@ -108,18 +108,17 @@ class cat_PriceDetails extends core_Manager
     		$rec = new stdClass();
     	}
     	
-    	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterId, NULL, $now);
+    	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterId, NULL, $now, $validFrom);
     	if(isset($primeCost)){
-    		$primeCostDate = $pRec->validFrom;
+    		$primeCostDate = $validFrom;
     	}
         
-    	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId);
+    	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId, NULL, $now, $validFrom);
     	if($catalogCost == 0 && !isset($rec->primeCost)){
     		$catalogCost = NULL;
     	}
-    	$catalogCost = $catalogCost;
     	if(isset($catalogCost)){
-    		$catalogCostDate = $now;
+    		$catalogCostDate = $validFrom;
     	}
     	
     	$lQuery = price_ListRules::getQuery();
