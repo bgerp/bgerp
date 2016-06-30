@@ -251,7 +251,7 @@ class cat_PriceDetails extends core_Manager
     	// Бутон за задаване на правило за обновяване
     	$type = ($data->masterMvc instanceof cat_Products) ? 'product' : 'category';
     	if(price_Updates::haveRightFor('add', (object)array('type' => $type, 'objectId' => $data->masterId))){
-    		$tpl->append(ht::createBtn('Правило за обновяване', array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на ново правило за обновяване'), 'updateInfo');
+    		$tpl->append(ht::createBtn('Правило за обновяване', array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'updateInfo');
     	}
     	
     	// Ако има ценова информация, рендираме я
