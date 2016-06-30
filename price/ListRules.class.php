@@ -294,7 +294,7 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
-    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
+    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL, &$validFrom = NULL)
     {  
         // Проверка, дали цената я няма в кеша
     	//$price = price_History::getPrice($listId, $datetime, $productId);
@@ -327,7 +327,7 @@ class price_ListRules extends core_Detail
         		$price = self::normalizePrice($rec, $vat, $datetime);
         	} else{
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
-        		$price = self::getPrice($parent, $productId, $packagingId, $datetime);
+        		$price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		
         		if(isset($price)){
         			if($rec->calculation == 'reverse') {
@@ -337,7 +337,7 @@ class price_ListRules extends core_Detail
         			}
         		}
         	}
-        	
+        	$validFrom = $rec->validFrom;
         } else{
         	$defaultSurcharge = price_Lists::fetchField($listId, 'defaultSurcharge');
         	
@@ -352,7 +352,7 @@ class price_ListRules extends core_Detail
         			if($parent == price_ListRules::PRICE_LIST_COST) return NULL;
         			 
         			// Питаме бащата за цената
-        			$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        			$price  = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		}
         	}
         }
@@ -366,7 +366,7 @@ class price_ListRules extends core_Detail
         	// Записваме току-що изчислената цена в историята;
         	//price_History::setPrice($price, $listId, $datetime, $productId);
         }
-
+        
         // Връщаме намерената цена
         return $price;
     }
