@@ -225,7 +225,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Редакция');
             $browser->setValue('info', 'прозрачен');
             $browser->setValue('meta_canBuy', 'canBuy');
-            $browser->setValue('groups[4]', '4');
+            //$browser->setValue('groups[4]', '4');
             $browser->press('Запис');
         } else {
             $browser->click('Добавяне на нов параметър');
@@ -401,11 +401,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Визитник');
         // търсим фирмата
         $browser->click('N');
-        //$browser->hasText( $Company);
         $Company = "NEW INTERNATIONAL GMBH";
-        //if(strpos($browser->gettext(), $Company)  && 0) {  - не работи
         if(strpos($browser->gettext(), $Company)) {
-            //bp($browser->gettext());
             //има такава фирма - редакция
             $browser->click($Company);
             $browser->press('Редакция');
