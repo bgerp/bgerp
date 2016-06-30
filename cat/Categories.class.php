@@ -221,6 +221,11 @@ class cat_Categories extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(empty($rec->useAsProto)){
+    		$rec->useAsProto = 'no';
+    		$row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal($rec->useAsProto);
+    	}
+    	
     	if($fields['-list']){
     		$row->name .= " {$row->folder}";
     		
