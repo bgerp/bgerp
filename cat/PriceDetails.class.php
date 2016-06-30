@@ -59,7 +59,6 @@ class cat_PriceDetails extends core_Manager
     	$listsData = clone $data;
     	$vatData = clone $data;
     	
-    	//$this->PriceGroup->preparePriceGroup($groupsData);
     	$this->preparePriceInfo($listsData);
     	$this->VatGroups->prepareVatGroups($vatData);
     	
@@ -109,20 +108,10 @@ class cat_PriceDetails extends core_Manager
     		$rec = new stdClass();
     	}
     	
-    	$vat = cat_Products::getVat($data->masterId);
-    	
-    	$lQuery = price_ListRules::getQuery();
-    	$lQuery->where("#listId = {$primeCostListId} AND #productId = {$data->masterId} AND #validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
-    	$lQuery->orderBy("#validFrom,#id", "DESC");
-        $lQuery->limit(1);
-        
-        if($pRec = $lQuery->fetch()){
-        	$primeCost = price_ListRules::normalizePrice($pRec, $vat, $now);
-        	
-	        if(isset($primeCost)){
-	    		$primeCostDate = $pRec->validFrom;
-	    	}
-        }
+    	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterId, NULL, $now);
+    	if(isset($primeCost)){
+    		$primeCostDate = $pRec->validFrom;
+    	}
         
     	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId);
     	if($catalogCost == 0 && !isset($rec->primeCost)){
