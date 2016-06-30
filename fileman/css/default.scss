@@ -72,7 +72,7 @@
 	background-color:#ddd !important; 
 }
 #add-file-info {
-	max-height:334px;
+	max-height:200px;
     overflow:auto;
 }
 .uploaded-filenames{
@@ -119,7 +119,6 @@
 	background-color:#ffe;
 	margin-bottom:5px;
 	font-size:0.9em;
-	width: 100%;
 	padding-left:23px !important;
 	background-repeat:no-repeat;
 	background-position: 3px center;
@@ -205,10 +204,6 @@
 	margin-top:5px;
 }
 
-#add-success-info {
-	display: table;
-}
-
 .progressBarBlock {
 	background:url('../img/progress.gif');
 	height: 16px;
@@ -240,7 +235,7 @@
 }
 
 .uploads-holder{
-	max-height:100px;
+	max-height:200px;
 	overflow:auto;
 }
 .fileman_Buckets {
