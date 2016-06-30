@@ -29,7 +29,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason'      => "Протокол за бързо производство №{$rec->id}",
+				'reason'      => "Протокол за производство №{$rec->id}",
 				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
 				'entries'     => array()
@@ -97,11 +97,15 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
 		} else {
-			$doc = doc_Containers::getDocument($rec->dealId);
-			$saleRec = $doc->fetch();
-			$array = array('703', array($saleRec->contragentClassId, $saleRec->contragentId),
-								  array($doc->getInstance()->className, $doc->that),
-								  array('cat_Products', $rec->productId));
+			if(isset($rec->dealId)){
+				$doc = doc_Containers::getDocument($rec->dealId);
+				$saleRec = $doc->fetch();
+				$array = array('703', array($saleRec->contragentClassId, $saleRec->contragentId),
+						array($doc->getInstance()->className, $doc->that),
+						array('cat_Products', $rec->productId));
+			} else {
+				$array = array('61201', array('cat_Products', $rec->productId));
+			}
 		}
 		
 		$dRecs = array();
@@ -114,7 +118,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		if(is_array($dRecs)){
 			
-			if(!count($dRecs) && empty($rec->inputStoreId)){
+			if(!count($dRecs)){
 				$rec->debitAmount = ($rec->debitAmount) ? $rec->debitAmount : 0;
 				
 				$amount = $rec->debitAmount;
@@ -122,9 +126,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$array['quantity'] = $rec->quantity;
 				
 				$entry = array('amount' => $amount,
-							   'debit' => $array,
+							   'debit'  => $array,
 							   'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-				//$total += $amount;
 					
 				$entries[] = $entry;
 			} else {
@@ -221,7 +224,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				
 				$costArray = array(
 						'amount' => $costAmount,
-						'debit' => $array,
+						'debit'  => $array,
 						'credit' => array('61102'),
 						'reason' => 'Разпределени режийни разходи');
 					
