@@ -72,7 +72,7 @@
 	background-color:#ddd !important; 
 }
 #add-file-info {
-	max-height:200px;
+	max-height:206px;
     overflow:auto;
 }
 .uploaded-filenames{
@@ -210,10 +210,9 @@
 	margin-top: 1px;
 	display: inline-block;
 	text-align: center;
-	padding: 1px 3px 1px 14px;
+	padding: 1px 0;
 	border-radius: 3px;
 	box-shadow: 0 0 1px #999;
-	position: relative;
 	.percent {
 		text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
 		color: #fff;
@@ -221,9 +220,7 @@
 }
 
 .cancelButton {
-	position: absolute;
-	left: 3px;
-	top: 0px;
+	width: 1%;
 	font-size: 0.9em;
 	color: #000;
 	cursor: pointer;
