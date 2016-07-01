@@ -46,6 +46,10 @@
        <span>|Валута:|* [#baseCurrencyCode#]</span>
 <!--ET_END currency-->
 
+<!--ET_BEGIN contragent-->
+       <span><br>|Контрагент:|* [#contragent#]</span>
+<!--ET_END contragent-->
+
 [#PAGER#]
 <div class='overflow-scroll'>
     [#CONTENT#]
