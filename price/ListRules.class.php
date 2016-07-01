@@ -198,9 +198,9 @@ class price_ListRules extends core_Detail
     			$currencyCode = $listRec->currency;
     		}
     	
-    		if(isset($vat)){
-    			expect(is_bool($vat));
-    			$vat = ($vat === TRUE) ? 'yes' : 'no';
+    		if(isset($vatPercent)){
+    			expect(is_bool($vatPercent));
+    			$vat = ($vatPercent === TRUE) ? 'yes' : 'no';
     		} else {
     			$vat = $listRec->vat;
     		}
