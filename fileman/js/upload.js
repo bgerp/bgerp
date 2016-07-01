@@ -396,7 +396,7 @@ function getFileName(filePath)
     	var string = fileNameArray[fileNameArray.length-1];
     	
     	// Лимитираме дължината и връщаме
-    	return limitLen(string, 40);
+    	return limitLen(string, 32);
 	}
 }
         
