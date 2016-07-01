@@ -267,14 +267,36 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('baseUnitRatio', '1000');
         $browser->setValue('defQuantity', '1');
         $browser->setValue('round', '0');
-        //bp($browser->gettext());
-         
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
     
     }
+    
+    /**
+     * 5. Създаване на група
+     */
+    //http://localhost/unit_MinkPbgERP/CreateGroup/
+    function act_CreateGroup()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нов параметър
+        $browser->click('Каталог');
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Промоция');
+        $browser->setValue('parentId', 'Ценова група');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+    
+    }
+    
     /**
      * 6. Създаване на артикул - продукт с параметри, ако го има - редакция.
      */
@@ -762,7 +784,6 @@ class unit_MinkPbgERP extends core_Manager {
         // Добавяме артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
-        //return $browser->getHtml();
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '15');
         $browser->setValue('packPrice', '1,66');
