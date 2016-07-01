@@ -893,4 +893,25 @@ class price_ListRules extends core_Detail
 		
 		return $options;
 	}
+	
+	
+	/**
+	 * След началното установяване на този мениджър
+	 */
+	static function loadSetupData()
+	{
+		// Ако няма правила създаваме дефолтни
+		if(!self::count()){
+			cls::get('cat_Groups')->setupMvc();
+			
+			$path = getFullPath('price/csv/CatalogRules.csv');
+			$csv = csv_Lib::getCsvRowsFromFile($path, array('firstRow' => FALSE));
+			$csvRows = $csv['data'];
+			if(is_array($csvRows)){
+				foreach ($csvRows as $row){
+					self::addGroupRule(self::PRICE_LIST_CATALOG, $row[1], $row[2]);
+				}
+			}
+		}
+	}
 }
