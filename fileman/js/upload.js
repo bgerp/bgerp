@@ -42,7 +42,7 @@ $(document).ready(function() {
                 this.fileTable = $('<table><tbody></tbody></table>');
                 
                 // Променлива за име на файл
-                this.fileName = file.name;
+                this.fileName = getFileName(file.name);
                 var td11 = $('<td class="fileNameRow"></td>');
                 td11.append(this.fileName);
             	
