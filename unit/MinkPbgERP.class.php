@@ -171,7 +171,6 @@ class unit_MinkPbgERP extends core_Manager {
         }
         return $browser->getHtml();
     }   
-    
     /**
      * 5. Създаване на категория.
      */
@@ -195,6 +194,33 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
         }
         return $browser->getHtml();
+    }
+    
+    /**
+     * 5. Създаване на параметър.
+     */
+    //http://localhost/unit_MinkPbgERP/CreateParam/
+    function act_CreateParam()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нов параметър
+        $browser->click('Каталог');
+        $browser->click('Параметри');
+        $browser->press('Нов запис');
+        $browser->setValue('driverClass', 'Символи');
+        $browser->setValue('name', 'Състояние');
+        //$browser->setValue('lenght', '15'); - не го приема
+        //bp($browser->gettext());
+       
+        $browser->press('Запис');
+        
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+        
     }
     
     /**
