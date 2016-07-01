@@ -1427,15 +1427,23 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if($mvc->haveRightFor('edit', $rec)){
-    			$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
+    			}
     		}
     		
     		$groups = keylist::toArray($rec->groups);
     		if(count($groups)){
-    			$listUrl = ($mvc->haveRightFor('list')) ? array($mvc, 'list', 'groupId' => $grId) : array();
+    			$listUrl = array();
     			
     			$row->groups = '';
     			foreach ($groups as $grId){
+    				if($mvc->haveRightFor('list')){
+    					if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    						$listUrl = array($mvc, 'list', 'groupId' => $grId);
+    					}
+    				}
+    				
     				$groupTitle = cat_Groups::getVerbal($grId, 'name');
     				$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, "class=group-link,title=Филтриране на артикули по група|* '{$groupTitle}'");
     				$row->groups .= $groupLink . " ";

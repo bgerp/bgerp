@@ -129,6 +129,7 @@ class cat_PriceDetails extends core_Manager
     	$lQuery->orderBy('validFrom', 'ASC');
     	$lQuery->limit(1);
     	if($lRec = $lQuery->fetch()){
+    		$vat = cat_Products::getVat($data->masterId, $now);
     		$futurePrimeCost = price_ListRules::normalizePrice($lRec, $vat, $now);
     		$futurePrimeCostDate = $lRec->validFrom;
     	}
