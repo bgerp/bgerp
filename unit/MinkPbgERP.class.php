@@ -216,13 +216,65 @@ class unit_MinkPbgERP extends core_Manager {
         //bp($browser->gettext());
        
         $browser->press('Запис');
-        
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
         
     }
+    /**
+     * 5. Създаване на мярка.
+     */
+    //http://localhost/unit_MinkPbgERP/CreateMeasure/
+    function act_CreateMeasure()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
     
+        // Създаване на нов параметър
+        $browser->click('Каталог');
+        $browser->click('Мерки');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Човекочас');
+        $browser->setValue('shortName', 'Чч');
+        $browser->setValue('defQuantity', '1');
+        $browser->setValue('round', '2');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+    
+    }
+    
+    /**
+     * 5. Създаване на опаковка.
+     */
+    //http://localhost/unit_MinkPbgERP/CreatePackage/
+    function act_CreatePackage()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нов параметър
+        $browser->click('Каталог');
+        $browser->click('Мерки');
+        $browser->click('Опаковки');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Контейнер');
+        $browser->setValue('shortName', 'Контейнер');
+        $browser->setValue('baseUnitId', 'литър');
+        $browser->setValue('baseUnitRatio', '1000');
+        $browser->setValue('defQuantity', '1');
+        $browser->setValue('round', '0');
+        //bp($browser->gettext());
+         
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+    
+    }
     /**
      * 6. Създаване на артикул - продукт с параметри, ако го има - редакция.
      */
