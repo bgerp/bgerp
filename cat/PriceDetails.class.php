@@ -55,14 +55,12 @@ class cat_PriceDetails extends core_Manager
     	$data->Tab = 'top';
     	$data->Order = 5;
     	 
-    	$groupsData = clone $data;
     	$listsData = clone $data;
     	$vatData = clone $data;
     	
     	$this->preparePriceInfo($listsData);
     	$this->VatGroups->prepareVatGroups($vatData);
     	
-    	$data->groupsData = $groupsData;
     	$data->listsData = $listsData;
     	$data->vatData = $vatData;
     }
