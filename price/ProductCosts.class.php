@@ -98,8 +98,9 @@ class price_ProductCosts extends core_Manager
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	
-    	if(cls::load($rec->documentClassId, TRUE)){
-    		$row->document = cls::get($rec->documentClassId)->getLink($rec->documentId, 0);
+    	if(cls::load($rec->documentClassId, TRUE) && isset($rec->documentId)){
+    		$Document = cls::get($rec->documentClassId);
+    		$row->document = $Document->getLink($rec->documentId, 0);
     	}
     	
     	$row->ROW_ATTR = array('class' => 'state-active');
