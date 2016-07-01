@@ -223,7 +223,7 @@ class price_ListRules extends core_Detail
     	
     	if($type == 'groupDiscount'){
     		expect(cls::get('type_Double')->fromVerbal($discount));
-    		expect($gRec = cat_groups::fetch(array('name = "[#1#]"', $groupName)));
+    		expect($gRec = cat_Groups::fetch(cat_Groups::forceGroup($groupName)));
     		$rec->groupId = $gRec->id;
     		$rec->discount = $discount;
     		
