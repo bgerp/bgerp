@@ -54,15 +54,6 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * При колко линка в тулбара на реда да не се показва дропдауна
-     * 
-     * @param int
-     * @see plg_RowTools2
-     */
-    public $rowToolsMinLinksToShow = 2;
-    
-    
-    /**
      * Поле за пулт-а
      */
     public $rowToolsField = 'tools';

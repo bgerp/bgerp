@@ -221,7 +221,7 @@ class price_Setup extends core_ProtoSetup
     		$lQuery->where("id != '{$costId}'");
     		$lQuery->show('defaultSurcharge');
     		while($lRec = $lQuery->fetch()){
-    			$lRec->defaultSurcharge = ($lRec->id == price_ListRules::PRICE_LIST_CATALOG) ? 0.2 : 0;
+    			$lRec->defaultSurcharge = ($lRec->id == price_ListRules::PRICE_LIST_CATALOG) ? NULL : 0;
     			$Lists->save_($lRec, 'defaultSurcharge');
     		}
     	} catch(core_exception_Expect $e){

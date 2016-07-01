@@ -59,7 +59,6 @@ class cat_PriceDetails extends core_Manager
     	$listsData = clone $data;
     	$vatData = clone $data;
     	
-    	//$this->PriceGroup->preparePriceGroup($groupsData);
     	$this->preparePriceInfo($listsData);
     	$this->VatGroups->prepareVatGroups($vatData);
     	
@@ -109,28 +108,17 @@ class cat_PriceDetails extends core_Manager
     		$rec = new stdClass();
     	}
     	
-    	$vat = cat_Products::getVat($data->masterId);
-    	
-    	$lQuery = price_ListRules::getQuery();
-    	$lQuery->where("#listId = {$primeCostListId} AND #productId = {$data->masterId} AND #validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
-    	$lQuery->orderBy("#validFrom,#id", "DESC");
-        $lQuery->limit(1);
+    	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterId, NULL, $now, $validFrom);
+    	if(isset($primeCost)){
+    		$primeCostDate = $validFrom;
+    	}
         
-        if($pRec = $lQuery->fetch()){
-        	$primeCost = price_ListRules::normalizePrice($pRec, $vat, $now);
-        	
-	        if(isset($primeCost)){
-	    		$primeCostDate = $pRec->validFrom;
-	    	}
-        }
-        
-    	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId);
+    	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId, NULL, $now, $validFrom);
     	if($catalogCost == 0 && !isset($rec->primeCost)){
     		$catalogCost = NULL;
     	}
-    	$catalogCost = $catalogCost;
     	if(isset($catalogCost)){
-    		$catalogCostDate = $now;
+    		$catalogCostDate = $validFrom;
     	}
     	
     	$lQuery = price_ListRules::getQuery();
@@ -251,7 +239,7 @@ class cat_PriceDetails extends core_Manager
     	// Бутон за задаване на правило за обновяване
     	$type = ($data->masterMvc instanceof cat_Products) ? 'product' : 'category';
     	if(price_Updates::haveRightFor('add', (object)array('type' => $type, 'objectId' => $data->masterId))){
-    		$tpl->append(ht::createBtn('Правило за обновяване', array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на ново правило за обновяване'), 'updateInfo');
+    		$tpl->append(ht::createBtn('Правило за обновяване', array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'updateInfo');
     	}
     	
     	// Ако има ценова информация, рендираме я

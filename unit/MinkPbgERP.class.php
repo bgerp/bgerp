@@ -171,7 +171,6 @@ class unit_MinkPbgERP extends core_Manager {
         }
         return $browser->getHtml();
     }   
-    
     /**
      * 5. Създаване на категория.
      */
@@ -198,6 +197,33 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
+     * 5. Създаване на параметър.
+     */
+    //http://localhost/unit_MinkPbgERP/CreateParam/
+    function act_CreateParam()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нов параметър
+        $browser->click('Каталог');
+        $browser->click('Параметри');
+        $browser->press('Нов запис');
+        $browser->setValue('driverClass', 'Символи');
+        $browser->setValue('name', 'Състояние');
+        //$browser->setValue('lenght', '15'); - не го приема
+        //bp($browser->gettext());
+       
+        $browser->press('Запис');
+        
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+        
+    }
+    
+    /**
      * 6. Създаване на артикул - продукт с параметри, ако го има - редакция.
      */
     //http://localhost/unit_MinkPbgERP/CreateProduct/
@@ -216,6 +242,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('code', 'smet50big');
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'черен');
+        $browser->setValue('meta_canBuy', 'canBuy');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -224,8 +251,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->click('Чувал голям 50 L');
             $browser->press('Редакция');
             $browser->setValue('info', 'прозрачен');
-            $browser->setValue('meta_canBuy', 'canBuy');
-            $browser->setValue('groups[4]', '4');
+            //$browser->setValue('groups[4]', '4');
             $browser->press('Запис');
         } else {
             $browser->click('Добавяне на нов параметър');
@@ -401,11 +427,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Визитник');
         // търсим фирмата
         $browser->click('N');
-        //$browser->hasText( $Company);
         $Company = "NEW INTERNATIONAL GMBH";
-        //if(strpos($browser->gettext(), $Company)  && 0) {  - не работи
         if(strpos($browser->gettext(), $Company)) {
-            //bp($browser->gettext());
             //има такава фирма - редакция
             $browser->click($Company);
             $browser->press('Редакция');

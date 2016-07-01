@@ -294,12 +294,11 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
-    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
+    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL, &$validFrom = NULL)
     {  
         // Проверка, дали цената я няма в кеша
-    	$price = price_History::getPrice($listId, $datetime, $productId);
-    	
-        if(isset($price)) return $price;
+    	//$price = price_History::getPrice($listId, $datetime, $productId);
+        //if(isset($price)) return $price;
         
         price_ListToCustomers::canonizeTime($datetime);
         $datetime = price_History::canonizeTime($datetime);
@@ -326,9 +325,11 @@ class price_ListRules extends core_Detail
         	if($rec->type == 'value') {
         		$vat = cat_Products::getVat($productId, $datetime);
         		$price = self::normalizePrice($rec, $vat, $datetime);
+        		$validFrom = $rec->validFrom;
         	} else{
+        		$validFrom = $rec->validFrom;
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
-        		$price = self::getPrice($parent, $productId, $packagingId, $datetime);
+        		$price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		
         		if(isset($price)){
         			if($rec->calculation == 'reverse') {
@@ -353,7 +354,7 @@ class price_ListRules extends core_Detail
         			if($parent == price_ListRules::PRICE_LIST_COST) return NULL;
         			 
         			// Питаме бащата за цената
-        			$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        			$price  = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		}
         	}
         }
@@ -365,9 +366,9 @@ class price_ListRules extends core_Detail
         	$price = round($price, 8);
         	
         	// Записваме току-що изчислената цена в историята;
-        	price_History::setPrice($price, $listId, $datetime, $productId);
+        	//price_History::setPrice($price, $listId, $datetime, $productId);
         }
-
+        
         // Връщаме намерената цена
         return $price;
     }
@@ -736,6 +737,7 @@ class price_ListRules extends core_Detail
 							 'listId'    => price_ListRules::PRICE_LIST_COST,
 							 'price'     => $primeCost,
 							 'vat'       => $vat,
+				             'priority'  => 1,
 							 'createdBy' => -1,
 							 'currency'  => $currencyCode);
 		

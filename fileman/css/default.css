@@ -67,7 +67,7 @@
   background-color: #dddddd !important; }
 
 #add-file-info {
-  max-height: 334px;
+  max-height: 200px;
   overflow: auto; }
 
 .uploaded-filenames {
@@ -184,23 +184,33 @@
   background: url('../img/progress.gif');
   height: 16px;
   margin-top: 1px;
-  color: white;
   display: inline-block;
   text-align: center;
-  padding: 1px 12px 1px 3px;
+  padding: 1px 3px 1px 14px;
   border-radius: 3px;
   box-shadow: 0 0 1px #999999;
   position: relative; }
+  .progressBarBlock .percent {
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    color: white; }
 
 .cancelButton {
   position: absolute;
-  right: 3px;
-  top: 1px;
-  font-size: 0.8em;
-  color: black; }
+  left: 3px;
+  top: 0px;
+  font-size: 0.9em;
+  color: black;
+  cursor: pointer; }
+
+#uploadsTitle {
+  margin-top: 10px; }
 
 .fileNameRow {
   margin-top: 3px; }
+
+.uploads-holder {
+  max-height: 200px;
+  overflow: auto; }
 
 .fileman_Buckets {
   background-image: url('../../img/16/database.png'); }
@@ -219,4 +229,10 @@
 
 .tab-title.fileman_Log {
   background-image: url('../../img/16/databases.png'); }
+
+.uploaded-title {
+  background-image: url('../../img/16/tick-circle-frame.png'); }
+
+.btn-ulfile {
+  background-image: url('../../img/16/paper_clip.png'); }
 
