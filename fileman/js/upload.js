@@ -38,27 +38,45 @@ $(document).ready(function() {
                 $('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled');
                 $('#inputDiv').hide();
                 
-                // Променлива за име на файл
-                this.fileName = $('<div class="fileNameRow">' + file.name + '</div>');
+                // За всеки файл, добавяме по една таблица
+                this.fileTable = $('<table><tbody></tbody></table>');
                 
-                $('#uploads').append(this.fileName);
+                // Променлива за име на файл
+                this.fileName = file.name;
+                var td11 = $('<td class="fileNameRow"></td>');
+                td11.append(this.fileName);
+            	
+                // Линк за спиране на качването по време на качване
+				var crossImg = '<img src="' + crossImgPng + '" align="absmiddle" alt="">';
+        		var cancelButton = $('<a style="color:red;" href="#">' + crossImg + '</a>');
+        		var that = this;
+				cancelButton.on('click', function(){
+					that.upload.cancel();
+				});
+                var td12 = $('<td class="cancelButton"></td>');
+                td12.append(cancelButton);
+                
+                tr1 = $('<tr></tr>');
+                tr1.append(td11);
+                tr1.append(td12);
+                
+                this.fileTable.append(tr1);
+            	
+                // Втория ред на таблицата
                 
                 // Променлива за прогрес бара
 				this.progressBar = $('<div class="progressBarBlock"></div>');
-				
-        		this.cancelButton = $('<span class="cancelButton">x</span>');
-        		var that = this;
-				this.cancelButton.on('click', function(){
-					that.upload.cancel();
-				});
-
-				this.progressBar.append(this.cancelButton);
-				
 				// Процентите на прогрес бара
                 this.progressBarPercent = $('<span class="percent">0%</span>');
 				this.progressBar.append(this.progressBarPercent);
                 
-				this.block.append(this.progressBar);
+                var tr2 = $('<tr></tr>');
+                var td21 = $('<td colspan=2></td>');
+                td21.append(this.progressBar);
+                tr2.append(td21);
+                this.fileTable.append(tr2);
+                
+                this.block.append(this.fileTable);
 				
 				$('#uploads').append(this.block);
         	},
@@ -78,8 +96,7 @@ $(document).ready(function() {
 	    	success: function(data) {
 	    		
 	    		// Премахваме прогрес бара и името на файла
-	            this.progressBar.remove();
-	            this.fileName.remove();
+	            this.fileTable.remove();
 	            
 	            $('#add-file-info').stop();
 	            
@@ -116,15 +133,14 @@ $(document).ready(function() {
 	    		$('#ulfile').removeClass('hidden-input');
 				$("#btn-ulfile").show();
 				
-	            this.progressBar.remove();
-	            this.fileName.remove();
+	            this.fileTable.remove();
 	            
 	            if (!$('.progressBarBlock').length) {
 	                $('#inputDiv').show();
 	                $('#uploadsTitle').css('display', 'none');
 	            }
 	            
-	            $('#add-error-info').append('<div class="upload-еrror">' + uploadErrStr + '<div><b>' + this.fileName.html() + '</b></div></div>');
+	            $('#add-error-info').append('<div class="upload-еrror">' + uploadErrStr + '<div><b>' + this.fileName + '</b></div></div>');
 	    	},
 	    	
 	    	// При натискане на бутона X за спиране на качването
@@ -134,7 +150,7 @@ $(document).ready(function() {
 				this.block.fadeOut(400, function(){
 					$(this).remove();
 					
-					that.fileName.remove();
+					that.fileTable.remove();
 					
 					if (!$('.progressBarBlock').length) {
 		                $('#inputDiv').show();
