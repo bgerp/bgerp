@@ -97,7 +97,6 @@ class price_ProductCosts extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
     	
     	if(cls::load($rec->documentClassId, TRUE)){
     		$row->document = cls::get($rec->documentClassId)->getLink($rec->documentId, 0);
