@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -164,7 +164,7 @@ class cat_Categories extends core_Master
     /**
      * Извиква се след подготовката на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$suggestions = cat_UoM::getUomOptions();
     	$data->form->setSuggestions('measures', $suggestions);
@@ -179,7 +179,7 @@ class cat_Categories extends core_Master
         $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
-        $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като прототипи->Използване,notNull,value=no');
+        $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като прототипи->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('prefix', 'varchar(64)', 'caption=Настройки - препоръчителни за артикулите в категорията->Начало код');
         $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Групи,columns=2');
@@ -207,7 +207,7 @@ class cat_Categories extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
@@ -219,8 +219,13 @@ class cat_Categories extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(empty($rec->useAsProto)){
+    		$rec->useAsProto = 'no';
+    		$row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal($rec->useAsProto);
+    	}
+    	
     	if($fields['-list']){
     		$row->name .= " {$row->folder}";
     		
@@ -263,7 +268,7 @@ class cat_Categories extends core_Master
     /**
      * Изпълнява се преди импортирването на данните
      */
-    public static function on_BeforeImportRec($mvc, &$rec)
+    protected static function on_BeforeImportRec($mvc, &$rec)
     {
     	if($rec->csv_measures){
     		$measures = arr::make($rec->csv_measures, TRUE);
@@ -278,7 +283,7 @@ class cat_Categories extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         $res .= core_Classes::add($mvc);
         

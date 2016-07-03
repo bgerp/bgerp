@@ -965,7 +965,13 @@ class doc_Containers extends core_Manager
             }
             
             // Добавяме останалата част от съобщението
-            $message .= " |в|* \"{$threadTitleArr[$rec->threadId]}\"";
+            $threadTitle = $threadTitleArr[$rec->threadId];
+            
+            if (!trim($threadTitle)) {
+                $threadTitle = '[' . tr('Липсва заглавие') . ']';
+            }
+            
+            $message .= " |в|* \"{$threadTitle}\"";
             
             // Никове, на другите потребители, които са добавили нещо
             $otherNick = '';

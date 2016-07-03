@@ -280,4 +280,60 @@ class cat_Groups extends core_Manager
     	
     	return $kList;
     }
+
+
+    /**
+     * Форсира група (маркер) от каталога
+     *
+     * @param   string  $name       Име на групата. Съдържа целия път
+     * @param   int     $parentId   Id на родител
+     *
+     * @return  int                  id на групата
+     */
+    static function forceGroup($name, $parentId = NULL)
+    {  
+        static $groups = array();
+        
+        $parentIdNumb = (int) $parentId;
+
+        if(!($res = $groups[$parentIdNumb][$name])) {
+            
+            if(strpos($name, '»')) {
+                $gArr = explode('»', $name);
+                foreach($gArr as $gName) {
+                    $gName = trim($gName);
+                    $parentId = self::forceGroup($gName, $parentId);
+                }
+
+                $res = $parentId;
+            } else {
+
+                if($parentId === NULL) {
+                   $cond = "AND #parentId IS NULL";
+                } else {
+                    expect(is_numeric($parentId), $parentId);
+
+                    $cond = "AND #parentId = {$parentId}";
+                }
+                
+                $gRec = cat_Groups::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
+
+                if(isset($gRec->name)) {
+                    $res = $gRec->id;
+                } else {
+
+                    $gRec = (object) array('name' => $name, 'orderProductBy' => 'code', 'meta' => 'canSell,canBuy,canStore,canConvert,canManifacture', 'parentId' => $parentId);
+
+                    cat_Groups::save($gRec);
+
+                    $res = $gRec->id;
+                }
+            }
+
+            $groups[$parentIdNumb][$name] = $res;
+        } 
+ 
+        return $res;
+    }
+
 }
