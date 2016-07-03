@@ -140,6 +140,7 @@ class crm_Locations extends core_Master {
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
         $this->setDbUnique('gln');
+        $this->setDbIndex('contragentId');
     }
     
     
@@ -250,10 +251,8 @@ class crm_Locations extends core_Master {
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $cMvc = cls::get($rec->contragentCls);
-        $field = $cMvc->rowToolsSingleField;
-        $cRec = $cMvc->fetch($rec->contragentId);
-        $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
-        $row->contragent = $cRow->{$field};
+        expect($rec->contragentId);
+        $row->contragent = $cMvc->getLinkForObject($rec->contragentId);
        
     	if($rec->image) {
 			$Fancybox = cls::get('fancybox_Fancybox');

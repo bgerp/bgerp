@@ -212,6 +212,7 @@ class price_ListRules extends core_Detail
     	}
     	
     	if($type == 'discount'){
+            if(!$discount) return FALSE;
     		expect(cls::get('type_Double')->fromVerbal($discount));
     		if(isset($calculation)){
     			expect(in_array($calculation, array('forward', 'reverse')));
@@ -222,8 +223,8 @@ class price_ListRules extends core_Detail
     	}
     	
     	if($type == 'groupDiscount'){
-    		expect(cls::get('type_Double')->fromVerbal($discount));
-    		expect($gRec = cat_Groups::fetch(cat_Groups::forceGroup($groupName)));
+            if(!$discount) return FALSE;
+     		expect($gRec = cat_Groups::fetch(cat_Groups::forceGroup($groupName)));
     		$rec->groupId = $gRec->id;
     		$rec->discount = $discount;
     		
@@ -638,12 +639,12 @@ class price_ListRules extends core_Detail
         		$state = 'closed';
         	} else {
         		if($rec->type == 'groupDiscount'){
-        			if($mvc->fetchField("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        				$state = 'closed';
+        			if($r = $mvc->fetch("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
+        				$state = 'closed';   
         			}
         		} else {
         			if($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        				$state = 'closed';
+        				$state = 'closed';  
         			}
         		}
         	}
