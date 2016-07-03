@@ -926,6 +926,11 @@ class fileman_Files2 extends core_Master
             $vName = fileman_Files::getVerbal($rec,'name');
         }
         
+        if (isset($attr['limitName'])) {
+            $vName = str::limitLen($vName, $attr['limitName']);
+            unset($attr['limitName']);
+        }
+        
         //Разширението на файла
         $ext = fileman_Files::getExt($name);
         

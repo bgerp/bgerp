@@ -198,9 +198,9 @@ class price_ListRules extends core_Detail
     			$currencyCode = $listRec->currency;
     		}
     	
-    		if(isset($vat)){
-    			expect(is_bool($vat));
-    			$vat = ($vat === TRUE) ? 'yes' : 'no';
+    		if(isset($vatPercent)){
+    			expect(is_bool($vatPercent));
+    			$vat = ($vatPercent === TRUE) ? 'yes' : 'no';
     		} else {
     			$vat = $listRec->vat;
     		}
@@ -212,6 +212,7 @@ class price_ListRules extends core_Detail
     	}
     	
     	if($type == 'discount'){
+            if(!$discount) return FALSE;
     		expect(cls::get('type_Double')->fromVerbal($discount));
     		if(isset($calculation)){
     			expect(in_array($calculation, array('forward', 'reverse')));
@@ -222,8 +223,8 @@ class price_ListRules extends core_Detail
     	}
     	
     	if($type == 'groupDiscount'){
-    		expect(cls::get('type_Double')->fromVerbal($discount));
-    		expect($gRec = cat_groups::fetch(array('name = "[#1#]"', $groupName)));
+            if(!$discount) return FALSE;
+     		expect($gRec = cat_Groups::fetch(cat_Groups::forceGroup($groupName)));
     		$rec->groupId = $gRec->id;
     		$rec->discount = $discount;
     		
@@ -294,12 +295,11 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
-    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
+    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL, &$validFrom = NULL)
     {  
         // Проверка, дали цената я няма в кеша
-    	$price = price_History::getPrice($listId, $datetime, $productId);
-    	
-        if(isset($price)) return $price;
+    	//$price = price_History::getPrice($listId, $datetime, $productId);
+        //if(isset($price)) return $price;
         
         price_ListToCustomers::canonizeTime($datetime);
         $datetime = price_History::canonizeTime($datetime);
@@ -326,9 +326,11 @@ class price_ListRules extends core_Detail
         	if($rec->type == 'value') {
         		$vat = cat_Products::getVat($productId, $datetime);
         		$price = self::normalizePrice($rec, $vat, $datetime);
+        		$validFrom = $rec->validFrom;
         	} else{
+        		$validFrom = $rec->validFrom;
         		expect($parent = price_Lists::fetchField($listId, 'parent'));
-        		$price = self::getPrice($parent, $productId, $packagingId, $datetime);
+        		$price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		
         		if(isset($price)){
         			if($rec->calculation == 'reverse') {
@@ -353,7 +355,7 @@ class price_ListRules extends core_Detail
         			if($parent == price_ListRules::PRICE_LIST_COST) return NULL;
         			 
         			// Питаме бащата за цената
-        			$price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+        			$price  = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		}
         	}
         }
@@ -365,9 +367,9 @@ class price_ListRules extends core_Detail
         	$price = round($price, 8);
         	
         	// Записваме току-що изчислената цена в историята;
-        	price_History::setPrice($price, $listId, $datetime, $productId);
+        	//price_History::setPrice($price, $listId, $datetime, $productId);
         }
-
+        
         // Връщаме намерената цена
         return $price;
     }
@@ -637,12 +639,12 @@ class price_ListRules extends core_Detail
         		$state = 'closed';
         	} else {
         		if($rec->type == 'groupDiscount'){
-        			if($mvc->fetchField("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        				$state = 'closed';
+        			if($r = $mvc->fetch("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
+        				$state = 'closed';   
         			}
         		} else {
         			if($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        				$state = 'closed';
+        				$state = 'closed';  
         			}
         		}
         	}
@@ -736,6 +738,7 @@ class price_ListRules extends core_Detail
 							 'listId'    => price_ListRules::PRICE_LIST_COST,
 							 'price'     => $primeCost,
 							 'vat'       => $vat,
+				             'priority'  => 1,
 							 'createdBy' => -1,
 							 'currency'  => $currencyCode);
 		
@@ -890,5 +893,26 @@ class price_ListRules extends core_Detail
 		}
 		
 		return $options;
+	}
+	
+	
+	/**
+	 * След началното установяване на този мениджър
+	 */
+	static function loadSetupData()
+	{
+		// Ако няма правила създаваме дефолтни
+		if(!self::count()){
+			cls::get('cat_Groups')->setupMvc();
+			
+			$path = getFullPath('price/csv/CatalogRules.csv');
+			$csv = csv_Lib::getCsvRowsFromFile($path, array('firstRow' => FALSE));
+			$csvRows = $csv['data'];
+			if(is_array($csvRows)){
+				foreach ($csvRows as $row){
+					self::addGroupRule(self::PRICE_LIST_CATALOG, $row[1], $row[2]);
+				}
+			}
+		}
 	}
 }

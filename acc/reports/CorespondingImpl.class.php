@@ -226,9 +226,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$data->recsAll = array();
     	$form = $this->innerForm;
 
-    	$date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare);
+    	$date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare); 
     	$data->toOld = $date->to;
     	$data->fromOld = $date->from;
+    	$data->contragent = $form->ent1Id;
+    	$data->compare = $form->compare;
 
     	$data->groupBy = array();
     	foreach (range(1, 6) as $i){
@@ -523,6 +525,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} else {
     	    $tpl->placeObject($data->summary);
     	    $tpl->removeBlock('summeryAll');
+    	}
+    	
+    	if($data->contragent) {
+    	   $tpl->replace(acc_Items::getVerbal($data->contragent, 'titleLink'), 'contragent');
     	}
     	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
 

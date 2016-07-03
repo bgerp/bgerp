@@ -840,8 +840,8 @@ class unit_MinkPPayment extends core_Manager {
      * Нова продажба на съществуваща фирма с папка
      * Проверка състояние плащане - чакащо, метод - до x дни след фактуриране (3,7,10,15,21,30) в ден преди падеж
      */
-    //http://localhost/unit_MinkPPayment/CreateSaleWait/
-    function act_CreateSaleWait()
+    //http://localhost/unit_MinkPPayment/CreateSaleWait3/
+    function act_CreateSaleWait3()
     {
     
         // Логваме се
@@ -867,7 +867,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'Wait');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPPaymentCreateSaleWait');
+        $browser->setValue('note', 'MinkPPaymentCreateSaleWait3');
         $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -1174,12 +1174,12 @@ class unit_MinkPPayment extends core_Manager {
         // експедиционно нареждане
         $browser->press('Експедиране');
         $browser->setValue('storeId', 'Склад 1');
-        $browser->press('Чернова');
         $browser->setValue('template', 'Експедиционно нареждане с цени');
+        $browser->press('Чернова');
         $browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Контиране')) {
         //}
-        if(strpos($browser->gettext(), 'Двадесет и седем хиляди осемстотин и осемнадесет')) {
+        if(strpos($browser->gettext(), 'Четири хиляди седемстотин петдесет и осем BGN и 0,35')) {
         // връща грешка, ако не е избрано ЕН с цени
         } else {
             return "Грешна сума в ЕН";
@@ -1198,7 +1198,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         //return 'paymentType';
         //$browser->setValue('paymentType', 'По банков път');
-        
         $browser->press('Контиране');
         
         // ПКО
@@ -1689,7 +1688,7 @@ class unit_MinkPPayment extends core_Manager {
         
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '1176');
+        $browser->setValue('number', '12176');
         $browser->press('Чернова');
         $browser->press('Контиране');
         

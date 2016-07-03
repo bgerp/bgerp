@@ -219,7 +219,7 @@ class fileman_Buckets extends core_Manager {
     function getInfoAfterAddingFile($fh)
     {
         // Линк към сингъла на файла
-        $link = fileman::getLinkToSingle($fh, FALSE, array('target' => '_blank'));
+        $link = fileman::getLinkToSingle($fh, FALSE, array('target' => '_blank', 'limitName' => 32));
         
         return new ET("<div class='uploaded-title'> <b>{$link}</b> </div>");
     }

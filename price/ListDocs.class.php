@@ -402,7 +402,7 @@ class price_ListDocs extends core_Master
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
-    		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date, TRUE);
+    		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
     		$vat = cat_Products::getVat($product->productId);
     		$displayedPrice = deals_Helper::getDisplayPrice($displayedPrice, $vat, $rec->currencyRate, $rec->vat);
     		if(!empty($rec->listRec->roundingPrecision)){
@@ -469,7 +469,7 @@ class price_ListDocs extends core_Master
     private function calculateProductWithPack($rec, $product, $packagingRec)
     {
     	$clone = clone $product;
-    	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date, TRUE);
+    	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date);
     	if(!$price) return;
     	
     	$clone->priceP  = $packagingRec->quantity * $price;
