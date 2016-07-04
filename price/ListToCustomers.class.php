@@ -14,9 +14,10 @@
  * @since     v 0.1
  * @title     Клиентски ценови политики
  */
-class price_ListToCustomers extends core_Detail
+class price_ListToCustomers extends core_Manager
 {
     
+	
     /**
      * Заглавие
      */
@@ -44,7 +45,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'listId, cClass, cId, validFrom, createdBy, createdOn';
+    public $listFields = 'listId=Политика, cClass=Контрагент, validFrom=В сила от, createdBy=Създаване->От, createdOn=Създаване->На,state=Състояние';
     
     
     /**
@@ -64,17 +65,17 @@ class price_ListToCustomers extends core_Detail
      */
     public $canAdd = 'powerUser';
     
-        
+
+    /**
+     * Кой има право да листва?
+     */
+    public $canList = 'admin,debug';
+    
+    
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'powerUser';
-    
-
-    /**
-     * Поле - ключ към мастера
-     */
-    public $masterKey = 'cId';
     
 
     /**
@@ -90,11 +91,14 @@ class price_ListToCustomers extends core_Detail
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('cId', 'int', 'caption=Клиент->Обект');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
+        $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
+        $this->FLD('validFrom', 'datetime(format=smartTime)', 'caption=В сила от');
+        $this->FLD('state', 'enum(closed=Неактивен,active=Активен)', 'caption=Състояние,input=none');
         $this->EXT('listState', 'price_Lists', 'externalName=state,externalKey=listId');
         
         $this->setDbIndex('cClass,cId');
+        $this->setDbIndex('state');
+        $this->setDbIndex('listId');
     }
 
     
@@ -107,17 +111,12 @@ class price_ListToCustomers extends core_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()) {
-            
             $rec = $form->rec;
 
             $now = dt::verbal2mysql();
 
             if(!$rec->validFrom) {
                 $rec->validFrom = $now;
-            }
-
-            if($rec->validFrom < $now) {
-                $form->setError('validFrom', 'Ценоразписа не може да се задава с минала дата');
             }
 
             if($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
@@ -146,53 +145,6 @@ class price_ListToCustomers extends core_Detail
         	$data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId, 'ret_url' => TRUE), NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }
     }
-
-
-    /**
-     * След подготовка на заявката към детайла
-     */
-    protected static function on_AfterPrepareDetailQuery($mvc, $data)
-    {
-        $cClassId = core_Classes::getId($data->masterMvc);
-        
-        $data->query->where("#cClass = {$cClassId}");
-
-        $data->query->orderBy("#validFrom,#id", "DESC");
-    }
-
-    
-    /**
-     * Кой е мастър класа
-     */
-    public function getMasterMvc_($rec)
-    {
-        $masterMvc = cls::get($rec->cClass);
- 
-        return $masterMvc;      
-    }
-    
-    
-    /**
-     * Кое поле е ключ към мастъра
-     */
-    public function getMasterKey_($rec)
-    {
-        return 'cId';      
-    }
-    
-    
-    /**
-     * След като се намери мастъра
-     */
-    protected static function on_AfterGetMasters($mvc, &$masters, $rec)
-    {
-        if (empty($masters)) {
-            $masters = array();
-        }
-        
-        $masters['cId']    = cls::get($rec->cClass);
-        $masters['listId'] = cls::get('price_Lists');
-    }
     
 
     /**
@@ -200,33 +152,7 @@ class price_ListToCustomers extends core_Detail
      */
     protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $data->toolbar->removeBtn('*');
-            $masterClassId = core_Classes::getId($data->masterMvc);
-            $masterRec = $data->masterMvc->fetch($data->masterId);
-            
-            if($data->masterMvc->haveRightFor('edit', $masterRec)){
-            	$data->addUrl = array($mvc, 'add', 'cClass' => $masterClassId, 'cId' => $data->masterId, 'ret_url' => TRUE);
-            }
-        }
-    }
-
-	
-    /**
-     * След рендиране на детайла
-     */
-    protected static function on_AfterRenderDetail($mvc, &$tpl, $data)
-    {
-        $wrapTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $wrapTpl->append($mvc->title, 'title');
-        $wrapTpl->append($tpl, 'content');
-        $wrapTpl->replace(get_class($mvc), 'DetailName');
-    
-        $tpl = $wrapTpl;
-        
-        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на Ценова политика'), 'title');
-        }
+       $data->toolbar->removeBtn('btnAdd');
     }
 
 
@@ -278,38 +204,24 @@ class price_ListToCustomers extends core_Detail
      */
     public function preparePricelists($data)
     { 
-        static::prepareDetail($data);
-		
-        $now = dt::verbal2mysql();
-
-        $cClassId = core_Classes::getId($data->masterMvc);
+    	$data->TabCaption = 'Цени';
+    	
+    	$data->recs = $data->rows = array();
+    	$query = self::getQuery();
+        $query->where("#listState != 'rejected'");
+        $query->where("#cClass={$data->masterMvc->getClassId()} AND #cId = {$data->masterId}");
+        $query->orderBy("#validFrom,#id", 'DESC');
         
-        $validRec = self::getValidRec($cClassId, $data->masterId, $now);
-       
-        if(count($data->rows)) {
-            foreach($data->rows as $id => &$row) {
-                $rec = $data->recs[$id];
-                if($rec->state == 'rejected'){
-                	unset($data->rows[$id]);
-                	continue;
-                }
-                
-                if($rec->validFrom > $now) {
-                    $state = 'draft';
-                } elseif($validRec->id == $rec->id) {
-                    $state = 'active';
-                } else {
-                    $state = 'closed';
-                }
-                $data->rows[$id]->ROW_ATTR['class'] = "state-{$state}";
-
-                if(price_Lists::haveRightFor('single', $rec)) {
-                    $row->listId = ht::createLink($row->listId, array('price_Lists', 'single', $rec->listId));
-                }
-            }
-        }
-
-        $data->TabCaption = 'Цени';
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$data->rows[$rec->id] = self::recToVerbal($rec);
+    	}
+    	
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if($data->masterMvc->haveRightFor('edit', $data->masterData->rec)){
+    			$data->addUrl = array($this, 'add', 'cClass' => $data->masterMvc->getClassId(), 'cId' => $data->masterId, 'ret_url' => TRUE);
+    		}
+    	}
     }
 
 
@@ -331,11 +243,23 @@ class price_ListToCustomers extends core_Detail
      */
     public function renderPricelists($data)
     {
-        // Премахваме контрагента - в случая той е фиксиран и вече е показан 
-        unset($data->listFields[$this->masterKey]);
-        unset($data->listFields['cClass']);
+    	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	
+    	$listFields = $this->listFields;
+    	$listFields = arr::make($listFields, TRUE);
+    	unset($listFields['cClass']);
+    	
+        $table = cls::get('core_TableView', array('mvc' => $this));
         
-        return static::renderDetail($data);
+        $tpl->append($this->title, 'title');
+        $tpl->append($table->get($data->rows, $listFields), 'content');
+        $tpl->replace(get_class($mvc), 'DetailName');
+        
+        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на Ценова политика'), 'title');
+        }
+        
+        return $tpl;
     }
 
     
@@ -344,10 +268,10 @@ class price_ListToCustomers extends core_Detail
      */
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
-        price_History::removeTimeline();
+    	static::updateStates($rec->cClass, $rec->cId);
+    	price_History::removeTimeline();
     }
-
-
+    
 
     /****************************************************************************************************
      *                                                                                                  *
@@ -364,12 +288,7 @@ class price_ListToCustomers extends core_Detail
         static::canonizeTime($datetime);
     	
     	$validRec = self::getValidRec($customerClass, $customerId, $datetime);
-
-        if($validRec) {
-            $listId   = $validRec->listId;
-        } else {
-            $listId = price_ListRules::PRICE_LIST_CATALOG;
-        }
+    	$listId = ($validRec) ? $validRec->listId : price_ListRules::PRICE_LIST_CATALOG;
         
         return $listId;
     }
@@ -549,5 +468,70 @@ class price_ListToCustomers extends core_Detail
 	          }
 	      }
 	   }
+	}
+	
+	
+	/**
+	 * Обновяване на състоянието на контрагентски рецепти
+	 * 
+	 * @param int $cClass - клас на контрагента
+	 * @param int $cId - клас Ид
+	 */
+	public static function updateStates($cClass = NULL, $cId = NULL)
+	{
+		$self = cls::get(get_called_class());
+		$query = self::getQuery();
+		
+		$query->where("#cClass IS NOT NULL AND #cId IS NOT NULL");
+		if(isset($cClass) && isset($cId)){
+			$query->where("#cClass = {$cClass} AND #cId = {$cId}");
+		}
+		
+		$count = $query->count();
+		if($count > 200){
+			core_App::setTimeLimit($count * 0.7);
+		}
+		
+		$recsToSave = array();
+		$cache = array();
+		while($rec = $query->fetch()){
+			$state = 'closed';
+			
+			$index = "$rec->cClass|$rec->cId";
+			if(!array_key_exists($index, $cache)){
+				$cache[$index] = self::getValidRec($rec->cClass, $rec->cId);
+			}
+			$aRec = $cache[$index];
+			
+			if(!empty($aRec) && $rec->id == $aRec->id){
+				$state = 'active';
+			}
+			
+			if($rec->state != $state){
+				$recsToSave[] = (object)array('id' => $rec->id, 'state' => $state);
+			}
+		}
+		
+		$self->saveArray($recsToSave, 'id,state');
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$row->cClass = cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE);
+		if($rec->validFrom > dt::now()){
+			$rec->state = 'draft';
+			$row->state = tr('Бъдещ');
+		}
+		
+		$row->ROW_ATTR['class'] = "state-{$rec->state}";
+		$row->listId = price_Lists::getHyperlink($rec->listId, TRUE);
 	}
 }

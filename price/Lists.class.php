@@ -468,4 +468,20 @@ class price_Lists extends core_Master
             $this->save($rec, NULL, 'REPLACE');
         }
     }
+    
+    
+    /**
+     * Премахва кеша за интервалите от време
+     */
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    {
+    	if(isset($rec->cClass) && isset($rec->cId)){
+    		price_ListToCustomers::updateStates($rec->cClass, $rec->cId);
+    	}
+    }
+    
+    function act_Test()
+    {
+    	price_ListToCustomers::updateStates(13, 4620);
+    }
 }

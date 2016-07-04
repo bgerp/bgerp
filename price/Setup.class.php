@@ -68,7 +68,8 @@ class price_Setup extends core_ProtoSetup
     		'price_ProductCosts',
     		'price_Updates',
     		'migrate::truncateProductCosts',
-    		'migrate::transferGroups'
+    		'migrate::transferGroups',
+    		'migrate::updateListStates'
         );
     
 
@@ -139,6 +140,8 @@ class price_Setup extends core_ProtoSetup
     	
     	$Rules = cls::get('price_ListRules');
     	$Rules->setupMvc();
+    	
+    	cls::get('price_ListToCustomers')->setupMvc();
     	
     	if (!$PriceGroups->db->tableExists($PriceGroups->dbTableName)) return;
     	core_App::setTimeLimit(300);
@@ -262,6 +265,21 @@ class price_Setup extends core_ProtoSetup
     			$Rules = cls::get('price_ListRules');
     			$Rules->saveArray($saveArray, 'id,priority');
     		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Обновяване на състоянията
+     */
+    function updateListStates()
+    {
+    	try{
+    		cls::get('price_ListToCustomers')->setupMvc();
+    		cls::get('price_Lists')->setupMvc();
+    		price_ListToCustomers::updateStates();
     	} catch(core_exception_Expect $e){
     		reportException($e);
     	}
