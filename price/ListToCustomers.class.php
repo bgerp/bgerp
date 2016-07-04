@@ -93,6 +93,8 @@ class price_ListToCustomers extends core_Detail
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
         $this->EXT('state', 'price_Lists', 'externalName=state,externalKey=listId', 'caption=Сметка->№');
+        
+        $this->setDbIndex('cClass,cId');
     }
 
     
