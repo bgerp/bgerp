@@ -247,6 +247,9 @@ class price_ListToCustomers extends core_Manager
     	
     	$listFields = $this->listFields;
     	$listFields = arr::make($listFields, TRUE);
+    	if(!haveRole('debug')){
+    		unset($listFields['state']);
+    	}
     	unset($listFields['cClass']);
     	
         $table = cls::get('core_TableView', array('mvc' => $this));
