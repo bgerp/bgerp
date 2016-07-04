@@ -92,7 +92,7 @@ class price_ListToCustomers extends core_Detail
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
-        $this->EXT('state', 'price_Lists', 'externalName=state,externalKey=listId', 'caption=Сметка->№');
+        $this->EXT('listState', 'price_Lists', 'externalName=state,externalKey=listId');
         
         $this->setDbIndex('cClass,cId');
     }
@@ -244,7 +244,7 @@ class price_ListToCustomers extends core_Detail
         $query = self::getQuery();
         $query->where("#cClass = {$customerClassId} AND #cId = {$customerId}");
         $query->where("#validFrom <= '{$datetime}'");
-        $query->where("#state != 'rejected'");
+        $query->where("#listState != 'rejected'");
         
         $query->limit(1);
         $query->orderBy("#validFrom,#id", 'DESC');
