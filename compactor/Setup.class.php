@@ -63,14 +63,10 @@ class compactor_Setup extends core_ProtoSetup
     {
         $res .= parent::loadSetupData($itr);
         
-        // JS и CSS файловете от конфигурацията
-//        $conf = core_Packs::getConfig('compactor');
-//        $jsFilesArr = arr::make($conf->COMPACTOR_JS_FILES, TRUE);
-//        $cssFilesArr = arr::make($conf->COMPACTOR_CSS_FILES, TRUE);
-        
         // JS и CSS файловете от конфигурацията от константите
-        $jsFilesArrB = arr::make(self::get('JS_FILES'));
-        $cssFilesArrB = arr::make(self::get('CSS_FILES'));
+        // Не се вземат с ::get, защото се връщат записаните в модела
+        $jsFilesArrB = arr::make(COMPACTOR_JS_FILES);
+        $cssFilesArrB = arr::make(COMPACTOR_CSS_FILES);
         
         $jsFilesArr = array();
         $cssFilesArr = array();

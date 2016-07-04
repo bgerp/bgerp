@@ -69,8 +69,28 @@ class fileman_Buckets extends core_Manager {
         // Плъгини за контрол на записа и модифицирането
         $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools2,fileman_Wrapper');
     }
-
-
+    
+    
+    /**
+     * Проверява дали потребителя има права за добавяне в кофата
+     * 
+     * @param integer $bucketId
+     * 
+     * @return boolean
+     */
+    public static function canAddFileToBucket($bucketId)
+    {
+        $bRec = self::fetch((int)$bucketId);
+        expect($bRec);
+        
+        if (!$bRec->rolesForAdding) return TRUE;
+        
+        if (haveRole($bRec->rolesForAdding)) return TRUE;
+        
+        return FALSE;
+    }
+    
+	
     /**
      * Връща id на кофата, според името и
      */
@@ -199,7 +219,7 @@ class fileman_Buckets extends core_Manager {
     function getInfoAfterAddingFile($fh)
     {
         // Линк към сингъла на файла
-        $link = fileman::getLinkToSingle($fh, FALSE, array('target' => '_blank'));
+        $link = fileman::getLinkToSingle($fh, FALSE, array('target' => '_blank', 'limitName' => 32));
         
         return new ET("<div class='uploaded-title'> <b>{$link}</b> </div>");
     }

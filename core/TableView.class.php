@@ -177,6 +177,10 @@ class core_TableView extends core_BaseClass
                     if ($colWithClass[$place]) {
                         $class .= " {$colWithClass[$place]}";
                     }
+ 
+                    if( ($place{0} == '_')) {
+                        $class .= ' centerCol';
+                    }
                     
                     if($class = trim($class)) {
                         $attr = " class=\"{$class}\"";

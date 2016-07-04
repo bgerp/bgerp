@@ -475,7 +475,7 @@ class doc_Threads extends core_Manager
     /**
      * Подготвя титлата на папката с теми
      */
-    static function on_AfterPrepareListTitle($mvc, &$res, $data)
+    protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         expect($data->folderId = Request::get('folderId', 'int'));
         
@@ -517,7 +517,7 @@ class doc_Threads extends core_Manager
      * @param doc_Threads $mvc
      * @param object $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
@@ -547,7 +547,7 @@ class doc_Threads extends core_Manager
         
         // id на папката
         $folderId = $data->listFilter->rec->folderId;
-
+        
         $rejected = Request::get('Rejected');
         
         $documentsInThreadOptions = self::getDocumentTypesOptionsByFolder($folderId, FALSE, $rejected);
@@ -589,6 +589,10 @@ class doc_Threads extends core_Manager
             $url['share'] = TRUE;
             bgerp_Notifications::clear($url);
         }
+        
+        // Позволяваме на корицата да модифицира филтъра
+        $Cover = doc_Folders::getCover($folderId);
+        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query));
     }
     
     

@@ -20,7 +20,7 @@ class cat_Groups extends core_Manager
 	/**
      * Заглавие
      */
-    var $title = "Маркери на артикулите";
+    var $title = "Групи на артикулите";
     
     
     /**
@@ -149,9 +149,18 @@ class cat_Groups extends core_Manager
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2,input=none');
         
-        
         $this->setDbUnique("sysId");
-        $this->setDbUnique("name");
+    }
+    
+    
+    /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+    	$mvc->setDbUnique("name,parentId");
     }
     
     
@@ -191,10 +200,7 @@ class cat_Groups extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        //$row->productCnt = intval($rec->productCnt);
-        
         if($fields['-list']){
-            //$row->name .= " ({$row->productCnt})";
             $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'groupId' => $rec->id));
         }
     }
@@ -215,15 +221,37 @@ class cat_Groups extends core_Manager
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
         	$requiredRoles = 'no_one';
         }
+        
+        if($action == 'edit' && $rec->sysId){
+        	$requiredRoles = 'no_one';
+        }
     }
     
     
+    /**
+     * Преди импорт на записи
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	// Ако е зададен баща опитваме се да го намерим
+    	if(isset($rec->csv_parentId)){
+    		if($parentId = $mvc->fetchField(array("#name = '[#1#]'", $rec->csv_parentId), 'id')){
+    			$rec->parentId = $parentId;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След обновяване на модела
+     */
     protected static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cat/csv/Groups.csv";
     	$fields = array(
     			0 => "name",
     			1 => "sysId",
+    			2 => 'csv_parentId',
     	);
     
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
@@ -234,7 +262,7 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Връща кейлист от систем ид-та на маркерите
+     * Връща кейлист от систем ид-та на групите
      * 
      * @param mixed $sysIds - масив със систем ид-та
      * @return string
@@ -252,4 +280,60 @@ class cat_Groups extends core_Manager
     	
     	return $kList;
     }
+
+
+    /**
+     * Форсира група (маркер) от каталога
+     *
+     * @param   string  $name       Име на групата. Съдържа целия път
+     * @param   int     $parentId   Id на родител
+     *
+     * @return  int                  id на групата
+     */
+    static function forceGroup($name, $parentId = NULL)
+    {  
+        static $groups = array();
+        
+        $parentIdNumb = (int) $parentId;
+
+        if(!($res = $groups[$parentIdNumb][$name])) {
+            
+            if(strpos($name, '»')) {
+                $gArr = explode('»', $name);
+                foreach($gArr as $gName) {
+                    $gName = trim($gName);
+                    $parentId = self::forceGroup($gName, $parentId);
+                }
+
+                $res = $parentId;
+            } else {
+
+                if($parentId === NULL) {
+                   $cond = "AND #parentId IS NULL";
+                } else {
+                    expect(is_numeric($parentId), $parentId);
+
+                    $cond = "AND #parentId = {$parentId}";
+                }
+                
+                $gRec = cat_Groups::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
+
+                if(isset($gRec->name)) {
+                    $res = $gRec->id;
+                } else {
+
+                    $gRec = (object) array('name' => $name, 'orderProductBy' => 'code', 'meta' => 'canSell,canBuy,canStore,canConvert,canManifacture', 'parentId' => $parentId);
+
+                    cat_Groups::save($gRec);
+
+                    $res = $gRec->id;
+                }
+            }
+
+            $groups[$parentIdNumb][$name] = $res;
+        } 
+ 
+        return $res;
+    }
+
 }

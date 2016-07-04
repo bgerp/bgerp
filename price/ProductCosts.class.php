@@ -71,7 +71,6 @@ class price_ProductCosts extends core_Manager
 	public $canList = 'admin,debug';
 	
 	
-	//public $listItemsPerPage = 500000; 
     /**
      * Описание на модела (таблицата)
      */
@@ -95,13 +94,13 @@ class price_ProductCosts extends core_Manager
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
     	
-    	if(cls::load($rec->documentClassId, TRUE)){
-    		$row->document = cls::get($rec->documentClassId)->getLink($rec->documentId, 0);
+    	if(cls::load($rec->documentClassId, TRUE) && isset($rec->documentId)){
+    		$Document = cls::get($rec->documentClassId);
+    		$row->document = $Document->getLink($rec->documentId, 0);
     	}
     	
     	$row->ROW_ATTR = array('class' => 'state-active');
@@ -134,7 +133,7 @@ class price_ProductCosts extends core_Manager
      * 
      * @return array $res - намерените цени
      */
-    function getAccCosts()
+    private function getAccCosts()
     {
     	$tmpArr = $res = array();
     	$balanceRec = acc_Balances::getLastBalance();

@@ -93,12 +93,22 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         
         $form->setDefault("orderField", "blAmount");
         $form->setDefault("side", "all");
-       
+        
+        $accInfo = acc_Accounts::getAccountInfo($form->rec->corespondentAccountId);
+        
+        foreach (range(1, 3) as $i){
+            if(isset($accInfo->groups[$i]) && $accInfo->groups[$i]->rec->systemId == "contractors"){
+                $gr = $accInfo->groups[$i];
+                $form->FLD("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty, select=titleNum)", "caption=Контрагенти->Име,input");
+            }
+        }
+
         $contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'cat_ProductAccRegIntf');
          
         $form->setDefault("feat{$contragentPositionId}", "*");
         $form->setHidden("feat{$contragentPositionId}");
     }
+    
     
     /**
      * Връща шаблона на репорта
@@ -117,10 +127,38 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     }
     
     
+    /**
+     * След подготовката на показването на информацията
+     */
+    public static function on_AfterPrepareEmbeddedData($mvc, &$data)
+    {
+        if ($data->contragent) {
+            if ($data->compare != "no") {
+                foreach ($data->recsAll as $id => $rec) {
+                    $contragentId = strstr($id, "|", TRUE);
+                
+                    if ($data->contragent != $contragentId) {
+                
+                        unset($data->recsAll[$id]);
+                    }
+                }
+            } else {
+                foreach ($data->recs as $id => $rec) {
+                    $contragentId = strstr($id, "|", TRUE);
+                    
+                    if ($data->contragent != $contragentId) {
+        
+                        unset($data->recs[$id]);
+                    }
+                }
+            }
+        }
+    }
+    
+    
     public static function on_AfterGetReportLayout($mvc, &$tpl)
     {
-        //$tpl = $mvc->getReportLayout();
-        
+
         $tpl->removeBlock('debit');
         $tpl->removeBlock('credit');
         $tpl->removeBlock('debitNew');
@@ -132,7 +170,6 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         }
     }
     
-
 
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -180,11 +217,18 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         $form = $mvc->innerForm;
         $newFields = array();
 
-        $data->listFields['item2'] = 'Контрагенти';
-        $data->listFields['item3'] = 'Артикул';
-        $data->listFields['blQuantity'] = 'Количество';
-        $data->listFields['blAmount'] = 'Сума';
-        $data->listFields['delta'] = 'Дял';
+        if (!$data->contragent) {
+            $data->listFields['item2'] = 'Контрагенти';
+            $data->listFields['item3'] = 'Артикул';
+            $data->listFields['blQuantity'] = 'Количество';
+            $data->listFields['blAmount'] = 'Сума';
+            $data->listFields['delta'] = 'Дял';
+        } else {
+            $data->listFields['item3'] = 'Артикул';
+            $data->listFields['blQuantity'] = 'Количество';
+            $data->listFields['blAmount'] = 'Сума';
+            $data->listFields['delta'] = 'Дял';
+        }
 
         // Кои полета ще се показват
         if($mvc->innerForm->compare != 'no'){
@@ -196,7 +240,13 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     		$toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
     		$prefix = (string) $fromVerbal . " - " . $toVerbal;
 
-    		$fields = arr::make("id=№,item2=Контрагенти,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+    		if(!$data->contragent) {
+    		    $fields = arr::make("id=№,item2=Контрагенти,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+    		
+    		} else {
+    		    $fields = arr::make("id=№,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+    		    
+    		}
     		$data->listFields = $fields;
         }
         

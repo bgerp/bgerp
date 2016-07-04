@@ -2,7 +2,7 @@
 
 
 /**
- * Клас  'tests_Test' - Разни тестове на PHP-to
+ * Клас  'unit_MinkP' - тест PHP - рецепта с 3 етапа
  *
  *
  * @category  bgerp
@@ -13,6 +13,7 @@
  * @since     v 0.1
  * @link
  * Създава рецепта с 3 етапа, преди това - съставните артикули
+ * Променени според новата система за ценови политики!
  */
 class unit_MinkP extends core_Manager {
    
@@ -21,7 +22,6 @@ class unit_MinkP extends core_Manager {
      */
     public function SetUp()
     {
-        $browser = cls::get('unit_Browser');
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
         $browser->click('Вход');
@@ -55,13 +55,13 @@ class unit_MinkP extends core_Manager {
             $browser->click('Труд (work)');
         } 
         
-        $browser->click('Цени');
-        //Задаване на ценова група
-        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        ////Задаване на ценова група
+        ////Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -99,11 +99,11 @@ class unit_MinkP extends core_Manager {
         
         //Задаване на ценова група
         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -211,11 +211,11 @@ class unit_MinkP extends core_Manager {
             $browser->click('Отпадък 1');
         }
         //Задаване на ценова група
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -249,11 +249,11 @@ class unit_MinkP extends core_Manager {
             $browser->click('Отпадък 2');
         }
         //Задаване на ценова група
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -287,11 +287,11 @@ class unit_MinkP extends core_Manager {
             $browser->click('Отпадък 3');
         }
         //Задаване на ценова група
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -326,11 +326,11 @@ class unit_MinkP extends core_Manager {
         }
         //Задаване на ценова група
         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -365,11 +365,11 @@ class unit_MinkP extends core_Manager {
         }
         //Задаване на ценова група
         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -404,11 +404,11 @@ class unit_MinkP extends core_Manager {
         }
         //Задаване на ценова група
         //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        $browser->click('Цени');
-        $browser->click('Задаване на ценова група');
-        $browser->refresh('Запис');
-        $browser->setValue('groupId', '1');
-        $browser->press('Запис');
+        //$browser->click('Цени');
+        //$browser->click('Задаване на ценова група');
+        //$browser->refresh('Запис');
+        //$browser->setValue('groupId', '1');
+        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -439,12 +439,16 @@ class unit_MinkP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Заготовка 1');
         }
-        $browser->click('Добавяне на нов параметър');
-        $browser->setValue('paramId', 'Тегло');
-        //да се добави проверка ако вече го има
-        $browser->refresh('Запис');
-        $browser->setValue('paramValue', '20');
-        $browser->press('Запис');
+        
+        if (strpos($browser->getText(),"Тегло")){
+        } else {
+            $browser->click('Добавяне на нов параметър');
+            $browser->setValue('paramId', 'Тегло');
+            $browser->refresh('Запис');
+            $browser->setValue('paramValue', '20');
+            $browser->press('Запис');
+        }
+        
     }
      
     /**
@@ -470,13 +474,15 @@ class unit_MinkP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Заготовка 2');
         }
-        $browser->click('Добавяне на нов параметър');
-        $browser->setValue('paramId', 'Цвят');
-        //да се добави проверка ако вече го има
-        $browser->refresh('Запис');
-        $browser->setValue('paramValue', '4');
-        $browser->press('Запис');
-          
+        //проверка ако параметърът вече го има
+        if (strpos($browser->getText(),"Цвят")){
+        } else {   
+            $browser->click('Добавяне на нов параметър');
+            $browser->setValue('paramId', 'Цвят');
+            $browser->refresh('Запис');
+            $browser->setValue('paramValue', '4');
+            $browser->press('Запис');
+        }
     }
      
     /**
@@ -580,7 +586,7 @@ class unit_MinkP extends core_Manager {
         
         // Фактура  № се сменя при повторен тест
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '1217');
+        $browser->setValue('number', '12');
         $browser->press('Чернова');
         $browser->press('Контиране');
         

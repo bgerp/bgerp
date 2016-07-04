@@ -9,23 +9,30 @@
              <td class = 'sum-th'>
                  |Остатък|* ([#measureId#])
              </td>
+             <!--ET_BEGIN quantityFromTasksCaption-->
              <td class = 'sum-th'>
-                 |Произведено|* ([#measureId#])
+                 [#quantityFromTasksCaption#] ([#measureId2#])
              </td>
-            
+            <!--ET_END quantityFromTasksCaption-->
              <td class = 'sum-th'>
-                 |Заскладено|* ([#measureId#])
+                 [#captionProduced#] ([#measureId#])
              </td>
+             <!--ET_BEGIN captionNotStored-->
              <td class = 'sum-th'>
-                 |Незаскладено|* ([#measureId#])
+                 [#captionNotStored#] ([#measureId2#])
              </td>
+             <!--ET_END captionNotStored-->
           </tr>
           <tr>
               <td class = 'nowrap'>[#quantity#]</td>
               <td class = 'nowrap'>[#quantityToProduce#]</td>
+              <!--ET_BEGIN quantityFromTasks-->
               <td class = 'nowrap'>[#quantityFromTasks#] </td>
+              <!--ET_END quantityFromTasks-->
               <td class = 'nowrap'>[#quantityProduced#]</td>
+              <!--ET_BEGIN quantityNotStored-->
               <td class = 'nowrap'>[#quantityNotStored#]</td>
+              <!--ET_END quantityNotStored-->
            </tr>
        </table>
     </div>

@@ -110,6 +110,10 @@ class sales_Routes extends core_Manager {
     	
     	// Изчислимо поле за кога е следващото посещение
     	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
+
+        $this->setDbIndex('locationId,dateFld');
+        $this->setDbIndex('locationId');
+        $this->setDbIndex('salesmanId');
     }
     
     

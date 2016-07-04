@@ -33,7 +33,7 @@ class deals_plg_SelectDeal extends core_Plugin
     	$mvc->selectedDealClasses = arr::make($mvc->selectedDealClasses, TRUE);
     	
     	$mvc->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', "caption=Кореспондираща сделка->Контрагент,removeAndRefreshForm,silent,input,after={$mvc->selectDealAfterField}");
-    	$mvc->FNC('dealHandler', 'varchar', "caption=Кореспондираща сделка->Номер,input,silent,hint=Въведете хендлър на документ,removeAndRefreshForm={$mvc->selectedDealOriginFieldName}");
+    	$mvc->FNC('dealHandler', 'varchar', "caption=Кореспондираща сделка->Номер,input,silent,hint=Въведете хендлър на документ");
     	$mvc->FLD($mvc->selectedDealOriginFieldName, 'int', 'input=hidden,tdClass=leftColImportant');
     }
     
@@ -89,6 +89,8 @@ class deals_plg_SelectDeal extends core_Plugin
     				$doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
     				$form->setDefault($mvc->selectedDealOriginFieldName, $doc->fetchField('containerId'));
     			}
+    		} else {
+    			$rec->{$mvc->selectedDealOriginFieldName} = NULL;
     		}
     	}
     }
