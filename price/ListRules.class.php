@@ -703,7 +703,7 @@ class price_ListRules extends core_Detail
 
                 $vat = ($vat == 'yes') ? "с ДДС" : "без ДДС";
 
-                $row->rule = tr("|*[|{$masterTitle}|*] = {$price} {$currency} |{$vat}");
+                $row->rule = tr("|*{$price} {$currency} |{$vat}|*");
                 break;
         }        
         
@@ -821,7 +821,7 @@ class price_ListRules extends core_Detail
 			$appendTable = TRUE;
 			$fRow = $data->{"rows{$priority}"};
 			
-			$data->listFields['rule'] = tr($title);
+			$data->listFields['rule'] = 'Стойност';
 			$table = cls::get('core_TableView', array('mvc' => $this));
 			$toolbar = cls::get('core_Toolbar');
 			
@@ -854,6 +854,8 @@ class price_ListRules extends core_Detail
 			
 			// Дали да показваме таблицата
 			if($appendTable === TRUE){
+				$style = ($priority == 1) ? '' : "margin-top:20px;margin-bottom:2px";
+				$block->append("<div style='{$style}'><b>{$title}</b></div>", 'TABLE');
 				$block->append($table->get($fRow, $data->listFields), 'TABLE');
 				if(isset($data->{"pager{$priority}"})){
 					$block->append($data->{"pager{$priority}"}->getHtml(), 'TABLE_PAGER');
