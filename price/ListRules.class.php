@@ -687,9 +687,9 @@ class price_ListRules extends core_Detail
                 $signDiscount = $signDiscount . $discount;
                 
                 if($rec->calculation == 'reverse') {
-                    $row->rule = tr("|*[|{$parentTitle}|*] = [|{$masterTitle}|*] " . $signDiscount);
+                	$row->rule = tr("|*[|{$parentTitle}|*] / (1 {$signDiscount})");
                 } else {
-                    $row->rule = tr("|*[|{$masterTitle}|*] = [|{$parentTitle}|*] " . $signDiscount);
+                    $row->rule = tr("|*[|{$parentTitle}|*] " . $signDiscount);
                 }
                 break;
 
