@@ -268,6 +268,11 @@ class price_ListToCustomers extends core_Manager
      */
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
+    	// Ако ценовата политика е бъдеща задаваме
+    	if($rec->validFrom > dt::now()){
+    		core_CallOnTime::setOnce($mvc->className, 'updateStates', (object)array('cClass' => $rec->cClass, 'cId' => $rec->cId, 'validFrom' => $rec->validFrom), $rec->validFrom);
+    	}
+    	
     	static::updateStates($rec->cClass, $rec->cId);
     	price_History::removeTimeline();
     }
@@ -461,6 +466,18 @@ class price_ListToCustomers extends core_Manager
 	          }
 	      }
 	   }
+	}
+	
+	
+	/**
+	 * Ф-я викаща се по разписание
+	 * @see core_CallOnTime
+	 * 
+	 * @param stdClass $data
+	 */
+	public function callback_updateStates($data)
+	{
+		$this->updateStates($data->cClass, $data->cId);
 	}
 	
 	
