@@ -191,7 +191,7 @@ class price_ProductCosts extends core_Manager
     	if($onlyActive === TRUE){
     		$pQuery->where("#state = 'active'");
     	} else {
-    		$pQuery->where("#state = 'active' || #state = 'closed'");
+    		$pQuery->where("#state = 'active' OR #state = 'closed'");
     	}
     	
     	// и тези които са затворени и са последно модифицирани до два часа
