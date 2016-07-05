@@ -79,7 +79,7 @@ class cash_Pko extends cash_Document
     	// Зареждаме полетата от бащата
     	parent::getFields($this);
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
-    	$mvc->FLD('paymentType', 'enum(cash=В брой,card=С карта)', 'caption=Допълнително->Плащане', 'notNull,value=cash');
+    	$this->FLD('paymentType', 'enum(cash=В брой,card=С карта)', 'caption=Допълнително->Плащане', 'notNull,value=cash');
     }
 
     

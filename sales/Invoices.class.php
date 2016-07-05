@@ -854,10 +854,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		return $def;
    	}
    	
-   	function act_test()
-   	{
-   		static::updateAutoPaymentTypeInThread(33048);
-   	}
+   	
    	/**
    	 * Намира автоматичния метод на плащане
    	 * 
