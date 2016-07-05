@@ -138,7 +138,7 @@ class cat_PriceDetails extends core_Manager
     	}
     	
     	$Double = cls::get('type_Double', array('params' => array('decimals' => $primeCostListRound)));
-    	$DateTime = cls::get('type_DateTime');
+    	$DateTime = cls::get('type_DateTime', array('params' =>array('format' => 'smartTime')));
     	
     	// Бутон за задаване на правило за обновяване
     	$data->afterRow = NULL;
