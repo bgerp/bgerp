@@ -195,10 +195,10 @@ class cat_PriceDetails extends core_Manager
     		}
     		
     		if($btns || isset($primeCost)){
-    			
+    			$priceRow = (is_null($primeCost)) ? $Double->toVerbal($primeCost) : "{$baseCurrencyCode} <b>" . $Double->toVerbal($primeCost) . "</b>";
     			$primeCostRows[] = (object)array('type'       => tr('|Мениджърска себестойност|*'),
 						    					 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
-						    					 'price'      => "{$baseCurrencyCode} <b>" . $Double->toVerbal($primeCost) . "</b>",
+						    					 'price'      => $priceRow,
 						    					 'buttons'    => $btns,
 						    					 'ROW_ATTR'   => array('class' => 'state-active'));
     		}
