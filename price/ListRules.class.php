@@ -319,9 +319,9 @@ class price_ListRules extends core_Detail
         $query->orderBy("#validFrom,#id", "DESC");
        
         $query->limit(1);
-        
+       
         $rec = $query->fetch();
-        
+       
         if($rec) {
         	if($rec->type == 'value') {
         		$vat = cat_Products::getVat($productId, $datetime);
@@ -347,7 +347,7 @@ class price_ListRules extends core_Detail
         	// Ако има дефолтна надценка и има наследена политика
         	if(isset($defaultSurcharge)){ 
         		if($parent = price_Lists::fetchField($listId, 'parent')) {
-        		
+        			
         			// Ако няма запис за продукта или групата
         			// му и бащата на ценоразписа е "себестойност"
         			// връщаме NULL
@@ -356,6 +356,11 @@ class price_ListRules extends core_Detail
         			 
         			// Питаме бащата за цената
         			$price  = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
+        			
+        			// Ако има цена добавяме и дефолтната надценка
+        			if(isset($price)){
+        				$price = $price * (1 + $defaultSurcharge);
+        			}
         		}
         	}
         }
