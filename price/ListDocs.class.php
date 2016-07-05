@@ -59,7 +59,7 @@ class price_ListDocs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'date, handler=Документ, title, policyId, state, createdOn, createdBy';
+    public $listFields = 'date, handler=Документ, title, policyId, folderId, state, createdOn, createdBy';
     
     
     /**
