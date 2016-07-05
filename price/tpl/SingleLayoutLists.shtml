@@ -14,7 +14,7 @@
         
         <!--ET_BEGIN defaultSurcharge-->
         <tr>
-            <td class="title-style">|Надценка по подразбиране|*</td>
+            <td class="title-style">|[#discountType#] по подразбиране|*</td>
             <td>[#defaultSurcharge#]</td>
         </tr>
         <!--ET_END defaultSurcharge-->

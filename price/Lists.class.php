@@ -123,7 +123,7 @@ class price_Lists extends core_Master
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
-        $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка по подразбиране->Процент');
+        $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка/Отстъпка по подразбиране->Процент');
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
@@ -385,6 +385,16 @@ class price_Lists extends core_Master
         				$row->connectedClients = ht::createLinkRef($row->connectedClients, array('price_ListToCustomers', 'list', 'listId' => $rec->id));
         			}
         		}
+        	}
+        }
+        
+        if(isset($rec->defaultSurcharge)){
+        	if($rec->defaultSurcharge < 0){
+        		$row->discountType = 'Отстъпка';
+        		$rec->defaultSurcharge = abs($rec->defaultSurcharge);
+        		$row->defaultSurcharge = $mvc->getFieldType('defaultSurcharge')->toVerbal($rec->defaultSurcharge);
+        	} else {
+        		$row->discountType = 'Надценка';
         	}
         }
         
