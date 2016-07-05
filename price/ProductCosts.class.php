@@ -175,11 +175,12 @@ class price_ProductCosts extends core_Manager
      * Връща всички покупки, в които участват подадените артикули.
      * Покупките са подредени в низходящ ред, така най-първите са последните.
      * 
-     * @param array $productKeys - масив с ид-та на артикули
+     * @param array $productKeys    - масив с ид-та на артикули
      * @param boolean $withDelivery - дали да има доставено по покупката или не
-     * @return array $res - намерените последни доставни цени
+     * @param boolean $onlyActive   - дали да търси само по активните покупки
+     * @return array $res           - намерените последни доставни цени
      */
-    private function getPurchasesWithProducts($productKeys, $withDelivery = FALSE)
+    private function getPurchasesWithProducts($productKeys, $withDelivery = FALSE, $onlyActive = FALSE)
     {
     	$pQuery = purchase_PurchasesDetails::getQuery();
     	$pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
@@ -187,7 +188,11 @@ class price_ProductCosts extends core_Manager
     	$pQuery->EXT('amountDelivered', 'purchase_Purchases', 'externalName=amountDelivered,externalKey=requestId');
     	
     	// Всички активни
-    	$pQuery->where("#state = 'active'");
+    	if($onlyActive === TRUE){
+    		$pQuery->where("#state = 'active'");
+    	} else {
+    		$pQuery->where("#state = 'active' || #state = 'closed'");
+    	}
     	
     	// и тези които са затворени и са последно модифицирани до два часа
     	$from = dt::addSecs(-2 * 60 * 60, dt::now());
@@ -223,7 +228,7 @@ class price_ProductCosts extends core_Manager
     	$Purchases = cls::get('purchase_Purchases');
     	
     	// Намираме всички покупки с доставка
-    	$allPurchases = $this->getPurchasesWithProducts($productKeys, TRUE);
+    	$allPurchases = $this->getPurchasesWithProducts($productKeys, TRUE, FALSE);
 		
     	// Тук ще кешираме доставените артикули във всяка
     	$purchaseProducts = array();
@@ -300,7 +305,7 @@ class price_ProductCosts extends core_Manager
     	$res = array();
     	
     	// Намираме всички покупки по, които няма доставени
-    	$allPurchases = $this->getPurchasesWithProducts($productKeys);
+    	$allPurchases = $this->getPurchasesWithProducts($productKeys, FALSE, TRUE);
     	
     	// За всяка покупка
     	foreach ($allPurchases as $purRec){
