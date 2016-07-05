@@ -77,6 +77,13 @@
         </tr>
         <!--ET_END roundingOffset-->
     <!--ET_END roundingPrecisionTable-->
+    
+     <!--ET_BEGIN connectedClients-->
+        <tr>
+            <td class="title-style" style='vertical-align:top'>|Свързани клиенти|*</td>
+            <td>[#connectedClients#]</td>
+        </tr>
+        <!--ET_END connectedClients-->
     </table>
     <div><span class="title-style">|Създаване|*: </span>[#createdBy#], [#createdOn#]</div>
     <br>

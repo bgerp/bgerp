@@ -3,7 +3,7 @@
 
 
 /**
- * Клиентски ценови политики
+ * Ценови политики към клиенти
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Клиентски ценови политики
+ * @title     Ценови политики към клиенти
  */
 class price_ListToCustomers extends core_Manager
 {
@@ -21,7 +21,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Ценови политики';
+    public $title = 'Ценови политики към клиенти';
     
     
     /**
@@ -57,7 +57,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'powerUser';
+    public $canEdit = 'no_one';
     
     
     /**
@@ -69,13 +69,13 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой има право да листва?
      */
-    public $canList = 'admin,debug';
+    public $canList = 'priceMaster,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'powerUser';
+    public $canDelete = 'no_one';
     
 
     /**
@@ -148,6 +148,18 @@ class price_ListToCustomers extends core_Manager
     
 
     /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	if(isset($rec->cClass) && isset($rec->cId)){
+    		$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+    	}
+    }
+    
+    
+    /**
      * След подготовка на лентата с инструменти за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, $data)
@@ -161,11 +173,7 @@ class price_ListToCustomers extends core_Manager
      */
     private static function getValidRec($customerClassId, $customerId, $datetime = NULL)
     { 
-        $now = dt::verbal2mysql();
-
-        if(!$datetime) {
-            $datetime = $now;
-        }
+    	$datetime = (isset($datetime)) ? $datetime : dt::verbal2mysql();
 
         $query = self::getQuery();
         $query->where("#cClass = {$customerClassId} AND #cId = {$customerId}");
@@ -219,22 +227,11 @@ class price_ListToCustomers extends core_Manager
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		if($data->masterMvc->haveRightFor('edit', $data->masterData->rec)){
-    			$data->addUrl = array($this, 'add', 'cClass' => $data->masterMvc->getClassId(), 'cId' => $data->masterId, 'ret_url' => TRUE);
+    			if($this->haveRightFor('add')){
+    				$data->addUrl = array($this, 'add', 'cClass' => $data->masterMvc->getClassId(), 'cId' => $data->masterId, 'ret_url' => TRUE);
+    			}
     		}
     	}
-    }
-
-
-    /**
-     * След обработка на ролите
-     */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
-    {
-        if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
-            if($rec->validFrom <= dt::verbal2mysql()) {
-                $requiredRoles = 'no_one';
-            }
-        }
     }
 
     
@@ -254,7 +251,7 @@ class price_ListToCustomers extends core_Manager
     	
         $table = cls::get('core_TableView', array('mvc' => $this));
         
-        $tpl->append($this->title, 'title');
+        $tpl->append(tr('Ценови политики'), 'title');
         $tpl->append($table->get($data->rows, $listFields), 'content');
         $tpl->replace(get_class($mvc), 'DetailName');
         
@@ -267,20 +264,13 @@ class price_ListToCustomers extends core_Manager
 
     
     /**
-     * Премахва кеша за интервалите от време
+     * След запис в модела
      */
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
     	static::updateStates($rec->cClass, $rec->cId);
     	price_History::removeTimeline();
     }
-    
-
-    /****************************************************************************************************
-     *                                                                                                  *
-     *    И Н Т Е Р Ф Е Й С   `price_PolicyIntf`                                                        *
-     *                                                                                                  *
-     ***************************************************************************************************/
     
 
     /**
@@ -536,5 +526,54 @@ class price_ListToCustomers extends core_Manager
 		
 		$row->ROW_ATTR['class'] = "state-{$rec->state}";
 		$row->listId = price_Lists::getHyperlink($rec->listId, TRUE);
+	}
+	
+	
+	/**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$listId = Request::get('listId', 'key(mvc=price_Lists)');
+		if(isset($listId)){
+			$data->query->where("#listId = {$listId}");
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на листовия изглед
+	 */
+	protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+	{
+		$listId = Request::get('listId', 'key(mvc=price_Lists)');
+		if(isset($listId)){
+			$data->title = 'Ценова политика|* ' . price_Lists::getHyperlink($listId, TRUE);
+		}
+	}
+	
+	
+	/**
+	 * Връща масив с контрагентите свързани към даден ценоразпис
+	 * 
+	 * @param int $listId     - ид на политика
+	 * @param boolean $links  - дали имената на контрагентите да са линк
+	 * @return array $options - масив със свързаните контрагенти
+	 */
+	public static function getCustomers($listId, $links = FALSE)
+	{
+		$options = array();
+		
+		$query = price_ListToCustomers::getQuery();
+		$query->where("#listId = {$listId} AND #state = 'active'");
+		$count = $query->count();
+		if(!empty($count)){
+			while($rec = $query->fetch()){
+				$title = ($links === TRUE) ? cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE) : cls::get($rec->cClass)->getTitleById($rec->cId, FALSE);
+				$options[$rec->id] = $title;
+			}
+		}
+		
+		return $options;
 	}
 }

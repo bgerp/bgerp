@@ -87,7 +87,7 @@ class price_Lists extends core_Master
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'priceMaster,ceo';
+	public $canSingle = 'sales,priceMaster,ceo';
 	
     
     /**
@@ -295,23 +295,6 @@ class price_Lists extends core_Master
     
     
     /**
-     *
-     *
-     * @param bgerp_Bookmark $mvc
-     * @param object $res
-     * @param object $data
-     */
-    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
-    {
-    	//Ако създаваме копие, редиректваме до създаденото копие
-        if (is_object($data->form) && $data->form->isSubmitted()) {
-           
-            $data->retUrl = array($mvc, 'single', $data->form->rec->id);
-        }
-    }
-    
-    
-    /**
      * Намираме ценовите политики, които може да избира потребителя.
      * Ако няма има права price,ceo - може да избира всички
      * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
@@ -392,6 +375,17 @@ class price_Lists extends core_Master
         
         if(isset($rec->cClass) && isset($rec->cId)){
         	$row->customer = cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE);
+        } else {
+        	if($rec->public == 'yes' && $rec->id != price_ListRules::PRICE_LIST_CATALOG){
+        		$customerCount = count(price_ListToCustomers::getCustomers($rec->id, TRUE));
+        		$row->connectedClients = cls::get('type_Int')->toVerbal($customerCount);
+        		
+        		if($customerCount != 0){
+        			if(price_ListToCustomers::haveRightFor('list')){
+        				$row->connectedClients = ht::createLinkRef($row->connectedClients, array('price_ListToCustomers', 'list', 'listId' => $rec->id));
+        			}
+        		}
+        	}
         }
         
         $row->currency = "<span class='cCode'>{$row->currency}</span>";
@@ -400,6 +394,19 @@ class price_Lists extends core_Master
     }
 
 
+    /**
+     * След подготовка на урл-то за връщане
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	//Ако създаваме копие, редиректваме до създаденото копие
+    	if (is_object($data->form) && $data->form->isSubmitted()) {
+    		 
+    		$data->retUrl = array($mvc, 'single', $data->form->rec->id);
+    	}
+    }
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -478,10 +485,5 @@ class price_Lists extends core_Master
     	if(isset($rec->cClass) && isset($rec->cId)){
     		price_ListToCustomers::updateStates($rec->cClass, $rec->cId);
     	}
-    }
-    
-    function act_Test()
-    {
-    	price_ListToCustomers::updateStates(13, 4620);
     }
 }
