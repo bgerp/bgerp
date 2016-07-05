@@ -176,7 +176,7 @@ class cat_PriceDetails extends core_Manager
     			}
     			
     			if($hideIcons === FALSE){
-    				$btns .= "<div style='text-align:left'>" . ht::createLink('Нова себест-ст', $data->addPriceUrl, FALSE, 'title=Добавяне на нова мениджърска себестойност') . "</div>";
+    				$btns .= "<div style='text-align:left'>" . ht::createLink('Нова себестойност', $data->addPriceUrl, FALSE, 'title=Добавяне на нова мениджърска себестойност') . "</div>";
     			}
     			
     			if(isset($uRec)){
