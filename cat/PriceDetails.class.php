@@ -195,7 +195,7 @@ class cat_PriceDetails extends core_Manager
     		}
     		
     		if($btns || isset($primeCost)){
-    			$priceRow = (is_null($primeCost)) ? $Double->toVerbal($primeCost) : "{$baseCurrencyCode} <b>" . $Double->toVerbal($primeCost) . "</b>";
+    			$priceRow = (is_null($primeCost)) ? $Double->toVerbal($primeCost) : "<b>" . $Double->toVerbal($primeCost) . "</b> {$baseCurrencyCode}";
     			$primeCostRows[] = (object)array('type'       => tr('|Мениджърска себестойност|*'),
 						    					 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
 						    					 'price'      => $priceRow,
@@ -206,7 +206,7 @@ class cat_PriceDetails extends core_Manager
     		if(isset($futurePrimeCost)){
     			$primeCostRows[] = (object)array('type'       => tr('|Бъдеща|* |себестойност|*'),
     											 'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate),
-						    					 'price'      => "{$baseCurrencyCode} <b>" . $Double->toVerbal($futurePrimeCost) . "</b>", 
+						    					 'price'      => "<b>" . $Double->toVerbal($futurePrimeCost) . "</b> {$baseCurrencyCode}", 
 						    					 'ROW_ATTR'   => array('class' => 'state-draft'));
     		}
     	}
@@ -217,7 +217,7 @@ class cat_PriceDetails extends core_Manager
     		$cQuery->where("#productId = {$data->masterId}");
     		while($cRec = $cQuery->fetch()){
     			$cRow = price_ProductCosts::recToVerbal($cRec);
-    			$cRow->price = "{$baseCurrencyCode} <b>{$cRow->price}</b>";
+    			$cRow->price = "<b>{$cRow->price}</b> {$baseCurrencyCode}";
     			if(isset($cRow->document)){
     				$cRow->buttons = $cRow->document;
     			}
@@ -229,7 +229,7 @@ class cat_PriceDetails extends core_Manager
     		$Double->params['decimals'] = $catalogRound;
     		$primeCostRows[] = (object)array('type'       => tr('Каталог'), 
     									     'modifiedOn' => $DateTime->toVerbal($catalogCostDate), 
-    										 'price'      => "{$baseCurrencyCode} <b>" . $Double->toVerbal($catalogCost) . "</b>", 
+    										 'price'      => "<b>" . $Double->toVerbal($catalogCost) . "</b> {$baseCurrencyCode}", 
     										 'ROW_ATTR'   => array('class' => 'state-active'));
     	}
     	
@@ -254,7 +254,7 @@ class cat_PriceDetails extends core_Manager
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
     	$fields = arr::make("price=Стойност|*,type=Вид,modifiedOn=В сила от||Valid from,buttons=Действия / Документ");
     	$primeCostTpl = $table->get($data->primeCostRows, $fields);
-    	$primeCostTpl->prepend(tr("|*<div>|Без ДДС|*</div>"));
+    	$primeCostTpl->prepend(tr("|*<div>|Цени без ДДС|*:</div>"));
     	$colspan = count($fields);
     	
     	$colspan = count($fields);
