@@ -440,11 +440,6 @@ class price_ListToCustomers extends core_Manager
     		}
     	}
     	
-    	// Ако има указано закръгляне на ценоразписа, закръгляме 
-    	if(!is_null($rec->price)){
-    		$rec->price = price_Lists::roundPrice($listRec, $rec->price);
-    	}
-    	
     	return $rec;
     }
     

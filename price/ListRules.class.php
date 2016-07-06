@@ -368,8 +368,8 @@ class price_ListRules extends core_Detail
         // Ако има цена
         if(isset($price)){
         	
-        	// По дефолт правим някакво машинно закръгляне
-        	$price = round($price, 8);
+        	// Ако има указано закръгляне на ценоразписа, закръгляме
+        	$price = price_Lists::roundPrice($listId, $price);
         	
         	// Записваме току-що изчислената цена в историята;
         	//price_History::setPrice($price, $listId, $datetime, $productId);
