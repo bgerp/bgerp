@@ -2373,6 +2373,9 @@ class cat_Products extends embed_Manager {
     }
     
     
+    /**
+     * Екшън за редактиране на групите на артикула
+     */
     function act_EditGroups()
     {
     	$this->requireRightFor('edit');

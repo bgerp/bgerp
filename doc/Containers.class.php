@@ -421,7 +421,7 @@ class doc_Containers extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
-        try {
+    	try {
             try {
                 $document = $mvc->getDocument($rec->id);
                 $docRow = $document->getDocumentRow();
@@ -452,9 +452,10 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
        
             if (!$hidden) {
- 
-                $row->document = doc_DocumentCache::getCache($rec, $document);
-
+ 				$retUrl = array($document->className, 'single', $document->that);
+ 				$retUrl = $retUrl + self::extractDocParamsFromUrl();
+ 				Mode::push('ret_url', $retUrl);
+ 				
             	if($row->document) {
                     Debug::log("+++ Get from Cache $rec->id");
                 } else {
@@ -478,6 +479,8 @@ class doc_Containers extends core_Manager
                 if($q) {
                     $row->document = plg_Search::highlight($row->document, $q);
                 }
+                
+                Mode::pop('ret_url');
             } else {
                 $row->document = self::renderHiddenDocument($rec->id);
             }
@@ -2700,5 +2703,29 @@ class doc_Containers extends core_Manager
         $tpl->removePlaces();
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Извличане от урл, на всички параметри специфични за индивидуалните документи
+     * 
+     * @param array|NULL - дадено урл или текущото ако е NULL
+     * @return array $arr - масив с намерените урл-параметри
+     */
+    public static function extractDocParamsFromUrl($url = NULL)
+    {
+    	$arr = array();
+    	$url = (is_array($url)) ? $url : getCurrentUrl();
+    	
+    	// Обхождаме параметрите от масива и търсим само нужните ни
+    	if(is_array($url)){
+    		foreach ($url as $key => $val){
+    			if(strpos($key, 'Tab') !== FALSE || $key == 'P_doclog_Documents' || $key == 'Q' || $key == 'Cid' || $key == 'P' || strpos($key, 'P_') !== FALSE || $key == 'Nid'){
+    				$arr[$key] = $val;
+    			}
+    		}
+    	}
+    	
+    	return $arr;
     }
 }

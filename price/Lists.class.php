@@ -87,7 +87,7 @@ class price_Lists extends core_Master
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'priceMaster,ceo';
+	public $canSingle = 'sales,priceMaster,ceo';
 	
     
     /**
@@ -109,6 +109,12 @@ class price_Lists extends core_Master
     
     
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -121,9 +127,9 @@ class price_Lists extends core_Master
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
-        $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
-        $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
-        $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка по подразбиране->Процент');
+        $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
+        $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
+        $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка/Отстъпка по подразбиране->Процент');
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
@@ -270,6 +276,11 @@ class price_Lists extends core_Master
         	foreach (array('parent', 'public', 'discountCompared', 'defaultSurcharge', 'minSurcharge', 'maxSurcharge') as $fld){
         		$form->setField($fld, 'input=hidden');
         	}
+        } else {
+        	$digits = price_Setup::get('SIGNIFICANT_DIGITS');
+        	$minDecimals = price_Setup::get('MIN_DECIMALS');
+        	$form->setField('significantDigits', "placeholder={$digits}");
+        	$form->setField('minDecimals', "placeholder={$minDecimals}");
         }
     }
 
@@ -294,23 +305,6 @@ class price_Lists extends core_Master
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    }
-    
-    
-    /**
-     *
-     *
-     * @param bgerp_Bookmark $mvc
-     * @param object $res
-     * @param object $data
-     */
-    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
-    {
-    	//Ако създаваме копие, редиректваме до създаденото копие
-        if (is_object($data->form) && $data->form->isSubmitted()) {
-           
-            $data->retUrl = array($mvc, 'single', $data->form->rec->id);
-        }
     }
     
     
@@ -395,14 +389,60 @@ class price_Lists extends core_Master
         
         if(isset($rec->cClass) && isset($rec->cId)){
         	$row->customer = cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE);
+        } else {
+        	if($rec->public == 'yes' && $rec->id != price_ListRules::PRICE_LIST_CATALOG){
+        		$customerCount = count(price_ListToCustomers::getCustomers($rec->id, TRUE));
+        		$row->connectedClients = cls::get('type_Int')->toVerbal($customerCount);
+        		
+        		if($customerCount != 0){
+        			if(price_ListToCustomers::haveRightFor('list')){
+        				$row->connectedClients = ht::createLinkRef($row->connectedClients, array('price_ListToCustomers', 'list', 'listId' => $rec->id));
+        			}
+        		}
+        	}
+        }
+        
+        if(isset($rec->defaultSurcharge)){
+        	if($rec->defaultSurcharge < 0){
+        		$row->discountType = 'Отстъпка';
+        		$rec->defaultSurcharge = abs($rec->defaultSurcharge);
+        		$row->defaultSurcharge = $mvc->getFieldType('defaultSurcharge')->toVerbal($rec->defaultSurcharge);
+        	} else {
+        		$row->discountType = 'Надценка';
+        	}
         }
         
         $row->currency = "<span class='cCode'>{$row->currency}</span>";
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : 'state-active';
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
+        
+        if(empty($rec->significantDigits)){
+        	$significantDigits = price_Setup::get('SIGNIFICANT_DIGITS');
+        	$row->significantDigits = $mvc->getFieldType('significantDigits')->toVerbal($significantDigits);
+        	$row->significantDigits = ht::createHint($row->significantDigits, 'Стойност по подразбиране');
+        }
+        
+        if(empty($rec->minDecimals)){
+        	$minDecimals = price_Setup::get('MIN_DECIMALS');
+        	$row->minDecimals = $mvc->getFieldType('minDecimals')->toVerbal($minDecimals);
+        	$row->minDecimals = ht::createHint($row->minDecimals, 'Стойност по подразбиране');
+        }
     }
 
 
+    /**
+     * След подготовка на урл-то за връщане
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	//Ако създаваме копие, редиректваме до създаденото копие
+    	if (is_object($data->form) && $data->form->isSubmitted()) {
+    		 
+    		$data->retUrl = array($mvc, 'single', $data->form->rec->id);
+    	}
+    }
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -470,5 +510,53 @@ class price_Lists extends core_Master
             $rec->createdBy = -1;
             $this->save($rec, NULL, 'REPLACE');
         }
+    }
+    
+    
+    /**
+     * Премахва кеша за интервалите от време
+     */
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    {
+    	if(isset($rec->cClass) && isset($rec->cId)){
+    		price_ListToCustomers::updateStates($rec->cClass, $rec->cId);
+    	}
+    }
+    
+    
+    /**
+     * Закръгля сумата според указаното в ценовата политика.
+     * Ако в нея не е указано нищо според указаното в настройките на пакета 'price'
+     *
+     * @param mixed $listId  - ид или запис на ценова политика
+     * @param double $price  - цената за закръгляне
+     * @return double $price - закръглената цена
+     */
+    public static function roundPrice($listId, $price, $verbal = FALSE)
+    {
+    	$listRec = self::fetchRec($listId);
+    	
+    	// Кеш в текущия хит за извлечената информация
+    	if(!array_key_exists($listRec->id, static::$cache)){
+    		$rInfo = new stdClass();
+    		$rInfo->significantDigits = (isset($listRec->significantDigits)) ? $listRec->significantDigits : price_Setup::get('SIGNIFICANT_DIGITS');
+    		$rInfo->minDecimals = (isset($listRec->minDecimals)) ? $listRec->minDecimals : price_Setup::get('MIN_DECIMALS');
+    		static::$cache[$listRec->id] = $rInfo;
+    	}
+    	 
+    	$rInfo = static::$cache[$listRec->id];
+    	
+    	// Колко да е точността на разкъглянето
+    	$precision =  max($rInfo->minDecimals, round($rInfo->significantDigits - log10(abs($price))));
+    	
+    	if($verbal === TRUE){
+    		$Double = cls::get('type_Double', array('params' => array('decimals' => $precision)));
+    		$price = $Double->toVerbal($price);
+    	} else {
+    		$price = round($price, $precision);
+    	}
+    	
+    	// Връщаме закръглената цена
+    	return $price;
     }
 }

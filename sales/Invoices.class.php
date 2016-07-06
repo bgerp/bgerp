@@ -217,8 +217,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
-        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
-        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
+        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
         
         $this->setDbUnique('number');
     }
@@ -747,7 +747,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$conf = core_Packs::getConfig('sales');
    		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
    			$data->listFields['paymentType'] = 'Плащане';
-   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане)', 'caption=Начин на плащане,input');
+   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта)', 'caption=Начин на плащане,input');
    			$data->listFilter->showFields .= ",payType";
    		}
    		$data->listFilter->showFields .= ',invType';
@@ -866,7 +866,7 @@ class sales_Invoices extends deals_InvoiceMaster
    	 * ако по никакъв начин не може да се определи
  
    	 * @param stdClass $rec - запис
-   	 * @return NULL|cash|bank|intercept - дефолтния начин за плащане в брой, по банка, с прихващане
+   	 * @return NULL|cash|bank|intercept|card - дефолтния начин за плащане в брой, по банка, с прихващане
    	 * или NULL ако не може да бъде намерено
    	 */
    	public function getAutoPaymentType($rec)
@@ -882,15 +882,22 @@ class sales_Invoices extends deals_InvoiceMaster
    		// Ако със самата продажба е направено плащане, то винаги е в брой
    		$firstDocRec = doc_Threads::getFirstDocument($rec->threadId)->rec();
    		$contoActions = type_Set::toArray($firstDocRec->contoActions);
+   		
    		if(isset($contoActions['pay'])) return 'cash';
    		
    		// Проверяваме имали ПБД-та, ПКО-та или Прихващания
-   		$hasPko = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
+   		$hasPkoCash = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #paymentType = 'cash'", 'id');
+   		$hasPkoCard = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #paymentType = 'card'", 'id');
    		$hasBankDocument = bank_IncomeDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
    		$hasInterceptDocument = findeals_DebitDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
    		
-   		// Ако има само приходни касови ордер, плащането е в брой
-   		if(!empty($hasPko) && empty($hasBankDocument)) return 'cash';
+   		// Ако имаме ПКО с плащане в брой и нямаме други ПКО-та и банкови документи, плащането е в брой
+   		if(!empty($hasPkoCash) && empty($hasBankDocument) && empty($hasPkoCard)) return 'cash';
+   		
+   		// Ако имаме ПКО с плащане с карта, и нямаме други ПКО-та и банкови документи, плащането е с карта
+   		if(!empty($hasPkoCard) && empty($hasBankDocument) && empty($hasPkoCash)) return 'card';
+   		
+   		$hasPko = !empty($hasPkoCash) || !empty($hasPkoCard);
    		
    		// Ако има само приходни банкови документи, плащането е по банка
    		if(!empty($hasBankDocument) && empty($hasPko)) return 'bank';
