@@ -405,11 +405,6 @@ class price_ListDocs extends core_Master
     		$displayedPrice = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
     		$vat = cat_Products::getVat($product->productId);
     		$displayedPrice = deals_Helper::getDisplayPrice($displayedPrice, $vat, $rec->currencyRate, $rec->vat);
-    		if(!empty($rec->listRec->roundingPrecision)){
-    			$displayedPrice = round($displayedPrice, $rec->listRec->roundingPrecision);
-    		} else {
-    			$displayedPrice = deals_Helper::roundPrice($displayedPrice);
-    		}
     		
     		$product->priceM = $displayedPrice;
     		$productInfo = cat_Products::getProductInfo($product->productId);
@@ -566,35 +561,19 @@ class price_ListDocs extends core_Master
      */
     private function alignPrices(&$data)
     {
-    	// Обхождаме данните и намираме колко е максималния брой десетични знаци
-    	$maxDecP = $maxDecM = 0;
-	    foreach ($data->rec->products->recs as $groupId => $products1){
-			foreach ($products1 as $index => $dRec){
-				if($dRec->priceM){
-					core_Math::roundNumber($dRec->priceM, $maxDecM);
-				}
-				
-				if($dRec->priceP){
-					core_Math::roundNumber($dRec->priceP, $maxDecP);
-				}
-			}
-	    }
-    	
-    	// Подравняваме сумите да са с еднакъв брой цифри след десетичния знак
     	$Double = cls::get('type_Double');
-    	
     	foreach ($data->rec->products->rows as $groupId => &$products2){
 			foreach ($products2 as $index => &$row){
 				$rec = $data->rec->products->recs[$groupId][$index];
 				if($row->priceM){
-					$Double->params['decimals'] = max(2, $maxDecM);
-					$rec->priceM = core_Math::roundNumber($rec->priceM, $maxDecM);
+					$round = strlen(substr(strrchr($rec->priceM, "."), 1));
+					$Double->params['decimals'] = ($round < 2) ? 2 : $round;
 					$row->priceM = $Double->toVerbal($rec->priceM);
 				}
 				
 				if($row->priceP){
-					$Double->params['decimals'] = max(2, $maxDecP);
-					$rec->priceP = core_Math::roundNumber($rec->priceP, $maxDecP);
+					$round = strlen(substr(strrchr($rec->priceP, "."), 1));
+					$Double->params['decimals'] = ($round < 2) ? 2 : $round;
 					$row->priceP = $Double->toVerbal($rec->priceP);
 				}
 			}

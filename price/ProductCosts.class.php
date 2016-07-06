@@ -97,6 +97,7 @@ class price_ProductCosts extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$row->price = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $rec->price, TRUE);
     	
     	if(cls::load($rec->documentClassId, TRUE) && isset($rec->documentId)){
     		$Document = cls::get($rec->documentClassId);
