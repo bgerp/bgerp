@@ -158,7 +158,8 @@ class price_Lists extends core_Master
     	// Ако искаме да наследява друга политика, то трябва да има такава
     	if(isset($parentTitle)){
     		$parentTitle = str::mbUcfirst($parentTitle);
-    		expect($parentId = self::fetchField(array("#title = '[#1#]'", $parentTitle)), 'Няма политика с това име');
+            // Очаква се политика с това име
+    		expect($parentId = self::fetchField(array("#title = '[#1#]'", $parentTitle)), $parentTitle);
     	}
     	
     	// Трябва да е зададен контрагент или да не е зададен
@@ -167,8 +168,10 @@ class price_Lists extends core_Master
     	// Ако е зададен контрагент, той трябва да съществува
     	if(isset($cClass) && isset($cId)){
     		expect(is_numeric($cId));
-    		expect($ContragentClass = cls::get($cClass), 'Невалиден клас');
-    		expect($ContragentClass->fetch($cId), 'Няма такъв контрагент');
+            // Очакваме и вземаме класа
+    		expect($ContragentClass = cls::get($cClass), $cClass);
+            // Очакваме и вземаме контрагента
+    		expect($ContragentClass->fetch($cId), $cId);
     		$cClass = $ContragentClass->getClassId();
     	}
     	
@@ -192,7 +195,7 @@ class price_Lists extends core_Master
     	$discountCompareToId = NULL;
     	if(isset($discountComparedToList)){
     		$discountComparedToList = str::mbUcfirst($discountComparedToList);
-    		expect($discountCompareToId = self::fetchField(array("#title = '[#1#]'", $discountComparedToList)), 'Няма политика с това име');
+    		expect($discountCompareToId = self::fetchField(array("#title = '[#1#]'", $discountComparedToList)), $discountComparedToList);
     	}
     	
     	if(isset($roundingPrecision)){
