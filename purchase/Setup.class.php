@@ -136,6 +136,12 @@ class purchase_Setup extends core_ProtoSetup
         // Добавяне на роля за старши куповач
         $html .= core_Roles::addOnce('purchaseMaster', 'purchase');
         
+        // Добавяне на роля за създаване на фактури
+        $html .= core_Roles::addOnce('invoicer');
+        
+        // sales наследява invoicer
+        $html .= core_Roles::addOnce('purchase', 'invoicer');
+        
         return $html;
     }
     

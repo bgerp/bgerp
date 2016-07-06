@@ -175,13 +175,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
+	 * Подготвя формата за редактиране
 	 */
-	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	public function prepareEditForm_($data)
 	{
+		parent::prepareEditForm_($data);
+		
 		$form = &$data->form;
 		
 		if(isset($form->rec->id)){
@@ -217,9 +216,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('dealHandler', 'input=none');
 			$form->setField('dealId', 'input=none');
 		} else {
-			$form->setField('dealHandler', 'mandatory');
+			if(empty($form->rec->id) && isset($originRec->saleId)){
+				
+				// Ако заданието, към което е протокола е към продажба, избираме я по дефолт
+				$saleRec = sales_Sales::fetch($originRec->saleId);
+				$form->setDefault('contragentFolderId', $saleRec->folderId);
+				$form->setDefault('dealHandler', sales_Sales::getHandle($saleRec->id));
+			}
+				
 			$form->setField('storeId', 'input=none');
+			$form->setField('dealHandler', array('placeholder' => 'Без стойност, когато услугата е вътрешнофирмен разход', 'caption' => 'Кореспондираща сделка->Продажба'));
 		}
+		
+		return $data;
 	}
 	
 	
@@ -231,7 +240,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param string $handle - хендлъра на сделката
 	 * @param stdClass $rec  - текущия запис
 	 */
-	public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
+	protected static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
 	{
 		if($error) return $error;
 		
@@ -248,7 +257,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param core_Mvc $mvc
 	 * @param core_Form $form
 	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
+	protected static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
 		if($form->isSubmitted()){
@@ -280,6 +289,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 			$row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
 		}
+		
+		$row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : ((isset($rec->dealId)) ? 'Изпълняване на услуга' : 'Разходи за спомагателна дейност');
+		$row->subTitle = tr($row->subTitle);
 	}
 	
 	
@@ -658,7 +670,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $recsToSave, NULL, $rec->expenses);
 		
 		// Записваме, че потребителя е разглеждал този списък
-		cat_Boms::logWrite("Създаване на рецепта от протокол за бързо производство", $newId);
+		cat_Boms::logWrite("Създаване на рецепта от протокол за производство", $newId);
 		
 		// Редирект
 		return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');

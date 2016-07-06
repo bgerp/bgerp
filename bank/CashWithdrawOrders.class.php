@@ -95,6 +95,8 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
         $this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory');
         $this->FLD('proxyEgn', 'bglocal_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
         $this->FLD('proxyIdCard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
+        
+        $this->setDbIndex('valior');
     }
     
     

@@ -305,7 +305,7 @@ class core_Pager extends core_BaseClass
             $next = "<a href=\"" . toUrlEsc($link) . "\" class=\"pager\">{$nextTitle}</a>";
         }
 
-        return "<div class=\"small\"><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div></div>";
+        return "<div class=\"small\" style='margin-bottom: 10px;'><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div><div class='clearfix21'></div> </div>";
     }
     
     

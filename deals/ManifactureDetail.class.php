@@ -69,7 +69,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 * @param core_Manager $mvc
 	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$form = &$data->form;
 		
@@ -89,7 +89,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	/**
 	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
 	 */
-	public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+	protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
 	{
 		$rec = &$form->rec;
 		

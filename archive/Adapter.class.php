@@ -217,6 +217,10 @@ class archive_Adapter
     {
         // Изтрива временния файл
         fileman::deleteTempPath($this->path);
+        
+        if (isset($this->dir) && is_dir($this->dir)) {
+            core_Os::deleteDir($this->dir);
+        }
     }
     
     

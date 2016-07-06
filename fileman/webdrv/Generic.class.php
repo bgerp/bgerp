@@ -58,7 +58,7 @@ class fileman_webdrv_Generic extends core_Manager
         $tabsArr = array();
         
         // URL за показване на информация за файла
-        $infoUrl = toUrl(array('fileman_webdrv_Office', 'info', $fRec->fileHnd), TRUE);
+        $infoUrl = toUrl(array('fileman_webdrv_Generic', 'Info', $fRec->fileHnd), TRUE);
         // Таб за информация
         $tabsArr['info'] = (object) 
 			array(
@@ -362,7 +362,7 @@ class fileman_webdrv_Generic extends core_Manager
         // Линк за сваляне
         $link = bgerp_F::getLink($fileHnd, $expireOn);
         $linkText = '';
-        if ($link) {
+        if (!empty($link)) {
             $linkText = tr("Линк|*: ");
             
             $expireOn = dt::mysql2verbal($expireOn, 'smartTime');
@@ -727,7 +727,9 @@ class fileman_webdrv_Generic extends core_Manager
             // Когато се геририра от офис документи PDF, и от полученич файл
             // се генерира JPG тогава трябва да се стартира синхронно
             // В другите случаи трябва да е асинхронно за да не чака потребителя
-            $Script->run($params['asynch']);
+            if ($Script->run($params['asynch']) === FALSE) {
+                static::afterGetBarcodes($Script);
+            }
         }
     }
     

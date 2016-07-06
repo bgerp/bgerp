@@ -866,21 +866,21 @@ class crm_Companies extends core_Master
         
         if (trim($cRec->tel)) {
             $telArr = drdata_PhoneType::toArray($cRec->tel);
-            if ($telArr && $telArr[0]) {
+            if (!empty($telArr) && $telArr[0]) {
                 $tel = $telArr[0]->original;
             }
         }
         
         if (trim($cRec->fax)) {
             $faxArr = drdata_PhoneType::toArray($cRec->fax);
-            if ($faxArr && $faxArr[0]) {
+            if (!empty($faxArr) && $faxArr[0]) {
                 $fax = $faxArr[0]->original;
             }
         }
         
         if (trim($cRec->email)) {
             $emailsArr = type_Emails::toArray($cRec->email);
-            if ($emailsArr) {
+            if (!empty($emailsArr)) {
                 $email = $emailsArr[0];
             }
         }
@@ -905,7 +905,7 @@ class crm_Companies extends core_Master
         
         // Ако не може да се генерира локално лого на фирмата, се прави опит да се генерира отдалечено
         try {
-            if (!$pngHnd) {
+            if (empty($pngHnd)) {
                 if (defined('CRM_REMOTE_COMPANY_LOGO_CREATOR')) {
                     $url = CRM_REMOTE_COMPANY_LOGO_CREATOR;
             
@@ -944,7 +944,7 @@ class crm_Companies extends core_Master
             reportException($e);
         }
         
-        if ($pngHnd) {
+        if (!empty($pngHnd)) {
             core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
         }
     }

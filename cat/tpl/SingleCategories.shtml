@@ -38,7 +38,7 @@
 				<!--ET_END measures-->
 				
 				<!--ET_BEGIN markers-->
-					<div class="groupList"><span class='quiet'>|Маркери|*</span>: [#markers#]</div>
+					<div class="groupList"><span class='quiet'>|Групи|*</span>: [#markers#]</div>
 				<!--ET_END markers-->
 				
 				<!--ET_BEGIN meta-->

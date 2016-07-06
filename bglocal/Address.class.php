@@ -141,7 +141,7 @@ class bglocal_Address extends core_MVC
         "polski trambesh" => "П. Трамбеш",
         "pomorie" => "Поморие",
         "popovo" => "Попово",
-        "preslav" => "Велики преслав",
+        "preslav" => "Велики Преслав",
         "pz" => "Пазарджик",
         "radnevo" => "Раднево",
         "radomir" => "Радомир",

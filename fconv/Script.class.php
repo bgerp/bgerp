@@ -107,6 +107,12 @@ class fconv_Script
     
     
     /**
+     * Програми, които трябва да се проверят, преди да се изпълни
+     */
+    protected $chechProgramsArr = array();
+    
+    
+    /**
      * Инициализиране на уникално id
      */
     function __construct($tempDir = NULL)
@@ -298,7 +304,7 @@ class fconv_Script
         }
         
         // Възможност за логване на грешките при изпълняване на скрипт
-        if ($params['errFilePath']) {
+        if ($params['errFilePath'] && !stristr(PHP_OS, 'WIN')) {
             $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
         }
         
@@ -375,13 +381,30 @@ class fconv_Script
         $url = toUrl(array('fconv_Processes',
                 'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
         
-        if (stristr(PHP_OS, 'WIN')) {
-        
-        } else {
-            $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
-        }
+        $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
+        $this->setChechProgramsArr('wget');
         
         $this->lineExec($cmdLine, array('skipOnRemote' => TRUE));
+    }
+    
+    
+    /**
+     * Задаваме програми, които ще се проверяват преди да се пусни обработка
+     */
+    public function setChechProgramsArr($programs)
+    {
+        $programs = arr::make($programs, TRUE);
+        $this->chechProgramsArr += $programs;
+    }
+    
+    
+    /**
+     * Програми, които ще се проверяват преди да се пусни обработка
+     */
+    public function getChechProgramsArr()
+    {
+        
+        return $this->chechProgramsArr;
     }
     
     
@@ -419,6 +442,30 @@ class fconv_Script
                     log_System::add('fconv_Remote', "Стартиран скрипт: " . $url, $rRec->id);
                     
                     return ;
+                }
+            }
+        }
+        
+        $checkProgramsArr = $this->getChechProgramsArr();
+        // Ако са зададени програми, които да се проверят преди обработка.
+        if (!empty($checkProgramsArr)) {
+            foreach ($checkProgramsArr as $program) {
+                if (isset($this->programs[$program])) {
+                    $path = $this->programs[$program];
+                } else {
+                    $path = escapeshellcmd($program);
+                }
+                
+                exec($path . ' --help', $output, $code);
+                
+                if ($code == 127 || ($code == 1)) {
+                    if ($code == 1) {
+                        exec($path . ' -h', $output, $code);
+                        
+                        if ($code === 0) continue ;
+                    }
+                    
+                    return FALSE;
                 }
             }
         }
@@ -476,7 +523,7 @@ class fconv_Script
         
         // Ако е зададено да се стартира асинхронно
         if ($asynch) {
-            $shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();    
+            $shell = $this->addRunAsinchronWin() . escapeshellarg($shellName) . $this->addRunAsinchronLinux();    
         } else {
             $shell = $shellName;    
         }

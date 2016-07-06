@@ -37,7 +37,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'code=EAN, packagingId=Наименование, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
+    var $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, 
         sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
         eanCode=';
     
@@ -90,7 +90,7 @@ class cat_products_Packagings extends core_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'input,caption=Опаковка,mandatory');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'input,tdClass=leftCol,caption=Опаковка,mandatory,smartCenter');
         $this->FLD('quantity', 'double(Min=0)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');

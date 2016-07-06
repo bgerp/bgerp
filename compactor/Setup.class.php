@@ -63,12 +63,8 @@ class compactor_Setup extends core_ProtoSetup
     {
         $res .= parent::loadSetupData($itr);
         
-        // JS и CSS файловете от конфигурацията
-//        $conf = core_Packs::getConfig('compactor');
-//        $jsFilesArr = arr::make($conf->COMPACTOR_JS_FILES, TRUE);
-//        $cssFilesArr = arr::make($conf->COMPACTOR_CSS_FILES, TRUE);
-        
         // JS и CSS файловете от конфигурацията от константите
+        // Не се вземат с ::get, защото се връщат записаните в модела
         $jsFilesArrB = arr::make(COMPACTOR_JS_FILES);
         $cssFilesArrB = arr::make(COMPACTOR_CSS_FILES);
         
@@ -119,34 +115,34 @@ class compactor_Setup extends core_ProtoSetup
                 if ($commonCss) {
                     $commonCssArr = arr::make($commonCss, TRUE);
                     $cssFilesArr = array_merge((array)$cssFilesArr, (array)$commonCssArr);
-                    $haveCss = TRUE;
                 }
                 
                 // Добавяме зададените JS файлове към главния
                 if ($commonJs) {
                     $commonJsArr = arr::make($commonJs, TRUE);
                     $jsFilesArr = array_merge((array)$jsFilesArr, (array)$commonJsArr);
-                    $haveJs = TRUE;
                 }
             }
         }
         
+        $data = array();
+        
         // Ако има добавен CSS файл, добавяме ги към конфигурацията
-        if ($haveCss) {
+        if (!empty($cssFilesArr)) {
             $cssFilesStr = implode(', ', $cssFilesArr);
             $data['COMPACTOR_CSS_FILES'] = $cssFilesStr;
             $res .= '<li>CSS файловете за компактиране: ' . $cssFilesStr;
         }
         
         // Ако има добавен JS файл, добавяме ги към конфигурацията
-        if ($haveJs) {
+        if (!empty($jsFilesArr)) {
             $jsFilesStr = implode(', ', $jsFilesArr);
             $data['COMPACTOR_JS_FILES'] = $jsFilesStr;
             $res .= '<li>JS файловете за компактиране: ' . $jsFilesStr;
         }
         
         // Ако има данни за добавяме, обновяваме данние от компактора
-        if ($data) {
+        if (!empty($data)) {
             core_Packs::setConfig('compactor', $data);
         }
         

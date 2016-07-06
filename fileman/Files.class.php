@@ -1441,7 +1441,7 @@ class fileman_Files extends core_Master
 
                 if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
                     if(static::haveRightFor('single', $fRec)){
-                    	$attr['class'] .= " more-btn transparent";
+                    	$attr['class'] .= " ajaxContext";
                     	$attr['name'] = 'context-holder';
                     	ht::setUniqId($attr);
                     	$replaceId = $attr['id'];

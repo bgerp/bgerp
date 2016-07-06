@@ -963,7 +963,7 @@ class ModbusTcp {
 		
 		$tmp = $arr[key($arr)]; //init a la premiere valeur du tableau
 		foreach ( $arr as $i => $value) {
-			ereg( "^3|^4", $arr[$i]) ? $max = 125 : $max = 500;
+			preg_match("/^3|^4/", $arr[$i]) ? $max = 125 : $max = 500;
 			if ( $arr[$i] - $tmp >= $max ) {
 				$resultat[$tmp] = $arr[$i_1] - $tmp + 1;
 				$tmp = $arr[$i];

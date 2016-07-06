@@ -54,15 +54,6 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * При колко линка в тулбара на реда да не се показва дропдауна
-     * 
-     * @param int
-     * @see plg_RowTools2
-     */
-    public $rowToolsMinLinksToShow = 2;
-    
-    
-    /**
      * Поле за пулт-а
      */
     public $rowToolsField = 'tools';
@@ -142,7 +133,7 @@ class cat_products_Params extends doc_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$paramRec = cat_Params::fetch($rec->paramId);
     	
@@ -159,7 +150,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
         
@@ -203,7 +194,7 @@ class cat_products_Params extends doc_Detail
         
         if(count($options)) {
             $query = self::getQuery();
-            
+            $query->show('paramId');
             if($id) {
                 $query->where("#id != {$id}");
             }
@@ -214,7 +205,7 @@ class cat_products_Params extends doc_Detail
         } else {
             $options = array();
         }
-
+		
         return $options;
     }
     
@@ -296,7 +287,7 @@ class cat_products_Params extends doc_Detail
     	while($rec = $query->fetch()){
     		$data->params[$rec->id] = static::recToVerbal($rec);
     		
-    		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
+    		if(!self::haveRightFor('add', $rec)) {
     			unset($data->params[$rec->id]->tools);
     		}
     	}
@@ -310,7 +301,7 @@ class cat_products_Params extends doc_Detail
 	/**
      * След проверка на ролите
      */
-    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
         if($requiredRoles == 'no_one') return;
     	
@@ -318,7 +309,7 @@ class cat_products_Params extends doc_Detail
         	$pRec = cat_Products::fetch($rec->productId);
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if($action != 'edit'){
+        	if($action == 'add'){
         		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
         			$requiredRoles = 'no_one';
         		} elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
@@ -380,7 +371,7 @@ class cat_products_Params extends doc_Detail
 	/**
      * След запис се обновяват свойствата на перата
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	cat_Products::touchRec($rec->productId);
     	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){

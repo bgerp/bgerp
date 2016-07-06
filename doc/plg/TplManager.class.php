@@ -96,6 +96,9 @@ class doc_plg_TplManager extends core_Plugin
     	if(empty($rec->template)){
     		$templates = doc_TplManager::getTemplates($mvc->getClassId());
     		$res = key($templates);
+    		
+    		$rec->template = $res;
+    		$mvc->save_($rec, 'template');
     	} else {
     		$res = $rec->template;
     	}

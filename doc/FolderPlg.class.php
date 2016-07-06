@@ -218,7 +218,9 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id));
+        if (Request::get('share')) {
+            bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id, 'share' => TRUE));
+        }
     }
     
     
@@ -551,11 +553,11 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Изтриваме нотификациите от премахнатите потребители 
-            if ($delNotifyArr) {
+            if (!empty($delNotifyArr)) {
                 foreach ($delNotifyArr as $clearUser) {
-                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'yes', $clearUser);
-                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $clearUser);
-                    bgerp_Notifications::setHidden(array($mvc, 'list'), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'share' => TRUE), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'share' => TRUE), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'list', 'share' => TRUE), 'yes', $clearUser);
                 }
             }
             
@@ -571,7 +573,7 @@ class doc_FolderPlg extends core_Plugin
                     if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                          
                         if(doc_Folders::haveRightFor('single', $rec->folderId, $notifyUserId)){
-                            $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+                            $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'share' => TRUE);
                         }
             
                         $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
@@ -579,14 +581,14 @@ class doc_FolderPlg extends core_Plugin
             
                     if (empty($url)) {
                         if (($mvc instanceof core_Master) && $mvc->haveRightFor('single', $rec, $notifyUserId)) {
-                            $url = array($mvc, 'single', $rec->id);
+                            $url = array($mvc, 'single', $rec->id, 'share' => TRUE);
                             $msg = $currUserNick . ' |сподели|* "|' . $mvc->singleTitle . '|*"';
                         } else {
-                            $url = array($mvc, 'list');
+                            $url = array($mvc, 'list', 'share' => TRUE);
                             $msg = $currUserNick . ' |сподели|* "|' . $mvc->title . '|*"';
                         }
                     }
-            
+                    
                     bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
                 }
             }
@@ -859,7 +861,9 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        bgerp_Notifications::clear(array($mvc, 'list'));
+        if (Request::get('share')) {
+            bgerp_Notifications::clear(array($mvc, 'list', 'share' => TRUE));
+        }
     }
     
     

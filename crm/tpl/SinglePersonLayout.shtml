@@ -13,7 +13,7 @@
             </div>
             <!--ET_END image-->
             <!--ET_BEGIN contacts-->
-            [#contacts#]
+            
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Лична информация|*</legend>
                 <div class="groupList">
@@ -48,6 +48,7 @@
                     <div>|Сайт/Блог|*: <b>[#website#]</b></div>
                     <!--ET_END website-->
                 </div>
+                [#contacts#]
             </fieldset>
             <!--ET_END contacts-->
             <!--ET_BEGIN groupList-->
