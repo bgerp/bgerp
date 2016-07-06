@@ -96,10 +96,6 @@ class cat_PriceDetails extends core_Manager
     	
     	// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
     	$primeCostListId = price_ListRules::PRICE_LIST_COST;
-    	$primeCostListRound = price_Lists::fetchField($primeCostListId, 'roundingPrecision');
-    	$catalogRound = price_Lists::fetchField(price_ListRules::PRICE_LIST_CATALOG, 'roundingPrecision');
-    	setIfNot($primeCostListRound, 4);
-    	setIfNot($catalogRound, 4);
     	
     	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
     		$data->addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $primeCostListId, 'productId' => $data->masterId, 'priority' => 1, 'ret_url' => TRUE);
@@ -137,8 +133,7 @@ class cat_PriceDetails extends core_Manager
     		$futurePrimeCostDate = $lRec->validFrom;
     	}
     	
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => $primeCostListRound)));
-    	$DateTime = cls::get('type_DateTime', array('params' =>array('format' => 'smartTime')));
+    	$DateTime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
     	
     	// Бутон за задаване на правило за обновяване
     	$data->afterRow = NULL;
@@ -195,7 +190,8 @@ class cat_PriceDetails extends core_Manager
     		}
     		
     		if($btns || isset($primeCost)){
-    			$priceRow = (is_null($primeCost)) ? $Double->toVerbal($primeCost) : "<b>" . $Double->toVerbal($primeCost) . "</b> {$baseCurrencyCode}";
+    			$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, TRUE);
+    			$priceRow = (is_null($primeCost)) ? $verbPrice : "<b>" . $verbPrice . "</b> {$baseCurrencyCode}";
     			$primeCostRows[] = (object)array('type'       => tr('|Мениджърска себестойност|*'),
 						    					 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
 						    					 'price'      => $priceRow,
@@ -204,9 +200,10 @@ class cat_PriceDetails extends core_Manager
     		}
     		
     		if(isset($futurePrimeCost)){
+    			$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $futurePrimeCost, TRUE);
     			$primeCostRows[] = (object)array('type'       => tr('|Бъдеща|* |себестойност|*'),
     											 'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate),
-						    					 'price'      => "<b>" . $Double->toVerbal($futurePrimeCost) . "</b> {$baseCurrencyCode}", 
+						    					 'price'      => "<b>" . $verbPrice . "</b> {$baseCurrencyCode}", 
 						    					 'ROW_ATTR'   => array('class' => 'state-draft'));
     		}
     	}
@@ -226,10 +223,10 @@ class cat_PriceDetails extends core_Manager
     	}
     	
     	if(isset($catalogCost)){
-    		$Double->params['decimals'] = $catalogRound;
+    		$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_CATALOG, $catalogCost, TRUE);
     		$primeCostRows[] = (object)array('type'       => tr('Каталог'), 
     									     'modifiedOn' => $DateTime->toVerbal($catalogCostDate), 
-    										 'price'      => "<b>" . $Double->toVerbal($catalogCost) . "</b> {$baseCurrencyCode}", 
+    										 'price'      => "<b>" . $verbPrice . "</b> {$baseCurrencyCode}", 
     										 'ROW_ATTR'   => array('class' => 'state-active'));
     	}
     	

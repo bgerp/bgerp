@@ -109,6 +109,12 @@ class price_Lists extends core_Master
     
     
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -121,8 +127,8 @@ class price_Lists extends core_Master
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
-        $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
-        $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
+        $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
+        $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
         $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка/Отстъпка по подразбиране->Процент');
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
@@ -267,6 +273,11 @@ class price_Lists extends core_Master
         	foreach (array('parent', 'public', 'discountCompared', 'defaultSurcharge', 'minSurcharge', 'maxSurcharge') as $fld){
         		$form->setField($fld, 'input=hidden');
         	}
+        } else {
+        	$digits = price_Setup::get('SIGNIFICANT_DIGITS');
+        	$minDecimals = price_Setup::get('MIN_DECIMALS');
+        	$form->setField('significantDigits', "placeholder={$digits}");
+        	$form->setField('minDecimals', "placeholder={$minDecimals}");
         }
     }
 
@@ -401,6 +412,18 @@ class price_Lists extends core_Master
         $row->currency = "<span class='cCode'>{$row->currency}</span>";
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : 'state-active';
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
+        
+        if(empty($rec->significantDigits)){
+        	$significantDigits = price_Setup::get('SIGNIFICANT_DIGITS');
+        	$row->significantDigits = $mvc->getFieldType('significantDigits')->toVerbal($significantDigits);
+        	$row->significantDigits = ht::createHint($row->significantDigits, 'Стойност по подразбиране');
+        }
+        
+        if(empty($rec->minDecimals)){
+        	$minDecimals = price_Setup::get('MIN_DECIMALS');
+        	$row->minDecimals = $mvc->getFieldType('minDecimals')->toVerbal($minDecimals);
+        	$row->minDecimals = ht::createHint($row->minDecimals, 'Стойност по подразбиране');
+        }
     }
 
 
@@ -495,5 +518,42 @@ class price_Lists extends core_Master
     	if(isset($rec->cClass) && isset($rec->cId)){
     		price_ListToCustomers::updateStates($rec->cClass, $rec->cId);
     	}
+    }
+    
+    
+    /**
+     * Закръгля сумата според указаното в ценовата политика.
+     * Ако в нея не е указано нищо според указаното в настройките на пакета 'price'
+     *
+     * @param mixed $listId  - ид или запис на ценова политика
+     * @param double $price  - цената за закръгляне
+     * @return double $price - закръглената цена
+     */
+    public static function roundPrice($listId, $price, $verbal = FALSE)
+    {
+    	$listRec = self::fetchRec($listId);
+    	
+    	// Кеш в текущия хит за извлечената информация
+    	if(!array_key_exists($listRec->id, static::$cache)){
+    		$rInfo = new stdClass();
+    		$rInfo->significantDigits = (isset($listRec->significantDigits)) ? $listRec->significantDigits : price_Setup::get('SIGNIFICANT_DIGITS');
+    		$rInfo->minDecimals = (isset($listRec->minDecimals)) ? $listRec->minDecimals : price_Setup::get('MIN_DECIMALS');
+    		static::$cache[$listRec->id] = $rInfo;
+    	}
+    	 
+    	$rInfo = static::$cache[$listRec->id];
+    	
+    	// Колко да е точността на разкъглянето
+    	$precision =  max($rInfo->minDecimals, round($rInfo->significantDigits - log10(abs($price))));
+    	
+    	if($verbal === TRUE){
+    		$Double = cls::get('type_Double', array('params' => array('decimals' => $precision)));
+    		$price = $Double->toVerbal($price);
+    	} else {
+    		$price = round($price, $precision);
+    	}
+    	
+    	// Връщаме закръглената цена
+    	return $price;
     }
 }

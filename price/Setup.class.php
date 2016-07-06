@@ -2,6 +2,18 @@
 
 
 /**
+ * Начален номер на фактурите
+ */
+defIfNot('PRICE_SIGNIFICANT_DIGITS', '4');
+
+
+/**
+ * Краен номер на фактурите
+*/
+defIfNot('PRICE_MIN_DECIMALS', '2');
+
+
+/**
  * Инсталиране на модул 'price'
  *
  * Ценови политики на фирмата
@@ -90,6 +102,14 @@ class price_Setup extends core_ProtoSetup
         );
     
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'PRICE_SIGNIFICANT_DIGITS' => array("int(min=0)", "caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри"),
+    		'PRICE_MIN_DECIMALS'       => array("int(min=0)", 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
+    	);
+    	
     /**
      * Де-инсталиране на пакета
      */
