@@ -452,9 +452,10 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
        
             if (!$hidden) {
- 
-                $row->document = doc_DocumentCache::getCache($rec, $document);
-
+ 				$retUrl = array($document->className, 'single', $document->that);
+ 				$retUrl = $retUrl + self::extractDocParamsFromUrl();
+ 				Mode::push('ret_url', $retUrl);
+ 				
             	if($row->document) {
                     Debug::log("+++ Get from Cache $rec->id");
                 } else {
@@ -478,6 +479,8 @@ class doc_Containers extends core_Manager
                 if($q) {
                     $row->document = plg_Search::highlight($row->document, $q);
                 }
+                
+                Mode::pop('ret_url');
             } else {
                 $row->document = self::renderHiddenDocument($rec->id);
             }

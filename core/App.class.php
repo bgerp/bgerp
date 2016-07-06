@@ -824,7 +824,11 @@ class core_App
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
         if($params['ret_url'] === TRUE) {
-            $params['ret_url'] = self::getCurrentUrl();
+        	if($retUrl = Mode::get('ret_url')){
+        		$params['ret_url'] = $retUrl;
+        	} else {
+        		$params['ret_url'] = self::getCurrentUrl();
+        	}
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
