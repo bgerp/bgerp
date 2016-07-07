@@ -190,7 +190,7 @@ class cat_PriceDetails extends core_Manager
     		}
     		
     		if($btns || isset($primeCost)){
-    			$type = tr('|Ценова политика "Себестойност"|*');
+    			$type = tr('|Политика "Себестойност"|*');
     			if(price_Lists::haveRightFor('single', price_ListRules::PRICE_LIST_COST)){
     				$type = ht::createLink($type, array('price_Lists', 'single', price_ListRules::PRICE_LIST_COST));
     			}
@@ -228,7 +228,7 @@ class cat_PriceDetails extends core_Manager
     	}
     	
     	if(isset($catalogCost)){
-    		$type = tr('Ценова политика "Каталог"');
+    		$type = tr('Политика "Каталог"');
     		if(price_Lists::haveRightFor('single', price_ListRules::PRICE_LIST_CATALOG)){
     			$type = ht::createLink($type, array('price_Lists', 'single', price_ListRules::PRICE_LIST_CATALOG));
     		}
@@ -270,7 +270,7 @@ class cat_PriceDetails extends core_Manager
     		$afterRowTpl->append($data->afterRow, '1');
     	} else {
     		$afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
-    		$afterRowTpl->append(tr('Няма зададено правило за обновяване'), '1');
+    		$afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
     	
     		if(price_Updates::haveRightFor('add', (object)array('type' => 'product', 'objectId' => $data->masterId))){
     			$afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
