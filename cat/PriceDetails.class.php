@@ -216,7 +216,7 @@ class cat_PriceDetails extends core_Manager
     			$cRow = price_ProductCosts::recToVerbal($cRec);
     			$cRow->price = "<b>{$cRow->price}</b> {$baseCurrencyCode}";
     			if(isset($cRow->document)){
-    				$cRow->buttons = $cRow->document;
+    				$cRow->buttons = "<div style='text-align:left'>" . $cRow->document . "</div>";
     			}
     			$primeCostRows[] = $cRow;
     		}
