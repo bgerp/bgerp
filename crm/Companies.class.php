@@ -815,6 +815,35 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Връща размера за шрифта на името на файла в зависимост от дължината
+     * 
+     * @param string $companyName
+     * 
+     * @return number
+     */
+    public static function getCompanyFontSize($companyName)
+    {
+        $companyNameLen = mb_strlen(trim($companyName));
+        
+        if ($companyNameLen > 38) {
+            $companyFontSize = 100;
+        } elseif ($companyNameLen > 30) {
+            $companyFontSize = 130;
+        } elseif ($companyNameLen > 24) {
+            $companyFontSize = 150;
+        } elseif ($companyNameLen > 20) {
+            $companyFontSize = 160;
+        } elseif ($companyNameLen > 18) {
+            $companyFontSize = 190;
+        } else {
+            $companyFontSize = 220;
+        }
+        
+        return $companyFontSize;
+    }
+    
+    
+    /**
      * Помощна функция за сетване на лого на компанията
      *
      * @param string $companyConstName
@@ -834,19 +863,14 @@ class crm_Companies extends core_Master
                 $activeColor = $dRec->activeColor;
             }
         }
-
+        
         $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
         $cRec = crm_Companies::fetchOwnCompany();
+        $cRec->company = trim($cRec->company);
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
         
-        if(mb_strlen($companyName) > 20) {
-            $tpl->replace(160, 'companyFontSize');
-        } elseif(mb_strlen($companyName) > 18) {
-            $tpl->replace(190, 'companyFontSize');
-        } else {
-            $tpl->replace(220, 'companyFontSize');
-        }
+        $tpl->replace(self::getCompanyFontSize($cRec->company), 'companyFontSize');
         
         // Подготвяме адреса
         $fAddres = '';
