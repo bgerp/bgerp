@@ -253,10 +253,10 @@ class price_ListToCustomers extends core_Manager
         
         $tpl->append(tr('Ценови политики'), 'title');
         $tpl->append($table->get($data->rows, $listFields), 'content');
-        $tpl->replace(get_class($mvc), 'DetailName');
+        $tpl->replace(get_class($this), 'DetailName');
         
         if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на Ценова политика'), 'title');
+            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ценова политика'), 'title');
         }
         
         return $tpl;

@@ -278,6 +278,10 @@ class purchase_Purchases extends deals_DealMaster
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
         }
+        
+        // Търговеца по дефолт е отговорника на контрагента
+        $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
+        $form->setDefault('dealerId', $inCharge);
     }
     
     
