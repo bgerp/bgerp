@@ -106,7 +106,10 @@ class cond_plg_DefaultValues extends core_Plugin
     			// За всяко поле със стратегия, му се намира стойността
     			foreach ($mvc::$defaultStrategies as $name => $strat){
     				$value = self::getDefValue($mvc, $rec, $name, $strat);
-    				$form->setDefault($name, $value);
+    				
+    				if($form->cmd != 'refresh'){
+    					$form->setDefault($name, $value);
+    				}
     			}
     		}
     	}
