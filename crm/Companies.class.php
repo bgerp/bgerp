@@ -823,7 +823,7 @@ class crm_Companies extends core_Master
      */
     public static function getCompanyFontSize($companyName)
     {
-        $companyNameLen = mb_strlen(trim($companyName));
+        $companyNameLen = mb_strlen($companyName);
         
         if ($companyNameLen > 38) {
             $companyFontSize = 100;
