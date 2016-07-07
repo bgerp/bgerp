@@ -6,7 +6,7 @@
  * Плъгин подравняващ броя на десетичните символи, с помоща на новите функции в core_Math
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
@@ -37,7 +37,7 @@ class plg_AlignDecimals2 extends core_Plugin
 		 
 		if(!arr::count($decFields) || !arr::count($recs)) return;
 		 
-		//$decFields = array(5 => 'packPrice');
+		$decFields = array(5 => 'packPrice');
 		
 		// тука определяме най-дългата дробна част, без да записваме числото
 		foreach ($recs as $id => $rec){
@@ -49,8 +49,11 @@ class plg_AlignDecimals2 extends core_Plugin
 		$conf = core_Packs::getConfig('core');
 		$decPoint = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
 		
+		$minShowDigits = core_Setup::get('MIN_ALIGN_DIGITS');
+		
 		// Закръгляме сумата и я обръщаме във вербален вид
 		foreach ($recs as $id => &$rec){
+			
 			foreach ($decFields as $col => $fName){
 		
 				if(isset($rows[$id]->$fName)){
@@ -71,17 +74,25 @@ class plg_AlignDecimals2 extends core_Plugin
 						$count = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
 						
 						$padCount = $optDecimals - $count;
+						
 						if($count === 1){
 							$rows[$id]->$fName .= "0";
 							$padCount--;
 						}
 						
-						$repeatString = "0";
-						if(strpos($rows[$id]->$fName, $decPoint) === FALSE || $padCount > 1){
-							$repeatString = "<span style='visibility: hidden;'>{$repeatString}</span>";
+						$padString = '';
+						if((strpos($rows[$id]->$fName, $decPoint) === FALSE) && $optDecimals != 0){
+							$rows[$id]->$fName .= "{$decPoint}00";
+							$padCount -= 2;
 						}
 						
-						$padString = str_repeat($repeatString, $padCount);
+						$repeatString = "0";
+						if($padCount > 0){
+							$count2 = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
+							$repeatString = ($count2 >= $minShowDigits) ? "<span style='visibility:hidden;'>{$repeatString}</span>" : "0";
+						}
+						$padString .= str_repeat($repeatString, $padCount);
+						
 						$rows[$id]->$fName .= $padString;
 					}
 				}
