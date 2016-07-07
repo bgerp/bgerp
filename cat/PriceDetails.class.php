@@ -190,9 +190,14 @@ class cat_PriceDetails extends core_Manager
     		}
     		
     		if($btns || isset($primeCost)){
+    			$type = tr('|Ценова политика "Себестойност"|*');
+    			if(price_Lists::haveRightFor('single', price_ListRules::PRICE_LIST_COST)){
+    				$type = ht::createLink($type, array('price_Lists', 'single', price_ListRules::PRICE_LIST_COST));
+    			}
+    			
     			$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, TRUE);
     			$priceRow = (is_null($primeCost)) ? $verbPrice : "<b>" . $verbPrice . "</b> {$baseCurrencyCode}";
-    			$primeCostRows[] = (object)array('type'       => tr('|Ценова политика "Себестойност"|*'),
+    			$primeCostRows[] = (object)array('type'       => $type,
 						    					 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
 						    					 'price'      => $priceRow,
 						    					 'buttons'    => $btns,
@@ -223,8 +228,13 @@ class cat_PriceDetails extends core_Manager
     	}
     	
     	if(isset($catalogCost)){
+    		$type = tr('Ценова политика "Каталог"');
+    		if(price_Lists::haveRightFor('single', price_ListRules::PRICE_LIST_CATALOG)){
+    			$type = ht::createLink($type, array('price_Lists', 'single', price_ListRules::PRICE_LIST_CATALOG));
+    		}
+    		
     		$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_CATALOG, $catalogCost, TRUE);
-    		$primeCostRows[] = (object)array('type'       => tr('Ценова политика "Каталог"'), 
+    		$primeCostRows[] = (object)array('type'       => $type, 
     									     'modifiedOn' => $DateTime->toVerbal($catalogCostDate), 
     										 'price'      => "<b>" . $verbPrice . "</b> {$baseCurrencyCode}", 
     										 'ROW_ATTR'   => array('class' => 'state-active'));
