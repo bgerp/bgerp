@@ -75,7 +75,7 @@ class price_History extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'priceMaster,ceo';
+	public $canList = 'admin,debug';
 
 
 	/**

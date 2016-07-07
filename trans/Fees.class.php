@@ -19,7 +19,7 @@ class trans_Fees extends core_Detail
     /**
      * Заглавие
      */
-    public $title = "Налва";
+    public $title = "Навла";
 
 
     /**

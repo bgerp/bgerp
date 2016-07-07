@@ -109,7 +109,9 @@ class trans_Zones extends core_Detail
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn("Изчисление", array("trans_Zones", "calcFee"), "ef_icon=img/16/arrow_out.png, title=Изчисляване на разходи по транспортна зона");
+        if (haveRole('admin, ceo, trans')) {
+            $data->toolbar->addBtn("Изчисление", array("trans_Zones", "calcFee"), "ef_icon=img/16/arrow_out.png, title=Изчисляване на разходи по транспортна зона");
+        }
     }
 
 
@@ -119,7 +121,7 @@ class trans_Zones extends core_Detail
     public function act_calcFee()
     {
         //Дос на потребителите
-        requireRole('admin, ceo');
+        requireRole('admin, ceo, trans');
 
         //Тестовни примери
         /*

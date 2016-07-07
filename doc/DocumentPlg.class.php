@@ -274,8 +274,9 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($mvc->haveRightFor('exportdoc', $data->rec)) {
             Request::setProtected(array('classId', 'docId'));
-            $data->toolbar->addBtn("Сваляне", array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id),
+            $data->toolbar->addBtn("Сваляне", toUrl(array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id)),
                             "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
+            Request::removeProtected(array('classId', 'docId'));
         }
     }
     
@@ -656,41 +657,17 @@ class doc_DocumentPlg extends core_Plugin
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
-                    
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $handle, 'Cid' => Request::get('Cid'), '#' => $hnd);
                     
-                    $Q = Request::get('Q');
+                    // Добавяме към новото урл специфичните урл параметри за документите 
+                    $url += doc_Containers::extractDocParamsFromUrl();
                     
-                    if (trim($Q)) {
-                        $url['Q'] = $Q;
-                    }
-                    
-                    // Ако има подаден таб
-                    if ($tab = Request::get('Tab')) {
-                        
-                        // Добавяме таба
-                        $url['Tab'] = $tab;
-                        
-                        // Добавяме нова котва към детайлите на таба
-                        $url['#'] = 'detailTabs';
-                    }
-                   
-                    // Ако има подаден горен таб
-                    if ($tab1 = Request::get("TabTop{$rec->containerId}")) {
-                    	
-                    	// Добавяме таба
-                    	$url["TabTop{$rec->containerId}"] = $tab1;
-                    }
-                   
-                    // Ако има страница на документа
-                    if ($P = Request::get('P_doclog_Documents')) {
-                        
-                        // Добавяме страницата
-                        $url['P_doclog_Documents'] = $P;
+                    if(isset($url['Tab'])){
+                    	$url['#'] = 'detailTabs';
                     }
                     
-                    if($nid = Request::get('Nid', 'int')) {
-                        $url['Nid'] = $nid;
+                    if(isset($url["TabTop{$rec->containerId}"])){
+                    	$url['#'] = "detailTabTop{$rec->containerId}";
                     }
                     
                     $res = new Redirect($url);

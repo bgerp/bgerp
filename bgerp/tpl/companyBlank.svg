@@ -39,14 +39,14 @@
     <text
        x="50"
        y="221.81577"
-       style="font-weight:bold;font-size:220px;font-family:Arial;fill:#000000"
-       font-size="220"
+       style="font-weight:bold;font-size:[#companyFontSize#]px;font-family:Arial;fill:#000000"
+       font-size="[#companyFontSize#]"
        id="text15">[#myCompanyName#]</text>
     <text
        x="60.000004"
        y="371.10547"
        style="font-weight:normal;font-size:66px;font-family:Arial;fill:#000000"
-       font-size="50"
+       font-size="66"
        id="text23">[#address#]</text>
     <g
        id="g4156"
@@ -54,7 +54,7 @@
        <!--ET_BEGIN tel-->
       <text
          id="text17"
-         font-size="50"
+         font-size="66"
          style="font-weight:normal;font-size:66px;font-family:Arial;fill:#000000"
          y="99.675232"
          x="2721.4919">|Тел.|*: [#tel#]</text>
@@ -62,7 +62,7 @@
       <!--ET_BEGIN email-->
       <text
          id="text19"
-         font-size="50"
+         font-size="66"
          style="font-weight:normal;font-size:66px;font-family:Arial;fill:#000000"
          y="290.13742"
          x="2721.4919">|Имейл|*: [#email#]</text>
@@ -70,7 +70,7 @@
       <!--ET_BEGIN site-->
       <text
          id="text21"
-         font-size="50"
+         font-size="66"
          style="font-weight:normal;font-size:66px;font-family:Arial;fill:#000000"
          y="391.15411"
          x="2723.071">[#site#]</text>
@@ -78,7 +78,7 @@
       <!--ET_BEGIN fax-->
       <text
          id="text19-5"
-         font-size="50"
+         font-size="66"
          style="font-weight:normal;font-size:66px;font-family:Arial;fill:#000000"
          y="189.89413"
          x="2721.4919">|Факс|*: [#fax#]</text>

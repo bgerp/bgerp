@@ -48,12 +48,6 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'name';
-    
-    
-    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'id';
@@ -201,7 +195,7 @@ class cat_Groups extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if($fields['-list']){
-            $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'groupId' => $rec->id));
+            $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), FALSE, "title=Филтър на|* \"{$row->name}\"");
         }
     }
     

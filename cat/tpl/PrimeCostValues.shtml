@@ -1,9 +1,6 @@
-<div class='detail-info portal ' style='padding-bottom:10px;' id="[#DetailName#]">
+<div class='detail-info portal' id="[#DetailName#]">
    <div class='groupList'>
 	   	<div>[#primeCosts#]</div>
 	   	<div style='margin-top:10px'>[#updateInfo#]</div>
-	   	<!--ET_BEGIN priceCosts-->
-	   		<div style='margin-top:10px'>[#priceCosts#]</div>
-	   	<!--ET_END priceCosts-->
     </div>
 </div>

@@ -387,9 +387,10 @@ class store_InventoryNoteSummary extends doc_Detail
     	} else {
     		$data->listTableMvc->FLD('quantitySum', 'double');
     		if(!Mode::get('printing')){
-    			$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
-    			$pager->itemsCount = count($data->rows);
-    			$data->pager = $pager;
+    			$Pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
+    			$Pager->setPageVar($data->masterMvc->className, $data->masterId);
+    			$Pager->itemsCount = count($data->rows);
+    			$data->pager = $Pager;
     		}
     	}
     	
