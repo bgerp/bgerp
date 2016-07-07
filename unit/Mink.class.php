@@ -68,4 +68,129 @@ class unit_Mink extends core_Manager {
         return $browser->getText();
     }
 
+    
+    /**
+     * Логване
+     */
+    public function SetUp()
+    {
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        // проверка потребител/парола
+        //Грешка:Грешна парола или ник!
+        //$browser->hasText('Известия');
+        //$browser->hasText('Pavlinka');
+        $browser->press('Вход');
+        return $browser;
+    }
+    
+    /**
+    * 8. Създаване на фирма и папка към нея, допуска дублиране - ОК
+    * Select2 трябва да е деинсталиран
+    */
+    //http://localhost/unit_Mink/CompanyName/
+    function act_CompanyName()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова фирма
+        $Company = "";
+        $browser->click('Визитник');
+        $browser->press('Нова фирма');
+        //$browser->hasText('Добавяне на запис в "Фирми"');
+        //$browser->hasText('Фирма');
+        //$browser->setValue('name', $company);
+        //return $browser->getText();
+        $browser->setValue('name', '<FONT COLOR=RED>!!redBUG!!</FONT>"&lt;&#9829;\'[#title#]');
+        $browser->setValue('place', 'Ст. Загора');
+        $browser->setValue('pCode', '6400');
+        $browser->setValue('address', 'ул.Бояна, №122');
+        $browser->setValue('fax', '036111111');
+        $browser->setValue('tel', '036111111');
+        $browser->setValue('uicId', '110001322');
+        $browser->setValue('Клиенти', '1');
+        $browser->setValue('Доставчици', '2');
+           $browser->press('Запис');
+        return $browser->getText();
+        
+     
+        if (strpos($browser->getText(),"Предупреждение:")){
+            $browser->setValue('Ignore', 1);
+            $browser->press('Запис');
+        }
+        
+        if(strpos($browser->gettext(), '<FONT COLOR=RED>!!redBUG!!</FONT>"&lt;&#9829;\'[#title#]')) {
+        // if(strpos($browser->gettext(), '<FONT COLOR=RED>!!redBUG!!</FONT>"<&#9829;[#title#]')) {    
+        
+        } else {                       
+            //return $browser->getHtml();
+            return "Грешно име";
+        }
+        // Създаване на папка на новата фирма
+        $browser->press('Папка');
+        
+    }
+    
+    /**
+     * 5. Създаване на параметър - текст.
+     */
+    //http://localhost/unit_Mink/CreateParam/
+    function act_CreateParam()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нов параметър
+        $browser->click('Каталог');
+        $browser->click('Параметри');
+        $browser->press('Нов запис');
+        $browser->setValue('driverClass', 'Текст');
+        $browser->setValue('name', '11<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
+        $browser->setValue('suffix', '11text');
+        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]'); //- не го приема
+        //$browser->setValue('Друг труд (labor)', '2'); //- не го приема
+        
+        //bp($browser->gettext());
+        $browser->press('Запис');
+        return $browser->getHtml();
+    
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+        //return $browser->getHtml();
+    }  
+    
+      /*** 5. Създаване на параметър - избор.
+    */
+    //http://localhost/unit_Mink/CreateParam/
+    function act_CreateParam()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нов параметър
+        $browser->click('Каталог');
+        $browser->click('Параметри');
+        $browser->press('Нов запис');
+        $browser->setValue('driverClass', 'Избор');
+        $browser->setValue('name', '11<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
+        $browser->setValue('options', '11text');
+        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]'); //- не го приема
+        //$browser->setValue('Друг труд (labor)', '2'); //- не го приема
+    
+        //bp($browser->gettext());
+        $browser->press('Запис');
+        return $browser->getHtml();
+    
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+        //return $browser->getHtml();
+    }
 }

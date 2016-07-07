@@ -319,9 +319,9 @@ class price_ListRules extends core_Detail
         $query->orderBy("#validFrom,#id", "DESC");
        
         $query->limit(1);
-        
+       
         $rec = $query->fetch();
-        
+       
         if($rec) {
         	if($rec->type == 'value') {
         		$vat = cat_Products::getVat($productId, $datetime);
@@ -347,7 +347,7 @@ class price_ListRules extends core_Detail
         	// Ако има дефолтна надценка и има наследена политика
         	if(isset($defaultSurcharge)){ 
         		if($parent = price_Lists::fetchField($listId, 'parent')) {
-        		
+        			
         			// Ако няма запис за продукта или групата
         			// му и бащата на ценоразписа е "себестойност"
         			// връщаме NULL
@@ -356,6 +356,11 @@ class price_ListRules extends core_Detail
         			 
         			// Питаме бащата за цената
         			$price  = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
+        			
+        			// Ако има цена добавяме и дефолтната надценка
+        			if(isset($price)){
+        				$price = $price * (1 + $defaultSurcharge);
+        			}
         		}
         	}
         }
@@ -363,8 +368,8 @@ class price_ListRules extends core_Detail
         // Ако има цена
         if(isset($price)){
         	
-        	// По дефолт правим някакво машинно закръгляне
-        	$price = round($price, 8);
+        	// Ако има указано закръгляне на ценоразписа, закръгляме
+        	$price = price_Lists::roundPrice($listId, $price);
         	
         	// Записваме току-що изчислената цена в историята;
         	//price_History::setPrice($price, $listId, $datetime, $productId);
@@ -687,9 +692,9 @@ class price_ListRules extends core_Detail
                 $signDiscount = $signDiscount . $discount;
                 
                 if($rec->calculation == 'reverse') {
-                    $row->rule = tr("|*[|{$parentTitle}|*] = [|{$masterTitle}|*] " . $signDiscount);
+                	$row->rule = tr("|*[|{$parentTitle}|*] / (1 {$signDiscount})");
                 } else {
-                    $row->rule = tr("|*[|{$masterTitle}|*] = [|{$parentTitle}|*] " . $signDiscount);
+                    $row->rule = tr("|*[|{$parentTitle}|*] " . $signDiscount);
                 }
                 break;
 
@@ -703,7 +708,7 @@ class price_ListRules extends core_Detail
 
                 $vat = ($vat == 'yes') ? "с ДДС" : "без ДДС";
 
-                $row->rule = tr("|*[|{$masterTitle}|*] = {$price} {$currency} |{$vat}");
+                $row->rule = tr("|*{$price} {$currency} |{$vat}|*");
                 break;
         }        
         
@@ -821,7 +826,7 @@ class price_ListRules extends core_Detail
 			$appendTable = TRUE;
 			$fRow = $data->{"rows{$priority}"};
 			
-			$data->listFields['rule'] = tr($title);
+			$data->listFields['rule'] = 'Стойност';
 			$table = cls::get('core_TableView', array('mvc' => $this));
 			$toolbar = cls::get('core_Toolbar');
 			
@@ -854,6 +859,8 @@ class price_ListRules extends core_Detail
 			
 			// Дали да показваме таблицата
 			if($appendTable === TRUE){
+				$style = ($priority == 1) ? '' : "margin-top:20px;margin-bottom:2px";
+				$block->append("<div style='{$style}'><b>{$title}</b></div>", 'TABLE');
 				$block->append($table->get($fRow, $data->listFields), 'TABLE');
 				if(isset($data->{"pager{$priority}"})){
 					$block->append($data->{"pager{$priority}"}->getHtml(), 'TABLE_PAGER');

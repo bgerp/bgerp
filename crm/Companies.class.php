@@ -270,7 +270,7 @@ class crm_Companies extends core_Master
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
         
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
                 
         // В кои групи е?
@@ -835,10 +835,18 @@ class crm_Companies extends core_Master
             }
         }
 
-        $tpl = getTplFromFile('bgerp/tpl/svg.svg');
+        $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
         $cRec = crm_Companies::fetchOwnCompany();
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
+        
+        if(mb_strlen($companyName) > 20) {
+            $tpl->replace(160, 'companyFontSize');
+        } elseif(mb_strlen($companyName) > 18) {
+            $tpl->replace(190, 'companyFontSize');
+        } else {
+            $tpl->replace(220, 'companyFontSize');
+        }
         
         // Подготвяме адреса
         $fAddres = '';
