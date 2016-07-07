@@ -172,7 +172,7 @@ class cond_plg_DefaultValues extends core_Plugin
     /**
      * Намира последния документ в дадена папка
      */
-    private static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = TRUE)
+    public static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = TRUE)
     {
     	if(empty($folderId)) return;
     	

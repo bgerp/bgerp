@@ -240,11 +240,6 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $form->setField('sharedUsers', 'input=none');
         
-        // Търговеца по дефолт е отговорника на контрагента
-        $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
-        $form->setDefault('dealerId', $inCharge);
-        
-        
         $deliverySuggestions = array();
         $query = cond_DeliveryTerms::getQuery();
         $query->where("#state = 'active'");
