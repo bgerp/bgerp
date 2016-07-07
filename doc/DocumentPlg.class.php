@@ -273,8 +273,8 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if ($mvc->haveRightFor('exportdoc', $data->rec)) {
-            Request::setProtected(array('classId', 'docId'));
-            $data->toolbar->addBtn("Сваляне", toUrl(array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id)),
+            Request::setProtected(array('exportClassId', 'exportDocId'));
+            $data->toolbar->addBtn("Сваляне", toUrl(array('bgerp_E', 'export', 'exportClassId' => $mvc->getClassId(), 'exportDocId' => $data->rec->id)),
                             "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
             Request::removeProtected(array('classId', 'docId'));
         }
