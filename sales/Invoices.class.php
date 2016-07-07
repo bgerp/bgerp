@@ -866,7 +866,7 @@ class sales_Invoices extends deals_InvoiceMaster
    	 * ако по никакъв начин не може да се определи
  
    	 * @param stdClass $rec - запис
-   	 * @return NULL|cash|bank|intercept|card - дефолтния начин за плащане в брой, по банка, с прихващане
+   	 * @return string - дефолтния начин за плащане в брой, по банка, с прихващане
    	 * или NULL ако не може да бъде намерено
    	 */
    	public function getAutoPaymentType($rec)

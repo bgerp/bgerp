@@ -170,7 +170,6 @@ class sales_Sales extends deals_DealMaster
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
-    	'dealerId'           => 'lastDocUser',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
@@ -266,8 +265,33 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+    	$rec = $form->rec;
+    	
+    	if(empty($rec->id)){
+    		
+    		// Ако има локация, питаме търговските маршрути, кой да е дефолтния търговец
+    		if(isset($rec->deliveryLocationId)){
+    			$dealerId = sales_Routes::getSalesmanId($rec->deliveryLocationId);
+    		}
+    		
+    		// Ако няма, но отговорника на папката е търговец - него
+    		if(empty($dealerId)){
+    			$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+    			if(core_Users::haveRole('sales', $inCharge)){
+    				$dealerId = $inCharge;
+    			}
+    		}
+    		
+    		// В краен случай от последната продажба на същия потребител
+    		if(empty($dealerId)){
+    			$dealerId = cond_plg_DefaultValues::getFromLastDocument($mvc, $rec->folderId, 'dealerId', TRUE);
+    		}
+    		
+    		$form->setDefault('dealerId', $dealerId);
+    	}
+    	
     	if ($form->isSubmitted()) {
-    		if(isset($form->rec->deliveryTermTime) && isset($form->rec->deliveryTime)){
+    		if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
     			$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     		}
     	}
@@ -369,13 +393,8 @@ class sales_Sales extends deals_DealMaster
         	$form->setField('currencyRate', 'input');
         }
         
-        // При нова продажба, ако отговорника на папката е има права 'sales',
-        // той да е дефолтен по подразбиране
-        if(!isset($form->rec->id)){
-        	$inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
-        	if(core_Users::haveRole('sales', $inCharge)){
-        		$form->rec->dealerId = $inCharge;
-        	}
+        if(empty($form->rec->id)){
+        	$form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
         }
     }
     

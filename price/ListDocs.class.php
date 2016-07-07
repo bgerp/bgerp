@@ -681,7 +681,10 @@ class price_ListDocs extends core_Master
     {
     	$data = new stdClass();
     	$data->rec = $rec;
+    	
+    	Mode::push("cacheList{$rec->id}", TRUE);
     	$mvc->prepareDetails($data);
+    	Mode::pop("cacheList{$rec->id}");
     	
     	if($rec->productGroups){
 	    	$groupsArr = keylist::toArray($data->rec->productGroups);

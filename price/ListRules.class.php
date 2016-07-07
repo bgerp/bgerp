@@ -124,7 +124,7 @@ class price_ListRules extends core_Detail
      */
     public static function addProductRule($listId, $productCode, $price, $currencyCode = NULL, $vat = NULL, $validFrom = NULL, $validUntill = NULL)
     {
-    	return self::addRuleToList($listId, 'value', $productCode, NULL, $price, NULL, $currencyCode, $vat, NULL, $validFrom, $validUntil, 1);
+    	return self::addRuleToList($listId, 'value', $productCode, NULL, $price, NULL, $currencyCode, $vat, NULL, $validFrom, $validUntill, 1);
     }
     
     
@@ -134,13 +134,13 @@ class price_ListRules extends core_Detail
      * @param int $listId                  - към кой ценоразпис
      * @param string $productCode          - код на артикул
      * @param double $discount             - марж
-     * @param forward|reverse $calculation - Изчисляване спрямо бащата
+     * @param string $calculation - Изчисляване спрямо бащата
      * @param string $validFrom            - дата на валидност
      * @param string $validUntill          - крайна дата на валидност
      */
     public static function addProductDiscountRule($listId, $productCode, $discount, $calculation = 'forward', $validFrom = NULL, $validUntill = NULL)
     {
-    	return self::addRuleToList($listId, 'discount', $productCode, NULL, NULL, $discount, NULL, NULL, $calculation, $validFrom, $validUntil, 1);
+    	return self::addRuleToList($listId, 'discount', $productCode, NULL, NULL, $discount, NULL, NULL, $calculation, $validFrom, $validUntill, 1);
     }
     
     
@@ -153,18 +153,18 @@ class price_ListRules extends core_Detail
      * @param forward|reverse $calculation - Изчисляване спрямо бащата
      * @param string $validFrom            - дата на валидност
      * @param string $validUntill          - крайна дата на валидност
-     * @param 2|3 $priority                - приоритет
+     * @param int $priority                - приоритет
      */
     public static function addGroupRule($listId, $groupName, $discount, $calculation = 'forward', $validFrom = NULL, $validUntill = NULL, $priority = 3)
     {
-    	return self::addRuleToList($listId, 'groupDiscount', NULL, $groupName, NULL, $discount, NULL, NULL, $calculation, $validFrom, $validUntil, $priority);
+    	return self::addRuleToList($listId, 'groupDiscount', NULL, $groupName, NULL, $discount, NULL, NULL, $calculation, $validFrom, $validUntill, $priority);
     }
     
     
     /**
      * Метод за добавяне на ценово правило
      */
-    private static function addRuleToList($listId, $type, $productCode = NULL, $groupName = NULL, $price = NULL, $discount = NULL, $currencyCode = NULL, $vatPercent = NULL, $calculation = NULL, $validFrom = NULL, $validUntil = NULL, $priority = NULL)
+    private static function addRuleToList($listId, $type, $productCode = NULL, $groupName = NULL, $price = NULL, $discount = NULL, $currencyCode = NULL, $vatPercent = NULL, $calculation = NULL, $validFrom = NULL, $validUntill = NULL, $priority = NULL)
     {
     	expect($listRec = price_Lists::fetch($listId));
     	expect(in_array($type, array('value', 'discount', 'groupDiscount')));
@@ -177,9 +177,9 @@ class price_ListRules extends core_Detail
     	
     	$rec = (object)array('listId' => $listId, 'type' => $type, 'validFrom' => $validFrom);
     	
-    	if(isset($validUntil)){
-    		expect($validUntil = dt::verbal2mysql($validUntil));
-    		$rec->validUntil = $validUntil;
+    	if(isset($validUntill)){
+    		expect($validUntill = dt::verbal2mysql($validUntill));
+    		$rec->validUntil = $validUntill;
     	}
     	
     	if($type != 'groupDiscount'){

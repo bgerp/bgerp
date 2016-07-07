@@ -211,10 +211,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Параметри');
         $browser->press('Нов запис');
         $browser->setValue('driverClass', 'Символи');
+        $browser->refresh('Запис');
         $browser->setValue('name', 'Състояние');
-        //$browser->setValue('lenght', '15'); - не го приема
-        //bp($browser->gettext());
-       
+        $browser->setValue('lenght', '15'); 
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
