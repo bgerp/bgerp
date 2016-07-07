@@ -9,7 +9,7 @@
  * @category  ef
  * @package   plg
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,12 +37,17 @@ class plg_AlignDecimals2 extends core_Plugin
 		 
 		if(!arr::count($decFields) || !arr::count($recs)) return;
 		 
+		//$decFields = array(5 => 'packPrice');
+		
 		// тука определяме най-дългата дробна част, без да записваме числото
 		foreach ($recs as $id => $rec){
 			foreach ($decFields as $fName){
 				core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
 			}
 		}
+		
+		$conf = core_Packs::getConfig('core');
+		$decPoint = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
 		
 		// Закръгляме сумата и я обръщаме във вербален вид
 		foreach ($recs as $id => &$rec){
@@ -51,17 +56,33 @@ class plg_AlignDecimals2 extends core_Plugin
 				if(isset($rows[$id]->$fName)){
 					$Type = $mvc->fields[$fName]->type;
 					setIfNot($Type->params['minDecimals'], 0);
-					setIfNot($Type->params['maxDecimals'], 6);
+					setIfNot($Type->params['maxDecimals'], 5);
 						
 					$optDecimals = min(
 							$Type->params['maxDecimals'],
 							max($Type->params['minDecimals'], ${"{$fName}FracLen"})
 					);
-					$Type->params['decimals'] = $optDecimals;
+					
+					$Type->params['smartRound'] = TRUE;
 						
 					// Вербализираме числово само ако наистина е число
 					if(is_numeric($rec->$fName)){
 						$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
+						$count = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
+						
+						$padCount = $optDecimals - $count;
+						if($count === 1){
+							$rows[$id]->$fName .= "0";
+							$padCount--;
+						}
+						
+						$repeatString = "0";
+						if(strpos($rows[$id]->$fName, $decPoint) === FALSE || $padCount > 1){
+							$repeatString = "<span style='visibility: hidden;'>{$repeatString}</span>";
+						}
+						
+						$padString = str_repeat($repeatString, $padCount);
+						$rows[$id]->$fName .= $padString;
 					}
 				}
 			}
