@@ -112,6 +112,8 @@ class cat_products_Params extends doc_Detail
         $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
+        $this->setDbIndex('classId');
+        $this->setDbIndex('productId');
     }
     
     
@@ -286,10 +288,6 @@ class cat_products_Params extends doc_Detail
         
     	while($rec = $query->fetch()){
     		$data->params[$rec->id] = static::recToVerbal($rec);
-    		
-    		if(!self::haveRightFor('add', $rec)) {
-    			unset($data->params[$rec->id]->tools);
-    		}
     	}
       	
         if(self::haveRightFor('add', (object)array('productId' => $data->masterId))) {

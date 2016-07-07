@@ -192,7 +192,7 @@ class cat_PriceDetails extends core_Manager
     		if($btns || isset($primeCost)){
     			$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, TRUE);
     			$priceRow = (is_null($primeCost)) ? $verbPrice : "<b>" . $verbPrice . "</b> {$baseCurrencyCode}";
-    			$primeCostRows[] = (object)array('type'       => tr('|Мениджърска себестойност|*'),
+    			$primeCostRows[] = (object)array('type'       => tr('|Ценова политика "Себестойност"|*'),
 						    					 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
 						    					 'price'      => $priceRow,
 						    					 'buttons'    => $btns,
@@ -216,7 +216,7 @@ class cat_PriceDetails extends core_Manager
     			$cRow = price_ProductCosts::recToVerbal($cRec);
     			$cRow->price = "<b>{$cRow->price}</b> {$baseCurrencyCode}";
     			if(isset($cRow->document)){
-    				$cRow->buttons = $cRow->document;
+    				$cRow->buttons = "<div style='text-align:left'>" . $cRow->document . "</div>";
     			}
     			$primeCostRows[] = $cRow;
     		}
@@ -224,7 +224,7 @@ class cat_PriceDetails extends core_Manager
     	
     	if(isset($catalogCost)){
     		$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_CATALOG, $catalogCost, TRUE);
-    		$primeCostRows[] = (object)array('type'       => tr('Каталог'), 
+    		$primeCostRows[] = (object)array('type'       => tr('Ценова политика "Каталог"'), 
     									     'modifiedOn' => $DateTime->toVerbal($catalogCostDate), 
     										 'price'      => "<b>" . $verbPrice . "</b> {$baseCurrencyCode}", 
     										 'ROW_ATTR'   => array('class' => 'state-active'));
