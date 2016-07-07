@@ -257,7 +257,6 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към,after=makeInvoice');
         $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime');
-    	$this->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
     }
     
     
@@ -267,6 +266,7 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = $form->rec;
+    	
     	if(empty($rec->id)){
     		
     		// Ако има локация, питаме търговските маршрути, кой да е дефолтния търговец
@@ -391,6 +391,10 @@ class sales_Sales extends deals_DealMaster
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
+        }
+        
+        if(empty($form->rec->id)){
+        	$form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
         }
     }
     
