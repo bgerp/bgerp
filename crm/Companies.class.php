@@ -835,10 +835,18 @@ class crm_Companies extends core_Master
             }
         }
 
-        $tpl = getTplFromFile('bgerp/tpl/svg.svg');
+        $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
         $cRec = crm_Companies::fetchOwnCompany();
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
+        
+        if(mb_strlen($companyName) > 20) {
+            $tpl->replace(160, 'companyFontSize');
+        } elseif(mb_strlen($companyName) > 18) {
+            $tpl->replace(190, 'companyFontSize');
+        } else {
+            $tpl->replace(220, 'companyFontSize');
+        }
         
         // Подготвяме адреса
         $fAddres = '';
