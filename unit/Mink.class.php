@@ -88,7 +88,7 @@ class unit_Mink extends core_Manager {
     }
     
     /**
-    * 8. Създаване на фирма и папка към нея, допуска дублиране - ОК
+    * Създаване на фирма и папка към нея, допуска дублиране - ОК
     * Select2 трябва да е деинсталиран
     */
     //http://localhost/unit_Mink/CompanyName/
@@ -136,7 +136,7 @@ class unit_Mink extends core_Manager {
     }
     
     /**
-     * 5. Създаване на параметър - текст.
+     *  Създаване на параметър - текст.
      */
     //http://localhost/unit_Mink/CreateParam/
     function act_CreateParam()
@@ -150,25 +150,24 @@ class unit_Mink extends core_Manager {
         $browser->click('Параметри');
         $browser->press('Нов запис');
         $browser->setValue('driverClass', 'Текст');
+        $browser->refresh('Запис');
         $browser->setValue('name', '11<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
         $browser->setValue('suffix', '11text');
-        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]'); //- не го приема
-        //$browser->setValue('Друг труд (labor)', '2'); //- не го приема
-        
-        //bp($browser->gettext());
+        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]'); 
+        $browser->setValue('rows', '2'); 
         $browser->press('Запис');
-        return $browser->getHtml();
-    
+       
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
         //return $browser->getHtml();
     }  
     
-      /*** 5. Създаване на параметър - избор.
+    /**
+    * Създаване на параметър - избор.
     */
-    //http://localhost/unit_Mink/CreateParam/
-    function act_CreateParam()
+    //http://localhost/unit_Mink/CreateParamChoise/
+    function act_CreateParamChoise()
     {
          
         // Логване
@@ -179,11 +178,12 @@ class unit_Mink extends core_Manager {
         $browser->click('Параметри');
         $browser->press('Нов запис');
         $browser->setValue('driverClass', 'Избор');
+        $browser->refresh('Запис');
         $browser->setValue('name', '11<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
+        //CR, за да се избират като опции
         $browser->setValue('options', '11text');
-        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]'); //- не го приема
-        //$browser->setValue('Друг труд (labor)', '2'); //- не го приема
-    
+        $browser->setValue('options', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]');
+        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]');
         //bp($browser->gettext());
         $browser->press('Запис');
         return $browser->getHtml();
@@ -191,6 +191,6 @@ class unit_Mink extends core_Manager {
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
-        //return $browser->getHtml();
+       
     }
 }
