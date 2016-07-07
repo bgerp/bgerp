@@ -147,7 +147,7 @@ class price_Lists extends core_Master
      * @param mixed $cClass                   - клас на контрагента
      * @param int $cId                        - ид на контрагента
      * @param string $parentTitle             - заглавие на политиката-баща
-     * @param string(3) $currencyCode         - код на валута по подразбиране на политиката
+     * @param string $currencyCode            - код на валута по подразбиране на политиката
      * @param boolean $vat                    - дали политиката е с включен ДДС или не
      * @param double $defaultSurcharge        - дефолтна надценка между 0 и 1
      * @param string $discountComparedToList  - име на политиката спрямо който ще се показва отстъпка
