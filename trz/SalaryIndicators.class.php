@@ -285,7 +285,7 @@ class trz_SalaryIndicators extends core_Manager
 	    	
 	    	// Ако имаме уникален запис го записваме
 	    	// в противен слувай го ъпдейтваме
-       		if($self->isUnique($rec, $fields,$exRec)){bp($rec, $fields,$exRec);
+       		if($self->isUnique($rec, $fields,$exRec)){
     			self::save($rec);
     		} else { 
             	$rec->id = $exRec->id;
