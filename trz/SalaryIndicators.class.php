@@ -108,7 +108,7 @@ class trz_SalaryIndicators extends core_Manager
     	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Наименование,mandatory,width=100%');
     	$this->FLD('value',    'double', 'caption=Индикатор->Стойност,mandatory,width=100%');
     	
-    	$this->setDbUnique('date,docId, classId, personId, indicator');
+    	$this->setDbUnique('date,docId, docClass, personId, indicator');
     	
     }
     
