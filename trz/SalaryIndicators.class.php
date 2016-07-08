@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заплати
@@ -30,7 +30,6 @@ class trz_SalaryIndicators extends core_Manager
     public $singleTitle = 'Показател';
     
     
-    
     /**
      * Плъгини за зареждане
      */
@@ -47,13 +46,13 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,trz';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,trz';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -99,14 +98,17 @@ class trz_SalaryIndicators extends core_Manager
     {
     	$this->FLD('date',    'date', 'caption=Дата,mandatory,width=100%');
     	$this->FLD('docId',    'int', 'caption=Документ->№,mandatory,width=100%');
-    	$this->FLD('docClass',    'key(mvc=core_Classes, select=name)', 'caption=Документ->Клас,mandatory,width=100%');
+    	// Външен ключ към модела (класа). Този клас трябва да реализира
+    	// интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists
+    	$this->FLD('docClass', 'class(interface=trz_SalaryIndicatorsSourceIntf,select=title)',
+    	    'caption=Документ->Клас,silent,mandatory,width=100%');
     	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Име,mandatory,width=100%');
     	$this->FLD('departmentId',    'key(mvc=hr_Departments, select=name)', 'caption=Служител->Отдел,mandatory,width=100%');
     	$this->FLD('positionId',    'key(mvc=hr_Positions, select=name)', 'caption=Служител->Длъжност,mandatory,width=100%');
-    	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Име,mandatory,width=100%');
+    	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Наименование,mandatory,width=100%');
     	$this->FLD('value',    'double', 'caption=Индикатор->Стойност,mandatory,width=100%');
     	
-    	$this->setDbUnique('docId, docClass, personId, indicator');
+    	$this->setDbUnique('date,docId, classId, personId, indicator');
     	
     }
     
@@ -131,6 +133,10 @@ class trz_SalaryIndicators extends core_Manager
 	    	$name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
 	    	$row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
     	}
+    	
+    	$Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+    	$row->value = $Double->toVerbal($rec->value);
     }
  
     
@@ -204,7 +210,6 @@ class trz_SalaryIndicators extends core_Manager
         $date = dt::now(FALSE);
        
         self::pushIndicators($date);
-
     }
     
     
@@ -238,19 +243,17 @@ class trz_SalaryIndicators extends core_Manager
     	    
     	    // По id-то на служителя, намираме от договора му
     	    // в кой отдел и на каква позиция работи
-    	    for($i = 0; $i < $dataCnt; $i ++){
+    	    for($i = 0; $i < $dataCnt; $i ++){ 
     	    	$data[$i]->departmentId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'departmentId');
     	    	$data[$i]->positionId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'positionId');
-    	    	
     	    }
             
     	    if(is_array($data)){
     	    	// Сливаме всичко в един масив
     			$indicators = array_merge($indicators, $data);
     	    }
-    		
     	}
-      
+    
     	return $indicators;
     }
     
@@ -263,7 +266,7 @@ class trz_SalaryIndicators extends core_Manager
     public static function pushIndicators($date)
     {
     	$indicators = self::fetchIndicators($date);
-    	
+
     	// За всеки един елемент от масива
     	foreach ($indicators as $indicator)
     	{
@@ -277,12 +280,12 @@ class trz_SalaryIndicators extends core_Manager
 	    	$rec->indicator = $indicator->indicator;
 	    	$rec->value = $indicator->value;
 	    	
-	    	$mvc = cls::get('core_Mvc');
+	    	$self = cls::get(get_called_class());
 	    	$exRec = new stdClass();
 	    	
 	    	// Ако имаме уникален запис го записваме
 	    	// в противен слувай го ъпдейтваме
-       		if($mvc->isUnique($rec, $fields, $exRec)){
+       		if($self->isUnique($rec, $fields,$exRec)){bp($rec, $fields,$exRec);
     			self::save($rec);
     		} else { 
             	$rec->id = $exRec->id;
@@ -290,6 +293,7 @@ class trz_SalaryIndicators extends core_Manager
             }
     	}
     }
+    
     
     /**
      * Извличаме имената на идикаторите
