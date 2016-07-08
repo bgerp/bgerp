@@ -153,7 +153,7 @@ class trz_Bonuses extends core_Master
     public static function getSalaryIndicators($date)
     {
     	$query = self::getQuery();
-    	$query->where("#periodId  = '{$date}'");
+    	$query->where("#periodId  <= '{$date}'");
     	$me = cls::get(get_called_class());
 
     	while($rec = $query->fetch()){
