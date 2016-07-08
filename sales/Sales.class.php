@@ -554,6 +554,7 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', $rec->bankAccountId);
+        $result->setIfNot('priceListId', $rec->priceListId);
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
