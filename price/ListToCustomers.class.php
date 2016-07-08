@@ -303,6 +303,8 @@ class price_ListToCustomers extends core_Manager
      * @param datetime $datetime - дата
      * @param double $rate  - валутен курс
      * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+     * @param int|NULL $listId - ценова политика
+     * @param boolean $quotationPriceFirst - Дали първо да търси цена от последна оферта
      * @return stdClass $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
