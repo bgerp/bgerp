@@ -159,6 +159,7 @@ class trz_Bonuses extends core_Master
     	while($rec = $query->fetch()){
     	
     		$result[] = (object)array(
+    		    'date' => $rec->periodId,
 	    		'personId' => $rec->personId, 
 	    		'docId'  => $rec->id, 
 	    	    'docClass' => core_Classes::getId('trz_Bonuses'),

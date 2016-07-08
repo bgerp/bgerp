@@ -271,7 +271,7 @@ class trz_SalaryIndicators extends core_Manager
     	foreach ($indicators as $indicator)
     	{
     		$rec = new stdClass();
-    		$rec->date = $date;
+    		$rec->date = $indicator->date;
 	    	$rec->docId = $indicator->docId;
 	    	$rec->docClass = $indicator->docClass;
 	    	$rec->personId = $indicator->personId;
