@@ -351,7 +351,9 @@ class price_ListToCustomers extends core_Manager
         		 
         		// Ако има рецепта връщаме по нея
         		if($bomRec){
-        			$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId);
+        			$defPriceListId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
+        			$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $defPriceListId);
+        			
         			$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
         			if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
         				$defPriceListId = price_ListRules::PRICE_LIST_COST;
@@ -360,8 +362,10 @@ class price_ListToCustomers extends core_Manager
         			$rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
         		}
         	} else {
+        		$listId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
+        		
         		// За стандартните артикули търсим себестойността в ценовите политики
-        		$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        		$rec = $this->getPriceByList($listId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         	}
         }
         
@@ -381,16 +385,15 @@ class price_ListToCustomers extends core_Manager
      * 
      * @param mixed $customerClass - ид на клас на контрагента
      * @param int $customerId      - ид на контрагента
+     * @param iny $defPriceListId  - ценоразпис
      * @return object $res		   - масив с надценката и отстъпката
      * 				 o minDelta  - минималната отстъпка
      * 				 o maxDelta  - максималната надценка
      */
-    private static function getMinAndMaxDelta($customerClass, $customerId)
+    private static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
     {
     	$res = (object)array('minDelta' => 0, 'maxDelta' => 0);
-    	
-    	$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
-    	 
+    
     	// Ако контрагента има зададен ценоразпис, който не е дефолтния
     	if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
     		 
@@ -399,7 +402,7 @@ class price_ListToCustomers extends core_Manager
     		$res->minDelta = $defPriceList->minSurcharge;
     		$res->maxDelta = $defPriceList->maxSurcharge;
     	}
-    	 
+    	
     	// Ако няма мин надценка, взимаме я от търговските условия
     	if(!$res->minDelta){
     		$res->minDelta = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
@@ -417,9 +420,8 @@ class price_ListToCustomers extends core_Manager
     /**
      * Опит за намиране на цената според политиката за клиента (ако има такава)
      */
-    private function getPriceByList($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    private function getPriceByList($listId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-    	$listId = self::getListForCustomer($customerClass, $customerId, $datetime);
     	$rec = new stdClass();
     	$rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
     	
