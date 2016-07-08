@@ -327,6 +327,7 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	$rec = &$form->rec;
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
+    	$priceAtDate = (isset($masterRec->date)) ? $masterRec->date : dt::today();
     	
     	if($rec->productId){
     		$productInfo = cat_Products::getProductInfo($rec->productId);
