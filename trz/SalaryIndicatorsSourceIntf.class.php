@@ -19,6 +19,15 @@ class trz_SalaryIndicatorsSourceIntf
      * Метод за вземане на резултатност на хората
      * За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал 
+     * 
+     * 
+     * @param date $date
+     * @return array $result (date date, 
+     *                        int personId,
+     *                        int docId, 
+     *                        int docClass, 
+     *                        varchar indicator, 
+     *                        double value
      */
     public function getSalaryIndicators($date) 
     {
