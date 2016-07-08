@@ -139,7 +139,8 @@ class trz_Bonuses extends core_Master
     
     public static function act_Test()
     {
-    	$date = '2013-07-16';
+    	$date = '2016-03-01';
+    	self::getSalaryIndicators($date);
     }
     
     
@@ -153,14 +154,15 @@ class trz_Bonuses extends core_Master
     {
     	$query = self::getQuery();
     	$query->where("#periodId  = '{$date}'");
-    	     	 
+    	$me = cls::get(get_called_class());
+
     	while($rec = $query->fetch()){
     	
     		$result[] = (object)array(
 	    		'personId' => $rec->personId, 
 	    		'docId'  => $rec->id, 
 	    	    'docClass' => core_Classes::getId('trz_Bonuses'),
-	    		'indicator' => 'bonuses', 
+	    		'indicator' => tr("|$me->title|*"), 
 	    		'value' => $rec->sum
 	    	);
     	}
