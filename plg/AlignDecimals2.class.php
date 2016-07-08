@@ -86,6 +86,10 @@ class plg_AlignDecimals2 extends core_Plugin
 							$padCount -= 2;
 						}
 						
+						if($padCount < 0){
+							$padCount = 0;
+						}
+						
 						$repeatString = "0";
 						if($padCount > 0){
 							$count2 = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
