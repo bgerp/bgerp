@@ -1053,6 +1053,10 @@ class sales_Sales extends deals_DealMaster
     			}
     		}
     	}
+    	
+    	if(isset($rec->priceListId)){
+    		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
+    	}
     }
 
 

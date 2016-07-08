@@ -43,7 +43,7 @@
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>
                   <!--ET_END originId-->
                   <!--ET_BEGIN priceListId-->
-                  <span style='font-weight:normal'>|Цени по|*</span>: [#priceListId#]
+                  <span style='font-weight:normal'>|Цени|*</span>: [#priceListId#]
                   <!--ET_END priceListId-->
               </td>
            </tr>
