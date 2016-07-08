@@ -34,8 +34,8 @@ class price_PolicyIntf
      * 			$rec->price  - цена
      * 			$rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
+    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no', $listId = NULL, $quotationPriceFirst = TRUE)
     {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity, $date, $rate, $chargeVat);
+        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity, $date, $rate, $chargeVat, $listId, $quotationPriceFirst);
     }
 }

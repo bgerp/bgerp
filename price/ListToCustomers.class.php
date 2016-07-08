@@ -306,12 +306,15 @@ class price_ListToCustomers extends core_Manager
      * @return stdClass $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no', $listId = NULL, $quotationPriceFirst = TRUE)
     {
         $isProductPublic = cat_Products::fetchField($productId, 'isPublic');
+        $rec = (object)array('price' => NULL);
         
         // Проверяваме имали последна цена по оферта
-        $rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity);
+        if($quotationPriceFirst === TRUE){
+        	$rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity);
+        }
 		
         // Ако има връщаме нея
         if(empty($rec->price)){
