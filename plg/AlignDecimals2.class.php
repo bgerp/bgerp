@@ -59,7 +59,7 @@ class plg_AlignDecimals2 extends core_Plugin
 				if(isset($rows[$id]->$fName)){
 					$Type = $mvc->fields[$fName]->type;
 					setIfNot($Type->params['minDecimals'], 0);
-					setIfNot($Type->params['maxDecimals'], 5);
+					setIfNot($Type->params['maxDecimals'], 6);
 						
 					$optDecimals = min(
 							$Type->params['maxDecimals'],
