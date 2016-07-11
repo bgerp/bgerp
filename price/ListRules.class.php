@@ -259,6 +259,8 @@ class price_ListRules extends core_Detail
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
+		if(Mode::is('inlineDocument')) return;
+		
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('product', 'int', 'input,caption=Артикул,silent');
@@ -816,6 +818,7 @@ class price_ListRules extends core_Detail
 		}
 		
 		$tpl->append($this->renderListFilter($data), 'ListFilter');
+		$display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')) ? TRUE : FALSE;
 		
 		// За всеки приоритет
 		foreach (array(1 => 'Правила с висок приоритет', 2 => 'Правила със среден приоритет', 3 => 'Правила с нисък приоритет') as $priority => $title){
@@ -830,7 +833,7 @@ class price_ListRules extends core_Detail
 			// Добавяме бутони за добавяне към всеки приоритет
 			if($priority == 1){
 				$data->listFields['domain'] = 'Артикул';
-				if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
+				if($display === TRUE && $this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
 					$toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'priority' => $priority,'ret_url' => TRUE), NULL, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
 				}
 			} else {
@@ -840,11 +843,11 @@ class price_ListRules extends core_Detail
 			// Ако политиката наследява друга, може да се добавят правила за марж
 			if($masterRec->parent) {
 				if($priority == 1){
-					if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
+					if($display === TRUE && $this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
 						$toolbar->addBtn('Продуктов марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => TRUE), NULL, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
 					}
 				} else {
-					if($this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
+					if($display === TRUE && $this->haveRightFor('add', (object)array('listId' => $masterRec->id))){
 						$toolbar->addBtn('Групов марж', array($this, 'add', 'type' => 'groupDiscount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => TRUE), NULL, 'title=Задаване на групово правило с %,ef_icon=img/16/grouping.png');
 					}
 				}
