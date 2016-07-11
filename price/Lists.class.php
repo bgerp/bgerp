@@ -135,7 +135,7 @@ class price_Lists extends core_Master
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
         $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
-        $this->FLD('defaultSurcharge', 'percent', 'caption=Надценка/Отстъпка по подразбиране->Процент');
+        $this->FLD('defaultSurcharge', 'percent(Min=0,max=1)', 'caption=Надценка/Отстъпка по подразбиране->Процент');
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
