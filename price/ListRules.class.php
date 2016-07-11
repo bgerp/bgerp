@@ -781,7 +781,7 @@ class price_ListRules extends core_Detail
 			
 			// Извличаме записите само с този приоритет
 			$query = clone $data->query;
-			$query->where("#priority = $priority");
+			$query->where("#priority = {$priority}");
 			$pager->setLimit($query);
 			
 			// Вербализираме ги

@@ -49,12 +49,6 @@ class price_ListToCustomers extends core_Manager
     
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'powerUser';
-    
-    
-    /**
      * Кой може да го промени?
      */
     public $canEdit = 'no_one';
@@ -63,13 +57,13 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'powerUser';
+    public $canAdd = 'price,sales,ceo';
     
 
     /**
      * Кой има право да листва?
      */
-    public $canList = 'priceMaster,ceo';
+    public $canList = 'price,ceo';
     
     
     /**
@@ -147,7 +141,7 @@ class price_ListToCustomers extends core_Manager
   		
         $data->form->setOptions('listId', price_Lists::getAccessibleOptions($rec->cClass, $rec->cId));
         
-        if(price_Lists::haveRightFor('add')){
+        if(price_Lists::haveRightFor('add', (object)array('cClass' => $rec->cClass, 'cId' => $rec->cId))){
         	$data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId, 'ret_url' => TRUE), NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }
     }
@@ -618,6 +612,12 @@ class price_ListToCustomers extends core_Manager
 	{
 		if($action == 'delete' && isset($rec)){
 			if($rec->validFrom <= dt::now()){
+				$requiredRoles = 'no_one';
+			}
+		}
+		
+		if(($action == 'add' || $action == 'delete') && isset($rec)){
+			if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
 				$requiredRoles = 'no_one';
 			}
 		}

@@ -39,7 +39,7 @@ class price_Lists extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title,parent';
+    public $searchFields = 'title,parent,folderId';
     
     
     /**
@@ -192,14 +192,6 @@ class price_Lists extends core_Master
     	$folderRec = (object)array('name' => $this->title);
     	
     	return doc_UnsortedFolders::forceCoverAndFolder($folderRec);
-    }
-    
-    
-    function act_Test()
-    {
-    	//$r = (object)array('title' => 'АААААААААААА');
-    	
-    	//self::forceList('aridaverchi');
     }
     
     
@@ -527,12 +519,13 @@ class price_Lists extends core_Master
         			$requiredRoles = 'no_one';
         		}
         	}
-        	
-        	// Трябва да имаме права за сингъла на папката
-        	if($requiredRoles != 'no_one'){
-        		if(!$Cover->haveRightFor('single')){
-        			$requiredRoles = 'no_one';
-        		}
+        }
+        
+        if($requiredRoles == 'no_one') return;
+        
+        if($action == 'add' && isset($rec->cClass) && isset($rec->cId)){
+        	if(!cls::get($rec->cClass)->haveRightFor('single', $rec->id)){
+        		$requiredRoles = 'no_one';
         	}
         }
     }
