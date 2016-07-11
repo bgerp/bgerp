@@ -4473,6 +4473,10 @@ only screen and (max-width: 320px) {
     border: 1px solid #cccccc; }
   .printing .header-state {
     display: none; }
+  .printing .group-link:hover {
+    cursor: default;
+    background-color: #e4e4e4;
+    color: #333333 !important; }
 
 .narrow .printing .document {
   width: 850px; }
