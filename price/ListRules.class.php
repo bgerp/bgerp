@@ -100,7 +100,7 @@ class price_ListRules extends core_Detail
         // Марж за група
         $this->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,remember=info');
         $this->FLD('calculation', 'enum(forward,reverse)', 'caption=Изчисляване,remember');
-        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Марж,placeholder=%');
+        $this->FLD('discount', 'percent(decimals=2,min=-1)', 'caption=Марж,placeholder=%');
         $this->FLD('priority', 'enum(1,2,3)', 'caption=Приоритет,input=hidden,silent');
         
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
