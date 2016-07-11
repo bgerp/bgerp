@@ -33,7 +33,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, price_Wrapper';
+    public $loadList = 'plg_Created, price_Wrapper, plg_RowTools';
                     
     
     /**
@@ -75,13 +75,19 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'price,sales,ceo';
     
 
     /**
      * Предлог в формата за добавяне/редактиране
      */
     public $formTitlePreposition = 'за';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
     
     
     /**
@@ -223,6 +229,9 @@ class price_ListToCustomers extends core_Manager
     	while($rec = $query->fetch()){
     		$data->recs[$rec->id] = $rec;
     		$data->rows[$rec->id] = self::recToVerbal($rec);
+    		if($rec->state == 'draft'){
+    			$data->displayTools = TRUE;
+    		}
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
@@ -244,13 +253,17 @@ class price_ListToCustomers extends core_Manager
     	
     	$listFields = $this->listFields;
     	$listFields = arr::make($listFields, TRUE);
+    	
+    	if($data->displayTools === TRUE){
+    		$listFields = array('tools' => 'Пулт') + $listFields;
+    	}
+    	
     	if(!haveRole('debug')){
     		unset($listFields['state']);
     	}
     	unset($listFields['cClass']);
     	
         $table = cls::get('core_TableView', array('mvc' => $this));
-        
         $tpl->append(tr('Ценови политики'), 'title');
         $tpl->append($table->get($data->rows, $listFields), 'content');
         $tpl->replace(get_class($this), 'DetailName');
@@ -595,5 +608,18 @@ class price_ListToCustomers extends core_Manager
 		}
 		
 		return $options;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'delete' && isset($rec)){
+			if($rec->validFrom <= dt::now()){
+				$requiredRoles = 'no_one';
+			}
+		}
 	}
 }
