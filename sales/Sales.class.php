@@ -388,6 +388,8 @@ class sales_Sales extends deals_DealMaster
         if(empty($form->rec->id)){
         	$form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
         }
+        
+        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($form->rec->contragentClassId, $form->rec->contragentId));
     }
     
     
