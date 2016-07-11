@@ -788,7 +788,9 @@ class price_ListRules extends core_Detail
 			while($rec = $query->fetch()){
 				$data->{"recs{$priority}"}[$rec->id] = $rec;
 				$data->{"rows{$priority}"}[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
-				$data->{"rows{$priority}"}[$rec->id]->_rowTools = $data->{"rows{$priority}"}[$rec->id]->_rowTools->renderHtml();
+				if(is_object($data->{"rows{$priority}"}[$rec->id]->_rowTools)){
+					$data->{"rows{$priority}"}[$rec->id]->_rowTools = $data->{"rows{$priority}"}[$rec->id]->_rowTools->renderHtml();
+				}
 			}
 			
 			// Записваме подготвения пейджър
@@ -811,20 +813,20 @@ class price_ListRules extends core_Detail
 		$tpl = getTplFromFile("price/tpl/ListRules.shtml");
 		$rows = &$data->rows;
 		unset($data->listFields['priority']);
+		$display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')) ? TRUE : FALSE;
 		
-		if($masterRec->state != 'rejected'){
+		if($masterRec->state != 'rejected' && $display === TRUE){
 			$img = ht::createElement('img', array('src'=> sbf('img/16/tools.png', "")));
 			$data->listFields =  arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, TRUE));
 		}
 		
 		$tpl->append($this->renderListFilter($data), 'ListFilter');
-		$display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')) ? TRUE : FALSE;
 		
 		// За всеки приоритет
 		foreach (array(1 => 'Правила с висок приоритет', 2 => 'Правила със среден приоритет', 3 => 'Правила с нисък приоритет') as $priority => $title){
 			$block = clone $tpl->getBlock('PRIORITY');
 			$appendTable = TRUE;
-			$fRow = $data->{"rows{$priority}"};
+			$fRows = $data->{"rows{$priority}"};
 			
 			$data->listFields['rule'] = 'Стойност';
 			$table = cls::get('core_TableView', array('mvc' => $this));
@@ -852,7 +854,7 @@ class price_ListRules extends core_Detail
 					}
 				}
 			} else {
-				if(!count($fRow) && $priority != 1){
+				if(!count($fRows) && $priority != 1){
 					$appendTable = FALSE;
 				}
 			}
@@ -861,7 +863,13 @@ class price_ListRules extends core_Detail
 			if($appendTable === TRUE){
 				$style = ($priority == 1) ? '' : "margin-top:20px;margin-bottom:2px";
 				$block->append("<div style='{$style}'><b>{$title}</b></div>", 'TABLE');
-				$block->append($table->get($fRow, $data->listFields), 'TABLE');
+				
+				$fields = $data->listFields;
+				if(!count($fRows)){
+					unset($fields['_rowTools']);
+				}
+				
+				$block->append($table->get($fRows, $fields), 'TABLE');
 				if(isset($data->{"pager{$priority}"})){
 					$block->append($data->{"pager{$priority}"}->getHtml(), 'TABLE_PAGER');
 				}
