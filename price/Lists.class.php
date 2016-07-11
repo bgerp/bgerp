@@ -33,13 +33,25 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_Search';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, doc_DocumentPlg';
                     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'title,parent';
+    
+    
+    /**
+     * Абревиатура
+     */
+    public $abbr = "Pl";
+    
+    
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    public $onlyFirstInThread = TRUE;
     
     
     /**
@@ -51,49 +63,37 @@ class price_Lists extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, parent, customer=На контрагент,createdOn, createdBy';
-    
-    
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'customer';
+    public $listFields = 'title, parent, folderId, createdOn, createdBy';
     
     
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'priceMaster,ceo';
+    public $canEdit = 'price,sales,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'sales,priceMaster,ceo';
+    public $canAdd = 'price,sales,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'priceMaster,ceo';
-    
-    
-    /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'ceo';
+    public $canList = 'price,sales,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'sales,priceMaster,ceo';
+	public $canSingle = 'powerUser';
 	
     
     /**
-     * Кой може да го изтрие?
+     * Може ли да се редактират активирани документи
      */
-    public $canDelete = 'priceMaster,ceo';
+    public $canEditActivated = TRUE;
    
     
     /**
@@ -115,13 +115,19 @@ class price_Lists extends core_Master
     
     
     /**
+     * Групиране на документите
+     */
+    public $newBtnGroup = "3.91|Търговия";
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('title', 'varchar(128,ci)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява');
-        $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
+        $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен,input=none');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС'); 
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
@@ -138,6 +144,56 @@ class price_Lists extends core_Master
         $this->setDbIndex('cId,cClass');
     }
 
+    
+    /**
+     * Интерфейсен метод на doc_DocumentInterface
+     */
+    public function getDocumentRow($id)
+    {
+    	$rec = $this->fetch($id);
+    	$row = new stdClass();
+    	$title = $this->getVerbal($rec, 'title');
+    	
+    	$row->title    = tr($this->singleTitle) . " \"{$title}\"";
+    	$row->authorId = $rec->createdBy;
+    	$row->author   = $this->getVerbal($rec, 'createdBy');
+    	$row->recTitle = $row->title;
+    	$row->state    = $rec->state;
+    
+    	return $row;
+    }
+    
+    
+    /**
+     * Изпълнява се преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(isset($rec->folderId)){
+    		$Cover = doc_Folders::getCover($rec->folderId);
+    		$rec->public = ($Cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
+    	}
+    }
+    
+    
+    /**
+     * Коя е дефолт папката за нови записи
+     */
+    public function getDefaultFolder()
+    {
+    	$folderRec = (object)array('name' => $this->title);
+    	
+    	return doc_UnsortedFolders::forceCoverAndFolder($folderRec);
+    }
+    
+    
+    function act_Test()
+    {
+    	//$r = (object)array('title' => 'АААААААААААА');
+    	
+    	//self::forceList('aridaverchi');
+    }
+    
     
     /**
      * Метод за форсиране на ценова политика. 
@@ -158,6 +214,7 @@ class price_Lists extends core_Master
     public static function forceList($title, $cClass = NULL, $cId = NULL, $public = TRUE, $parentTitle = NULL, $currencyCode = NULL, $vat  = TRUE, $defaultSurcharge = NULL, $discountComparedToList = NULL, $roundingPrecision = NULL, $roundingOffset = NULL)
     {
     	// Заглавие на политиката
+    	$self = cls::get(get_called_class());
     	$title = str::mbUcfirst($title);
     	$parentId = NULL;
     	
@@ -175,7 +232,10 @@ class price_Lists extends core_Master
     		expect(is_numeric($cId));
     		expect($ContragentClass = cls::get($cClass), 'Невалиден клас');
     		expect($ContragentClass->fetch($cId), 'Няма такъв контрагент');
+    		$folderId = $ContragentClass->forceCoverAndFolder($cId);
     		$cClass = $ContragentClass->getClassId();
+    	} else {
+    		$folderId = $self->getDefaultFolder();
     	}
     	
     	// Валута на каталога
@@ -186,7 +246,6 @@ class price_Lists extends core_Master
     		$currencyCode = acc_Periods::getBaseCurrencyCode();
     	}
     	
-    	expect(is_bool($public));
     	expect(is_bool($vat));
     	
     	if(isset($defaultSurcharge)){
@@ -220,12 +279,17 @@ class price_Lists extends core_Master
     						 'discountCompared'  => $discountCompareToId,
     						 'roundingPrecision' => $roundingPrecision,
     						 'roundingOffset'    => $roundingOffset,
-    						 'public'            => ($public == TRUE) ? 'yes' : 'no',
+    						 'state'             => 'active',
+    						 'folderId'          => $folderId,
     	);
-    	
+    
     	// Ако има политика с такова име, обновяваме я
     	if($exRec = self::fetch(array("#title = '[#1#]'", $title))){
     		$rec->id = $exRec->id;
+    		$rec->threadId = $exRec->threadId;
+    		$rec->containerId = $exRec->containerId;
+    	} else {
+    		$self->route($rec);
     	}
     	
     	// Запис
@@ -251,10 +315,15 @@ class price_Lists extends core_Master
         	$form->setReadOnly('parent');
         }
         
-        if($rec->cId && $rec->cClass) {
-            $form->setField('public', 'input=hidden');
-            $rec->public = 'no';
+        $folderId = $rec->folderId;
+        
+        if(isset($rec->cClass) && isset($rec->cId)){
+        	$Cover = new core_ObjectReference($rec->cClass, $rec->cId);
+        } else {
+        	$Cover = doc_Folders::getCover($folderId);
         }
+        
+        $form->rec->folderId = $Cover->forceCoverAndFolder();
         
         if(empty($rec->id)){
         	// Бащата може да бъде от достъпните до потребителя политики
@@ -264,9 +333,7 @@ class price_Lists extends core_Master
         	$rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : price_ListRules::PRICE_LIST_CATALOG;
         }  
 
-        if(!$rec->currency) {
-            $rec->currency = acc_Periods::getBaseCurrencyCode();
-        }
+        $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
         
         // За политиката себестойност, скриваме определени полета
         if($rec->id == price_ListRules::PRICE_LIST_COST){
@@ -310,29 +377,29 @@ class price_Lists extends core_Master
      * Ако няма има права price,ceo - може да избира всички
      * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
      * 
-     * @param string $userId
-     * @return multitype:NULL
+     * @param mixed $cClass   - клас на контрагента
+     * @param int $cId        - ид на контрагента
+     * @return array $options - опции за избор
      */
-    public static function getAccessibleOptions($userId = NULL)
+    public static function getAccessibleOptions($cClass = NULL, $cId = NULL)
     {
-    	// Ако няма права price,ceo може да избира само публичните + частните до чийто сингъл има достъп
-    	if(!core_Users::haveRole('price,ceo', $userId)){
-    		$options = array();
-    		$query = price_Lists::getQuery();
-    		$query->show('cClass,cId,title');
-    		while($lRec = $query->fetch()){
-    			if(!empty($lRec->cClass) && !empty($lRec->cId)){
-    				if(cls::get($lRec->cClass)->haveRightFor('single', $lRec->cId, $userId)){
-    					$options[$lRec->id] = $lRec->title;
-    				}
-    			} else {
-    				$options[$lRec->id] = $lRec->title;
-    			}
+    	$options = array();
+    	$query = static::getQuery();
+    	
+    	// Оставяме да се избират само публичните политики
+    	$query->where("#public = 'yes'");
+    	
+    	// Ако има данни за контрагент и тези, които са към него
+    	if(isset($cClass) && isset($cId)){
+    		$Class = cls::get($cClass);
+    		$query->orWhere("#public = 'no' AND #cClass = {$Class->getClassId()} AND #cId = {$cId}");
+    	}	
+    	
+    	// От тях оставяме тези до които имаме достъп
+    	while($rec = $query->fetch()){
+    		if(static::haveRightFor('single', $rec->id)){
+    			$options[$rec->id] = static::getVerbal($rec, 'title');
     		}
-    	} else {
-    		
-    		// Ако потребителя има права price и/или ceo, може да избира от всички политики
-    		$options = price_Lists::makeArray4select('title', '');
     	}
     	
     	// Връщаме намерените политики
@@ -352,6 +419,10 @@ class price_Lists extends core_Master
     		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
     			$form->setError('discountCompared', 'Не може да изберете същата политика');
     		}
+    		
+	    	if($rec->state == 'draft' || is_null($rec->state)){
+	    		$form->rec->state = 'active';
+	    	}
     	}
     }
     
@@ -361,68 +432,60 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if($rec->cId && $rec->cClass) {
+        if(isset($rec->cId) && isset($rec->cClass)) {
             price_ListToCustomers::setPolicyToCustomer($rec->id,  $rec->cClass, $rec->cId);
         }
     }
     
 
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * След преобразуване на записа в четим за хора вид
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if(isset($rec->parent)) {
             $row->parent = price_Lists::getHyperlink($rec->parent, TRUE);
         }
         
-        if(isset($rec->discountCompared)){
-        	$row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, TRUE);
-        }
-        
-        if(isset($rec->cClass) && isset($rec->cId)){
-        	$row->customer = cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE);
-        } else {
+        if(isset($fields['-single'])){
+        	if(isset($rec->discountCompared)){
+        		$row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, TRUE);
+        	}
+        	
         	if($rec->public == 'yes' && $rec->id != price_ListRules::PRICE_LIST_CATALOG){
         		$customerCount = count(price_ListToCustomers::getCustomers($rec->id, TRUE));
         		$row->connectedClients = cls::get('type_Int')->toVerbal($customerCount);
-        		
+        	
         		if($customerCount != 0){
         			if(price_ListToCustomers::haveRightFor('list')){
         				$row->connectedClients = ht::createLinkRef($row->connectedClients, array('price_ListToCustomers', 'list', 'listId' => $rec->id));
         			}
         		}
         	}
-        }
-        
-        if(isset($rec->defaultSurcharge)){
-        	if($rec->defaultSurcharge < 0){
-        		$row->discountType = 'Отстъпка';
-        		$rec->defaultSurcharge = abs($rec->defaultSurcharge);
-        		$row->defaultSurcharge = $mvc->getFieldType('defaultSurcharge')->toVerbal($rec->defaultSurcharge);
-        	} else {
-        		$row->discountType = 'Надценка';
+        	
+        	if(isset($rec->defaultSurcharge)){
+        		if($rec->defaultSurcharge < 0){
+        			$row->discountType = 'Отстъпка';
+        			$rec->defaultSurcharge = abs($rec->defaultSurcharge);
+        			$row->defaultSurcharge = $mvc->getFieldType('defaultSurcharge')->toVerbal($rec->defaultSurcharge);
+        		} else {
+        			$row->discountType = 'Надценка';
+        		}
         	}
-        }
-        
-        $row->currency = "<span class='cCode'>{$row->currency}</span>";
-        $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : 'state-active';
-        $row->STATE_CLASS = $row->ROW_ATTR['class'];
-        
-        if(empty($rec->significantDigits)){
-        	$significantDigits = price_Setup::get('SIGNIFICANT_DIGITS');
-        	$row->significantDigits = $mvc->getFieldType('significantDigits')->toVerbal($significantDigits);
-        	$row->significantDigits = ht::createHint($row->significantDigits, 'Стойност по подразбиране');
-        }
-        
-        if(empty($rec->minDecimals)){
-        	$minDecimals = price_Setup::get('MIN_DECIMALS');
-        	$row->minDecimals = $mvc->getFieldType('minDecimals')->toVerbal($minDecimals);
-        	$row->minDecimals = ht::createHint($row->minDecimals, 'Стойност по подразбиране');
+        	
+        	$row->currency = "<span class='cCode'>{$row->currency}</span>";
+        	
+        	if(empty($rec->significantDigits)){
+        		$significantDigits = price_Setup::get('SIGNIFICANT_DIGITS');
+        		$row->significantDigits = $mvc->getFieldType('significantDigits')->toVerbal($significantDigits);
+        		$row->significantDigits = ht::createHint($row->significantDigits, 'Стойност по подразбиране');
+        	}
+        	
+        	if(empty($rec->minDecimals)){
+        		$minDecimals = price_Setup::get('MIN_DECIMALS');
+        		$row->minDecimals = $mvc->getFieldType('minDecimals')->toVerbal($minDecimals);
+        		$row->minDecimals = ht::createHint($row->minDecimals, 'Стойност по подразбиране');
+        	}
         }
     }
 
@@ -441,31 +504,25 @@ class price_Lists extends core_Master
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($action == 'delete') {
-            if($rec->id && (self::fetch("#parent = {$rec->id}") || price_ListToCustomers::fetch("#listId = {$rec->id}")) ) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        if($action == 'add' && isset($rec)){
+        if($requiredRoles == 'no_one') return;
+    	
+    	if(($action == 'add' || $action == 'edit') && isset($rec->folderId)){
         	
-        	// Ако се създава публична политика и потребителя няма роли price или ceo, да не може да създава
-        	if(empty($rec->cClass) || empty($rec->cId)){
-        		if(!haveRole('price,ceo')){
+    		// Ако корицата не е контрагент само price & ceo могат да променят
+    		$Cover = doc_Folders::getCover($rec->folderId);
+        	if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
+        		if(!core_Users::haveRole('ceo,price', $userId)){
         			$requiredRoles = 'no_one';
         		}
-        	} elseif(isset($rec->cId) && isset($rec->cClass)){
-        		if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
+        	}
+        	
+        	// Трябва да имаме права за сингъла на папката
+        	if($requiredRoles != 'no_one'){
+        		if(!$Cover->haveRightFor('single')){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -481,30 +538,34 @@ class price_Lists extends core_Master
     function loadSetupData()
     {
 		if(!$this->fetchField(price_ListRules::PRICE_LIST_COST, 'id')) {
-            $rec = new stdClass();
-            $rec->id = price_ListRules::PRICE_LIST_COST;
-            $rec->parent = NULL;
-            $rec->title  = 'Себестойност';
+            $rec           = new stdClass();
+            $rec->id       = price_ListRules::PRICE_LIST_COST;
+            $rec->parent   = NULL;
+            $rec->title    = 'Себестойност';
             $rec->currency = acc_Periods::getBaseCurrencyCode();
+            $rec->state    = 'active';
             $rec->vat      = 'no';
-            $rec->public = 'no';
-            $rec->createdOn = dt::verbal2mysql();
-            $rec->createdBy = -1;
+            $rec->folderId = $this->getDefaultFolder();
+            $rec->createdBy = core_Users::SYSTEM_USER;
+            
+            $this->route($rec);
             $this->save($rec, NULL, 'REPLACE');
         }
         
         if(!$this->fetchField(price_ListRules::PRICE_LIST_CATALOG, 'id')) {
-            $rec = new stdClass();
-            $rec->id = price_ListRules::PRICE_LIST_CATALOG;
-            $rec->parent = price_ListRules::PRICE_LIST_COST;
-            $rec->title  = 'Каталог';
-            $rec->currency = acc_Periods::getBaseCurrencyCode();
+            $rec                    = new stdClass();
+            $rec->id                = price_ListRules::PRICE_LIST_CATALOG;
+            $rec->parent            = price_ListRules::PRICE_LIST_COST;
+            $rec->title             = 'Каталог';
+            $rec->currency          = acc_Periods::getBaseCurrencyCode();
+            $rec->state             = 'active';
             $rec->vat = 'yes';
-            $rec->public = 'yes';
-            $rec->defaultSurcharge = NULL;
+            $rec->defaultSurcharge  = NULL;
             $rec->roundingPrecision = 3;
-            $rec->createdOn = dt::verbal2mysql();
-            $rec->createdBy = -1;
+            $rec->folderId          = $this->getDefaultFolder();
+            $rec->createdBy         = core_Users::SYSTEM_USER;
+            
+            $this->route($rec);
             $this->save($rec, NULL, 'REPLACE');
         }
     }
@@ -555,5 +616,30 @@ class price_Lists extends core_Master
     	
     	// Връщаме закръглената цена
     	return $price;
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$cover = doc_Folders::getCover($folderId);
+    	
+    	if($cover->haveInterface('crm_ContragentAccRegIntf') || $cover->haveInterface('price_PriceListFolderCoverIntf')){
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
     }
 }

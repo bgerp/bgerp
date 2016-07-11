@@ -60,21 +60,21 @@ class price_ListRules extends core_Detail
    
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo,priceMaster';
-    
-    
-    /**
      * Кой може да го промени?
      */
-    public $canEdit = 'ceo,priceMaster';
+    public $canEdit = 'ceo,sales,price';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,priceMaster';
+    public $canAdd = 'ceo,sales,price';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canDelete = 'no_one';
     
     
     /**
@@ -261,9 +261,10 @@ class price_ListRules extends core_Detail
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('from', 'datetime', 'input,caption=В сила');
         $data->listFilter->FNC('product', 'int', 'input,caption=Артикул,silent');
-        $data->listFilter->showFields = 'product,from';
+        $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
+        $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
+        $data->listFilter->showFields = 'product';
 		
         $options = self::getProductOptions();
         $data->listFilter->setOptions('product', array('' => '') + $options);
@@ -274,10 +275,6 @@ class price_ListRules extends core_Detail
 		$data->query->orderBy('#validFrom,#id', 'DESC');
 		
 		if($rec = $data->listFilter->rec){
-			
-			if(isset($rec->from)){
-				$data->query->where(array("#validFrom >= '[#1#]'", $rec->from));
-			}
 			
 			if(isset($rec->product)){
 				$groups = keylist::toArray(cat_Products::fetchField($rec->product, 'groups'));
@@ -596,7 +593,7 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'delete' && $rec->validFrom) {
+    	if($action == 'delete' && isset($rec->validFrom)) {
     		if($rec->validFrom <= dt::verbal2mysql()) {
     			$requiredRoles = 'no_one';
     		}
@@ -605,10 +602,8 @@ class price_ListRules extends core_Detail
     	if(($action == 'add' || $action == 'delete') && isset($rec->productId)){
         	if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
         		$requiredRoles = 'no_one';
-        	} elseif(!cat_Products::haveRightFor('single', $rec->productId)){
-        		$requiredRoles = 'no_one';
         	} else {
-        		$isPublic = cat_products::fetchField($rec->productId, 'isPublic');
+        		$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
         		if($isPublic == 'no'){
         			$requiredRoles = 'no_one';
         		}
@@ -616,8 +611,9 @@ class price_ListRules extends core_Detail
         }
         
         if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->listId)){
-        	$listState = price_Lists::fetchField($rec->listId, 'state');
-        	if($listState == 'rejected'){
+        	$folderId = price_Lists::fetchField($rec->listId, 'folderId');
+        	
+        	if(!price_Lists::haveRightFor('edit', (object)array('id' => $rec->listId, 'folderId' => $folderId))){
         		$requiredRoles = 'no_one';
         	}
         }
@@ -745,6 +741,7 @@ class price_ListRules extends core_Detail
 							 'vat'       => $vat,
 				             'priority'  => 1,
 							 'createdBy' => -1,
+							 'priority'  => 1,
 							 'currency'  => $currencyCode);
 		
 		return self::save($obj);

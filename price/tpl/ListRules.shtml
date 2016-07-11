@@ -9,6 +9,8 @@
 </div>
 <!--ET_END TABLE-->
 [#TABLE_PAGER#]
+<div style='margin-top:8px'>
 [#TABLE_TOOLBAR#]
+</div>
 <!--ET_END PRIORITY-->
 </div>
