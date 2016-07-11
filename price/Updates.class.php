@@ -188,7 +188,7 @@ class price_Updates extends core_Manager
     		if(isset($fields['-list'])){
     			if($rec->updateMode == 'manual'){
     				if(price_ListRules::haveRightFor('add')){
-    					$row->updateMode = ht::createBtn('Обнови', array('price_ListRules', 'add', 'type' => 'value', 'listId' => price_ListRules::PRICE_LIST_COST, 'price' => $rec->costValue, 'productId' => $rec->objectId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
+    					$row->updateMode = ht::createBtn('Обнови', array('price_ListRules', 'add', 'type' => 'value', 'listId' => price_ListRules::PRICE_LIST_COST, 'price' => $rec->costValue, 'productId' => $rec->objectId, 'priority' => 1,'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
     					$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
     				}
     			}
