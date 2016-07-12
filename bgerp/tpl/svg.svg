@@ -40,7 +40,7 @@
        x="50"
        y="221.81577"
        style="font-weight:bold;font-size:220px;font-family:Arial;fill:#000000"
-       font-size="220"
+       font-size="[#companyFontSize#]"
        id="text15">[#myCompanyName#]</text>
     <text
        x="60.000004"
