@@ -271,6 +271,12 @@ class type_UserOrRole extends type_User
         if (!$userOrRole) return ;
         
         $inst = cls::get(get_called_class());
+        
+        // Няма нужда да се подготвят опциите за ролите, когато се търси потребител
+        if ($userOrRole >= 0) {
+            $inst->params['rolesForAllRoles'] = 'no_one';
+        }
+        
         $inst->prepareOptions();
         foreach ((array)$inst->options as $optVal => $vals) {
             if ($vals->value == $userOrRole) {
