@@ -632,6 +632,97 @@ class cal_Reminders extends core_Master
     
     
     /**
+     * Обновява информацията за напомнянията
+     * за текущата и следващите три години
+     */
+    static function updateRemindersToCalendar($id)
+    {
+        if(($rec = static::fetch($id)) && ($rec->state == 'active')) {
+
+            if(!$rec->timeStart) return;
+    
+            list($y, $m, $d) = type_Combodate::toArray($rec->timeStart);
+        }
+    
+        $events = array();
+    
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+    
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+    
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+    
+        // Масив с години, за които ще се вземат напомнянията
+        $years = array($cYear, $cYear + 1, $cYear + 2);
+        
+        // Префикс на клучовете за напомнянията в календара
+        $prefix = "RЕМ-{$id}";
+        
+        // Подготвяме запис за началната дата
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active')) {
+            
+            if ($d > 0 && $m > 0) {
+                
+                $calRec = new stdClass();
+    
+                // Ключ на събитието
+                $calRec->key = $prefix . '-Start';
+    
+                // TODO да се проверява за високосна година
+                $calRec->time = $rec->timeStart;
+    
+                $calRec->type = 'alarm_clock';
+                
+                $calRec->allDay = 'no';
+                
+                $calRec->state = $rec->state;
+
+                $calRec->title = $rec->title;
+ 
+                $calRec->users =  $rec->sharedUsers;
+
+                $calRec->url = array('cal_Reminders', 'Single', $id);
+    
+                $calRec->priority = 90;
+    
+                $events[] = $calRec;
+            }
+        }
+           
+        if ($rec->nextStartTime && $rec->nextStartTime >= $fromDate && $rec->nextStartTime <= $toDate && ($rec->state == 'active' )){
+        
+            $calRec = new stdClass();
+               
+            // Ключ на събитието
+            $calRec->key = $prefix . '-NextStart';
+
+            $calRec->time = $rec->nextStartTime;
+               
+            $calRec->type = 'alarm_clock';
+               
+            $calRec->allDay = 'no';
+               
+            $calRec->state = $rec->state;
+               
+            $calRec->title = $rec->title;
+               
+            $calRec->users =  $rec->sharedUsers;
+               
+            $calRec->url = array('cal_Reminders', 'Single', $id);
+               
+            $calRec->priority = 90;
+               
+            $events[] = $calRec;
+        }
+
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+    }
+    
+    
+    /**
      * Екшън за спиране
      */
     function act_Stop()
@@ -730,7 +821,27 @@ class cal_Reminders extends core_Master
         $now = dt::verbal2mysql();
        
         $this->doReminderingForActiveRecs();
+    }
+    
+    
+    /**
+     * Обновяване на рожденните дни по разписание
+     * (Еженощно)
+     */
+    function cron_UpdateCalendarEvents()
+    {
+        $query = self::getQuery();
 
+        while($rec = $query->fetch()) {
+            $res = static::updateRemindersToCalendar($rec->id);
+            $new += $res['new'];
+            $deleted += $res['deleted'];
+            $updated += $res['updated'];
+        }
+    
+        $status = "В календара са добавени {$new}, обновени {$updated} и изтрити {$deleted} напомняния";
+    
+        return $status;
     }
 
     
@@ -817,9 +928,14 @@ class cal_Reminders extends core_Master
     /**
      *  Изчислява времето за следващото стартиране на напомнянето. Винаги е дата > от текущата
      */
-    static public function calcNextStartTime($rec)
+    static public function calcNextStartTime($rec, $date=NULL)
     {
-    	$now = dt::verbal2mysql();
+        if(!$date) {
+    	   $now = dt::verbal2mysql();
+        } else {
+            $now = $date;
+        }
+        
     	// Секундите на днешната дата
     	$nowTs = dt::mysql2timestamp($now) + $rec->timePreviously;
     	
@@ -834,8 +950,8 @@ class cal_Reminders extends core_Master
         	
         } elseif($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
         	$nextStartTime = $rec->timeStart;
-        	return $nextStartTime;
         	
+        	return $nextStartTime;
         }
         
         if($rec->repetitionEach !== NULL ) {
@@ -958,7 +1074,7 @@ class cal_Reminders extends core_Master
         }
 
     }
-    
+
     
     /**
      * По зададен брой пъти и тип (ден или сецмица) изчислява интервала в секунди
@@ -987,6 +1103,16 @@ class cal_Reminders extends core_Master
         $rec->controller = "cal_Reminders";
         $rec->action = "SendNotifications";
         $rec->period = 1;
+        $rec->offset = 0;
+        $res .= core_Cron::addOnce($rec);
+        
+        // Нагласяне на Крон
+        $rec = new stdClass();
+        $rec->systemId = "UpdateRemindersToCal";
+        $rec->description = "Обновяване на напомнянията в календара";
+        $rec->controller = "cal_Reminders";
+        $rec->action = "UpdateCalendarEvents";
+        $rec->period = 90;
         $rec->offset = 0;
         $res .= core_Cron::addOnce($rec);
            
