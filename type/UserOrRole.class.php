@@ -60,7 +60,7 @@ class type_UserOrRole extends type_User
     {
         $this->prepareSelOpt = FALSE;
         
-        $this->handler = md5(implode('|', $this->params) . '||' . core_Users::getCurrent());
+        $this->handler = md5(serialize($this->params) . '|' . core_Users::getCurrent());
         
         $this->options = parent::prepareOptions();
         
