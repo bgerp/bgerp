@@ -225,8 +225,8 @@ class bank_PaymentOrders extends bank_DocumentBlank
             $row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);
             $row->contragentBankBic = bglocal_Banks::getBankBic($rec->beneficiaryIban);
 
-            $spellNumber = cls::get('core_SpellNumber');
-            $row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', TRUE);
+            $SpellNumber = cls::get('core_SpellNumber');
+            $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', TRUE);
             
             $row->sayWords = str_replace('0.0', '', $row->sayWords);
             $row->sayWords = str_replace('0.', '', $row->sayWords);

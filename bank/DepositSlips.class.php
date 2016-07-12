@@ -175,8 +175,8 @@ class bank_DepositSlips extends bank_DocumentBlank
         $row->number = static::getHandle($rec->id);
         
         if($fields['-single']) {
-            $spellNumber = cls::get('core_SpellNumber');
-            $row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', TRUE);
+            $SpellNumber = cls::get('core_SpellNumber');
+            $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', TRUE);
             
             $row->sayWords = str_replace('0.0', '', $row->sayWords);
             $row->sayWords = str_replace('0.', '', $row->sayWords);
