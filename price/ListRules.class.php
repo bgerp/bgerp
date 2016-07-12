@@ -320,15 +320,25 @@ class price_ListRules extends core_Detail
         $query->limit(1);
        
         $rec = $query->fetch();
-       
+       	$listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge');
+        $round = TRUE;
+       	
         if($rec) {
         	if($rec->type == 'value') {
         		$vat = cat_Products::getVat($productId, $datetime);
         		$price = self::normalizePrice($rec, $vat, $datetime);
+        		
+        		if($listRec->vat == 'yes'){
+        			$round = FALSE;
+        			$price = $price * (1 + $vat);
+        			$price = price_Lists::roundPrice($listRec, $price);
+        			$price = $price / (1 + $vat);
+        		}
+        		
         		$validFrom = $rec->validFrom;
         	} else{
         		$validFrom = $rec->validFrom;
-        		expect($parent = price_Lists::fetchField($listId, 'parent'));
+        		expect($parent = $listRec->parent);
         		$price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
         		
         		if(isset($price)){
@@ -341,11 +351,11 @@ class price_ListRules extends core_Detail
         	}
         	
         } else{
-        	$defaultSurcharge = price_Lists::fetchField($listId, 'defaultSurcharge');
+        	$defaultSurcharge = $listRec->defaultSurcharge;
         	
         	// Ако има дефолтна надценка и има наследена политика
         	if(isset($defaultSurcharge)){ 
-        		if($parent = price_Lists::fetchField($listId, 'parent')) {
+        		if($parent = $listRec->parent) {
         			
         			// Ако няма запис за продукта или групата
         			// му и бащата на ценоразписа е "себестойност"
@@ -368,7 +378,9 @@ class price_ListRules extends core_Detail
         if(isset($price)){
         	
         	// Ако има указано закръгляне на ценоразписа, закръгляме
-        	$price = price_Lists::roundPrice($listId, $price);
+        	if($round === TRUE){
+        		$price = price_Lists::roundPrice($listRec, $price);
+        	}
         	
         	// Записваме току-що изчислената цена в историята;
         	//price_History::setPrice($price, $listId, $datetime, $productId);
