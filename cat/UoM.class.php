@@ -291,9 +291,9 @@ class cat_UoM extends core_Manager
     {
     	if(!$id) return '???';
     	
-    	expect($rec = static::fetch($id));
+    	$shortName = static::fetchField($id, 'shortName');
     	
-    	return static::recToVerbal($rec, 'shortName')->shortName;
+    	return cls::get('type_Varchar')->toVerbal($shortName);
     }
     
     
