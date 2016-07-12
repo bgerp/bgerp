@@ -4,7 +4,7 @@
 /**
  * Начален номер на фактурите
  */
-defIfNot('PRICE_SIGNIFICANT_DIGITS', '4');
+defIfNot('PRICE_SIGNIFICANT_DIGITS', '5');
 
 
 /**
