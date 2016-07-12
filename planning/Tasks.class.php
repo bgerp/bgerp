@@ -236,12 +236,14 @@ class planning_Tasks extends tasks_Tasks
 				$tQuery = label_Templates::getQuery();
 				$tQuery->where("#classId = '{$mvc->getClassId()}'");
 				$tQuery->where("#state != 'rejected'");
+				$tQuery->show('id');
 				
 				$error = ($tQuery->fetch()) ? '' : ",error=Няма наличен шаблон за етикети от задачи за производство";
 				
 				core_Request::setProtected('class,objectId');
 				$url = array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'title' => "#" . $mvc->getHandle($data->rec->id), 'ret_url' => TRUE);
-				$data->toolbar->addBtn('Етикетиране', $url, NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от задачата за производство{$error}");
+				$data->toolbar->addBtn('Етикетиране', toUrl($url), NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от задачата за производство{$error}");
+				core_Request::removeProtected('class,objectId');
 			}
 		}
 	}
