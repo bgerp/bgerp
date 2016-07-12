@@ -654,12 +654,12 @@ class price_ListRules extends core_Detail
         		$state = 'closed';
         	} else {
         		if($rec->type == 'groupDiscount'){
-        			if($r = $mvc->fetch("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        				$state = 'closed';   
+        			if($mvc->fetchField("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
+        				$state = 'closed';
         			}
         		} else {
         			if($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")){
-        				$state = 'closed';  
+        				$state = 'closed';
         			}
         		}
         	}

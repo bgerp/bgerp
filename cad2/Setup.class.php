@@ -84,7 +84,8 @@ class cad2_Setup extends core_ProtoSetup {
                     'cad2_JaggedLine',
                     'cad2_MeasureLine',
 		            'cad2_Rectangle',
-		            'cad2_ArcTo'
+		            'cad2_ArcTo',
+                    'cad2_Material',
         );
 
         foreach($shapes as $cls) {
