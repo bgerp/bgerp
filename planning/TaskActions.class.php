@@ -129,6 +129,7 @@ class planning_TaskActions extends core_Manager
 		$query->where("#jobId = {$jobId}");
 		$query->where("#productId = {$jobRec->productId}");
 		$query->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		$query->show('quantity');
 		
 		$quantity = $query->fetch()->sumQuantity;
 		if(!isset($quantity)){

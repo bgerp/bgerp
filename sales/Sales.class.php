@@ -1017,6 +1017,8 @@ class sales_Sales extends deals_DealMaster
     	$saleQuery->where("#saleId = {$rec->id}");
     	$saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
     	$saleQuery->where("#meta = 'yes'");
+    	$saleQuery->show('productId');
+    	
     	while($dRec = $saleQuery->fetch()){
     		$res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
     	}
