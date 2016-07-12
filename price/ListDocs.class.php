@@ -522,8 +522,10 @@ class price_ListDocs extends core_Master
 		}
     	
 		$row->code = $Varchar->toVerbal($rec->code);
-		$row->eanCode = $Varchar->toVerbal($rec->eanCode);
-		$row->eanCode = "<small>{$row->eanCode}</small>";
+		if(isset($rec->eanCode)){
+			$row->eanCode = $Varchar->toVerbal($rec->eanCode);
+			$row->eanCode = "<small>{$row->eanCode}</small>";
+		}
 		
     	if($rec->measureId && $rec->priceM){
     		$row->measureId = $measureShort;
@@ -565,6 +567,7 @@ class price_ListDocs extends core_Master
     	foreach ($data->rec->products->rows as $groupId => &$products2){
 			foreach ($products2 as $index => &$row){
 				$rec = $data->rec->products->recs[$groupId][$index];
+				
 				if($row->priceM){
 					$round = strlen(substr(strrchr($rec->priceM, "."), 1));
 					$Double->params['decimals'] = ($round < 2) ? 2 : $round;
@@ -578,6 +581,27 @@ class price_ListDocs extends core_Master
 				}
 			}
     	}
+    	
+    	$recs = $data->rec->products->recs;
+    	$rows = &$data->rec->products->rows;
+    	
+    	$recs1 = $rows1 = array();
+    	
+    	foreach ($recs as $id => $el){
+    		if(is_array($el)){
+    			foreach ($el as $id1 => $r1){
+    				$index = "$id|$id1";
+    				$recs1[$index] = $r1;
+    				$rows1[$index] = &$rows[$id][$id1];
+    			}
+    		}
+    	}
+    	
+    	$fieldset = cls::get('core_FieldSet');
+    	$fieldset->FLD('priceM', 'double(decimals=6)');
+    	$fieldset->FLD('priceP', 'double(decimals=6)');
+    	
+    	plg_AlignDecimals2::alignDecimals($fieldset, $recs1, $rows1);
     }
     
     
@@ -681,7 +705,10 @@ class price_ListDocs extends core_Master
     {
     	$data = new stdClass();
     	$data->rec = $rec;
+    	
+    	Mode::push("cacheList{$rec->id}", TRUE);
     	$mvc->prepareDetails($data);
+    	Mode::pop("cacheList{$rec->id}");
     	
     	if($rec->productGroups){
 	    	$groupsArr = keylist::toArray($data->rec->productGroups);

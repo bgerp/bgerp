@@ -39,6 +39,12 @@ class distro_Setup extends core_ProtoSetup
      */
     var $info = "Разпределена група файлове";
     
+	
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'ssh=0.1';
+    
     
     /**
      * Инсталиране на пакета
@@ -50,6 +56,7 @@ class distro_Setup extends core_ProtoSetup
             'distro_Group',
             'distro_Files',
             'distro_Automation',
+            'distro_Repositories',
         );
         
         $instances = array();

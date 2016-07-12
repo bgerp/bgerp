@@ -1020,7 +1020,7 @@ function prepareContextMenu() {
 
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id) {
-    var elem = $("#" + id).parent().find('.more-btn');
+    var elem = $("#" + id).parent().children('.more-btn');
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }

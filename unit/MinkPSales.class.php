@@ -239,7 +239,6 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешка 1 - не дава грешка при отрицателна отстъпка";
         }
-        
         return $browser->getHtml();
         
     }
@@ -295,7 +294,6 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешка 1 - не дава грешка при отстъпка над 100%";
         }
-    
         return $browser->getHtml();
     
     } 
@@ -333,7 +331,6 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatInclude');
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
@@ -381,189 +378,168 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('template', 'Експедиционно нареждане с цени');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        // тази проверка не работи
-        //if(strpos($browser->gettext(), 'Контиране')) {
-        //}
-            if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
-                // връща грешка, ако не е избрано ЕН с цени
-            } else {
-                return "Грешна сума в ЕН";
-            }
-             
-            // протокол
-            $browser->press('Пр. услуги');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-            //if(strpos($browser->gettext(), 'Контиране')) {
-            //  $browser->press('Контиране');
-            //}
-    
-            // Фактура
-            $browser->press('Фактура');
-            $browser->press('Чернова');
-            //return 'paymentType';
-            //$browser->setValue('paymentType', 'По банков път');
-            $browser->press('Контиране');
-    
-            // ПКО
-            $browser->press('ПКО');
-            $browser->setValue('depositor', 'Иван Петров');
-            $browser->setValue('amountDeal', '10');
-            $browser->setValue('peroCase', 'КАСА 1');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-    
-            // ПБД
-            $browser->press('ПБД');
-            $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-    
-            // Приключване
-            $browser->press('Приключване');
-            $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-            if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
-            } else {
-                return "Грешно чакащо плащане";
-            }
-            return $browser->getHtml();
+        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
+        // връща грешка, ако не е избрано ЕН с цени
+        } else {
+            return "Грешна сума в ЕН";
         }
-        
-        /**
-         * Продажба - освободено от ДДС
-         */
          
-        //http://localhost/unit_MinkPSales/CreateSaleVatFree/
-        function act_CreateSaleVatFree()
-        {
+        // протокол
+        $browser->press('Пр. услуги');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        // Фактура
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        //return 'paymentType';
+        //$browser->setValue('paymentType', 'По банков път');
+        $browser->press('Контиране');
         
-            // Логване
-            $browser = $this->SetUp();
+        // ПКО
+        $browser->press('ПКО');
+        $browser->setValue('depositor', 'Иван Петров');
+        $browser->setValue('amountDeal', '10');
+        $browser->setValue('peroCase', 'КАСА 1');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        // ПБД
+        $browser->press('ПБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
         
-            //Отваряне папката на фирмата
-            $browser->click('Визитник');
-            $browser->click('F');
-            $Company = 'Фирма bgErp';
-            $browser->click($Company);
-            $browser->press('Папка');
+        // Приключване
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        } else {
+            return "Грешно чакащо плащане";
+        }
+        return $browser->getHtml();
+    }
+       
+    /**
+    * Продажба - освободено от ДДС
+    */
+         
+    //http://localhost/unit_MinkPSales/CreateSaleVatFree/
+    function act_CreateSaleVatFree()
+    {
+        // Логване
+        $browser = $this->SetUp();
         
-            // нова продажба - проверка има ли бутон
-            if(strpos($browser->gettext(), 'Продажба')) {
-                $browser->press('Продажба');
-            } else {
-                $browser->press('Нов...');
-                $browser->press('Продажба');
-            }
-             
-            //$browser->hasText('Създаване на продажба');
-            $enddate=strtotime("+2 Days");
-            $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-            $browser->setValue('deliveryTime[t]', '10:30');
-            $browser->setValue('reff', 'MinkP');
-            $browser->setValue('bankAccountId', '');
-            $browser->setValue('note', 'MinkPSaleVatFree');
-            $browser->setValue('pricesAtDate', date('d-m-Y'));
-            $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-            //$browser->setValue('chargeVat', "Освободено от ДДС");
-            $browser->setValue('chargeVat', "Без начисляване на ДДС");
-            // Записване черновата на продажбата
-            $browser->press('Чернова');
+        //Отваряне папката на фирмата
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = 'Фирма bgErp';
+        $browser->click($Company);
+        $browser->press('Папка');
         
-            // Добавяне на артикул
-            $browser->press('Артикул');
-            $browser->setValue('productId', 'Други стоки');
-            $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '23');
-            $browser->setValue('packPrice', '1,12');
-            $browser->setValue('discount', 10);
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+        $enddate=strtotime("+2 Days");
+        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
+        $browser->setValue('deliveryTime[t]', '10:30');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleVatFree');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        //$browser->setValue('chargeVat', "Освободено от ДДС");
+        $browser->setValue('chargeVat', "Без начисляване на ДДС");
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
         
-            // Записване артикула и добавяне нов - услуга
-            $browser->press('Запис и Нов');
-            $browser->setValue('productId', 'Други услуги');
-            $browser->refresh('Запис');
-            $browser->setValue('packQuantity', 10);
-            $browser->setValue('packPrice', 1.1124);
-            $browser->setValue('discount', 10);
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '23');
+        $browser->setValue('packPrice', '1,12');
+        $browser->setValue('discount', 10);
         
-            // Записване на артикула
-            $browser->press('Запис');
-            //Игнорираме предупреждението за липсваща стока
-            //$browser->setValue('Ignore', 1);
-            //$browser->press('Запис');
+        // Записване артикула и добавяне нов - услуга
+        $browser->press('Запис и Нов');
+        $browser->setValue('productId', 'Други услуги');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 10);
+        $browser->setValue('packPrice', 1.1124);
+        $browser->setValue('discount', 10);
+        // Записване на артикула
+        $browser->press('Запис');
+        //Игнорираме предупреждението за липсваща стока
+        //$browser->setValue('Ignore', 1);
+        //$browser->press('Запис');
         
-            // активиране на продажбата
-            $browser->press('Активиране');
-            //return $browser->getHtml();
-            //$browser->press('Активиране/Контиране');
-             
-            if(strpos($browser->gettext(), '3,69')) {
-            } else {
-                return "Грешна отстъпка";
-            }
-            if(strpos($browser->gettext(), 'Тридесет и три BGN и 0,19')) {
-            } else {
-                return "Грешна обща сума";
-            }
+        // активиране на продажбата
+        $browser->press('Активиране');
+        //return $browser->getHtml();
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), '3,69')) {
+        } else {
+            return "Грешна отстъпка";
+        }
+        if(strpos($browser->gettext(), 'Тридесет и три BGN и 0,19')) {
+        } else {
+            return "Грешна обща сума";
+        }    
+        // експедиционно нареждане
+        $browser->press('Експедиране');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Експедиционно нареждане с цени');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
+        // връща грешка, ако не е избрано ЕН с цени
+        } else {
+            return "Грешна сума в ЕН";
+        }
+         
+        // протокол
+        $browser->press('Пр. услуги');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
         
-            // експедиционно нареждане
-            $browser->press('Експедиране');
-            $browser->setValue('storeId', 'Склад 1');
-            $browser->setValue('template', 'Експедиционно нареждане с цени');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-            // тази проверка не работи
-            //if(strpos($browser->gettext(), 'Контиране')) {
-            //}
-                if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
-                    // връща грешка, ако не е избрано ЕН с цени
-                } else {
-                    return "Грешна сума в ЕН";
-                }
+        // Фактура
+        $browser->press('Фактура');
+        //bp($browser->gettext());
+        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        //////не работи
+        return $browser->getText();
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        
+        // ПКО
+        $browser->press('ПКО');
+        $browser->setValue('depositor', 'Иван Петров');
+        $browser->setValue('amountDeal', '10');
+        $browser->setValue('peroCase', 'КАСА 1');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        
+        // ПБД
+        $browser->press('ПБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        
+        // Приключване
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        } else {
+            return "Грешно чакащо плащане";
+        }
+        return $browser->getHtml();
+    }
                  
-                // протокол
-                $browser->press('Пр. услуги');
-                $browser->press('Чернова');
-                $browser->press('Контиране');
-                //if(strpos($browser->gettext(), 'Контиране')) {
-                //  $browser->press('Контиране');
-                //}
-        
-                // Фактура
-                $browser->press('Фактура');
-                $browser->setValue('vatReason', 'Чл.53 от ЗДДС - ВОД');
-                return $browser->getText();
-                $browser->press('Чернова');
-                //return 'paymentType';
-                //$browser->setValue('paymentType', 'По банков път');
-                
-                
-                $browser->press('Контиране');
-        
-                // ПКО
-                $browser->press('ПКО');
-                $browser->setValue('depositor', 'Иван Петров');
-                $browser->setValue('amountDeal', '10');
-                $browser->setValue('peroCase', 'КАСА 1');
-                $browser->press('Чернова');
-                $browser->press('Контиране');
-        
-                // ПБД
-                $browser->press('ПБД');
-                $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-                $browser->press('Чернова');
-                $browser->press('Контиране');
-        
-                // Приключване
-                $browser->press('Приключване');
-                $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
-                $browser->press('Чернова');
-                $browser->press('Контиране');
-                if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
-                } else {
-                    return "Грешно чакащо плащане";
-                }
-                return $browser->getHtml();
-            }
 }

@@ -1,10 +1,10 @@
-<div class="singleView">
-    [#SingleToolbar#]
-    <div class='[#STATE_CLASS#]' style='padding-left:8px'>
-    <h2> <b style="color:green;">[#SingleTitle#]</b></h2>
-    </div>
-    
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
     <table class="styled-table" style='min-width:300px'>
+    	<tr>
+            <td class="title-style">|Заглавие|*</td>
+            <td>[#title#]</td>
+        </tr>
         <!--ET_BEGIN parent-->
         <tr>
             <td class="title-style">|Наследява|*</td>
@@ -48,10 +48,6 @@
         <tr>
             <th colspan="2" style='padding-top: 15px;'>|Прикрепяне|*</th>
         </tr>
-        <tr>
-            <td class="title-style">|Контрагент|*</td>
-            <td>[#customer#]</td>
-        </tr>
         <!--ET_BEGIN validFrom-->
         <tr>
             <td class="title-style">|В сила от|*</td>
@@ -85,9 +81,4 @@
         </tr>
         <!--ET_END connectedClients-->
     </table>
-    <div><span class="title-style">|Създаване|*: </span>[#createdBy#], [#createdOn#]</div>
-    <br>
-    <div class='scrolling-holder'>
-        [#DETAILS#]
-    </div>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

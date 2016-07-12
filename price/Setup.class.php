@@ -4,7 +4,7 @@
 /**
  * Начален номер на фактурите
  */
-defIfNot('PRICE_SIGNIFICANT_DIGITS', '4');
+defIfNot('PRICE_SIGNIFICANT_DIGITS', '5');
 
 
 /**
@@ -79,6 +79,7 @@ class price_Setup extends core_ProtoSetup
         	'price_ListDocs',
     		'price_ProductCosts',
     		'price_Updates',
+    		'migrate::routeLists',
     		'migrate::truncateProductCosts',
     		'migrate::transferGroups',
     		'migrate::updateListStates'
@@ -98,7 +99,7 @@ class price_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "priceMaster, ceo"),
+            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "price,sales, ceo"),
         );
     
     
@@ -300,6 +301,52 @@ class price_Setup extends core_ProtoSetup
     		cls::get('price_ListToCustomers')->setupMvc();
     		cls::get('price_Lists')->setupMvc();
     		price_ListToCustomers::updateStates();
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Мигриране на себестойностите
+     */
+    function routeLists()
+    {
+    	$CatGroups = cls::get('cat_Groups');
+    	$CatGroups->setupMvc();
+    	$Lists = cls::get('price_Lists');
+    	$Lists->setupMvc();
+    	$Folders = cls::get('doc_Folders');
+    	$Containers = cls::get('doc_Containers');
+    	$Threads = cls::get('doc_Threads');
+    	$Rules = cls::get('price_ListRules');
+    	$Rules->setupMvc();
+    	cls::get('price_ListToCustomers')->setupMvc();
+    	
+    	try{
+    		$query = $Lists->getQuery();
+    		$query->where("#folderId IS NULL");
+    		while($rec = $query->fetch()){
+    		
+    			if($rec->createdBy == core_Users::SYSTEM_USER){
+    				core_Users::forceSystemUser();
+    			} else {
+    				core_Users::sudo($rec->createdBy);
+    			}
+    		
+    			$folderId = (isset($rec->cClass) && isset($rec->cId)) ? cls::get($rec->cClass)->forceCoverAndFolder($rec->cId) : NULL;
+    			$rec->folderId = $folderId;
+    			$rec->state = ($rec->state == 'rejected') ? 'rejected' : 'active';
+    			$Lists->route($rec);
+    		
+    			$Lists->save($rec);
+    		
+    			if($rec->createdBy == core_Users::SYSTEM_USER){
+    				core_Users::cancelSystemUser();
+    			} else {
+    				core_Users::exitSudo();
+    			}
+    		}
     	} catch(core_exception_Expect $e){
     		reportException($e);
     	}

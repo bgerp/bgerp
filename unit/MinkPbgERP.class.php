@@ -53,7 +53,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
         /////////////  не работи
         //$browser->click('select2-deinstall');
-        $browser->click('select2-deinstall');
+        //$browser->click('select2-deinstall');
         return $browser->getHtml();
     }
     
@@ -211,10 +211,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Параметри');
         $browser->press('Нов запис');
         $browser->setValue('driverClass', 'Символи');
+        $browser->refresh('Запис');
         $browser->setValue('name', 'Състояние');
-        //$browser->setValue('lenght', '15'); - не го приема
-        //bp($browser->gettext());
-       
+        $browser->setValue('lenght', '15'); 
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
@@ -650,7 +649,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
+        //$browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записване черновата на продажбата

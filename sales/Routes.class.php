@@ -328,7 +328,7 @@ class sales_Routes extends core_Manager {
     /**
      * Реализация по подразбиране на метода getEditUrl()
      */
-    public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
+    protected static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
     	$editUrl['locationId'] = $rec->locationId;
     }
@@ -395,6 +395,7 @@ class sales_Routes extends core_Manager {
     	}
     	
     	$date = dt::timestamp2mysql($nextStartTimeTs);
+    	$date = dt::verbal2mysql($date, FALSE);
     	
     	return  $date;
     }
@@ -470,5 +471,58 @@ class sales_Routes extends core_Manager {
 			$rec->state = $state;
 			$this->save($rec);
 		}
+	}
+	
+	
+	/**
+	 * Връща търговеца с най-близък маршрут
+	 * 
+	 * @param int $locationId - ид на локация
+	 * @param string $date    - дата, NULL за текущата дата
+	 * @return $salesmanId    - ид на търговец
+	 */
+	public static function getSalesmanId($locationId, $date = NULL)
+	{
+		$date = (isset($date)) ? $date : dt::today();
+		$date2 = new DateTime($date);
+		$cu = core_Users::getCurrent();
+		
+		$salesmanId = NULL;
+		$arr = array();
+		
+		// Намираме и подреждаме всички маршрути към локацията
+		$query = self::getQuery();
+		$query->where("#locationId = '{$locationId}'");
+		$query->orderBy("createdOn", 'DESC');
+		
+		// За всяка
+		while($rec = $query->fetch()){
+			
+			// Ако маршрута е от текущия потребител, винаги е с приоритет
+			if($rec->salesmanId == $cu){
+				$date1 = $date;
+			} else {
+				// Ако има дата на доставка, нея, ако няма слагаме -10 години, за да излезе най-отдолу
+				$date1 = (isset($rec->nextVisit)) ? $rec->nextVisit : dt::verbal2mysql(dt::addMonths(-1 * 10 * 12, $date), FALSE);
+			}
+			
+			// Колко е разликата между датите
+			$date1 = new DateTime($date1);
+			$interval = date_diff($date1, $date2);
+			
+			// Добавяме в масива
+			$arr[] = (object)array('diff' => $interval->days, 'salesmanId' => $rec->salesmanId, 'id' => $rec->id);
+		}
+		
+		// Ако няма маршрути, връщаме
+		if(!count($arr)) return $salesmanId;
+		
+		// Сортираме по разликата
+		arr::order($arr, 'diff', 'ASC');
+		$first = $arr[key($arr)];
+		$salesmanId = $first->salesmanId;
+		
+		// Връщаме най-новия запис с най-малка разлика
+		return $salesmanId;
 	}
 }

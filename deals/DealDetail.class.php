@@ -206,7 +206,6 @@ abstract class deals_DealDetail extends doc_Detail
     	$rec = &$form->rec;
     	
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
-    	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
     	
     	if($rec->productId){
     		$productInfo = cat_Products::getProductInfo($rec->productId);
@@ -217,7 +216,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$form->setDefault('packagingId', key($packs));
     		
     		if(isset($mvc->LastPricePolicy)){
-    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
@@ -264,7 +263,9 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			
+    			$listId = ($masterRec->priceListId) ? $masterRec->priceListId : NULL;
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
     				
     			if (empty($policyInfo->price) && empty($pRec)) {
     				$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');

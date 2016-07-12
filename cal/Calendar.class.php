@@ -337,6 +337,8 @@ class cal_Calendar extends core_Master
 			$attr['ef_icon'] = 'img/16/working-travel.png';    		
         } elseif(!strpos($rec->type, '/')) {
          	$attr['ef_icon'] = "img/16/{$lowerType}.png";
+    	} elseif($rec->type = 'reminder') {
+         	$attr['ef_icon'] = "img/16/alarm_clock.png";
     	} else { 
             $attr['ef_icon'] = $rec->type;
         }
@@ -684,7 +686,8 @@ class cal_Calendar extends core_Master
                     $data[$i]->type = $rec->type;
                    
                 } elseif($rec->type == 'workday') {
-                } elseif($rec->type == 'task'){
+                
+                } elseif($rec->type == 'task' || $rec->type == 'reminder'){
                 	$time = dt::mysql2timestamp($rec->time);
                 	$i = (int) date('j', $time);
                 	
@@ -1268,9 +1271,11 @@ class cal_Calendar extends core_Master
 			$imgTask = $getTask->getIcon(trim($idTask));
 			$img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
 		
-		}elseif($type == 'end-date'){
+		} elseif($type == 'end-date'){
 			$img = "<img class='calImg'  src=". sbf('img/16/end-date.png') .">&nbsp;";
-		
+
+		} elseif($type == 'reminder'){ 
+		    $img = "<img class='calImg'  src=". sbf('img/16/alarm_clock.png') .">&nbsp;";
 		
 		} else {
 	    	$type = strtolower($type);

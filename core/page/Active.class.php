@@ -35,6 +35,7 @@ class core_page_Active extends page_Html {
         
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
+        $this->push('css/internalTheme.css','CSS');
 
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
