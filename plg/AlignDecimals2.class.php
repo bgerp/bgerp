@@ -98,6 +98,9 @@ class plg_AlignDecimals2 extends core_Plugin
 						$padString .= str_repeat($repeatString, $padCount);
 						
 						$rows[$id]->$fName .= $padString;
+						
+						// Хак за правилно показване
+						$rows[$id]->{$fName} = str_replace("{$decPoint}0000", "{$decPoint}00", $rows[$id]->{$fName});
 					}
 				}
 			}
