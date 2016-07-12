@@ -2,9 +2,6 @@
 	[#SingleToolbar#]
 	<div class='folder-cover state-active'>
 	    <div class='inner-folder'>
-	        <!--ET_BEGIN blank-->
-	        [#blank#]
-	        <!--ET_END blank-->
 	        <div class='block_title [#STATE_CLASS#] special-title'>
 	            <div>|Структурно звено|* <b>[#name#]</b></div>
 	        </div>

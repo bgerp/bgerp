@@ -7,7 +7,7 @@
         <table class="styled-table">
             <tr>
                 <td class="title-style">|Тип|*</td>
-                <td>[#type#]</td>
+                <td>[#driverClass#]</td>
             </tr>
             <!--ET_BEGIN suffix-->
             <tr>

@@ -899,7 +899,7 @@ class pos_Receipts extends core_Master {
 				if($searchString){
 					$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
 				}
-				$query->where("#state != 'rejected'");
+				$query->where("#state != 'rejected' AND #state != 'closed'");
 				$query->show('id,name');
 				
 				if($type){
@@ -916,7 +916,7 @@ class pos_Receipts extends core_Master {
 				
 				if($type1 == 'person'){
 					if($Contragent = pos_Cards::getContragent($searchString, crm_Persons::getClassId())){
-						$data->recs["$type1|{$Contragent->that}"] = $Contragent->rec();
+						$data->recs["{$type1}|{$Contragent->that}"] = $Contragent->rec();
 					}
 				}
 			}

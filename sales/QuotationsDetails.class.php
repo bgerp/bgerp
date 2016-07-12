@@ -327,6 +327,7 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	$rec = &$form->rec;
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
+    	$priceAtDate = (isset($masterRec->date)) ? $masterRec->date : dt::today();
     	
     	if($rec->productId){
     		$productInfo = cat_Products::getProductInfo($rec->productId);
@@ -369,7 +370,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat, NULL, FALSE);
     			
     			if(empty($policyInfo->price)){
     				$policyInfo->price = self::tryToCalcPrice($rec);
