@@ -255,7 +255,7 @@ class sales_Sales extends deals_DealMaster
         parent::setDealFields($this);
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate');
-        $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към,after=makeInvoice');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени');
         $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime');
     }
     
@@ -380,14 +380,6 @@ class sales_Sales extends deals_DealMaster
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         
-        $conf = core_Packs::getConfig('sales');
-        $maxMonths =  $conf->SALE_MAX_FUTURE_PRICE / type_Time::SECONDS_IN_MONTH;
-		$minMonths =  $conf->SALE_MAX_PAST_PRICE / type_Time::SECONDS_IN_MONTH;
-        
-        $priceAtDateFld = $form->getFieldType('pricesAtDate');
-        $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
-        $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
-        
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
@@ -396,6 +388,8 @@ class sales_Sales extends deals_DealMaster
         if(empty($form->rec->id)){
         	$form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
         }
+        
+        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($form->rec->contragentClassId, $form->rec->contragentId));
     }
     
     
@@ -562,6 +556,7 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', $rec->bankAccountId);
+        $result->setIfNot('priceListId', $rec->priceListId);
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
@@ -1022,6 +1017,8 @@ class sales_Sales extends deals_DealMaster
     	$saleQuery->where("#saleId = {$rec->id}");
     	$saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
     	$saleQuery->where("#meta = 'yes'");
+    	$saleQuery->show('productId');
+    	
     	while($dRec = $saleQuery->fetch()){
     		$res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
     	}
@@ -1060,6 +1057,10 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     		}
+    	}
+    	
+    	if(isset($rec->priceListId)){
+    		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
     }
 

@@ -403,10 +403,16 @@ abstract class deals_Helper
 	{
 		if(cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
-				 
+				$measureId = cat_Products::fetchField($productId, 'measureId');
+				
+				if($quantityInPack < 1 && cat_UoM::fetchBySysId('K pcs')->id == $measureId){
+					$quantityInPack *= 1000;
+					$measureId = cat_UoM::fetchBySysId('pcs')->id;
+				}
+				
 				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
 				
-				$shortUomName = cat_UoM::getShortName(cat_Products::getProductInfo($productId)->productRec->measureId);
+				$shortUomName = cat_UoM::getShortName($measureId);
 				$packagingRow .= ' <small class="quiet">' . $quantityInPack . ' ' . $shortUomName . '</small>';
 				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
 			}

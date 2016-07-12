@@ -539,7 +539,7 @@ class planning_Jobs extends core_Master
     			if(empty($rec->productId)){
     				$res = 'no_one';
     			} else {
-    				$productRec = cat_Products::fetch($rec->productId);
+    				$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
     				 
     				// Трябва да е активиран
     				if($productRec->state != 'active'){
@@ -571,7 +571,7 @@ class planning_Jobs extends core_Master
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
     
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")){
+    		if($mvc->fetchField("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')", 'id')){
     			$res = 'no_one';
     		}
     	}

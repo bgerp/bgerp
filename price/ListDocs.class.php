@@ -598,8 +598,8 @@ class price_ListDocs extends core_Master
     	}
     	
     	$fieldset = cls::get('core_FieldSet');
-    	$fieldset->FLD('priceM', 'double');
-    	$fieldset->FLD('priceP', 'double');
+    	$fieldset->FLD('priceM', 'double(decimals=6)');
+    	$fieldset->FLD('priceP', 'double(decimals=6)');
     	
     	plg_AlignDecimals2::alignDecimals($fieldset, $recs1, $rows1);
     }

@@ -4904,6 +4904,11 @@ body.narrow {
     .header-state {
         display: none;
     }
+	.group-link:hover {
+		cursor: default;
+		background-color: #e4e4e4;
+		color: #333 !important;
+	}
 }
 
 .narrow .printing .document{

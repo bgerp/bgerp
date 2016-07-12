@@ -20,109 +20,97 @@ class cat_Groups extends core_Manager
 	/**
      * Заглавие
      */
-    var $title = "Групи на артикулите";
+    public $title = "Групи на артикулите";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Каталог";
+    public $pageMenu = "Каталог";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,productCnt,orderProductBy';
+    public $listFields = 'id,name,productCnt,orderProductBy';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt';
+    public $searchFields = 'sysId, name, productCnt';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кои полета да се сумират за наследниците
      */
-    var $fieldsToSumOnChildren = 'productCnt';
+    public $fieldsToSumOnChildren = 'productCnt';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Маркер";
+    public $singleTitle = "Маркер";
     
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'cat,ceo';
+    public $canRead = 'cat,ceo';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'cat,ceo';
+    public $canEditsysdata = 'cat,ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'cat,ceo,sales,purchase';
+    public $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'cat,ceo,sales,purchase';
+    public $canSingle = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'cat,ceo';
+    public $canWrite = 'cat,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'cat,ceo';
-    
-    
-    /**
-     * Клас за елемента на обграждащия <div>
-     */
-    var $cssClass = 'folder-cover';
-    
-    
-    /**
-     * Нов темплейт за показване
-     */
-    var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    public $canDelete = 'cat,ceo';
     
     
     /**
@@ -144,6 +132,7 @@ class cat_Groups extends core_Manager
         						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2,input=none');
         
         $this->setDbUnique("sysId");
+        $this->setDbIndex('parentId');
     }
     
     
@@ -165,7 +154,7 @@ class cat_Groups extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
@@ -192,7 +181,7 @@ class cat_Groups extends core_Manager
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if($fields['-list']){
             $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), FALSE, "title=Филтър на|* \"{$row->name}\"");
@@ -209,7 +198,7 @@ class cat_Groups extends core_Manager
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
@@ -225,7 +214,7 @@ class cat_Groups extends core_Manager
     /**
      * Преди импорт на записи
      */
-    public static function on_BeforeImportRec($mvc, &$rec)
+    protected static function on_BeforeImportRec($mvc, &$rec)
     {
     	// Ако е зададен баща опитваме се да го намерим
     	if(isset($rec->csv_parentId)){
@@ -284,7 +273,7 @@ class cat_Groups extends core_Manager
      *
      * @return  int                  id на групата
      */
-    static function forceGroup($name, $parentId = NULL)
+    public static function forceGroup($name, $parentId = NULL)
     {  
         static $groups = array();
         
@@ -329,5 +318,4 @@ class cat_Groups extends core_Manager
  
         return $res;
     }
-
 }

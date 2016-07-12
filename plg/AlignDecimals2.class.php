@@ -59,7 +59,7 @@ class plg_AlignDecimals2 extends core_Plugin
 				if(isset($rows[$id]->$fName)){
 					$Type = $mvc->fields[$fName]->type;
 					setIfNot($Type->params['minDecimals'], 0);
-					setIfNot($Type->params['maxDecimals'], 5);
+					setIfNot($Type->params['maxDecimals'], 6);
 						
 					$optDecimals = min(
 							$Type->params['maxDecimals'],
@@ -86,6 +86,10 @@ class plg_AlignDecimals2 extends core_Plugin
 							$padCount -= 2;
 						}
 						
+						if($padCount < 0){
+							$padCount = 0;
+						}
+						
 						$repeatString = "0";
 						if($padCount > 0){
 							$count2 = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
@@ -94,6 +98,9 @@ class plg_AlignDecimals2 extends core_Plugin
 						$padString .= str_repeat($repeatString, $padCount);
 						
 						$rows[$id]->$fName .= $padString;
+						
+						// Хак за правилно показване
+						$rows[$id]->{$fName} = str_replace("{$decPoint}0000", "{$decPoint}00", $rows[$id]->{$fName});
 					}
 				}
 			}

@@ -14,7 +14,6 @@
  */
 
 class unit_MinkPPayment extends core_Manager {
-   
    /** Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
     *return $browser->getHtml();
     */
@@ -25,7 +24,6 @@ class unit_MinkPPayment extends core_Manager {
      */
     public function SetUp()
     {
-        $browser = cls::get('unit_Browser');
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
         $browser->click('Вход');
@@ -71,7 +69,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'А1234');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleWaitP');
-        $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 7 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -192,7 +189,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'А1234');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleOverdue');
-        $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -312,7 +308,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'MomentOverdue');
         $browser->setValue('note', 'MinkPPaymentSaleMomentOverdue');
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "На момента");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -429,7 +424,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'exp');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentCreateSaleE');
-        $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -555,7 +549,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'exp1');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateSaleE1');
-        $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -651,7 +644,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'Overpaid');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpSaleOverpaid');
-        $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -749,7 +741,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'MomentWaitP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleMomentWaitP');
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "На момента");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -868,7 +859,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'Wait');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleWait3');
-        $browser->setValue('pricesAtDate', date('d-m-Y', $valior));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
@@ -993,7 +983,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('note', 'MinkPPaymentSaleMoment');
         $browser->setValue('caseId', 1);
         $browser->setValue('shipmentStoreId', 1);
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "На момента");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
@@ -1104,7 +1093,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSale');
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
