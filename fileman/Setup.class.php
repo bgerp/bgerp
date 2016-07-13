@@ -383,14 +383,4 @@ class fileman_Setup extends core_ProtoSetup
             fileman_Files::save($rec, 'fileLen');
         }
     }
-    
-    
-    /**
-     * Връща JS файлове, които са подходящи за компактиране
-     */
-    public function getCommonCss()
-    {
-        
-        return 'fileman/css/default.css, fileman/css/dialogGallery.css';
-    }
 }
