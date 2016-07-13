@@ -98,7 +98,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
         $this->setField('quantity', 'caption=Количества->За влагане');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
     }
     
     
@@ -113,15 +113,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$form = &$data->form;
     	$rec = &$form->rec;
     	$data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : 'материал';
-    	
-    	if(isset($rec->id)){
-    		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
-    	} else {
-    		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
-    		$products = array('' => '') + cat_Products::getByProperty($metas);
-    		unset($products[$data->masterRec->productId]);
-    	}
-    	$form->setOptions('productId', $products);
+    	$data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
     	
     	if(isset($rec->productId)){
     		$storable = cat_Products::fetchField($rec->productId, 'canStore');
