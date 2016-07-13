@@ -270,10 +270,11 @@ class cat_Groups extends core_Manager
      *
      * @param   string  $name       Име на групата. Съдържа целия път
      * @param   int     $parentId   Id на родител
+     * @param   boolean $force 
      *
-     * @return  int                  id на групата
+     * @return  int|NULL            id на групата
      */
-    public static function forceGroup($name, $parentId = NULL)
+    public static function forceGroup($name, $parentId = NULL, $force = TRUE)
     {  
         static $groups = array();
         
@@ -304,12 +305,15 @@ class cat_Groups extends core_Manager
                 if(isset($gRec->name)) {
                     $res = $gRec->id;
                 } else {
-
-                    $gRec = (object) array('name' => $name, 'orderProductBy' => 'code', 'meta' => 'canSell,canBuy,canStore,canConvert,canManifacture', 'parentId' => $parentId);
-
-                    cat_Groups::save($gRec);
-
-                    $res = $gRec->id;
+                    if ($force) {
+                        $gRec = (object) array('name' => $name, 'orderProductBy' => 'code', 'meta' => 'canSell,canBuy,canStore,canConvert,canManifacture', 'parentId' => $parentId);
+                        
+                        cat_Groups::save($gRec);
+                        
+                        $res = $gRec->id;
+                    } else {
+                        $res = NULL;
+                    }
                 }
             }
 
