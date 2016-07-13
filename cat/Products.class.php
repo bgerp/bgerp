@@ -678,7 +678,8 @@ class cat_Products extends embed_Manager {
 
     	        if (!$rec->measureId) {
     	            self::logNotice('Липсваща мярка при импортиране: ' . "{$measureName}");
-    	            expect(FALSE);
+    	            
+    	            return FALSE;
     	        }
     	    }
     	}
@@ -700,7 +701,8 @@ class cat_Products extends embed_Manager {
                     
                     if (!$groupId) {
                         self::logNotice('Липсваща група при импортиране: ' . "{$groupName}");
-                        expect(FALSE);
+                        
+                        return FALSE;
                     }
                     
                     $groupIdArr[$groupId] = $groupId;
@@ -743,7 +745,8 @@ class cat_Products extends embed_Manager {
     	            
     	            if ($metaErr) {
     	                self::logNotice('Липсваща стойност за мета при импортиране: ' . "{$m}");
-    	                expect(FALSE);
+    	                
+                        return FALSE;
     	            }
     	        }
     	    }
