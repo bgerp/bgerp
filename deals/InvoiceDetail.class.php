@@ -452,7 +452,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$rec->price = $policyInfo->price;
 					$rec->packPrice = $policyInfo->price * $rec->quantityInPack;
 					
-					if($policyInfo->discount && empty($rec->discount)){
+					if($policyInfo->discount && !isset($rec->discount)){
 						$rec->discount = $policyInfo->discount;
 					}
 				}
