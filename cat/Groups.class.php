@@ -286,7 +286,7 @@ class cat_Groups extends core_Manager
                 $gArr = explode('»', $name);
                 foreach($gArr as $gName) {
                     $gName = trim($gName);
-                    $parentId = self::forceGroup($gName, $parentId);
+                    $parentId = self::forceGroup($gName, $parentId, $force);
                 }
 
                 $res = $parentId;
