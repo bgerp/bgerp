@@ -17,21 +17,32 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 
 
 	/**
+	 * Работен кеш
+	 */
+	protected $arr = array();
+	
+	
+	/**
 	 * Проверка имали по нов производствен документ
 	 * 
 	 * @param stdClass $rec
 	 */
 	protected function getNewerProductionDocumentHandle($rec)
 	{
+		if(isset($this->arr[$rec->id])) return $this->arr[$rec->id];
+		
+		$res = FALSE;
+		
 		// Ако е протокол за производство
 		if($this instanceof planning_ProductionNotes){
 			$query = planning_ProductionNoteDetails::getQuery();
 			$query->where("#noteId = {$rec->id}");
+			$query->show('jobId');
 			while($dRec = $query->fetch()){
 				
 				// Ако за заданието на някой от детайлите му има по нов документ
 				if($handle = $this->hasNewerProductionDocument($this, $rec, $dRec->jobId)){
-					return $handle;
+					$res = $handle;
 				}
 			}
 			
@@ -39,11 +50,13 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 		} elseif($this instanceof planning_DirectProductionNote){
 			$jobId = doc_Containers::getDocument($rec->originId)->that;
 			if($handle = $this->hasNewerProductionDocument($this, $rec, $jobId)){
-				return $handle;
+				$res = $handle;
 			}
 		}
 		
-		return FALSE;
+		$this->arr[$rec->id] = $handle;
+		
+		return $handle;
 	}
 	
 	
@@ -70,6 +83,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 		if($mvc instanceof planning_DirectProductionNote){
 			$dQuery->where("#id != {$rec->id}");
 		}
+		$dQuery->show('id');
 		$dQuery->orderBy('id', 'DESC');
 		$dQuery->limit(1);
 		
