@@ -144,6 +144,13 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Искаме ли в листовия филтър да е попълнен филтъра по дата
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterAutoDate = FALSE;
+    
+    
+    /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'cat,ceo';
