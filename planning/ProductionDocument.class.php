@@ -54,9 +54,9 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 			}
 		}
 		
-		$this->arr[$rec->id] = $handle;
+		$this->arr[$rec->id] = $res;
 		
-		return $handle;
+		return $res;
 	}
 	
 	
