@@ -523,8 +523,8 @@ class unit_MinkPPayment extends core_Manager {
      * Проверка състояние плащане - просрочено, доставено и нефактурирано
      * Нова продажба на съществуваща фирма с папка -  лв
      */
-    //http://localhost/unit_MinkPPayment/CreateSaleExped1/
-    function act_CreateSaleExped1()
+    //http://localhost/unit_MinkPPayment/CreateSaleExpedn/
+    function act_CreateSaleExpedn()
     {
         // Логваме се
         $browser = $this->SetUp();

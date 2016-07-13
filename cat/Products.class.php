@@ -695,9 +695,7 @@ class cat_Products extends embed_Manager {
                 $groupIdArr = array();
                 
                 foreach ($groupArr as $groupName) {
-                    $groupName = trim($groupName);
-                    $groupName = mb_strtolower($groupName);
-                    $groupId = cat_Groups::fetchField(array("LOWER(#name) = '[#1#]'", $groupName), 'id');
+                    $groupId = cat_Groups::forceGroup($groupName, NULL, FALSE);
                     
                     if (!$groupId) {
                         self::logNotice('Липсваща група при импортиране: ' . "{$groupName}");
