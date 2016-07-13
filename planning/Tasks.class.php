@@ -166,27 +166,6 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
-	 * Генерираме ключа за кеша
-	 * Интерфейсен метод
-	 *
-	 * @param core_Mvc $mvc
-	 * @param NULL|FALSE|string $res
-	 * @param NULL|integer $id
-	 * @param object $cRec
-	 *
-	 * @see doc_DocumentIntf
-	 */
-	public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
-	{
-		if ($res === FALSE) return ;
-	
-		$dealHistory = Request::get("TabTop{$cRec->id}");
-		
-		$res = md5($res . '|' . $dealHistory);
-	}
-	
-	
-	/**
 	 * Преди запис на документ, изчислява стойността на полето `isContable`
 	 *
 	 * @param core_Manager $mvc
