@@ -394,7 +394,7 @@ class cat_Boms extends core_Master
     		if(empty($rec->productId)){
     			$res = 'no_one';
     		} else {
-    			$productRec = cat_Products::fetch($rec->productId);
+    			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
     			
     			// Трябва да е активиран
     			if($productRec->state != 'active'){
@@ -423,7 +423,7 @@ class cat_Boms extends core_Master
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
     	} elseif($action == 'activate' && isset($rec->id)){
-    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}"))){
+    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id'))){
     			$res = 'no_one';
     		}
     	}

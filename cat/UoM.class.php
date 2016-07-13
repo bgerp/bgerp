@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'cat_UoM' - мерни единици
+ * Клас 'cat_UoM' - мерни единици и опаковки
  *
  * Unit of Measures
  *
@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -22,43 +22,43 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'cat,ceo';
+	public $canList = 'cat,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'cat,ceo';
+	public $canSingle = 'cat,ceo';
 
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo';
 
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
   
 
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'cat,ceo';
+    public $canDelete = 'cat,ceo';
  
 
     /**
      * Заглавие
      */
-    var $title = 'Мерни единици';
+    public $title = 'Мерни единици';
     
     
     /**
@@ -70,13 +70,19 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents,defQuantity";
+    public $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents,defQuantity";
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'cat,ceo';
+    public $canEditsysdata = 'cat,ceo';
+    
+    
+    /**
+     * Работен кеш
+     */
+    private static $cache = array();
     
     
     /**
@@ -342,7 +348,13 @@ class cat_UoM extends core_Manager
      */
     public static function fetchBySysId($sysId)
     {
-    	return static::fetch("#sysId = '{$sysId}'");
+    	if(!array_key_exists($sysId, self::$cache)){
+    		self::$cache[$sysId] = static::fetch("#sysId = '{$sysId}'");
+    	}
+    	
+    	$rec = self::$cache[$sysId];
+    	
+    	return $rec;
     }
     
     

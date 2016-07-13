@@ -52,12 +52,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Кой има право да чете?
-	 */
-	public $canRead = 'ceo,planning';
-	
-	
-	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,planning';
@@ -66,7 +60,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,planning';
+	public $canSingle = 'powerUser';
 	
 	
 	/**
@@ -323,8 +317,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 							
 							// Ако артикула от заданието не е производим не можем да добавяме документ
 							$productId = $originDoc->fetchField('productId');
-							$pInfo = cat_Products::getProductInfo($productId);
-							if(!isset($pInfo->meta['canManifacture'])){
+							$canManifacture = cat_Products::fetchField($productId, 'canManifacture');
+							if($canManifacture != 'yes'){
 								$requiredRoles = 'no_one';
 							}
 						}
@@ -337,7 +331,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
 			if($requiredRoles != 'no_one'){
 				if(isset($rec)){
-					if(planning_DirectProductNoteDetails::fetch("#noteId = {$rec->id}")){
+					if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}", 'id')){
 						$requiredRoles = 'no_one';
 					}
 				}
@@ -685,8 +679,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$rec = static::fetchRec($rec);
 		
 		if(isset($rec->id)){
-			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'");
-			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'");
+			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
+			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
 			if($pop && !$input){
 			
 				return FALSE;

@@ -115,6 +115,8 @@ class bgerp_BaseImporter extends core_Manager {
             
             if ($this->mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) {
                 $errArr[] = $row;
+                
+                continue ;
             }
             
             if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
