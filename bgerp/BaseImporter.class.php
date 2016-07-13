@@ -86,6 +86,8 @@ class bgerp_BaseImporter extends core_Manager {
         
         $oFields = $this->getFields();
         
+        $errArr = array();
+        
         foreach ($rows as $row){
             $rec = new stdClass();
             
@@ -111,8 +113,9 @@ class bgerp_BaseImporter extends core_Manager {
             // Ако записа е уникален, създаваме нов, ако не е обновяваме стария
             $fieldsUn = array();
             
-            // Обработка на записа преди импортиране
-            $this->mvc->invoke('BeforeImportRec', array(&$rec));
+            if ($this->mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) {
+                $errArr[] = $row;
+            }
             
             if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
                 $rec->id = $exRec->id;
@@ -133,6 +136,28 @@ class bgerp_BaseImporter extends core_Manager {
             }
             
             $this->mvc->save($rec);
+        }
+        
+        // Ако има грешки при импортиране, ги записваме в отделен файл
+        if (!empty($errArr)) {
+            $delimiter = Mode::get('importDelimiter');
+            $enclosure = Mode::get('importEnclosure');
+            
+            $nCsv = '';
+            foreach ($errArr as $errStr) {
+                $nCsv .= ($nCsv) ? "\n" : '';
+                $nCsv .= csv_Lib::getCsvLine($errStr, $delimiter, $enclosure);
+            }
+            
+            $fh = fileman::absorbStr($nCsv, 'exportCsv', 'ImportErr.csv');
+            
+            $errCnt = count($errArr);
+            if ($errCnt == 1) {
+                $errCntW  = "1 |запис|. |Записан е в|*: ";
+            } else {
+                $errCntW  = $errCnt . " |записa|. |Записани са в|*: ";
+            }
+            status_Messages::newStatus('|Грешка в|* ' . $errCntW . fileman::getLinkToSingle($fh));
         }
         
         core_Debug::stopTimer('import');

@@ -673,7 +673,14 @@ class cat_Products extends embed_Manager {
     		$rec->measureId = cat_UoM::fetchBySinonim($rec->csv_measureId)->id;
     	} else {
     	    if (isset($rec->measureId) && !is_numeric($rec->measureId)) {
+    	        $measureName = $rec->measureId;
     	        $rec->measureId = cat_UoM::fetchField(array("LOWER(#name) = '[#1#]'", mb_strtolower(trim($rec->measureId))), 'id');
+
+    	        if (!$rec->measureId) {
+    	            self::logNotice('Липсваща мярка при импортиране: ' . "{$measureName}");
+    	            
+    	            return FALSE;
+    	        }
     	    }
     	}
     	
@@ -692,7 +699,11 @@ class cat_Products extends embed_Manager {
                     $groupName = mb_strtolower($groupName);
                     $groupId = cat_Groups::fetchField(array("LOWER(#name) = '[#1#]'", $groupName), 'id');
                     
-                    if (!$groupId) continue;
+                    if (!$groupId) {
+                        self::logNotice('Липсваща група при импортиране: ' . "{$groupName}");
+                        
+                        return FALSE;
+                    }
                     
                     $groupIdArr[$groupId] = $groupId;
                 }
@@ -719,14 +730,23 @@ class cat_Products extends embed_Manager {
     	        
     	        foreach ($metaArr as $m) {
     	            $m = trim($m);
+    	            $metaErr = TRUE;
     	            if (isset($suggArr[$m])) {
     	                $nMetaArr[$m] = $m;
+    	                $metaErr = FALSE;
     	            } else {
     	                $m = mb_strtolower($m);
     	                $searchVal = array_search($m, $suggArr);
     	                if ($searchVal !== FALSE) {
     	                    $nMetaArr[$searchVal] = $searchVal;
+    	                    $metaErr = FALSE;
     	                }
+    	            }
+    	            
+    	            if ($metaErr) {
+    	                self::logNotice('Липсваща стойност за мета при импортиране: ' . "{$m}");
+    	                
+                        return FALSE;
     	            }
     	        }
     	    }

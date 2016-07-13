@@ -330,7 +330,7 @@ class csv_Lib
      * 
      * @return string
      */
-    protected static function getCsvLine($valsArr, $delimiter, $enclosure, $trim = TRUE)
+    public static function getCsvLine($valsArr, $delimiter, $enclosure, $trim = TRUE)
     {
         $csvLine = NULL;
         foreach ($valsArr as $v) {
