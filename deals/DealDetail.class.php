@@ -273,7 +273,7 @@ abstract class deals_DealDetail extends doc_Detail
     				 
     				// Ако се обновява запис се взима цената от него, ако не от политиката
     				$price = $policyInfo->price;
-    				if($policyInfo->discount && empty($rec->discount)){
+    				if($policyInfo->discount && !isset($rec->discount)){
     					$rec->discount = $policyInfo->discount;
     				}
     			}

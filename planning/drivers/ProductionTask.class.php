@@ -74,6 +74,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$row->totalQuantity = "<span class='quiet'>{$row->totalQuantity}</span>";
 		}
 		
+		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 	}
 	
@@ -290,7 +292,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         
         if (!empty($row->originId)) {
-            $resArr['originId'] =  array('name' => tr('Задание'), 'val' =>"[#originId#]");
+            $resArr['originId'] =  array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br><span style='font-weight:normal'>|Склад|*</span>: [#storeId#]"));
         }
         
         if (!empty($row->timeStart)) {
