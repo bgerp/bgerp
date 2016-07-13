@@ -564,6 +564,7 @@ class cat_Boms extends core_Master
     		$dQuery = cat_BomDetails::getQuery();
     		$dQuery->where("#bomId = {$res->id}");
     		$dQuery->where("#type = 'input'");
+    		$dQuery->show('id');
     		
     		if(!$dQuery->count()){
     			core_Statuses::newStatus('Рецептатата не може да се активира, докато няма поне един вложим ресурс', 'warning');

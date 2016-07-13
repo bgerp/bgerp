@@ -48,12 +48,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, planning';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, planning';
@@ -109,18 +103,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Преди подготвяне на едит формата
-     */
-    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    {
-    	$type = Request::get('type', 'enum(input,pop)');
-    	 
-    	$title = ($type == 'pop') ? 'отпадък' : 'материал';
-    	$mvc->singleTitle = $title;
-    }
-    
-    
-    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -130,6 +112,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
+    	$data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : 'материал';
     	
     	if(isset($rec->id)){
     		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
