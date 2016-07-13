@@ -113,8 +113,12 @@ class bgerp_plg_Import extends core_Plugin
                 if($mvc->haveRightFor('import')){
                     
                     Mode::push('onExist', $onExist);
+                    Mode::push('importDelimiter', $delimiter);
+                    Mode::push('importEnclosure', $enclosure);
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
+                    Mode::pop('importEnclosure');
+                    Mode::pop('importDelimiter');
                     Mode::pop('onExist');
                     
                     // Редирект кум лист изгледа на мениджъра в който се импортира

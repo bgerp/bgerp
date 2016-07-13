@@ -272,8 +272,9 @@ class cal_Reminders extends core_Master
               
             $todey = dt::now();
             $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
-            $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
-
+            
+            $time = strstr($nextWorkDay, " ", TRUE). " 08:00";
+  
             $data->form->setDefault('timeStart', $time);
             $data->form->setDefault('title', $title);
         }
