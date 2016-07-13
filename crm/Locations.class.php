@@ -252,16 +252,19 @@ class crm_Locations extends core_Master {
     {
         $cMvc = cls::get($rec->contragentCls);
         expect($rec->contragentId);
-        $row->contragent = $cMvc->getLinkForObject($rec->contragentId);
-       
-    	if($rec->image) {
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
-		}
-		
-		if(!$rec->gpsCoords){
-			unset($row->gpsCoords);
-		}
+        
+        if(isset($fields['-single'])){
+        	$row->contragent = $cMvc->getLinkForObject($rec->contragentId);
+        
+        	if(isset($rec->image)) {
+        		$Fancybox = cls::get('fancybox_Fancybox');
+        		$row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
+        	}
+        	
+        	if(!$rec->gpsCoords){
+        		unset($row->gpsCoords);
+        	}
+        }
 		
         if($rec->state == 'rejected'){
         	if($fields['-single']){
