@@ -109,36 +109,21 @@ $(document).ready(function() {
 	                }, 2000);
 	            } else {
 	                $('#add-error-info').append(data.res);
-	                
-	                $('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
-		    		$('#ulfile').removeClass('hidden-input');
-					$("#btn-ulfile").show();
 					
 					$('#add-file-info').animate({
 				        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-еrror").prop('scrollHeight')
 				    }, 2000);
 	            }
 	            
-	            // Ако няма други файлове за качване, показваме бутона за добавяне на файл
-	            if (!$('.progressBarBlock').length) {
-	                $('#inputDiv').show();
-	                $('#uploadsTitle').css('display', 'none');
-	            }
+	            showButtonsAfterUpload();
 	    	},
 	        
 	    	// При възникване на грешка в комуникацията - най-често при спиране на интернета
 	    	error: function(error) {
-	    		
-	    		$('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
-	    		$('#ulfile').removeClass('hidden-input');
-				$("#btn-ulfile").show();
 				
 	            this.fileTable.remove();
 	            
-	            if (!$('.progressBarBlock').length) {
-	                $('#inputDiv').show();
-	                $('#uploadsTitle').css('display', 'none');
-	            }
+	            showButtonsAfterUpload();
 	            
 	            $('#add-error-info').append('<div class="upload-еrror">' + uploadErrStr + '<div><b>' + this.fileName + '</b></div></div>');
 	    	},
@@ -152,15 +137,31 @@ $(document).ready(function() {
 					
 					that.fileTable.remove();
 					
-					if (!$('.progressBarBlock').length) {
-		                $('#inputDiv').show();
-		                $('#uploadsTitle').css('display', 'none');
-		            }
+					showButtonsAfterUpload();
 				});
 	    	}
         });
 	});
 });
+
+
+/**
+ * Показва скритите бутона за качване и добавяне на файлове
+ */
+function showButtonsAfterUpload()
+{
+	// Ако няма файлове за качване
+	if (!$('.progressBarBlock').length) {
+        $('#inputDiv').show();
+        $('#uploadsTitle').css('display', 'none');
+        
+        if (!allowMultiupload) {
+        	$('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
+    		$('#ulfile').removeClass('hidden-input');
+    		$("#btn-ulfile").show();
+        }
+    }
+}
 
 
 // Брояч на бутона, който е добавен

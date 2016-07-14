@@ -209,12 +209,14 @@ class fileman_Upload2 extends core_Manager
             $multiple = 'multiple';
         }
         
+        $allowMultiUpload = (int) $allowMultiUpload;
+        
         $tpl = new ET('
             <div id="uploads" class="uploads-holder"><div id="uploadsTitle" style="display: none;"><b><i>' . $uploadStr . '</i></b></div></div>
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <span class="uploaded-filenames"> </span>
                 <div id="inputDiv">
-                    <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
+                    <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
                 </div>
@@ -235,7 +237,7 @@ class fileman_Upload2 extends core_Manager
         $fileSizeErr = tr("Файлът е над допустимия размер");
         $fileSizeErr = json_encode($fileSizeErr);
         
-        $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr}; var fileSizeErr = {$fileSizeErr};", 'SCRIPTS');
+        $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr}; var fileSizeErr = {$fileSizeErr}; var allowMultiupload = {$allowMultiUpload};", 'SCRIPTS');
         
         $tpl->push('fileman/js/upload.js', 'JS');
         
