@@ -48,12 +48,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, planning';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, planning';
@@ -104,19 +98,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
         $this->setField('quantity', 'caption=Количества->За влагане');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap');
-    }
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
     
-    
-    /**
-     * Преди подготвяне на едит формата
-     */
-    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    {
-    	$type = Request::get('type', 'enum(input,pop)');
-    	 
-    	$title = ($type == 'pop') ? 'отпадък' : 'материал';
-    	$mvc->singleTitle = $title;
+        $this->setDbIndex('productId');
     }
     
     
@@ -130,15 +114,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
-    	if(isset($rec->id)){
-    		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
-    	} else {
-    		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
-    		$products = array('' => '') + cat_Products::getByProperty($metas);
-    		unset($products[$data->masterRec->productId]);
-    	}
-    	$form->setOptions('productId', $products);
+    	$data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : 'материал';
+    	$data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
     	
     	if(isset($rec->productId)){
     		$storable = cat_Products::fetchField($rec->productId, 'canStore');

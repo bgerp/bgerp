@@ -75,6 +75,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		}
 		
 		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 	}

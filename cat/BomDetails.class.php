@@ -151,6 +151,9 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
     	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=Количество,input=none,tdClass=accCell');
     	$this->FLD("coefficient", 'double', 'input=none');
+    	
+    	$this->setDbIndex('parentId');
+    	$this->setDbIndex('resourceId');
     }
 
 

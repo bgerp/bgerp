@@ -35,6 +35,8 @@
  *
  * За кое поле да се изпозлва за търсене по потребители се дефинира - 'filterFieldUsers'
  *
+ * Дали да се попълва филтъра на дата по дефолт 'filterAutoDate'
+ *
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
@@ -60,7 +62,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->filterFieldUsers, 'createdBy');
         setIfNot($mvc->filterRolesForTeam, 'ceo,manager,admin');
+        setIfNot($mvc->filterAutoDate, TRUE);
     }
+    
     
     /**
      * Проверява дали този плъгин е приложим към зададен мениджър
@@ -97,8 +101,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             $data->listFilter->FNC('Rejected', 'int', 'input=hidden');
         }
         $data->listFilter->setDefault('Rejected', Request::get('Rejected', 'int'));
-        $data->listFilter->setDefault('from', date('Y-m-01'));
-        $data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
+        
+        if($mvc->filterAutoDate === TRUE){
+        	$data->listFilter->setDefault('from', date('Y-m-01'));
+        	$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
+        }
         
         $fields = $data->listFilter->selectFields();
         

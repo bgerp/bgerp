@@ -287,9 +287,9 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     {
     
         $data->listFields = array(
-        		'id' => 'Име (код)',
-        		'quantity' => 'Количество',
-        		'store' => 'На склад',
+        		'id' => 'Материали (код)',
+        		'quantity' => 'Необходимо к-во по задания',
+        		'store' => 'Налично к-во на склад',
         		);
     }
 

@@ -33,7 +33,6 @@ class unit_MinkP extends core_Manager {
     
     /**
      * 1.Създава нов артикул - труд със себестойност 
-     * (За да записва себестойността - трябва да е продаваем и да има въведена ценова група, иначе не зарежда името на артикула)
      */
     //http://localhost/unit_MinkP/CreateProductWork/
     function act_CreateProductWork()
@@ -47,6 +46,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Труд');
         $browser->setValue('code', 'work');
         $browser->setValue('measureId', 'час');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
     
@@ -55,13 +55,6 @@ class unit_MinkP extends core_Manager {
             $browser->click('Труд (work)');
         } 
         
-        ////Задаване на ценова група
-        ////Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -73,7 +66,6 @@ class unit_MinkP extends core_Manager {
     
     /**
      * 2.Създава нов артикул - Електричество със себестойност
-     * (За да записва себестойността - трябва да е продаваем и да има въведена ценова група, иначе не зарежда името на артикула)
      */
     //http://localhost/unit_MinkP/CreateElectricity/
     function act_CreateElectricity()
@@ -89,6 +81,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Електричество');
         $browser->setValue('code', 'electricity');
         $browser->setValue('measureId', 'киловатчас');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
        
@@ -97,13 +90,6 @@ class unit_MinkP extends core_Manager {
             $browser->click('Електричество');
         } 
         
-        //Задаване на ценова група
-        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -204,18 +190,13 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Отпадък 1');
         $browser->setValue('code', 'Waste1');
         $browser->setValue('measureId', 'литър');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             $browser->click('Отпадък 1');
         }
-        //Задаване на ценова група
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -241,6 +222,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Отпадък 2');
         $browser->setValue('code', 'Waste2');
         $browser->setValue('measureId', 'килограм');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
          
@@ -248,12 +230,6 @@ class unit_MinkP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Отпадък 2');
         }
-        //Задаване на ценова група
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -279,6 +255,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Отпадък 3');
         $browser->setValue('code', 'Waste3');
         $browser->setValue('measureId', 'килограм');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
           
@@ -286,12 +263,6 @@ class unit_MinkP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Отпадък 3');
         }
-        //Задаване на ценова група
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -317,6 +288,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Машина 1');
         $browser->setValue('code', 'Mash1');
         $browser->setValue('measureId', 'час');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
      
@@ -324,14 +296,7 @@ class unit_MinkP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Машина 1');
         }
-        //Задаване на ценова група
-        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
-        //Добавяне на мениджърска себестойност
+       //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
         $browser->refresh('Запис');
@@ -356,6 +321,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Машина 2');
         $browser->setValue('code', 'Mash2');
         $browser->setValue('measureId', 'час');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
           
@@ -363,13 +329,6 @@ class unit_MinkP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Машина 2');
         }
-        //Задаване на ценова група
-        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -395,6 +354,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('name', 'Машина 3');
         $browser->setValue('code', 'Mash3');
         $browser->setValue('measureId', 'час');
+        // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
           
@@ -402,13 +362,6 @@ class unit_MinkP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Машина 3');
         }
-        //Задаване на ценова група
-        //Ако не е зададена ценова група, не записва себестойността, защото не зарежда името на артикула
-        //$browser->click('Цени');
-        //$browser->click('Задаване на ценова група');
-        //$browser->refresh('Запис');
-        //$browser->setValue('groupId', '1');
-        //$browser->press('Запис');
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -440,13 +393,14 @@ class unit_MinkP extends core_Manager {
             $browser->click('Заготовка 1');
         }
         
-        if (strpos($browser->getText(),"Тегло")){
+        if (strpos($browser->getText(),"Тегло:")){
         } else {
             $browser->click('Добавяне на нов параметър');
             $browser->setValue('paramId', 'Тегло');
             $browser->refresh('Запис');
             $browser->setValue('paramValue', '20');
             $browser->press('Запис');
+            return $browser->gethtml();
         }
         
     }
@@ -607,7 +561,7 @@ class unit_MinkP extends core_Manager {
     }
     
     /**
-     *16.Добавя рецепта етап 1
+     *16.Добавя рецепта за етап 1
      */
     //http://localhost/unit_MinkP/CreateBomStage1/
     function act_CreateBomStage1()
@@ -651,11 +605,12 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('propQuantity', '0.04*$тегло(кг) + $Начално= 21');
         $browser->refresh('Запис');
         $browser->press('Запис');
+        //return $browser->gethtml();
         $browser->press('Активиране');
          
     }
     /**
-     *17.Добавя рецепта етап 2
+     *17.Добавя рецепта за етап 2
      */
     //http://localhost/unit_MinkP/CreateBomStage2/
     function act_CreateBomStage2()
@@ -700,7 +655,7 @@ class unit_MinkP extends core_Manager {
          
     }
     /**
-     *18.Добавя рецепта етап 3 - крайно изделие
+     *18.Добавя рецепта за етап 3 - крайно изделие
      */
     //http://localhost/unit_MinkP/CreateBomStage3/
     function act_CreateBomStage3()
