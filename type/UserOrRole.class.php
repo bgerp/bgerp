@@ -280,9 +280,9 @@ class type_UserOrRole extends type_User
             
             if (!empty($userTeamsArr)) {
                 reset($userTeamsArr);
-                $userId = key($userTeamsArr);
+                $userGroupId = key($userTeamsArr);
                 
-                if ($userId) return $userId;
+                if ($userGroupId) return $userGroupId;
             }
             
             $inst->params['rolesForAllRoles'] = 'no_one';
