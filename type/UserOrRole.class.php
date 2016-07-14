@@ -274,10 +274,22 @@ class type_UserOrRole extends type_User
         
         // Няма нужда да се подготвят опциите за ролите, когато се търси потребител
         if ($userOrRole >= 0) {
+            
+            // Опитваме се да определим потребителя с групата му
+            $userTeamsArr = self::getUserFromTeams($userOrRole);
+            
+            if (!empty($userTeamsArr)) {
+                reset($userTeamsArr);
+                $userId = key($userTeamsArr);
+                
+                if ($userId) return $userId;
+            }
+            
             $inst->params['rolesForAllRoles'] = 'no_one';
         }
         
         $inst->prepareOptions();
+        
         foreach ((array)$inst->options as $optVal => $vals) {
             if ($vals->value == $userOrRole) {
                 
