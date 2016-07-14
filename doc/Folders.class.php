@@ -1293,7 +1293,7 @@ class doc_Folders extends core_Master
     	
     	$query->show('title');
     	while($rec = $query->fetch()){
-    		$options[$rec->id] = doc_Folders::getTitleById($rec->id, FALSE);
+    		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
     	}
     
     	return $options;
