@@ -193,6 +193,10 @@
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
     color: white; }
 
+.narrow .progressBarBlock {
+  padding-top: 0;
+  font-size: 0.85em; }
+
 .cancelButton {
   width: 1%;
   font-size: 0.9em;
