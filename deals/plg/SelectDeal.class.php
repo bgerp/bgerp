@@ -56,7 +56,10 @@ class deals_plg_SelectDeal extends core_Plugin
     		}
     	}
     	
-    	$form->setOptions('contragentFolderId', array('' => '') + doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf'));
+    	$field = $form->getField('contragentFolderId');
+    	if($field->input != 'none'){
+    		$form->setOptions('contragentFolderId', array('' => '') + doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf'));
+    	}
     	
     	// Ако има избрана папка на контрагент, зареждаме всички достъпни сделки като предложение
     	if(isset($rec->contragentFolderId)){

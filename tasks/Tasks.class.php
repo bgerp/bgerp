@@ -765,6 +765,7 @@ class tasks_Tasks extends embed_Manager
     	
     	// Намираме всички задачи, които наследяват task_Tasks
     	$documents = core_Classes::getOptionsByInterface('tasks_TaskIntf');
+    	$displayMode = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument'));
     	
     	foreach ($documents as $doc){
     		if(cls::load($doc, TRUE)){
@@ -774,8 +775,8 @@ class tasks_Tasks extends embed_Manager
     			$Doc->invoke('AfterPrepareTasks', array(&$data));
     			
     			// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
-    			if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
-    				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			if($displayMode === TRUE){
+    				if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
     					$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
     				}
     			}

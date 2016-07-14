@@ -138,25 +138,28 @@ class cat_PriceDetails extends core_Manager
     	// Бутон за задаване на правило за обновяване
     	$data->afterRow = NULL;
     	
-    	$uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
-    	if(is_object($uRec)){
-    		$uRow = price_Updates::recToVerbal($uRec);
+    	// Само за публичните показваме правилото за обновяване
+    	if($data->masterData->rec->isPublic == 'yes'){
+    		$uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
+    		if(is_object($uRec)){
+    			$uRow = price_Updates::recToVerbal($uRec);
     		
-    		$arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
-    		$tpl = new core_ET(tr("|*[#tools#]<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#] |с надценка|* <b>[#costAdd#]</b>"));
+    			$arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
+    			$tpl = new core_ET(tr("|*[#tools#]<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#] |с надценка|* <b>[#costAdd#]</b>"));
     		
-    		$type = '';
-    		foreach (array($uRow->costSource1, $uRow->costSource2, $uRow->costSource3) as $cost){
-    			if(isset($cost)){
-    				$type .= "<b>" . $cost . "</b>, ";
+    			$type = '';
+    			foreach (array($uRow->costSource1, $uRow->costSource2, $uRow->costSource3) as $cost){
+    				if(isset($cost)){
+    					$type .= "<b>" . $cost . "</b>, ";
+    				}
     			}
-    		}
     		
-    		$tpl->append($arr[$uRec->updateMode], 'updateMode');
-    		$tpl->append($type, 'type');
-    		$tpl->append($uRow->costAdd, 'costAdd');
-    		$tpl->append($uRow->tools, 'tools');
-    		$data->afterRow = $tpl;
+    			$tpl->append($arr[$uRec->updateMode], 'updateMode');
+    			$tpl->append($type, 'type');
+    			$tpl->append($uRow->costAdd, 'costAdd');
+    			$tpl->append($uRow->tools, 'tools');
+    			$data->afterRow = $tpl;
+    		}
     	}
     	
     	if(haveRole('priceDealer,ceo')){
@@ -265,18 +268,22 @@ class cat_PriceDetails extends core_Manager
     	$colspan = count($fields);
     	
     	$colspan = count($fields);
-    	if(isset($data->afterRow)){
-    		$afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
-    		$afterRowTpl->append($data->afterRow, '1');
-    	} else {
-    		$afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
-    		$afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
     	
-    		if(price_Updates::haveRightFor('add', (object)array('type' => 'product', 'objectId' => $data->masterId))){
-    			$afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
+    	// Рендираме правилото за обновяване само при нужда
+    	if($data->masterData->rec->isPublic == 'yes'){
+    		if(isset($data->afterRow)){
+    			$afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
+    			$afterRowTpl->append($data->afterRow, '1');
+    		} else {
+    			$afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
+    			$afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
+    			 
+    			if(price_Updates::haveRightFor('add', (object)array('type' => 'product', 'objectId' => $data->masterId))){
+    				$afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
+    			}
     		}
+    		$primeCostTpl->append($afterRowTpl, 'ROW_AFTER');
     	}
-    	$primeCostTpl->append($afterRowTpl, 'ROW_AFTER');
     	
     	$tpl->append($primeCostTpl, 'primeCosts');
     	
