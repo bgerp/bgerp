@@ -281,6 +281,12 @@ class cat_Products extends embed_Manager {
 	public $fieldsNotToClone = 'originId';
 	
 	
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	public $hideListFieldsIfEmpty = 'price';
+	
+	
     /**
      * Описание на модела
      */
