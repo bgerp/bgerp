@@ -277,39 +277,26 @@ class core_Lg extends core_Manager
         if (isset($this->dict[$key][$lg])) {
             $res = $this->dict[$key][$lg];
         } else {
-        
-            // Попълваме речника от базата
-            $rec = $this->fetch(array(
-                    "#kstring = '[#1#]' AND #lg = '[#2#]'",
-                    $key,
-                    $lg
-                ));
-            
-            if ($rec) {
-                $this->dict[$key][$lg] = $rec->translated;
-                $res = $rec->translated;
-            } else {
-                // Ако и в базата нямаме превода, тогава приемаме, 
-                // че превода не променя ключовия стринг
-                if (!$translated) {
-                    $translated = $kstring;
-                }
-                
-                $rec = new stdClass();
-                $rec->kstring = $key;
-                $rec->translated = $translated;
-                $rec->lg = $lg;
-                
-                // Само потребители с определена роля могат да добавят (автоматично) в превода
-                if (haveRole('translate') || !haveRole('powerUser')) {
-                    $this->save($rec);
-                }
-                
-                // Записваме в кеш-масива
-                $this->dict[$key][$lg] = type_Varchar::escape($rec->translated);
-                
-                $res = $this->dict[$key][$lg];
+            // Ако и в базата нямаме превода, тогава приемаме, 
+            // че превода не променя ключовия стринг
+            if (!$translated) {
+                $translated = $kstring;
             }
+            
+            $rec = new stdClass();
+            $rec->kstring = $key;
+            $rec->translated = $translated;
+            $rec->lg = $lg;
+            
+            // Само потребители с определена роля могат да добавят (автоматично) в превода
+            if (haveRole('translate') || !haveRole('powerUser')) {
+                $this->save($rec, NULL, 'IGNORE');
+            }
+            
+            // Записваме в кеш-масива
+            $this->dict[$key][$lg] = type_Varchar::escape($rec->translated);
+            
+            $res = $this->dict[$key][$lg];
         }
 
         // Ако превеждаме на английски и в крайния текст има все-пак думи с кирилски символи,

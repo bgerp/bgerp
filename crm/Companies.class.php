@@ -83,7 +83,7 @@ class crm_Companies extends core_Master
      */
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
+                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export';
     
     
@@ -681,8 +681,9 @@ class crm_Companies extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $row
      * @param stdClass $rec
+     * @param stdClass $fields
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
         
@@ -705,6 +706,9 @@ class crm_Companies extends core_Master
             		$row->uicId = ht::createHint($row->uicId, 'Невалиден ЕИК', 'error');
             	}
             }
+            
+            $VatType = new drdata_VatType();
+            $row->vat = $VatType->toVerbal($rec->vatId);
         }
         
         
@@ -750,18 +754,9 @@ class crm_Companies extends core_Master
         }
                 
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
-
-        $row->id = $mvc->getVerbal($rec, 'id');  
-        
-        
+		$row->id = $mvc->getVerbal($rec, 'id');  
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
-        
-        $vatType = new drdata_VatType();
         $row->title .=  $mvc->getTitleById($rec->id);
-        
-        $vat = $vatType->toVerbal($rec->vatId);
-        $row->vat = $vat;
-        
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         if ($rec->vatId && $rec->uicId) {

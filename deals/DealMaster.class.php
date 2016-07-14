@@ -336,7 +336,6 @@ abstract class deals_DealMaster extends deals_DealBase
 
     	$rec = static::fetchRec($rec);
     
-     	
         $abbr = $mvc->abbr;
         $abbr{0} = strtoupper($abbr{0});
 
