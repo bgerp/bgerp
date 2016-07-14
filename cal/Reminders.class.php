@@ -231,6 +231,9 @@ class cal_Reminders extends core_Master
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
+        
+        // Да влезе ли в календара?
+        $this->FLD('calNotify', 'enum(yes=Да, no=Не)', 'caption=Календар->Добавяне,notNull');
 
     }
 
@@ -663,7 +666,7 @@ class cal_Reminders extends core_Master
         $prefix = "RЕМ-{$id}";
         
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active')) {
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active') && ($rec->calNotify = 'no' || $rec->calNotify = NULL)) {
             
             if ($d > 0 && $m > 0) {
                 
@@ -693,7 +696,7 @@ class cal_Reminders extends core_Master
             }
         }
            
-        if ($rec->nextStartTime && $rec->nextStartTime >= $fromDate && $rec->nextStartTime <= $toDate && ($rec->state == 'active' )){
+        if ($rec->nextStartTime && $rec->nextStartTime >= $fromDate && $rec->nextStartTime <= $toDate && ($rec->state == 'active') && ($rec->calNotify = 'no' || $rec->calNotify = NULL)){
         
             $calRec = new stdClass();
                

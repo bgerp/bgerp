@@ -72,12 +72,12 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$form = &$data->form;
+		setIfNot($data->defaultMeta, $mvc->defaultMeta);
 		
-		if(!$mvc->defaultMeta) return;
-		$products = cat_Products::getByProperty($mvc->defaultMeta);
-		 
-		expect(count($products));
-			
+		if(!$data->defaultMeta) return;
+		
+		$products = cat_Products::getByProperty($data->defaultMeta);
+		
 		if (empty($form->rec->id)) {
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {

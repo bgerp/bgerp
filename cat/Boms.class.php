@@ -144,6 +144,13 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Искаме ли в листовия филтър да е попълнен филтъра по дата
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterAutoDate = FALSE;
+    
+    
+    /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'cat,ceo';
@@ -564,6 +571,7 @@ class cat_Boms extends core_Master
     		$dQuery = cat_BomDetails::getQuery();
     		$dQuery->where("#bomId = {$res->id}");
     		$dQuery->where("#type = 'input'");
+    		$dQuery->show('id');
     		
     		if(!$dQuery->count()){
     			core_Statuses::newStatus('Рецептатата не може да се активира, докато няма поне един вложим ресурс', 'warning');
