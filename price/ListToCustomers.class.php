@@ -243,7 +243,7 @@ class price_ListToCustomers extends core_Manager
      */
     public function renderPricelists($data)
     {
-    	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	$tpl = new core_ET("<b>[#title#]</b><br>[#content#]");
     	
     	$listFields = $this->listFields;
     	$listFields = arr::make($listFields, TRUE);
@@ -260,7 +260,6 @@ class price_ListToCustomers extends core_Manager
         $table = cls::get('core_TableView', array('mvc' => $this));
         $tpl->append(tr('Ценови политики'), 'title');
         $tpl->append($table->get($data->rows, $listFields), 'content');
-        $tpl->replace(get_class($this), 'DetailName');
         
         if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ценова политика'), 'title');
@@ -608,7 +607,7 @@ class price_ListToCustomers extends core_Manager
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'delete' && isset($rec)){
 			if($rec->validFrom <= dt::now()){

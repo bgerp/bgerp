@@ -1,0 +1,14 @@
+<div class='scrolling-holder'>
+	<fieldset class='top-tab-content'>
+	<legend class='groupTitle'>[#title#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		        [#LISTS#]
+		        <hr>
+		        [#CONDITIONS#]
+		        <hr>
+		        [#CARDS#]
+		    </div>
+	    </div>
+	</fieldset>
+</div>

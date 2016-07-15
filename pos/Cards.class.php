@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,61 +19,49 @@ class pos_Cards extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'Клиентски карти';
+    public $title = 'Клиентски карти';
     
     
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper, plg_Printing, plg_Search, plg_Sorting, plg_State2, plg_RowTools';
+   public $loadList = 'pos_Wrapper, plg_Printing, plg_Search, plg_Sorting, plg_State2, plg_RowTools2';
    
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Клиентски карти";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'pos, ceo';
+    public $singleTitle = "Клиентска карта";
  
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'pos, ceo';
+    public $canWrite = 'pos, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, pos';
+	public $canList = 'ceo, pos';
     
 	
     /**
      * Кой има право да контира?
      */
-    var $canConto = 'pos, ceo';
+    public $canConto = 'pos, ceo';
 	
 	
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, number, contragentId=Контрагент';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'number, contragentId=Контрагент';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number';
+    public $searchFields = 'number';
     
     
     /**
@@ -89,10 +77,22 @@ class pos_Cards extends core_Manager {
     }
     
     
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	if(isset($rec->contragentClassId) && isset($rec->contragentId)){
+    		$data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+    	}
+    }
+    
+    
 	/**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->removeBtn('btnAdd');
     }
@@ -101,18 +101,20 @@ class pos_Cards extends core_Manager {
 	/**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$Contragent = cls::get($rec->contragentClassId);
-    	$row->contragentId = $Contragent->getHyperLink($rec->contragentId, TRUE);
-    	$row->contragentId = "<span style='float:left'>{$row->contragentId}</span>";
+    	if(isset($fields['-list'])){
+    		$Contragent = cls::get($rec->contragentClassId);
+    		$row->contragentId = $Contragent->getHyperLink($rec->contragentId, TRUE);
+    		$row->contragentId = "<span style='float:left'>{$row->contragentId}</span>";
+    	}
     }
     
     
 	/**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->view = 'horizontal';
@@ -127,8 +129,6 @@ class pos_Cards extends core_Manager {
      */
     public function prepareCards($data)
     {
-    	$data->TabCaption = 'Карти';
-    	
     	$Contragent = $data->masterMvc;
     	$masterRec = $data->masterData->rec;
     	
@@ -152,7 +152,7 @@ class pos_Cards extends core_Manager {
      */
     public function renderCards($data)
     {
-    	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	$tpl = new core_ET("<b>[#title#]</b><br>[#content#]");
         $tpl->append(tr('Клиентски карти'), 'title');
         
         if(isset($data->addBtn)){
@@ -162,13 +162,15 @@ class pos_Cards extends core_Manager {
     	if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
 				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
-				$tpl->append($row->number  . "<span style='position:relative;top:4px'> &nbsp;" . $row->tools . "</span>", 'content');
-				$tpl->append("</div>", 'content');
+				
+				$tools = $row->_rowTools->renderHtml();
+				$tpl->append($row->number  . "<span style='position:relative;top:4px'>{$tools}</span>", 'content');
+				$tpl->append("</div>", 'table');
 			}
 	    } else {
 	    	$tpl->append(tr("Няма записи"), 'content');
 	    }
-        
+	    
         return $tpl;
     }
     
