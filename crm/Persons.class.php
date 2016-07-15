@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
@@ -217,7 +217,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**

@@ -152,23 +152,23 @@ class pos_Cards extends core_Manager {
      */
     public function renderCards($data)
     {
-    	$tpl = new core_ET("<b>[#title#]</b><br>[#content#]");
-        $tpl->append(tr('Клиентски карти'), 'title');
+    	$tpl = new core_ET("");
+        $tpl->append(tr('Клиентски карти'), 'cardTitle');
         
         if(isset($data->addBtn)){
-        	$tpl->append($data->addBtn, 'title');
+        	$tpl->append($data->addBtn, 'cardTitle');
         }
         
     	if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
-				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
+				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>");
 				
 				$tools = $row->_rowTools->renderHtml();
-				$tpl->append($row->number  . "<span style='position:relative;top:4px'>{$tools}</span>", 'content');
-				$tpl->append("</div>", 'table');
+				$tpl->append($row->number  . "<span style='position:relative;top:4px'>{$tools}</span>");
+				$tpl->append("</div>");
 			}
 	    } else {
-	    	$tpl->append(tr("Няма записи"), 'content');
+	    	$tpl->append(tr("Няма записи"));
 	    }
 	    
         return $tpl;

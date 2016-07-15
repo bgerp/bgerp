@@ -243,7 +243,7 @@ class price_ListToCustomers extends core_Manager
      */
     public function renderPricelists($data)
     {
-    	$tpl = new core_ET("<b>[#title#]</b><br>[#content#]");
+    	$tpl = new core_ET("");
     	
     	$listFields = $this->listFields;
     	$listFields = arr::make($listFields, TRUE);
@@ -258,11 +258,11 @@ class price_ListToCustomers extends core_Manager
     	unset($listFields['cClass']);
     	
         $table = cls::get('core_TableView', array('mvc' => $this));
-        $tpl->append(tr('Ценови политики'), 'title');
-        $tpl->append($table->get($data->rows, $listFields), 'content');
+        $tpl->append(tr('Ценови политики'), 'priceListTitle');
+        $tpl->append($table->get($data->rows, $listFields));
         
         if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ценова политика'), 'title');
+            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ценова политика'), 'priceListTitle');
         }
         
         return $tpl;

@@ -204,23 +204,22 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public function renderCustomerSalecond($data)
     {
-      	$tpl = new core_ET("<b>[#title#]</b><br>[#content#]");
-        $tpl->append(tr('Търговски условия'), 'title');
+      	$tpl = new core_ET("");
+        $tpl->append(tr('Търговски условия'), 'condTitle');
         
         if(isset($data->addBtn)){
-        	$tpl->append($data->addBtn, 'title');
+        	$tpl->append($data->addBtn, 'condTitle');
         }
       
 	    if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
-				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
+				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>");
 				$toolsHtml = $row->_rowTools->renderHtml();
-				$tpl->append($row->conditionId . " - {$row->value}<span style='position:relative;top:4px'>{$toolsHtml}</span>", 'content');
-				$tpl->append("</div>", 'content');
-				
+				$tpl->append($row->conditionId . " - {$row->value}<span style='position:relative;top:4px'>{$toolsHtml}</span>");
+				$tpl->append("</div>");
 			}
 	    } else {
-	    	$tpl->append(tr("Все още няма условия"), 'content');
+	    	$tpl->append(tr("Все още няма условия"));
 	    }
 	    
 	    return $tpl;
