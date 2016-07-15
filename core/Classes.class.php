@@ -72,7 +72,7 @@ class core_Classes extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Клас,mandatory,width=100%');
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,oldField=info');
+        $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%,oldField=info');
         $this->FLD('interfaces', 'keylist(mvc=core_Interfaces,select=name)', 'caption=Интерфейси');
         
         $this->setDbUnique('name');
