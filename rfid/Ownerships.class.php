@@ -77,9 +77,25 @@ class rfid_Ownerships extends core_Manager {
      */
     function description()
     {
-        $this->FLD('holderId', 'int', 'caption=Притежател');
+        $this->FLD('holderId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Притежател');
         $this->FLD('tagId', 'int', 'caption=rfid');
         $this->FLD('startOn', 'datetime', 'caption=Притежание->от');
         $this->FLD('endOn', 'datetime', 'caption=Притежание->до');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$options = crm_Persons::getEmployeesOptions();
+    	if($holderId = $data->form->rec->holderId){
+    		if(!array_key_exists($holderId, $options)){
+    			$options[$holderId] = crm_Persons::getVerbal($holderId, 'name');
+    		}
+    	}
+    	
+    	$data->form->setOptions('holderId', array('' => '') + $options);
     }
 }
