@@ -1135,9 +1135,9 @@ class cal_Reminders extends core_Master
         $resArr = arr::make($resArr);
         
         $allFieldsArr = array('priority' => 'Приоритет',
-        						'timeStart' => 'Начало',
-        						'action' => 'Действие',
+          						'action' => 'Действие',
         						'timePreviously' => 'Предварително',
+                                'timeStart' => 'Начало',
         						'nextStartTime' => 'Следващо напомняне',
         						'rem' => 'Напомняне',
         						'repetitionTypeMonth' => 'Съблюдаване на',
