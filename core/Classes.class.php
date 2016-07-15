@@ -194,10 +194,16 @@ class core_Classes extends core_Manager
         
         if(is_array($options)){
         	foreach($options as $cls => &$name) {
-        		$name = tr($name);
+        		
+        		$exp = explode('»', $name);
+        		if(count($exp) == 2){
+        			$name = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
+        		} else {
+        			$name = tr($name);
+        		}
         	}
         }
- 
+       
         return $options;
     }
     
