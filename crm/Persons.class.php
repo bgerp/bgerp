@@ -1026,7 +1026,7 @@ class crm_Persons extends core_Master
             	$result->features += $groupFeatures;
             }
             
-            $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
+            $result->features = cond_ConditionsToCustomers::getFeatures($self, $objectId, $result->features);
         }
 
         return $result;

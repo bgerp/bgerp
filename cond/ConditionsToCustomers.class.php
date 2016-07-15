@@ -280,17 +280,17 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Добавяне на свойтвата към обекта
      */
-    public function getFeatures($class, $objectId, $features)
+    public static function getFeatures($class, $objectId, $features)
     {
     	$classId = cls::get($class)->getClassId();
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
     	
     	$query->where("#cClass = '{$classId}' AND #cId = '{$objectId}'");
     	$query->EXT('isFeature', 'cond_Parameters', 'externalName=isFeature,externalKey=conditionId');
     	$query->where("#isFeature = 'yes'");
     	
     	while($rec = $query->fetch()){
-    		$row = $this->recToVerbal($rec, 'conditionId,value');
+    		$row = static::recToVerbal($rec, 'conditionId,value');
     		$features[$row->conditionId] = $row->value;
     	}
     	
