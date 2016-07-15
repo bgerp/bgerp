@@ -91,7 +91,7 @@ class crm_Setup extends core_ProtoSetup
             'crm_ext_IdCards',
             'crm_Personalization',
             'crm_ext_CourtReg',
-    		'crm_ext_ResourceCodes',
+    		'crm_ext_EmployeeCodes',
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',

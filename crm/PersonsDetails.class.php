@@ -27,14 +27,14 @@ class crm_PersonsDetails extends core_Manager
 		
 		$employeeId = crm_Groups::getIdFromSysId('employees');
 		if(keylist::isIn($employeeId, $data->masterData->rec->groupList)){
-			$data->ResourceCodes = cls::get('crm_ext_ResourceCodes');
+			$data->Codes = cls::get('crm_ext_EmployeeCodes');
 		}
 		
 		$data->Cards = cls::get('crm_ext_IdCards');
-		if(isset($data->ResourceCodes)){
-			$data->ResourceCodes->prepareData($data);
-			if(crm_ext_ResourceCodes::haveRightFor('add', (object)array('personId' => $data->masterId))){
-				$data->addResourceUrl = array('crm_ext_ResourceCodes', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
+		if(isset($data->Codes)){
+			$data->Codes->prepareData($data);
+			if(crm_ext_EmployeeCodes::haveRightFor('add', (object)array('personId' => $data->masterId))){
+				$data->addResourceUrl = array('crm_ext_EmployeeCodes', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
 			}
 		}
 		
@@ -53,8 +53,8 @@ class crm_PersonsDetails extends core_Manager
 		$cardTpl->removeBlocks();
 		$tpl->append($cardTpl, 'IDCARD');
 		
-		if(isset($data->ResourceCodes)){
-			$resTpl = $data->ResourceCodes->renderData($data);
+		if(isset($data->Codes)){
+			$resTpl = $data->Codes->renderData($data);
 			$resTpl->removeBlocks();
 			$tpl->append($resTpl, 'CODE');
 		}

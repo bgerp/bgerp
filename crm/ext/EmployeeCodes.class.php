@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     0.12
  */
-class crm_ext_ResourceCodes extends core_Manager
+class crm_ext_EmployeeCodes extends core_Manager
 {
 	
 	
@@ -128,10 +128,13 @@ class crm_ext_ResourceCodes extends core_Manager
     public function renderData($data)
     {
     	 $tpl = new core_ET("[#resTitle#]:<!--ET_BEGIN code--> <b>[#code#]</b><!--ET_END code-->[#btn#]");
-    	 $tpl->append(tr('Служебен код'), 'resTitle');
+    	 
     	 if(isset($data->codeRow)){
+    	 	$tpl->append(tr('Служебен код'), 'resTitle');
     	 	$tpl->append($data->codeRow->code, 'code');
     	 	$tpl->append($data->codeRow->_rowTools, 'btn');
+    	 } else {
+    	 	$tpl->append(tr('Все още няма код'), 'resTitle');
     	 }
     	 
     	 if(isset($data->addResourceUrl)){

@@ -2820,7 +2820,7 @@ class crm_Persons extends core_Master
     	$query->like("groupList", "|{$emplGroupId}|");
     	
     	if($showNames === FALSE){
-    		$cQuery = crm_ext_ResourceCodes::getQuery();
+    		$cQuery = crm_ext_EmployeeCodes::getQuery();
     		$cQuery->where("#state = 'active'");
     		$cQuery->show('personId,code');
     		
