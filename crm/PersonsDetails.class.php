@@ -27,13 +27,7 @@ class crm_PersonsDetails extends core_Manager
 		
 		$employeeId = crm_Groups::getIdFromSysId('employees');
 		if(keylist::isIn($employeeId, $data->masterData->rec->groupList)){
-			$ResourceCodes = cls::get('crm_ext_ResourceCodes');
-			
-			//@TODO да го махна като инсталирам модела
-			$db = new core_Db();
-			if($db->tableExists($ResourceCodes->dbTableName)){
-				$data->ResourceCodes = $ResourceCodes;
-			}
+			$data->ResourceCodes = cls::get('crm_ext_ResourceCodes');
 		}
 		
 		$data->Cards = cls::get('crm_ext_IdCards');
@@ -44,10 +38,7 @@ class crm_PersonsDetails extends core_Manager
 			}
 		}
 		
-		
-		
 		$data->Cards->prepareIdCard($data);
-		
 	}
 	
 	

@@ -2803,4 +2803,46 @@ class crm_Persons extends core_Master
             $rec->id = $oRec->id;
         }
     }
+    
+    
+    /**
+     * Лицата от група 'Служители'
+     * 
+     * @param boolean $showNames - Показване на имената или на служебния код
+     * @return array $options - Опции
+     */
+    public static function getEmployeesOptions($showNames = TRUE)
+    {
+    	$options = $codes = array();
+    	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+    	
+    	$query = self::getQuery();
+    	$query->like("groupList", "|{$emplGroupId}|");
+    	
+    	if($showNames === FALSE){
+    		$cQuery = crm_ext_ResourceCodes::getQuery();
+    		$cQuery->where("#state = 'active'");
+    		$cQuery->show('personId,code');
+    		
+    		while($cRec = $cQuery->fetch()){
+    			$codes[$cRec->personId] = $cRec->code;
+    		}
+    	}
+    	
+    	while($rec = $query->fetch()){
+    		if($showNames === TRUE){
+    			$val = self::getVerbal($rec, 'name');
+    		} else {
+    			$val = (isset($codes[$rec->id])) ? $codes[$rec->id] : $rec->id;
+    		}
+    		
+    		$options[$rec->id] = $val;
+    	}
+    	
+    	if(count($options)){
+    		$options = array('e' => (object)array('group' => TRUE, 'title' => tr('Служители'))) + $options;
+    	}
+    	
+    	return $options;
+    }
 }
