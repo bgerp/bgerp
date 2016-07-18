@@ -288,7 +288,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         }
         
         if(!empty($row->indTime) || !empty($row->startTime)){
-        	$resArr['indTime'] =  array('name' => tr('Времена'), 'val' => tr("|*<!--ET_BEGIN indTime--><div>|Изпълнение|*: [#indTime#]</div><!--ET_END indTime--><!--ET_BEGIN startTime--><div>|Стартиране|*: [#startTime#]</div><!--ET_END startTime-->"));
+        	$resArr['indTime'] =  array('name' => tr('Времена'), 'val' => tr("|*<!--ET_BEGIN indTime--><div class='nowrap'><span style='font-weight:normal'>|Изпълнение|*:</span> [#indTime#]</div><!--ET_END indTime--><!--ET_BEGIN startTime--><div class='nowrap'><span style='font-weight:normal'>|Стартиране|*:</span> [#startTime#]</div><!--ET_END startTime-->"));
         }
        
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
