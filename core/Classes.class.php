@@ -352,6 +352,8 @@ class core_Classes extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
     	if($fields['-list']){
+    		$row->title = tr($row->title);
+    		
     		if($rec->state == 'active'){
                 try {
     			    $row->interfaces = $mvc->getVerbalInterfaces($rec);
