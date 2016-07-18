@@ -258,9 +258,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
     		if($state != 'draft'){
     			if($action == 'add'){
-    				//$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
+    				$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
     			} else {
-    				//$requiredRoles = 'no_one';
+    				$requiredRoles = 'no_one';
     			}
     		}
     	}
@@ -394,5 +394,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	$rec = &$data->form->rec;
     	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : 'отпадъчен артикул';
+    }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	unset($rec->realQuantity);
     }
 }

@@ -65,16 +65,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public $canAdd = 'taskWorker,ceo';
     
     
-    
-    
-    
-    public $canDelete = 'powerUser';
-    
-    
-    
-    
-    
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
