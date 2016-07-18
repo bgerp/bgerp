@@ -311,11 +311,4 @@ class planning_Tasks extends tasks_Tasks
         
         return 100 + $id;
     }
-    
-    
-    function act_Test()
-    {
-    	$r = cls::get('planning_Setup');
-    	$r->updateTaskInfo();
-    }
 }
