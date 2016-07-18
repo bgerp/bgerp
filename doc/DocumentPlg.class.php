@@ -2796,8 +2796,7 @@ class doc_DocumentPlg extends core_Plugin
             } else {
                 // Ако не е зададено твърдо броя на колоните в първия ред
                 if (!isset($mvc->headerLinesLimit)) {
-                    $limitForSecondRow = ceil($showHeaderCnt / 2);
-//                     $limitForSecondRow = max(array(ceil($showHeaderCnt / 2), $limitForSecondRow));
+                    $limitForSecondRow = max(array(ceil($showHeaderCnt / 2), $limitForSecondRow));
                 }
             }
             
