@@ -129,12 +129,13 @@ class crm_ext_EmployeeCodes extends core_Manager
     public function renderData($data)
     {
     	 $tpl = new core_ET("[#resTitle#]<!--ET_BEGIN code--> <b>[#code#]</b><!--ET_END code-->[#btn#]");
+    	 $tpl->append(tr('Служебен код') . ":", 'resTitle');
     	 
     	 if(isset($data->codeRow)){
-    	 	$tpl->append(tr('Служебен код') . ":", 'resTitle');
     	 	$tpl->append($data->codeRow->code, 'code');
     	 	$tpl->append($data->codeRow->_rowTools, 'btn');
     	 } else {
+    	 	$tpl->append($data->masterId, 'code');
     	 	$tpl->append($el, 'resTitle');
     	 }
     	 

@@ -28,6 +28,7 @@ class crm_PersonsDetails extends core_Manager
 		$employeeId = crm_Groups::getIdFromSysId('employees');
 		if(keylist::isIn($employeeId, $data->masterData->rec->groupList)){
 			$data->Codes = cls::get('crm_ext_EmployeeCodes');
+			$data->TabCaption = 'HR';
 		}
 		
 		$data->Cards = cls::get('crm_ext_IdCards');
