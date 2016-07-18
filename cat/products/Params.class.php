@@ -106,7 +106,7 @@ class cat_products_Params extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
+    	$this->FLD('classId', 'class', 'input=hidden,silent');
     	$this->FLD('productId', 'int', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
