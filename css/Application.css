@@ -1495,6 +1495,8 @@ pre.document {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8, endColorstr=#40C8C8C8);
   zoom: 1;
   background: rgba(200, 200, 200, 0.3); }
+  .antetka span.timeSpan {
+    white-space: nowrap; }
 
 .antetkaCell {
   max-width: 400px; }
