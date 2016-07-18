@@ -82,7 +82,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter,focus');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory,smartCenter');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,smartCenter');
-    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници,smartCenter,tdClass=nowrap');
+    	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
@@ -149,6 +149,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		
     		
     		$form->setField('quantity', "unit={$unit}");
+    	}
+    	
+    	$employees = crm_Persons::getEmployeesOptions(FALSE);
+    	if(count($employees)){
+    		$form->setSuggestions('employees', array('' => '') + $employees);
+    	} else {
+    		$form->setReadOnly('employees');
     	}
     }
     
@@ -234,6 +241,27 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     				$row->serial = ht::createLink($row->serial, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
     			}
     		}
+    	}
+    	
+    	if(isset($rec->employees)){
+    		$verbalEmployees = array();
+    		$employees = keylist::toArray($rec->employees);
+    		foreach ($employees as $eId){
+    			
+    			$el = crm_ext_EmployeeCodes::getCode($eId, TRUE);
+    			$name = crm_Persons::getVerbal($eId, 'name');
+    			
+    			$singleUrl = crm_Persons::getSingleUrlArray($eId);
+    			if(count($singleUrl)){
+    				$singleUrl['Tab'] = 'PersonsDetails';
+    			}
+    			
+    		    $el = ht::createLink($el, $singleUrl, FALSE, "title=Към визитката на|* '{$name}'");
+    		    $el = ht::createHint($el, $name, 'img/16/vcard.png', FALSE);
+    			$verbalEmployees[$eId] = $el;
+    		}
+    		
+    		$row->employees = implode(', ', $verbalEmployees);
     	}
     }
     

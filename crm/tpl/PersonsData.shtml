@@ -14,6 +14,7 @@
 		<div class='detail-info portal [#TAB_STATE#]'>
 		    <div class='groupList clearfix21'>
 		        [#CODE#]
+		        [#RFID#]
 		    </div>
 	    </div>
 	</fieldset>

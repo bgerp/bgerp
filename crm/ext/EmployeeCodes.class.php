@@ -83,7 +83,7 @@ class crm_ext_EmployeeCodes extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = $form->rec;
     	
@@ -113,6 +113,7 @@ class crm_ext_EmployeeCodes extends core_Manager
     		$row = self::recToVerbal($rec);
     		
     		$tpl = new core_ET("<span style='position:relative;top:4px'>[#1#]</span>");
+    		core_RowToolbar::createIfNotExists($row->_rowTools);
     		$row->_rowTools = $tpl->append($row->_rowTools->renderHtml(), '1');
     		$data->codeRow = $row;
     	}
@@ -127,14 +128,14 @@ class crm_ext_EmployeeCodes extends core_Manager
      */
     public function renderData($data)
     {
-    	 $tpl = new core_ET("[#resTitle#]:<!--ET_BEGIN code--> <b>[#code#]</b><!--ET_END code-->[#btn#]");
+    	 $tpl = new core_ET("[#resTitle#]<!--ET_BEGIN code--> <b>[#code#]</b><!--ET_END code-->[#btn#]");
     	 
     	 if(isset($data->codeRow)){
-    	 	$tpl->append(tr('Служебен код'), 'resTitle');
+    	 	$tpl->append(tr('Служебен код') . ":", 'resTitle');
     	 	$tpl->append($data->codeRow->code, 'code');
     	 	$tpl->append($data->codeRow->_rowTools, 'btn');
     	 } else {
-    	 	$tpl->append(tr('Все още няма код'), 'resTitle');
+    	 	$tpl->append($el, 'resTitle');
     	 }
     	 
     	 if(isset($data->addResourceUrl)){
@@ -170,5 +171,26 @@ class crm_ext_EmployeeCodes extends core_Manager
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща служебния код на лицето
+     * 
+     * @param int $personId   - ид на лицето
+     * @param boolean $verbal - дали кода да е вервализиран
+     * @return string $code   - кода
+     */
+    public static function getCode($personId, $verbal = FALSE)
+    {
+    	expect(type_Int::isInt($personId));
+    	$code = static::fetchField(array("#personId = [#1#]", $personId), 'code');
+    	$code = (!empty($code)) ? $code : $personId;
+    	
+    	if($verbal === TRUE){
+    		$code = cls::get('type_Varchar')->toVerbal($code);
+    	}
+    	
+    	return $code;
     }
 }
