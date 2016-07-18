@@ -71,7 +71,6 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ReturnNoteDetails',
     		'planning_ObjectResources',
     		'planning_Tasks',
-    		'planning_HumanResources',
     		'planning_AssetResources',
     		'planning_drivers_ProductionTaskDetails',
     		'planning_drivers_ProductionTaskProducts',
