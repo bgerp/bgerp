@@ -276,7 +276,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         
         $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
         		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity--></div>"));
-        
+
         $resArr['packagingId'] = array('name' => tr('Мярка'), 'val' =>"[#packagingId#]");
         
         if (!empty($row->totalWeight)) {
@@ -288,7 +288,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         }
         
         if(!empty($row->indTime) || !empty($row->startTime)){
-        	$resArr['indTime'] =  array('name' => tr('Времена'), 'val' => tr("|*<!--ET_BEGIN indTime--><div class='nowrap'><span style='font-weight:normal'>|Изпълнение|*:</span> [#indTime#]</div><!--ET_END indTime--><!--ET_BEGIN startTime--><div class='nowrap'><span style='font-weight:normal'>|Стартиране|*:</span> [#startTime#]</div><!--ET_END startTime-->"));
+        	$resArr['indTime'] =  array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN indTime--><div class='nowrap'><span style='font-weight:normal'>|Изпълнение|*:</span> [#indTime#]</div><!--ET_END indTime--><!--ET_BEGIN startTime--><div class='nowrap'><span style='font-weight:normal'>|Стартиране|*:</span> [#startTime#]</div><!--ET_END startTime-->"));
         }
        
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
