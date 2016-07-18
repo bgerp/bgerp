@@ -420,70 +420,70 @@ class cal_Reminders extends core_Master
     {
     	if($data->rec->repetitionType == 'days' ) {
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'ден';
+    			$data->row->repetitionType = tr('ден');
     		}elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		}else {
-    			$data->row->each = 'на всеки';
+    			$data->row->each = tr('на всеки');
     		}
     	} elseif($data->rec->repetitionType == 'months'){
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'месец';
+    			$data->row->repetitionType = tr('месец');
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else {
-    			$data->row->each = 'на всеки';
+    			$data->row->each = tr('на всеки');
     		}
     		
     	} elseif($data->rec->repetitionType == 'weeks') {
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всяка';
+    			$data->row->each = tr('всяка');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'седмица';
+    			$data->row->repetitionType = tr('седмица');
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else {
-    			$data->row->each = 'на всеки';
+    			$data->row->each = tr('на всеки');
     		}
     	} elseif($data->rec->repetitionType == 'weekDay'){
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'месец';
-    			$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). " от месеца";
+    			$data->row->repetitionType = tr('месец');
+    			$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else{
-	    		$data->row->each = 'на всеки';
-	    		$data->row->repetitionType = 'месеца';
-	    		$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). " от месеца";
+	    		$data->row->each = tr('на всеки');
+	    		$data->row->repetitionType = tr('месеца');
+	    		$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
     		}
     	} elseif($data->rec->repetitionType == 'monthDay') {
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'месец';
-    			$data->row->repetitionTypeMonth = 'точния ден от месеца';
+    			$data->row->repetitionType = tr('месец');
+    			$data->row->repetitionTypeMonth = tr('точния ден от месеца');
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else {
-	    		$data->row->each = 'на всеки';
-	    		$data->row->repetitionType = 'месеца';
-	    		$data->row->repetitionTypeMonth = 'точния ден от месеца';
+	    		$data->row->each = tr('на всеки');
+	    		$data->row->repetitionType = tr('месеца');
+	    		$data->row->repetitionTypeMonth = tr('точния ден от месеца');
     		}
     		
     	}
     	
-    	if($data->rec->action === 'notifyNoAns') $data->row->action = 'Нотификация-ако няма отговор';
+    	if($data->rec->action === 'notifyNoAns') $data->row->action = tr('Нотификация-ако няма отговор');
 
     	if($data->rec->repetitionEach === NULL){
     		$data->row->each = '';
@@ -1146,6 +1146,10 @@ class cal_Reminders extends core_Master
             if ($row->{$fieldName}) {
                 $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
             }
+        }
+        
+        if($rec->timeStart == $rec->nextStartTime) {
+            unset($resArr['nextStartTime']);
         }
         
         if ($row->repetitionEach){
