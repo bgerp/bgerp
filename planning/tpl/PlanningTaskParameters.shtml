@@ -1,0 +1,9 @@
+<fieldset class='top-tab-content'>
+	<legend class='groupTitle'>|Описание|* [#editBtn#]</legend>
+	<div class='detail-info portal [#TAB_STATE#]'>
+		<div class='groupList clearfix21' style='margin-bottom:8px'>
+		    [#description#]
+		</div>
+		 [#PARAMS#]
+	</div>
+</fieldset>

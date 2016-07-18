@@ -68,7 +68,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cat';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -80,13 +80,13 @@ class cat_products_Params extends doc_Detail
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'ceo,cat';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой може да изтрива
      */
-    public $canDelete = 'ceo,cat';
+    public $canDelete = 'powerUser';
     
     
     /**
@@ -183,6 +183,16 @@ class cat_products_Params extends doc_Detail
         }
     }
 
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	$data->form->title = ($rec->id) ? "Редактиране на параметър" : "Добавяне на параметър";
+    }
+    
     
     /**
      * Връща не-използваните параметри за конкретния продукт, като опции
@@ -290,7 +300,7 @@ class cat_products_Params extends doc_Detail
     		$data->params[$rec->id] = static::recToVerbal($rec);
     	}
       	
-        if(self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
+        if(self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
             $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
         }
     }
@@ -301,29 +311,37 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
-        if($requiredRoles == 'no_one') return;
-    	
-        if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec->productId)) {
+        // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира параметрите
+        if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+        	if(isset($rec->classId)){
+        		if($rec->classId == planning_Tasks::getClassId()){
+        			$requiredRoles = 'taskPlanning,ceo';
+        		} elseif($rec->classId == marketing_Inquiries2::getClassId()){
+        			$requiredRoles = 'marketing,ceo';
+        		} elseif($rec->classId == cat_Products::getClassId()){
+        			$requiredRoles = 'cat,ceo';
+        		}
+        	}
+        }
+       
+        if(isset($rec->productId)){
         	$pRec = cat_Products::fetch($rec->productId);
-        	
+        		 
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
         	if($action == 'add'){
         		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
         			$requiredRoles = 'no_one';
         		} elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
-        			 
+        		
         			// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
         			$requiredRoles = 'no_one';
         		}
         	}
-            
-            if($pRec->state != 'active' && $pRec->state != 'draft'){
-            	$requiredRoles = 'no_one';
-            }
-        }
-        
-        // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира параметрите
-        if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
+        		
+        	if($pRec->state != 'active' && $pRec->state != 'draft'){
+        		$requiredRoles = 'no_one';
+        	}
+        	
         	if(!cat_Products::haveRightFor('single', $rec->productId)){
         		$requiredRoles = 'no_one';
         	}
