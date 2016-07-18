@@ -274,8 +274,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         
         $resArr['productId'] = array('name' => tr('Артикул'), 'val' =>"[#productId#]");
         
-        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("|*<span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
-        		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity-->"));
+        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
+        		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity--></div>"));
         
         $resArr['packagingId'] = array('name' => tr('Мярка'), 'val' =>"[#packagingId#]");
         
