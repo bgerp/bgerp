@@ -48,6 +48,24 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
+     * Кой има право да оттегля?
+     */
+    public $canReject = 'taskWorker,ceo';
+    
+    
+    /**
+     * Кой има право да възстановява?
+     */
+    public $canRestore = 'taskWorker,ceo';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'taskWorker,ceo';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'RowNumb=Пулт,type=Операция,serial,taskProductId,packagingId=Мярка,quantity,weight,employees,fixedAsset,modified=Модифицирано';

@@ -27,7 +27,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectDriver = 'planning,ceo';
+	public $canSelectDriver = 'taskPlanning,ceo';
 	
 	
 	/**

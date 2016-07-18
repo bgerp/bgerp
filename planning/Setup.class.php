@@ -86,7 +86,9 @@ class planning_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-    		array('planning'),
+    		array('taskWorker'),
+    		array('taskPlanning', 'taskWorker'),
+    		array('planning', 'taskPlanning'),
     		array('job'),
     );
 
