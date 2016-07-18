@@ -55,11 +55,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,after=fixedAssets,removeAndRefreshForm=packagingId,silent');
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
 		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
+		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Произвеждане->Склад,mandatory,allowEmpty');
 		$fieldset->FLD("indTime", 'time', 'caption=Произвеждане->Време,smartCenter');
+		$fieldset->FLD("startTime", 'time', 'caption=Стартиране->Време,smartCenter');
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$fieldset->FLD('quantityInPack', 'double(smartRound)', 'input=none');
-		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory,allowEmpty');
-    }
+	}
 	
 	
 	/**
@@ -286,8 +287,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
             $resArr['fixedAssets'] =  array('name' => tr('Машини'), 'val' =>"[#fixedAssets#]");
         }
         
-        if (!empty($row->indTime)) {
-        	$resArr['indTime'] =  array('name' => tr('Време за изпълнение'), 'val' =>"[#indTime#]");
+        if(!empty($row->indTime) || !empty($row->startTime)){
+        	$resArr['indTime'] =  array('name' => tr('Времена'), 'val' => tr("|*<!--ET_BEGIN indTime--><div>|Изпълнение|*: [#indTime#]</div><!--ET_END indTime--><!--ET_BEGIN startTime--><div>|Стартиране|*: [#startTime#]</div><!--ET_END startTime-->"));
         }
        
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
