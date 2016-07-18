@@ -386,7 +386,7 @@ class tasks_Tasks extends embed_Manager
     		}
     	}
     	
-    	if($action == 'add'){
+    	if($action == 'add' || $action == 'edit' || $action == 'changestate'){
     		$originId = $rec->originId;
     		if(empty($originId) && isset($rec->threadId)){
     			$originId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
@@ -399,6 +399,9 @@ class tasks_Tasks extends embed_Manager
     				$requiredRoles = 'no_one';
     			}
     		}
+    	}
+    	
+    	if($action == 'add' && empty($rec)){
     		
     		// Ако потребителя не може да избере поне една опция, той не може да добави задача
     		$interfaces = $mvc::getAvailableDriverOptions($userId);
@@ -406,6 +409,8 @@ class tasks_Tasks extends embed_Manager
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($requiredRoles == 'no_one') return;
     	
     	// Ако нямаме права за драйвера на документа, не можем да правим нищо с него
     	if($action == 'clonerec' || $action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changestate' || $action == 'changerec'){
