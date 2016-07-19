@@ -1,9 +1,9 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <!--ET_BEGIN title--><h3>[#title#]</h3><!--ET_END title-->
+  <!--ET_BEGIN title--><h3>[#title#]</h3><!--ET_END title-->
   <!--ET_BEGIN description-->  
   <div class='quiet'>|Описание|*</div>
   <div>[#description#]</div>
-  <!--ET_END description-->
   <br>
+  <!--ET_END description-->
   [#PARAMS#]
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
