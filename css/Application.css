@@ -4191,6 +4191,11 @@ only screen and (max-width: 320px) {
     padding: 0; }
   .external .listTable td {
     vertical-align: top !important; }
+  .external .extState {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    text-transform: uppercase; }
 
 .wide .external .vertical .formTable {
   box-shadow: none !important; }

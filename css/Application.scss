@@ -4595,6 +4595,12 @@ body.narrow {
     .listTable td {
         vertical-align: top !important;
     }
+	.extState {
+		font-weight: bold;
+		margin-bottom: 10px;
+		font-size: 1.1em;
+		text-transform: uppercase;
+	}
 }
  
 .wide .external .vertical .formTable {
