@@ -30,6 +30,12 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Шаблон за единичен изглед
+	 */
+	public $singleLayoutFile = 'planning/tpl/SingleLayoutTask.shtml';
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc

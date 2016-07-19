@@ -261,6 +261,8 @@ class tasks_Tasks extends embed_Manager
     		$originId = (!Mode::is('text', 'xhtml') && !Mode::is('printing')) ? $origin->getLink(0) : "#" . $origin->getHandle();
     		$row->originId = $originId;
     	}
+    	
+    	$row->title = $row->productId;
     }
     
     
@@ -306,8 +308,7 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	if($form->isSubmitted()){
-    		
-    		if(empty($rec->title)){
+    		if(empty($rec->title) && $form->getField('title')->input != 'none'){
 				if(cls::load($rec->driverClass, TRUE)){
     				if($Driver = cls::get($rec->driverClass)){
     					$rec->title = $Driver->getDefaultTitle();
@@ -711,7 +712,29 @@ class tasks_Tasks extends embed_Manager
     	
     	parent::prepareSingle_($data);
     	
+    	$d = new stdClass();
+    	$d->masterId = $rec->id;
+    	$d->masterClassId = planning_Tasks::getClassId();
+    	if($rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'rejected'){
+    		$d->noChange = TRUE;
+    		unset($data->editUrl);
+    	}
+    	cat_products_Params::prepareParams($d);
+    	$data->paramData = $d;
+    	
     	return $data;
+    }
+    
+    
+    /**
+     * След рендиране на еденичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	if(isset($data->paramData)){
+    		$paramTpl = cat_products_Params::renderParams($data->paramData);
+    		$tpl->append($paramTpl, 'PARAMS');
+    	}
     }
     
     

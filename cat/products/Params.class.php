@@ -190,7 +190,9 @@ class cat_products_Params extends doc_Detail
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
-    	$data->form->title = ($rec->id) ? "Редактиране на параметър" : "Добавяне на параметър";
+    	if(isset($rec->classId) && isset($rec->productId)){
+    		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id);
+    	}
     }
     
     
@@ -324,26 +326,33 @@ class cat_products_Params extends doc_Detail
         	}
         }
        
-        if(isset($rec->productId)){
-        	$pRec = cat_Products::fetch($rec->productId);
-        		 
+        if(isset($rec->productId) && isset($rec->classId)){
+        	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
         	if($action == 'add'){
         		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
         			$requiredRoles = 'no_one';
-        		} elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
-        		
-        			// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
-        			$requiredRoles = 'no_one';
         		}
         	}
-        		
-        	if($pRec->state != 'active' && $pRec->state != 'draft'){
-        		$requiredRoles = 'no_one';
-        	}
         	
-        	if(!cat_Products::haveRightFor('single', $rec->productId)){
-        		$requiredRoles = 'no_one';
+        	if($rec->classId == cat_Products::getClassId()){
+        		$pRec = cat_Products::fetch($rec->productId);
+        		
+        		if($action == 'add'){
+        			if($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
+        			
+        				// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
+        				$requiredRoles = 'no_one';
+        			}
+        		}
+        		
+        		if($pRec->state != 'active' && $pRec->state != 'draft'){
+        			$requiredRoles = 'no_one';
+        		}
+        		 
+        		if(!cat_Products::haveRightFor('single', $rec->productId)){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
     }
@@ -407,5 +416,36 @@ class cat_products_Params extends doc_Detail
         		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
         	}
         }
+    }
+    
+    
+    /**
+     * Клонира параметрите от един обект на друг
+     * 
+     * @param mixed $fromClassId
+     * @param int $fromId
+     * @param mixed $toClassId
+     * @param int $toId
+     * @return void
+     */
+    public static function cloneParams($fromClassId, $fromId, $toClassId, $toId)
+    {
+    	$FromClass = cls::get($fromClassId);
+    	$ToClass = cls::get($toClassId);
+    	
+    	$paramQuery = cat_products_Params::getQuery();
+    	$paramQuery->where("#productId = '{$fromId}' AND #classId = {$FromClass->getClassId()}");
+    	while($paramRec = $paramQuery->fetch()){
+    		$newRec = clone $paramRec;
+    		$newRec->classId = $ToClass->getClassId();
+    		$newRec->productId = $toId;
+    		unset($newRec->id);
+    		
+    		if($id = cat_products_Params::fetchField("#classId = {$newRec->classId} AND #productId = {$newRec->productId} AND #paramId = {$newRec->paramId}", 'id')){
+    			$newRec->id = $idd;
+    		}
+    		
+    		cat_products_Params::save($newRec, NULL, "REPLACE");
+    	}
     }
 }
