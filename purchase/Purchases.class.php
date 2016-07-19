@@ -16,6 +16,14 @@
  */
 class purchase_Purchases extends deals_DealMaster
 {
+	
+    
+    /**
+     * Дали да се показва бутон на чернова документ
+     * 
+     * @see doc_EmailCreatePlg
+     */
+	public $canEmailDraft = TRUE;
     
     
     /**

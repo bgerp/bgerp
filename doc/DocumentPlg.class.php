@@ -3058,10 +3058,14 @@ class doc_DocumentPlg extends core_Plugin
     	}
     	
     	// При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
-    
-    		// Оставяме състоянието да се показва само ако не е оттеглено или чернова
-    		if ($data->rec->state != 'rejected' && $data->rec->state != 'draft' ) {
+    	if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+            
+    	    if ($data->rec->state == 'draft') {
+    	        $data->row->ExtState = $data->row->state;
+    	    }
+    	    
+    		// Оставяме състоянието да се показва само ако не е оттеглено
+    		if ($data->rec->state != 'rejected') {
     			unset($data->row->state);
     		}
     	}
