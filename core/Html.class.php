@@ -798,16 +798,16 @@ class core_Html
         	// Оцветяваме линка в зависимост от особеностите му
         	if(!$attr['disabled']) {
         		if($warning){
-        			$attr['style'] .= 'color:#772200 !important;';
+        			$attr['style'] .= ' color:#772200 !important;';
         		} elseif (strpos($url, '://')) {
         			if(!strpos($attr['class'], 'out')) {
         				$attr['class'] .= ' out';
         			}
         		} elseif($attr['target'] == '_blank') {
-        			$attr['style'] .= 'color:#008800 !important;';
+        			$attr['style'] .= ' color:#008800 !important;';
         		}
         	} else {
-        		$attr['style'] .= 'color:#999 !important;';
+        		$attr['style'] .= ' color:#999 !important;';
         	}
         }
         
