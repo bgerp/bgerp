@@ -27,7 +27,7 @@ class planning_Wrapper extends plg_ProtoWrapper
     	$this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,planning');
     	$this->TAB('planning_DirectProductionNote', 'Протоколи->Производство', 'ceo,planning');
     	$this->TAB('planning_Tasks', 'Задачи', 'ceo,planning');
-    	$this->TAB('planning_AssetResources', 'Ресурси->Машини ресурси', 'ceo,planning');
+    	$this->TAB('planning_AssetResources', 'Оборудване', 'ceo,planning');
     	
         $this->title = 'Планиране';
     }

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,7 +20,7 @@ class planning_AssetResources extends core_Master
 	/**
      * Заглавие
      */
-    public $title = 'Машинни ресурси';
+    public $title = 'Оборудване';
     
     
     /**
@@ -80,7 +80,7 @@ class planning_AssetResources extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Машинен ресурс';
+    public $singleTitle = 'Оборудване';
     
     
     /**
