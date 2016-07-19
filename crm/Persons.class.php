@@ -2808,10 +2808,9 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      * 
-     * @param boolean $showNames - Показване на имената или на служебния код
      * @return array $options - Опции
      */
-    public static function getEmployeesOptions($showNames = TRUE)
+    public static function getEmployeesOptions()
     {
     	$options = $codes = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -2819,24 +2818,8 @@ class crm_Persons extends core_Master
     	$query = self::getQuery();
     	$query->like("groupList", "|{$emplGroupId}|");
     	
-    	if($showNames === FALSE){
-    		$cQuery = crm_ext_EmployeeCodes::getQuery();
-    		$cQuery->where("#state = 'active'");
-    		$cQuery->show('personId,code');
-    		
-    		while($cRec = $cQuery->fetch()){
-    			$codes[$cRec->personId] = $cRec->code;
-    		}
-    	}
-    	
     	while($rec = $query->fetch()){
-    		if($showNames === TRUE){
-    			$val = self::getVerbal($rec, 'name');
-    		} else {
-    			$val = (isset($codes[$rec->id])) ? $codes[$rec->id] : $rec->id;
-    		}
-    		
-    		$options[$rec->id] = $val;
+    		$options[$rec->id] = $val = self::getVerbal($rec, 'name');
     	}
     	
     	if(count($options)){

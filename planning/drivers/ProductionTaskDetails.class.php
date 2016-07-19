@@ -176,7 +176,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setField('quantity', "unit={$unit}");
     	}
     	
-    	$employees = crm_Persons::getEmployeesOptions(FALSE);
+    	$employees = crm_ext_Employees::getEmployeesWithCode();
     	if(count($employees)){
     		$form->setSuggestions('employees', array('' => '') + $employees);
     	} else {
@@ -289,7 +289,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$employees = keylist::toArray($rec->employees);
     		foreach ($employees as $eId){
     			
-    			$el = crm_ext_EmployeeCodes::getCode($eId, TRUE);
+    			$el = crm_ext_Employees::getCode($eId, TRUE);
     			$name = crm_Persons::getVerbal($eId, 'name');
     			
     			$singleUrl = crm_Persons::getSingleUrlArray($eId);

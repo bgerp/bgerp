@@ -27,15 +27,15 @@ class crm_PersonsDetails extends core_Manager
 		
 		$employeeId = crm_Groups::getIdFromSysId('employees');
 		if(keylist::isIn($employeeId, $data->masterData->rec->groupList)){
-			$data->Codes = cls::get('crm_ext_EmployeeCodes');
+			$data->Codes = cls::get('crm_ext_Employees');
 			$data->TabCaption = 'HR';
 		}
 		
 		$data->Cards = cls::get('crm_ext_IdCards');
 		if(isset($data->Codes)){
 			$data->Codes->prepareData($data);
-			if(crm_ext_EmployeeCodes::haveRightFor('add', (object)array('personId' => $data->masterId))){
-				$data->addResourceUrl = array('crm_ext_EmployeeCodes', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
+			if(crm_ext_Employees::haveRightFor('add', (object)array('personId' => $data->masterId))){
+				$data->addResourceUrl = array('crm_ext_Employees', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
 			}
 		}
 		
