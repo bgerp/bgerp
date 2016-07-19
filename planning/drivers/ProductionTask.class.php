@@ -39,7 +39,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Кои детайли да се заредят динамично към мастъра
 	 */
-	protected $details = 'planning_drivers_ProductionTaskParameters,planning_drivers_ProductionTaskDetails,planning_drivers_ProductionTaskProducts';
+	protected $details = 'planning_drivers_ProductionTaskDetails,planning_drivers_ProductionTaskProducts';
 	
 	
 	/**
@@ -401,8 +401,5 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     			}
     		}
     	}
-    	
-    	// Обновяване на информацията за параметрите
-    	planning_drivers_ProductionTaskParameters::saveProductParams($rec->id, $rec->productId);
     }
 }

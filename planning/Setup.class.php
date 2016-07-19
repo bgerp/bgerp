@@ -74,7 +74,6 @@ class planning_Setup extends core_ProtoSetup
     		'planning_AssetResources',
     		'planning_drivers_ProductionTaskDetails',
     		'planning_drivers_ProductionTaskProducts',
-    		'planning_drivers_ProductionTaskParameters',
     		'planning_TaskActions',
     		'planning_TaskSerials',
     		'migrate::updateTasks',
@@ -186,28 +185,6 @@ class planning_Setup extends core_ProtoSetup
     		} catch(core_exception_Expect $e){
     			reportException($e);
     		}
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на информацията за параметрите за влагане
-     */
-    function updateTaskInfo()
-    {
-    	core_App::setTimeLimit(300);
-    	$Tp = cls::get('planning_drivers_ProductionTaskParameters');
-    	$Tp->setupMvc();
-    	
-    	try{
-    		$classId = planning_drivers_ProductionTask::getClassId();
-    		$tQuery = planning_Tasks::getQuery();
-    		$tQuery->where("#driverClass = {$classId}");
-    		while($tRec = $tQuery->fetch()){
-    			planning_drivers_ProductionTaskParameters::saveProductParams($tRec->id, $tRec->productId);
-    		}
-    	} catch(core_exception_Expect $e){
-    		reportException($e);
     	}
     }
 }
