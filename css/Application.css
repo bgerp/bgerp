@@ -1497,6 +1497,8 @@ pre.document {
   background: rgba(200, 200, 200, 0.3); }
   .antetka span.timeSpan {
     white-space: nowrap; }
+  .antetka .linkWithIcon {
+    margin-bottom: 0; }
 
 .antetkaCell {
   max-width: 400px; }
