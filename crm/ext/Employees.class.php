@@ -159,7 +159,7 @@ class crm_ext_Employees extends core_Manager
      * Рендира информацията
      * 
      * @param stdClass $data
-     * @return core_ET;
+     * @return core_ET $tpl;
      */
     public function renderData($data)
     {
@@ -261,5 +261,28 @@ class crm_ext_Employees extends core_Manager
     	}
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Връща кода като линк
+     * 
+     * @param int $personId
+     * @return core_ET $el
+     */
+    public static function getCodeLink($personId)
+    {
+    	$el = crm_ext_Employees::getCode($personId, TRUE);
+    	$name = crm_Persons::getVerbal($personId, 'name');
+    	 
+    	$singleUrl = crm_Persons::getSingleUrlArray($personId);
+    	if(count($singleUrl)){
+    		$singleUrl['Tab'] = 'PersonsDetails';
+    	}
+    	 
+    	$el = ht::createLink($el, $singleUrl, FALSE, "title=Към визитката на|* '{$name}'");
+    	$el = ht::createHint($el, $name, 'img/16/vcard.png', FALSE);
+    	
+    	return $el;
     }
 }

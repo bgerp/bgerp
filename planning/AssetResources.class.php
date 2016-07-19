@@ -104,7 +104,7 @@ class planning_AssetResources extends core_Master
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
     	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структура');
-    	$this->FLD('quantity', 'int', 'caption=Kоличество');
+    	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	

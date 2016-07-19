@@ -442,7 +442,7 @@ class cat_products_Params extends doc_Detail
     		unset($newRec->id);
     		
     		if($id = cat_products_Params::fetchField("#classId = {$newRec->classId} AND #productId = {$newRec->productId} AND #paramId = {$newRec->paramId}", 'id')){
-    			$newRec->id = $idd;
+    			$newRec->id = $id;
     		}
     		
     		cat_products_Params::save($newRec, NULL, "REPLACE");

@@ -303,13 +303,9 @@ class hr_Departments extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->locationId){
     		$row->locationId = crm_Locations::getHyperlink($rec->locationId, TRUE);
@@ -319,6 +315,28 @@ class hr_Departments extends core_Master
     	if($rec->systemId == 'emptyCenter'){
     		unset($row->_addBtn);
     	}
+    	
+    	$empTpl = new core_ET("");
+    	$pQuery = crm_ext_Employees::getQuery();
+    	$pQuery->like("departments", "|{$rec->id}|");
+    	while($pRec = $pQuery->fetch()){
+    		$codeLink = crm_ext_Employees::getCodeLink($pRec->personId);
+    		$empTpl->append("{$codeLink}<br>");
+    	}
+    	
+    	$row->employees = $empTpl;
+    	
+    	$aTpl = new core_ET("");
+    	$aQuery = planning_AssetResources::getQuery();
+    	$aQuery->like("departments", "|{$rec->id}|");
+    	while($aRec = $aQuery->fetch()){
+    		$fields = cls::get('planning_AssetResources')->selectFields();
+    		$fields['-list'] = TRUE;
+    		
+    		$aRow = planning_AssetResources::recToVerbal($aRec, $fields);
+    		$aTpl->append("{$aRow->code} ($aRow->quantity)<br>");
+    	}
+    	$row->assets = $aTpl;
     }
     
     

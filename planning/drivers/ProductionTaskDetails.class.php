@@ -288,17 +288,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$verbalEmployees = array();
     		$employees = keylist::toArray($rec->employees);
     		foreach ($employees as $eId){
-    			
-    			$el = crm_ext_Employees::getCode($eId, TRUE);
-    			$name = crm_Persons::getVerbal($eId, 'name');
-    			
-    			$singleUrl = crm_Persons::getSingleUrlArray($eId);
-    			if(count($singleUrl)){
-    				$singleUrl['Tab'] = 'PersonsDetails';
-    			}
-    			
-    		    $el = ht::createLink($el, $singleUrl, FALSE, "title=Към визитката на|* '{$name}'");
-    		    $el = ht::createHint($el, $name, 'img/16/vcard.png', FALSE);
+    			$el = crm_ext_Employees::getCodeLink($eId);
     			$verbalEmployees[$eId] = $el;
     		}
     		
