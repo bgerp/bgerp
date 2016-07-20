@@ -1190,7 +1190,7 @@ class doc_Containers extends core_Manager
      * 
      * @param string $handle Inv478, Eml57 и т.н.
      * @param string $intf интерфейс
-     * @return core_ObjectReference
+     * @return core_ObjectReference|FALSE
      */
     static function getDocumentByHandle($handle, $intf = NULL)
     {
@@ -1216,7 +1216,15 @@ class doc_Containers extends core_Manager
         return static::getDocument((object)array('docClass' => $mvc, 'docId' => $docRec->id), $intf);
     }
     
-    protected static function parseHandle($handle)
+    
+    /**
+     * 
+     * 
+     * @param string $handle
+     * 
+     * @return array|FALSE
+     */
+    public static function parseHandle($handle)
     {
         $handle = trim($handle);
         
