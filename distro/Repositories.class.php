@@ -42,7 +42,7 @@ class distro_Repositories extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'adminplg_Rejected';
+    var $canRead = 'admin';
     
     
     /**
@@ -96,6 +96,7 @@ class distro_Repositories extends core_Master
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
         $this->FLD('path', 'varchar', 'caption=Път на хранилището, mandatory');
         $this->FLD('info', 'richtext', 'caption=Информация');
+        $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
         
         $this->setDbUnique('hostId');
     }
@@ -123,12 +124,160 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Връща масив с всички хранилища
+     * 
+     * @return array $reposArr - Масив с id-та на всички хранилища
+     */
+    public static function getReposArr()
+    {
+        // Масив с всички хранилища
+        static $reposArr = array();
+        
+        // Ако не е генериран преди
+        if (!$reposArr) {
+            
+            // Вземаме всички записи
+            $query = static::getQuery();
+            $query->where("#state != 'rejected'");
+            
+            // Обхождаме записите
+            while ($rec = $query->fetch()) {
+                
+                // Добавяме в масива
+                $reposArr[$rec->id] = $rec->id;
+            }
+        }
+        
+        return $reposArr;
+    }
+    
+    
+    /**
+     * Създава директория в хранилището
+     * 
+     * @param integer $repoId
+     * @param string $name
+     * 
+     * @return FALSE|
+     */
+    public static function createDir($repoId, $name)
+    {
+        $rec = self::fetch((int) $repoId);
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        if ($sshObj === FALSE) return FALSE;
+        
+        $path = rtrim($rec->path, '/');
+        $path .= '/' . $name;
+        $path = escapeshellarg($path);
+        
+        $sshObj->exec('mkdir ' . $path);
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Връща md5 стойността на файла
+     * 
+     * @param integer $repoId
+     * @param string $dir
+     * @param string $name
+     * 
+     * @return FALSE|string
+     */
+    public static function getFileMd5($repoId, $dir, $name)
+    {
+        $rec = self::fetch((int) $repoId);
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        if ($sshObj === FALSE) return FALSE;
+        
+        $path = rtrim($rec->path, '/');
+        $path .= '/' . $dir . '/' . $name;
+        $path = escapeshellarg($path);
+        
+        $c = $sshObj->exec('md5sum ' . $path, $output);
+        
+        if ($output) {
+            list($md5) = explode(' ', $output, 2);
+            
+            $md5 = trim($md5);
+            
+            return $md5;
+        }
+        
+        return FALSE;
+    }
+	
+    
+    /**
+     * Активира състоянието на хранилището
+     * 
+     * @param integer $id - id на хранилище
+     * 
+     * @return integer|NULL - id на записа, ако се е активирал
+     */
+    public static function activateRepo($id)
+    {
+        // Вземаем записа
+        $rec = static::fetch($id);
+        
+        // Ако не е бил активиран
+        if ($rec->state != 'active') {
+            
+            // Активираме
+            $rec->state = 'active';
+            
+            return static::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Задава стойност за хеша за реда
+     * 
+     * @param integer $repoId
+     */
+    public static function setLineHash($repoId, $lineHash)
+    {
+        $nRec = new stdClass();
+        $nRec->id = $repoId;
+        $nRec->lineHash = $lineHash;
+        
+        self::save($nRec, 'lineHash');
+    }
+    
+    
+    /**
+     * Връща масив с хранилищата и хеша на последния обработен ред
+     * 
+     * @return array
+     */
+    public static function getLinesHash()
+    {
+        $resArr = array();
+        
+        $query = self::getQuery();
+        $query->where("#state != 'rejected'");
+
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec->lineHash;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Парсира подадения ред от файла
      * 
      * @param integer $repoId
      * @param string $line
      * 
-     * @return array[hash, rPath, date, name, isDir, act]
+     * @return array - [lineHash, rPath, date, name, isDir, act]
      */
     protected static function parseLine($repoId, $line)
     {
@@ -144,7 +293,7 @@ class distro_Repositories extends core_Master
         $path = trim($path, '/');
         
         $resArr = array();
-        $resArr['hash'] = self::getLineHash($line);
+        $resArr['lineHash'] = self::getLineHash($line);
         $resArr['rPath'] = $path;
         $resArr['date'] = $date;
         $resArr['name'] = $file;
@@ -153,10 +302,8 @@ class distro_Repositories extends core_Master
         
         $resArr['isDir'] = ($isDir == 'ISDIR') ? TRUE : FALSE;
         
-        if ($actName == 'CREATE') {
+        if ($actName == 'CREATE' || $actName == 'MOVED_TO') {
             $resArr['act'] = 'create';
-        } elseif ($actName == 'MOVED_TO') {
-            $resArr['act'] = 'add';
         } elseif ($actName == 'DELETE' || $actName == 'MOVED_FROM') {
             $resArr['act'] = 'delete';
         } elseif ($actName == 'MODIFY') {
@@ -182,14 +329,9 @@ class distro_Repositories extends core_Master
     {
         $rec = self::fetch((int) $repoId);
         
-        try {
-            $sshObj = new ssh_Actions($rec->hostId);
-        } catch (core_exception_Expect $e) {
-            self::logWarning('Грешка при свързване към хост: ' . $e->getMessage());
-            reportException($e);
-            
-            return array();
-        }
+        $sshObj = self::connectToRepo($rec);
+        
+        if ($sshObj === FALSE) return array();
         
         $linesCnt = escapeshellarg($linesCnt);
         $path = rtrim($rec->path, '/');
@@ -198,11 +340,11 @@ class distro_Repositories extends core_Master
         
         $cmd = "tail -n {$linesCnt} $path";
         
-        $sshObj->exec($cmd, $lines);
+        $sshObj->exec($cmd, $resLines);
         
-        $lines = trim($lines);
+        $resLines = trim($resLines);
         
-        $linesArr = explode("\n", $lines);
+        $linesArr = explode("\n", $resLines);
         
         if ($removeDuplicated) {
             $linesArr = array_unique($linesArr);
@@ -211,6 +353,30 @@ class distro_Repositories extends core_Master
         $linesArr = array_reverse($linesArr);
         
         return $linesArr;
+    }
+    
+    
+    /**
+     * Прави връзка към сървъра по SSH
+     * 
+     * @param stdObject|integer $rec
+     * 
+     * @return FALSE|ssh_Actions
+     */
+    protected static function connectToRepo($rec)
+    {
+        $rec = self::fetchRec($rec);
+        
+        try {
+            $sshObj = new ssh_Actions($rec->hostId);
+        } catch (core_exception_Expect $e) {
+            self::logWarning('Грешка при свързване към хост: ' . $e->getMessage(), $rec->id);
+            reportException($e);
+        
+            return FALSE;
+        }
+        
+        return $sshObj;
     }
     
     
@@ -225,5 +391,29 @@ class distro_Repositories extends core_Master
     {
         
         return md5($line);
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако има запис и се опитваме да изтрием
+        if ($rec && ($action == 'delete')) {
+            
+            // Ако състоянието е активно
+            if ($rec->state == 'active' || $rec->state == 'rejected') {
+            
+				// Да не може да се изтрие
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }
