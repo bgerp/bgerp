@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -203,7 +203,7 @@ class hr_Departments extends core_Master
     /**
      * Изпълнява се след четене на запис
      */
-    static function on_AfterRead($mvc, &$rec)
+    protected static function on_AfterRead($mvc, &$rec)
     {
         if($rec->name == 'Моята Организация') {
             $rec->name = crm_Companies::fetchField(crm_Setup::BGERP_OWN_COMPANY_ID, 'name');
@@ -229,19 +229,23 @@ class hr_Departments extends core_Master
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$fRec = &$data->form->rec;
     	$data->form->setField('parentId', 'remember');
     	self::expandRec($fRec);
     	
+    	$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');
+    	if(!$mvc->count("#id != {$undefinedDepId}")){
+    		$data->form->setField('parentId', 'input=none');
+    	}
     }
     
     
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy("#orderStr");
     }
@@ -250,7 +254,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave($mvc, $id, $rec)
+    protected static function on_BeforeSave($mvc, $id, $rec)
     {
         $rec->orderStr = '';
         
@@ -282,12 +286,8 @@ class hr_Departments extends core_Master
     
     /**
      * Добавя след таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
      */
-    public function on_AfterRenderListTable($mvc, &$tpl, $data)
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $chartType = Request::get('Chart');
         
@@ -305,7 +305,7 @@ class hr_Departments extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->locationId){
     		$row->locationId = crm_Locations::getHyperlink($rec->locationId, TRUE);
@@ -472,7 +472,7 @@ class hr_Departments extends core_Master
     /**
      * Връща възможните опции за избор на бащи на обекта
      */
-    public static function on_AfterPrepareParentOptions($mvc, &$res, $rec)
+    protected static function on_AfterPrepareParentOptions($mvc, &$res, $rec)
     {
     	if(count($res)){
     		$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');
