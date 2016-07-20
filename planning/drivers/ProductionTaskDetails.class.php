@@ -178,7 +178,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	
     	$employees = crm_ext_Employees::getEmployeesWithCode();
     	if(count($employees)){
-    		$form->setSuggestions('employees', array('' => '') + $employees);
+    		$form->setSuggestions('employees', $employees);
     	} else {
     		$form->setReadOnly('employees');
     	}
