@@ -104,16 +104,17 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		// За произвеждане може да се избере само артикула от заданието
 		$origin = doc_Containers::getDocument($rec->originId);
 		$productId = $origin->fetchField('productId');
-		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
-		if(!$bomRec){
-			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-		}
 		
 		if(empty($rec->id)){
 			$form->setDefault('description', cat_Products::fetchField($productId, 'info'));
 		}
 		
 		$products[$productId] = cat_Products::getTitleById($productId, FALSE);
+		
+		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+		if(!$bomRec){
+			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+		}
 		
 		// и ако има рецепта артикулите, които са етапи от нея
 		if(!empty($bomRec)){
@@ -134,6 +135,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		
 		// Добавяме допустимите опции
 		$form->setOptions('productId', array('' => '') + $products);
+		
 		if(count($products) == 1){
 			$form->setDefault('productId', key($products));
 		}
@@ -154,7 +156,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		if(isset($rec->productId)){
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
-			$form->setDefault('packagingId', key($packs));
+			
+			$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+			$form->setDefault('packagingId', $measureId);
 			
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			if(!isset($productInfo->meta['canStore'])){
