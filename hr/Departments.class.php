@@ -19,7 +19,7 @@ class hr_Departments extends core_Master
      /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf, doc_FolderIntf';
+    public $interfaces = 'acc_RegisterIntf, hr_DepartmentAccRegIntf, doc_FolderIntf';
     
     
     /**
@@ -236,7 +236,8 @@ class hr_Departments extends core_Master
     	self::expandRec($fRec);
     	
     	$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');
-    	if(!$mvc->count("#id != {$undefinedDepId}")){
+    	
+    	if(!$mvc->count("#id != {$undefinedDepId}") || (isset($fRec->id) && $fRec->id != $undefinedDepId && empty($fRec->parentId))){
     		$data->form->setField('parentId', 'input=none');
     	}
     }
