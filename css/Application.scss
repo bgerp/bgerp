@@ -1529,9 +1529,13 @@ td.portal-date {
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 	display: inline;
 	float: none;
-	.liked, .disliked {
+	.liked, .disliked, .linkWithIcon {
 		position: relative;
-		top: 3px;
+		top: 2px;
+		margin-left: 0;
+	}
+	.document-settings .linkWithIcon, .eyeIcon {
+		margin-right: 5px;
 	}
 }
 
@@ -1547,13 +1551,6 @@ td.portal-date {
 .narrow .docBgIcon {
 	font-size: 0.9em;
 	padding-right: 20px;
-}
-
-.narrow .document-settings {
-    position: absolute;
-    right: 2px;
-    top:50%;
-    margin-top: -10px;
 }
 
 .narrow .document-settings-left span {
