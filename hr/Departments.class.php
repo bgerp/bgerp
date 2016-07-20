@@ -15,16 +15,11 @@
 class hr_Departments extends core_Master
 {
     
+	
      /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf, doc_FolderIntf';
-
-    
-    /**
-     * Необходими пакети
-     */
-    public $depends = 'acc=0.1';
     
     
     /**
@@ -142,23 +137,28 @@ class hr_Departments extends core_Master
     public $defaultAccess = 'public';
     
     
-    // Подготвяме видовете графики 
-    static $chartTypes = array(
-        'List' => 'Tаблица',
-        'StructureChart' => 'Графика',
-    );
+    /**
+     * Видове графики
+     */
+    public static $chartTypes = array('List' => 'Tаблица', 'StructureChart' => 'Графика',);
     
     
     /**
      * Активен таб
      */
-    var $currentTab = 'Структура->Таблица';
+    public $currentTab = 'Структура->Таблица';
     
     
     /**
      * Кои полета да се сумират за наследниците
      */
-    var $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
+    public $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
+    
+    
+    /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
     
     
     /**

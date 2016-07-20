@@ -88,7 +88,7 @@
 	               [#RECEIPTS#]
                     <!--ET_BEGIN sBomId-->
                     <tr>
-                    	<td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска рецепта|*:</td>
+                    	<td class='quiet' style='text-align: left; white-space: nowrap;'>|Търговска рецепта|*:</td>
                         <td>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
