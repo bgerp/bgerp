@@ -78,6 +78,12 @@
                         <td>[#weight#]</td>
                     </tr>
                     <!--ET_END weight-->
+                    <!--ET_BEGIN departments-->
+	               <tr>
+	                   <td class='quiet' style='text-align: left'>|Звена|*:</td>
+	                   <td>[#departments#]</td>
+	               </tr>
+	               <!--ET_END departments-->
 	               <!--ET_BEGIN RECEIPTS-->
 	               [#RECEIPTS#]
                     <!--ET_BEGIN sBomId-->
