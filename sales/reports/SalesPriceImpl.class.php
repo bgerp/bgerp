@@ -32,7 +32,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Продажби » Отклонение в цените  по продажби';
+	public $title = 'Продажби » Отклонение в цените по продажби';
 	
 	
 	/**

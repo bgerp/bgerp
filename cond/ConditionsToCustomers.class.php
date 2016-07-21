@@ -78,15 +78,6 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * При колко линка в тулбара на реда да не се показва дропдауна
-     *
-     * @param int
-     * @see plg_RowTools2
-     */
-    public $rowToolsMinLinksToShow = 2;
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -132,7 +123,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
     	$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, 'за');
@@ -186,8 +177,6 @@ class cond_ConditionsToCustomers extends core_Manager
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
 		    $data->addBtn = ht::createLink('', $addUrl, NULL, array("ef_icon" => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на ново търговско условие')); 
         }
-        
-        $data->TabCaption = 'Условия';
 	}
     
 
@@ -215,23 +204,22 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public function renderCustomerSalecond($data)
     {
-      	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $tpl->append(tr('Търговски условия'), 'title');
+      	$tpl = new core_ET("");
+        $tpl->append(tr('Търговски условия'), 'condTitle');
         
         if(isset($data->addBtn)){
-        	$tpl->append($data->addBtn, 'title');
+        	$tpl->append($data->addBtn, 'condTitle');
         }
       
 	    if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
-				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
-				$toolsHtml = $row->_rowTools->renderHtml($this->rowToolsMinLinksToShow);
-				$tpl->append($row->conditionId . " - " . $row->value . "<span style=''>{$toolsHtml}</span>", 'content');
-				$tpl->append("</div>", 'content');
-				
+				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>");
+				$toolsHtml = $row->_rowTools->renderHtml();
+				$tpl->append($row->conditionId . " - {$row->value}<span style='position:relative;top:4px'>{$toolsHtml}</span>");
+				$tpl->append("</div>");
 			}
 	    } else {
-	    	$tpl->append(tr("Все още няма условия"), 'content');
+	    	$tpl->append(tr("Все още няма условия"));
 	    }
 	    
 	    return $tpl;
@@ -292,17 +280,17 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Добавяне на свойтвата към обекта
      */
-    public function getFeatures($class, $objectId, $features)
+    public static function getFeatures($class, $objectId, $features)
     {
     	$classId = cls::get($class)->getClassId();
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
     	
     	$query->where("#cClass = '{$classId}' AND #cId = '{$objectId}'");
     	$query->EXT('isFeature', 'cond_Parameters', 'externalName=isFeature,externalKey=conditionId');
     	$query->where("#isFeature = 'yes'");
     	
     	while($rec = $query->fetch()){
-    		$row = $this->recToVerbal($rec, 'conditionId,value');
+    		$row = static::recToVerbal($rec, 'conditionId,value');
     		$features[$row->conditionId] = $row->value;
     	}
     	
@@ -313,7 +301,7 @@ class cond_ConditionsToCustomers extends core_Manager
 	/**
      * След запис се обновяват свойствата на перата
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if(cond_Parameters::fetchField("#id='{$rec->conditionId}'", 'isFeature') == 'yes'){
     		acc_Features::syncFeatures($rec->cClass, $rec->cId);

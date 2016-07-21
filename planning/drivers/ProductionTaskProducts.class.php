@@ -54,39 +54,27 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
-     * Кой има право да оттегля?
-     */
-    public $canReject = 'planning,ceo';
-    
-    
-    /**
-     * Кой има право да възстановява?
-     */
-    public $canRestore = 'planning,ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'planning,ceo';
+    public $canEdit = 'taskPlanning,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'planning,ceo';
+    public $canAdd = 'taskPlanning,ceo';
     
     
     /**
      * Кой има право да добавя артикули към активна задача?
      */
-    public $canAddtoactive = 'planning,ceo';
+    public $canAddtoactive = 'taskPlanning,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'planning,ceo';
+    public $canDelete = 'taskPlanning,ceo';
     
     
     /**
@@ -266,14 +254,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state != 'draft'){
+    		if($state == 'active' || $state == 'pending' || $state == 'wakeup'){
     			if($action == 'add'){
     				$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
-    			} else {
-    				$requiredRoles = 'no_one';
     			}
+    		} else {
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -406,5 +394,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	$rec = &$data->form->rec;
     	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : 'отпадъчен артикул';
+    }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	unset($rec->realQuantity);
     }
 }

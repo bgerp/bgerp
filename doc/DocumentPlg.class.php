@@ -2788,8 +2788,16 @@ class doc_DocumentPlg extends core_Plugin
             
             // Ако бройката е под ограничението, няма да има втори ред
             $noSecondRow = FALSE;
-            if (count($showHeaderArr) < $limitForSecondRow) {
+            
+            $showHeaderCnt = count($showHeaderArr);
+            
+            if ($showHeaderCnt < $limitForSecondRow) {
                 $noSecondRow = TRUE;
+            } else {
+                // Ако не е зададено твърдо броя на колоните в първия ред
+                if (!isset($mvc->headerLinesLimit)) {
+                    $limitForSecondRow = max(array(ceil($showHeaderCnt / 2), $limitForSecondRow));
+                }
             }
             
             // Определяме, кои полета ще са на втори ред или дали ще има такива
@@ -3050,10 +3058,14 @@ class doc_DocumentPlg extends core_Plugin
     	}
     	
     	// При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
-    
+    	if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+            
+    	    if ($data->rec->state == 'draft') {
+    	        $data->row->ExtState = $data->row->state;
+    	    }
+    	    
     		// Оставяме състоянието да се показва само ако не е оттеглено
-    		if($data->rec->state != 'rejected'){
+    		if ($data->rec->state != 'rejected') {
     			unset($data->row->state);
     		}
     	}

@@ -218,9 +218,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		// Ако не искаме точен параметър връщаме всичките параметри за артикула
+		$Products = cls::get('cat_Products');
 		$foundParams = array();
 		$pQuery = cat_products_Params::getQuery();
 		$pQuery->where("#productId = {$id}");
+		$pQuery->where("#classId = {$Products->getClassId()}");
 		$pQuery->EXT('name', 'cat_Params', 'externalName=name,externalKey=paramId');
 		$pQuery->EXT('suffix', 'cat_Params', 'externalName=suffix,externalKey=paramId');
 		while($pRec = $pQuery->fetch()){

@@ -102,8 +102,8 @@ class bgerp_L extends core_Manager
             // Вземаме записа за документа
             $rec = $doc->fetch();
             
-            // Очакваме да не е чернова или оттеглен документ
-            expect($rec->state != 'rejected' && $rec->state != 'draft', 'Липсващ документ');
+            // Очакваме да не е оттеглен документ
+            expect($rec->state != 'rejected', 'Липсващ документ');
             
             //
             // Проверка за право на достъп според MID
