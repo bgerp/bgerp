@@ -225,7 +225,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Преди възстановяване, ако има затворени пера в транзакцията, не може да се възстановява
      */
-    public static function on_BeforeRestore($mvc, &$res, $id)
+    protected static function on_BeforeRestore($mvc, &$res, $id)
     {
     	// Ако има фактура с този номер, не възстановяваме
     	if(!$mvc->isNumberFree($id)){
@@ -241,7 +241,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * @param stdClass $rec
      * @return boolean
      */
-    public function isNumberFree($rec)
+    private function isNumberFree($rec)
     {
     	$rec = $this->fetchRec($rec);
     	
