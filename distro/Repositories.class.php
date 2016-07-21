@@ -115,6 +115,8 @@ class distro_Repositories extends core_Master
     {
         $linesArr = distro_Repositories::getLines($repoId, $linesCnt, $removeDuplicated);
         
+        $resArr = array();
+        
         foreach ($linesArr as $line) {
             $resArr[] = distro_Repositories::parseLine($repoId, $line);
         }
