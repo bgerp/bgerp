@@ -84,6 +84,48 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Подготовка за рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $res
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, &$data)
+	{
+		$rec = $data->rec;
+		
+		$d = new stdClass();
+    	$d->masterId = $rec->id;
+    	$d->masterClassId = planning_Tasks::getClassId();
+    	if($rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'rejected'){
+    		$d->noChange = TRUE;
+    		unset($data->editUrl);
+    	}
+    	
+    	cat_products_Params::prepareParams($d);
+    	$data->paramData = $d;
+	}
+	
+	
+	/**
+	 * След рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
+	{
+		if(isset($data->paramData)){
+			$paramTpl = cat_products_Params::renderParams($data->paramData);
+			$tpl->append($paramTpl, 'PARAMS');
+		}
+	}
+	
+	
+	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param tasks_BaseDriver $Driver
@@ -146,6 +188,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 				foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld){
 					$form->setDefault($fld, $tasks[$rec->systemId]->{$fld});
 				}
+				$form->setReadOnly('productId');
 			}
 		}
 

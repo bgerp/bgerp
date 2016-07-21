@@ -671,29 +671,7 @@ class tasks_Tasks extends embed_Manager
     	
     	parent::prepareSingle_($data);
     	
-    	$d = new stdClass();
-    	$d->masterId = $rec->id;
-    	$d->masterClassId = planning_Tasks::getClassId();
-    	if($rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'rejected'){
-    		$d->noChange = TRUE;
-    		unset($data->editUrl);
-    	}
-    	cat_products_Params::prepareParams($d);
-    	$data->paramData = $d;
-    	
     	return $data;
-    }
-    
-    
-    /**
-     * След рендиране на еденичния изглед
-     */
-    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-    	if(isset($data->paramData)){
-    		$paramTpl = cat_products_Params::renderParams($data->paramData);
-    		$tpl->append($paramTpl, 'PARAMS');
-    	}
     }
     
     

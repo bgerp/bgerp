@@ -128,7 +128,7 @@ class planning_Tasks extends tasks_Tasks
 		
 		// Може ли на артикула да се добавят задачи за производство
 		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
-		
+		$defaultTasks = array();
 		$departments = keylist::toArray($masterRec->departments);
 		if(!count($departments) && !count($defaultTasks)){
 			$departments = array('' => NULL);
@@ -145,6 +145,11 @@ class planning_Tasks extends tasks_Tasks
 			$r->title       = cat_Products::getTitleById($masterRec->productId);
 			$r->systemId    = $sysId;
 			$r->driverClass = $defDriver;
+			
+			if(!$sysId){
+				$r->productId = $masterRec->productId;
+			}
+			
 			$draftRecs[]    = $r;
 		}
 		
@@ -174,6 +179,8 @@ class planning_Tasks extends tasks_Tasks
 			$url = array('planning_Tasks', 'add', 'folderId' => $draft->folderId, 'originId' => $containerId, 'driverClass' => $draft->driverClass, 'title' => $draft->title, 'ret_url' => TRUE);
 			if(isset($draft->systemId)){
 				$url['systemId'] = $draft->systemId;
+			} else {
+				$url['productId'] = $draft->productId;
 			}
 			
 			$row = new stdClass();
