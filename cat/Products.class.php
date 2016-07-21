@@ -1230,6 +1230,13 @@ class cat_Products extends embed_Manager {
     		}
     	}
     	
+    	// Искаме само артикулите, които не са в папки за прототипи
+    	$protoFolders = cat_Categories::getProtoFolders();
+    	if(count($protoFolders)){
+    		$protoFolders = implode(',', $protoFolders);
+    		$query->where("#folderId NOT IN ({$protoFolders})");
+    	}
+    	
     	// Подготвяме опциите
     	while($rec = $query->fetch()){
     		$title = static::getRecTitle($rec, FALSE);
