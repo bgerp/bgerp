@@ -75,8 +75,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('passRe', '123456');
         $browser->setValue('names', 'Потребител 1');
         $browser->setValue('email', 'u1@abv.bg');
-        //$browser->setValue('rolesInput[]', '76');
-        $browser->setValue('Дилър', '77');
+        $browser->setValue('rolesInput[71]', '71');
+        //$browser->setValue('Дилър', '79');
         $browser->press('Запис');
         return $browser->getHtml();
     }
@@ -757,13 +757,18 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Активиране');
             //Добавяне на задача
             $browser->click('Добавяне на нова задача за производство');
+            $browser->setValue('hrdepartmentId', '1');
+            //return $browser->gethtml();
+            $browser->press('Напред');
             $browser->press('Чернова');
             $browser->press('Активиране');
             //Произвеждане и влагане
             //$browser->press('Произвеждане'); -разпознава бутона за приключване в заданието
             $browser->press('Добавяне на произведен артикул');
             $browser->setValue('quantity', '1000');
+            $browser->setValue('employees[3]', '3');
             $browser->press('Запис');
+           
             $browser->press('Влагане');
             $browser->setValue('taskProductId', 'Други суровини и материали');
             $browser->setValue('quantity', '1600');
@@ -774,10 +779,12 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('taskProductId', 'Друг труд');
             $browser->setValue('quantity', '1010');
             $browser->press('Запис');
-            //// Приключване на задачата - разпознава бутона за приключване на заданието, защото са с еднакви имена
-            //$browser->press('Приключване');
-    
-            //Протокол за бързо производство
+            // Приключване на задачата - когато са в една нишка, разпознава бутона за приключване на заданието, защото са с еднакви имена
+            $browser->press('Приключване');
+            //return $browser->gethtml();
+            //Протокол за производство - в заданието
+            $browser->click('Задание за производство №1');
+            
             //$browser->press('Създаване на протокол за бързо производство от заданието');
             $browser->press('Произвеждане');
             $browser->setValue('storeId', 'Склад 1');
