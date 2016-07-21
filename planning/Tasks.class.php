@@ -101,8 +101,7 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
-		$form = &$data->form;
-		$rec = &$form->rec;
+		$rec = &$data->form->rec;
 		
 		if(empty($rec->id)){
 			if($folderId = Request::get('folderId', 'key(mvc=doc_Folders)')){
@@ -168,6 +167,7 @@ class planning_Tasks extends tasks_Tasks
 			}
 		}
 		
+		// Вербализираме дефолтните записи
 		foreach ($draftRecs as $draft){
 			if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'driverClass' => $draft->driverClass))) continue;
 		
@@ -212,38 +212,11 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
-	 * Преди запис на документ, изчислява стойността на полето `isContable`
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $rec
+	 * Преди запис на документ
 	 */
 	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
-		if(empty($rec->originId)){
-			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-			$rec->originId = $firstDoc->fetchField('containerId');
-		}
-		
 		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
-	}
-	
-	
-	/**
-	 * Извиква се след успешен запис в модела
-	 *
-	 * @param core_Mvc $mvc
-	 * @param int $id първичния ключ на направения запис
-	 * @param stdClass $rec всички полета, които току-що са били записани
-	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-	{
-		if(isset($rec->originId)){
-			
-			// Ако има източник предизвикваме му обновяването да се инвалидира кеша ако има
-			$origin = doc_Containers::getDocument($rec->originId);
-			$originRec = $origin->fetch();
-			$origin->getInstance()->save($originRec);
-		}
 	}
 	
 
@@ -262,7 +235,7 @@ class planning_Tasks extends tasks_Tasks
 				$tQuery->where("#classId = '{$mvc->getClassId()}'");
 				$tQuery->where("#state != 'rejected'");
 				$tQuery->show('id');
-				
+				$tQuery->limit(1);
 				$error = ($tQuery->fetch()) ? '' : ",error=Няма наличен шаблон за етикети от задачи за производство";
 				
 				core_Request::setProtected('class,objectId');

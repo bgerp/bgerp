@@ -43,12 +43,6 @@ class tasks_Tasks extends embed_Manager
 
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'powerUser';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'powerUser';
@@ -159,13 +153,13 @@ class tasks_Tasks extends embed_Manager
     {
     	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
     	
-    	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
+    	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)',
     			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
     	$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
-    	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
+    	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
-    	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
+    	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'silent,input=hidden,caption=Очаквано начало');
     	
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
     	
@@ -215,28 +209,7 @@ class tasks_Tasks extends embed_Manager
     		if ($rec->remainingTime > 0) {
     			$row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
     		} else {
-    	
     			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
-    		}
-    	}
-    	
-    	$row->timeStart = str_replace('00:00', '', $row->timeStart);
-    	$row->timeEnd = str_replace('00:00', '', $row->timeEnd);
-    	
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    		// Ако имаме само начална дата на задачата
-    		if ($rec->timeStart && !$rec->timeEnd) {
-    			// я парвим хипервръзка към календара- дневен изглед
-    			$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    			// Ако имаме само крайна дата на задачата
-    		} elseif ($rec->timeEnd && !$rec->timeStart) {
-    			// я правим хипервръзка към календара - дневен изглед
-    			$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    			// Ако задачата е с начало и край едновременно
-    		} elseif ($rec->timeStart && $rec->timeEnd) {
-    			// и двете ги правим хипервръзка към календара - дневен изглед
-    			$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    			$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     		}
     	}
     	
@@ -246,23 +219,11 @@ class tasks_Tasks extends embed_Manager
     		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($expectedTimeEnd);
     	}
     	
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    		if (isset($rec->expectedTimeStart)) {
-    			$row->expectedTimeStart = ht::createLink(dt::mysql2verbal($rec->expectedTimeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
-    		 
-    		if (isset($expectedTimeEnd)) {
-    			$row->expectedTimeEnd = ht::createLink(dt::mysql2verbal($expectedTimeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
-    	}
-    	
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$originId = (!Mode::is('text', 'xhtml') && !Mode::is('printing')) ? $origin->getLink(0) : "#" . $origin->getHandle();
-    		$row->originId = $originId;
+    		$row->originId = $origin->getLink(0);
     	}
     	
-    	$row->title = $row->productId;
     	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     }
     
@@ -456,9 +417,6 @@ class tasks_Tasks extends embed_Manager
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
-    	$cu = core_Users::getCurrent();
-    	$form->setDefault('inCharge', keylist::addKey('', $cu));
     	
     	// Ако задачата идва от дефолт задача на продуктов драйвер
     	if(isset($rec->systemId)){
