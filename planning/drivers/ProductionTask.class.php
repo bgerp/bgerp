@@ -94,7 +94,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	{
 		$form = &$data->form;
 		$rec = $form->rec;
-		$form->setField('title', 'input=none');
+		$form->setField('title', 'input=hidden');
 		
 		// За произвеждане може да се избере само артикула от заданието
 		expect($rec->originId);

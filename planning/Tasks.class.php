@@ -160,10 +160,10 @@ class planning_Tasks extends tasks_Tasks
 				if(is_array($foundObject) && count($foundObject)) continue;
 			
 				$r = new stdClass();
-				$r->title    = $taskInfo->title;
-				$r->systemId = $index;
+				$r->title       = $taskInfo->title;
+				$r->systemId    = $index;
 				$r->driverClass = $taskInfo->driver;
-				$draftRecs[] = $r;
+				$draftRecs[]    = $r;
 			}
 		}
 		
