@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState';
+	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime';
 	
 	
 	/**

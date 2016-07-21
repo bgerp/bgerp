@@ -486,7 +486,12 @@ abstract class bank_Document extends deals_PaymentDocument
         expect(count($options));
        
         if($expectedPayment = $dealInfo->get('expectedPayment')){
-        	$amount = $expectedPayment / $dealInfo->get('rate');
+        	if(isset($form->rec->originId) && isset($form->rec->amountDeal)){
+        		$expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
+        	}
+        	
+        	$amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+        	
         	if($form->rec->currencyId == $form->rec->dealCurrencyId){
         		$form->setDefault('amount', $amount);
         	}

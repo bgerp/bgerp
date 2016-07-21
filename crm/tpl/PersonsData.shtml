@@ -1,0 +1,22 @@
+<div class='scrolling-holder'>
+	<fieldset class='top-tab-content'>
+	<legend class='groupTitle'>[#idCardTitle#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		        [#IDCARD#]
+		    </div>
+	    </div>
+	</fieldset>
+	
+	<!--ET_BEGIN CODE-->
+	<fieldset class='top-tab-content' style='margin-top:10px'>
+	<legend class='groupTitle'>|Служебни данни|* [#emBtn#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		        [#CODE#]
+		        [#RFID#]
+		    </div>
+	    </div>
+	</fieldset>
+	<!--ET_END CODE-->
+</div>

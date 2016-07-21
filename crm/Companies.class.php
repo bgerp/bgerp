@@ -180,8 +180,8 @@ class crm_Companies extends core_Master
     /**
      * Детайли, на модела
      */
-    var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails';
+    var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**
@@ -1431,7 +1431,7 @@ class crm_Companies extends core_Master
             	$result->features += $groupFeatures;
             }
             
-            $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
+            $result->features = cond_ConditionsToCustomers::getFeatures($self, $objectId, $result->features);
         }
         
         return $result;

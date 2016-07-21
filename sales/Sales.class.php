@@ -15,13 +15,21 @@
 class sales_Sales extends deals_DealMaster
 {
 	
+    
+    /**
+     * Дали да се показва бутон на чернова документ
+     * 
+     * @see doc_EmailCreatePlg
+     */
+	public $canEmailDraft = TRUE;
+	
 	
 	/**
      * Заглавие
      */
     public $title = 'Договори за продажба';
-
-
+    
+	
     /**
      * Флаг, който указва, че документа е партньорски
      */

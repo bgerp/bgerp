@@ -184,7 +184,7 @@ class plg_Search extends core_Plugin
                     $equalTo = "";
                 }
                 
-                $w = static::normalizeText($w);
+                $w = static::normalizeText($w, array('*'));
 
                 if(strpos($w, '*') !== FALSE) {
                     $w = str_replace('*', '%', $w);
@@ -204,10 +204,14 @@ class plg_Search extends core_Plugin
      * и прави всички букви в долен регистър (lower case).
      *
      * @param string $str
+     * @param array $ignoreParamsArr
+     * 
      * @return string
      */
-    public static function normalizeText($str)
+    public static function normalizeText($str, $ignoreParamsArr = array())
     {
+        $ignoreParamsArr = arr::make($ignoreParamsArr);
+        
         $conf = core_Packs::getConfig('core');
         
         // Максимално допустима дължина
@@ -221,7 +225,15 @@ class plg_Search extends core_Plugin
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);
-        $str = preg_replace('/[^a-z0-9\*]+/', ' ', $str);
+        $ignoreStr = '';
+        
+        if (!empty($ignoreParamsArr)) {
+            foreach ($ignoreParamsArr as $ignore) {
+                $ignoreStr .= preg_quote($ignore, '/');
+            } 
+        }
+        
+        $str = preg_replace("/[^a-z0-9{$ignoreStr}]+/", ' ', $str);
         
         return trim($str);
     }

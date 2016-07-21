@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
@@ -216,8 +216,8 @@ class crm_Persons extends core_Master
      * 
      * @var string|array
      */
-    public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards';
+    public $details = 'ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**
@@ -1026,7 +1026,7 @@ class crm_Persons extends core_Master
             	$result->features += $groupFeatures;
             }
             
-            $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
+            $result->features = cond_ConditionsToCustomers::getFeatures($self, $objectId, $result->features);
         }
 
         return $result;
@@ -2802,5 +2802,30 @@ class crm_Persons extends core_Master
         if ($oRec = $query->fetch()) {
             $rec->id = $oRec->id;
         }
+    }
+    
+    
+    /**
+     * Лицата от група 'Служители'
+     * 
+     * @return array $options - Опции
+     */
+    public static function getEmployeesOptions()
+    {
+    	$options = $codes = array();
+    	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+    	
+    	$query = self::getQuery();
+    	$query->like("groupList", "|{$emplGroupId}|");
+    	
+    	while($rec = $query->fetch()){
+    		$options[$rec->id] = $val = self::getVerbal($rec, 'name');
+    	}
+    	
+    	if(count($options)){
+    		$options = array('e' => (object)array('group' => TRUE, 'title' => tr('Служители'))) + $options;
+    	}
+    	
+    	return $options;
     }
 }

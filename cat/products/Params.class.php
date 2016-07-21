@@ -68,7 +68,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cat';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -80,13 +80,13 @@ class cat_products_Params extends doc_Detail
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'ceo,cat';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой може да изтрива
      */
-    public $canDelete = 'ceo,cat';
+    public $canDelete = 'powerUser';
     
     
     /**
@@ -106,7 +106,7 @@ class cat_products_Params extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
+    	$this->FLD('classId', 'class', 'input=hidden,silent');
     	$this->FLD('productId', 'int', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
@@ -183,6 +183,18 @@ class cat_products_Params extends doc_Detail
         }
     }
 
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	if(isset($rec->classId) && isset($rec->productId)){
+    		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id);
+    	}
+    }
+    
     
     /**
      * Връща не-използваните параметри за конкретния продукт, като опции
@@ -290,7 +302,7 @@ class cat_products_Params extends doc_Detail
     		$data->params[$rec->id] = static::recToVerbal($rec);
     	}
       	
-        if(self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
+        if(self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
             $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
         }
     }
@@ -301,31 +313,46 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
-        if($requiredRoles == 'no_one') return;
-    	
-        if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec->productId)) {
-        	$pRec = cat_Products::fetch($rec->productId);
+        // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира параметрите
+        if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+        	if(isset($rec->classId)){
+        		if($rec->classId == planning_Tasks::getClassId()){
+        			$requiredRoles = 'taskPlanning,ceo';
+        		} elseif($rec->classId == marketing_Inquiries2::getClassId()){
+        			$requiredRoles = 'marketing,ceo';
+        		} elseif($rec->classId == cat_Products::getClassId()){
+        			$requiredRoles = 'cat,ceo';
+        		}
+        	}
+        }
+       
+        if(isset($rec->productId) && isset($rec->classId)){
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
         	if($action == 'add'){
         		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
         			$requiredRoles = 'no_one';
-        		} elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
-        			 
-        			// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
-        			$requiredRoles = 'no_one';
         		}
         	}
-            
-            if($pRec->state != 'active' && $pRec->state != 'draft'){
-            	$requiredRoles = 'no_one';
-            }
-        }
-        
-        // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира параметрите
-        if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
-        	if(!cat_Products::haveRightFor('single', $rec->productId)){
-        		$requiredRoles = 'no_one';
+        	
+        	if($rec->classId == cat_Products::getClassId()){
+        		$pRec = cat_Products::fetch($rec->productId);
+        		
+        		if($action == 'add'){
+        			if($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
+        			
+        				// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
+        				$requiredRoles = 'no_one';
+        			}
+        		}
+        		
+        		if($pRec->state != 'active' && $pRec->state != 'draft'){
+        			$requiredRoles = 'no_one';
+        		}
+        		 
+        		if(!cat_Products::haveRightFor('single', $rec->productId)){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
     }
@@ -389,5 +416,36 @@ class cat_products_Params extends doc_Detail
         		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
         	}
         }
+    }
+    
+    
+    /**
+     * Клонира параметрите от един обект на друг
+     * 
+     * @param mixed $fromClassId
+     * @param int $fromId
+     * @param mixed $toClassId
+     * @param int $toId
+     * @return void
+     */
+    public static function cloneParams($fromClassId, $fromId, $toClassId, $toId)
+    {
+    	$FromClass = cls::get($fromClassId);
+    	$ToClass = cls::get($toClassId);
+    	
+    	$paramQuery = cat_products_Params::getQuery();
+    	$paramQuery->where("#productId = '{$fromId}' AND #classId = {$FromClass->getClassId()}");
+    	while($paramRec = $paramQuery->fetch()){
+    		$newRec = clone $paramRec;
+    		$newRec->classId = $ToClass->getClassId();
+    		$newRec->productId = $toId;
+    		unset($newRec->id);
+    		
+    		if($id = cat_products_Params::fetchField("#classId = {$newRec->classId} AND #productId = {$newRec->productId} AND #paramId = {$newRec->paramId}", 'id')){
+    			$newRec->id = $id;
+    		}
+    		
+    		cat_products_Params::save($newRec, NULL, "REPLACE");
+    	}
     }
 }

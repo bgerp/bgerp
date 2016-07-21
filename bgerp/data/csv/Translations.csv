@@ -148,7 +148,6 @@ en,Анкети,Surveys
 en,Апостроф,Single quote
 en,Април,April
 en,Артикул,Item
-en,Артикули » Про_6f148,Articles » Sales articles
 en,Артикули в кат_f7279,Products in Catalog
 en,Артикули,Items
 en,Архивиран ли е?,Is it archived?
@@ -503,7 +502,7 @@ en,Договори за по_be298,Purchase contracts
 en,Договори за пр_491bd,Sales contracts
 en,Документ тип,Document type
 en,Документ,Document
-en,Документи » Съ_50fea,Documents » Created documents
+en,Създадени документи,Created documents
 en,Документи в ни_b50a6,Documents into the threads
 en,Документи за п_120a1,Documents to complete the sales
 en,Документи за п_c1496,Documents to complete the purchases
@@ -1015,7 +1014,6 @@ en,Моля запознайте се с нашия ценоразпис,Please 
 en,Моля запознайте се с нашия,Please see our
 en,Моля запознайте се с препратения имейл,Please see forwarded email
 en,Моля запознайте се с,Please see
-en,Мониторинг » З_ba19c,Monitoring » Indicators records
 en,Мониторинг,Monitor
 en,Моята Фирма ООД,My Company Ltd
 en,Мюсюлмански,Muslim
@@ -1339,9 +1337,9 @@ en,Печат на страницата,Print page
 en,Печат,Print
 en,Писма,Letters
 en,Писмо,Letter
-en,Планиране » За_9a037,Planning » Assignments per sales
-en,Планиране » По_6b082,Planning » Purchases of goods
-en,Планиране » По_e8813,Planning » Purchases of materials
+en,Задания по продажби,Assignments per sales
+en,Покупки на стоки,Purchases of goods
+en,Покупки на материали,Purchases of materials
 en,Планувано,Планувано
 en,Плащане по банков път,Bank payment
 en,Плащане в брой,Cash payment
@@ -1570,9 +1568,10 @@ en,Продавач,Salesman
 en,Продадено,Sold
 en,Продажба,Sale
 en,Продажби « Търговия,Sales « Commerce
-en,Продажби » Зад_1dbca,Sales » Payables under invoices
-en,Продажби » Отк_3041e,Sales » Deviation in sales prices 
+en,Задължения по фактури,Payables under invoices
+en,Отклонение в цените по продажби,Deviation in sales prices
 en,Продажби,Sales
+en,Продажбени артикули,Sales articles
 en,Продукт,Product
 en,Продукти - нест_4a43,Products - nonstandard
 en,Продукти - стан_a7ed,Products - standard
@@ -1725,8 +1724,8 @@ en,С избраните ...,With selected ...
 en,С потвърждение,Confirmation
 en,С рутиране,Routing
 en,СМС,SMS
-en,Сайт » Посещен_6dc68,Web site » Visitors by IP
-en,Сайт » Посещен_ff157,Web site » Visitors by resource
+en,Посещения по IP,Visitors by IP
+en,Посещения по ресурс,Visitors by resource
 en,Сайт,Site
 en,Сайт/Блог,Site/Blog
 en,Салдо,Balance
@@ -1861,21 +1860,18 @@ en,Счетоводен признак за групиране,Accounting attrib
 en,Счетоводител,Accountant
 en,Счетоводни пер_b160,Accounting periods
 en,Счетоводни,Accounting
-en,Счетоводство »_0157,Accounting » Chronology of analytical account
-en,Счетоводство »_082a,Accounting » Profit on Sales
-en,Счетоводство »_0a10,Accounting » Profit on articles
-en,Счетоводство »_2f38,Accounting » Payables to suppliers
-en,Счетоводство »_398d,Accounting » Correspondent account
-en,Счетоводство »_58a7,Accounting » Sales revenue by customer
-en,Счетоводство »_5c7e,Accounting » Purchased products
-en,Счетоводство »_637e,Accounting » Revenue from sales of goods and products
-en,Счетоводство »_7810,Accounting » Manufactured products
-en,Счетоводство »_9a70,Accounting » Trial balances
-en,Счетоводство »_a1c7,Accounting » Balance sheet by dates
-en,Счетоводство »_a8a4,Accounting » Movements in accounts of suppliers
-en,Счетоводство »_bf23,Accounting » Profit according to clients
-en,Счетоводство »_d304,Accounting » Turnover by periods
-en,Счетоводство »_e4fc,Accounting » Receivables from clients
+en,Хронология на аналитична сметка,Chronology of analytical account
+en,Печалба по продажби,Profit on Sales
+en,Задължения към доставчици,Payables to suppliers
+en,Кореспонденция по сметка,Correspondent account
+en,Приходи от продажби по клиенти,Sales revenue by customer
+en,Закупени продукти,Purchased products
+en,Приходи от продажби на Стоки и Продукти,Revenue from sales of goods and products
+en,Произведени продукти,Manufactured products
+en,Балансов отчет по период,Balance sheet by dates
+en,Движения по сметки на доставчици,Movements in accounts of suppliers
+en,Обороти по период,Turnover by periods
+en,Вземания от клиенти,Receivables from clients
 en,Счетоводство,Accounting
 en,Считано,Regarded
 en,Считано->До,Regarded->To
@@ -2033,7 +2029,6 @@ en,Успешно изпрат_cee1,Successfully sent to
 en,Успешно логване,Successful login
 en,Фабрика,Factory
 en,Файл,File
-en,Файлове » Стат_94bd5,Files » Statistic
 en,Файлове в папка,Files in a folder
 en,Файлове в хранилищата,Files in repositories
 en,Файлове във входящите документи,Files in incoming documents
@@ -2055,8 +2050,8 @@ en,Фамилия,Last name
 en,Февруари,February
 en,Филтрирай,Filter
 en,Филтър,Filter
-en,Финанси » Обор_70391,Finances » Cash Turnover 
-en,Финанси » Обор_ddab2,Finances » Bank Turnover 
+en,Обороти каса,Cash Turnover 
+en,Обороти банка,Bank Turnover 
 en,Финанси,Finance
 en,Финансова сделка,Finance Deal
 en,Финансови сделки,Financial deals

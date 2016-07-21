@@ -988,8 +988,8 @@ class sales_Quotations extends core_Master
     	$query->orderBy('optional', 'ASC');
     	
     	while ($rec = $query->fetch()){
-    		$rec->quantityInPack = str_replace('.', '_', $rec->quantityInPack);
-    		$index = "{$rec->productId}|{$rec->optional}|{$rec->packagingId}|{$rec->quantityInPack}";
+    		$quantityInPack = str_replace('.', '_', $rec->quantityInPack);
+    		$index = "{$rec->productId}|{$rec->optional}|{$rec->packagingId}|{$quantityInPack}";
     		
     		if(!array_key_exists($index, $products)){
     			$title = cat_Products::getTitleById($rec->productId);

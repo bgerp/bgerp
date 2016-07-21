@@ -74,26 +74,4 @@ abstract class tasks_TaskDetails extends core_Detail
     		
     	return $masterMvc;
     }
-    
-    
-   /**
-    * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-    */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	// Ако нямаме права не правим нищо
-    	if($requiredRoles == 'no_one') return;
-    	
-    	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->{$mvc->masterKey})){
-    		
-    		// Ако не може да бъде избран драйвера от потребителя, не може да добавя прогрес
-    		if($Driver = $mvc->Master->getDriver($rec->{$mvc->masterKey})){
-    			if(!$Driver->canSelectDriver($userId)){
-    				$requiredRoles = 'no_one';
-    			}
-    		} else {
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    }
 }

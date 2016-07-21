@@ -841,7 +841,7 @@ class doc_Folders extends core_Master
             // Атрибути на линка
             $attr = array();
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon})";    
+            $attr['style'] = "background-image:url({$sbfIcon});";    
             $attr['target'] = '_blank'; 
 
             // Създаваме линк

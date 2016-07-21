@@ -373,7 +373,7 @@ class crm_Locations extends core_Master {
         if(count($data->rows)) {
             foreach($data->rows as $id => $row) {
             	core_RowToolbar::createIfNotExists($row->_rowTools);
-            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
+            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> <span style='position:relative;top:4px'>[#tools#]</span></div>");
             	$block->placeObject($row);
             	$block->append($row->_rowTools->renderHtml(), 'tools');
             	$block->removeBlocks();

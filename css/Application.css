@@ -277,6 +277,7 @@ div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
   max-width: 720px;
+  min-width: 540px;
   margin-top: 10px;
   line-height: 1.2em;
   position: relative;
@@ -1356,12 +1357,23 @@ td.portal-date {
   float: none; }
   .narrow .document-settings .liked,
   .narrow .document-settings .disliked,
+  .narrow .document-settings .linkWithIcon,
   .narrow .document-settings-left .liked,
   .narrow .document-settings-left .disliked,
+  .narrow .document-settings-left .linkWithIcon,
   .narrow .document-title-group .liked,
-  .narrow .document-title-group .disliked {
+  .narrow .document-title-group .disliked,
+  .narrow .document-title-group .linkWithIcon {
     position: relative;
-    top: 3px; }
+    top: 2px;
+    margin-left: 0; }
+  .narrow .document-settings .document-settings .linkWithIcon,
+  .narrow .document-settings .eyeIcon,
+  .narrow .document-settings-left .document-settings .linkWithIcon,
+  .narrow .document-settings-left .eyeIcon,
+  .narrow .document-title-group .document-settings .linkWithIcon,
+  .narrow .document-title-group .eyeIcon {
+    margin-right: 5px; }
 
 .document-settings-left,
 .document-title-group {
@@ -1374,12 +1386,6 @@ td.portal-date {
 .narrow .docBgIcon {
   font-size: 0.9em;
   padding-right: 20px; }
-
-.narrow .document-settings {
-  position: absolute;
-  right: 2px;
-  top: 50%;
-  margin-top: -10px; }
 
 .narrow .document-settings-left span {
   white-space: nowrap; }
@@ -1494,6 +1500,10 @@ pre.document {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8, endColorstr=#40C8C8C8);
   zoom: 1;
   background: rgba(200, 200, 200, 0.3); }
+  .antetka span.timeSpan {
+    white-space: nowrap; }
+  .antetka .linkWithIcon {
+    margin-bottom: 0; }
 
 .antetkaCell {
   max-width: 400px; }
@@ -4186,6 +4196,11 @@ only screen and (max-width: 320px) {
     padding: 0; }
   .external .listTable td {
     vertical-align: top !important; }
+  .external .extState {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    text-transform: uppercase; }
 
 .wide .external .vertical .formTable {
   box-shadow: none !important; }

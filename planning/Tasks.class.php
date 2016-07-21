@@ -30,6 +30,12 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Шаблон за единичен изглед
+	 */
+	public $singleLayoutFile = 'planning/tpl/SingleLayoutTask.shtml';
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -43,7 +49,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
+	public $loadList = 'doc_plg_BusinessDoc,doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
 	
 	
 	/**
@@ -83,6 +89,30 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Дали винаги да се форсира папка, ако не е зададена
+	 * 
+	 * @see doc_plg_BusinessDoc
+	 */
+	public $alwaysForceFolderIfEmpty = TRUE;
+	
+	
+	/**
+	 * Подготовка на формата за добавяне/редактиране
+	 */
+	public static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$rec = &$data->form->rec;
+		
+		if(empty($rec->id)){
+			if($folderId = Request::get('folderId', 'key(mvc=doc_Folders)')){
+				unset($rec->threadId);
+				$rec->folderId = $folderId;
+			}
+		}
+	}
+	
+	
+	/**
 	 * След рендиране на задачи към задание
 	 * 
 	 * @param core_Mvc $mvc
@@ -91,38 +121,79 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public static function on_AfterPrepareTasks($mvc, &$data)
 	{
-		if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) return;
+		if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('inlineDocument')) return;
+		$masterRec = $data->masterData->rec;
+		$containerId = $data->masterData->rec->containerId;
+		$defDriver = planning_drivers_ProductionTask::getClassId();
 		
 		// Може ли на артикула да се добавят задачи за производство
 		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
 		
-		$containerId = $data->masterData->rec->containerId;
+		$departments = keylist::toArray($masterRec->departments);
+		if(!count($departments) && !count($defaultTasks)){
+			$departments = array('' => NULL);
+		}
 		
-		// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
+		$sysId = (count($defaultTasks)) ? key($defaultTasks) : NULL;
+		
+		$draftRecs = array();
+		foreach ($departments as $depId){
+			$depFolderId = isset($depId) ? hr_Departments::forceCoverAndFolder($depId) : NULL;
+			
+			$r = new stdClass();
+			$r->folderId    = $depFolderId;
+			$r->title       = cat_Products::getTitleById($masterRec->productId);
+			$r->systemId    = $sysId;
+			$r->driverClass = $defDriver;
+			
+			if(!$sysId){
+				$r->productId = $masterRec->productId;
+			}
+			
+			$draftRecs[]    = $r;
+		}
+		
 		if(count($defaultTasks)){
 			foreach ($defaultTasks as $index => $taskInfo){
-				
+		
 				// Имали от създадените задачи, такива с този индекс
 				$foundObject = array_filter($data->recs, function ($a) use ($index) {
 					return $a->systemId == $index;
 				});
-				
+		
 				// Ако има не показваме дефолтната задача
 				if(is_array($foundObject) && count($foundObject)) continue;
-				
-				// Ако не може да бъде добавена задача не показваме реда
-				if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
-				$row = new stdClass();
-				$row->title = $taskInfo->title;
-				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driver, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);
-				
-				core_RowToolbar::createIfNotExists($row->_rowTools);
-				$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова задача за производство"));
-				
-				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
-		
-				$data->rows[] = $row;
+			
+				$r = new stdClass();
+				$r->title       = $taskInfo->title;
+				$r->systemId    = $index;
+				$r->driverClass = $taskInfo->driver;
+				$draftRecs[]    = $r;
 			}
+		}
+		
+		// Вербализираме дефолтните записи
+		foreach ($draftRecs as $draft){
+			if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'driverClass' => $draft->driverClass))) continue;
+		
+			$url = array('planning_Tasks', 'add', 'folderId' => $draft->folderId, 'originId' => $containerId, 'driverClass' => $draft->driverClass, 'title' => $draft->title, 'ret_url' => TRUE);
+			if(isset($draft->systemId)){
+				$url['systemId'] = $draft->systemId;
+			} else {
+				$url['productId'] = $draft->productId;
+			}
+			
+			$row = new stdClass();
+			core_RowToolbar::createIfNotExists($row->_rowTools);
+			$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова задача за производство"));
+				
+			$row->title = cls::get('type_Varchar')->toVerbal($draft->title);
+			$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
+			if(isset($draft->folderId)){
+				$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($draft->folderId))->title;
+			}
+				
+			$data->rows[] = $row;
 		}
 	}
 	
@@ -132,72 +203,27 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'add'){
-			if(isset($rec->originId)){
-				
-				// Може да се добавя само към активно задание
-				if($origin = doc_Containers::getDocument($rec->originId)){
-					if(!$origin->isInstanceOf('planning_Jobs')){
-						$requiredRoles = 'no_one';
-					}
+		if(isset($rec) && empty($rec->originId)){
+			$requiredRoles = 'no_one';
+		}
+		
+		if($action == 'add' && isset($rec->originId)){
+			// Може да се добавя само към активно задание
+			if($origin = doc_Containers::getDocument($rec->originId)){
+				if(!$origin->isInstanceOf('planning_Jobs')){
+					$requiredRoles = 'no_one';
 				}
-			}
-
-			if(empty($rec->threadId) && empty($rec->originId)){
-				$requiredRoles = 'no_one';
 			}
 		}
 	}
 	
-
-	/**
-	 * Проверка дали нов документ може да бъде добавен в посочената нишка
-	 *
-	 * @param int $threadId key(mvc=doc_Threads)
-	 * @return boolean
-	 */
-	public static function canAddToThread($threadId)
-	{
-		$firstDoc = doc_Threads::getFirstDocument($threadId);
-		
-		// Може да се добавя само към нишка с начало задание
-		return $firstDoc->isInstanceOf('planning_Jobs');
-	}
-	
 	
 	/**
-	 * Преди запис на документ, изчислява стойността на полето `isContable`
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $rec
+	 * Преди запис на документ
 	 */
 	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
-		if(empty($rec->originId)){
-			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-			$rec->originId = $firstDoc->fetchField('containerId');
-		}
-		
 		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
-	}
-	
-	
-	/**
-	 * Извиква се след успешен запис в модела
-	 *
-	 * @param core_Mvc $mvc
-	 * @param int $id първичния ключ на направения запис
-	 * @param stdClass $rec всички полета, които току-що са били записани
-	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-	{
-		if(isset($rec->originId)){
-			
-			// Ако има източник предизвикваме му обновяването да се инвалидира кеша ако има
-			$origin = doc_Containers::getDocument($rec->originId);
-			$originRec = $origin->fetch();
-			$origin->getInstance()->save($originRec);
-		}
 	}
 	
 
@@ -216,7 +242,7 @@ class planning_Tasks extends tasks_Tasks
 				$tQuery->where("#classId = '{$mvc->getClassId()}'");
 				$tQuery->where("#state != 'rejected'");
 				$tQuery->show('id');
-				
+				$tQuery->limit(1);
 				$error = ($tQuery->fetch()) ? '' : ",error=Няма наличен шаблон за етикети от задачи за производство";
 				
 				core_Request::setProtected('class,objectId');
