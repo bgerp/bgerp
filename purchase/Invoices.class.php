@@ -215,15 +215,48 @@ class purchase_Invoices extends deals_InvoiceMaster
     			$rec->number = NULL;
     		}
     		
-    		// изискваме за контрагент с този номер да няма фактура със този номер
-    		foreach (array('contragentVatNo', 'uicNo') as $fld){
-    			if(isset($rec->{$fld}) && !empty($rec->number)){
-    				if($mvc->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}'")){
-    					$form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
-    				}
+    		if(!$mvc->isNumberFree($rec)){
+    			$form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди възстановяване, ако има затворени пера в транзакцията, не може да се възстановява
+     */
+    protected static function on_BeforeRestore($mvc, &$res, $id)
+    {
+    	// Ако има фактура с този номер, не възстановяваме
+    	if(!$mvc->isNumberFree($id)){
+    		core_Statuses::newStatus('Има вече входяща фактура с този номер, за този контрагент', 'error');
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Проверява дали номера е свободен
+     * 
+     * @param stdClass $rec
+     * @return boolean
+     */
+    private function isNumberFree($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	
+    	if(empty($rec->number)) return TRUE;
+    	
+    	// Проверяваме дали за този контрагент има друга фактура със същия номер, която не е оттеглена
+    	foreach (array('contragentVatNo', 'uicNo') as $fld){
+    		if(!empty($rec->{$fld})){
+    			if($this->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}' AND #state != 'rejected'")){
+    				return FALSE;
     			}
     		}
     	}
+    	
+    	return TRUE;
     }
     
     
