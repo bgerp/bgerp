@@ -716,7 +716,7 @@ class planning_Jobs extends core_Master
     public static function on_AfterChangeState($mvc, &$rec)
     {
     	// Записваме в историята действието
-    	self::addToHistory($rec->history, $rec->state, dt::now(), core_Users::getCurrent(), $rec->_reason);
+    	self::addToHistory($rec->history, $rec->state, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
     	$mvc->save($rec, 'history');
     	
     	// Ако заданието е затворено, затваряме и задачите към него
