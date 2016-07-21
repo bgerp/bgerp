@@ -419,7 +419,7 @@ class cat_Categories extends core_Master
     		}
     		
     		while($pRec = $query->fetch()) {
-    			$opt[$pRec->id] = cat_Products::getRecTitle($pRec);
+    			$opt[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
     		}
     	}
     	
