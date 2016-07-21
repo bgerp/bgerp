@@ -128,7 +128,7 @@ class planning_Tasks extends tasks_Tasks
 		
 		// Може ли на артикула да се добавят задачи за производство
 		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
-		$defaultTasks = array();
+		
 		$departments = keylist::toArray($masterRec->departments);
 		if(!count($departments) && !count($defaultTasks)){
 			$departments = array('' => NULL);
