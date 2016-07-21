@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone';
 
     
     /**
@@ -263,6 +263,7 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	$row->title = $row->productId;
+    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     }
     
     
@@ -664,8 +665,8 @@ class tasks_Tasks extends embed_Manager
     {
     	$Cover = doc_Folders::getCover($folderId);
     	
-    	// Може да се добавя само в папка на 'Проект'
-    	return ($Cover->isInstanceOf('doc_UnsortedFolders'));
+    	// Може да се добавя само в папка на 'Звено'
+    	return ($Cover->haveInterface('hr_DepartmentAccRegIntf'));
     }
     
     
@@ -789,11 +790,8 @@ class tasks_Tasks extends embed_Manager
     		$data->rows[$rec->id] = $row;
     	}
     	
-    	$data->addUrlArray = array();
-    	
     	// Намираме всички задачи, които наследяват task_Tasks
     	$documents = core_Classes::getOptionsByInterface('tasks_TaskIntf');
-    	$displayMode = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument'));
     	
     	foreach ($documents as $doc){
     		if(cls::load($doc, TRUE)){
@@ -801,13 +799,6 @@ class tasks_Tasks extends embed_Manager
     			
     			// Нотифицираме ги че рендираме задачите към задание
     			$Doc->invoke('AfterPrepareTasks', array(&$data));
-    			
-    			// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
-    			if($displayMode === TRUE){
-    				if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
-    					$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
-    				}
-    			}
     		}
     	}
     }
@@ -823,25 +814,23 @@ class tasks_Tasks extends embed_Manager
     	// Ако няма намерени записи, не се рендира нищо
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = 'name=Документ,progress=Прогрес,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+    	$fields = 'name=Документ,progress=Прогрес,title=Заглавие,folderId=Папка,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
     	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	
     	$tpl = $table->get($data->rows, $data->listFields);
     
-    	// Имали бутони за добавяне
-    	if(is_array($data->addUrlArray)){
-    		foreach ($data->addUrlArray as $class => $url){
-    			
-    			// За всеки рендираме бутон за добавяне на задача от съответния тип
-    			$Doc = cls::get($class);
-    			$titleLower = mb_strtolower($Doc->singleTitle);
-    			$btn = ht::createBtn($Doc->singleTitle, $url, FALSE, FALSE, "title=Създаване на {$titleLower} към задание,ef_icon={$Doc->singleIcon}");
-    			$tpl->append($btn, 'btnTasks');
-    		}
-    	}
-    
     	// Връщаме шаблона
     	return $tpl;
+    }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('hr_DepartmentAccRegIntf');
     }
 }

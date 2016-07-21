@@ -177,7 +177,7 @@ class planning_Jobs extends core_Master
      */
     public $fieldsNotToClone = 'dueDate,quantityProduced,history';
     
-    
+    public $canEditActivated = TRUE;
 	/**
      * Описание на модела (таблицата)
      */

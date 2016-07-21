@@ -96,12 +96,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$rec = $form->rec;
 		$form->setField('title', 'input=none');
 		
-		if(empty($rec->originId)){
-			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-			$rec->originId = $firstDoc->fetchField('containerId');
-		}
-		
 		// За произвеждане може да се избере само артикула от заданието
+		expect($rec->originId);
 		$origin = doc_Containers::getDocument($rec->originId);
 		$productId = $origin->fetchField('productId');
 		
