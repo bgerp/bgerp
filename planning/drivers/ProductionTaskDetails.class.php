@@ -424,33 +424,31 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
         $result = array();
         $dataRec = array();
+        $tplObj = (object) array ('date' => $date, 'docClass' => core_Classes::getId('planning_Tasks'), 'indicator' => tr("|Производство|*"));
+        
+                          
         while($rec = $query->fetch()){
             $dataRec[] = $rec;
             $persons = keylist::toArray($rec->employees);
-            $time = $Double->fromVerbal($rec->time);
-            
-            if(count($persons) >= 2){
-                $timePerson = $time / count($persons)-1;
+            $time = $Double->fromVerbal($rec->time);          
+
+            if(is_array($persons)) {
+                $timePerson = $time / count($persons) ;
             } else {
-                $timePerson = $time;
+                $timePerson =  $time;
             }
-    
+         
             foreach ($persons as $person) {
-                if(!array_key_exists($person, $result)){
                 
-                    $result[$person] =
-                    (object) array (
-                         'date' => $rec->modifiedOn,
-                         'personId' => $person,
-                         'docId'  => $rec->taskId,
-                         'docClass' => core_Classes::getId('planning_Tasks'),
-                         'indicator' => tr("|Производство|*"),
-                         'value' => $timePerson
-                    );
-                } else {
-                    $obj = &$result[$person];
-                    $obj->value += $timePerson;
+                $key = $person . "|" . $rec->taskId;
+                if(!$result[$key]){
+                    $result[$key] = clone($tplObj);
                 }
+                
+                $result[$key]->personId = $person;
+                $result[$key]->docId = $rec->taskId;
+                $result[$key]->value += $timePerson;
+               
             }
         }
 

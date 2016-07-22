@@ -108,7 +108,7 @@ class trz_SalaryIndicators extends core_Manager
     	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Наименование,mandatory,width=100%');
     	$this->FLD('value',    'double', 'caption=Индикатор->Стойност,mandatory,width=100%');
     	
-    	$this->setDbUnique('date,docId,docClass,personId,indicator,value');
+    	$this->setDbUnique('date,docId,docClass,personId,indicator');
     	
     }
     
@@ -278,9 +278,9 @@ class trz_SalaryIndicators extends core_Manager
     public static function pushIndicators($date)
     {
     	$indicators = self::fetchIndicators($date);
-
+    	
     	// За всеки един елемент от масива
-    	foreach ($indicators as $indicator)
+    	foreach ($indicators as $id=>$indicator)
     	{
     		$rec = new stdClass();
     		$rec->date = $indicator->date;
@@ -297,13 +297,15 @@ class trz_SalaryIndicators extends core_Manager
 	    	
 	    	// Ако имаме уникален запис го записваме
 	    	// в противен слувай го ъпдейтваме
-       		if($self->isUnique($rec, $fields,$exRec)){
+       		if($self->isUnique($rec, $fields, $exRec)){
     			self::save($rec);
     		} else { 
             	$rec->id = $exRec->id;
             	self::save($rec);
             }
     	}
+    	
+    	
     }
     
     
