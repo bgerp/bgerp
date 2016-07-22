@@ -127,24 +127,24 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 } else {
                     $date = $recInvoices->date;
                 }
-       
+
                 if ($date >= $data->rec->from) {
-                    $uDelay = $recInvoices->dealValue + $recInvoices->vatAmount;
+                    $uDelay = $recSale->amountBl;
                 }
                 
                 if ($date <= $data->rec->from) { 
                     $days = dt::daysBetween($data->rec->from,$date);
                     
                     if ($days >= 0 && $days <= 15) {
-                        $delay1 = $recInvoices->dealValue + $recInvoices->vatAmount;
+                        $delay1 = $recSale->amountBl;
                     }
                     
                     if ($days >= 16 && $days <= 60) {
-                        $delay2 = $recInvoices->dealValue + $recInvoices->vatAmount;
+                        $delay2 = $recSale->amountBl;
                     }
                     
-                    if ($days > 60) {
-                        $delay3 = $recInvoices->dealValue + $recInvoices->vatAmount;
+                    if ($days > 60) { 
+                        $delay3 = $recSale->amountBl;
                     }
                 }
 
