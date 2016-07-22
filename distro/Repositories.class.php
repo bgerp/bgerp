@@ -128,7 +128,7 @@ class distro_Repositories extends core_Master
         $this->FLD('info', 'richtext', 'caption=Информация');
         $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
         
-        $this->setDbUnique('hostId');
+        $this->setDbUnique('hostId, path');
     }
     
     
@@ -504,6 +504,25 @@ class distro_Repositories extends core_Master
         if ($data->form->rec->id) {
             $data->form->setReadOnly('hostId');
             $data->form->setReadOnly('path');
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param distro_Repositories $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $form->rec->path = rtrim($form->rec->path, '/');
+            $form->rec->path .= '/';
+        }
+        
+        if ($form->isSubmitted() && !$mvc->isUnique($form->rec, $fields)) {
+            $form->setError($fields, "Вече съществува запис със същите данни");
         }
     }
     
