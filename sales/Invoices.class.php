@@ -910,6 +910,12 @@ class sales_Invoices extends deals_InvoiceMaster
    			if($rec->dueDate > $rec->date) return 'bank';
    		}
    		
+   		if(isset($firstDocRec->paymentMethodId)){
+   			$type = cond_PaymentMethods::fetchField($firstDocRec->paymentMethodId, 'type');
+   			
+   			if(in_array($type, array('cash', 'bank', 'intercept', 'card'))) return $type;
+   		}
+   		
    		// От последната фактура за клиента
    		$iQuery = $this->getQuery();
    		$iQuery->where("#folderId = '{$rec->folderId}' AND #state = 'active' AND #id != '{$rec->id}'");

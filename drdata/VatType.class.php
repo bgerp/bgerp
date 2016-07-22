@@ -41,7 +41,7 @@ class drdata_VatType extends type_Varchar
     /**
      * Работен кеш
      */
-    private static $cache = array();
+    protected static $cache = array();
     
     
     /**
