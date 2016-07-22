@@ -108,13 +108,19 @@ class distro_Repositories extends core_Master
     /**
      * 
      */
-    public $listFields = 'id, hostId, name, path, info, createdOn, createdBy';
+    public $listFields = 'id, name, hostId, path, info, createdOn, createdBy';
     
     
     /**
      * Полетата, които ще се показват в единичния изглед
      */
     public $singleFields = 'id, hostId, name, path, info, createdOn, createdBy';
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    var $fetchFieldsBeforeDelete = 'id, hostId, path';
     
     
     /**
@@ -129,6 +135,7 @@ class distro_Repositories extends core_Master
         $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
         $this->FLD('url', 'url', 'caption=Линк за сваляне');
         
+        $this->setDbUnique('name');
         $this->setDbUnique('hostId, path');
     }
     
@@ -530,6 +537,27 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Премахва процеса от кронтаба и го спира
+     * 
+     * @param stdObject $rec
+     */
+    protected static function stopProcess($rec)
+    {
+        $sshObj = self::connectToRepo($rec);
+        
+        // Премахваме процеса от кронтаба
+        $autorunPath = rtrim($rec->path, '/');
+        $autorunPath .= '/' . self::$systemPath . '/' . self::$autorunFile;
+        $autorunPath = escapeshellarg($autorunPath);
+        $sshObj->exec("crontab -l | grep -v " . $autorunPath . " | crontab -");
+        
+        // Спираме процеса
+        $path = preg_quote($rec->path, '/');
+        $sshObj->exec('pid=$(ps aux | egrep "(inotifywait)(.*?)(' . $path . ')+$" | awk {\'print $2\'}); if  [ -n "$pid" ];  then kill -9 $pid; fi;');
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param distro_Repositories $mvc
@@ -579,10 +607,9 @@ class distro_Repositories extends core_Master
         
         $sshObj = self::connectToRepo($rec);
         
-        // Добавяме скрипта във файла
+        // Добавяме скрипта за стартирана на inotifywait
         $autorunSh = $mvc->getAutorunSh($rec->path, $sysDir);
         $autorunSh = escapeshellarg($autorunSh);
-        
         $path = rtrim($sysDir, '/');
         $path .= '/' . self::$autorunFile;
         $ePath = escapeshellarg($path);
@@ -593,15 +620,62 @@ class distro_Repositories extends core_Master
         $addCrontabStr = $mvc->getStringToAddCrontab($path);
         $sshObj->exec($addCrontabStr);
         
+        // Добавяме .htaccess в хранилището
         $htaccesPath = rtrim($rec->path, '/');
         $htaccesPath .= '/.htaccess';
         $htaccesPath = escapeshellarg($htaccesPath);
-        
         $fPath = getFullPath('/distro/tpl/htaccess.txt');
         $content = file_get_contents($fPath);
         $content = escapeshellarg($content);
         
         $sshObj->exec("echo {$content} >> $htaccesPath");
+    }
+    
+    
+    /**
+     * След оттегляне на документа
+     *
+     * @param distro_Repositories $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $mvc->stopProcess($rec);
+    }
+    
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $id => $rec) {
+            $mvc->stopProcess($rec);
+        }
+    }
+    
+    
+    /**
+     * След възстановяване на документа
+     *
+     * @param distro_Repositories $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterRestore($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        // Добавяме процеса в кронтаба
+        $path = rtrim($rec->path, '/');
+        $path .= '/' . self::$systemPath . '/' . self::$autorunFile;
+        $addCrontabStr = $mvc->getStringToAddCrontab($path);
+        $sshObj->exec($addCrontabStr);
     }
     
     
