@@ -36,73 +36,85 @@ class distro_Repositories extends core_Master
     /**
      * Заглавие на таблицата
      */
-    var $title = "Път до хранилище";
+    public $title = "Път до хранилище";
     
     
     /**
      * 
      */
-    var $singleTitle = "Хранилище";
+    public $singleTitle = "Хранилище";
     
     
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/repository.png';
+    public $singleIcon = 'img/16/repository.png';
     
     
     /**
      * 
      */
-    var $canSingle = 'admin';
+    public $canSingle = 'admin';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin';
+    public $canEdit = 'admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin';
+    public $canAdd = 'admin';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'admin';
+    public $canReject = 'admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin';
+    public $canDelete = 'admin';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'distro_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
+    public $loadList = 'distro_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
+    
+    
+    /**
+     * 
+     */
+    public $listFields = 'id, hostId, name, path, info, createdOn, createdBy';
+    
+    
+    /**
+     * Полетата, които ще се показват в единичния изглед
+     */
+    var $singleFields = 'id, hostId, name, path, info, createdOn, createdBy';
     
     
     /**
