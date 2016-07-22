@@ -2736,4 +2736,23 @@ class doc_Containers extends core_Manager
     	
     	return $arr;
     }
+    
+    
+    /**
+     * 'Докосва' всички документи, които имат посочения документ за ориджин
+     * 
+     * @param int $originId
+     * @return void
+     */
+    public static function touchDocumentsByOrigin($originId)
+    {
+    	$query = doc_Containers::getQuery();
+    	$query->where(array("#originId = [#1#]", $originId));
+    	$query->show('docClass,docId');
+    	while($rec = $query->fetch()){
+    		if(cls::load($rec->docClass, TRUE)){
+    			cls::get($rec->docClass)->touchRec($rec->docId);
+    		}
+    	}
+    }
 }
