@@ -127,6 +127,7 @@ class distro_Repositories extends core_Master
         $this->FLD('path', 'varchar', 'caption=Път на хранилището, mandatory');
         $this->FLD('info', 'richtext', 'caption=Информация');
         $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
+        $this->FLD('url', 'url', 'caption=Линк за сваляне');
         
         $this->setDbUnique('hostId, path');
     }
@@ -300,6 +301,41 @@ class distro_Repositories extends core_Master
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     * Ако в хранилището е зададено URL, генерираме линк към самия файл в него
+     * 
+     * @param integer $id
+     * @param string $subDir
+     * @param string $file
+     * @return string
+     */
+    public static function getUrlForFile($id, $subDir, $file)
+    {
+        $rec = self::fetch((int) $id);
+        
+        if (!($url = trim($rec->url))) return $file;
+        
+        $url = rtrim($url, '/');
+        
+        $url .= '/' . $subDir . '/' . $file;
+
+        $ext = fileman_Files::getExt($file);
+        //Иконата на файла, в зависимост от разширението на файла
+        $icon = "fileman/icons/{$ext}.png";
+        
+        //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
+        if (!is_file(getFullPath($icon))) {
+            $icon = "fileman/icons/default.png";
+        }
+        
+        $sbfIcon = sbf($icon,"");
+        $link = ht::createLink($file, $url, NULL, array('target'=>'_blank'));
+        $fileStr = "<span class='linkWithIcon' style='background-image:url($sbfIcon);'>{$link}</span>";
+        
+        return $fileStr;
     }
     
     
