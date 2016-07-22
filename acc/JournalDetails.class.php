@@ -74,7 +74,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('debitItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 2');
         $this->FLD('debitItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 3');
         $this->FLD('debitQuantity', 'double(minDecimals=0)', 'caption=Дебит->К-во');
-        $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
+        $this->FLD('debitPrice', 'double(decimals=5)', 'caption=Дебит->Цена');
         
         // Кредитна аналитична сметка
         $this->FLD('creditAccId', 'key(mvc=acc_Accounts,select=title)',
@@ -83,7 +83,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 2');
         $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 3');
         $this->FLD('creditQuantity', 'double(minDecimals=0)', 'caption=Кредит->К-во');
-        $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
+        $this->FLD('creditPrice', 'double(decimals=5)', 'caption=Кредит->Цена');
         
         // Обща сума на транзакцията
         $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
