@@ -91,7 +91,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	 * @param stdClass $res
 	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, &$data)
+	public static function on_AfterPrepareSingle(planning_drivers_ProductionTask $Driver, embed_Manager $Embedder, &$res, &$data)
 	{
 		$rec = $data->rec;
 		
@@ -116,7 +116,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	 * @param core_ET $tpl
 	 * @param stdClass $data
 	 */
-	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
+	public static function on_AfterRenderSingle(planning_drivers_ProductionTask $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
 		if(isset($data->paramData)){
 			$paramTpl = cat_products_Params::renderParams($data->paramData);
