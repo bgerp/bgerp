@@ -16,6 +16,24 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Папка за системните файлове
+     */
+    protected static $systemPath = '.system';
+    
+    
+    /**
+     * Файл в който ще записва inotifywait
+     */
+    protected static $systemFile = '.system';
+    
+    
+    /**
+     * Файл, който ще се пуска по крон
+     */
+    protected static $autorunFile = 'autorun.sh';
+    
+    
+    /**
      * Заглавие на таблицата
      */
     var $title = "Път до хранилище";
@@ -158,9 +176,9 @@ class distro_Repositories extends core_Master
      * Създава директория в хранилището
      * 
      * @param integer $repoId
-     * @param string $name
+     * @param string|NULL $name
      * 
-     * @return FALSE|
+     * @return FALSE|string
      */
     public static function createDir($repoId, $name)
     {
@@ -170,13 +188,13 @@ class distro_Repositories extends core_Master
         
         if ($sshObj === FALSE) return FALSE;
         
-        $path = rtrim($rec->path, '/');
-        $path .= '/' . $name;
-        $path = escapeshellarg($path);
+        $oPath = rtrim($rec->path, '/');
+        $oPath .= '/' . $name;
+        $path = escapeshellarg($oPath);
         
-        $sshObj->exec('mkdir ' . $path);
+        $sshObj->exec('mkdir -p ' . $path);
         
-        return TRUE;
+        return $oPath;
     }
     
     
@@ -336,8 +354,7 @@ class distro_Repositories extends core_Master
         if ($sshObj === FALSE) return array();
         
         $linesCnt = escapeshellarg($linesCnt);
-        $path = rtrim($rec->path, '/');
-        $path .= '/.system';
+        $path = self::getSystemFile($rec->path);
         $path = escapeshellarg($path);
         
         $cmd = "tail -n {$linesCnt} $path";
@@ -369,16 +386,20 @@ class distro_Repositories extends core_Master
     {
         $rec = self::fetchRec($rec);
         
-        try {
-            $sshObj = new ssh_Actions($rec->hostId);
-        } catch (core_exception_Expect $e) {
-            self::logWarning('Грешка при свързване към хост: ' . $e->getMessage(), $rec->id);
-            reportException($e);
+        $repoConnectArr = array();
         
-            return FALSE;
+        if (!isset($repoConnectArr[$rec->id])) {
+            try {
+                $repoConnectArr[$rec->id] = new ssh_Actions($rec->hostId);
+            } catch (core_exception_Expect $e) {
+                self::logWarning('Грешка при свързване към хост: ' . $e->getMessage(), $rec->id);
+                reportException($e);
+                
+                $repoConnectArr[$rec->id] = FALSE;
+            }
         }
         
-        return $sshObj;
+        return $repoConnectArr[$rec->id];
     }
     
     
@@ -393,6 +414,102 @@ class distro_Repositories extends core_Master
     {
         
         return md5($line);
+    }
+    
+    
+    /**
+     * Връща стринг, който периодично ще спира/стартира inotifywait програмата в хранилището
+     * 
+     * @param string $path
+     * 
+     * @return string
+     */
+    protected static function getAutorunSh($path)
+    {
+        $tpl = getTplFromFile('/distro/tpl/InotifyAutorun.txt');
+        
+        $systemPath = self::getSystemFile($path);
+        
+        $nObj = new stdClass();
+        $nObj->regExPath = preg_quote($path, '/');
+        $nObj->path = escapeshellarg($path);
+        $nObj->sysPath = escapeshellarg($systemPath);
+        $nObj->hour = '03';
+        $nObj->min = rand(10, 59);
+        $nObj->sleep = rand(30, 40);
+        $nObj->pipe = '|'; // Това е заради превеждането на шаблона
+        
+        $tpl->placeObject($nObj);
+        
+        return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Връща пътя до системния файл, където ще се записват данните от inotifywait
+     * 
+     * @param string $path
+     * 
+     * @return string
+     */
+    protected static function getSystemFile($path)
+    {
+        $systemPath = rtrim($path, '/');
+        $systemPath .= '/' . self::$systemPath . '/' . self::$systemFile;
+        
+        return $systemPath;
+    }
+    
+    
+    /**
+     * Връща стринг, който при стартиране добавя изпълнянието на файла в кронтаба
+     * 
+     * @param string $path
+     * 
+     * @return string
+     */
+    protected function getStringToAddCrontab($path)
+    {
+        $path = escapeshellarg($path);
+        
+        $res = 'crontab -l > cron.res' . "\n";
+        $res .= 'echo "* * * * * ' . $path . '" >> cron.res' . "\n";
+        $res .= 'crontab cron.res' . "\n";
+        $res .= 'rm cron.res';
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     * 
+     * @param distro_Repositories $mvc
+     * @param stdClass $rec
+     * @param array $fields
+     * @param NULL|string $mode
+     */
+    public static function on_AfterCreate($mvc, $rec, $fields, $mode)
+    {
+        $sysDir = $mvc->createDir($rec->id, self::$systemPath . '/');
+        
+        if ($sysDir === FALSE) return ;
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        // Добавяме скрипта във файла
+        $autorunSh = $mvc->getAutorunSh($rec->path, $sysDir);
+        $autorunSh = escapeshellarg($autorunSh);
+        
+        $path = rtrim($sysDir, '/');
+        $path .= '/' . self::$autorunFile;
+        $ePath = escapeshellarg($path);
+        $sshObj->exec("echo {$autorunSh} >> $ePath");
+        $sshObj->exec("chmod +x {$ePath}");
+        
+        // Добавяме стартирането на файла в кронтаба
+        $addCrontabStr = $mvc->getStringToAddCrontab($path);
+        $sshObj->exec($addCrontabStr);
     }
     
     
