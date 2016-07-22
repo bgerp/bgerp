@@ -494,6 +494,21 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param distro_Repositories $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->form->rec->id) {
+            $data->form->setReadOnly('hostId');
+            $data->form->setReadOnly('path');
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов запис
      * 
      * @param distro_Repositories $mvc
