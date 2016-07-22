@@ -510,6 +510,16 @@ class distro_Repositories extends core_Master
         // Добавяме стартирането на файла в кронтаба
         $addCrontabStr = $mvc->getStringToAddCrontab($path);
         $sshObj->exec($addCrontabStr);
+        
+        $htaccesPath = rtrim($rec->path, '/');
+        $htaccesPath .= '/.htaccess';
+        $htaccesPath = escapeshellarg($htaccesPath);
+        
+        $fPath = getFullPath('/distro/tpl/htaccess.txt');
+        $content = file_get_contents($fPath);
+        $content = escapeshellarg($content);
+        
+        $sshObj->exec("echo {$content} >> $htaccesPath");
     }
     
     
