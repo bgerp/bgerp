@@ -717,6 +717,8 @@ class planning_Jobs extends core_Master
     		
     		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
     	}
+    	
+    	doc_Containers::touchDocumentsByOrigin($rec->containerId);
     }
     
     
