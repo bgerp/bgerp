@@ -102,8 +102,9 @@ class doc_ThreadRefreshPlg extends core_Plugin
             
             if (!$lastSend) {
                 $lastSend = dt::verbal2mysql();
-                Mode::setPermanent($threadLastSendName, $lastSend);
             }
+            
+            Mode::setPermanent($threadLastSendName, $lastSend);
         }
         
         // Определяме времето на последна модификация на контейнер в нишката
