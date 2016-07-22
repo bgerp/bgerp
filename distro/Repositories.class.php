@@ -114,7 +114,7 @@ class distro_Repositories extends core_Master
     /**
      * Полетата, които ще се показват в единичния изглед
      */
-    var $singleFields = 'id, hostId, name, path, info, createdOn, createdBy';
+    public $singleFields = 'id, hostId, name, path, info, createdOn, createdBy';
     
     
     /**
