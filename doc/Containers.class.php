@@ -1190,7 +1190,7 @@ class doc_Containers extends core_Manager
      * 
      * @param string $handle Inv478, Eml57 и т.н.
      * @param string $intf интерфейс
-     * @return core_ObjectReference
+     * @return core_ObjectReference|FALSE
      */
     static function getDocumentByHandle($handle, $intf = NULL)
     {
@@ -1216,7 +1216,15 @@ class doc_Containers extends core_Manager
         return static::getDocument((object)array('docClass' => $mvc, 'docId' => $docRec->id), $intf);
     }
     
-    protected static function parseHandle($handle)
+    
+    /**
+     * 
+     * 
+     * @param string $handle
+     * 
+     * @return array|FALSE
+     */
+    public static function parseHandle($handle)
     {
         $handle = trim($handle);
         
@@ -2727,5 +2735,24 @@ class doc_Containers extends core_Manager
     	}
     	
     	return $arr;
+    }
+    
+    
+    /**
+     * 'Докосва' всички документи, които имат посочения документ за ориджин
+     * 
+     * @param int $originId
+     * @return void
+     */
+    public static function touchDocumentsByOrigin($originId)
+    {
+    	$query = doc_Containers::getQuery();
+    	$query->where(array("#originId = [#1#]", $originId));
+    	$query->show('docClass,docId');
+    	while($rec = $query->fetch()){
+    		if(cls::load($rec->docClass, TRUE)){
+    			cls::get($rec->docClass)->touchRec($rec->docId);
+    		}
+    	}
     }
 }

@@ -703,7 +703,7 @@ class cat_Products extends embed_Manager {
                 foreach ($groupArr as $groupName) {
                     $groupId = cat_Groups::forceGroup($groupName, NULL, FALSE);
                     
-                    if (!$groupId) {
+                    if (!isset($groupId)) {
                         self::logNotice('Липсваща група при импортиране: ' . "{$groupName}");
                         
                         return FALSE;
@@ -1228,6 +1228,13 @@ class cat_Products extends embed_Manager {
     		foreach ($hasnotProperties as $meta1){
     			$query->where("#{$meta1} = 'no'");
     		}
+    	}
+    	
+    	// Искаме само артикулите, които не са в папки за прототипи
+    	$protoFolders = cat_Categories::getProtoFolders();
+    	if(count($protoFolders)){
+    		$protoFolders = implode(',', $protoFolders);
+    		$query->where("#folderId NOT IN ({$protoFolders})");
     	}
     	
     	// Подготвяме опциите

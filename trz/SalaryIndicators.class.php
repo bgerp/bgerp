@@ -108,7 +108,7 @@ class trz_SalaryIndicators extends core_Manager
     	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Наименование,mandatory,width=100%');
     	$this->FLD('value',    'double', 'caption=Индикатор->Стойност,mandatory,width=100%');
     	
-    	$this->setDbUnique('date,docId, docClass, personId, indicator');
+    	$this->setDbUnique('date,docId,docClass,personId,indicator');
     	
     }
     
@@ -127,11 +127,19 @@ class trz_SalaryIndicators extends core_Manager
 	    	$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
 	    	$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
     	}
-    	
+
+    	$Class = cls::get($rec->docClass);
+
     	// Ако имаме права да видим документа от Премиите
-    	if(trz_Bonuses::haveRightFor('single', $rec->docId)){
-	    	$name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
-	    	$row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
+    	if($Class::haveRightFor('single', $rec->docId)){
+
+    	    if(cls::getClassName($rec->docClass) == 'trz_Bonuses'){
+    	        $name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
+    	        $row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
+    	    } else {
+    	    
+    	       $row->doc = $Class->getHyperlink($rec->docId);
+    	    }
     	}
     	
     	$Double = cls::get('type_Double');
@@ -231,7 +239,7 @@ class trz_SalaryIndicators extends core_Manager
     	// Намираме всички класове съдържащи интерфейса
     	$docArr = core_Classes::getOptionsByInterface('trz_SalaryIndicatorsSourceIntf');
     	$indicators = array();
-    
+
     	// Зареждаме всеки един такъв клас
     	foreach ($docArr as $doc){
     		$Class = cls::get($doc);
@@ -241,11 +249,15 @@ class trz_SalaryIndicators extends core_Manager
 
     	    $dataCnt = count($data);
     	    
-    	    // По id-то на служителя, намираме от договора му
-    	    // в кой отдел и на каква позиция работи
-    	    for($i = 0; $i < $dataCnt; $i ++){ 
-    	    	$data[$i]->departmentId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'departmentId');
-    	    	$data[$i]->positionId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'positionId');
+    	    if ($data) {
+        	    // По id-то на служителя, намираме от договора му
+        	    // в кой отдел и на каква позиция работи
+        	    for($i = 0; $i < $dataCnt; $i ++){
+            	    if($data[$i]->personId) {
+            	    	$data[$i]->departmentId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'departmentId');
+            	    	$data[$i]->positionId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'positionId');
+            	    }
+        	    }
     	    }
             
     	    if(is_array($data)){
@@ -266,9 +278,9 @@ class trz_SalaryIndicators extends core_Manager
     public static function pushIndicators($date)
     {
     	$indicators = self::fetchIndicators($date);
-
+    	
     	// За всеки един елемент от масива
-    	foreach ($indicators as $indicator)
+    	foreach ($indicators as $id=>$indicator)
     	{
     		$rec = new stdClass();
     		$rec->date = $indicator->date;
@@ -285,13 +297,15 @@ class trz_SalaryIndicators extends core_Manager
 	    	
 	    	// Ако имаме уникален запис го записваме
 	    	// в противен слувай го ъпдейтваме
-       		if($self->isUnique($rec, $fields,$exRec)){
+       		if($self->isUnique($rec, $fields, $exRec)){
     			self::save($rec);
     		} else { 
             	$rec->id = $exRec->id;
             	self::save($rec);
             }
     	}
+    	
+    	
     }
     
     

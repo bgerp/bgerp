@@ -26,7 +26,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, state';
+    var $listFields = 'id, title, state, type';
     
     
     /**
@@ -99,6 +99,7 @@ class cond_PaymentMethods extends core_Master
 
         // Текстово описание
         $this->FLD('title', 'varchar', 'caption=Описание, mandatory, translate,oldFieldName=description');
+        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'caption=Вид плащане');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');

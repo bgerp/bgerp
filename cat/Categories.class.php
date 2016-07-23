@@ -363,6 +363,28 @@ class cat_Categories extends core_Master
     
     
     /**
+     * Връща папките, в които може да има прототипи
+     * 
+     * @return array $folders
+     */
+    public static function getProtoFolders()
+    {
+    	$folders = array();
+    	
+    	// В кои категории може да има прототипни артикули
+    	$query = self::getQuery();
+    	$query->where("#useAsProto = 'yes'");
+    	$query->show('folderId');
+    	while($cRec = $query->fetch()) {
+    		$folders[$cRec->folderId] = $cRec->folderId;
+    	}
+    	
+    	return $folders;
+    }
+    
+    
+    
+    /**
      * Връща възможните за избор прототипни артикули с дадения драйвер
      * 
      * @param int|NULL $driverId - Ид на продуктов драйвер
@@ -374,12 +396,8 @@ class cat_Categories extends core_Master
     {
     	$opt = $cArr = array();
     	
-    	// В кои категории може да има прототипни артикули
-    	$cQuery = self::getQuery();
-    	$cQuery->show('folderId');
-    	while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
-    		$cArr[] = $cRec->folderId;
-    	}
+    	// Извличаме папките за прототипи
+    	$cArr = static::getProtoFolders();
     	
     	// Ако има такива, извличаме активните артикули със същия драйвер
     	if(count($cArr)) {
@@ -401,7 +419,7 @@ class cat_Categories extends core_Master
     		}
     		
     		while($pRec = $query->fetch()) {
-    			$opt[$pRec->id] = cat_Products::getTitleById($pRec->id, FALSE);
+    			$opt[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
     		}
     	}
     	

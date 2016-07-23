@@ -1,0 +1,8 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+  <!--ET_BEGIN description-->  
+  <div class='quiet'>|Описание|*</div>
+  <div>[#description#]</div>
+  <br>
+  <!--ET_END description-->
+  [#PARAMS#]
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

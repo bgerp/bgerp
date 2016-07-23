@@ -2,6 +2,9 @@
     [#SingleToolbar#]
     <div class="info-table">
         <h2>[#SingleTitle#]</h2>
+        <!--ET_BEGIN type-->
+        <div>|Вид|*: [#type#]</div>
+        <!--ET_END type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Описание|*</legend>
             [#description#]

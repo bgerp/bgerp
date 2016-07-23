@@ -46,28 +46,14 @@ class distro_Setup extends core_ProtoSetup
     public $depends = 'ssh=0.1';
     
     
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {   
-        // Инсталиране на мениджърите
-        $managers = array(
+    // Мениджъри за инсталиране
+    var $managers = array(
             'distro_Group',
             'distro_Files',
             'distro_Automation',
             'distro_Repositories',
-        );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
+            'migrate::reposToKey',
+    );
     
     
     /**
@@ -79,5 +65,41 @@ class distro_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за превръщане от keylist в key поле
+     */
+    public static function reposToKey()
+    {
+        // Ако полето липсва в таблицата на модела да не се изпълнява
+        $cls = cls::get('distro_Files');
+        $cls->db->connect();
+        $reposField = str::phpToMysqlName('repos');
+        if (!$cls->db->isFieldExists($cls->dbTableName, $reposField)) return ;
+
+        $fQuery = $cls->getQuery();
+        
+        unset($fQuery->fields['repos']);
+        $fQuery->FLD('repos', 'keylist(mvc=distro_Repositories, select=name)');
+        
+        $fQuery->where("#repoId IS NULL");
+        
+        while ($fRec = $fQuery->fetch()) {
+            
+            $reposArr = type_Keylist::toArray($fRec->repos);
+            
+            foreach ($reposArr as $repoId) {
+                $fRec->repos = NULL;
+                $fRec->repoId = $repoId;
+                
+                $cls->save($fRec);
+                
+                unset($fRec->id);
+            }
+        }
+        
+        return ;
     }
 }

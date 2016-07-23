@@ -190,6 +190,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->|*<small>|Заскладено|*</small>,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
+    	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структурни звена');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
@@ -461,6 +462,15 @@ class planning_Jobs extends core_Master
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
     		}
+    		
+    		if(isset($rec->departments)){
+    			
+    			$row->departments = '';
+    			$departments = keylist::toArray($rec->departments);
+    			foreach ($departments as $dId){
+    				$row->departments .= hr_Departments::getHyperlink($dId, TRUE) . "<br>";
+    			}
+    		}
     	}
     	
     	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
@@ -686,37 +696,29 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-    	// Записваме действието във историята
-    	$rec = $mvc->fetchRec($id);
-    	self::addToHistory($rec->history, 'rejected', $rec->modifiedOn, $rec->modifiedBy);
-    	$mvc->save($rec, 'history');
-    }
-    
-    
-    /**
-     * След възстановяване
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-    	// Записваме действието във историята
-    	$rec = $mvc->fetchRec($id);
-    	self::addToHistory($rec->history, 'restore', $rec->modifiedOn, $rec->modifiedBy);
-    	$mvc->save($rec, 'history');
-    }
-    
-    
-    /**
      * След промяна на състоянието
      */
-    public static function on_AfterChangeState($mvc, &$rec)
+    public static function on_AfterChangeState($mvc, &$rec, $action)
     {
     	// Записваме в историята действието
-    	self::addToHistory($rec->history, $rec->state, dt::now(), core_Users::getCurrent(), $rec->_reason);
+    	self::addToHistory($rec->history, $action, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
     	$mvc->save($rec, 'history');
+    	
+    	// Ако заданието е затворено, затваряме и задачите към него
+    	if($rec->state == 'closed'){
+    		$count = 0;
+    		$tQuery = planning_Tasks::getQuery();
+    		$tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
+    		while($tRec = $tQuery->fetch()){
+    			$tRec->state = 'closed';
+    			cls::get('planning_Tasks')->save_($tRec, 'state');
+    			$count++;
+    		}
+    		
+    		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
+    	}
+    	
+    	doc_Containers::touchDocumentsByOrigin($rec->containerId);
     }
     
     
