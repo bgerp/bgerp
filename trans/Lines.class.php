@@ -405,7 +405,7 @@ class trans_Lines extends core_Master
             // Генерира се новата линия
             $newRec = $this->getNewLine($rec);
     		
-            if(self::getDocumentsCnt($data->rec->id, NULL, 1)) {
+            if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
                 // Ако в старата линия има документи, създава и записва новата линия
                 core_Users::sudo($rec->createdBy);
                 $this->save($newRec);
