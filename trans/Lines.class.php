@@ -210,10 +210,7 @@ class trans_Lines extends core_Master
     	
     	$changeUrl = array($mvc, 'changeState', $data->rec->id);
     	if($data->rec->state == 'active'){
-    		if(store_ShipmentOrders::fetchField("#lineId = {$rec->id} AND #state = 'draft'") ||
-    		store_Receipts::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
-    		store_ConsignmentProtocols::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
-    		store_Transfers::fetchField("#lineId = {$rec->id} AND #state = 'draft'")){
+    		if(self::getDocumentsCnt($data->rec->id, 'draft', 1)){
     			$error = ',error=Линията не може да бъде затворена докато има чернови документи към нея';
     		} else {
     			$warning= ',warning=Наистина ли искате да затворите линията?';
@@ -243,12 +240,7 @@ class trans_Lines extends core_Master
     	
     	// Освобождаваме всички чернови документи в които е избрана линията която затваряме
     	if($rec->state == 'closed'){
-    		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'store_Transfers') as $Doc){
-    			$query = $Doc::getQuery();
-    			$query->where("#state = 'draft'");
-    			$query->where("#lineId = {$id}");
-    			expect(!$query->count());
-    		}
+    	    expect(!self::getDocumentsCnt($id, 'draft', 1));
     	}
     	
     	$this->save($rec);
@@ -409,16 +401,25 @@ class trans_Lines extends core_Master
     	$query2->where("#repeat IS NOT NULL");
     	$query2->where("#isRepeated = 'no'");
     	while($rec = $query2->fetch()){
+            
+            // Генерира се новата линия
+            $newRec = $this->getNewLine($rec);
     		
-    		// Генерира се новата линия
-    		core_Users::sudo($rec->createdBy);
-    		$newRec = $this->getNewLine($rec);
-    		$this->save($newRec);
-    		core_Users::exitSudo();
-    		
-    		// Линията се отбелязва като повторена
-    		$rec->isRepeated = 'yes';
-    		$this->save($rec, 'isRepeated');
+            if(self::getDocumentsCnt($data->rec->id, NULL, 1)) {
+                // Ако в старата линия има документи, създава и записва новата линия
+                core_Users::sudo($rec->createdBy);
+                $this->save($newRec);
+                core_Users::exitSudo();
+                
+                // Линията се отбелязва като повторена
+                $rec->isRepeated = 'yes';
+                $this->save($rec, 'isRepeated');
+            } else {
+                // Вместо да създава нова линия, отваря старата, ако в нея няма документи
+                $rec->start = $newRec->start;
+                $rec->state = $newRec->state;
+                $this->save($rec);
+            }
     	}
     }
     
@@ -464,5 +465,31 @@ class trans_Lines extends core_Master
         $rec->delay 	  = 0;
         $rec->timeLimit   = 100;
         $res .= core_Cron::addOnce($rec);
+    }
+
+    /**
+     * Връща броя на документите в посочената линия
+     * Може да се филтрират по #state и да се ограничат до maxDocs
+     */
+    public static function getDocumentsCnt($lineId, $state = NULL, $maxDocs = 0)
+    {
+        $res = 0;
+    	$me = cls::get(get_called_class());
+        $details = arr::make($me->details, TRUE);
+        foreach($details as $d) {
+            $query = $d::getQuery();
+    	    $query->where("#lineId = {$lineId}");
+            if($state) {
+    	        $query->where("#state = '{$state}'");
+            }
+            if($maxDoc) {
+                $query->limit($maxDocs);
+            }
+            $res += $query->count();
+
+            if($res >= $maxDocs) break;
+        }
+
+        return $res;
     }
 }
