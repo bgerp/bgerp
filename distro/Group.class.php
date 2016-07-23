@@ -248,14 +248,14 @@ class distro_Group extends core_Master
             // Обхождаме масива
             foreach ((array)$reposArr as $repoId) {
                 
+                // Активираме хранилището
+                distro_Repositories::activateRepo($repoId);
+                
                 $handle = $mvc->getSubDirName($rec->id);
                 
                 // TODO Async
                 // Създаваме директория в хранилището
                 distro_Repositories::createDir($repoId, $handle);
-                
-                // Активираме хранилището
-                distro_Repositories::activateRepo($repoId);
             }
         }
     }

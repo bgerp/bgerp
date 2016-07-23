@@ -240,7 +240,7 @@ class planning_plg_StateManager extends core_Plugin
     		// Обновяваме състоянието и старото състояние
     		if($mvc->save($rec, 'brState,state,modifiedOn,modifiedBy')){
     			$mvc->logWrite($logAction, $rec->id);
-    			$mvc->invoke('AfterChangeState', array(&$rec, $action));
+    			$mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
     		}
     		
     		// Ако сме активирали: запалваме събитие, че сме активирали
@@ -250,6 +250,28 @@ class planning_plg_StateManager extends core_Plugin
     		
     		// Редирект обратно към документа
     		redirect(array($mvc, 'single', $rec->id));
+		}
+	}
+	
+
+	/**
+	 * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+	 */
+	public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+	{
+		$rec = $mvc->fetchRec($id);
+		$mvc->invoke('AfterChangeState', array(&$rec, 'rejected'));
+	}
+	
+	
+	/**
+	 * След възстановяване
+	 */
+	public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+	{
+		$rec = $mvc->fetchRec($id);
+		if($rec->state != 'rejected'){
+			$mvc->invoke('AfterChangeState', array(&$rec, 'restore'));
 		}
 	}
 	

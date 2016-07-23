@@ -231,7 +231,7 @@ class core_Lg extends core_Manager
 
                     if($followEn) {
                         if($lg == 'en') {
-                            $this->dict[static::prepareKey($translated[count($translated)-1])]['en'] = $phrase;
+                            $this->dict[$lg][static::prepareKey($translated[count($translated)-1])] = $phrase;
                             $translated[count($translated)-1] = $phrase;
                         }
                         $followEn = FALSE;
@@ -260,22 +260,22 @@ class core_Lg extends core_Manager
         
         $key = static::prepareKey($key);
         
-        if(!count($this->dict)) {
-            $this->dict = core_Cache::get('translation', $lg, 2 * 60 * 24, array('core_Lg'));
+        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
+            $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
             
-            if(!$this->dict) {
+            if(!$this->dict[$lg]) {
                 $query = self::getQuery();
                 
                 while($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
-                    $this->dict[$rec->kstring][$lg] = type_Varchar::escape($rec->translated);
+                    $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
                 }
-                core_Cache::set('translation', $lg, $this->dict, 2 * 60 * 24, array('core_Lg'));
+                core_Cache::set('translationLG', $lg, $this->dict[$lg], 2 * 60 * 24, array('core_Lg'));
             }
         }
         
         // Ако имаме превода в речника, го връщаме
-        if (isset($this->dict[$key][$lg])) {
-            $res = $this->dict[$key][$lg];
+        if (isset($this->dict[$lg][$key])) {
+            $res = $this->dict[$lg][$key];
         } else {
             // Ако и в базата нямаме превода, тогава приемаме, 
             // че превода не променя ключовия стринг
@@ -294,9 +294,9 @@ class core_Lg extends core_Manager
             }
             
             // Записваме в кеш-масива
-            $this->dict[$key][$lg] = type_Varchar::escape($rec->translated);
+            $this->dict[$lg][$key] = type_Varchar::escape($rec->translated);
             
-            $res = $this->dict[$key][$lg];
+            $res = $this->dict[$lg][$key];
         }
 
         // Ако превеждаме на английски и в крайния текст има все-пак думи с кирилски символи,

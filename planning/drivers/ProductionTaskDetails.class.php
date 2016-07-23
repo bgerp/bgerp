@@ -30,6 +30,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
+     * Интерфейси
+     */
+    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    
+    
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'taskId';
@@ -395,5 +401,57 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     {
     	$rec = &$data->form->rec;
     	$data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : (($rec->type == 'start') ? 'пускане' : 'произвеждане'));
+    }
+    
+    
+    /**
+     * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+     *
+     * @param date $date
+     * @return array $result
+     */
+    public static function getSalaryIndicators($date)
+    {
+    
+        $query = self::getQuery();
+        $me = cls::get(get_called_class());
+        $Double = cls::get(type_Double);
+    
+        $from = $date . ' 00:00:00';
+        $to   = $date   . ' 23:59:59';
+    
+        $query->where("#modifiedOn >= '{$from}' AND #modifiedOn <= '{$to}' AND #state = 'active'");
+    
+        $result = array();
+        $dataRec = array();
+        $tplObj = (object) array ('date' => $date, 'docClass' => core_Classes::getId('planning_Tasks'), 'indicator' => tr("|Производство|*"));
+        
+                          
+        while($rec = $query->fetch()){
+            $dataRec[] = $rec;
+            $persons = keylist::toArray($rec->employees);
+            $time = $Double->fromVerbal($rec->time);          
+
+            if(is_array($persons)) {
+                $timePerson = $time / count($persons) ;
+            } else {
+                $timePerson =  $time;
+            }
+         
+            foreach ($persons as $person) {
+                
+                $key = $person . "|" . $rec->taskId;
+                if(!$result[$key]){
+                    $result[$key] = clone($tplObj);
+                }
+                
+                $result[$key]->personId = $person;
+                $result[$key]->docId = $rec->taskId;
+                $result[$key]->value += $timePerson;
+               
+            }
+        }
+
+        return $result;
     }
 }

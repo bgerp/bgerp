@@ -125,7 +125,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, quantity=Планирано,quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, dueDate, quantity,quantityFromTasks, quantityProduced, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -185,9 +185,9 @@ class planning_Jobs extends core_Master
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
-    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Планирано,mandatory,silent');
-    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
-    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Заскладено,notNull,value=0');
+    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->|*<small>|Планирано|*</small>,mandatory,silent');
+    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->|*<small>|Произведено|*</small>,notNull,value=0');
+    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->|*<small>|Заскладено|*</small>,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
     	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структурни звена');
@@ -462,6 +462,15 @@ class planning_Jobs extends core_Master
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
     		}
+    		
+    		if(isset($rec->departments)){
+    			
+    			$row->departments = '';
+    			$departments = keylist::toArray($rec->departments);
+    			foreach ($departments as $dId){
+    				$row->departments .= hr_Departments::getHyperlink($dId, TRUE) . "<br>";
+    			}
+    		}
     	}
     	
     	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
@@ -687,36 +696,12 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-    	// Записваме действието във историята
-    	$rec = $mvc->fetchRec($id);
-    	self::addToHistory($rec->history, 'rejected', $rec->modifiedOn, $rec->modifiedBy);
-    	$mvc->save($rec, 'history');
-    }
-    
-    
-    /**
-     * След възстановяване
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-    	// Записваме действието във историята
-    	$rec = $mvc->fetchRec($id);
-    	self::addToHistory($rec->history, 'restore', $rec->modifiedOn, $rec->modifiedBy);
-    	$mvc->save($rec, 'history');
-    }
-    
-    
-    /**
      * След промяна на състоянието
      */
-    public static function on_AfterChangeState($mvc, &$rec)
+    public static function on_AfterChangeState($mvc, &$rec, $action)
     {
     	// Записваме в историята действието
-    	self::addToHistory($rec->history, $rec->state, dt::now(), core_Users::getCurrent(), $rec->_reason);
+    	self::addToHistory($rec->history, $action, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
     	$mvc->save($rec, 'history');
     	
     	// Ако заданието е затворено, затваряме и задачите към него
@@ -732,6 +717,8 @@ class planning_Jobs extends core_Master
     		
     		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
     	}
+    	
+    	doc_Containers::touchDocumentsByOrigin($rec->containerId);
     }
     
     

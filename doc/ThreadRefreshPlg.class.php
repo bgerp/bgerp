@@ -87,13 +87,23 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $threadId = Request::get('threadId', 'int');
         
         doc_Threads::requireRightFor('single', $threadId);
-
-        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . Request::get('hitTime');
+        
+        $hitTime = Request::get('hitTime');
+        
+        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . $hitTime;
         
         $lastSend = Mode::get($threadLastSendName);
         
         if(!$lastSend) {
-            $lastSend = dt::verbal2mysql();
+            
+            if ($hitTime) {
+                $lastSend = dt::timestamp2Mysql($hitTime);
+            }
+            
+            if (!$lastSend) {
+                $lastSend = dt::verbal2mysql();
+            }
+            
             Mode::setPermanent($threadLastSendName, $lastSend);
         }
         
