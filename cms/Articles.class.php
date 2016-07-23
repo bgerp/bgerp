@@ -489,7 +489,7 @@ class cms_Articles extends core_Master
             $navTpl->append( "</div>");
         }
         
-        if($data->menuId > 0 && self::count("#menuId = {$data->menuId}") > 5) {
+        if($data->menuId > 0 && ($cnt = self::count("#menuId = {$data->menuId}")) > 5) {
             $searchForm = cls::get('core_Form', array('method' => 'GET'));
             $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
             $searchForm->layout->replace(toUrl(array('cms_Articles', 'Article')), 'ACTION');
@@ -497,6 +497,8 @@ class cms_Articles extends core_Master
             $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
             $searchForm->setHidden('menuId', $data->menuId);
             $navTpl->prepend($searchForm->renderHtml());
+            $navTpl->append("<div menuId={$data->menuId} cnt={$cnt} ></div>");
+
         }
 
         return $navTpl;
