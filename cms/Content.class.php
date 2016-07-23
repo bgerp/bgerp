@@ -538,10 +538,12 @@ class cms_Content extends core_Manager
     /**
      * Връща опциите от менюто, които отговарят на текущия домейн и клас
      */
-    public static function getMenuOpt($class)
+    public static function getMenuOpt($class, $domainId = NULL)
     {   
         $classId = core_Classes::getId($class);
-        $domainId = cms_Domains::getPublicDomain('id');  
+        if(!$domainId) {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
         $query = self::getQuery();
         $query->orderBy('#order');
         while($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {  

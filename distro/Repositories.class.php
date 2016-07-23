@@ -16,75 +16,111 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Папка за системните файлове
+     */
+    protected static $systemPath = '.system';
+    
+    
+    /**
+     * Файл в който ще записва inotifywait
+     */
+    protected static $systemFile = '.system';
+    
+    
+    /**
+     * Файл, който ще се пуска по крон
+     */
+    protected static $autorunFile = 'autorun.sh';
+    
+    
+    /**
      * Заглавие на таблицата
      */
-    var $title = "Път до хранилище";
+    public $title = "Път до хранилище";
     
     
     /**
      * 
      */
-    var $singleTitle = "Хранилище";
+    public $singleTitle = "Хранилище";
     
     
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/repository.png';
+    public $singleIcon = 'img/16/repository.png';
     
     
     /**
      * 
      */
-    var $canSingle = 'admin';
+    public $canSingle = 'admin';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin';
+    public $canEdit = 'admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin';
+    public $canAdd = 'admin';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'admin';
+    public $canReject = 'admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin';
+    public $canDelete = 'admin';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'distro_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
+    public $loadList = 'distro_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
+    
+    
+    /**
+     * 
+     */
+    public $listFields = 'id, name, hostId, path, info, createdOn, createdBy';
+    
+    
+    /**
+     * Полетата, които ще се показват в единичния изглед
+     */
+    public $singleFields = 'id, hostId, name, path, info, createdOn, createdBy';
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    var $fetchFieldsBeforeDelete = 'id, hostId, path';
     
     
     /**
@@ -97,8 +133,10 @@ class distro_Repositories extends core_Master
         $this->FLD('path', 'varchar', 'caption=Път на хранилището, mandatory');
         $this->FLD('info', 'richtext', 'caption=Информация');
         $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
+        $this->FLD('url', 'url', 'caption=Линк за сваляне');
         
-        $this->setDbUnique('hostId');
+        $this->setDbUnique('name');
+        $this->setDbUnique('hostId, path');
     }
     
     
@@ -158,9 +196,9 @@ class distro_Repositories extends core_Master
      * Създава директория в хранилището
      * 
      * @param integer $repoId
-     * @param string $name
+     * @param string|NULL $name
      * 
-     * @return FALSE|
+     * @return FALSE|string
      */
     public static function createDir($repoId, $name)
     {
@@ -170,13 +208,13 @@ class distro_Repositories extends core_Master
         
         if ($sshObj === FALSE) return FALSE;
         
-        $path = rtrim($rec->path, '/');
-        $path .= '/' . $name;
-        $path = escapeshellarg($path);
+        $oPath = rtrim($rec->path, '/');
+        $oPath .= '/' . $name;
+        $path = escapeshellarg($oPath);
         
-        $sshObj->exec('mkdir ' . $path);
+        $sshObj->exec('mkdir -p ' . $path);
         
-        return TRUE;
+        return $oPath;
     }
     
     
@@ -274,6 +312,41 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Ако в хранилището е зададено URL, генерираме линк към самия файл в него
+     * 
+     * @param integer $id
+     * @param string $subDir
+     * @param string $file
+     * @return string
+     */
+    public static function getUrlForFile($id, $subDir, $file)
+    {
+        $rec = self::fetch((int) $id);
+        
+        if (!($url = trim($rec->url))) return $file;
+        
+        $url = rtrim($url, '/');
+        
+        $url .= '/' . $subDir . '/' . $file;
+
+        $ext = fileman_Files::getExt($file);
+        //Иконата на файла, в зависимост от разширението на файла
+        $icon = "fileman/icons/{$ext}.png";
+        
+        //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
+        if (!is_file(getFullPath($icon))) {
+            $icon = "fileman/icons/default.png";
+        }
+        
+        $sbfIcon = sbf($icon,"");
+        $link = ht::createLink($file, $url, NULL, array('target'=>'_blank'));
+        $fileStr = "<span class='linkWithIcon' style='background-image:url($sbfIcon);'>{$link}</span>";
+        
+        return $fileStr;
+    }
+    
+    
+    /**
      * Парсира подадения ред от файла
      * 
      * @param integer $repoId
@@ -336,8 +409,7 @@ class distro_Repositories extends core_Master
         if ($sshObj === FALSE) return array();
         
         $linesCnt = escapeshellarg($linesCnt);
-        $path = rtrim($rec->path, '/');
-        $path .= '/.system';
+        $path = self::getSystemFile($rec->path);
         $path = escapeshellarg($path);
         
         $cmd = "tail -n {$linesCnt} $path";
@@ -369,16 +441,20 @@ class distro_Repositories extends core_Master
     {
         $rec = self::fetchRec($rec);
         
-        try {
-            $sshObj = new ssh_Actions($rec->hostId);
-        } catch (core_exception_Expect $e) {
-            self::logWarning('Грешка при свързване към хост: ' . $e->getMessage(), $rec->id);
-            reportException($e);
+        $repoConnectArr = array();
         
-            return FALSE;
+        if (!isset($repoConnectArr[$rec->id])) {
+            try {
+                $repoConnectArr[$rec->id] = new ssh_Actions($rec->hostId);
+            } catch (core_exception_Expect $e) {
+                self::logWarning('Грешка при свързване към хост: ' . $e->getMessage(), $rec->id);
+                reportException($e);
+                
+                $repoConnectArr[$rec->id] = FALSE;
+            }
         }
         
-        return $sshObj;
+        return $repoConnectArr[$rec->id];
     }
     
     
@@ -393,6 +469,213 @@ class distro_Repositories extends core_Master
     {
         
         return md5($line);
+    }
+    
+    
+    /**
+     * Връща стринг, който периодично ще спира/стартира inotifywait програмата в хранилището
+     * 
+     * @param string $path
+     * 
+     * @return string
+     */
+    protected static function getAutorunSh($path)
+    {
+        $tpl = getTplFromFile('/distro/tpl/InotifyAutorun.txt');
+        
+        $systemPath = self::getSystemFile($path);
+        
+        $nObj = new stdClass();
+        $nObj->regExPath = preg_quote($path, '/');
+        $nObj->path = escapeshellarg($path);
+        $nObj->sysPath = escapeshellarg($systemPath);
+        $nObj->hour = '03';
+        $nObj->min = rand(10, 59);
+        $nObj->sleep = rand(30, 40);
+        $nObj->pipe = '|'; // Това е заради превеждането на шаблона
+        
+        $tpl->placeObject($nObj);
+        
+        return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Връща пътя до системния файл, където ще се записват данните от inotifywait
+     * 
+     * @param string $path
+     * 
+     * @return string
+     */
+    protected static function getSystemFile($path)
+    {
+        $systemPath = rtrim($path, '/');
+        $systemPath .= '/' . self::$systemPath . '/' . self::$systemFile;
+        
+        return $systemPath;
+    }
+    
+    
+    /**
+     * Връща стринг, който при стартиране добавя изпълнянието на файла в кронтаба
+     * 
+     * @param string $path
+     * 
+     * @return string
+     */
+    protected function getStringToAddCrontab($path)
+    {
+        $path = escapeshellarg($path);
+        
+        $res = 'crontab -l > cron.res' . "\n";
+        $res .= 'echo "* * * * * ' . $path . '" >> cron.res' . "\n";
+        $res .= 'crontab cron.res' . "\n";
+        $res .= 'rm cron.res';
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Премахва процеса от кронтаба и го спира
+     * 
+     * @param stdObject $rec
+     */
+    protected static function stopProcess($rec)
+    {
+        $sshObj = self::connectToRepo($rec);
+        
+        // Премахваме процеса от кронтаба
+        $autorunPath = rtrim($rec->path, '/');
+        $autorunPath .= '/' . self::$systemPath . '/' . self::$autorunFile;
+        $autorunPath = escapeshellarg($autorunPath);
+        $sshObj->exec("crontab -l | grep -v " . $autorunPath . " | crontab -");
+        
+        // Спираме процеса
+        $path = preg_quote($rec->path, '/');
+        $sshObj->exec('pid=$(ps aux | egrep "(inotifywait)(.*?)(' . $path . ')+$" | awk {\'print $2\'}); if  [ -n "$pid" ];  then kill -9 $pid; fi;');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param distro_Repositories $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->form->rec->id) {
+            $data->form->setReadOnly('hostId');
+            $data->form->setReadOnly('path');
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param distro_Repositories $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $form->rec->path = rtrim($form->rec->path, '/');
+            $form->rec->path .= '/';
+        }
+        
+        if ($form->isSubmitted() && !$mvc->isUnique($form->rec, $fields)) {
+            $form->setError($fields, "Вече съществува запис със същите данни");
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     * 
+     * @param distro_Repositories $mvc
+     * @param stdClass $rec
+     * @param array $fields
+     * @param NULL|string $mode
+     */
+    public static function on_AfterCreate($mvc, $rec, $fields, $mode)
+    {
+        $sysDir = $mvc->createDir($rec->id, self::$systemPath . '/');
+        
+        if ($sysDir === FALSE) return ;
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        // Добавяме скрипта за стартирана на inotifywait
+        $autorunSh = $mvc->getAutorunSh($rec->path, $sysDir);
+        $autorunSh = escapeshellarg($autorunSh);
+        $path = rtrim($sysDir, '/');
+        $path .= '/' . self::$autorunFile;
+        $ePath = escapeshellarg($path);
+        $sshObj->exec("echo {$autorunSh} >> $ePath");
+        $sshObj->exec("chmod +x {$ePath}");
+        
+        // Добавяме стартирането на файла в кронтаба
+        $addCrontabStr = $mvc->getStringToAddCrontab($path);
+        $sshObj->exec($addCrontabStr);
+        
+        // Добавяме .htaccess в хранилището
+        $htaccesPath = rtrim($rec->path, '/');
+        $htaccesPath .= '/.htaccess';
+        $htaccesPath = escapeshellarg($htaccesPath);
+        $fPath = getFullPath('/distro/tpl/htaccess.txt');
+        $content = file_get_contents($fPath);
+        $content = escapeshellarg($content);
+        
+        $sshObj->exec("echo {$content} >> $htaccesPath");
+    }
+    
+    
+    /**
+     * След оттегляне на документа
+     *
+     * @param distro_Repositories $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $mvc->stopProcess($rec);
+    }
+    
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $id => $rec) {
+            $mvc->stopProcess($rec);
+        }
+    }
+    
+    
+    /**
+     * След възстановяване на документа
+     *
+     * @param distro_Repositories $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterRestore($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        // Добавяме процеса в кронтаба
+        $path = rtrim($rec->path, '/');
+        $path .= '/' . self::$systemPath . '/' . self::$autorunFile;
+        $addCrontabStr = $mvc->getStringToAddCrontab($path);
+        $sshObj->exec($addCrontabStr);
     }
     
     

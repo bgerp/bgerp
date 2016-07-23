@@ -125,7 +125,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, quantity=Планирано,quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, dueDate, quantity,quantityFromTasks, quantityProduced, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -185,9 +185,9 @@ class planning_Jobs extends core_Master
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
-    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Планирано,mandatory,silent');
-    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
-    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Заскладено,notNull,value=0');
+    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->|*<small>|Планирано|*</small>,mandatory,silent');
+    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->|*<small>|Произведено|*</small>,notNull,value=0');
+    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->|*<small>|Заскладено|*</small>,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
     	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структурни звена');

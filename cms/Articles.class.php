@@ -284,8 +284,17 @@ class cms_Articles extends core_Master
             $rec->menuId = $menuId;
             $lArr = array('a', 'a', 'a');
 
+            $menuRec = cms_Content::fetch((int) $menuId);  
+
+            $menuArr = array_keys(cms_Content::getMenuOpt(core_Classes::getId('cms_Articles'), $menuRec->domainId));
             $query1 = self::getQuery();
-            $query1->where("#menuId = {$menuId} AND #state = 'active'");
+
+            if(count($menuArr) > 1) {
+                $menuList = implode(',', $menuArr);
+                $query1->where("#menuId IN ({$menuList}) AND #state = 'active'");
+            } else {
+                $query1->where("#menuId = {$menuId} AND #state = 'active'");
+            }
 
             plg_Search::applySearch($q, $query1);
 
@@ -480,7 +489,7 @@ class cms_Articles extends core_Master
             $navTpl->append( "</div>");
         }
         
-        if($data->menuId > 0 && self::count("#menuId = {$data->menuId}") > 10) {
+        if($data->menuId > 0 && self::count("#menuId = {$data->menuId}") > 5) {
             $searchForm = cls::get('core_Form', array('method' => 'GET'));
             $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
             $searchForm->layout->replace(toUrl(array('cms_Articles', 'Article')), 'ACTION');

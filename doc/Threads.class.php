@@ -863,7 +863,8 @@ class doc_Threads extends core_Manager
         $exp->functions['checksimilarperson'] = 'doc_Threads::checkSimilarPerson';
         $exp->functions['haveaccess'] = 'doc_Folders::haveRightToFolder';
         $exp->functions['checkmovetime'] = 'doc_Threads::checkExpectationMoveTime';
-        
+        $exp->functions['getfolderopt'] = 'doc_Threads::getFolderOpt';
+
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
                                                 newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', '');
@@ -880,8 +881,9 @@ class doc_Threads extends core_Manager
             }
         }
         
-        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'width=500px,mandatory');
-        
+        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, maxSuggestions=20, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'class=w100,mandatory');
+        $exp->OPTIONS("#folderId", "getFolderOpt(#threadId,#dest)", '#dest == "exFolder"');
+
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
         $exp->DEF('#salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,notNull');
@@ -1009,6 +1011,10 @@ class doc_Threads extends core_Manager
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
             
+            $Recently = cls::get('recently_Values');
+
+            $Recently->add('MoveFolders', $folderId);
+            
             $message = '';
             
             if ($successCnt) {
@@ -1091,6 +1097,42 @@ class doc_Threads extends core_Manager
     }
     
     
+
+    public static function getFolderOpt($threadId)
+    {  
+        // $res = doc_Folders::makeArray4Select();
+
+        $rec = doc_Threads::fetch($threadId);
+        $doc = doc_Containers::getDocument($rec->firstContainerId);
+        
+        $query = doc_Folders::getQuery();
+        $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+        $query->orderBy('#last=DESC,#title=ASC');
+
+
+        $contragentData = self::getContragentData($threadId);
+ 
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->title;
+        }
+        
+        $Recently = cls::get('recently_Values');
+        $lastArr = $Recently->getSuggestions('MoveFolders');  
+        $res1 = array();
+        foreach($lastArr as $id) {
+            $res1[$id] = $res[$id];
+            unset($res[$id]);
+        }
+        $res1 += $res;
+
+ 
+
+        return $res1;
+    }
+
+
+
+
     /**
      * Връща стринг с подобните фирми
      * 

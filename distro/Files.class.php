@@ -539,7 +539,15 @@ class distro_Files extends core_Detail
                 
                 // Името на файла
                 // Ако има манипулатор, да е линка към сингъла
-                $file = ($data->rows[$id]->sourceFh) ? $data->rows[$id]->sourceFh : $data->rows[$id]->name;
+                if ($data->rows[$id]->sourceFh) {
+                    $file = $data->rows[$id]->sourceFh;
+                } else {
+                    $file = $data->rows[$id]->name;
+                    
+                    $subDirName = $mvc->Master->getSubDirName($data->recs[$id]->groupId);
+                    
+                    $file = distro_Repositories::getUrlForFile($repoId, $subDirName, $data->recs[$id]->name);
+                }
                 
                 // Ако няма създаден обект, създаваме такъв
                 if (!$data->rowReposAndFilesArr[$repoId][$id]) {
