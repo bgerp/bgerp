@@ -235,9 +235,19 @@ class eshop_Groups extends core_Master
             $data->menuId = cms_Content::getDefaultMenuId($this);
         }
         
+        $menuId = $data->menuId;
+        
         cms_Content::setCurrent($data->menuId);
         
         $layout = $this->getLayout();
+
+        if(($q = Request::get('q')) && $menuId > 0) {  
+
+            $layout->replace(cms_Content::renderSearchResults($menuId, $q), 'PAGE_CONTENT');
+
+            vislog_History::add("Търсене в продуктите: {$q}");
+        }  
+
 
         if(self::mustShowSideNavigation()) {
             // Ако имаме поне 4-ри групи продукти
@@ -492,7 +502,7 @@ class eshop_Groups extends core_Master
         }
         
         if($groupId) {
-            $menuId = self::fetch($groupId)->menuId;
+            $data->menuId = $menuId = self::fetch($groupId)->menuId;
         }
         
         $query->where("#menuId = {$menuId}");
@@ -526,6 +536,9 @@ class eshop_Groups extends core_Master
             
             $data->links[] = $l;
         }
+
+        $data->searchCtr = 'eshop_Groups';
+        $data->searchAct = 'ShowAll';
     }
     
     
@@ -610,6 +623,40 @@ class eshop_Groups extends core_Master
         return $url;
     }
     
+
+    /**
+     * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
+     */
+    static function getSearchResults($menuId, $q, $maxResults = 10)
+    { 
+        $res = array();
+        $query = self::getQuery();
+        $query->where("#menuId = {$menuId} AND #state = 'active'");
+        while($rec = $query->fetch()) {
+            $groups[$rec->id] = $rec->id;
+        }
+ 
+        if(count($groups)) {
+       
+            $pQuery = eshop_Products::getQuery();
+            $pQuery->where("#groupId IN (" . implode(',', $groups) . ")");
+
+            plg_Search::applySearch($q, $pQuery);
+            $pQuery->limit($maxResults);
+           // $pQuery->orderBy('modifiedOn=DESC');
+
+            while($r = $pQuery->fetch()) {
+                $title = $r->name;
+                $url = eshop_Products::getUrl($r);
+                $url['q'] = $q;
+
+                $res[] = (object) array('title' => $title, 'url' => $url);
+            }
+        }
+ 
+        return $res; 
+    }
+
     
     /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
