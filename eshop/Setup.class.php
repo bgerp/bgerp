@@ -61,7 +61,9 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'migrate::migrateDrivers1'
+    		'migrate::migrateDrivers1',
+            'migrate::updateSearchKeywords'
+
         );
 
         
@@ -126,6 +128,15 @@ class eshop_Setup extends core_ProtoSetup
     	while($pRec = $pQuery->fetch()){
     		$pRec->coDriver = $dId;
     		eshop_Products::save($pRec, 'coDriver');
+    	}
+    }
+
+
+    public function updateSearchKeywords()
+    {   
+        $pQuery = eshop_Products::getQuery();
+    	while($pRec = $pQuery->fetch()){
+    		eshop_Products::save($pRec, 'searchKeywords');
     	}
     }
 }

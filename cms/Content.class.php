@@ -637,4 +637,49 @@ class cms_Content extends core_Manager
         }
     }
 
+
+    public static function renderSearchResults($menuId, $q)
+    {
+        //$q = Request::get('q');
+        //$menuId = Request::get('menuId', 'int');
+        
+
+        $query = self::getQuery();
+        $query->orderBy('order');
+
+        if($menuId) {
+            $rec = self::fetch($menuId);
+            $domainId = $rec->domainId;
+        } else {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
+        
+        $query->where("#domainId = {$domainId} AND #id != {$menuId}");
+
+        $res = array();
+        
+        $html = "<h1>Търсене на \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h1>";
+        
+        do {
+            if(!$rec->source) continue;  
+            $cls = cls::get($rec->source);
+      
+            if(cls::existsMethod($cls, 'getSearchResults')) {
+                $res = $cls->getSearchResults($rec->id, $q);
+                if(count($res)) {
+                    $html .= "<h2>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->menu) . "</strong></h2>";
+                    $html .= "<ul>";
+                    foreach($res as $o) {
+                        $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . "</li>";
+                    }
+                    $html .= "</ul>";
+                }
+            }
+        } while($rec = $query->fetch());
+
+
+
+        return "<div style='padding:0px;'>" . $html . "</div>";
+    }
+
  }
