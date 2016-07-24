@@ -41,4 +41,14 @@ class cms_SourceIntf
     {
         return $this->class->getWorkshopUrl($cMenuId);
     }
+
+    
+    /**
+     * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
+     */
+    function getSearchResults($menuId, $q, $maxLimit = 10)
+    {
+        return $this->class->getSearchResults($menuId, $q, $maxLimit);
+    }
+
 }

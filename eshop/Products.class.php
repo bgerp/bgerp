@@ -110,7 +110,7 @@ class eshop_Products extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'code,groupId,name';
+    public $searchFields = 'code,name,info,longInfo';
     
     
     /**
@@ -542,6 +542,7 @@ class eshop_Products extends core_Master
 
         return $url;
     }
+
 
     
     /**

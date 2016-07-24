@@ -703,13 +703,16 @@ class blogm_Articles extends core_Master {
         // Определяне на титлата
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
-            $data->title = "<b style='color:#666;'>" . tr('Търсене във всички статии') . "</b>";
-            if(!count($data->rows)) {
-   			    $data->descr = "<p><b style='color:#666;'>" . tr('Няма резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
-            } else {
-			    $data->descr = "<p><b style='color:#666;'>" . tr('Резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
-            }
+            
+            $domainId = cms_Domains::getPublicDomain('id');
+            $clsId = core_Classes::getId('blogm_Articles');
 
+            $cRec = cms_Content::fetch("#domainId = {$domainId} AND #source = {$clsId}");
+
+            $data->descr = cms_Content::renderSearchResults($cRec->id, $data->q);
+            $data->title = NULL;
+            $data->rows = array();
+    
 		} elseif( isset($data->archive)) {  
    			$data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
         } elseif(isset($data->category)) {
@@ -1072,6 +1075,41 @@ class blogm_Articles extends core_Master {
 
         return $url;
     }
+
+
+    /**
+     * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
+     */
+    static function getSearchResults($menuId, $q, $maxResults = 10)
+    { 
+        $res = array();
+
+        $cRec = cms_Content::fetch($menuId);
+        
+        $gQuery = blogm_Categories::getQuery();
+        while($gRec = $gQuery->fetch("#domainId = {$cRec->domainId}")) {
+            $groupsArr[$gRec->id] = $gRec;
+        }
+
+        $query = self::getQuery();
+        $query->where("#state = 'active'");
+        $query->likeKeylist('categories', keylist::fromArray($groupsArr));
+        plg_Search::applySearch($q, $query);
+        $query->limit($maxResults);
+        $query->orderBy('modifiedOn=DESC');
+
+        while($r = $query->fetch()) {
+            $title = $r->title;
+            $url = self::getUrl($r);
+            $url['q'] = $q;
+
+            $res[] = (object) array('title' => $title, 'url' => $url);
+        }
+      
+ 
+        return $res; 
+    }
+
 
     
     /**
