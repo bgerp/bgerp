@@ -54,7 +54,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		
 		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Машини');
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
 		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
 		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Произвеждане->Склад,mandatory,allowEmpty');
 		$fieldset->FLD("startTime", 'time', 'caption=Заработки->Произ-во,smartCenter');
@@ -333,7 +333,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         }
         
         if (!empty($row->fixedAssets)) {
-            $resArr['fixedAssets'] =  array('name' => tr('Машини'), 'val' =>"[#fixedAssets#]");
+            $resArr['fixedAssets'] =  array('name' => tr('Оборудване'), 'val' =>"[#fixedAssets#]");
         }
         
         if(!empty($row->indTime) || !empty($row->startTime)){

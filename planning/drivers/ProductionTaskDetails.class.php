@@ -134,7 +134,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
     	}
     	
-    	// Ако в мастъра са посочени машини, задаваме ги като опции
+    	// Ако в мастъра са посочени оборудване, задаваме ги като опции
     	if(isset($data->masterRec->fixedAssets)){
     		$keylist = $data->masterRec->fixedAssets;
     		$arr = keylist::toArray($keylist);
