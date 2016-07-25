@@ -26,7 +26,7 @@ class planning_AssetResources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper, plg_State2, plg_Search';
+    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew';
     
     
     /**
