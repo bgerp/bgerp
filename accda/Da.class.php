@@ -95,7 +95,13 @@ class accda_Da extends core_Master
      * Кой има достъп до сингъла
      */
     public $canSingle = 'ceo,accda';
-    
+
+	
+    /**
+     * Кой може да го активира?
+     */
+    public $canConto = 'ceo,accda';
+        
     
     /**
      * Файл за единичен изглед
