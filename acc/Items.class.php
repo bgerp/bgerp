@@ -948,7 +948,7 @@ class acc_Items extends core_Manager
             $row = new stdClass();
             $row->link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
         }
-       // bp($row);
+       
         $tpl = getTplFromFile('acc/tpl/ItemTooltip.shtml');
         $tpl->placeObject($row);
         
