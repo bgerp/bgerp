@@ -254,7 +254,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$data->rows = array();
 				
 				// Показване на сумата за промяна на известието
-				$amount = $mvc->getFieldType('amount')->toVerbal($masterRec->dealValue / $masterRec->rate);
+				$Type = $mvc->getFieldType('amount');
+				$Type->params['decimals'] = 2;
+				$amount = $Type->toVerbal($masterRec->dealValue / $masterRec->rate);
 				$originRec = doc_Containers::getDocument($masterRec->originId)->rec();
 				
 				if($originRec->dpOperation == 'accrued'){
