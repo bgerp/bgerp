@@ -108,8 +108,8 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter');
-    	$this->FLD("indTime", 'time', 'caption=Времена->Изпълнение,smartCenter');
-    	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
+    	$this->FLD("indTime", 'time', 'caption=Норма->Време,smartCenter');
+    	$this->FNC('totalTime', 'time', 'caption=Норма->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
     }
@@ -256,11 +256,19 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state == 'active' || $state == 'pending' || $state == 'wakeup'){
+    		if($state == 'active' || $state == 'pending' || $state == 'wakeup' || $state == 'draft'){
     			if($action == 'add'){
     				$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
     			}
     		} else {
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($requiredRoles == 'no_one') return;
+    	
+    	if(($action == 'delete' || $action == 'edit') && isset($rec->taskId) && isset($rec->id)){
+    		if(planning_drivers_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #taskProductId = {$rec->id}")){
     			$requiredRoles = 'no_one';
     		}
     	}
