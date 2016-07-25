@@ -56,7 +56,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
 		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
-		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Произвеждане->Склад,mandatory,allowEmpty');
+		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
 		$fieldset->FLD("startTime", 'time', 'caption=Заработки->Произ-во,smartCenter');
 		$fieldset->FLD("indTime", 'time', 'caption=Заработки->Пускане,smartCenter');
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
@@ -76,7 +76,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$row->totalQuantity = "<span class='quiet'>{$row->totalQuantity}</span>";
 		}
 		
-		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		if(isset($rec->storeId)){
+			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		}
+		
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -214,6 +217,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 					$form->setDefault('plannedQuantity', $toProduce);
 				}
 			}
+			
+			if(cat_Products::fetchField($rec->productId, 'canStore') === 'yes'){
+				$form->setField('storeId', 'input,mandatory');
+			}
 		}
 	}
 	
@@ -343,7 +350,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         
         if (!empty($row->originId)) {
-            $resArr['originId'] =  array('name' => tr('Информация'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br><span style='font-weight:normal'>|Склад|*</span>: [#storeId#]</div>"));
+            $resArr['originId'] =  array('name' => tr('Информация'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Задание|*</span>: [#originId#]<!--ET_BEGIN storeId--><br><span style='font-weight:normal'>|Склад|*</span>: [#storeId#]<!--ET_END storeId--></div>"));
         }
         
         if (!empty($row->timeStart)) {
