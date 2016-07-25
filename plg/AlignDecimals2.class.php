@@ -57,7 +57,7 @@ class plg_AlignDecimals2 extends core_Plugin
 			foreach ($decFields as $col => $fName){
 		
 				if(isset($rows[$id]->$fName)){
-					$Type = $mvc->fields[$fName]->type;
+					$Type = clone $mvc->fields[$fName]->type;
 					setIfNot($Type->params['minDecimals'], 0);
 					setIfNot($Type->params['maxDecimals'], 6);
 						
