@@ -288,10 +288,11 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		if($show === TRUE){
     			$cache = $this->getInvoiceDetailedInfo($form->rec->originId);
+    			
     			if(count($cache->vats) == 1){
     				$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
     				$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
-    				$form->rec->changeAmountVat = $cache->vats[0];
+    				$form->rec->changeAmountVat = key($cache->vats);
     				
     				$min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
     				$min = round($min, 4);
@@ -1019,7 +1020,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		while($dRec = $query->fetch()){
     			$cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
     			$count++;
-    			$vats[] = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
+    			
+    			$v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
+    			$vats[$v] = $v;
     		}
     		$this->cache[$containerId] = (object)array('recs' => $cache, 'vats' => $vats);
     	}
