@@ -229,7 +229,7 @@ abstract class deals_Helper
 				foreach ($values['vats'] as $percent => $vi){
 					if(is_object($vi)){
 						$index = str_replace('.', '', $percent);
-						$arr["vat{$index}"] = $percent * 100 . " %";
+						$arr["vat{$index}"] = $percent * 100 . "%";
 						$arr["vat{$index}Amount"] = $vi->amount * (($invoice) ? $currencyRate : 1);
 						$arr["vat{$index}AmountCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
 							
