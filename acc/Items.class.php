@@ -926,6 +926,8 @@ class acc_Items extends core_Manager
                 $row->link = $AccRegister->getLinkToObj($rec->objectId);
             } elseif(method_exists($AccRegister, 'act_Single')) {
                 $row->link = $AccRegister->getHyperLink($rec->objectId, TRUE);
+            } else {
+            	$row->link = "<div style='color:darkgreen'>" . tr('Не е обвързан с обект') . "</div>";
             }
         } else {
             $cantShow = TRUE;
@@ -946,7 +948,7 @@ class acc_Items extends core_Manager
             $row = new stdClass();
             $row->link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
         }
-        
+       // bp($row);
         $tpl = getTplFromFile('acc/tpl/ItemTooltip.shtml');
         $tpl->placeObject($row);
         
