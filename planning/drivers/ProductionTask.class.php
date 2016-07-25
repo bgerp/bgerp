@@ -57,8 +57,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
 		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
 		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
-		$fieldset->FLD("startTime", 'time', 'caption=Заработки->Произ-во,smartCenter');
-		$fieldset->FLD("indTime", 'time', 'caption=Заработки->Пускане,smartCenter');
+		$fieldset->FLD("startTime", 'time', 'caption=Норма->Произ-во,smartCenter');
+		$fieldset->FLD("indTime", 'time', 'caption=Норма->Пускане,smartCenter');
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$fieldset->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 	}
