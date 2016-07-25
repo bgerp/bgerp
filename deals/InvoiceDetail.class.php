@@ -167,7 +167,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				// За всеки запис ако е променен от оригиналния показваме промяната
 				$count = 0;
 				foreach($recs as &$dRec){
-					$originRef = $cached[$count][$dRec->productId];
+					$originRef = $cached->recs[$count][$dRec->productId];
 					
 					$diffQuantity = $dRec->quantity - $originRef['quantity'];
 					$diffPrice = $dRec->packPrice - $originRef['price'];
@@ -504,7 +504,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$recs[] = $dRec->id;
 				}
 				$index = array_search($rec->id, $recs);
-				$cache = $cache[$index][$rec->productId];
+				$cache = $cache->recs[$index][$rec->productId];
 				
 				$pPrice = isset($packPrice)? $packPrice : $rec->packPrice;
 				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && (isset($rec->packPrice) && round($cache['price'], 5) != round($pPrice, 5))){
