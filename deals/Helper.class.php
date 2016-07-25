@@ -157,12 +157,14 @@ abstract class deals_Helper
         		}
         	}
         	
-        	if(!array_key_exists($vat, $vats)){
-        		$vats[$vat] = (object)array('amount' => 0, 'sum' => 0);
+        	if(!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE))){
+        		if(!array_key_exists($vat, $vats)){
+        			$vats[$vat] = (object)array('amount' => 0, 'sum' => 0);
+        		}
+        		 
+        		$vats[$vat]->amount += $vatRow;
+        		$vats[$vat]->sum += $withoutVatAndDisc;
         	}
-        	
-        	$vats[$vat]->amount += $vatRow;
-        	$vats[$vat]->sum += $withoutVatAndDisc;
 		}
 		
 		$mvc->_total = new stdClass();
@@ -244,7 +246,6 @@ abstract class deals_Helper
 			}
 		}
 		
-		//bp($arr, $values['vats']);
 		if($invoice){ // ако е фактура
 			//$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
 			//$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода

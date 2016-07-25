@@ -510,7 +510,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$rec = &$data->rec;
 	   	
 	   	if(empty($data->noTotal)){
-	   		if(isset($rec->type) && $rec->type != 'invoice'){
+	   		if(isset($rec->type) && $rec->type != 'invoice' && isset($rec->changeAmount)){
 	   			$this->_total = new stdClass();
 	   			$this->_total->amount = $rec->dealValue / $rec->rate;
 	   			$this->_total->vat = $rec->vatAmount / $rec->rate;
