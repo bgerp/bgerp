@@ -1,19 +1,19 @@
 <table class='no-border paddingCells business-doc-summary-table' style='float:right;width:100%;'>
    <tr class='nowrap'>
-      <td class='aright'>|Стойност|* :</td>
+      <td class='aright'>|Стойност|*:</td>
       <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>
       <td class='aright' style='width:1%;'> <b class="lighterBold">[#value#]</b></td>
    </tr>
    <!--ET_BEGIN discountValue-->
    <tr class='nowrap'>
-      <td class='aright'>|Отстъпка|* :</td>
+      <td class='aright'>|Отстъпка|*:</td>
       <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
       <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
    </tr>
    <!--ET_END discountValue-->
    <!--ET_BEGIN neto-->
    <tr class='nowrap'>
-      <td class='aright'>|Нето|* :</td>
+      <td class='aright'>|Нето|*:</td>
       <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
       <td class='aright'><b class="lighterBold">[#neto#]</b></td>
    </tr>
@@ -37,7 +37,7 @@
    
    <!--ET_BEGIN vat02-->
    <tr class='nowrap'>
-      <td class='aright'>|ДДС|* <b>[#vat02#]</b> :</td>
+      <td class='aright'>|ДДС|* <b>[#vat02#]</b>:</td>
       <td class='info-right'><span class='cCode'>[#vat02AmountCurrencyId#]</span></td>
       <td class='aright'><b class="lighterBold">[#vat02Amount#]</b></td>
    </tr>
@@ -45,7 +45,7 @@
    
    <!--ET_BEGIN vat009BaseAmount-->
    <tr class='nowrap'>
-      <td class='aright'>|Данъчна основа|* &nbsp;&nbsp;<b>[#vat009Base#]</b>:</td>
+      <td class='aright'>|Данъчна основа|* <b>[#vat009Base#]</b>:</td>
       <td class='info-right'><span class='cCode'>[#vat009BaseCurrencyId#]</span></td>
       <td class='aright'><b class="lighterBold">[#vat009BaseAmount#]</b></td>
    </tr>
@@ -53,7 +53,7 @@
    
    <!--ET_BEGIN vat009-->
    <tr class='nowrap'>
-      <td class='aright'>|ДДС|* &nbsp;&nbsp;<b>[#vat009#]</b> :</td>
+      <td class='aright'>|ДДС|* <b>[#vat009#]</b>:</td>
       <td class='info-right'><span class='cCode'>[#vat009AmountCurrencyId#]</span></td>
       <td class='aright'><b class="lighterBold">[#vat009Amount#]</b></td>
    </tr>
@@ -69,7 +69,7 @@
    
    <!--ET_BEGIN vat0-->
    <tr class='nowrap'>
-      <td class='aright'>|ДДС|* &nbsp;&nbsp;<b>[#vat0#]</b> :</td>
+      <td class='aright'>|ДДС|* <b>[#vat0#]</b>:</td>
       <td class='info-right'><span class='cCode'>[#vat0AmountCurrencyId#]</span></td>
       <td class='aright'><b class="lighterBold">[#vat0Amount#]</b></td>
    </tr>
@@ -82,7 +82,7 @@
       </td>
    </tr>
    <tr class='nowrap'>
-      <td class='aright'>|Общо|* :</td>
+      <td class='aright'>|Общо|*:</td>
       <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
       <td class='aright'><b>[#total#]</b></td>
    </tr>
