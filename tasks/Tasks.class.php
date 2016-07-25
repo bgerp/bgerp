@@ -735,6 +735,11 @@ class tasks_Tasks extends embed_Manager
     			
     			// Нотифицираме ги че рендираме задачите към задание
     			$Doc->invoke('AfterPrepareTasks', array(&$data));
+    			
+    			// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
+    			if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
+    				$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
+    			}
     		}
     	}
     }
@@ -755,6 +760,19 @@ class tasks_Tasks extends embed_Manager
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	
     	$tpl = $table->get($data->rows, $data->listFields);
+    	
+    	// Имали бутони за добавяне
+    	if(is_array($data->addUrlArray)){
+    		foreach ($data->addUrlArray as $class => $url){
+    			 
+    			// За всеки рендираме бутон за добавяне на задача от съответния тип
+    			$Doc = cls::get($class);
+    			$titleLower = mb_strtolower($Doc->singleTitle);
+    			$btn = ht::createBtn($Doc->singleTitle, $url, FALSE, FALSE, "title=Създаване на {$titleLower} към задание,ef_icon={$Doc->singleIcon}");
+    			
+    			$tpl->append($btn, 'btnTasks');
+    		}
+    	}
     
     	// Връщаме шаблона
     	return $tpl;

@@ -142,7 +142,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$form->setField('title', 'input=hidden');
 		
 		// За произвеждане може да се избере само артикула от заданието
-		expect($rec->originId);
 		$origin = doc_Containers::getDocument($rec->originId);
 		$productId = $origin->fetchField('productId');
 		
@@ -150,31 +149,14 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$form->setDefault('description', cat_Products::fetchField($productId, 'info'));
 		}
 		
-		$products[$productId] = cat_Products::getTitleById($productId, FALSE);
-		
-		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
-		if(!$bomRec){
-			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-		}
-		
-		// и ако има рецепта артикулите, които са етапи от нея
-		if(!empty($bomRec)){
-			$sQuery = cat_BomDetails::getQuery();
-			$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
-			$sQuery->show('resourceId');
-			while($sRec = $sQuery->fetch()){
-				$products[$sRec->resourceId] = cat_Products::getTitleById($sRec->resourceId, FALSE);
-			}
-		}
-		
-		// Ако има избран артикул, той винаги присъства в опциите
+		// Добавяме допустимите опции
+		$products = cat_Products::getByProperty('canManifacture');
 		if(isset($rec->productId)){
 			if(!isset($products[$rec->productId])){
-				$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+				$products[$rec->productId] = cat_Products::getRecTitle($rec->productId, FALSE);
 			}
 		}
 		
-		// Добавяме допустимите опции
 		$form->setOptions('productId', array('' => '') + $products);
 		
 		if(count($products) == 1){
