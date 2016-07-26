@@ -150,9 +150,9 @@ class core_Db extends core_BaseClass
             
             $sqlMode = "SQL_MODE = ''";
             
-            if (BGERP_GIT_BRANCH == 'dev') {
+//             if (BGERP_GIT_BRANCH == 'dev') {
 //                 $sqlMode = "SQL_MODE = 'strict_trans_tables'";
-            }
+//             }
             
             $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
             
