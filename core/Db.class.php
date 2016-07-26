@@ -2,7 +2,6 @@
 
 
 /**
- *
  * Дали да се сетват стойности при всяка заявка.
  * Ако е FALSE, трябва да  се сетнат преди това в настройките
  * SET CHARACTER_SET_RESULTS=utf8, COLLATION_CONNECTION=utf8_bin, CHARACTER_SET_CLIENT=utf8, SQL_MODE = '';"
@@ -159,13 +158,15 @@ class core_Db extends core_BaseClass
             // с цел да не се появи случайно при някой забравен bp()
             unset($this->dbPass);
             
-            if (BGERP_GIT_BRANCH == 'dev') {
-                $link->query("SET sql_mode = 'strict_trans_tables'");
-            } else {
-                $link->query("SET sql_mode = ''");
-            }
+            $sqlMode = "SQL_MODE = ''";
             
-            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, SQL_MODE = ''");
+//             if (BGERP_GIT_BRANCH == 'dev') {
+//                 $sqlMode = "SQL_MODE = 'strict_trans_tables'";
+//             }
+            
+            if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== FALSE)) {
+                $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
+            }
             
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
@@ -288,8 +289,9 @@ class core_Db extends core_BaseClass
     /**
      * Връща един запис, под формата на масив
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $dbRes резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
      * @param int $resultType една от предефинираните константи MYSQLI_ASSOC или MYSQLI_NUM
+     * 
      * @return array В зависимост от $resultType, индексите на този масив са или цели числа (0, 1, ...) или стрингове
      */
     function fetchArray($dbRes, $resultType = MYSQLI_ASSOC)
