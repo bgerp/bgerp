@@ -174,7 +174,7 @@ class distro_Repositories extends core_Master
         static $reposArr = array();
         
         // Ако не е генериран преди
-        if (!$reposArr) {
+        if (empty($reposArr)) {
             
             // Вземаме всички записи
             $query = static::getQuery();
@@ -239,7 +239,7 @@ class distro_Repositories extends core_Master
         $path .= '/' . $dir . '/' . $name;
         $path = escapeshellarg($path);
         
-        $c = $sshObj->exec('md5sum ' . $path, $output);
+        $sshObj->exec('md5sum ' . $path, $output);
         
         if ($output) {
             list($md5) = explode(' ', $output, 2);
@@ -608,7 +608,7 @@ class distro_Repositories extends core_Master
         $sshObj = self::connectToRepo($rec);
         
         // Добавяме скрипта за стартирана на inotifywait
-        $autorunSh = $mvc->getAutorunSh($rec->path, $sysDir);
+        $autorunSh = $mvc->getAutorunSh($rec->path);
         $autorunSh = escapeshellarg($autorunSh);
         $path = rtrim($sysDir, '/');
         $path .= '/' . self::$autorunFile;

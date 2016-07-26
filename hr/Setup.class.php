@@ -79,6 +79,7 @@ class hr_Setup extends core_ProtoSetup
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
+   			'migrate::forceDepartmentFolders'
         );
 
         
@@ -96,9 +97,6 @@ class hr_Setup extends core_ProtoSetup
         );
     
     
-    
-    
-    
     /**
      * Инсталиране на пакета
      */
@@ -113,6 +111,7 @@ class hr_Setup extends core_ProtoSetup
         return $html;
     }
     
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -122,5 +121,20 @@ class hr_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Форсиране на папките на департаментите
+     */
+    function forceDepartmentFolders()
+    {
+    	$Departments = cls::get('hr_Departments');
+    	$Departments->setupMvc();
+    	
+    	$query = hr_Departments::getQuery();
+    	while($dRec = $query->fetch()){
+    		hr_Departments::forceCoverAndFolder($dRec->id);
+    	}
     }
 }
