@@ -1089,4 +1089,28 @@ class acc_Items extends core_Manager
 
         return $res;
     }
+    
+    
+    /**
+     * Проверява дали даден обект е перо в дадена номенклатура
+     * 
+     * @param mixed $class          - клас
+     * @param int $objectId         - ид на обект
+     * @param string $listSystemId  - систем ид на номенклатура
+     * @return boolean $res         - резултат
+     */
+    public static function isItemInList($class, $objectId, $listSystemId)
+    {
+    	$Class = cls::get($class);
+    	$query = self::getQuery();
+    	$query->where("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
+    	
+    	$listId = acc_Lists::fetchField("#systemId = '{$listSystemId}'", 'id');
+    	$query->like('lists', "|{$listId}|");
+    	$query->show('id');
+    	
+    	$res = ($query->fetch()) ? TRUE : FALSE;
+    	
+    	return $res;
+    }
 }
