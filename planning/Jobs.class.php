@@ -663,7 +663,8 @@ class planning_Jobs extends core_Master
     public static function on_AfterActivation($mvc, &$rec)
     {
     	// След активиране на заданието, добавяме артикула като перо
-    	cat_Products::forceItem($rec->productId, 'catProducts');
+    	$listId = acc_Lists::fetchBySystemId('catProducts')->id;
+    	acc_Items::force('cat_Products', $rec->productId, $listId);
     }
     
     
