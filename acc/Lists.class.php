@@ -71,6 +71,12 @@ class acc_Lists extends core_Manager {
     
     
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -176,7 +182,11 @@ class acc_Lists extends core_Manager {
      */
     public static function fetchBySystemId($systemId)
     {
-        return self::fetch(array ("#systemId = '[#1#]'", $systemId));
+        if(!isset(static::$cache[$systemId])){
+        	static::$cache[$systemId] = self::fetch(array ("#systemId = '[#1#]'", $systemId));
+        }
+    	
+    	return static::$cache[$systemId];
     }
     
     
