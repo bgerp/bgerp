@@ -3,7 +3,7 @@
         <tr>
             <th style="border-bottom: 1px solid #ddd; width: 25%; text-align: left">|Информация|*</th>
             <th style="border-bottom: 1px solid #ddd; width: 25%; text-align: left">|Количества, [#packagingId#]|*</th>
-            <th style="border-bottom: 1px solid #ddd; width: 25%; text-align: left">|Заработки, мин.|*</th>
+            <th style="border-bottom: 1px solid #ddd; width: 25%; text-align: left">|Норма, мин.|*</th>
             <th style="border-bottom: 1px solid #ddd; width: 25%; text-align: left">|Планирани времена|*</th>
         </tr>
         <tr>
@@ -70,7 +70,7 @@
         </tr>
         <!--ET_BEGIN workers-->
         <tr>
-            <td colspan = "4" style="border-top: 1px solid #ddd; padding-top: 2px;"> |Хора|*: [#workers#]</td>
+            <td colspan = "4" style="border-top: 1px solid #ddd; padding-top: 2px;"> |Работници|*: [#workers#]</td>
         </tr>
         <!--ET_END workers-->
 

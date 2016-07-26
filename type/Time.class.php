@@ -258,6 +258,40 @@ class type_Time extends type_Varchar {
             $secundes = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60 - $minutes * 60));
         }
         
+        if(isset($this->params['noSmart'])){
+        	$uom = ($this->params['uom']) ? $this->params['uom'] : 'minutes';
+        	
+        	switch($uom) {
+        		case 'years':
+        			$v = $v / (12 * self::SECONDS_IN_MONTH);
+        			$suffix = tr('год.');
+        			break;
+        		case 'months':
+        			$v = $v / self::SECONDS_IN_MONTH;
+        			$suffix = tr('мес.');
+        			break;
+        		case 'weeks':
+        			$v = $v / (7 * 24 * 60 * 60);
+        			$suffix = tr('седм.');
+        			break;
+        		case 'days':
+        			$v = $v / (24 * 60 * 60);
+        			$suffix = tr('дн.');
+        			break;
+        		case 'hours':
+        			$v = $v / (60 * 60);
+        			$suffix = tr('ч.');
+        			break;
+        		default:
+        		case 'minutes':
+        			$v = $v / 60;
+        			$suffix = tr('мин.');
+        			break;
+        	}
+        	
+        	return round($v) . " " . $suffix;
+        }
+        
         if($format = $this->params['format']) {
             $repl['y'] = "$years";
             $repl['n'] = "$months";

@@ -54,11 +54,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		
 		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Машини');
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
 		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
-		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Произвеждане->Склад,mandatory,allowEmpty');
-		$fieldset->FLD("startTime", 'time', 'caption=Заработки->Произ-во,smartCenter');
-		$fieldset->FLD("indTime", 'time', 'caption=Заработки->Пускане,smartCenter');
+		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
+		$fieldset->FLD("startTime", 'time(noSmart)', 'caption=Норма->Произ-во,smartCenter');
+		$fieldset->FLD("indTime", 'time(noSmart)', 'caption=Норма->Пускане,smartCenter');
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$fieldset->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 	}
@@ -76,7 +76,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$row->totalQuantity = "<span class='quiet'>{$row->totalQuantity}</span>";
 		}
 		
-		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		if(isset($rec->storeId)){
+			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		}
+		
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -139,7 +142,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$form->setField('title', 'input=hidden');
 		
 		// За произвеждане може да се избере само артикула от заданието
-		expect($rec->originId);
 		$origin = doc_Containers::getDocument($rec->originId);
 		$productId = $origin->fetchField('productId');
 		
@@ -147,31 +149,14 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$form->setDefault('description', cat_Products::fetchField($productId, 'info'));
 		}
 		
-		$products[$productId] = cat_Products::getTitleById($productId, FALSE);
-		
-		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
-		if(!$bomRec){
-			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-		}
-		
-		// и ако има рецепта артикулите, които са етапи от нея
-		if(!empty($bomRec)){
-			$sQuery = cat_BomDetails::getQuery();
-			$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
-			$sQuery->show('resourceId');
-			while($sRec = $sQuery->fetch()){
-				$products[$sRec->resourceId] = cat_Products::getTitleById($sRec->resourceId, FALSE);
-			}
-		}
-		
-		// Ако има избран артикул, той винаги присъства в опциите
+		// Добавяме допустимите опции
+		$products = cat_Products::getByProperty('canManifacture');
 		if(isset($rec->productId)){
 			if(!isset($products[$rec->productId])){
-				$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+				$products[$rec->productId] = cat_Products::getRecTitle($rec->productId, FALSE);
 			}
 		}
 		
-		// Добавяме допустимите опции
 		$form->setOptions('productId', array('' => '') + $products);
 		
 		if(count($products) == 1){
@@ -213,6 +198,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 				if($toProduce > 0){
 					$form->setDefault('plannedQuantity', $toProduce);
 				}
+			}
+			
+			if(cat_Products::fetchField($rec->productId, 'canStore') === 'yes'){
+				$form->setField('storeId', 'input,mandatory');
 			}
 		}
 	}
@@ -333,7 +322,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         }
         
         if (!empty($row->fixedAssets)) {
-            $resArr['fixedAssets'] =  array('name' => tr('Машини'), 'val' =>"[#fixedAssets#]");
+            $resArr['fixedAssets'] =  array('name' => tr('Оборудване'), 'val' =>"[#fixedAssets#]");
         }
         
         if(!empty($row->indTime) || !empty($row->startTime)){
@@ -343,7 +332,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         
         if (!empty($row->originId)) {
-            $resArr['originId'] =  array('name' => tr('Информация'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br><span style='font-weight:normal'>|Склад|*</span>: [#storeId#]</div>"));
+            $resArr['originId'] =  array('name' => tr('Информация'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Задание|*</span>: [#originId#]<!--ET_BEGIN storeId--><br><span style='font-weight:normal'>|Склад|*</span>: [#storeId#]<!--ET_END storeId--></div>"));
         }
         
         if (!empty($row->timeStart)) {

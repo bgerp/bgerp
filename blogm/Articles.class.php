@@ -1087,6 +1087,7 @@ class blogm_Articles extends core_Master {
         $cRec = cms_Content::fetch($menuId);
         
         $gQuery = blogm_Categories::getQuery();
+        $groupsArr = array();
         while($gRec = $gQuery->fetch("#domainId = {$cRec->domainId}")) {
             $groupsArr[$gRec->id] = $gRec;
         }
