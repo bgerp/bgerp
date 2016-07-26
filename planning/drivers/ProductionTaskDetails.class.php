@@ -134,7 +134,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
     	}
     	
-    	// Ако в мастъра са посочени оборудване, задаваме ги като опции
+    	// Ако в мастъра са посочени машини, задаваме ги като опции
     	if(isset($data->masterRec->fixedAssets)){
     		$keylist = $data->masterRec->fixedAssets;
     		$arr = keylist::toArray($keylist);
@@ -419,25 +419,49 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
         $from = $date . ' 00:00:00';
         $to   = $date   . ' 23:59:59';
-    
+  
         $query->where("#modifiedOn >= '{$from}' AND #modifiedOn <= '{$to}' AND #state = 'active'");
     
         $result = array();
-        $dataRec = array();
         $tplObj = (object) array ('date' => $date, 'docClass' => core_Classes::getId('planning_Tasks'), 'indicator' => tr("|Производство|*"));
         
-                          
-        while($rec = $query->fetch()){
-            $dataRec[] = $rec;
-            $persons = keylist::toArray($rec->employees);
-            $time = $Double->fromVerbal($rec->time);          
+        $queryProduct = planning_drivers_ProductionTaskProducts::getQuery();
+        $queryMasterm = planning_Tasks::getQuery();
 
-            if(is_array($persons)) {
-                $timePerson = $time / count($persons) ;
-            } else {
-                $timePerson =  $time;
+        while ($rec = $query->fetch()) { 
+            
+            switch($rec->type){
+                case 'input':
+                                $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                                continue;
+                case 'waste':
+                                $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                                continue;
+                case 'product':
+                				$time = planning_Tasks::fetch($rec->taskId)->indTime;
+                				continue;
+                case 'start':
+                				$time = planning_Tasks::fetch($rec->taskId)->startTime;
+                				continue;
+                default:
+                				$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                				continue;
             }
-         
+            
+            $time = $Double->fromVerbal($time);
+            $persons = keylist::toArray($rec->employees);
+            
+            if(is_array($persons)) {
+                if ($time) {
+                    $timePerson = ($rec->quantity * $time) / count($persons) ;
+                }
+
+            } else {
+                if ($time) {
+                    $timePerson = $rec->quantity * $time;
+                }
+            }
+
             foreach ($persons as $person) {
                 
                 $key = $person . "|" . $rec->taskId;
