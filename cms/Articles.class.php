@@ -472,8 +472,6 @@ class cms_Articles extends core_Master
             $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
             $searchForm->setHidden('menuId', $data->menuId);
             $navTpl->prepend($searchForm->renderHtml());
-            $navTpl->append("<div menuId={$data->menuId} cnt={$cnt} ></div>");
-
         }
 
         return $navTpl;
