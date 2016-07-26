@@ -64,9 +64,11 @@ class acc_plg_Registry extends core_Plugin
     		
     			// Ако документа става перо при активиране, добавяме го като перо, ако вече не е
     			if($mvc->canAddToListOnActivation($rec)){
-    				$listId = acc_Lists::fetchBySystemId($mvc->addToListOnActivation)->id;
-    				if(acc_Items::force($mvc->getClassId(), $rec->id, $listId)){
-    					$added = TRUE;
+    				if(!acc_Items::isItemInList($mvc, $rec->id, $mvc->addToListOnActivation)){
+    					$listId = acc_Lists::fetchBySystemId($mvc->addToListOnActivation)->id;
+    					if(acc_Items::force($mvc->getClassId(), $rec->id, $listId)){
+    						$added = TRUE;
+    					}
     				}
     			}
     		} 
