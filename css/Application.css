@@ -2010,6 +2010,8 @@ ul.history {
       background-color: #aaaaaa; }
     ul.history .action.export b {
       background-color: #3377ff; }
+    ul.history .action.expenseSummary b {
+      background-color: orange; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {

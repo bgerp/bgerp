@@ -2281,6 +2281,9 @@ ul.history {
         &.export b {
 			background-color: #37f;
 		}
+		&.expenseSummary b {
+			background-color: orange;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
