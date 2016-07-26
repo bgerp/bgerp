@@ -615,6 +615,7 @@ class acc_Items extends core_Manager
     public static function force($classId, $objectId, $listId, $useCachedItems = FALSE)
     {
         $Class = cls::get($classId);
+        $classId = $Class->getClassId();
     	$rec = self::fetchItem($classId, $objectId, $useCachedItems);
         
         if (empty($rec)) {
@@ -641,9 +642,9 @@ class acc_Items extends core_Manager
             
             // Ако перото не е в номенкл. $listId (независимо дали се създава за пръв път или
             // вече го има), добавяме го и записваме на момента.
-            $rec->lists = keylist::addKey($itemRec->lists, $listId);
+            $rec->lists      = keylist::addKey($rec->lists, $listId);
             $rec->state      = 'active';
-            $rec->lastUseOn = dt::now();
+            $rec->lastUseOn  = dt::now();
             
             self::save($rec);
         }
