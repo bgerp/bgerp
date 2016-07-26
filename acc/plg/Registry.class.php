@@ -64,7 +64,8 @@ class acc_plg_Registry extends core_Plugin
     		
     			// Ако документа става перо при активиране, добавяме го като перо, ако вече не е
     			if($mvc->canAddToListOnActivation($rec)){
-    				if($mvc->forceItem($rec, $mvc->addToListOnActivation)){
+    				$listId = acc_Lists::fetchBySystemId($mvc->addToListOnActivation)->id;
+    				if(acc_Items::force($mvc->getClassId(), $rec->id, $listId)){
     					$added = TRUE;
     				}
     			}
@@ -123,48 +124,6 @@ class acc_plg_Registry extends core_Plugin
     				}
     			}
     		}
-    	}
-    }
-    
-    
-    
-    /**
-     * Метод по подразбиране дали обекта може да се добави в номенклатура при активиране
-     */
-    public static function on_AfterForceItem($mvc, &$res, $id, $listSysId)
-    {
-    	if($rec) return;
-    	
-    	$rec = $mvc->fetchRec($id);
-    	$msg = FALSE;
-    	
-    	$listRec = acc_Lists::fetchBySystemId($listSysId);
-    	if($listRec){
-    		
-    		// Ако обекта е перо, но не е в номенклатурата форсираме го
-    		if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
-    			if(!keylist::isIn($listRec->id, $itemRec->lists)){
-    				$lists = keylist::addKey($itemRec->lists, $listRec->id);
-    				$msg = TRUE;
-    			} else {
-    				$lists = $itemRec->lists;
-    			}
-    		} else {
-    			$lists = keylist::addKey('', $listRec->id);
-    			$msg = TRUE;
-    		}
-    		
-    		acc_Lists::updateItem($mvc, $rec->id, $lists);
-    		
-    		// Ъпдейтваме информацията за перото
-    		if($msg){
-    			if(haveRole('debug')){
-    				$title = $mvc->getTitleById($rec->id);
-    				core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listRec->name}'");
-    			}
-    		}
-    		
-    		$res = TRUE;
     	}
     }
     

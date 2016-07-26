@@ -520,6 +520,7 @@ class acc_Items extends core_Manager
     {
         $Class = cls::get($class);
         $self = cls::get(get_called_class());
+        $objectId = $Class->fetchRec($objectId)->id;
         
         if($useCachedItems === TRUE){
         	$index = $Class->getClassId() . "|" . $objectId;
@@ -613,13 +614,20 @@ class acc_Items extends core_Manager
      */
     public static function force($classId, $objectId, $listId, $useCachedItems = FALSE)
     {
-        $rec = self::fetchItem($classId, $objectId, $useCachedItems);
+        $Class = cls::get($classId);
+    	$rec = self::fetchItem($classId, $objectId, $useCachedItems);
         
         if (empty($rec)) {
             // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId
             $rec = new stdClass();
             $register = core_Cls::getInterface('acc_RegisterIntf', $classId);
             self::syncItemRec($rec, $register, $objectId);
+            
+            if(haveRole('debug')){
+            	$title = $Class->getTitleById($objectId);
+            	$listName = acc_Lists::fetchField($listId, 'name');
+            	core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listName}'");
+            }
         }
         
         $rec->classId  = $classId;
