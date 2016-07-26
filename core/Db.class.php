@@ -287,8 +287,9 @@ class core_Db extends core_BaseClass
     /**
      * Връща един запис, под формата на масив
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $dbRes резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
      * @param int $resultType една от предефинираните константи MYSQLI_ASSOC или MYSQLI_NUM
+     * 
      * @return array В зависимост от $resultType, индексите на този масив са или цели числа (0, 1, ...) или стрингове
      */
     function fetchArray($dbRes, $resultType = MYSQLI_ASSOC)
