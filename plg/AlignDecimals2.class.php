@@ -57,7 +57,7 @@ class plg_AlignDecimals2 extends core_Plugin
 			foreach ($decFields as $col => $fName){
 		
 				if(isset($rows[$id]->$fName)){
-					$Type = $mvc->fields[$fName]->type;
+					$Type = clone $mvc->fields[$fName]->type;
 					setIfNot($Type->params['minDecimals'], 0);
 					setIfNot($Type->params['maxDecimals'], 6);
 						
@@ -67,7 +67,7 @@ class plg_AlignDecimals2 extends core_Plugin
 					);
 					
 					$Type->params['smartRound'] = TRUE;
-						
+					
 					// Вербализираме числово само ако наистина е число
 					if(is_numeric($rec->$fName)){
 						$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
@@ -99,8 +99,10 @@ class plg_AlignDecimals2 extends core_Plugin
 						
 						$rows[$id]->$fName .= $padString;
 						
-						// Хак за правилно показване
-						$rows[$id]->{$fName} = str_replace("{$decPoint}0000", "{$decPoint}00", $rows[$id]->{$fName});
+						if($optDecimals != 4){
+							// Хак за правилно показване
+							$rows[$id]->{$fName} = str_replace("{$decPoint}0000", "{$decPoint}00", $rows[$id]->{$fName});
+						}
 					}
 				}
 			}

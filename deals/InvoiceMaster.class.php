@@ -265,7 +265,6 @@ abstract class deals_InvoiceMaster extends core_Master
     protected function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
     	$caption = ($form->rec->type == 'debit_note') ? 'Увеличение' : 'Намаление';
-    	
     	$invArr = (array)$origin->fetch();
     	
     	// Трябва фактурата основание да не е ДИ или КИ
@@ -288,19 +287,24 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		
     		if($show === TRUE){
-    			$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
-    			$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
+    			$cache = $this->getInvoiceDetailedInfo($form->rec->originId);
     			
-    			$min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
-    			$min = round($min, 4);
-    			
-    			$form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
-    			
-    			if($invArr['dpOperation'] == 'accrued'){
+    			if(count($cache->vats) == 1){
+    				$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
+    				$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
+    				$form->rec->changeAmountVat = key($cache->vats);
+    				
+    				$min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
+    				$min = round($min, 4);
     				 
-    				// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
-    				$caption = '|Промяна на авансово плащане|*';
-    				$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+    				$form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
+    				 
+    				if($invArr['dpOperation'] == 'accrued'){
+    						
+    					// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
+    					$caption = '|Промяна на авансово плащане|*';
+    					$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+    				}
     			}
     		}
     	}
@@ -510,16 +514,19 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$rec = &$data->rec;
 	   	
 	   	if(empty($data->noTotal)){
-	   		if(isset($rec->type) && $rec->type != 'invoice'){
+	   		if(isset($rec->type) && $rec->type != 'invoice' && isset($rec->changeAmount)){
 	   			$this->_total = new stdClass();
 	   			$this->_total->amount = $rec->dealValue / $rec->rate;
 	   			$this->_total->vat = $rec->vatAmount / $rec->rate;
+	   			$percent = round($this->_total->vat / $this->_total->amount, 2);
+	   			$this->_total->vats["{$percent}"] = (object)array('amount' => $this->_total->vat, 'sum' => $this->_total->amount);
 	   		}
 	   		
 	   		$this->invoke('BeforePrepareSummary', array($this->_total));
 	   		
 	   		$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
 	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, TRUE, $rec->tplLang);
+	   		
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
 	   		$data->row->vatAmount = $data->summary->vatAmount;
 	   	}
@@ -708,12 +715,16 @@ abstract class deals_InvoiceMaster extends core_Master
     				}
     			}
     			
-    			// Изчисляване на стойността на ддс-то
-    			$vat = acc_Periods::fetchByDate()->vatRate;
-    			
-    			// Ако не трябва да се начислява ддс, не начисляваме
-    			if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
-    				$vat = 0;
+    			if(isset($rec->changeAmountVat)){
+    				$vat = $rec->changeAmountVat;
+    			} else {
+    				// Изчисляване на стойността на ддс-то
+    				$vat = acc_Periods::fetchByDate()->vatRate;
+    				 
+    				// Ако не трябва да се начислява ддс, не начисляваме
+    				if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+    					$vat = 0;
+    				}
     			}
     			
     			$origin = doc_Containers::getDocument($rec->originId);
@@ -1000,7 +1011,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	expect($document->isInstanceOf($this));
     	
     	if(!isset($this->cache[$containerId])){
-    		$cache = array();
+    		$cache = $vats = array();
     		$Detail = $this->mainDetail;
     		$query = $Detail::getQuery();
     		
@@ -1009,8 +1020,11 @@ abstract class deals_InvoiceMaster extends core_Master
     		while($dRec = $query->fetch()){
     			$cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
     			$count++;
+    			
+    			$v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
+    			$vats[$v] = $v;
     		}
-    		$this->cache[$containerId] = $cache;
+    		$this->cache[$containerId] = (object)array('recs' => $cache, 'vats' => $vats);
     	}
     	
     	return $this->cache[$containerId];

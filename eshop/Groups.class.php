@@ -632,11 +632,12 @@ class eshop_Groups extends core_Master
         $res = array();
         $query = self::getQuery();
         $query->where("#menuId = {$menuId} AND #state = 'active'");
+        $groups = array();
         while($rec = $query->fetch()) {
             $groups[$rec->id] = $rec->id;
         }
  
-        if(count($groups)) {
+        if(!empty($groups)) {
        
             $pQuery = eshop_Products::getQuery();
             $pQuery->where("#groupId IN (" . implode(',', $groups) . ")");

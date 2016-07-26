@@ -48,9 +48,15 @@ class crm_ext_Employees extends core_Manager
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'powerUser';
+    public $canEdit = 'ceo,planning,crm';
 
 
+    /**
+     * Кой може да създава
+     */
+    public $canAdd = 'ceo,planning,crm';
+    
+    
     /**
      * Кой може да изтрива
      */

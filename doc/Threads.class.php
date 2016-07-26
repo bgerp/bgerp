@@ -1100,6 +1100,7 @@ class doc_Threads extends core_Manager
 
     public static function getFolderOpt($threadId)
     {  
+        $res = array();
         // $res = doc_Folders::makeArray4Select();
 
         $rec = doc_Threads::fetch($threadId);
@@ -1108,8 +1109,7 @@ class doc_Threads extends core_Manager
         $query = doc_Folders::getQuery();
         $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
         $query->orderBy('#last=DESC,#title=ASC');
-
-
+        
         $contragentData = self::getContragentData($threadId);
  
         while($rec = $query->fetch()) {
@@ -1124,9 +1124,7 @@ class doc_Threads extends core_Manager
             unset($res[$id]);
         }
         $res1 += $res;
-
- 
-
+        
         return $res1;
     }
 

@@ -218,13 +218,20 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $count = 0;
             
             foreach ($data->recs as $id => $rec){
-                
-                // Показваме само тези редове, които са в диапазона на страницата
-                if($count >= $start && $count <= $end){
+                if (!Mode::is('printing')) {
+                    // Показваме само тези редове, които са в диапазона на страницата
+                    if($count >= $start && $count <= $end){
+                        $rec->id = $count + 1;
+                        $row = $mvc->getVerbalDetail($rec);
+                        $data->rows[$id] = $row;
+                    } 
+                } else {
+                    unset($data->pager);
                     $rec->id = $count + 1;
                     $row = $mvc->getVerbalDetail($rec);
                     $data->rows[$id] = $row;
                 }
+
                 
                 // Сумираме всички суми и к-ва
                 foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){

@@ -606,8 +606,41 @@ class cad2_SvgCanvas extends core_BaseClass {
 		$groupEnd = $this->content[] = new stdClass();
 		$groupEnd->name = '/defs';
 	}
-	
-	
+
+
+    /**
+     * Отваряне на дефиниции за линеен градиент
+     */
+    function openGradient($attr = array())
+    {
+        $defs = $this->content[] = new stdClass();
+        $defs->name = 'linearGradient';
+        $defs->attr = $attr;
+        $defs->haveBody = TRUE;
+    }
+
+
+    /**
+     * Затваряне на дефиниции за линеен градиент
+     */
+    function closeGradient()
+    {
+        $groupEnd = $this->content[] = new stdClass();
+        $groupEnd->name = '/linearGradient';
+    }
+
+
+    /**
+     * Задаване на стъпка от градиента
+     */
+    function addStop($attr = array())
+    {
+        $defs = $this->content[] = new stdClass();
+        $defs->name = 'stop';
+        $defs->attr = $attr;
+    }
+
+
 	/**
 	 * Преобразуване от градуси към радиани
 	 */

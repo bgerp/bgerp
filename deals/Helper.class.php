@@ -107,7 +107,6 @@ abstract class deals_Helper
 			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
 				$vat = cat_Products::getVat($rec->$map['productId'], $masterRec->$map['valior']);
 			}
-			$vats[$vat] = $vat;
 			
 			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
 			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
@@ -156,6 +155,15 @@ abstract class deals_Helper
         		if($masterRec->$map['chargeVat'] == 'yes') {
         			$amountJournal += $vatRow;
         		}
+        	}
+        	
+        	if(!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE))){
+        		if(!array_key_exists($vat, $vats)){
+        			$vats[$vat] = (object)array('amount' => 0, 'sum' => 0);
+        		}
+        		 
+        		$vats[$vat]->amount += $vatRow;
+        		$vats[$vat]->sum += $withoutVatAndDisc;
         	}
 		}
 		
@@ -216,22 +224,44 @@ abstract class deals_Helper
 		$coreConf = core_Packs::getConfig('core');
 		$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
 		
+		if($invoice || $chargeVat == 'separate'){
+			if(is_array($values['vats'])){
+				foreach ($values['vats'] as $percent => $vi){
+					if(is_object($vi)){
+						$index = str_replace('.', '', $percent);
+						$arr["vat{$index}"] = $percent * 100 . "%";
+						$arr["vat{$index}Amount"] = $vi->amount * (($invoice) ? $currencyRate : 1);
+						$arr["vat{$index}AmountCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
+							
+						if($invoice){
+							$arr["vat{$index}Base"] = $arr["vat{$index}"];
+							$arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+							$arr["vat{$index}BaseCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
+						}
+					}
+				}
+			} else {
+				$arr['vat02Amount'] = 0;
+				$arr['vat02AmountCurrencyId'] = ($invoice) ? $baseCurrency : $currencyId;
+			}
+		}
+		
 		if($invoice){ // ако е фактура
-			$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
-			$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
+			//$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
+			//$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
 			$arr['baseAmount'] = $arr['total'] * $currencyRate; // Данъчната основа
 			$arr['baseAmount'] = ($arr['baseAmount']) ? $arr['baseAmount'] : "<span class='quiet'>0" . $pointSign . "00</span>";;
 			$arr['baseCurrencyId'] = $baseCurrency; 			// Валутата на данъчната основа е тази на периода
 		} else { // ако не е фактура
-			$arr['vatAmount'] = $values['vat']; 		// ДДС-то
-			$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
+			//$arr['vatAmount'] = $values['vat']; 		// ДДС-то
+			//$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
 		}
 		
 		if(!$invoice && $chargeVat != 'separate'){ 				 // ако документа не е фактура и не е с отделно ддс
-			unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
+			//unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
 		} else { // ако е фактура или е сотделно ддс
 			if($arr['total']){
-				$arr['vat'] = round(($values['vat'] / $arr['total']) * 100); // % ддс
+				//$arr['vat'] = round(($values['vat'] / $arr['total']) * 100); // % ддс
 				$arr['total'] = $arr['total'] + $values['vat']; 	  // Крайното е стойноста + ддс-то
 			}
 		}
@@ -246,7 +276,7 @@ abstract class deals_Helper
 		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0" . $pointSign . "00</span>";
 
 		if(!$arr['vatAmount'] && ($invoice || $chargeVat == 'separate')){
-			$arr['vatAmount'] = "<span class='quiet'>0" . $pointSign . "00</span>";
+			//$arr['vatAmount'] = "<span class='quiet'>0" . $pointSign . "00</span>";
 		}
 		
 		$Double = cls::get('type_Double');
@@ -256,10 +286,6 @@ abstract class deals_Helper
 			if(is_numeric($el)){
 				$arr[$index] = $Double->toVerbal($el);
 			}
-		}
-		
-		if($arr['vat']){
-			$arr['vat'] .= ' %';
 		}
 		
 		return (object)$arr;
