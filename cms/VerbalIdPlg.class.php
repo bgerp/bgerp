@@ -48,6 +48,12 @@ class cms_VerbalIdPlg extends core_Plugin
         $mvc->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,column=none, width=100%,autohide');
 
         $mvc->setDbUnique($this->fieldName);
+
+        $mvc->searchFields = arr::make($mvc->searchFields);
+        $mvc->searchFields[] = $this->fieldName;
+        $mvc->searchFields[] = 'seoTitle';
+        $mvc->searchFields[] = 'seoDescription';
+        $mvc->searchFields[] = 'seoKeywords';
         
         // Да не се кодират id-тата, когато се използва verbalId
         $mvc->protectId = FALSE;
