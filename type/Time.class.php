@@ -101,8 +101,8 @@ class type_Time extends type_Varchar {
                 case 'hours':
                     $val = $val * 60 * 60;
                     break;
-                default:
                 case 'minutes':
+                default:
                     $val = $val * 60;
                     break;
             }
@@ -282,8 +282,8 @@ class type_Time extends type_Varchar {
         			$v = $v / (60 * 60);
         			$suffix = tr('ч.');
         			break;
-        		default:
         		case 'minutes':
+        		default:
         			$v = $v / 60;
         			$suffix = tr('мин.');
         			break;
