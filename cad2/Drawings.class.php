@@ -6,7 +6,7 @@
  */
 class cad2_Drawings extends embed_Manager {
 
-    var $oldClassName = 'cad2_Shapes';
+    
     
     /**
 	 * Свойство, което указва интерфейса на вътрешните обекти
@@ -110,12 +110,29 @@ class cad2_Drawings extends embed_Manager {
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, remember=info,width=100%');
         $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
-		
-    }
+	}
 
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    
+    /**
+     * След подготовка на сингъла
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$exp = explode('»', $data->row->driverClass);
+    	if(count($exp) == 2){
+    		$data->row->driverClass = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
+    	} else {
+    		$data->row->driverClass = tr($data->row->driverClass);
+    	}
+    }
+    
+    
+    /**
+     * След рендиране на сингъла
+     */
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     { 
-        $driver = cls::get($data->rec->driverClass);
+    	$driver = cls::get($data->rec->driverClass);
         $svg = $driver->getCanvas();
         $driver->render($svg, (array) $data->rec);
         $tpl->append('<div class="clearfix21"></div>');
@@ -134,7 +151,7 @@ class cad2_Drawings extends embed_Manager {
      * @param blast_EmailSend $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме записите, като неизпратените да се по-нагоре
         $data->query->orderBy("createdOn", 'DESC');
@@ -145,7 +162,7 @@ class cad2_Drawings extends embed_Manager {
     }
 
 
-    static function on_AfterRead($mvc, $rec)
+    public static function on_AfterRead($mvc, $rec)
     {
         if(!$rec->name) {
             $rec->name = tr($mvc->getVerbal($rec, 'driverClass')) . "({$rec->id})";
@@ -153,7 +170,7 @@ class cad2_Drawings extends embed_Manager {
     }
 
 
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if(TRUE || $mvc->haveRightFor('update', $data->rec)) {
             $data->toolbar->addBtn('SVG', array($mvc, 'DownloadSvg', $data->rec->id), NULL, 'ef_icon=fileman/icons/svg.png');
@@ -212,8 +229,4 @@ class cad2_Drawings extends embed_Manager {
 
         shutdown();
     }
-
-
-
-
 }

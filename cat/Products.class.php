@@ -1458,7 +1458,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if($mvc->haveRightFor('edit', $rec)){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')){
     				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
     			}
     		}
