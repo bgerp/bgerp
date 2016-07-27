@@ -28,12 +28,4 @@
         
         <div class='clearfix21'></div>
     </div>
-<!--ET_BEGIN DETAILS-->
-<div class="overflow-scroll">
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-</div>
-<!--ET_END DETAILS-->
-
-<div style='clear: both;'></div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

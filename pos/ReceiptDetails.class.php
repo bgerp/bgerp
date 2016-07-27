@@ -83,7 +83,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'double(smartRound)', 'caption=К-во,placeholder=К-во,width=4em');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
-    	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
+    	$this->FLD('value', 'varchar(32)', 'caption=Мярка, input=hidden,smartCenter');
     	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
     }
     
@@ -497,7 +497,7 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	if($fields['-list']){
-    		$row->value .= " " . $row->perPack . " " . $row->uomId;
+    		$row->value .= " <small class='quiet'>" . $row->perPack  . $row->uomId .  "</span>";
     		$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
     	} else {
     		$row->productId = cat_Products::getTitleById($rec->productId, TRUE);
