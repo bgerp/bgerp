@@ -520,6 +520,7 @@ class acc_Items extends core_Manager
     {
         $Class = cls::get($class);
         $self = cls::get(get_called_class());
+        $objectId = $Class->fetchRec($objectId)->id;
         
         if($useCachedItems === TRUE){
         	$index = $Class->getClassId() . "|" . $objectId;
@@ -613,13 +614,21 @@ class acc_Items extends core_Manager
      */
     public static function force($classId, $objectId, $listId, $useCachedItems = FALSE)
     {
-        $rec = self::fetchItem($classId, $objectId, $useCachedItems);
+        $Class = cls::get($classId);
+        $classId = $Class->getClassId();
+    	$rec = self::fetchItem($classId, $objectId, $useCachedItems);
         
         if (empty($rec)) {
             // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId
             $rec = new stdClass();
             $register = core_Cls::getInterface('acc_RegisterIntf', $classId);
             self::syncItemRec($rec, $register, $objectId);
+            
+            if(haveRole('debug')){
+            	$title = $Class->getTitleById($objectId);
+            	$listName = acc_Lists::fetchField($listId, 'name');
+            	core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listName}'");
+            }
         }
         
         $rec->classId  = $classId;
@@ -633,9 +642,9 @@ class acc_Items extends core_Manager
             
             // Ако перото не е в номенкл. $listId (независимо дали се създава за пръв път или
             // вече го има), добавяме го и записваме на момента.
-            $rec->lists = keylist::addKey($itemRec->lists, $listId);
+            $rec->lists      = keylist::addKey($rec->lists, $listId);
             $rec->state      = 'active';
-            $rec->lastUseOn = dt::now();
+            $rec->lastUseOn  = dt::now();
             
             self::save($rec);
         }
@@ -1088,5 +1097,29 @@ class acc_Items extends core_Manager
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * Проверява дали даден обект е перо в дадена номенклатура
+     * 
+     * @param mixed $class          - клас
+     * @param int $objectId         - ид на обект
+     * @param string $listSystemId  - систем ид на номенклатура
+     * @return boolean $res         - резултат
+     */
+    public static function isItemInList($class, $objectId, $listSystemId)
+    {
+    	$Class = cls::get($class);
+    	$query = self::getQuery();
+    	$query->where("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
+    	
+    	$listId = acc_Lists::fetchField("#systemId = '{$listSystemId}'", 'id');
+    	$query->like('lists', "|{$listId}|");
+    	$query->show('id');
+    	
+    	$res = ($query->fetch()) ? TRUE : FALSE;
+    	
+    	return $res;
     }
 }

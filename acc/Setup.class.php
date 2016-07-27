@@ -23,6 +23,12 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
 
 /**
+ * Кои документи могат да са разходни пера
+ */
+defIfNot('ACC_COST_OBJECT_DOCUMENTS', '');
+
+
+/**
  * Толеранс за допустимо разминаване на суми
  */
 defIfNot('ACC_MONEY_TOLERANCE', '0.05');
@@ -132,11 +138,12 @@ class acc_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
-        'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
+        'ACC_MONEY_TOLERANCE'                 => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+        'ACC_DETAILED_BALANCE_ROWS'           => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
     	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
-    	'ACC_VAT_REASON_OUTSIDE_EU' => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
-    	'ACC_VAT_REASON_IN_EU'      => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
+    	'ACC_VAT_REASON_OUTSIDE_EU'           => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
+    	'ACC_VAT_REASON_IN_EU'                => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
+    	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
     );
     
     
@@ -236,6 +243,44 @@ class acc_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+    	$res = parent::loadSetupData($itr);
+    	$docs = core_Packs::getConfigValue('acc', 'ACC_COST_OBJECT_DOCUMENTS');
+    	
+    	// Ако потребителя не е избрал документи, които могат да са разходни пера
+    	if(strlen($docs) === 0){
+    		$docArr = array();
+    		foreach (array('cal_Tasks', 'sales_Sales', 'purchase_Purchases', 'accda_Da', 'findeals_Deals', 'findeals_AdvanceDeals') as $doc){
+    			if(core_Classes::add($doc)){
+    				$id = $doc::getClassId();
+    				$docArr[$id] = $id;
+    			}
+    		}
+    
+    		// Записват се ид-та на дефолт сметките за синхронизация
+    		core_Packs::setConfig('acc', array('ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)));
+    		$res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
+    	}
+    
+    	return $res;
+    }
+    
+    
+    /**
+     * Помощна функция връщаща всички класове, които са документи
+     */
+    public static function getDocumentOptions()
+    {
+    	$options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
+    	
+    	return array('' => '') + $options;
     }
     
     
