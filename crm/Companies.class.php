@@ -1646,6 +1646,20 @@ class crm_Companies extends core_Master
         if ($action == 'delete') {
             $requiredRoles = 'no_one';
         }
+        
+        if($action == 'edit' && isset($rec)){
+        	if($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID){
+        		if(!haveRole('ceo,admin')){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
+        }
+        
+        if($action == 'close' && isset($rec)){
+        	if($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID){
+        		$requiredRoles = 'no_one';
+        	}
+        }
     }
     
     
