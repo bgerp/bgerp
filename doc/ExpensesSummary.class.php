@@ -220,11 +220,12 @@ class doc_ExpensesSummary extends core_Manager
     	
     	// Извличаме от журнала направените записи за разхода
     	$entries = acc_Journal::getEntries($itemRec);
+    	$accId = acc_Accounts::getRecBySystemId('60201')->id;
     	
     	if(is_array($entries)){
     		foreach($entries as $ent){
     			foreach (array('debit', 'credit') as $type){
-    				if($ent->{"{$type}Item1"} == $itemRec->id){
+    				if($ent->{"{$type}Item1"} == $itemRec->id && $ent->{"{$type}AccId"} == $accId){
     					$sign = ($type == 'debit') ? 1 : -1;
     					
     					$r = (object)array('docType'   => $ent->docType, 
