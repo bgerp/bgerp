@@ -141,7 +141,7 @@ class core_Form extends core_FieldSet
         $optionsFunc = $this->selectFields("#optionsFunc");
         if ($optionsFunc) {
             foreach ($optionsFunc as $name => $field) {
-                if ($field->type instanceof type_Varchar) {
+                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist) {
                     $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
                 } else {
                     $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
@@ -294,7 +294,7 @@ class core_Form extends core_FieldSet
         if ($optionsFunc) {
             
             foreach ($optionsFunc as $name => $field) {
-                if ($field->type instanceof type_Varchar) {
+                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist) {
                     $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
                 } else {
                     $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));

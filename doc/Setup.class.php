@@ -178,6 +178,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_HiddenContainers',
     	'doc_DocumentCache',
     	'doc_Likes',
+    	'doc_ExpensesSummary',
         'migrate::repairAllBrokenRelations',
         'migrate::repairBrokenFolderId'
     );
