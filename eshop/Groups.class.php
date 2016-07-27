@@ -642,19 +642,32 @@ class eshop_Groups extends core_Master
             $pQuery = eshop_Products::getQuery();
             $pQuery->where("#groupId IN (" . implode(',', $groups) . ")");
 
-            plg_Search::applySearch($q, $pQuery);
+            plg_Search::applySearch($q, $pQuery, NULL, TRUE);
             $pQuery->limit($maxResults);
-           // $pQuery->orderBy('modifiedOn=DESC');
-
             while($r = $pQuery->fetch()) {
                 $title = $r->name;
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
 
-                $res[] = (object) array('title' => $title, 'url' => $url);
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
+
+            if(count($res) < $maxResults) {
+                $pQuery = eshop_Products::getQuery();
+                $pQuery->where("#groupId IN (" . implode(',', $groups) . ")");
+
+                plg_Search::applySearch($q, $pQuery);
+                $pQuery->limit($maxResults);
+                while($r = $pQuery->fetch()) {
+                    $title = $r->name;
+                    $url = eshop_Products::getUrl($r);
+                    $url['q'] = $q;
+
+                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+                }
             }
         }
- 
+
         return $res; 
     }
 
