@@ -143,7 +143,7 @@ class acc_Setup extends core_ProtoSetup
     	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
     	'ACC_VAT_REASON_OUTSIDE_EU'           => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
     	'ACC_VAT_REASON_IN_EU'                => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
-    	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
+    	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
     );
     
     
@@ -280,7 +280,7 @@ class acc_Setup extends core_ProtoSetup
     {
     	$options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     	
-    	return array('' => '') + $options;
+    	return $options;
     }
     
     
