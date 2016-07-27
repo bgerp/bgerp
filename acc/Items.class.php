@@ -534,43 +534,6 @@ class acc_Items extends core_Manager
     
     
     /**
-     * След промяна на запис на мениджър, на който acc_Items е екстендер
-     *
-     * Това събитие се генерира от @see groups_Extendable
-     *
-     * @param acc_Items $mvc
-     * @param stdClass $regRec
-     * @param core_Mvc $master
-     */
-    public static function on_AfterMasterSave(acc_Items $mvc, stdClass $regRec, core_Mvc $master)
-    {
-        $mvc::syncItemWith($master, $regRec->id);
-    }
-    
-    
-    /**
-     * Синхронизира запис от регистър на пера със съответното му номенклатурно перо.
-     *
-     * @param core_Mvc $master
-     * @param int $objectId;
-     */
-    public static function syncItemWith(core_Mvc $master, $objectId)
-    {
-        // Синхронизирането е възможно само с мениджъри поддържащи acc_RegisterIntf
-        if (!core_Cls::haveInterface('acc_RegisterIntf', $master)) {
-            return;
-        }
-        
-        $classId  = $master::getClassId();
-        
-        if ($itemRec = static::fetchItem($classId, $objectId)) {
-            static::syncItemRec($itemRec, $master, $itemRec->objectId);
-            static::save($itemRec);
-        }
-    }
-    
-    
-    /**
      * Синхронизира запис-перо с автентични данни извлечени от регистъра.
      *
      * @param acc_RegisterIntf $register

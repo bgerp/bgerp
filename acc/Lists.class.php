@@ -126,7 +126,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изчислява полето 'caption', като конкатенира номера с името на номенклатурата
      */
-    public static function on_CalcCaption($mvc, $rec)
+    protected static function on_CalcCaption($mvc, $rec)
     {
         if (!$rec->name) {
             $rec->name = $mvc::fetchField($rec->id, 'name');
@@ -142,7 +142,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изчислява полето 'nameLink', като име с хипервръзка към перата от тази номенклатура
      */
-    public static function on_CalcNameLink($mvc, $rec)
+    protected static function on_CalcNameLink($mvc, $rec)
     {
         $name = $mvc->getVerbal($rec, 'name');
         $rec->nameLink = $name;
@@ -156,7 +156,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изчислява полето 'title'
      */
-    public static function on_CalcTitle($mvc, $rec)
+    protected static function on_CalcTitle($mvc, $rec)
     {
         $name = $mvc->getVerbal($rec, 'name');
         $num = $mvc->getVerbal($rec, 'num');
@@ -193,7 +193,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се преди запис на номенклатурата
      */
-    public static function on_BeforeSave($mvc, $id, $rec)
+    protected static function on_BeforeSave($mvc, $id, $rec)
     {
         if (!$rec->id) {
             $rec->itemCount = 0;
@@ -204,7 +204,7 @@ class acc_Lists extends core_Manager {
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL)
     {
         if (($action == 'delete')) {
             
@@ -225,7 +225,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се след подготовка на формата за редактиране
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if (($data->form->rec->id && $data->form->rec->itemsCnt) || $data->form->rec->systemId) {
             
@@ -242,7 +242,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се след конвертирането на вербалния запис
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
     	if(is_array($rec->featureList)){ 
     		$row->featureList = type_Varchar::escape(implode(', ', $rec->featureList));
@@ -279,7 +279,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се преди подготовката на показваните редове
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('num');
     }
@@ -597,7 +597,7 @@ class acc_Lists extends core_Manager {
     /**
      * Обработка, преди импортиране на запис при начално зареждане
      */
-    public static function on_BeforeImportRec($mvc, $rec)
+    protected static function on_BeforeImportRec($mvc, $rec)
     {
         $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $rec->regInterfaceId), 'id');
         $rec->state = 'active';
@@ -646,5 +646,27 @@ class acc_Lists extends core_Manager {
         
         // Записваме в лога вербалното представяне на резултата от импортирането 
         $res .= $cntObj->html;
+    }
+    
+    
+    /**
+     * Връща бройката на перата в посочената номенклатура
+     * 
+     * @param mixed $listId    - ид или систем ид на номенклатура
+     * @param string $systemId - дали $listId е систем ид или не
+     * @return int             - брой пера в номенклатурата
+     */
+    public static function getItemsCountInList($listId, $systemId = TRUE)
+    {
+    	if($systemId === TRUE){
+    		$listId = self::fetchBySystemId($listId)->id;
+    	}
+    	
+    	// Опит за преброяване на перата в номенклатурата
+    	$iQuery = acc_Items::getQuery();
+    	$iQuery->like("lists", "|{$listId}|");
+    	$iQuery->show('id');
+    	
+    	return $iQuery->count();
     }
 }
