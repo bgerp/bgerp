@@ -363,7 +363,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderParams($data)
     {
-        if($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+        if($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('inlineDocument')) {
             $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нов параметър');
         }
 

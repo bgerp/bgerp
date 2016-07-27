@@ -203,7 +203,7 @@ class planning_ObjectResources extends core_Manager
     	$data->TabCaption = 'Влагане';
     	$data->Tab = 'top';
     	
-    	if(!Mode::is('printing')) {
+    	if(!Mode::is('printing') && !Mode::is('inlineDocument')) {
     		if(self::haveRightFor('add', (object)array('objectId' => $data->masterId))){
     			$data->addUrl = array($this, 'add', 'objectId' => $data->masterId, 'ret_url' => TRUE);
     		}
