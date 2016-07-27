@@ -657,9 +657,7 @@ class cms_Content extends core_Manager
         $query->where("#domainId = {$domainId} AND #id != {$menuId}");
 
         $res = array();
-        
-        $html = "<h1>Търсене на \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h1>";
-        
+                
         do {
             if(!$rec->source) continue;  
             $cls = cls::get($rec->source);
@@ -677,9 +675,11 @@ class cms_Content extends core_Manager
             }
         } while($rec = $query->fetch());
 
-
-
-        return "<div style='padding:0px;'>" . $html . "</div>";
+        $res = new ET("<h1>Търсене на \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h1><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+        
+        plg_Search::highlight($res, $q, 'results');
+        
+        return  $res;
     }
 
  }
