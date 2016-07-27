@@ -149,8 +149,12 @@ class plg_Search extends core_Plugin
      * @param core_Query $query
      * @param string $field
      */
-    public static function applySearch($search, $query, $field = 'searchKeywords')
+    public static function applySearch($search, $query, $field = NULL, $strict = FALSE)
     {
+        if(!$field) {
+            $field = 'searchKeywords';
+        }
+
         if ($words = static::parseQuery($search)) {
             foreach($words as $w) {
                 
@@ -160,6 +164,9 @@ class plg_Search extends core_Plugin
                 
                 $wordBegin = ' ';
                 $wordEnd = '';
+                if($strict) {
+                    $wordEnd = ' ';
+                }
 
                 if($w{0} == '"') {
                     $w = substr($w, 1);

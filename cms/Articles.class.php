@@ -634,7 +634,7 @@ class cms_Articles extends core_Master
     {
         $query = self::getQuery();
         $query->where("#menuId = {$menuId} AND #state = 'active'");
-        plg_Search::applySearch($q, $query);
+        plg_Search::applySearch($q, $query, NULL, TRUE);
         $query->limit($maxResults);
         $query->orderBy('modifiedOn=DESC');
         $res = array();
@@ -648,7 +648,29 @@ class cms_Articles extends core_Master
             $url = self::getUrl($r);
             $url['q'] = $q;
 
-            $res[] = (object) array('title' => $title, 'url' => $url);
+            $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+        }
+
+        if(count($res) < $maxResults) {
+            $query = self::getQuery();
+            $query->where("#menuId = {$menuId} AND #state = 'active'");
+            plg_Search::applySearch($q, $query);
+            $query->limit($maxResults);
+            $query->orderBy('modifiedOn=DESC');
+            $res = array();
+
+            while($r = $query->fetch()) {
+                $title = str::cut($r->body, '[h1]', '[/h1]');
+                if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
+                    $title = $r->title;
+                }
+
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
+
         }
  
         return $res; 

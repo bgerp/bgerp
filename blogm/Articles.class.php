@@ -643,11 +643,6 @@ class blogm_Articles extends core_Master {
             }
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
         }
-
-        if($data->q) {
-        	plg_Search::applySearch($data->q, $data->query);
-            vislog_History::add("Търсене в блога: {$q}");
-        }
         
         if($data->archive) {  
             $data->query->where("#createdOn LIKE '{$data->archiveY}-{$data->archiveM}-%'");
@@ -710,6 +705,8 @@ class blogm_Articles extends core_Master {
             $cRec = cms_Content::fetch("#domainId = {$domainId} AND #source = {$clsId}");
 
             $data->descr = cms_Content::renderSearchResults($cRec->id, $data->q);
+            vislog_History::add("Търсене в блога: {$data->q}");
+
             $data->title = NULL;
             $data->rows = array();
     
@@ -1095,7 +1092,7 @@ class blogm_Articles extends core_Master {
         $query = self::getQuery();
         $query->where("#state = 'active'");
         $query->likeKeylist('categories', keylist::fromArray($groupsArr));
-        plg_Search::applySearch($q, $query);
+        plg_Search::applySearch($q, $query, NULL, TRUE);
         $query->limit($maxResults);
         $query->orderBy('modifiedOn=DESC');
 
@@ -1104,7 +1101,24 @@ class blogm_Articles extends core_Master {
             $url = self::getUrl($r);
             $url['q'] = $q;
 
-            $res[] = (object) array('title' => $title, 'url' => $url);
+            $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+        }
+
+        if(count($res) < $maxResults) {
+            $query = self::getQuery();
+            $query->where("#state = 'active'");
+            $query->likeKeylist('categories', keylist::fromArray($groupsArr));
+            plg_Search::applySearch($q, $query);
+            $query->limit($maxResults);
+            $query->orderBy('modifiedOn=DESC');
+
+            while($r = $query->fetch()) {
+                $title = $r->title;
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
         }
       
  
