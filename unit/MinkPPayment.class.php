@@ -38,6 +38,20 @@ class unit_MinkPPayment extends core_Manager {
     }
     
     /**
+     * Избор на фирма
+     */
+    public function SetFirm()
+    {
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = 'Фирма bgErp';
+        $browser->click($Company);
+        $browser->press('Папка');
+        return $browser;
+    }
+    
+    /**
      * 1.
      * Проверка състояние плащане - чакащо, метод - до x дни след фактуриране (3,7,10,15,21,30) в деня на падеж
      * Нова продажба на съществуваща фирма с папка
@@ -50,12 +64,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
-    
+        $browser = $this->SetFirm();
+        
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -170,11 +180,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
          
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -290,11 +296,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -405,11 +407,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -530,11 +528,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -624,11 +618,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -722,11 +712,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -805,8 +791,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         //$browser->setValue('dueDate', date('d-m-Y', $valior));
         $browser->setValue('dueDate', null);
-        $browser->setValue('numlimit', '2000000 - 3000000');
-        //$browser->setValue('numlimit', '0 - 2000000');
+        //$browser->setValue('numlimit', '2000000 - 3000000');
+        $browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -839,11 +825,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
     
@@ -962,11 +944,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
          
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
     
@@ -1067,11 +1045,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -1230,11 +1204,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова покупка - проверка има ли бутон
         if(strpos($browser->gettext(), 'Покупка')) {
@@ -1349,11 +1319,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
         
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
         
         // нова покупка - проверка има ли бутон
         if(strpos($browser->gettext(), 'Покупка')) {
@@ -1466,11 +1432,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetUp();
             
         //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+        $browser = $this->SetFirm();
     
         // нова покупка - проверка има ли бутон
         if(strpos($browser->gettext(), 'Покупка')) {
@@ -1585,12 +1547,8 @@ class unit_MinkPPayment extends core_Manager {
         // Логваме се
         $browser = $this->SetUp();
     
-        //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
+       //Отваряме папката на фирмата
+        $browser = $this->SetFirm();
     
         // нова покупка - проверка има ли бутон
         if(strpos($browser->gettext(), 'Покупка')) {
@@ -1676,7 +1634,7 @@ class unit_MinkPPayment extends core_Manager {
         
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '12176');
+        $browser->setValue('number', '1276');
         $browser->press('Чернова');
         $browser->press('Контиране');
         

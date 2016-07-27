@@ -453,6 +453,8 @@ input[type="search"]::-webkit-search-decoration {
 	display:block;
 	position:relative;
 	height:1.5em;
+	border-radius: 5px;
+	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
 
 #simpleSearch.forumSearch .button {
@@ -476,7 +478,6 @@ input[type="search"]::-webkit-search-decoration {
 	outline:none;
 	height:1.2em;
 	box-shadow: none;
-	font-size:0.95em;
  	width:90%;
 	padding:0px;
 	padding-left:0.2em;

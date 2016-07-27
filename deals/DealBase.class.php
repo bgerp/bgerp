@@ -96,7 +96,8 @@ abstract class deals_DealBase extends core_Master
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
 				
 				// Добавяме контрагента като перо, ако не е
-				$Cover->forceItem('contractors');
+				$listId = acc_Lists::fetchBySystemId('contractors')->id;
+				acc_Items::force($Cover->getClassId(), $Cover->that, $listId);
 			}
 		}
 	}
