@@ -122,13 +122,28 @@ class acc_type_Account extends type_Key
                 	// Ако има аналитичност, се извлича интерфейса, който поддържа
                 	$listIntf = acc_Lists::fetchField($rec->$fld, 'regInterfaceId');
                 	
-                	
                 	if($listIntf != $arr[$i]){
                 		unset($suggestions[$id]);
                 		break;
                 	}
                 }
             }
+        }
+        
+        if(is_array($suggestions)){
+        	$resetArr = array_values($suggestions);
+        	$map = array_combine(array_keys($resetArr), array_keys($suggestions));
+        	
+        	// От опциите махаме групите на сметките, ако в тях не са останали сметки
+        	foreach ($resetArr as $i => $v){
+        		$vNext = $resetArr[$i+1];
+        		
+        		// Ако текущото предложение е група и след нея следва друга група, я махаме
+        		if(is_object($v) && (is_object($vNext) || !$vNext)){
+        			$unsetKey = $map[$i];
+        			unset($suggestions[$unsetKey]);
+        		}
+        	}
         }
     }
 }

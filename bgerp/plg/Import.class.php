@@ -175,7 +175,7 @@ class bgerp_plg_Import extends core_Plugin
         // Избиране на драйвър за импортиране
         $exp->DEF('#driver', 'int', 'caption=Източник,input,mandatory');
         $exp->OPTIONS("#driver", "getimportdrivers()");
-        $exp->question("#driver", tr("Моля, изберете източник") . ":", TRUE, 'title=' . tr('Какъв е източникът на данни?') . '?');
+        $exp->question("#driver", tr("Моля, изберете източник") . ":", TRUE, 'title=' . tr('Какъв е източникът на данни') . '?');
         
         // Избор как ще се въведат данните с copy & paste или с ъплоуд
         $exp->DEF('#source=Начин', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');
