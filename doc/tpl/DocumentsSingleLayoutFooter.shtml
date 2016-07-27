@@ -12,5 +12,11 @@
 	        [#shareLog#]
 	    </div>
     <!--ET_END shareLog-->
+    <!--ET_BEGIN Expenses-->
+    <div class='expense-history' style='margin-top:10px'>
+    <div>|Разходи|*<div>
+    [#Expenses#]
+    </div>
+    <!--ET_END Expenses-->
 </div>
 <div style='clear: both;'></div>

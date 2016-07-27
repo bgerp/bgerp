@@ -70,6 +70,7 @@ class doc_DocumentPlg extends core_Plugin
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
+        setIfNot($mvc->interfaces['acc_RegisterIntf'], 'acc_RegisterIntf');
         
         // Добавя поле за последно използване
         if(!isset($mvc->fields['lastUsedOn'])) {
@@ -101,19 +102,79 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['History'] = 'doclog_Documents';
         }
         
+        if (Request::get('Sid', 'int')){
+        	$mvc->details = arr::make($mvc->details);
+        	$mvc->details['Expenses'] = 'doc_ExpensesSummary';
+        }
+        
+        
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
         
-        // Дали можое да се редактират активирани документи
+        // Дали може да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
         setIfNot($mvc->canExportdoc, 'powerUser');
+        setIfNot($mvc->canForceexpenseitem, 'ceo,acc');
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
         $mvc->setDbIndex('originId');
+        
+        // Закачане на плъгина за счетоводни пера, ако вече не е закачен
+        $plugins = $mvc->getPlugins();
+        if(!isset($plugins['acc_plg_Registry'])){
+        	$mvc->load('acc_plg_Registry');
+        }
+    }
+    
+    
+    /**
+     * След промяна в журнала със свързаното перо
+     */
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
+    {
+    	$listId = acc_Lists::fetchBySystemId('costObjects')->id;
+    	if(keylist::isIn($listId, $item->lists)){
+    		doc_ExpensesSummary::updateSummary($rec->containerId, $item);
+    	}
+    }
+    
+    
+    /**
+     * Дефолт имплементация на getItemRec
+     * @see acc_RegisterIntf
+     */
+    public static function on_AfterGetItemRec($mvc, &$res, $id)
+    {
+    	if(!empty($res)) return;
+    	
+    	$result = NULL;
+    	
+    	if ($rec = $mvc->fetch($id)) {
+    		$row = $mvc->getDocumentRow($rec->id);
+    		$num = "#" . $mvc->getHandle($rec->id);
+    		
+    		$result = (object)array(
+    				'num'      => $num,
+    				'title'    => $row->recTitle,
+    				'features' => array('Папка' => doc_Folders::getVerbal($rec->folderId, 'title')),
+    		);
+    	}
+    	
+    	$res = $result;
+    }
+    
+    
+    /**
+     * Дефолт имплементация на getItemInUse
+     * @see acc_RegisterIntf
+     */
+    public static function on_AfterItemInUse($mvc, &$res, $id)
+    {
+    	
     }
     
     
@@ -277,6 +338,12 @@ class doc_DocumentPlg extends core_Plugin
             $data->toolbar->addBtn("Сваляне", toUrl(array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id)),
                             "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
             Request::removeProtected(array('classId', 'docId'));
+        }
+        
+        // Дали документа може да бъде разоден обект
+        if ($mvc->haveRightFor('forceexpenseitem', $data->rec)) {
+        	$data->toolbar->addBtn('Разходен обект', array($mvc, 'forceexpenseitem', $data->rec->id),
+        			"warning=Наистина ли искате да направите документа разходен обект?, row=1,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png');
         }
     }
     
@@ -767,6 +834,28 @@ class doc_DocumentPlg extends core_Plugin
             $res = new Redirect($res); //'OK';
             
             return FALSE;
+        }
+        
+        // При форсиране на документа като разходен обект
+        if($action == 'forceexpenseitem'){
+        	$mvc->requireRightFor('forceexpenseitem');
+        	expect($id  = Request::get('id', 'int'));
+        	expect($rec = $mvc->fetch($id));
+        	
+        	// Форсираме документа като разходен обект
+        	$listId = acc_Lists::fetchBySystemId('costObjects')->id;
+        	acc_Items::force($mvc->getClassId(), $rec->id, $listId);
+        	
+        	// Създаване на празен запис в кеш таблицата за разходите
+        	doc_ExpensesSummary::save((object)array('containerId' => $rec->containerId));
+        	
+        	if (!$res = getRetUrl()) {
+        		$res = array($mvc, 'single', $id);
+        	}
+        	
+        	$res = new Redirect($res);
+        	
+        	return FALSE;
         }
     }
     
@@ -1607,6 +1696,27 @@ class doc_DocumentPlg extends core_Plugin
             if ($rec->state == 'rejected' || $rec->state == 'draft' || !$mvc->haveRightFor('single', $rec) || !$mvc->getExportFormats()) {
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        // При опит за форсиране на документа, като разходен обект
+        if($action == 'forceexpenseitem' && isset($rec->id)){
+        	$costClasses = acc_Setup::get('COST_OBJECT_DOCUMENTS');
+        	
+        	if(!keylist::isIn($mvc->getClassId(), $costClasses)){
+        		
+        		// Ако класа на документа не е документите, които могат да са разходни пера не може да се форсира
+        		$requiredRoles = 'no_one';
+        	} elseif(acc_Items::isItemInList($mvc, $rec->id, 'costObjects')) {
+        		
+        		// Ако документа, вече е в номенклатура за 'Разходни обекти', не може отново да се добави
+        		$requiredRoles = 'no_one';
+        	} else {
+        		
+        		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed'){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
         }
     }
     
