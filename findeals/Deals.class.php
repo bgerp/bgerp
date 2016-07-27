@@ -244,7 +244,17 @@ class findeals_Deals extends deals_DealBase
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->setOptions('accountId', acc_Accounts::getOptionsByListInterfaces($mvc->accountListInterfaces));
+    	$options = acc_Accounts::getOptionsByListInterfaces($mvc->accountListInterfaces);
+    	
+    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
+    	$except = arr::make(static::$exceptAccSysIds);
+    	foreach ($except as $sysId){
+    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
+    		unset($options[$accId]);
+    	}
+    	
+    	
+    	$form->setOptions('accountId', $options);
     }
     
     
@@ -296,19 +306,6 @@ class findeals_Deals extends deals_DealBase
     	 
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
-    	 
-    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
-    	
-    	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
-    	
-    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
-    	$except = arr::make(static::$exceptAccSysIds);
-    	foreach ($except as $sysId){
-    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
-    		unset($options[$accId]);
-    	}
-    	
-    	$form->setOptions('accountId', array('' => '') + $options);
     	
     	return $data;
     }
