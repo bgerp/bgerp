@@ -538,7 +538,7 @@ class unit_MinkP extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         
-        // Фактура  № се сменя при повторен тест
+        // Фактура  № се оттегля при повторен тест
         $browser->press('Вх. фактура');
         $browser->setValue('number', '12');
         $browser->press('Чернова');
@@ -553,7 +553,7 @@ class unit_MinkP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
@@ -671,7 +671,6 @@ class unit_MinkP extends core_Manager {
         $browser->click('Добавяне на нова търговска технологична рецепта');
         //$browser->hasText('Добавяне на търговска рецепта към');
         $browser->setValue('notes', 'BomStage3');
-        //$browser->setValue('expenses', '8');
         $browser->setValue('quantityForPrice', '10000');
         $browser->press('Чернова');
         $browser->press('Влагане');
@@ -706,6 +705,6 @@ class unit_MinkP extends core_Manager {
         } else {
             return "Грешна себестойност";
         }
-         
+        return $browser->gethtml(); 
     }
 }

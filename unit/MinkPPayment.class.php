@@ -161,7 +161,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
             return "Грешно чакащо плащане в деня на падеж";
         }
@@ -692,9 +692,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('storeId', 'Склад 1');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане (вярно - Не)";
+            return "Грешно чакащо плащане (вярно - Няма)";
         }
     
     }
@@ -805,7 +805,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
             return "Грешно чакащо плащане";
         }    
@@ -924,7 +924,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
          
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
             return "Грешно чакащо плащане";
         }     
@@ -1023,7 +1023,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
          
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
@@ -1185,7 +1185,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         //return  $browser->getHtml();
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
@@ -1310,7 +1310,7 @@ class unit_MinkPPayment extends core_Manager {
                     
     /**
      * 6. Нова покупка от съществуваща фирма с папка
-     * Проверка състояние чакащо плащане - да
+     * Проверка състояние чакащо плащане - Има
      */
     //http://localhost/unit_MinkPPayment/CreatePurchaseWait/
     function act_CreatePurchaseWait()
@@ -1413,7 +1413,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         // Проверка Чакащо плащане
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
             return "Грешно чакащо плащане";
         }
@@ -1425,7 +1425,7 @@ class unit_MinkPPayment extends core_Manager {
      */
      
     //http://localhost/unit_MinkPPayment/CreatePurchaseOverpaid/
-    // Фактура - № се сменя при повторен тест!
+    // Фактура - №17923 се оттегля при повторен тест!
     function act_CreatePurchaseOverpaid()
     {
         // Логваме се
@@ -1502,7 +1502,7 @@ class unit_MinkPPayment extends core_Manager {
         //  $browser->press('Контиране');
         //}
     
-        // Фактура - № се сменя при повторен тест!
+        // Фактурата се оттегля при повторен тест!
         $browser->press('Вх. фактура');
         $browser->setValue('number', '17923');
         $browser->setValue('date', date('d-m-Y', $valior));
@@ -1527,7 +1527,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Контиране');
     
         // Проверка Чакащо плащане
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
@@ -1537,7 +1537,7 @@ class unit_MinkPPayment extends core_Manager {
     /**
      * 6. Нова покупка от съществуваща фирма с папка
      * Проверка количество и цени - изрази
-     * Проверка състояние чакащо плащане - не (платено)
+     * Проверка състояние чакащо плащане - няма (платено)
      */
      
     //http://localhost/unit_MinkPPayment/CreatePurchase/
@@ -1656,7 +1656,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }

@@ -823,7 +823,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
@@ -1028,7 +1028,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
