@@ -438,7 +438,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($jRecs, $accs = '321,302,601,602,60010,60020', $groupByStore = FALSE)
+    public static function getShippedProducts($jRecs, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = FALSE)
     {
     	$res = array();
     
@@ -450,28 +450,26 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     	foreach ($dInfo->recs as $p){
     	
     		// Обикаляме всяко перо
-    		foreach (range(1, 3) as $i){
-    			if(isset($p->{"debitItem{$i}"})){
-    				$itemRec = acc_Items::fetch($p->{"debitItem{$i}"});
+    		if(isset($p->debitItem2)){
+    			$itemRec = acc_Items::fetch($p->debitItem2);
     				 
-    				// Ако има интерфейса за артикули-пера, го добавяме
-    				if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
-    					$obj = new stdClass();
-    					$obj->productId  = $itemRec->objectId;
+    			// Ако има интерфейса за артикули-пера, го добавяме
+    			if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
+    				$obj = new stdClass();
+    				$obj->productId  = $itemRec->objectId;
     					 
-    					$index = $obj->productId;
-    					if(empty($res[$index])){
-    						$res[$index] = $obj;
-    					}
+    				$index = $obj->productId;
+    				if(empty($res[$index])){
+    					$res[$index] = $obj;
+    				}
     					 
-    					$res[$index]->amount += $p->amount;
-    					$res[$index]->quantity  += $p->debitQuantity;
+    				$res[$index]->amount += $p->amount;
+    				$res[$index]->quantity  += $p->debitQuantity;
     					
-    					if($groupByStore === TRUE){
-    						$storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
-    						$storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
-    						$res[$index]->inStores[$storeItem->objectId] += $p->debitQuantity;
-    					}
+    				if($groupByStore === TRUE){
+    					$storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
+    					$storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
+    					$res[$index]->inStores[$storeItem->objectId] += $p->debitQuantity;
     				}
     			}
     		}
