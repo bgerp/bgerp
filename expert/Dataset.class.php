@@ -56,7 +56,7 @@ class expert_Dataset extends core_BaseClass {
 
         $rule->condVars = $this->extractVars($cond);
 
-        // Не може правило за дадена променлива да зависи от нев
+        // Не може правило за дадена променлива да зависи от нея
         expect(!$rule->condVars[$rule->name] && !$rule->exprVars[$rule->name]);
 
         
