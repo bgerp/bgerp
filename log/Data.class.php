@@ -520,6 +520,9 @@ class log_Data extends core_Manager
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);
         $data->listFilter->setDefault('users', $default);
         
+        // По - подразбиране да се търси месец назад
+        $data->listFilter->setDefault('from', dt::subtractSecs(type_Time::SECONDS_IN_MONTH));
+        
         $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
