@@ -183,8 +183,10 @@ class doc_ExpensesSummary extends core_Manager
     		}
     	}
     	
+    	$currencyCode = acc_Periods::getBaseCurrencyCode();
+    	
     	// Рендиране на таблицата
-    	$tableHtml = $table->get($data->rows, 'valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума');
+    	$tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
     	
     	$tpl->append($tableHtml);
     	
