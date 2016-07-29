@@ -81,7 +81,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Aex";
+    public $abbr = "Cor";
     
     
     /**
