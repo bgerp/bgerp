@@ -280,7 +280,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
 		}
 		
-		$row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : ((isset($rec->dealId)) ? 'Изпълняване на услуга' : 'Разходи за спомагателна дейност');
+		$row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
 		$row->subTitle = tr($row->subTitle);
 	}
 	
