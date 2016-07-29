@@ -101,6 +101,7 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		$aggregatedDealInfo = $origin->getAggregateDealInfo();
 		$agreedProducts = $aggregatedDealInfo->get('products');
+		
 		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
 		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
 		
@@ -124,6 +125,10 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->discount    = $discount;
 				$shipProduct->notes       = $product->notes;
 				$shipProduct->quantityInPack = $product->quantityInPack;
+				
+				if(isset($product->expenseItemId)){
+					$shipProduct->expenseItemId = $product->expenseItemId;
+				}
 				
 				$Detail = $mvc->mainDetail;
 				$mvc->$Detail->save($shipProduct);

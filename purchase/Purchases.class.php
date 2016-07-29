@@ -484,7 +484,7 @@ class purchase_Purchases extends deals_DealMaster
         $agreed = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld){
             	$p->{$fld} = $dRec->{$fld};
             }
             
@@ -510,7 +510,7 @@ class purchase_Purchases extends deals_DealMaster
             	$result->push('shippedPacks', $arr, $index);
             }
         }
-        
+       
         $agreed = deals_Helper::normalizeProducts(array($agreed));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);

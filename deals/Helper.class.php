@@ -539,10 +539,16 @@ abstract class deals_Helper
 					if(is_array($arr)){
 						foreach ($arr as $p){
 							$index = $p->productId;
-			
+							if(isset($p->expenseItemId)){
+								$index .= "|" . $p->expenseItemId;
+							}
+							
 							if(!isset($combined[$index])){
 								$combined[$index] = new stdClass();
 								$combined[$index]->productId = $p->productId;
+								if(isset($p->expenseItemId)){
+									$combined[$index]->expenseItemId = $p->expenseItemId;
+								}
 							}
 								
 							$d = &$combined[$index];
