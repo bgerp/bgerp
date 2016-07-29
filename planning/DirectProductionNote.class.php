@@ -191,40 +191,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$productInfo = cat_Products::getProductInfo($form->rec->productId);
 		
 		if(!isset($productInfo->meta['canStore'])){
-			if(empty($form->rec->id) && isset($originRec->saleId)){
 			
-				// Ако заданието, към което е протокола е към продажба, избираме я по дефолт
-				$saleRec = sales_Sales::fetch($originRec->saleId);
+			// Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
+			if(!isset($productInfo->meta['canConvert']) && !isset($productInfo->meta['fixedAsset'])){
+				$form->setField('expenseItemId', 'input,mandatory');
+			}
+			
+			// Ако заданието, към което е протокола е към продажба, избираме я по дефолт
+			if(empty($form->rec->id) && isset($originRec->saleId)){
+				$saleItem = acc_Items::fetchItem('sales_Sales', $originRec->saleId);
+				$form->setDefault('expenseItemId', $saleItem->id);
 			}
 			
 			$form->setField('storeId', 'input=none');
 			$form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
-				
-			if(!isset($productInfo->meta['canConvert']) && !isset($productInfo->meta['fixedAsset'])){
-				$form->setField('expenseItemId', 'input,mandatory');
-			}
 		}
 		
 		return $data;
-	}
-	
-	
-	/**
-	 * Проверява хендлъра дали може да се избере
-	 *
-	 * @param core_Mvc $mvc  - класа
-	 * @param string $error  - текста на грешката
-	 * @param string $handle - хендлъра на сделката
-	 * @param stdClass $rec  - текущия запис
-	 */
-	protected static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
-	{
-		if($error) return $error;
-		
-		$doc = doc_Containers::getDocumentByHandle($handle);
-		if(!$doc->isInstanceOf('sales_Sales')){
-			$error = 'Сделката не е активна продажба';
-		}
 	}
 	
 	
@@ -237,18 +220,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	protected static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
+		
 		if($form->isSubmitted()){
 			$productInfo = cat_Products::getProductInfo($form->rec->productId);
 			if(!isset($productInfo->meta['canStore'])){
-				
-				if(empty($rec->dealHandler) && empty($rec->expenseItemId)){
-					$form->setError('dealHandler,expenseItemId', 'Поне едното поле трябва да е попълнено');
-				}
-				
-				if(!empty($rec->dealHandler) && !empty($rec->expenseItemId)){
-					$form->setError('dealHandler,expenseItemId', 'Само едното поле трябва да е попълнено');
-				}
-				
 				$rec->storeId = NULL;
 			} else {
 				$rec->dealId = NULL;
@@ -618,6 +593,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		return $tpl;
 	}
+	
 	
 	/**
 	 * Екшън създаващ нова рецепта по протокола

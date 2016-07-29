@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -36,12 +36,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		);
 	
 		// Ако има ид, добавяме записите
-		//if(isset($rec->id)){
-			$entries = $this->getEntries($rec, $result->totalAmount);
-			if(count($entries)){
-				$result->entries = $entries;
-			}
-		//}
+		$entries = $this->getEntries($rec, $result->totalAmount);
+		if(count($entries)){
+			$result->entries = $entries;
+		}
 		
 		return $result;
 	}
@@ -60,6 +58,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      * Ct: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
      *   или ако артикула е услуга Ct: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
 	 * 
+	 * Нескладируемите артикули ги влагаме в незавършеното производство от разходната сметка
+	 * където се предполага че са натрупани към разходния обект 'Неразпределени разходи'
+	 * 
+	 * Dt: 61101 - Незавършено производство                (Артикули)
+     * 
+     * Ct: 60201 - Разходи за (нескладируеми) услуги и консумативи  (Разходни обекти, Артикули)
+     *   
 	 * 2. Етап: вкарваме в склада произведения продукт
 	 * 
 	 * Изписваме вложените материали и вкарваме в склада продукта. Той влиза с цялото си количество
@@ -69,7 +74,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	 * Вкарване на материал
 	 * 
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
-     * или ако артикула е услуга Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
+     * или ако артикула е услуга 60201 Разходи за (нескладируеми) услуги и консумативи  (Разходни обекти, Артикули) 
+     * по посочения разходен обект
      * 
      * Ct: 61101 - Незавършено производство                (Артикули)
 	 * 
@@ -97,7 +103,16 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
 		} else {
-			$array = array('60201', $rec->expenseItemId, array('cat_Products', $rec->productId));
+			$expenseItem = $rec->expenseItemId;
+			if(!isset($expenseItem)){
+				if(isset($pInfo->meta['fixedAsset'])){
+					$expenseItem = array('cat_Products', $rec->productId);
+				} else{
+					$expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+				}
+			}
+			
+			$array = array('60201', $expenseItem, array('cat_Products', $rec->productId));
 		}
 		
 		$dRecs = array();
