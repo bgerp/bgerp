@@ -126,7 +126,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     		
     		if($pRec->canConvert == 'no' && $pRec->canStore == 'no' && $pRec->fixedAsset == 'no'){
     			if(acc_Lists::getItemsCountInList('costObjects')){
-    				$form->setField('expenseItemId', 'input,mandatory');
+    				$form->setField('expenseItemId', 'input');
     			}
     		}
     	}

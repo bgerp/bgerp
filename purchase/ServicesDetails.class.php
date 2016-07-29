@@ -129,7 +129,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(isset($rec->productId)){
     		$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset');
     		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && $data->masterRec->isReverse != 'yes' && acc_Lists::getItemsCountInList('costObjects')){
-    			$form->setField('expenseItemId', 'input,mandatory');
+    			$form->setField('expenseItemId', 'input');
     		}
     	}
     }
