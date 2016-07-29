@@ -92,10 +92,30 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     public function description()
     {
         $this->FLD('shipmentId', 'key(mvc=sales_Services)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=productId,caption=Разход за');
         parent::setDocumentFields($this);
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short');
     }
         
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	// Ако е избран артикул и той е невложим и имаме разходни пера,
+    	// показваме полето за избор на разход
+    	if(isset($rec->productId)){
+    		$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset');
+    		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && $data->masterRec->isReverse == 'yes' && acc_Lists::getItemsCountInList('costObjects')){
+    			$form->setField('expenseItemId', 'input,mandatory');
+    		}
+    	}
+    }
+    
     
     /**
      * Достъпните продукти
@@ -136,7 +156,11 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
 
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-
+                if(isset($rec->expenseItemId)){
+                	$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
+                	$row->productId .= "<div class='small'><b class='quiet1'>" . tr('Разход за') . "</b>: {$eItem}</div>";
+                }
+                
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
     			}

@@ -327,6 +327,12 @@ abstract class deals_DealDetail extends doc_Detail
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		
+    		// Ако има информация за разход
+    		if(isset($rec->expenseItemId)){
+    			$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
+    			$row->productId .= "<div class='small'><b>" . tr('Разход към') . "</b>: {$eItem}</div>";
+    		}
+    		
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}

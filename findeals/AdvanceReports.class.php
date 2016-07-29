@@ -177,22 +177,29 @@ class findeals_AdvanceReports extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	$data->form->setDefault('valior', dt::now());
+    	$form = &$data->form;
+    	$form->setDefault('valior', dt::now());
     	
-    	expect($origin = $mvc->getOrigin($data->form->rec));
+    	expect($origin = $mvc->getOrigin($form->rec));
     	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
     	$dealInfo = $origin->getAggregateDealInfo();
     	$options = self::getOperations($dealInfo->get('allowedPaymentOperations'));
     	expect(count($options));
     	
-    	$data->form->dealInfo = $dealInfo;
-    	$data->form->setDefault('operationSysId', 'debitDeals');
+    	$form->dealInfo = $dealInfo;
+    	$form->setDefault('operationSysId', 'debitDeals');
     	
-    	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode($dealInfo->get('currency')));
-    	$Cover = doc_Folders::getCover($data->form->rec->folderId);
+    	$form->setDefault('currencyId', currency_Currencies::getIdByCode($dealInfo->get('currency')));
+    	$Cover = doc_Folders::getCover($form->rec->folderId);
     	
-    	$data->form->setDefault('contragentClassId', $Cover->getClassId());
-    	$data->form->setDefault('contragentId', $Cover->that);
+    	$form->setDefault('contragentClassId', $Cover->getClassId());
+    	$form->setDefault('contragentId', $Cover->that);
+    	
+    	if(isset($form->rec->id)){
+    		if(findeals_AdvanceReportDetails::fetchField("#reportId = {$form->rec->id}", 'id')){
+    			$form->setReadOnly('currencyId');
+    		}
+    	}
     }
     
     

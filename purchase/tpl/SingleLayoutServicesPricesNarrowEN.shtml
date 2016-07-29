@@ -73,12 +73,6 @@
                                 <td><span class='cCode'>[#currencyId#]</span></td>
                             </tr>
                             <!--ET_END currencyId-->
-                            <!--ET_BEGIN activityCenterId-->
-                            <tr>
-                                <td class='quiet nowrap aright' style='width:1%'>Activity center:</td>
-                                <td>[#activityCenterId#]</td>
-                            </tr>
-                            <!--ET_END activityCenterId-->
                         </table>
                         <!--ET_BEGIN note-->
                         <hr>

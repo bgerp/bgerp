@@ -699,4 +699,45 @@ abstract class deals_Helper
 		
 		return TRUE;
 	}
+	
+	
+	
+	
+	
+	
+	public static function getRecsByExpenses($originId, $productId, $quantity, $expenseItemId, $amount, $discount = NULL)
+	{
+		$res = array();
+		$pInfo = cat_Products::getProductInfo($productId);
+		if(isset($pInfo->meta['canStore'])) return $res;
+		
+		$amount = ($discount) ?  $amount * (1 - $discount) : $amount;
+		$amount = round($amount, 2);
+		
+		$objectToClone = (object)array('productId' => $productId, 'quantity' => $quantity);
+		$obj = clone $objectToClone;
+		$obj->amount = $amount;
+		
+		if(!empty($expenseItemId)){
+			$obj->expenseItemId = $expenseItemId;
+			$obj->reason = 'Приети услуги и нескладируеми консумативи';
+		} elseif(isset($pInfo->meta['fixedAsset'])){
+			$obj->expenseItemId = array('cat_Products', $productId);
+			$obj->reason = 'Приети ДА';
+		} elseif($pInfo->meta['canConvert']){
+			$obj->expenseItemId = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+			$obj->reason = 'Приети услуги и нескладируеми консумативи за производството';
+		} elseif(empty($obj->expenseItemId)){
+			$obj->expenseItemId = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+			$obj->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
+		}
+		
+		if(!is_array($obj->expenseItemId)){
+			acc_journal_Exception::expect(acc_Items::fetch($obj->expenseItemId), 'Невалидно разходно перо');
+		}
+		
+		$res[] = $obj;
+		
+		return $res;
+	}
 }

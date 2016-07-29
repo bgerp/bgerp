@@ -169,7 +169,6 @@ class purchase_Purchases extends deals_DealMaster
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|defMethod',
-    	'activityCenterId'   => 'lastDocUser|lastDoc',
     );
     
     
@@ -252,7 +251,6 @@ class purchase_Purchases extends deals_DealMaster
     {
     	parent::setDealFields($this);
     	$this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
-    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Доставка->Център,mandatory,after=shipmentStoreId');
     	$this->setField('dealerId', 'caption=Наш персонал->Закупчик');
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад');
     }
@@ -274,14 +272,6 @@ class purchase_Purchases extends deals_DealMaster
         $form->setField('deliveryLocationId', 'caption=Доставка->Обект от');
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
-        // Ако имаме само един център не показваме полето за избор на център
-        if(hr_Departments::count() == 1){
-        	$form->setField('activityCenterId', 'input=none');
-        } else {
-        	$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
-        	$form->setDefault('activityCenterId', $defCenter);
-        }
-        
         $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
@@ -290,17 +280,6 @@ class purchase_Purchases extends deals_DealMaster
         // Търговеца по дефолт е отговорника на контрагента
         $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
         $form->setDefault('dealerId', $inCharge);
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    	if(isset($rec->activityCenterId)){
-    		$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
-    	}
     }
     
     
@@ -446,8 +425,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
-        $result->setIfNot('activityCenterId', $rec->activityCenterId);
-        
+       
         purchase_transaction_Purchase::clearCache();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         
