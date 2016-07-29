@@ -90,7 +90,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,mandatory,removeAndRefreshForm=amount|quantity|vat|expenseItemId,silent,tdClass=productCell leftCol wrap');
-    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=productId,caption=Разход към');
+    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=productId,caption=Разход за');
     	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory');
     	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=Количество,smartCenter');
     	$this->FLD('vat', 'percent', 'caption=ДДС,smartCenter');
@@ -177,7 +177,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	
     	if(isset($rec->expenseItemId)){
     		$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-    		$row->productId .= "<div class='small'><b>" . tr('Разход към') . "</b>: {$eItem}</div>";
+    		$row->productId .= "<div class='small'><b>" . tr('Разход за') . "</b>: {$eItem}</div>";
     	}
     	
     	if(!empty($rec->description)){

@@ -330,7 +330,7 @@ abstract class deals_DealDetail extends doc_Detail
     		// Ако има информация за разход
     		if(isset($rec->expenseItemId)){
     			$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-    			$row->productId .= "<div class='small'><b>" . tr('Разход към') . "</b>: {$eItem}</div>";
+    			$row->productId .= "<div class='small'><b>" . tr('Разход за') . "</b>: {$eItem}</div>";
     		}
     		
     		if($rec->notes){
