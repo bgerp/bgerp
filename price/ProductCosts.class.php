@@ -251,7 +251,7 @@ class price_ProductCosts extends core_Manager
     				// в нишката на покупката и са по друга сделка. Понеже в тяхната контировка не участва
     				// перото на текущата сделка, и 'purchase_transaction_Purchase::getEntries' не може
     				// да им вземе записите, затова ги добавяме ръчно
-    				$aExpensesQuery = acc_AllocatedExpenses::getQuery();
+    				$aExpensesQuery = acc_ValueCorrections::getQuery();
     				$aExpensesQuery->where("#threadId = {$purRec->threadId} AND #state = 'active' AND #correspondingDealOriginId != {$purRec->containerId}");
     				$aExpensesQuery->show('id');
     				
@@ -259,7 +259,7 @@ class price_ProductCosts extends core_Manager
     				while($aRec = $aExpensesQuery->fetch()){
     					
     					// Намираме записите от журнала 
-    					$jRec = acc_Journal::fetchByDoc('acc_AllocatedExpenses', $aRec->id);
+    					$jRec = acc_Journal::fetchByDoc('acc_ValueCorrections', $aRec->id);
     					$dQuery = acc_JournalDetails::getQuery();
     					$dQuery->where("#journalId = {$jRec->id}");
     					$expensesEntries = $dQuery->fetchAll();
