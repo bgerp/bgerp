@@ -18,67 +18,73 @@ class distro_Files extends core_Detail
     /**
      * Заглавие на модела
      */
-    var $title = 'Разпределена група файлове';
+    public $title = 'Разпределена група файлове';
     
     
     /**
      * 
      */
-    var $singleTitle = 'Файл';
+    public $singleTitle = 'Файл';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    var $canAdd = 'powerUser';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'admin';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    var $canList = 'admin';
-    
-    
-    /**
-     * Кой има право да го изтрие?
-     */
-    var $canDelete = 'no_one';
-    
-    
-    /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2';
-    
-    
-    /**
-     * Име на поле от модела, външен ключ към мастър записа
-     */
-    var $masterKey = 'groupId';
+    public $canEdit = 'powerUser';
     
     
     /**
      * 
      */
-    var $depends = 'fileman=0.1';
+    public $canEditsysdata = 'powerUser';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'powerUser';
+    
+    
+    /**
+     * Кой има право да го види?
+     */
+    public $canView = 'admin';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+    
+    
+    /**
+     * Кой има право да го изтрие?
+     */
+    public $canDelete = 'no_one';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2';
+    
+    
+    /**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    public $masterKey = 'groupId';
+    
+    
+    /**
+     * 
+     */
+    public $depends = 'fileman=0.1';
     
     
     /**
@@ -86,7 +92,7 @@ class distro_Files extends core_Detail
      * 
      * @see plg_RowTools2
      */
-    var $rowToolsSingleField = 'id';
+    public $rowToolsSingleField = 'id';
     
     
     /**
@@ -101,31 +107,25 @@ class distro_Files extends core_Detail
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, sourceFh, repos, groupId, name';
+    public $fetchFieldsBeforeDelete = 'id, sourceFh, repos, groupId, name';
     
     
     /**
      * Флаг, който указва дали да се изтрие и файла след изтриване на хранилището
      */
-    var $onlyDelRepo = FALSE;
+    public $onlyDelRepo = FALSE;
     
     
     /**
      * 
      */
-    var $currentTab = 'Групи';
+    public $currentTab = 'Групи';
     
     
     /**
      * Какво действие ще се прави с файловете
      */
-    var $actionWithFile = array();
-    
-    
-    /**
-     * Името на кофата за файловете
-     */
-    public static $bucket = 'distroFiles';
+    public $actionWithFile = array();
     
     
 	/**
@@ -134,9 +134,9 @@ class distro_Files extends core_Detail
     function description()
     {
         $this->FLD('groupId', 'key(mvc=distro_Group, select=title)', 'caption=Група, mandatory');
-        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . self::$bucket . ')', 'caption=Файл, mandatory');
+        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory');
         $this->FLD('name', 'varchar', 'caption=Име, width=100%, input=none');
-        $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Информация, width=100%, input=none');
+        $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, width=100%, input=none');
         $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
         $this->FLD('info', 'varchar', 'caption=Информация, width=100%');
         $this->FLD('md5', 'varchar(32)', 'caption=Хеш на файла, width=100%,input=none');
@@ -165,6 +165,83 @@ class distro_Files extends core_Detail
         }
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Връща пълния път до файла в хранилището
+     * 
+     * @param stdObject|integer $id
+     * @param NULL|integer $repoId
+     * @param NULL|integer $groupId
+     */
+    public function getRealPathOfFile($id, $repoId = NULL, $groupId = NULL)
+    {
+        $rec = self::fetchRec((int) $id);
+        
+        $repoId = isset($repoId) ? $repoId : $rec->repoId;
+        $groupId = isset($groupId) ? $groupId : $rec->{$this->masterKey};
+        
+        $rRec = distro_Repositories::fetch((int) $repoId);
+        
+        $subDirName = $this->Master->getSubDirName($groupId);
+        
+        $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $rec->name;
+        
+        return $path;
+    }
+    
+    
+    /**
+     * Връща уникално име за файла, който ще се добавя в хранилището
+     * 
+     * @param integer $id
+     * @param NULL|integer $repoId
+     * 
+     * @return FALSE|string
+     */
+    public function getUniqFileName($id, $repoId = NULL)
+    {
+        $rec = self::fetchRec($id);
+        
+        $repoId = isset($repoId) ? $repoId : $rec->repoId;
+        
+        $sshObj = distro_Repositories::connectToRepo($repoId);
+        
+        if ($sshObj === FALSE) return FALSE; // TODO да репортва
+        
+        $destFilePath = $this->getRealPathOfFile($id, $repoId);
+        
+        $maxCnt = 16;
+        
+        while (TRUE) {
+            $destFilePathE = escapeshellarg($destFilePath);
+            
+            $sshObj->exec("if [ ! -f {$destFilePathE} ]; then echo 'OK'; fi", $res);
+            
+            if (trim($res) == "OK") break;
+            
+            // Вземаме името на файла и разширението
+            $nameArr = fileman_Files::getNameAndExt($destFilePath);
+            
+            // Намираме името на файла до последния '_'
+            if(($underscorePos = mb_strrpos($nameArr['name'], '_')) !== FALSE) {
+                $name = mb_substr($nameArr['name'], 0, $underscorePos);
+                $nameId = mb_substr($nameArr['name'], $underscorePos+1);
+                
+                if (is_numeric($nameId)) $nameId++;
+                
+                $nameArr['name'] = $name . '_' . $nameId;
+            } else {
+                $nameArr['name'] .= '_' . 1;
+            }
+            
+            $destFilePath = $nameArr['name'] . '.' . $nameArr['ext'];
+            
+            expect($maxCnt--);
+        }
+        
+        return $destFilePath;
     }
     
     
@@ -207,7 +284,7 @@ class distro_Files extends core_Detail
         // Записа
         $rec = $data->form->rec;
         
-        // Ако създаваме нов запис
+        // Ако редактираме записа
         if ($rec->id) {
             // Избора на файл да е задължителен
             $data->form->setField('sourceFh', 'input=none');
@@ -243,6 +320,36 @@ class distro_Files extends core_Detail
                 $form->rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
             }
         }
+    }
+    
+    
+    /**
+     * Връща масив със записи, където се среща съответния файл
+     * 
+     * @param integer $groupId
+     * @param string|NULL $md5
+     * @param string|NULL $name
+     * @param boolean $group
+     * 
+     * @return array
+     */
+    public static function getRepoWithFile($groupId, $md5 = NULL, $name = NULL, $group = FALSE)
+    {
+        $query = self::getQuery();
+        $query->where(array("#groupId = '[#1#]'", $groupId));
+        
+        if (isset($md5)) {
+            $query->where(array("#md5 = '[#1#]'", $md5));
+        }
+        if (isset($name)) {
+            $query->where(array("#name = '[#1#]'", $name));
+        }
+        
+        if ($group) {
+            $query->groupBy('repoId');
+        }
+        
+        return $query->fetchAll();
     }
     
     
@@ -563,6 +670,10 @@ class distro_Files extends core_Detail
                 // Данни за модифициране
                 $data->rowReposAndFilesArr[$repoId][$id]->modified = $data->rows[$id]->modifiedOn . tr(' |от|* ') . $data->rows[$id]->modifiedBy;
                 
+                core_RowToolbar::createIfNotExists($data->rows[$id]->_rowTools);
+                
+                distro_Actions::addActionToFile($data->rows[$id]->_rowTools, $data->recs[$id]);
+                
                 // Бутони за действия
                 $data->rowReposAndFilesArr[$repoId][$id]->tools = $data->rows[$id]->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
             }
@@ -703,6 +814,9 @@ class distro_Files extends core_Detail
     
     /**
      * Изпълнява се след създаването на модела
+     * 
+     * @param distro_Files $mvc
+     * @param string $res
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
@@ -716,8 +830,5 @@ class distro_Files extends core_Detail
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
-        
-        //Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', NULL, '104857600', 'user', 'user');
     }
 }

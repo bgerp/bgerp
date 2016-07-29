@@ -132,7 +132,13 @@ class distro_Group extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'distro_Files';
+    public $details = 'distro_Files, distro_Actions';
+    
+    
+    /**
+     * Името на кофата за файловете
+     */
+    public static $bucket = 'distroFiles';
     
     
 	/**
@@ -268,10 +274,10 @@ class distro_Group extends core_Master
      * 
      * @return string
      */
-    public function getSubDirName($id)
+    public static function getSubDirName($id)
     {
         
-        return $this->getHandle($id);
+        return self::getHandle($id);
     }
     
     
@@ -402,5 +408,18 @@ class distro_Group extends core_Master
                 continue;
             }
         }
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     * 
+     * @param distro_Group $mvc
+     * @param string $res
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        //Създаваме, кофа, където ще държим всички прикачени файлове
+        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', NULL, '104857600', 'user', 'user');
     }
 }

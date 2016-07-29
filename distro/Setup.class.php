@@ -46,26 +46,18 @@ class distro_Setup extends core_ProtoSetup
     public $depends = 'ssh=0.1';
     
     
-    // Мениджъри за инсталиране
+    /**
+     * Мениджъри за инсталиране
+     */
     var $managers = array(
             'distro_Group',
             'distro_Files',
             'distro_Automation',
             'distro_Repositories',
+            'distro_Actions',
+            'distro_CopyDriver',
             'migrate::reposToKey',
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
     
     
     /**
