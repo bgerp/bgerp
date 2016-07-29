@@ -127,9 +127,17 @@ class help_Info extends core_Master
 
         $mvc->importing = TRUE;
     	
+        // Дефолт стойностите за форматирането по подразбиране
+        $format = array();
+        $format['length'] = (int) 0;
+        $format['delimiter'] =  ',';
+        $format['enclosure'] = '"';
+        $format['escape'] = '\\';
+        $format['skip'] = '#';
+
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, $format, TRUE); 
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
@@ -165,7 +173,18 @@ class help_Info extends core_Master
             $recs[] = $r;
         }
         
-        $csv = csv_Lib::createCsv($recs, $mvc, array('class', 'action', 'lg', 'text'), 'columns=none');
+        // Дефолт стойностите за форматирането по подразбиране
+        $params = array();
+        $params['delimiter'] = ",";
+        $params['decPoint'] = html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        $params['dateFormat'] = core_Setup::get('EF_DATE_FORMAT', TRUE);
+        $params['datetimeFormat'] = 'd.m.y H:i';
+        $params['thousandsSep'] = '';
+        $params['enclosure'] = '"';
+        $params['decimals'] = (int) 2;
+        $params['columns'] = "none";
+        
+        $csv = csv_Lib::createCsv($recs, $mvc, array('class', 'action', 'lg', 'text'), $params);
         $csv = str_replace(array("\n\r", "\r\n"), array("\n", "\n"), $csv);
         
         $file = "help/data/HelpInfo.csv";
