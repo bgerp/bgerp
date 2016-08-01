@@ -137,7 +137,7 @@ class unit_MinkPbgERP extends core_Manager {
     }  
     
     /**
-    * 1. Създаване на банкова сметка
+    * 1. Създаване на банкова сметка от Финанси 
     */
     //http://localhost/unit_MinkPbgERP/CreateBankAcc1/
     function act_CreateBankAcc1()
@@ -166,6 +166,41 @@ class unit_MinkPbgERP extends core_Manager {
         }
         return $browser->getHtml();
     }
+    
+    /**
+     * 1. Създаване на банкова сметка от Визитник - фирма
+     */
+    //http://localhost/unit_MinkPbgERP/CreateBankAcc2/
+    function act_CreateBankAcc2()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+        //Отваряне на папката на фирмата
+        $browser->click('Визитник');
+        $Company = "Моята Фирма ООД";
+        $browser->click($Company);
+        // Създаване на банкова сметка
+        $browser->click('Банка');
+        $browser->click('Добавяне на нова наша банкова сметка');
+        //$browser->setValue('iban', '#BG33UNCR70001519562303');
+        $browser->setValue('iban', '#BG22UNCR70001519562302');
+        $browser->setValue('currencyId', '1');
+        $browser->setValue('Pavlinka', '1');
+        //$browser->setValue('operators_1', '1');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),'Непопълнено задължително поле')){
+            $browser->press('Отказ');
+            Return Грешка;
+        }
+        if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
+            $browser->press('Отказ');
+            Return Дублиране;
+        }
+        return $browser->getHtml();
+    }
+    
+    
     
     /**
      * 1.Създаване на каса
