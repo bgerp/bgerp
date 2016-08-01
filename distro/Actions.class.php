@@ -509,6 +509,8 @@ class distro_Actions extends embed_Manager
                 
                 if (!$ssh) {
                     $mvc->notifyErr($rec);
+                    
+                    return ;
                 }
                 
                 $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), TRUE);
