@@ -59,8 +59,8 @@ class unit_MinkPbgERP extends core_Manager {
     /**
      * 1. Създаване на потребител
      */
-    //http://localhost/unit_MinkPbgERP/CreateUser/
-    function act_CreateUser()
+    //http://localhost/unit_MinkPbgERP/CreateUser1/
+    function act_CreateUser1()
     {
     
         // Логване
@@ -79,6 +79,31 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         return $browser->getHtml();
     }
+    
+    /**
+     * 1. Създаване на потребител от Визитник - профили
+     */
+    //http://localhost/unit_MinkPbgERP/CreateUser2/
+    function act_CreateUser2()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+        // Създаване на потребител
+        $browser->click('Визитник');
+        $browser->click('Профили');
+        $browser->press('Нов потребител');
+        $browser->setValue('nick', 'User2');
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
+        $browser->setValue('names', 'Потребител 2');
+        $browser->setValue('email', 'u2@abv.bg');
+        $browser->setValue('officer', '10');
+        $browser->setValue('Главен офис', '13');
+        $browser->press('Запис');
+        return $browser->getHtml();
+    }
+    
     
     /**
      * 1. Създаване на склад
@@ -114,8 +139,8 @@ class unit_MinkPbgERP extends core_Manager {
     /**
     * 1. Създаване на банкова сметка
     */
-    //http://localhost/unit_MinkPbgERP/CreateBankAcc/
-    function act_CreateBankAcc()
+    //http://localhost/unit_MinkPbgERP/CreateBankAcc1/
+    function act_CreateBankAcc1()
     {
              
         // Логване
@@ -126,7 +151,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
         $browser->setValue('iban', '#BG11CREX92603114548401');
-        //$browser->setValue('iban', '#BG33UNCR70001519562303');
         //$browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
         $browser->setValue('Pavlinka', '1');
@@ -142,7 +166,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
         return $browser->getHtml();
     }
-        
+    
     /**
      * 1.Създаване на каса
      */
