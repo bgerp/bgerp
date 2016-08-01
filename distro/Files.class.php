@@ -728,6 +728,19 @@ class distro_Files extends core_Detail
     }
     
     
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param distro_Files $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+    }
+    
+    
 	/**
      * След преобразуване на записа в четим за хора вид.
      *
