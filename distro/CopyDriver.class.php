@@ -82,21 +82,13 @@ class distro_CopyDriver extends core_Mvc
     {
         // Ако същия файл липсва в другото хранилище, тогава ще има възможност за копиране
         
-        // TODO remove
-        if ($fileId) {
-            $fRec = distro_Files::fetch($fileId);
-            
-            if (isset($fRec->sourceFh)) return FALSE;
-            if (trim($fRec->sourceFh)) return FALSE;
-        }
-        
         if (!distro_Group::canAddDetail($groupId, $userId)) return FALSE;
         
         $dFileArr = distro_Files::getRepoWithFile($groupId, $md5, NULL, TRUE);
         
         $reposArr = distro_Group::getReposArr($groupId);
         
-        if (count($dFileArr) == count($reposArr)) return FALSE;
+        if (count($dFileArr) >= count($reposArr)) return FALSE;
         
         return TRUE;
     }
@@ -144,6 +136,18 @@ class distro_CopyDriver extends core_Mvc
         $copyExec .= "scp -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
         
         return $copyExec;
+    }
+    
+    
+    /**
+     * Може ли вградения обект да се избере
+     *
+     * @see distro_ActionsDriverIntf
+     */
+    public function getLinkParams()
+    {
+        
+        return array('ef_icon' => 'img/16/copy16.png');
     }
     
 

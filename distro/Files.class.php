@@ -221,105 +221,12 @@ class distro_Files extends core_Detail
             
             if (trim($res) == "OK") break;
             
-            // Вземаме името на файла и разширението
-            $nameArr = fileman_Files::getNameAndExt($destFilePath);
-            
-            // Намираме името на файла до последния '_'
-            if(($underscorePos = mb_strrpos($nameArr['name'], '_')) !== FALSE) {
-                $name = mb_substr($nameArr['name'], 0, $underscorePos);
-                $nameId = mb_substr($nameArr['name'], $underscorePos+1);
-                
-                if (is_numeric($nameId)) $nameId++;
-                
-                $nameArr['name'] = $name . '_' . $nameId;
-            } else {
-                $nameArr['name'] .= '_' . 1;
-            }
-            
-            $destFilePath = $nameArr['name'] . '.' . $nameArr['ext'];
+            $destFilePath = $this->getNextFileName($destFilePath);
             
             expect($maxCnt--);
         }
         
         return $destFilePath;
-    }
-    
-    
-	/**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        // Ако ще добавяме/редактираме записа
-        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
-            
-            // Ако има master
-            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
-                
-                // Ако няма права за добавяне на детайл
-                if (!$mvc->Master->canAddDetail($rec->$masterKey)) {
-                    
-                    // Да не може да добавя
-                    $requiredRoles = 'no_one';
-                }
-            }
-        }
-    }
-    
-    
-	/**
-     * След подготвяне на формата
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        // Записа
-        $rec = $data->form->rec;
-        
-        // Ако редактираме записа
-        if ($rec->id) {
-            // Избора на файл да е задължителен
-            $data->form->setField('sourceFh', 'input=none');
-            $data->form->setField('repos', 'input=none');
-        } else {
-            $reposArr = array();
-            
-            // Ако има мастер
-            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
-            
-                // Вземаме масива с хранилищата, които са зададени в мастера
-                $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
-            }
-            
-            expect(!empty($reposArr));
-            
-            $data->form->setSuggestions('repos', $reposArr);
-        }
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param distro_Files $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            if (isset($form->rec->sourceFh)) {
-                $form->rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
-                $form->rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
-            }
-        }
     }
     
     
@@ -350,6 +257,36 @@ class distro_Files extends core_Detail
         }
         
         return $query->fetchAll();
+    }
+    
+    
+    /**
+     * Връща следващото име за използване на файла
+     * 
+     * @param string $fName
+     * 
+     * @return string
+     */
+    protected function getNextFileName($fName)
+    {
+        // Вземаме името на файла и разширението
+        $nameArr = fileman_Files::getNameAndExt($fName);
+        
+        // Намираме името на файла до последния '_'
+        if(($underscorePos = mb_strrpos($nameArr['name'], '_')) !== FALSE) {
+            $name = mb_substr($nameArr['name'], 0, $underscorePos);
+            $nameId = mb_substr($nameArr['name'], $underscorePos+1);
+        
+            if (is_numeric($nameId)) $nameId++;
+        
+            $nameArr['name'] = $name . '_' . $nameId;
+        } else {
+            $nameArr['name'] .= '_' . 1;
+        }
+        
+        $fName = $nameArr['name'] . '.' . $nameArr['ext'];
+        
+        return $fName;
     }
     
     
@@ -551,6 +488,89 @@ class distro_Files extends core_Detail
     }
     
     
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако ще добавяме/редактираме записа
+        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
+            
+            // Ако има master
+            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
+                
+                // Ако няма права за добавяне на детайл
+                if (!$mvc->Master->canAddDetail($rec->$masterKey)) {
+                    
+                    // Да не може да добавя
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+    
+    
+	/**
+     * След подготвяне на формата
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Записа
+        $rec = $data->form->rec;
+        
+        // Ако редактираме записа
+        if ($rec->id) {
+            // Избора на файл да е задължителен
+            $data->form->setField('sourceFh', 'input=none');
+            $data->form->setField('repos', 'input=none');
+        } else {
+            $reposArr = array();
+            
+            // Ако има мастер
+            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
+            
+                // Вземаме масива с хранилищата, които са зададени в мастера
+                $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
+            }
+            
+            expect(!empty($reposArr));
+            
+            $data->form->setSuggestions('repos', $reposArr);
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param distro_Files $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+            if (isset($rec->sourceFh)) {
+                $rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
+                $rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
+                
+                if (!$rec->id) {
+                    $rec->__addToRepo = TRUE;
+                }
+            }
+        }
+    }
+    
+    
     /**
      * 
      * 
@@ -568,13 +588,40 @@ class distro_Files extends core_Detail
             foreach ($reposArr as $repoId) {
                 $rec->repos = NULL;
                 $rec->repoId = $repoId;
-            
+                
+                // Опитваме се да генерираме уникално име на файла
+                $origName = $rec->name;
+                while (TRUE) {
+                    if ($mvc->isUnique($rec)) break;
+                    
+                    $rec->name = $mvc->getNextFileName($rec->name);
+                }
+                
                 $mvc->save($rec);
-            
+                
+                $rec->name = $origName;
+                
                 unset($rec->id);
             }
             
             return FALSE;
+        }
+    }
+    
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Сваляме файла в хранилището
+        if (isset($rec->__addToRepo)) {
+        
+            distro_Actions::addToRepo($rec);
         }
     }
     

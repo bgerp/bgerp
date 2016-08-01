@@ -103,21 +103,48 @@ class distro_Actions extends embed_Manager
      * Добавя екшъните от драйверите
      * 
      * @param core_RowToolbar $rowTools
-     * @param stdObject $rec
+     * @param stdObject $fRec
      */
-    public static function addActionToFile(&$rowTools, $rec)
+    public static function addActionToFile(&$rowTools, $fRec)
     {
         foreach ((array) self::getAvailableDriverOptions() as $driverId => $name) {
             
             if (!cls::load($driverId, TRUE)) continue ;
             $driverInst = cls::getInterface('distro_ActionsDriverIntf', $driverId);
             
-            if (!$driverInst->canMakeAction($rec->groupId, $rec->repoId, $rec->id, $rec->name, $rec->md5)) continue ;
+            if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) continue ;
+
+            $me = cls::get(get_called_class());
             
-            core_Request::setProtected(array('groupId', 'repoId'));
+            core_Request::setProtected(array($me->driverClassField, 'groupId', 'repoId', 'fileId'));
             
-            $rowTools->addLink('Копиране', array('distro_Actions', 'add', 'groupId' => $rec->groupId, 'repoId' => $rec->repoId, 'fileId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/copy16.png');
+            $params = $driverInst->getLinkParams();
+            
+            $rowTools->addLink($driverInst->title, array('distro_Actions', 'add', $me->driverClassField => $driverId, 'groupId' => $fRec->groupId, 'repoId' => $fRec->repoId, 'fileId' => $fRec->id, 'ret_url' => TRUE), $params);
         }
+    }
+    
+    
+    /**
+     * Извиква драйвера за абсорбиране на файл
+     * 
+     * @param stdObject $fRec
+     */
+    public static function addToRepo($fRec)
+    {
+        $driverInst = cls::getInterface('distro_ActionsDriverIntf', 'distro_AbsorbDriver');
+        
+        if (!$driverInst || !$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) return ;
+        
+        $me = cls::get(get_called_class());
+        
+        $rec = new stdClass();
+        $rec->groupId = $fRec->groupId;
+        $rec->repoId = $fRec->repoId;
+        $rec->fileId = $fRec->id;
+        $rec->{$me->driverClassField} = distro_AbsorbDriver::getClassId();
+        
+        self::save($rec);
     }
     
     
@@ -417,12 +444,29 @@ class distro_Actions extends embed_Manager
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param core_Manager $mvc
+     * @param distro_Actions $mvc
      * @param stdClass $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        core_Request::setProtected(array('groupId', 'repoId'));
+        core_Request::setProtected(array($mvc->driverClassField, 'groupId', 'repoId', 'fileId'));
+        
+        $data->form->setHidden($mvc->driverClassField);
+        
+        if ($data->form->isSubmitted() && $data->form->rec->fileId) {
+            
+            $rec = $data->form->rec;
+            
+            $driverInst = $mvc->getDriver($rec);
+            
+            if ($driverInst) {
+                $fRec = distro_Files::fetch($data->form->rec->fileId);
+                
+                if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
+                    $data->form->setError($mvc->driverClassField, 'Не може да се направи това действие');
+                }
+            }
+        }
     }
 
 
@@ -454,7 +498,7 @@ class distro_Actions extends embed_Manager
             $driverInst = $mvc->getDriver($rec);
             if ($driverInst) {
                 $command = $driverInst->getActionStr($rec);
-            
+                
                 $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
             
                 if ($errExec) {
