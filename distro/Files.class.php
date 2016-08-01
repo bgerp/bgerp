@@ -731,13 +731,13 @@ class distro_Files extends core_Detail
     /**
      * Подготовка на филтър формата
      *
-     * @param distro_Files $mvc
+     * @param core_Mvc $mvc
      * @param StdClass $res
      * @param StdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('modifiedOn', 'DESC');
     }
     
     
