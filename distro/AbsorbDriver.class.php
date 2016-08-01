@@ -103,9 +103,19 @@ class distro_AbsorbDriver extends core_Mvc
         $FileInst = cls::get('distro_Files');
         
         $destFilePath = $FileInst->getUniqFileName($rec->fileId, $rec->sourceRepoId);
-        $destFilePath = escapeshellarg($destFilePath);
+        $destFilePathE = escapeshellarg($destFilePath);
         
-        return "wget -q -O {$destFilePath} --no-check-certificate {$fUrl}";
+        if ($rec->fileId) {
+            $fRec = distro_Files::fetch($rec->fileId);
+            $nName = pathinfo($destFilePath, PATHINFO_BASENAME);
+            
+            if (($nName) && $nName != $fRec->name) {
+                $fRec->name = $nName;
+                distro_Files::save($fRec, 'name');
+            }
+        }
+        
+        return "wget -q -O {$destFilePathE} --no-check-certificate {$fUrl}";
     }
     
 
