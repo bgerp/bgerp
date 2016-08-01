@@ -705,7 +705,7 @@ class unit_MinkPPayment extends core_Manager {
      * Нова продажба на съществуваща фирма с папка
      */
     //http://localhost/unit_MinkPPayment/CreateSaleMomentWaitP/
-    function act_CreateSaleMomentWaitP()
+    function act_CreateSaleMomentWait3()
     {
     
         // Логваме се
@@ -791,8 +791,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         //$browser->setValue('dueDate', date('d-m-Y', $valior));
         $browser->setValue('dueDate', null);
-        //$browser->setValue('numlimit', '2000000 - 3000000');
-        $browser->setValue('numlimit', '0 - 2000000');
+        $browser->setValue('numlimit', '2000000 - 3000000');
+        //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -936,8 +936,8 @@ class unit_MinkPPayment extends core_Manager {
      * Проверка състояние чакащо плащане - не, метод - на момента
      * Бърза продажба на съществуваща фирма с папка
      */
-    //http://localhost/unit_MinkPPayment/CreateSaleMoment/
-    function act_CreateSaleMoment()
+    //http://localhost/unit_MinkPPayment/CreateSaleMomentNow/
+    function act_CreateSaleMomentNow()
     {
     
         // Логваме се
@@ -1033,7 +1033,6 @@ class unit_MinkPPayment extends core_Manager {
      * 5. Нова продажба на съществуваща фирма с папка
      * Проверка количество и цени - изрази
      * Проверка състояние чакащо плащане - не (платено)
-     * Да се добави за схема с авансово плащане .....................................
      */
      
     //http://localhost/unit_MinkPPayment/CreateSale/
@@ -1540,8 +1539,8 @@ class unit_MinkPPayment extends core_Manager {
      * Проверка състояние чакащо плащане - няма (платено)
      */
      
-    //http://localhost/unit_MinkPPayment/CreatePurchase/
-    function act_CreatePurchase()
+    //http://localhost/unit_MinkPPayment/CreatePurchase3/
+    function act_CreatePurchase3()
     {
     
         // Логваме се
