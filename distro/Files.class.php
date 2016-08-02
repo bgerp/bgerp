@@ -277,11 +277,15 @@ class distro_Files extends core_Detail
             $name = mb_substr($nameArr['name'], 0, $underscorePos);
             $nameId = mb_substr($nameArr['name'], $underscorePos+1);
         
-            if (is_numeric($nameId)) $nameId++;
+            if (is_numeric($nameId)) {
+                $nameId++;
+            } else {
+                $nameId .= '_1';
+            }
         
             $nameArr['name'] = $name . '_' . $nameId;
         } else {
-            $nameArr['name'] .= '_' . 1;
+            $nameArr['name'] .= '_1';
         }
         
         $fName = $nameArr['name'] . '.' . $nameArr['ext'];
@@ -591,10 +595,13 @@ class distro_Files extends core_Detail
                 
                 // Опитваме се да генерираме уникално име на файла
                 $origName = $rec->name;
+                $maxCnt = 16;
                 while (TRUE) {
                     if ($mvc->isUnique($rec)) break;
                     
                     $rec->name = $mvc->getNextFileName($rec->name);
+                    
+                    expect($maxCnt--);
                 }
                 
                 $mvc->save($rec);

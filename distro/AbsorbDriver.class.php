@@ -115,7 +115,9 @@ class distro_AbsorbDriver extends core_Mvc
             }
         }
         
-        return "wget -q -O {$destFilePathE} --no-check-certificate {$fUrl}";
+        $absorbExec = "wget -q -O {$destFilePathE} --no-check-certificate {$fUrl}";
+        
+        return $absorbExec;
     }
     
 
