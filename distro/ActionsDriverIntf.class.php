@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Интерфейс за услуги, които могат да се ауторизират
  *
@@ -65,5 +66,17 @@ class distro_ActionsDriverIntf extends embed_DriverIntf
     {
         
         return $this->class->getLinkParams($rec);
+    }
+    
+    
+    /**
+     * Дали може да се форсира записването
+     * 
+     * @see distro_ActionsDriverIntf
+     */
+    public function canForceSave()
+    {
+        
+        return $this->class->canForceSave();
     }
 }

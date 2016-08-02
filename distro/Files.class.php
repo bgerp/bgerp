@@ -212,7 +212,7 @@ class distro_Files extends core_Detail
         
         $destFilePath = $this->getRealPathOfFile($id, $repoId);
         
-        $maxCnt = 16;
+        $maxCnt = 32;
         
         while (TRUE) {
             $destFilePathE = escapeshellarg($destFilePath);
@@ -595,7 +595,7 @@ class distro_Files extends core_Detail
                 
                 // Опитваме се да генерираме уникално име на файла
                 $origName = $rec->name;
-                $maxCnt = 16;
+                $maxCnt = 64;
                 while (TRUE) {
                     if ($mvc->isUnique($rec)) break;
                     

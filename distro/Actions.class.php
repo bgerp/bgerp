@@ -120,7 +120,7 @@ class distro_Actions extends embed_Manager
             
             $params = $driverInst->getLinkParams();
             
-            $rowTools->addLink($driverInst->title, array('distro_Actions', 'add', $me->driverClassField => $driverId, 'groupId' => $fRec->groupId, 'repoId' => $fRec->repoId, 'fileId' => $fRec->id, 'ret_url' => TRUE), $params);
+            $rowTools->addLink($driverInst->class->title, array('distro_Actions', 'add', $me->driverClassField => $driverId, 'groupId' => $fRec->groupId, 'repoId' => $fRec->repoId, 'fileId' => $fRec->id, 'ret_url' => TRUE), $params);
         }
     }
     
@@ -130,9 +130,9 @@ class distro_Actions extends embed_Manager
      * 
      * @param stdObject $fRec
      */
-    public static function addToRepo($fRec)
+    public static function addToRepo($fRec, $driverName = 'distro_AbsorbDriver')
     {
-        $driverInst = cls::getInterface('distro_ActionsDriverIntf', 'distro_AbsorbDriver');
+        $driverInst = cls::getInterface('distro_ActionsDriverIntf', $driverName);
         
         if (!$driverInst || !$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) return ;
         
@@ -142,7 +142,7 @@ class distro_Actions extends embed_Manager
         $rec->groupId = $fRec->groupId;
         $rec->repoId = $fRec->repoId;
         $rec->fileId = $fRec->id;
-        $rec->{$me->driverClassField} = distro_AbsorbDriver::getClassId();
+        $rec->{$me->driverClassField} = $driverName::getClassId();
         
         self::save($rec);
     }
@@ -304,6 +304,7 @@ class distro_Actions extends embed_Manager
         return ;
     }
     
+    
     /**
      * Подготвяме  общия изглед за 'List'
      * Понеже не е наследник на core_Detail, но искаме да го ползваме като детайл
@@ -451,13 +452,30 @@ class distro_Actions extends embed_Manager
     {
         core_Request::setProtected(array($mvc->driverClassField, 'groupId', 'repoId', 'fileId'));
         
+        $rec = $data->form->rec;
+        
+        $driverInst = $mvc->getDriver($rec);
+        
+        // Ако е зададено да се форсира записването
+        if ($driverInst) {
+            if ($rec->fileId && $driverInst->canForceSave() && !$data->form->isSubmitted()) {
+                
+                $retUrl = getRetUrl();
+                if (empty($retUrl)) {
+                    $retUrl = array('distro_Group', 'single', $rec->groupId);
+                }
+                
+                $fRec = distro_Files::fetch($rec->fileId);
+                
+                $mvc->addToRepo($fRec, $driverInst->className);
+                
+                redirect($retUrl);
+            }
+        }
+        
         $data->form->setHidden($mvc->driverClassField);
         
         if ($data->form->isSubmitted() && $data->form->rec->fileId) {
-            
-            $rec = $data->form->rec;
-            
-            $driverInst = $mvc->getDriver($rec);
             
             if ($driverInst) {
                 $fRec = distro_Files::fetch($data->form->rec->fileId);

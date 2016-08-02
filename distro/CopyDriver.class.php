@@ -182,6 +182,20 @@ class distro_CopyDriver extends core_Mvc
     
     
     /**
+     * Дали може да се форсира записването
+     * 
+     * @return boolean
+     *
+     * @see distro_ActionsDriverIntf
+     */
+    public function canForceSave()
+    {
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param distro_CopyDriver $mvc

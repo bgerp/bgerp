@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class distro_AbsorbDriver extends core_Mvc
+class distro_ArchiveDriver extends core_Mvc
 {
     
     
@@ -19,14 +19,14 @@ class distro_AbsorbDriver extends core_Mvc
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'distro_ActionsDriverIntf';
-
-
+    
+    
     /**
      * Заглавие на драйвера
      */
-    public $title = 'Абсорбиране';
-
-
+    public $title = 'Архивиране';
+    
+    
     /**
      * Плъгини и класове за зареждане
      */
@@ -40,6 +40,7 @@ class distro_AbsorbDriver extends core_Mvc
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
+	    
 	}
     
     
@@ -51,7 +52,7 @@ class distro_AbsorbDriver extends core_Mvc
     public function canSelectDriver($userId = NULL)
     {
         
-        return FALSE;
+        return TRUE;
     }
     
     
@@ -74,9 +75,7 @@ class distro_AbsorbDriver extends core_Mvc
         if ($fileId) {
             $fRec = distro_Files::fetch($fileId);
             
-            if (isset($fRec->sourceFh)) return TRUE;
-            
-            return FALSE;
+            if (isset($fRec->sourceFh)) return FALSE;
         }
         
         return TRUE;
@@ -95,32 +94,18 @@ class distro_AbsorbDriver extends core_Mvc
     function getActionStr($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
-        if (!$fRec->sourceFh) return '';
+        if ($fRec->sourceFh) return '';
         
-        $fUrl = fileman_Download::getDownloadUrl($fRec->sourceFh);
-        $fUrl = escapeshellarg($fUrl);
+        Request::setProtected(array('repoId', 'fileId'));
         
-        $FileInst = cls::get('distro_Files');
+        $url = toUrl(array($this, 'uploadFile', 'repoId' => $rec->repoId, 'fileId' => $rec->fileId), 'absolute');
         
-        $destFilePath = $FileInst->getUniqFileName($rec->fileId, $rec->sourceRepoId);
-        $destFilePathE = escapeshellarg($destFilePath);
+        $archiveExec = "wget -q --spider --no-check-certificate {$url}";
         
-        if ($rec->fileId) {
-            $fRec = distro_Files::fetch($rec->fileId);
-            $nName = pathinfo($destFilePath, PATHINFO_BASENAME);
-            
-            if (($nName) && $nName != $fRec->name) {
-                $fRec->name = $nName;
-                distro_Files::save($fRec, 'name');
-            }
-        }
-        
-        $absorbExec = "wget -q -O {$destFilePathE} --no-check-certificate {$fUrl}";
-        
-        return $absorbExec;
+        return $archiveExec;
     }
     
-
+    
     /**
      * Вика се след приключване на обработката
      * 
@@ -130,7 +115,21 @@ class distro_AbsorbDriver extends core_Mvc
      */
     function afterProcessFinish($rec)
     {
-        
+        // Обновяваме всички файлове със същия хеш, да имат същия sourceFh
+        if ($rec->fileId) {
+            
+            $fRec = distro_Files::fetch((int) $rec->fileId);
+            
+            $fQuery = distro_Files::getQuery();
+            $fQuery->where(array("#md5 = '[#1#]'", $fRec->md5));
+            $fQuery->where("#sourceFh IS NULL OR #sourceFh = ''");
+//             $fQuery->where(array("#groupId = '[#1#]'", $fRec->groupId));
+            
+            while ($nRec = $fQuery->fetch()) {
+                $nRec->sourceFh = $fRec->sourceFh;
+                distro_Files::save($nRec, 'sourceFh');
+            }
+        }
     }
     
     
@@ -144,7 +143,7 @@ class distro_AbsorbDriver extends core_Mvc
     public function getLinkParams()
     {
         
-        return array();
+        return array('ef_icon' => 'img/16/upload.png', 'warning' => 'Сигурни ли сте, че искате да архивирате файла?');
     }
     
     
@@ -158,6 +157,42 @@ class distro_AbsorbDriver extends core_Mvc
     public function canForceSave()
     {
         
-        return FALSE;
+        return TRUE;
+    }
+    
+    
+    /**
+     * Предизвиква уплоад на файла в системата
+     */
+    function act_UploadFile()
+    {
+        Request::setProtected(array('repoId', 'fileId'));
+        
+        $repoId = Request::get('repoId', 'int');
+        $fileId = Request::get('fileId', 'int');
+        
+        $DFiles = cls::get('distro_Files');
+        
+        $fRec = $DFiles->fetch($fileId);
+        
+        expect($fRec);
+        
+        if ($fRec->sourceFh) return FALSE;
+        
+        $conn = distro_Repositories::connectToRepo($repoId);
+        
+        if (!$conn) return FALSE;
+        
+        $fPath = $DFiles->getRealPathOfFile($fileId, $repoId);
+        
+        $data = $conn->getContents($fPath);
+        $name = pathinfo($fPath, PATHINFO_BASENAME);
+        
+        $fileHnd = fileman::absorbStr($data, distro_Group::$bucket, $name);
+        
+        expect($fileHnd);
+        
+        $fRec->sourceFh = $fileHnd; 
+        $DFiles->save($fRec, 'sourceFh');
     }
 }

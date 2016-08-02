@@ -57,6 +57,7 @@ class distro_Setup extends core_ProtoSetup
             'distro_Actions',
             'distro_CopyDriver',
             'distro_AbsorbDriver',
+            'distro_ArchiveDriver',
             'migrate::reposToKey',
     );
     
