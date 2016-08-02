@@ -38,7 +38,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
      
     /**
-     * Select2 трябва да се деинсталира - не работи
+     * Select2 трябва да се деактивира - не работи
      */
     //http://localhost/unit_MinkPbgERP/DeinstallSelect2/
     function act_DeinstallSelect2()
@@ -348,6 +348,29 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         $browser->setValue('name', 'Промоция');
         $browser->setValue('parentId', 'Ценова група');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+        }
+        return $browser->getHtml();
+    }
+    
+    /**
+     * 1. Създаване на проект
+     */
+    //http://localhost/unit_MinkPbgERP/CreateProject/
+    function act_CreateProject()
+    {
+         
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на проект
+        $browser->click('Всички');
+        $browser->click('Проекти');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Други проекти');
+        $browser->setValue('Бележки', '54');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
