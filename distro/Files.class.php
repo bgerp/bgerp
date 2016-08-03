@@ -70,6 +70,12 @@ class distro_Files extends core_Detail
     
     
     /**
+     * Кой има право да го оттегли?
+     */
+    public $canReject = 'no_one';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2';
@@ -361,7 +367,10 @@ class distro_Files extends core_Detail
                     if ($fRec) {
                         
                         // Ако хешовете им съвпадат
-                        if ($fRec->md5 == $nRec->md5) continue;
+                        if ($fRec->md5 == $nRec->md5) {
+                            $this->logNotice('Съществуващ файл', $fRec->id);
+                            continue;
+                        }
                         
                         // TODO - ако двата файла не съвпадат, трядбва да се преименува
                         
@@ -400,10 +409,15 @@ class distro_Files extends core_Detail
                     }
                     
                     $subDir = $this->Master->getSubDirName($groupId);
-                    $fRec->md5 = $this->getMd5($repoId, $subDir, $name);
+                    $newMd5 = $this->getMd5($repoId, $subDir, $name);
+                    
+                    if ($newMd5 != $fRec->md5) {
+                        $fRec->md5 = $newMd5;
+                        $fRec->sourceFh = NULL;
+                    }
                     
                     // Прекъсваемо е за да не се промянят от плъгина
-                    $this->save_($fRec, 'modifiedOn, modifiedBy, md5');
+                    $this->save_($fRec, 'modifiedOn, modifiedBy, md5, sourceFh');
                     $this->Master->touchRec($groupId);
                     
                     $resArr['edit'][$fRec->id] = $fRec->id;
