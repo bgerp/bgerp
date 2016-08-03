@@ -2,7 +2,7 @@
 
 
 /**
- * Архивиране на файлове (качване в системата)
+ * Изтриване на файлове
  *
  * @category  bgerp
  * @package   distro
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class distro_ArchiveDriver extends core_Mvc
+class distro_DeleteDriver extends core_Mvc
 {
     
     
@@ -24,7 +24,7 @@ class distro_ArchiveDriver extends core_Mvc
     /**
      * Заглавие на драйвера
      */
-    public $title = 'Архивиране';
+    public $title = 'Изтриване';
     
     
     /**
@@ -40,7 +40,8 @@ class distro_ArchiveDriver extends core_Mvc
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-	    
+	    $fieldset->FLD('delSourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, input=none');
+	    $fieldset->FLD('delFileName', 'varchar', 'caption=Име на файла, input=none');
 	}
     
     
@@ -72,13 +73,8 @@ class distro_ArchiveDriver extends core_Mvc
      */
     function canMakeAction($groupId, $repoId, $fileId, $name = NULL, $md5 = NULL, $userId = NULL)
     {
-        if ($fileId) {
-            $fRec = distro_Files::fetch($fileId);
-            
-            if (isset($fRec->sourceFh)) return FALSE;
-        }
         
-        return TRUE;
+        return TRUE;        
     }
     
     
@@ -93,19 +89,16 @@ class distro_ArchiveDriver extends core_Mvc
      */
     function getActionStr($rec)
     {
-        $fRec = distro_Files::fetch($rec->fileId);
-        if ($fRec->sourceFh) return '';
-        
         Request::setProtected(array('repoId', 'fileId'));
         
-        $url = toUrl(array($this, 'uploadFile', 'repoId' => $rec->repoId, 'fileId' => $rec->fileId), 'absolute');
+        $url = toUrl(array($this, 'deleteFile', 'repoId' => $rec->repoId, 'fileId' => $rec->fileId), 'absolute');
         
-        $archiveExec = "wget -q --spider --no-check-certificate {$url}";
+        $deleteExec = "wget -q --spider --no-check-certificate {$url}";
         
-        return $archiveExec;
+        return $deleteExec;
     }
     
-    
+	
     /**
      * Вика се след приключване на обработката
      * 
@@ -115,21 +108,15 @@ class distro_ArchiveDriver extends core_Mvc
      */
     function afterProcessFinish($rec)
     {
-        // Обновяваме всички файлове със същия хеш, да имат същия sourceFh
-        if ($rec->fileId) {
-            
-            $fRec = distro_Files::fetch((int) $rec->fileId);
-            
-            $fQuery = distro_Files::getQuery();
-            $fQuery->where(array("#md5 = '[#1#]'", $fRec->md5));
-            $fQuery->where("#sourceFh IS NULL OR #sourceFh = ''");
-//             $fQuery->where(array("#groupId = '[#1#]'", $fRec->groupId));
-            
-            while ($nRec = $fQuery->fetch()) {
-                $nRec->sourceFh = $fRec->sourceFh;
-                distro_Files::save($nRec, 'sourceFh');
-            }
-        }
+        $fRec = distro_Files::fetch($rec->fileId);
+        
+        $rec->delSourceFh = $fRec->sourceFh;
+        $rec->delFileName = $fRec->name;
+        $rec->StopExec = TRUE;
+        
+        distro_Actions::save($rec);
+        
+        distro_Files::delete($fRec->id);
     }
     
     
@@ -143,7 +130,7 @@ class distro_ArchiveDriver extends core_Mvc
     public function getLinkParams()
     {
         
-        return array('ef_icon' => 'img/16/upload.png', 'warning' => 'Сигурни ли сте, че искате да архивирате файла?');
+        return array('ef_icon' => 'img/16/delete.png', 'warning' => 'Сигурни ли сте, че искате да изтриете файла?');
     }
     
     
@@ -164,7 +151,7 @@ class distro_ArchiveDriver extends core_Mvc
     /**
      * Предизвиква уплоад на файла в системата
      */
-    function act_UploadFile()
+    function act_DeleteFile()
     {
         Request::setProtected(array('repoId', 'fileId'));
         
@@ -177,22 +164,33 @@ class distro_ArchiveDriver extends core_Mvc
         
         expect($fRec);
         
-        if ($fRec->sourceFh) return FALSE;
-        
         $conn = distro_Repositories::connectToRepo($repoId);
         
-        if (!$conn) return FALSE;
-        
         $fPath = $DFiles->getRealPathOfFile($fileId, $repoId);
+        $fPath = escapeshellarg($fPath);
         
-        $data = $conn->getContents($fPath);
-        $name = pathinfo($fPath, PATHINFO_BASENAME);
-        
-        $fileHnd = fileman::absorbStr($data, distro_Group::$bucket, $name);
-        
-        expect($fileHnd);
-        
-        $fRec->sourceFh = $fileHnd; 
-        $DFiles->save($fRec, 'sourceFh');
+        $conn->exec("rm {$fPath}", $output);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param distro_CopyDriver $mvc
+     * @param distro_Actions $embeder
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, $embeder, &$row, $rec)
+    {
+        if ($rec->delFileName) {
+            $fileName = '"' . type_Varchar::escape($rec->delFileName) . '"';
+            
+            if (trim($rec->delSourceFh)) {
+                $fileName = fileman::getLinkToSingle($rec->delSourceFh, FALSE, array(), $rec->name);
+            }
+            
+            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('от') . ' "' . $embeder->getVerbal($rec, 'repoId') . '" ';
+        }
     }
 }
