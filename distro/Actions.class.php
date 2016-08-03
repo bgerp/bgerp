@@ -430,6 +430,34 @@ class distro_Actions extends embed_Manager
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако ще добавяме/редактираме записа
+        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
+            
+            // Ако има master
+            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
+                
+                // Ако няма права за добавяне на детайл
+                if (!$mvc->Master->haveRightFor('single', $rec->$masterKey, $userId)) {
+                    
+                    // Да не може да добавя
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      * 
      * @param distro_Actions $mvc
@@ -464,6 +492,8 @@ class distro_Actions extends embed_Manager
                 if (empty($retUrl)) {
                     $retUrl = array('distro_Group', 'single', $rec->groupId);
                 }
+                
+                $mvc->requireRightFor('Add', $data->form->rec, NULL, $retUrl);
                 
                 $fRec = distro_Files::fetch($rec->fileId);
                 
