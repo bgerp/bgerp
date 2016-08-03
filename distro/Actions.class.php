@@ -272,6 +272,19 @@ class distro_Actions extends embed_Manager
         // Нотифицираме драйвера, че е приключило
         $Driver = $this->getDriver($rec->id);
         $Driver->afterProcessFinish($rec);
+        
+        $fRec = distro_Files::fetch($rec->fileId);
+        
+        $sudo = FALSE;
+        if ($rec->createdBy > 0) {
+            $sudo = core_Users::sudo($rec->createdBy);
+        }
+        
+        distro_Files::save($fRec, 'modifiedOn, modifiedBy');
+        
+        if ($sudo) {
+            core_Users::exitSudo();
+        }
     }
     
     
@@ -454,7 +467,7 @@ class distro_Actions extends embed_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако ще добавяме/редактираме записа
-        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
+        if ($action == 'add') {
             
             // Ако има master
             if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
