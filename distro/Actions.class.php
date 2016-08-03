@@ -447,7 +447,7 @@ class distro_Actions extends embed_Manager
             if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
                 
                 // Ако няма права за добавяне на детайл
-                if (!$mvc->Master->haveRightFor('single', $rec->$masterKey, $userId)) {
+                if (!$mvc->Master->canAddDetail($rec->$masterKey)) {
                     
                     // Да не може да добавя
                     $requiredRoles = 'no_one';
