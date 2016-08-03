@@ -585,7 +585,6 @@ class distro_Actions extends embed_Manager
      * Подготовка на филтър формата
      *
      * @param distro_Actions $mvc
-     * @param StdClass $res
      * @param StdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
