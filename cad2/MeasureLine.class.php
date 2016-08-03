@@ -48,7 +48,7 @@ class cad2_MeasureLine  extends cad2_Shape {
     /**
      * Метод за изрисуване на оразмерителна линия
      */
-    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist)
+    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist, $measureText)
     {
         // разстояние след линията
         $offset = 2;
@@ -102,7 +102,7 @@ class cad2_MeasureLine  extends cad2_Shape {
         
         // Текст
         $ab = new cad_Vector($B1->x - $A1->x, $B1->y - $A1->y);
-        $text = round($ab->r) . ' mm';
+        $text = $measureText ? $measureText . ' mm' : round($ab->r). ' mm';
         $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / $svg->pixPerMm);
         $ab1 = $svg->p($ab->a, -$width);
         $td = $svg->p($ab->a + pi()/2, -2);
