@@ -378,7 +378,7 @@ class distro_Repositories extends core_Master
     /**
      * Връща пътя до директрията с грешките файл, където ще се записват данните от inotifywait
      * 
-     * @param integer $path
+     * @param integer $id
      * 
      * @return string
      */
