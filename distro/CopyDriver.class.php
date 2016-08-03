@@ -127,7 +127,7 @@ class distro_CopyDriver extends core_Mvc
         $user = $hostParams['user'];
         $pass = $hostParams['pass'];
         
-        $copyExec .= '';
+        $copyExec = '';
         
         if ($this->useSSHPass) {
             $copyExec .= "sshpass -p {$pass} ";
