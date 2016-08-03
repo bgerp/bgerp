@@ -65,7 +65,7 @@ class distro_ActionsDriverIntf extends embed_DriverIntf
     function getLinkParams()
     {
         
-        return $this->class->getLinkParams($rec);
+        return $this->class->getLinkParams();
     }
     
     
