@@ -129,7 +129,7 @@ class help_Info extends core_Master
     	
         // Дефолт стойностите за форматирането по подразбиране
         $format = array();
-        $format['length'] = (int) 0;
+        $format['length'] = 0;
         $format['delimiter'] =  ',';
         $format['enclosure'] = '"';
         $format['escape'] = '\\';
@@ -176,12 +176,12 @@ class help_Info extends core_Master
         // Дефолт стойностите за форматирането по подразбиране
         $params = array();
         $params['delimiter'] = ",";
-        $params['decPoint'] = html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE), ENT_COMPAT | ENT_HTML401, 'UTF-8');
-        $params['dateFormat'] = core_Setup::get('EF_DATE_FORMAT', TRUE);
+        $params['decPoint'] = ',';
+        $params['dateFormat'] = 'd.m.Y';
         $params['datetimeFormat'] = 'd.m.y H:i';
         $params['thousandsSep'] = '';
         $params['enclosure'] = '"';
-        $params['decimals'] = (int) 2;
+        $params['decimals'] = 2;
         $params['columns'] = "none";
         
         $csv = csv_Lib::createCsv($recs, $mvc, array('class', 'action', 'lg', 'text'), $params);
