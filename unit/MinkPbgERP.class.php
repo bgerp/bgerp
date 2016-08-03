@@ -18,7 +18,38 @@ class unit_MinkPbgERP extends core_Manager {
    /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
     *
     */
+    //http://localhost/unit_MinkPbgERP/Run/
+    public function act_Run()
+    {
     
+        $res = '';
+        $res .= $this->act_CreateUser1();
+        $res .= $this->act_CreateUser2();
+        $res .= $this->act_CreateStore();
+        $res .= $this->act_CreateBankAcc1();
+        $res .= $this->act_CreateBankAcc2();
+        $res .= $this->act_CreateCase();
+        $res .= $this->act_CreateCategory();
+        $res .= $this->act_CreateParam();
+        $res .= $this->act_CreateMeasure();
+        $res .= $this->act_CreateGroup();
+        $res .= $this->act_CreateProject();
+        $res .= $this->act_CreateDepartment1();
+        $res .= $this->act_CreateDepartment2();
+        $res .= $this->act_CreateProduct();
+        $res .= $this->act_CreateProductBom();
+        $res .= $this->act_CreateBom();
+        $res .= $this->act_CreateEditPerson();
+        $res .= $this->act_CreateCompany();
+        $res .= $this->act_EditCompany();
+        $res .= $this->act_CreateEditCompany();
+        $res .= $this->act_CreateInq();
+        $res .= $this->act_CreateQuotation();
+        $res .= $this->act_CreatePurchase();
+        $res .= $this->act_CreatePlanningJob();
+        $res .= $this->act_CreateSale();
+        return $res;
+    }
     /**
      * Логване
      */
@@ -131,7 +162,8 @@ class unit_MinkPbgERP extends core_Manager {
         }
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            Return Дублиране;
+            return Дублиране;
+            
         }
         return $browser->getHtml();
     }  
@@ -164,6 +196,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             Return Дублиране;
         }
+        
         return $browser->getHtml();
     }
     
@@ -672,6 +705,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('tel', '042222222');
         $browser->press('Запис');
         return ' Фирма-запис на редакцията';
+        return $browser->getHtml();
     }
     
     /**
@@ -909,6 +943,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return "Грешно чакащо плащане";
         }
+        return $browser->getHtml();
     }
     
     /**
@@ -956,7 +991,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Добавяне на произведен артикул');
             $browser->setValue('quantity', '1000');
             //$browser->setValue('employees[3]', '3');
-            $browser->setValue('STD', '3');
+            $browser->setValue('STD', '4');
             $browser->press('Запис');
            
             $browser->press('Влагане');

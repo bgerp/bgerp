@@ -14,11 +14,32 @@
  */
 
 class unit_MinkPPayment extends core_Manager {
-   /** Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
-    *return $browser->getHtml();
+   /**Изпълнява се след unit_MinkPbgERP 
+    * Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
     */
     
+    //http://localhost/unit_MinkPPayment/Run/
+    public function act_Run()
+    {
     
+        $res = '';
+        $res .= $this->act_CreateSaleWaitP();
+        $res .= $this->act_CreateSaleOverdue3days();
+        $res .= $this->act_CreateSaleMomentOverdueNull();
+        $res .= $this->act_CreateSaleExped();
+        $res .= $this->act_CreateSaleExpedn();
+        $res .= $this->act_CreateSaleOverpaid();
+        $res .= $this->act_CreateSaleMomentWait3();
+        $res .= $this->act_CreateSaleWait3();
+        $res .= $this->act_CreateSaleMomentNow();
+        $res .= $this->act_CreateSale();
+        $res .= $this->act_CreatePurchaseOverdue();
+        $res .= $this->act_CreatePurchaseWait();
+        $res .= $this->act_CreatePurchaseOverpaid();
+        $res .= $this->act_CreatePurchase3();
+           
+        return $res;
+    }
     /**
      * Логване
      */
@@ -704,7 +725,7 @@ class unit_MinkPPayment extends core_Manager {
      * Проверка състояние плащане - чакащо, метод - на момента, падежът е днес
      * Нова продажба на съществуваща фирма с папка
      */
-    //http://localhost/unit_MinkPPayment/CreateSaleMomentWaitP/
+    //http://localhost/unit_MinkPPayment/CreateSaleMomentWait3/
     function act_CreateSaleMomentWait3()
     {
     
@@ -726,7 +747,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'MomentWaitP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPPaymentSaleMomentWaitP');
+        $browser->setValue('note', 'MinkPPaymentSaleMomentWait3');
         $browser->setValue('paymentMethodId', "На момента");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
