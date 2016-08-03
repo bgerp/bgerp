@@ -130,7 +130,7 @@ class distro_CopyDriver extends core_Mvc
         $copyExec .= '';
         
         if ($this->useSSHPass) {
-            $copyExec = "sshpass -p {$pass} ";
+            $copyExec .= "sshpass -p {$pass} ";
         }
         
         $copyExec .= "scp -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
