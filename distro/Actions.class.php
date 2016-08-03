@@ -109,6 +109,13 @@ class distro_Actions extends embed_Manager
     {
         foreach ((array) self::getAvailableDriverOptions() as $driverId => $name) {
             
+            $rec = new stdClass();
+            $rec->groupId = $fRec->groupId;
+            $rec->fileId = $fRec->id;
+            $rec->repoId = $fRec->repoId;
+            
+            if (!self::haveRightFor('add', $rec)) return ;
+            
             if (!cls::load($driverId, TRUE)) continue ;
             $driverInst = cls::getInterface('distro_ActionsDriverIntf', $driverId);
             
