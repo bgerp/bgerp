@@ -127,7 +127,13 @@ class distro_Actions extends embed_Manager
             
             $params = $driverInst->getLinkParams();
             
-            $rowTools->addLink($driverInst->class->title, array('distro_Actions', 'add', $me->driverClassField => $driverId, 'groupId' => $fRec->groupId, 'repoId' => $fRec->repoId, 'fileId' => $fRec->id, 'ret_url' => TRUE), $params);
+            $url = array('distro_Actions', 'add', $me->driverClassField => $driverId, 'groupId' => $fRec->groupId, 'repoId' => $fRec->repoId, 'fileId' => $fRec->id, 'ret_url' => TRUE);
+            
+            if ($driverInst->canForceSave()) {
+                $url['CfDrv'] = core_Request::getSessHash($driverId);
+            }
+            
+            $rowTools->addLink($driverInst->class->title, $url, $params);
         }
     }
     
@@ -494,6 +500,8 @@ class distro_Actions extends embed_Manager
         // Ако е зададено да се форсира записването
         if ($driverInst) {
             if ($rec->fileId && $driverInst->canForceSave() && !$data->form->isSubmitted()) {
+                
+                expect(core_Request::getSessHash(core_Request::get($mvc->driverClassField, 'int')) === Request::get('CfDrv'));
                 
                 $retUrl = getRetUrl();
                 if (empty($retUrl)) {
