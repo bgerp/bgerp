@@ -200,7 +200,7 @@ class distro_CopyDriver extends core_Mvc
      *
      * @param distro_CopyDriver $mvc
      * @param distro_Actions $embeder
-     * @param core_Form $form
+     * @param stdObject $data
      */
     public static function on_AfterPrepareEditForm($mvc, $embeder, $data)
     {
