@@ -89,8 +89,6 @@ class distro_DeleteDriver extends core_Mvc
      */
     function getActionStr($rec)
     {
-        $conn = distro_Repositories::connectToRepo($rec->repoId);
-        
         $DFiles = cls::get('distro_Files');
         
         $fPath = $DFiles->getRealPathOfFile($rec->fileId, $rec->repoId);
@@ -154,7 +152,7 @@ class distro_DeleteDriver extends core_Mvc
     /**
      * След преобразуване на записа в четим за хора вид.
      *
-     * @param distro_CopyDriver $mvc
+     * @param distro_DeleteDriver $mvc
      * @param distro_Actions $embeder
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
