@@ -458,7 +458,7 @@ class distro_Actions extends embed_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param core_Mvc $mvc
+     * @param distro_Actions $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
