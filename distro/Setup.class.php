@@ -55,6 +55,7 @@ class distro_Setup extends core_ProtoSetup
             'distro_Automation',
             'distro_Repositories',
             'distro_Actions',
+            'distro_RenameDriver',
             'distro_DeleteDriver',
             'distro_CopyDriver',
             'distro_AbsorbDriver',

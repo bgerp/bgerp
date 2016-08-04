@@ -36,13 +36,13 @@ class distro_Files extends core_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'powerUser';
+    public $canEdit = 'no_one';
     
     
     /**
      * 
      */
-    public $canEditsysdata = 'powerUser';
+    public $canEditsysdata = 'no_one';
     
     
     /**
@@ -180,8 +180,9 @@ class distro_Files extends core_Detail
      * @param stdObject|integer $id
      * @param NULL|integer $repoId
      * @param NULL|integer $groupId
+     * @param NULL|string $name
      */
-    public function getRealPathOfFile($id, $repoId = NULL, $groupId = NULL)
+    public function getRealPathOfFile($id, $repoId = NULL, $groupId = NULL, $name = NULL)
     {
         $rec = self::fetchRec((int) $id);
         
@@ -192,7 +193,9 @@ class distro_Files extends core_Detail
         
         $subDirName = $this->Master->getSubDirName($groupId);
         
-        $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $rec->name;
+        $name = $name ? $name : $rec->name;
+        
+        $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
         
         return $path;
     }
@@ -518,7 +521,7 @@ class distro_Files extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако ще добавяме/редактираме записа
-        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
+        if ($action == 'add') {
             
             // Ако има master
             if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
