@@ -89,11 +89,14 @@ class distro_DeleteDriver extends core_Mvc
      */
     function getActionStr($rec)
     {
-        Request::setProtected(array('repoId', 'fileId'));
+        $conn = distro_Repositories::connectToRepo($rec->repoId);
         
-        $url = toUrl(array($this, 'deleteFile', 'repoId' => $rec->repoId, 'fileId' => $rec->fileId), 'absolute');
+        $DFiles = cls::get('distro_Files');
         
-        $deleteExec = "wget -q --spider --no-check-certificate {$url}";
+        $fPath = $DFiles->getRealPathOfFile($rec->fileId, $rec->repoId);
+        $fPath = escapeshellarg($fPath);
+        
+        $deleteExec = "rm {$fPath}";
         
         return $deleteExec;
     }
@@ -145,31 +148,6 @@ class distro_DeleteDriver extends core_Mvc
     {
         
         return TRUE;
-    }
-    
-    
-    /**
-     * Предизвиква уплоад на файла в системата
-     */
-    function act_DeleteFile()
-    {
-        Request::setProtected(array('repoId', 'fileId'));
-        
-        $repoId = Request::get('repoId', 'int');
-        $fileId = Request::get('fileId', 'int');
-        
-        $DFiles = cls::get('distro_Files');
-        
-        $fRec = $DFiles->fetch($fileId);
-        
-        expect($fRec);
-        
-        $conn = distro_Repositories::connectToRepo($repoId);
-        
-        $fPath = $DFiles->getRealPathOfFile($fileId, $repoId);
-        $fPath = escapeshellarg($fPath);
-        
-        $conn->exec("rm {$fPath}");
     }
     
     
