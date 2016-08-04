@@ -32,6 +32,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= $this->act_CreateCategory();
         $res .= $this->act_CreateParam();
         $res .= $this->act_CreateMeasure();
+        $res .= $this->act_CreatePackage();
         $res .= $this->act_CreateGroup();
         $res .= $this->act_CreateProject();
         $res .= $this->act_CreateDepartment1();
@@ -156,15 +157,15 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue($ekip, '1');
         $browser->setValue('Pavlinka', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            return Дублиране;
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //    return Дублиране;
             
-        }
+        //}
         return $browser->getHtml();
     }  
     
@@ -188,14 +189,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Pavlinka', '1');
         //$browser->setValue('operators_1', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-        if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
+        //if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
+        //    $browser->press('Отказ');
+        //    Return Дублиране;
+        //}
         
         return $browser->getHtml();
     }
@@ -222,14 +223,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Pavlinka', '1');
         //$browser->setValue('operators_1', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-        if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
+        //if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
+        //    $browser->press('Отказ');
+        //    Return Дублиране;
+        //}
         return $browser->getHtml();
     }
     
@@ -252,14 +253,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Pavlinka', '1');
         //$browser->setValue('cashiers_1', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //    Return Дублиране;
+        //}
         return $browser->getHtml();
     }   
     
@@ -282,9 +283,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('meta_canConvert', 'canConvert');
         $browser->setValue('meta_canManifacture', 'canManifacture');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-        }
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //}
         return $browser->getHtml();
     }
     
@@ -307,9 +308,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Състояние');
         $browser->setValue('lenght', '15'); 
         $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-        }
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //}
         return $browser->getHtml();
     }
     /**
@@ -331,9 +332,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('defQuantity', '1');
         $browser->setValue('round', '2');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-        }
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //}
         return $browser->getHtml();
     }
     
@@ -347,7 +348,7 @@ class unit_MinkPbgERP extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        // Създаване на нов параметър
+        // Създаване на нова опаковка
         $browser->click('Каталог');
         $browser->click('Мерки');
         $browser->click('Опаковки');
@@ -359,9 +360,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('defQuantity', '1');
         $browser->setValue('round', '0');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-        }
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //}
         return $browser->getHtml();
     }
     
@@ -382,9 +383,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Промоция');
         $browser->setValue('parentId', 'Ценова група');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-        }
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //}
         return $browser->getHtml();
     }
     
@@ -405,9 +406,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Други проекти');
         $browser->setValue('Бележки', '54');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-        }
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //}
         return $browser->getHtml();
     }
     
@@ -431,14 +432,14 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue($ekip, '1');
         $browser->setValue('Pavlinka', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //    Return Дублиране;
+        //}
         return $browser->getHtml();
     }
     /**
@@ -462,14 +463,14 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue($ekip, '1');
         $browser->setValue('Pavlinka', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            Return Дублиране;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
+        //if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        //    $browser->press('Отказ');
+        //    Return Дублиране;
+        //}
         return $browser->getHtml();
     }
     
@@ -704,7 +705,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('fax', '042333333');
         $browser->setValue('tel', '042222222');
         $browser->press('Запис');
-        return ' Фирма-запис на редакцията';
         return $browser->getHtml();
     }
     
@@ -894,11 +894,11 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '5,92')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPbgERP/CreatePurchase";
         }
         if(strpos($browser->gettext(), 'Тридесет и пет BGN и 0,52')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPbgERP/CreatePurchase";
         }
     
         // Складова разписка
@@ -941,7 +941,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPbgERP/CreatePurchase";
         }
         return $browser->getHtml();
     }
@@ -1092,11 +1092,11 @@ class unit_MinkPbgERP extends core_Manager {
          
         if(strpos($browser->gettext(), '7,20')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPbgERP/CreateSale";
         }
         if(strpos($browser->gettext(), 'Четиридесет и три BGN и 0,20')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPbgERP/CreateSale";
         }
     
         // експедиционно нареждане
@@ -1121,6 +1121,7 @@ class unit_MinkPbgERP extends core_Manager {
         
         // Фактура
         $browser->press('Фактура');
+        $browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         //return 'paymentType';
         //$browser->setValue('paymentType', 'По банков път');
@@ -1147,7 +1148,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPbgERP/CreateSale";
         }
         return $browser->getHtml();
     }       
