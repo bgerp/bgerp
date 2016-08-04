@@ -169,7 +169,7 @@ class distro_DeleteDriver extends core_Mvc
         $fPath = $DFiles->getRealPathOfFile($fileId, $repoId);
         $fPath = escapeshellarg($fPath);
         
-        $conn->exec("rm {$fPath}", $output);
+        $conn->exec("rm {$fPath}");
     }
     
     
