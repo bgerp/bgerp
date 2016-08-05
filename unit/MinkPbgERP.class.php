@@ -43,12 +43,15 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  18.".$this->act_CreateEditPerson();
         $res .= "  19.".$this->act_CreateCompany();
         $res .= "  20.".$this->act_EditCompany();
-        $res .= "  21.".$this->act_CreateEditCompany();
-        $res .= "  22.".$this->act_CreateInq();
-        $res .= "  23.".$this->act_CreateQuotation();
-        $res .= "  24.".$this->act_CreatePurchase();
-        $res .= "  25.".$this->act_CreatePlanningJob();
-        $res .= "  26.".$this->act_CreateSale();
+        $res .= "  21.".$this->act_CreateLocation1();
+        $res .= "  22.".$this->act_CreateLocation2();
+        $res .= "  23.".$this->act_CreateEditCompany();
+        $res .= "  24.".$this->act_CreateInq();
+        $res .= "  25.".$this->act_CreateQuotation();
+        $res .= "  26.".$this->act_CreatePurchase();
+        $res .= "  27.".$this->act_CreatePlanningJob();
+        $res .= "  28.".$this->act_CreateSale();
+        
         return $res;
     }
     /**
@@ -697,6 +700,56 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
+     * 2. Локация от фирма
+     */
+    //http://localhost/unit_MinkPbgERP/CreateLocation1/
+    function act_CreateLocation1()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        // търсим фирмата
+        $browser->click('F');
+        //$browser->hasText('Фирма bgErp');
+        $Company = 'Фирма bgErp';
+        //Проверка дали сме в Фирма bgErp
+        if(strpos($browser->gettext(), $Company)) {
+            //има такава фирма - редакция
+            $browser->click($Company);
+            $browser->click('Добавяне на нова локация');
+            $browser->setValue('title', 'Офис Пловдив');
+            $browser->setValue('type', 'Офис');
+            $browser->setValue('place', 'Пловдив');
+            $browser->setValue('pCode', '4000');
+            $browser->setValue('address', 'ул.Родопи, №52');
+            $browser->press('Запис');
+        } else {
+            Return "Няма такава фирма";
+        }
+       
+    } 
+    /**
+     * 2. Локация от таб Локации
+     */
+    //http://localhost/unit_MinkPbgERP/CreateLocation2/
+    function act_CreateLocation2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        $browser->click('Локации');
+        $browser->press('Нов търговски обект');
+        $browser->setValue('name', 'Фирма с локация');
+        $browser->setValue('place', 'Варна');
+        $browser->setValue('address', 'ул.Морска, №122');
+        $browser->setValue('title', 'Централен офис');
+        $browser->setValue('type', 'Главна квартира');
+        $browser->setValue('dateFld', date('d-m-Y'));
+        $browser->setValue('repeat', '1 мес.');
+        $browser->press('Запис');
+          
+    }
+    /**
      * 1. Фирма - чуждестранна, ако я има - отваряме и редактираме, ако не - създаваме я
      */
     //http://localhost/unit_MinkPbgERP/CreateEditCompany/
@@ -736,8 +789,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Папка');
         }
         //return $browser->getHtml();
-    } 
-    
+    }
     /**
      * 2.Запитване от съществуваща фирма с папка и артикул от него
      */
