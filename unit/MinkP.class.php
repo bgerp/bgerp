@@ -66,7 +66,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateProductWork/
     function act_CreateProductWork()
     {
-         
         $browser = $this->SetUp();
         // Правим нов артикул - труд
         $browser->click('Каталог');
@@ -90,7 +89,6 @@ class unit_MinkP extends core_Manager
         $browser->refresh('Запис');
         $browser->setValue('price', '10');
         $browser->press('Запис');
-        
     }
     
     /**
@@ -99,7 +97,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateElectricity/
     function act_CreateElectricity()
     {
-         
         // Логваме се
         $browser = $this->SetUp();
     
@@ -125,7 +122,6 @@ class unit_MinkP extends core_Manager
         $browser->refresh('Запис');
         $browser->setValue('price', '0.60');
         $browser->press('Запис');
-        
     }
     
     /**
@@ -150,7 +146,6 @@ class unit_MinkP extends core_Manager
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
-        
     }
     
     /**
@@ -159,7 +154,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateMaterial1/
     function act_CreateMaterial1()
     {
-         
         // Логваме се
         $browser = $this->SetUp();
             
@@ -175,7 +169,6 @@ class unit_MinkP extends core_Manager
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
-           
     }
     
     /**
@@ -184,7 +177,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateMaterial2/
     function act_CreateMaterial2()
     {
-         
         // Логваме се
         $browser = $this->SetUp();
     
@@ -200,7 +192,6 @@ class unit_MinkP extends core_Manager
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
-         
     } 
      
     /**
@@ -209,7 +200,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateWaste1/
     function act_CreateWaste1()
     {
-        
         // Логваме се
         $browser = $this->SetUp();
         // Правим нов артикул - отпадък 1
@@ -240,7 +230,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateWaste2/
     function act_CreateWaste2()
     {
-     
         // Логваме се
         $browser = $this->SetUp();
           
@@ -273,7 +262,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateWaste3/
     function act_CreateWaste3()
     {
-          
         // Логваме се
         $browser = $this->SetUp();
      
@@ -306,7 +294,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateMash1/
     function act_CreateMash1()
     {
-     
         // Логваме се
         $browser = $this->SetUp();
           
@@ -339,7 +326,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateMash2/
     function act_CreateMash2()
     {
-          
         // Логваме се
         $browser = $this->SetUp();
      
@@ -372,7 +358,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateMash3/
     function act_CreateMash3()
     {
-          
         // Логваме се
         $browser = $this->SetUp();
      
@@ -398,13 +383,13 @@ class unit_MinkP extends core_Manager
         $browser->setValue('price', '15');
         $browser->press('Запис');
     }  
+    
     /**
      * 12.Създава нов артикул - заготовка 1 (резултат от 1 етап)
      */
     //http://localhost/unit_MinkP/CreateStage1/
     function act_CreateStage1()
     {
-     
         // Логваме се
         $browser = $this->SetUp();
           
@@ -431,7 +416,6 @@ class unit_MinkP extends core_Manager
             $browser->press('Запис');
             //return $browser->gethtml();
         }
-        
     }
      
     /**
@@ -440,7 +424,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateStage2/
     function act_CreateStage2()
     {
-          
         // Логваме се
         $browser = $this->SetUp();
      
@@ -474,7 +457,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateTestBom/
     function act_CreateTestBom()
     {
-     
         // Логваме се
         $browser = $this->SetUp();
           
@@ -490,8 +472,8 @@ class unit_MinkP extends core_Manager
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
         }
-     
     }
+    
     /**
      * 15. Създаване на фирма-доставчик и папка към нея, допуска дублиране 
      * Select2 трябва да е деинсталиран
@@ -503,7 +485,6 @@ class unit_MinkP extends core_Manager
         $browser = $this->SetUp();
     
         // Създаване на нова фирма
-    
         $browser->click('Визитник');
         $browser->press('Нова фирма');
         $browser->setValue('name', 'Фирма доставчик');
@@ -530,7 +511,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkPbgERP/CreateStore/
     function act_CreateStore()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -554,13 +534,13 @@ class unit_MinkP extends core_Manager
         }
         //return $browser->getHtml();
     }
+    
     /**
      * 17.Създава доставка на материалите
      */
     //http://localhost/unit_MinkP/CreatePurchase/
     function act_CreatePurchase()
     {  
-       
         // Логваме се
         $browser = $this->SetUp();
         
@@ -627,7 +607,6 @@ class unit_MinkP extends core_Manager
         $browser->setValue('storeId', 'Склад 2');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        
     }
     
     /**
@@ -636,7 +615,6 @@ class unit_MinkP extends core_Manager
     //http://localhost/unit_MinkP/CreateBomStage1/
     function act_CreateBomStage1()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
         
@@ -677,15 +655,14 @@ class unit_MinkP extends core_Manager
         $browser->press('Запис');
         //return $browser->gethtml();
         $browser->press('Активиране');
-         
     }
+    
     /**
      *19.Добавя рецепта за етап 2
      */
     //http://localhost/unit_MinkP/CreateBomStage2/
     function act_CreateBomStage2()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
         
@@ -722,8 +699,8 @@ class unit_MinkP extends core_Manager
         $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
-         
     }
+    
     /**
      *20.Добавя рецепта за етап 3 - крайно изделие
      */
