@@ -166,7 +166,7 @@ class distro_DeleteDriver extends core_Mvc
                 $fileName = fileman::getLinkToSingle($rec->delSourceFh, FALSE, array(), $rec->name);
             }
             
-            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('от') . ' "' . $embeder->getVerbal($rec, 'repoId') . '" ';
+            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
         }
     }
 }

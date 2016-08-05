@@ -19,7 +19,7 @@ class distro_Actions extends embed_Manager
      */
     public $title = "Действия";
     
-
+    
     /**
      * Интерфейс на драйверите
      */
@@ -96,6 +96,8 @@ class distro_Actions extends embed_Manager
         $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, silent, input=hidden');
         $this->FLD('fileId', 'key(mvc=distro_Files, select=name)', 'caption=Файл, silent, input=hidden');
 	    $this->FLD('completedOn', 'datetime(format=smartTime)', 'caption=Приключено->На,input=none');
+	    $this->FLD('fileName', 'varchar', 'caption=Име на файл,input=none');
+	    $this->FLD('fileSourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл,input=none');
     }
     
     
@@ -161,6 +163,33 @@ class distro_Actions extends embed_Manager
         $rec->OnlyCallback = $onlyCallback;
         
         self::save($rec);
+    }
+    
+    
+    /**
+     * Връща линк към файла или името му
+     * 
+     * @param stdObjec $rec
+     * 
+     * @return string
+     */
+    public function getFileName($rec)
+    {
+        if ($fRec = distro_Files::fetch($rec->fileId)) {
+            if ($fRec->sourceFh) {
+                $fileName = distro_Files::getVerbal($fRec, 'sourceFh');
+            } else {
+                $fileName = '"' . $this->getVerbal($rec, 'fileId') . '"';
+            }
+        } else {
+            if ($rec->fileSourceFh) {
+                $fileName = $this->getVerbal($rec, 'fileSourceFh');
+            } else {
+                $fileName = '"' . $this->getVerbal($rec, 'fileName') . '"';
+            }
+        }
+        
+        return $fileName;
     }
     
     
@@ -515,6 +544,8 @@ class distro_Actions extends embed_Manager
         
         $driverInst = $mvc->getDriver($rec);
         
+        $fRec = distro_Files::fetch($rec->fileId);
+        
         // Ако е зададено да се форсира записването
         if ($driverInst) {
             if ($rec->fileId && $driverInst->canForceSave() && !$data->form->isSubmitted()) {
@@ -528,8 +559,6 @@ class distro_Actions extends embed_Manager
                 
                 $mvc->requireRightFor('Add', $data->form->rec, NULL, $retUrl);
                 
-                $fRec = distro_Files::fetch($rec->fileId);
-                
                 $mvc->addToRepo($fRec, $driverInst->className);
                 
                 redirect($retUrl);
@@ -541,8 +570,6 @@ class distro_Actions extends embed_Manager
         if ($data->form->isSubmitted() && $data->form->rec->fileId) {
             
             if ($driverInst) {
-                $fRec = distro_Files::fetch($data->form->rec->fileId);
-                
                 if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
                     $data->form->setError($mvc->driverClassField, 'Не може да се направи това действие');
                 }
@@ -615,6 +642,21 @@ class distro_Actions extends embed_Manager
     
     
     /**
+     * След успешен запис
+     * 
+     * @param distro_Actions $mvc
+     * @param stdObject $res
+     * @param stdObject $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        $fRec = distro_Files::fetch($rec->fileId);
+        setIfNot($rec->fileName, $fRec->name);
+        setIfNot($rec->fileSourceFh, $fRec->sourceFh);
+    }
+    
+    
+    /**
      * Подготовка на филтър формата
      *
      * @param distro_Actions $mvc
@@ -637,6 +679,8 @@ class distro_Actions extends embed_Manager
     {
         $driver = $mvc->getDriver($rec);
         
-        $row->Info = tr($driver->title) . ' ' . tr('на') . ' "' . $mvc->getVerbal($rec, 'fileId') . '" ' . tr('от') . ' "' . $mvc->getVerbal($rec, 'repoId') . '"';
+        $file = $mvc->getFileName($rec);
+        
+        $row->Info = tr($driver->title) . ' ' . tr('на') . ' ' . $file . ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
     }
 }
