@@ -218,6 +218,7 @@ class distro_Repositories extends core_Master
         $oPath .= '/' . $name;
         $path = escapeshellarg($oPath);
         
+        // TODO - асинхронно
         $sshObj->exec('mkdir -p ' . $path);
         
         return $oPath;

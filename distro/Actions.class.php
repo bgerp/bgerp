@@ -142,8 +142,10 @@ class distro_Actions extends embed_Manager
      * Извиква драйвера за абсорбиране на файл
      * 
      * @param stdObject $fRec
+     * @param string $driverName
+     * @param bollean $onlyCallback
      */
-    public static function addToRepo($fRec, $driverName = 'distro_AbsorbDriver')
+    public static function addToRepo($fRec, $driverName = 'distro_AbsorbDriver', $onlyCallback = FALSE)
     {
         $driverInst = cls::getInterface('distro_ActionsDriverIntf', $driverName);
         
@@ -156,6 +158,7 @@ class distro_Actions extends embed_Manager
         $rec->repoId = $fRec->repoId;
         $rec->fileId = $fRec->id;
         $rec->{$me->driverClassField} = $driverName::getClassId();
+        $rec->OnlyCallback = $onlyCallback;
         
         self::save($rec);
     }
@@ -275,15 +278,17 @@ class distro_Actions extends embed_Manager
         
         $fRec = distro_Files::fetch($rec->fileId);
         
-        $sudo = FALSE;
-        if ($rec->createdBy > 0) {
-            $sudo = core_Users::sudo($rec->createdBy);
-        }
-        
-        distro_Files::save($fRec, 'modifiedOn, modifiedBy');
-        
-        if ($sudo) {
-            core_Users::exitSudo();
+        if ($fRec) {
+            $sudo = FALSE;
+            if ($rec->createdBy > 0) {
+                $sudo = core_Users::sudo($rec->createdBy);
+            }
+            
+            distro_Files::save($fRec, 'modifiedOn, modifiedBy');
+            
+            if ($sudo) {
+                core_Users::exitSudo();
+            }
         }
     }
     
@@ -571,32 +576,39 @@ class distro_Actions extends embed_Manager
     {
         // Ако ще се пускат обработки на файла
         if (!$rec->StopExec) {
-            $driverInst = $mvc->getDriver($rec);
-            if ($driverInst) {
-                $command = $driverInst->getActionStr($rec);
-                
-                $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
             
-                if ($errExec) {
-                    $command = '(' . $command . ') ' . $errExec;
+            if (!$rec->OnlyCallback) {
+                $driverInst = $mvc->getDriver($rec);
+                if ($driverInst) {
+                    $command = $driverInst->getActionStr($rec);
+                
+                    $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
+                
+                    if ($errExec) {
+                        $command = '(' . $command . ') ' . $errExec;
+                    }
+                
+                    $ssh = distro_Repositories::connectToRepo($rec->repoId);
+                
+                    if (!$ssh) {
+                        $mvc->notifyErr($rec);
+                
+                        return ;
+                    }
+                
+                    $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), TRUE);
+                
+                    $ssh->exec($command, $output, $errors, $callBackUrl);
+                
+                    if ($eTrim = trim($errors)) {
+                        $mvc->notifyErr($rec);
+                        $mvc->logWarning($errors, $rec->id);
+                    }
                 }
+            } else {
                 
-                $ssh = distro_Repositories::connectToRepo($rec->repoId);
-                
-                if (!$ssh) {
-                    $mvc->notifyErr($rec);
-                    
-                    return ;
-                }
-                
-                $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), TRUE);
-                
-                $ssh->exec($command, $output, $errors, $callBackUrl);
-                
-                if ($eTrim = trim($errors)) {
-                    $mvc->notifyErr($rec);
-                    $mvc->logWarning($errors, $rec->id);
-                }
+                // Ако трябва да се извика само калбек функцията
+                Request::forward(array('Ctr' => $mvc->className, 'Act' => 'Callback', 'id' => $rec->id));
             }
         }
     }

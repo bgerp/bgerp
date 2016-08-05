@@ -259,7 +259,6 @@ class distro_Group extends core_Master
                 
                 $handle = $mvc->getSubDirName($rec->id);
                 
-                // TODO Async
                 // Създаваме директория в хранилището
                 distro_Repositories::createDir($repoId, $handle);
             }

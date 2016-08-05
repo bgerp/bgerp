@@ -217,7 +217,7 @@ class distro_Files extends core_Detail
         
         $sshObj = distro_Repositories::connectToRepo($repoId);
         
-        if ($sshObj === FALSE) return FALSE; // TODO да репортва
+        expect($sshObj !== FALSE);
         
         $destFilePath = $this->getRealPathOfFile($id, $repoId);
         
@@ -349,7 +349,7 @@ class distro_Files extends core_Detail
                 if ($lArr['act'] == 'create' || $lArr['act'] == 'edit') {
                     
                     // Ако вече е бил изтрит, няма смисъл да се добавя
-                    if ($repoActArr[$groupId]['delete'][$lArr['name']]) continue; // TODO - може и да не се прескача, ако ще се записва в лога
+                    if ($repoActArr[$groupId]['delete'][$lArr['name']]) continue;
                 }
                 
                 $repoActArr[$groupId][$lArr['act']][$lArr['name']] = $lArr['date'];
@@ -448,7 +448,7 @@ class distro_Files extends core_Detail
                     
                     $resArr['delete'][$fRec->id] = $fRec->id;
                     
-                    $this->delete($fRec->id); // TODO - може да записва в лога или оттегля записа
+                    distro_Actions::addToRepo($fRec, 'distro_DeleteDriver', TRUE);
                 }
             }
             
