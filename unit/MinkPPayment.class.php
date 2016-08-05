@@ -80,13 +80,11 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleWaitP/
     function act_CreateSaleWaitP()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-        
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -186,7 +184,7 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return "Грешно чакащо плащане в деня на падеж - MinkPPayment/CreateSaleWaitP";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -197,13 +195,11 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleOverdue3days/
     function act_CreateSaleOverdue3days()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
          
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -313,7 +309,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleMomentOverdueNull/
     function act_CreateSaleMomentOverdueNull()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -413,7 +408,6 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return "Грешно чакащо плащане - MinkPPayment/CreateSaleMomentOverdueNull";
         }     
-            
     }
      
     /**
@@ -424,13 +418,11 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleExped/
     function act_CreateSaleExped()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -718,7 +710,6 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return "Грешно чакащо плащане (вярно - Няма) - MinkPPayment/CreateSaleOverpaid";
         }
-    
     }
     
     /**
@@ -729,13 +720,11 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleMomentWait3/
     function act_CreateSaleMomentWait3()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -831,7 +820,6 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return "Грешно чакащо плащане - MinkPPayment/CreateSaleMomentWait3";
         }    
-           
     }
     
     /**
@@ -842,7 +830,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleWait3/
     function act_CreateSaleWait3()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -850,7 +837,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
-    
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
         } else {
@@ -950,7 +936,6 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return "Грешно чакащо плащане - MinkPPayment/CreateSaleWait3";
         }     
-            
     }
     
     /**
@@ -961,7 +946,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleMomentNow/
     function act_CreateSaleMomentNow()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
          
@@ -969,7 +953,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
-    
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
         } else {
@@ -1058,16 +1041,13 @@ class unit_MinkPPayment extends core_Manager {
      */
      
     //http://localhost/unit_MinkPPayment/CreateSale/
-    
     function act_CreateSale()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -1164,7 +1144,6 @@ class unit_MinkPPayment extends core_Manager {
         //if(strpos($browser->gettext(), 'Контиране')) {
         //}
         if(strpos($browser->gettext(), 'Четири хиляди седемстотин петдесет и осем BGN и 0,35')) {
-        // връща грешка, ако не е избрано ЕН с цени
         } else {
             return "Грешна сума в ЕН - MinkPPayment/CreateSale";
         }
@@ -1221,7 +1200,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreatePurchaseOverdue/
     function act_CreatePurchaseOverdue()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -1555,7 +1533,6 @@ class unit_MinkPPayment extends core_Manager {
         }
     }
     
-    
     /**
      * 6. Нова покупка от съществуваща фирма с папка
      * Проверка количество и цени - изрази
@@ -1565,7 +1542,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreatePurchase3/
     function act_CreatePurchase3()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -1682,7 +1658,5 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return "Грешно чакащо плащане - MinkPPayment/CreatePurchase3";
         }
-            
     }
-   
 }
