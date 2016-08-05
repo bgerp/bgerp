@@ -375,9 +375,20 @@ class distro_Files extends core_Detail
                             continue;
                         }
                         
-                        // TODO - ако двата файла не съвпадат, трядбва да се преименува
-                        
-                        continue;
+                        // Ако са различни файлове, преименуваме единия
+                        $ssh = distro_Repositories::connectToRepo($repoId);
+                        if ($ssh) {
+                            $uniqName = $this->getUniqFileName($fRec->id, $repoId);
+                            $newName = escapeshellarg($uniqName);
+                            
+                            $oldName = $this->getRealPathOfFile($fRec->id, $repoId);
+                            $oldName = escapeshellarg($oldName);
+                            
+                            $exec = "mv {$oldName} {$newName}";
+                            $ssh->exec($exec);
+                            
+                            $name = pathinfo($uniqName, PATHINFO_BASENAME);
+                        }
                     }
                     
                     $nRec->repoId = $repoId;
