@@ -78,7 +78,7 @@ class distro_Files extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2';
+    public $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2, plg_SaveAndNew';
     
     
     /**
@@ -140,7 +140,7 @@ class distro_Files extends core_Detail
     function description()
     {
         $this->FLD('groupId', 'key(mvc=distro_Group, select=title)', 'caption=Група, mandatory');
-        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory');
+        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory, remember=info');
         $this->FLD('name', 'varchar', 'caption=Име, width=100%, input=none');
         $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, width=100%, input=none');
         $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
