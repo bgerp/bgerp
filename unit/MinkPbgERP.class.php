@@ -23,33 +23,32 @@ class unit_MinkPbgERP extends core_Manager {
     {
     
         $res = '';
-        $res .= "1. ".$this->act_CreateUser1();
-        $res .= " 2. ".$this->act_CreateUser2();
-        $res .= " 3. ".$this->act_CreateStore();
-        $res .= " 4. ".$this->act_CreateBankAcc1();
-        $res .= " 5. ".$this->act_CreateBankAcc2();
-        $res .= " 6. ".$this->act_CreateCase();
-        $res .= " 7. ".$this->act_CreateCategory();
-        $res .= " 8. ".$this->act_CreateParam();
-        $res .= " 9. ".$this->act_CreateMeasure();
-        $res .= " 10. ".$this->act_CreatePackage();
-        $res .= " 11. ".$this->act_CreateGroup();
-        $res .= " 12. ".$this->act_CreateProject();
-        return $res;
-        $res .= $this->act_CreateDepartment1();
-        $res .= $this->act_CreateDepartment2();
-        $res .= $this->act_CreateProduct();
-        $res .= $this->act_CreateProductBom();
-        $res .= $this->act_CreateBom();
-        $res .= $this->act_CreateEditPerson();
-        $res .= $this->act_CreateCompany();
-        $res .= $this->act_EditCompany();
-        $res .= $this->act_CreateEditCompany();
-        $res .= $this->act_CreateInq();
-        $res .= $this->act_CreateQuotation();
-        $res .= $this->act_CreatePurchase();
-        $res .= $this->act_CreatePlanningJob();
-        $res .= $this->act_CreateSale();
+        $res .= "1.".$this->act_CreateUser1();
+        $res .= "  2.".$this->act_CreateUser2();
+        $res .= "  3.".$this->act_CreateStore();
+        $res .= "  4.".$this->act_CreateBankAcc1();
+        $res .= "  5.".$this->act_CreateBankAcc2();
+        $res .= "  6.".$this->act_CreateCase();
+        $res .= "  7.".$this->act_CreateCategory();
+        $res .= "  8.".$this->act_CreateParam();
+        $res .= "  9.".$this->act_CreateMeasure();
+        $res .= "  10.".$this->act_CreatePackage();
+        $res .= "  11.".$this->act_CreateGroup();
+        $res .= "  12.".$this->act_CreateProject();
+        $res .= "  13.".$this->act_CreateDepartment1();
+        $res .= "  14.".$this->act_CreateDepartment2();
+        $res .= "  15.".$this->act_CreateProduct();
+        $res .= "  16.".$this->act_CreateProductBom();
+        $res .= "  17.".$this->act_CreateBom();
+        $res .= "  18.".$this->act_CreateEditPerson();
+        $res .= "  19.".$this->act_CreateCompany();
+        $res .= "  20.".$this->act_EditCompany();
+        $res .= "  21.".$this->act_CreateEditCompany();
+        $res .= "  22.".$this->act_CreateInq();
+        $res .= "  23.".$this->act_CreateQuotation();
+        $res .= "  24.".$this->act_CreatePurchase();
+        $res .= "  25.".$this->act_CreatePlanningJob();
+        $res .= "  26.".$this->act_CreateSale();
         return $res;
     }
     /**
@@ -95,7 +94,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateUser1/
     function act_CreateUser1()
     {
-    
         // Логване
         $browser = $this->SetUp();
         // Създаване на потребител
@@ -110,6 +108,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('rolesInput[71]', '71');
         //$browser->setValue('Дилър', '79');
         $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return 'Дублиране на потребител.';
+        }
         //return $browser->getHtml();
     }
     
@@ -119,7 +121,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateUser2/
     function act_CreateUser2()
     {
-    
         // Логване
         $browser = $this->SetUp();
         // Създаване на потребител
@@ -134,9 +135,12 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('officer', '10');
         $browser->setValue('Главен офис', '13');
         $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return 'Дублиране на потребител.';
+        }
         //return $browser->getHtml();
     }
-    
     
     /**
      * 1. Създаване на склад
@@ -144,7 +148,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateStore/
     function act_CreateStore()
     {
-         
         // Логване
         $browser = $this->SetUp();
         
@@ -164,7 +167,7 @@ class unit_MinkPbgERP extends core_Manager {
         //}
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            return 'Дублиране на склад';
+            return 'Дублиране на склад.';
         }
         //return $browser->getHtml();
     }  
@@ -175,7 +178,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateBankAcc1/
     function act_CreateBankAcc1()
     {
-             
         // Логване
         $browser = $this->SetUp();
             
@@ -195,9 +197,8 @@ class unit_MinkPbgERP extends core_Manager {
         //}
         if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
             $browser->press('Отказ');
-            Return 'Дублиране на банкова сметка 1';
+            Return 'Дублиране на банкова сметка.';
         }
-        
         //return $browser->getHtml();
     }
     
@@ -207,7 +208,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateBankAcc2/
     function act_CreateBankAcc2()
     {
-         
         // Логване
         $browser = $this->SetUp();
         //Отваряне на папката на фирмата
@@ -229,7 +229,7 @@ class unit_MinkPbgERP extends core_Manager {
         //}
         if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
             $browser->press('Отказ');
-            Return 'Дублиране на банкова сметка 2';
+            Return 'Дублиране на банкова сметка.';
         }
         //return $browser->getHtml();
     }
@@ -268,7 +268,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateCategory/
     function act_CreateCategory()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -294,7 +293,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateParam/
     function act_CreateParam()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -319,7 +317,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateMeasure/
     function act_CreateMeasure()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -345,7 +342,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreatePackage/
     function act_CreatePackage()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -374,7 +370,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateGroup/
     function act_CreateGroup()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -398,7 +393,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateProject/
     function act_CreateProject()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -422,7 +416,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateDepartment1/
     function act_CreateDepartment1()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -452,7 +445,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateDepartment2/
     function act_CreateDepartment2()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -484,7 +476,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateProduct/
     function act_CreateProduct()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -528,7 +519,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateProductBom/
     function act_CreateProductBom()
     {
-    
         // Логване
         $browser = $this->SetUp();
          
@@ -572,7 +562,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateBom/
     function act_CreateBom()
     {
-    
         // Логване
         $browser = $this->SetUp();
          
@@ -616,7 +605,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
     
         // Създаване на лице
-    
         $browser->click('Визитник');
         $browser->click('Лица');
         $person = "Стела Донева";
@@ -646,7 +634,6 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('Завод » Производство','3');
             $browser->press('Запис');
         }
-            
         //return $browser->getHtml();
     }
     
@@ -661,7 +648,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
     
         // Създаване на нова фирма
-    
         $browser->click('Визитник');
         $browser->press('Нова фирма');
         //$browser->hasText('Добавяне на запис в "Фирми"');
@@ -691,10 +677,8 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/EditCompany/
     function act_EditCompany()
     {
-        
         // Логване
         $browser = $this->SetUp();
-         
         //Отваряме папката на фирма Фирма bgErp
         $browser->click('Визитник');
         $browser->click('F');
@@ -718,7 +702,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateEditCompany/
     function act_CreateEditCompany()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -761,7 +744,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateInq/
     function act_CreateInq()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -796,7 +778,6 @@ class unit_MinkPbgERP extends core_Manager {
     ///http://localhost/unit_MinkPbgERP/CreateQuotation/
     function act_CreateQuotation()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -848,7 +829,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreatePurchase/
     function act_CreatePurchase()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -957,7 +937,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreatePlanningJob/
     function act_CreatePlanningJob()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -1010,7 +989,6 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Запис');
             // Приключване на задачата - когато са в една нишка, разпознава бутона за приключване на заданието, защото са с еднакви имена
             $browser->press('Приключване');
-            //return $browser->gethtml();
             //Протокол за производство - в заданието
             $browser->click('Задание за производство №');
             
@@ -1025,7 +1003,6 @@ class unit_MinkPbgERP extends core_Manager {
         Return "Няма такъв артикул";
         }
         //return $browser->getHtml();
-            
     }
     
     /**
@@ -1035,7 +1012,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateSale/
     function act_CreateSale()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -1110,7 +1086,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Двадесет и девет BGN и 0,99 ')) {
-            // връща грешка, ако не е избрано ЕН с цени
         } else {
             return "Грешна сума в ЕН";
         }
