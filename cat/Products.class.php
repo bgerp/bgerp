@@ -2068,21 +2068,23 @@ class cat_Products extends embed_Manager {
     	if(!$date){
     		$date = dt::now();
     	}
-    	
+
     	$res = array();
     	$bomId = static::getLastActiveBom($id, 'production')->id;
+    
     	if(!$bomId) {
     		$bomId = static::getLastActiveBom($id, 'sales')->id;
     	}
     	
     	if (isset($bomId)) {
 	    	$info = cat_Boms::getResourceInfo($bomId, $quantity, $date);
-	    	
+	    
 	    	foreach ($info['resources'] as $materialId => $rRec){
 	    		if($rRec->type != 'input') continue;
 	    		
-	    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
-	    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
+	    		$quantity1 = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
+
+	    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity1);
 	    	}
     	}
     	
