@@ -31,8 +31,8 @@ class gdocs_Plugin extends core_Plugin
                 $ext = fileman_Files::getExt($rec->name);
             
                 if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
-                    $url = "//docs.google.com/viewer?url=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1); 
-                     
+                    $url = "//docs.google.com/viewer?url=" . fileman_Download::getDownloadUrl($rec->fileHnd,  1);
+
                     // Добавяме бутона
                     $data->toolbar->addBtn('gDocs', $url, 
                         "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/google.png", 
