@@ -51,7 +51,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  26.".$this->act_CreatePurchase();
         $res .= "  27.".$this->act_CreatePlanningJob();
         $res .= "  28.".$this->act_CreateSale();
-        
+        $res .= "  29.".$this->act_CreateTask();
         return $res;
     }
     /**
@@ -1183,5 +1183,28 @@ class unit_MinkPbgERP extends core_Manager {
         }
         //return $browser->getHtml();
     }       
+    /**
+     * 1. Създаване на задача
+     */
+    //http://localhost/unit_MinkPbgERP/CreateTask/
+    function act_CreateTask()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на задача
+        $browser->click('Добавяне на нова Задача');
+        $browser->setValue('title', 'Инвентаризация');
+        $browser->setValue('description', 'Да се проведе инвентаризация');
+        $startdate=strtotime("+2 Days");
+        $enddate=strtotime("+12 Days");
+        $browser->setValue('timeStart[d]', date('d-m-Y', $startdate));
+        $browser->setValue('timeStart[t]', '08:00');
+        $browser->setValue('timeEnd[d]', date('d-m-Y', $enddate));
+        $browser->setValue('timeEnd[t]', '16:00');
+        $browser->press('Чернова');
+        $browser->press('Активиране');
+        //return $browser->getHtml();
+    }
          
 }
