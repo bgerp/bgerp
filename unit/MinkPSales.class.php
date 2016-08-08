@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  *  Клас  'unit_MinkPSales' - PHP тестове за проверка на продажби различни случаи, вкл. некоректни данни
  *
@@ -14,7 +13,22 @@
  */
 
 class unit_MinkPSales extends core_Manager {
-   
+    //http://localhost/unit_MinkPSales/Run/
+    public function act_Run()
+    {
+        $res = '';
+        $res .=  " 1.".$this->act_SaleQuantityMinus();
+        $res .=  " 2.".$this->act_SaleQuantityZero();
+        //$res .= "  3.".$this->act_SalePriceMinus();
+        $res .= "  4.".$this->act_SaleDiscountMinus();
+        $res .= "  5.".$this->act_SaleDiscount101();
+        $res .= "  6.".$this->act_CreateSaleVatInclude();
+        ////$res .= "  7.".$this->act_CreateSaleVatFree();
+        $res .= "  8.".$this->act_CreateCreditDebitInvoice();
+        $res .= "  9.".$this->act_CreateSaleAdvancePayment();
+        
+        return $res;
+    }
        
     /**
      * Логване
@@ -30,7 +44,6 @@ class unit_MinkPSales extends core_Manager {
         return $browser;
     }
     
-    
     /**
      * Избор на фирма
      */
@@ -45,19 +58,18 @@ class unit_MinkPSales extends core_Manager {
         return $browser;
     }
     
-    
     /**
      * Проверка за отрицателно количество
      */
     //http://localhost/unit_MinkPSales/SaleQuantityMinus/
     function act_SaleQuantityMinus()
     {
-    
+      
         // Логваме се
         $browser = $this->SetUp();
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-        
+       
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -89,7 +101,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешка 1 - не дава грешка при отрицателно количество";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     
     }
     /**
@@ -136,9 +148,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешка 1 - не дава грешка при отрицателно количество";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     
     }
+    
     /**
      * Проверка за отрицателна цена (още няма контрол при въвеждането)
      */
@@ -183,7 +196,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешка 1 - не дава грешка при отрицателна цена";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     
     }
     
@@ -228,13 +241,12 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешка - не дава грешка при отрицателна отстъпка";
         }
-        //return $browser->getHtml();
-        
+         
         if(strpos($browser->gettext(), 'Не е над - \'0,00 %\'')) {//не го разпознава
         } else {
             return "Грешка 1 - не дава грешка при отрицателна отстъпка";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
         
     }
     
@@ -260,7 +272,7 @@ class unit_MinkPSales extends core_Manager {
         }
     
         $browser->setValue('reff', 'DiscountMinus');
-        $browser->setValue('note', 'MinkPSaleDiscountMinus');
+        $browser->setValue('note', 'MinkPSaleDiscount101');
         $browser->setValue('paymentMethodId', "На момента");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -279,13 +291,12 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешка - не дава грешка при отстъпка над 100%";
         }
-        //return $browser->getHtml();
-    
+        
         if(strpos($browser->gettext(), 'Над допустимото - \'100,00 %\'')) {//не го разпознава
         } else {
             return "Грешка 1 - не дава грешка при отстъпка над 100%";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     
     } 
     
@@ -366,7 +377,6 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
-        // връща грешка, ако не е избрано ЕН с цени
         } else {
             return "Грешна сума в ЕН";
         }
@@ -398,11 +408,11 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
        
     /**
@@ -516,8 +526,9 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешно чакащо плащане";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
+    
     /**
      * Продажба - Кредитно и дебитно известие
      */
@@ -604,7 +615,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), ' Минус четиридесет и шест BGN и 0,80 ')) {
+        if(strpos($browser->gettext(), 'Минус четиридесет и шест BGN и 0,80 ')) {
         } else {
             return "Грешна сума в КИ - количество";
         }
@@ -653,7 +664,7 @@ class unit_MinkPSales extends core_Manager {
             return "Грешна сума в ДИ - цена";
         }
         
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }  
     
     /**
@@ -662,7 +673,6 @@ class unit_MinkPSales extends core_Manager {
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleAdvancePayment/
-    
     function act_CreateSaleAdvancePayment()
     {
     
@@ -811,10 +821,10 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Чернова');
         //return  $browser->getHtml();
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
 }

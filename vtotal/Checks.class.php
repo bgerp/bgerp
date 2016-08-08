@@ -79,6 +79,19 @@ class vtotal_Checks extends core_Master
         $this->setDbUnique('filemanDataId');
     }
 
+    public function act_manualCheck()
+    {
+        $this->requireRightFor('admin, debug');
+
+        $md5 = Request::get('md5');
+        $query = fileman_Files::getQuery();
+        $query->where(array("#fileHnd = '[#1#]'", Request::get('fileHnd')));
+        $query->limit(1);
+        $rec = $query->fetch();
+        $this->putNewFileForCheck($rec, $md5);
+
+        return new Redirect( array('vtotal_Checks', null , 'md5' => $md5));
+    }
 
     /**
      * @param $VTResult обект от тип stdClass VirusTotalRespone
@@ -116,7 +129,7 @@ class vtotal_Checks extends core_Master
     {
         expect(is_file($path));
         $path = escapeshellarg($path);
-        $command = escapeshellcmd(self::get('AVAST_COMMAND') . " " . $path);
+        $command = escapeshellcmd(vtotal_Setup::get('AVAST_COMMAND') . " " . $path);
         $output = exec($command, $output, $code);
 
         preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
@@ -158,20 +171,33 @@ class vtotal_Checks extends core_Master
             return json_decode($responce);
     }
 
-
-    public function putNewFileForCheck(&$rec, $md5, &$counter)
+    public function putNewFileForCheck(&$fRec, $md5, &$counter = null)
     {
-        $checkFile = (object)array('filemanDataId' => $rec->dataId,
+        $checkFile = (object)array('filemanDataId' => $fRec->dataId,
             'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
         $result = $this->save($checkFile, NULL, "IGNORE");
         if(!$result) {
-            $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
-            $rec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
-            fileman_Files::save($rec, "dangerRate");
+            $cRec = $this->fetch("#filemanDataId = {$fRec->dataId}");
+            $fRec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
+            fileman_Files::save($fRec, "dangerRate");
         } else {
             $counter++;
         }
     }
+
+    static $dangerExtensions = array(
+        //Executable
+        'EXE', 'PIF', 'APPLICATION', 'GADGET',
+        'MSI', 'MSP', 'COM', 'SCR', 'HTA', 'CPL',
+        'MSC', 'JAR', 'BAT', 'CMD', 'VB', 'VBS',
+        'JS', 'JSE', 'WS', 'WSH', 'WSC', 'WSF',
+        'PS1', 'PS1XML', 'PS2', 'PS2XML', 'PSC1',
+        'PSC2', 'SCF', 'LNK', 'INF',
+         //Macro
+        'REG', 'DOC', 'XLS', 'PPT', 'DOCM',
+        'DOTM', 'XLSM', 'XLTM', 'XLAM',
+        'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM',
+    );
 
     /**
      * Функция по крон, която проверява по 4 файла взети от fileman_Files и
@@ -179,19 +205,6 @@ class vtotal_Checks extends core_Master
      */
     public function cron_MoveFilesFromFilemanLog()
     {
-        $dangerExtensions = array(
-            //Executable
-            'EXE', 'PIF', 'APPLICATION', 'GADGET',
-            'MSI', 'MSP', 'COM', 'SCR', 'HTA', 'CPL',
-            'MSC', 'JAR', 'BAT', 'CMD', 'VB', 'VBS',
-            'JS', 'JSE', 'WS', 'WSH', 'WSC', 'WSF',
-            'PS1', 'PS1XML', 'PS2', 'PS2XML', 'PSC1',
-            'PSC2', 'SCF', 'LNK', 'INF',
-            //Macro
-            'REG', 'DOC', 'XLS', 'PPT', 'DOCM',
-            'DOTM', 'XLSM', 'XLTM', 'XLAM',
-            'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM',
-        );
 
         $archiveExtensions = array(
           'ZIP', 'RAR', 'GZIP', '7Z', 'GZ', 'ISO'
@@ -258,7 +271,7 @@ class vtotal_Checks extends core_Master
                     if (!$ext) continue;
 
                     // Проверка на разширението дали е от сканируемите
-                    if(!in_array(strtoupper($ext), $dangerExtensions)) continue;
+                    if(!in_array(strtoupper($ext), self::$dangerExtensions)) continue;
                     
                     $archiveHaveExt = TRUE;
                     
@@ -295,7 +308,7 @@ class vtotal_Checks extends core_Master
                 // Изтриваме временната директория за съхранение на архива.
                 $archivInst->deleteTempPath();
 
-            } elseif (!in_array(strtoupper($extension), $dangerExtensions)) {
+            } elseif (!in_array(strtoupper($extension), self::$dangerExtensions)) {
 
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
@@ -310,7 +323,7 @@ class vtotal_Checks extends core_Master
 
                     while ($fRec = $fQuery->fetch()) {
                         $extensionFRec = pathinfo($fRec->name, PATHINFO_EXTENSION);
-                        if (!isset($fRec->dangerRate) && !in_array(strtoupper($extensionFRec), $dangerExtensions)) {
+                        if (!isset($fRec->dangerRate) && !in_array(strtoupper($extensionFRec), self::$dangerExtensions)) {
                             $fRec->dangerRate = 0;
                             fileman_Files::save($fRec, "dangerRate");
                         }
@@ -437,4 +450,5 @@ class vtotal_Checks extends core_Master
         
         return $rate;
     }
+
 }

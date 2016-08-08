@@ -18,7 +18,42 @@ class unit_MinkPbgERP extends core_Manager {
    /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
     *
     */
+    //http://localhost/unit_MinkPbgERP/Run/
+    public function act_Run()
+    {
     
+        $res = '';
+        $res .= "1.".$this->act_CreateUser1();
+        $res .= "  2.".$this->act_CreateUser2();
+        $res .= "  3.".$this->act_CreateStore();
+        $res .= "  4.".$this->act_CreateBankAcc1();
+        $res .= "  5.".$this->act_CreateBankAcc2();
+        $res .= "  6.".$this->act_CreateCase();
+        $res .= "  7.".$this->act_CreateCategory();
+        $res .= "  8.".$this->act_CreateParam();
+        $res .= "  9.".$this->act_CreateMeasure();
+        $res .= "  10.".$this->act_CreatePackage();
+        $res .= "  11.".$this->act_CreateGroup();
+        $res .= "  12.".$this->act_CreateProject();
+        $res .= "  13.".$this->act_CreateDepartment1();
+        $res .= "  14.".$this->act_CreateDepartment2();
+        $res .= "  15.".$this->act_CreateProduct();
+        $res .= "  16.".$this->act_CreateProductBom();
+        $res .= "  17.".$this->act_CreateBom();
+        $res .= "  18.".$this->act_CreateEditPerson();
+        $res .= "  19.".$this->act_CreateCompany();
+        $res .= "  20.".$this->act_EditCompany();
+        $res .= "  21.".$this->act_CreateLocation1();
+        $res .= "  22.".$this->act_CreateLocation2();
+        $res .= "  23.".$this->act_CreateEditCompany();
+        $res .= "  24.".$this->act_CreateInq();
+        $res .= "  25.".$this->act_CreateQuotation();
+        $res .= "  26.".$this->act_CreatePurchase();
+        $res .= "  27.".$this->act_CreatePlanningJob();
+        $res .= "  28.".$this->act_CreateSale();
+        $res .= "  29.".$this->act_CreateTask();
+        return $res;
+    }
     /**
      * Логване
      */
@@ -38,7 +73,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
      
     /**
-     * Select2 трябва да се деинсталира - не работи
+     * Select2 трябва да се деактивира - не работи
      */
     //http://localhost/unit_MinkPbgERP/DeinstallSelect2/
     function act_DeinstallSelect2()
@@ -59,10 +94,9 @@ class unit_MinkPbgERP extends core_Manager {
     /**
      * 1. Създаване на потребител
      */
-    //http://localhost/unit_MinkPbgERP/CreateUser/
-    function act_CreateUser()
+    //http://localhost/unit_MinkPbgERP/CreateUser1/
+    function act_CreateUser1()
     {
-    
         // Логване
         $browser = $this->SetUp();
         // Създаване на потребител
@@ -77,7 +111,38 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('rolesInput[71]', '71');
         //$browser->setValue('Дилър', '79');
         $browser->press('Запис');
-        return $browser->getHtml();
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return 'Дублиране на потребител.';
+        }
+        //return $browser->getHtml();
+    }
+    
+    /**
+     * 1. Създаване на потребител от Визитник - профили
+     */
+    //http://localhost/unit_MinkPbgERP/CreateUser2/
+    function act_CreateUser2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        // Създаване на потребител
+        $browser->click('Визитник');
+        $browser->click('Профили');
+        $browser->press('Нов потребител');
+        $browser->setValue('nick', 'User2');
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
+        $browser->setValue('names', 'Потребител 2');
+        $browser->setValue('email', 'u2@abv.bg');
+        $browser->setValue('officer', '10');
+        $browser->setValue('Главен офис', '13');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return 'Дублиране на потребител.';
+        }
+        //return $browser->getHtml();
     }
     
     /**
@@ -86,7 +151,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateStore/
     function act_CreateStore()
     {
-         
         // Логване
         $browser = $this->SetUp();
         
@@ -100,24 +164,23 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue($ekip, '1');
         $browser->setValue('Pavlinka', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            Return Дублиране;
+            return 'Дублиране на склад.';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }  
     
     /**
-    * 1. Създаване на банкова сметка
+    * 1. Създаване на банкова сметка от Финанси 
     */
-    //http://localhost/unit_MinkPbgERP/CreateBankAcc/
-    function act_CreateBankAcc()
+    //http://localhost/unit_MinkPbgERP/CreateBankAcc1/
+    function act_CreateBankAcc1()
     {
-             
         // Логване
         $browser = $this->SetUp();
             
@@ -126,23 +189,54 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
         $browser->setValue('iban', '#BG11CREX92603114548401');
-        //$browser->setValue('iban', '#BG33UNCR70001519562303');
         //$browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
         $browser->setValue('Pavlinka', '1');
         //$browser->setValue('operators_1', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
         if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
             $browser->press('Отказ');
-            Return Дублиране;
+            Return 'Дублиране на банкова сметка.';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
-        
+    
+    /**
+     * 1. Създаване на банкова сметка от Визитник - фирма
+     */
+    //http://localhost/unit_MinkPbgERP/CreateBankAcc2/
+    function act_CreateBankAcc2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        //Отваряне на папката на фирмата
+        $browser->click('Визитник');
+        $Company = "Моята Фирма ООД";
+        $browser->click($Company);
+        // Създаване на банкова сметка
+        $browser->click('Банка');
+        $browser->click('Добавяне на нова наша банкова сметка');
+        //$browser->setValue('iban', '#BG33UNCR70001519562303');
+        $browser->setValue('iban', '#BG22UNCR70001519562302');
+        $browser->setValue('currencyId', '1');
+        $browser->setValue('Pavlinka', '1');
+        //$browser->setValue('operators_1', '1');
+        $browser->press('Запис');
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
+        if (strpos($browser->getText(),"Вече има наша сметка с този IBAN")){
+            $browser->press('Отказ');
+            Return 'Дублиране на банкова сметка.';
+        }
+        //return $browser->getHtml();
+    }
+    
     /**
      * 1.Създаване на каса
      */
@@ -160,15 +254,15 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Pavlinka', '1');
         //$browser->setValue('cashiers_1', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
-            $browser->press('Отказ');
-            Return Грешка;
-        }
+        //if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        //    $browser->press('Отказ');
+        //    Return Грешка;
+        //}
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            Return Дублиране;
+            Return 'Дублиране на каса';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }   
     
     /**
@@ -177,7 +271,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateCategory/
     function act_CreateCategory()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -192,8 +285,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
+            Return 'Дублиране на категория';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -202,7 +296,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateParam/
     function act_CreateParam()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -217,8 +310,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
+            Return 'Дублиране на параметър';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     /**
      * 1. Създаване на мярка.
@@ -226,7 +320,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateMeasure/
     function act_CreateMeasure()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -241,8 +334,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
+            Return 'Дублиране на мярка';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -251,11 +345,10 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreatePackage/
     function act_CreatePackage()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
-        // Създаване на нов параметър
+        // Създаване на нова опаковка
         $browser->click('Каталог');
         $browser->click('Мерки');
         $browser->click('Опаковки');
@@ -269,8 +362,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
+            Return 'Дублиране на опаковка';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -279,7 +373,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateGroup/
     function act_CreateGroup()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -292,8 +385,32 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
+            Return 'Дублиране на група';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
+    }
+    
+    /**
+     * 1. Създаване на проект
+     */
+    //http://localhost/unit_MinkPbgERP/CreateProject/
+    function act_CreateProject()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на проект
+        $browser->click('Всички');
+        $browser->click('Проекти');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Други проекти');
+        $browser->setValue('Бележки', '54');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            Return 'Дублиране на проект';
+        }
+        //return $browser->getHtml();
     }
     
     /**
@@ -302,7 +419,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateDepartment1/
     function act_CreateDepartment1()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -318,13 +434,13 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
-            Return Грешка;
+            Return 'Непопълнено задължително поле - звено';
         }
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            Return Дублиране;
+            Return 'Дублиране на звено';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     /**
      * 2. Създаване на второ звено
@@ -332,7 +448,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateDepartment2/
     function act_CreateDepartment2()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -347,15 +462,15 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue($ekip, '1');
         $browser->setValue('Pavlinka', '1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
+         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
-            Return Грешка;
+            Return 'Непопълнено задължително поле - звено';
         }
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            Return Дублиране;
+            Return 'Дублиране на звено';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -364,7 +479,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateProduct/
     function act_CreateProduct()
     {
-         
         // Логване
         $browser = $this->SetUp();
     
@@ -399,7 +513,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('paramValue', '26');
             $browser->press('Запис');
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -408,7 +522,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateProductBom/
     function act_CreateProductBom()
     {
-    
         // Логване
         $browser = $this->SetUp();
          
@@ -442,7 +555,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -452,7 +565,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateBom/
     function act_CreateBom()
     {
-    
         // Логване
         $browser = $this->SetUp();
          
@@ -482,7 +594,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -496,7 +608,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
     
         // Създаване на лице
-    
         $browser->click('Визитник');
         $browser->click('Лица');
         $person = "Стела Донева";
@@ -526,8 +637,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('Завод » Производство','3');
             $browser->press('Запис');
         }
-            
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -541,7 +651,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
     
         // Създаване на нова фирма
-    
         $browser->click('Визитник');
         $browser->press('Нова фирма');
         //$browser->hasText('Добавяне на запис в "Фирми"');
@@ -562,7 +671,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
         // Създаване на папка на новата фирма
         $browser->press('Папка');
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -571,10 +680,8 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/EditCompany/
     function act_EditCompany()
     {
-        
         // Логване
         $browser = $this->SetUp();
-         
         //Отваряме папката на фирма Фирма bgErp
         $browser->click('Визитник');
         $browser->click('F');
@@ -589,16 +696,65 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('fax', '042333333');
         $browser->setValue('tel', '042222222');
         $browser->press('Запис');
-        return ' Фирма-запис на редакцията';
+        //return $browser->getHtml();
     }
     
+    /**
+     * 2. Локация от фирма
+     */
+    //http://localhost/unit_MinkPbgERP/CreateLocation1/
+    function act_CreateLocation1()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        // търсим фирмата
+        $browser->click('F');
+        //$browser->hasText('Фирма bgErp');
+        $Company = 'Фирма bgErp';
+        //Проверка дали сме в Фирма bgErp
+        if(strpos($browser->gettext(), $Company)) {
+            //има такава фирма - редакция
+            $browser->click($Company);
+            $browser->click('Добавяне на нова локация');
+            $browser->setValue('title', 'Офис Пловдив');
+            $browser->setValue('type', 'Офис');
+            $browser->setValue('place', 'Пловдив');
+            $browser->setValue('pCode', '4000');
+            $browser->setValue('address', 'ул.Родопи, №52');
+            $browser->press('Запис');
+        } else {
+            Return "Няма такава фирма";
+        }
+       
+    } 
+    /**
+     * 2. Локация от таб Локации
+     */
+    //http://localhost/unit_MinkPbgERP/CreateLocation2/
+    function act_CreateLocation2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        $browser->click('Локации');
+        $browser->press('Нов търговски обект');
+        $browser->setValue('name', 'Фирма с локация');
+        $browser->setValue('place', 'Варна');
+        $browser->setValue('address', 'ул.Морска, №122');
+        $browser->setValue('title', 'Централен офис');
+        $browser->setValue('type', 'Главна квартира');
+        $browser->setValue('dateFld', date('d-m-Y'));
+        $browser->setValue('repeat', '1 мес.');
+        $browser->press('Запис');
+          
+    }
     /**
      * 1. Фирма - чуждестранна, ако я има - отваряме и редактираме, ако не - създаваме я
      */
     //http://localhost/unit_MinkPbgERP/CreateEditCompany/
     function act_CreateEditCompany()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -632,16 +788,14 @@ class unit_MinkPbgERP extends core_Manager {
         if(strpos($browser->gettext(), $Company)) {
             $browser->press('Папка');
         }
-        return $browser->getHtml();
-    } 
-    
+        //return $browser->getHtml();
+    }
     /**
      * 2.Запитване от съществуваща фирма с папка и артикул от него
      */
     //http://localhost/unit_MinkPbgERP/CreateInq/
     function act_CreateInq()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -667,7 +821,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -676,7 +830,6 @@ class unit_MinkPbgERP extends core_Manager {
     ///http://localhost/unit_MinkPbgERP/CreateQuotation/
     function act_CreateQuotation()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -718,7 +871,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         // Активиране на офертата
         $browser->press('Активиране');
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -728,7 +881,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreatePurchase/
     function act_CreatePurchase()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -778,11 +930,11 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '5,92')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPbgERP/CreatePurchase";
         }
         if(strpos($browser->gettext(), 'Тридесет и пет BGN и 0,52')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPbgERP/CreatePurchase";
         }
     
         // Складова разписка
@@ -823,10 +975,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPbgERP/CreatePurchase";
         }
+        //return $browser->getHtml();
     }
     
     /**
@@ -836,7 +989,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreatePlanningJob/
     function act_CreatePlanningJob()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -874,7 +1026,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Добавяне на произведен артикул');
             $browser->setValue('quantity', '1000');
             //$browser->setValue('employees[3]', '3');
-            $browser->setValue('STD', '3');
+            $browser->setValue('STD', '4');
             $browser->press('Запис');
            
             $browser->press('Влагане');
@@ -889,7 +1041,6 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Запис');
             // Приключване на задачата - когато са в една нишка, разпознава бутона за приключване на заданието, защото са с еднакви имена
             $browser->press('Приключване');
-            //return $browser->gethtml();
             //Протокол за производство - в заданието
             $browser->click('Задание за производство №');
             
@@ -903,8 +1054,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
         Return "Няма такъв артикул";
         }
-        return $browser->getHtml();
-            
+        //return $browser->getHtml();
     }
     
     /**
@@ -914,7 +1064,6 @@ class unit_MinkPbgERP extends core_Manager {
     //http://localhost/unit_MinkPbgERP/CreateSale/
     function act_CreateSale()
     {
-    
         // Логване
         $browser = $this->SetUp();
     
@@ -975,11 +1124,11 @@ class unit_MinkPbgERP extends core_Manager {
          
         if(strpos($browser->gettext(), '7,20')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPbgERP/CreateSale";
         }
         if(strpos($browser->gettext(), 'Четиридесет и три BGN и 0,20')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPbgERP/CreateSale";
         }
     
         // експедиционно нареждане
@@ -989,7 +1138,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Двадесет и девет BGN и 0,99 ')) {
-            // връща грешка, ако не е избрано ЕН с цени
         } else {
             return "Грешна сума в ЕН";
         }
@@ -1004,6 +1152,7 @@ class unit_MinkPbgERP extends core_Manager {
         
         // Фактура
         $browser->press('Фактура');
+        $browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         //return 'paymentType';
         //$browser->setValue('paymentType', 'По банков път');
@@ -1028,11 +1177,34 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPbgERP/CreateSale";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }       
+    /**
+     * 1. Създаване на задача
+     */
+    //http://localhost/unit_MinkPbgERP/CreateTask/
+    function act_CreateTask()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на задача
+        $browser->click('Добавяне на нова Задача');
+        $browser->setValue('title', 'Инвентаризация');
+        $browser->setValue('description', 'Да се проведе инвентаризация');
+        $startdate=strtotime("+2 Days");
+        $enddate=strtotime("+12 Days");
+        $browser->setValue('timeStart[d]', date('d-m-Y', $startdate));
+        $browser->setValue('timeStart[t]', '08:00');
+        $browser->setValue('timeEnd[d]', date('d-m-Y', $enddate));
+        $browser->setValue('timeEnd[t]', '16:00');
+        $browser->press('Чернова');
+        $browser->press('Активиране');
+        //return $browser->getHtml();
+    }
          
 }

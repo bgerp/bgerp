@@ -164,6 +164,80 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logRead($action, $objectId, $lifeDays)
+     */
+    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
+    {
+        self::logToFolder('read', $action, $objectId, $lifeDays);
+        
+        return parent::logRead($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
+     */
+    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    {
+        self::logToFolder('write', $action, $objectId, $lifeDays);
+        
+        return parent::logWrite($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $type
+     * @param string $action
+     * @param integer|NULL $objectId
+     * @param integer|NULL $lifeDays
+     */
+    protected static function logToFolder($type, $action, $objectId, $lifeDays)
+    {
+        if (!$objectId) return ;
+        
+        $allowedType = array('read', 'write');
+        
+        if (!in_array($type, $allowedType)) {
+            
+            return ;
+        }
+        
+        try {
+            $rec = self::fetch($objectId);
+            
+            $type = strtolower($type);
+            $type = ucfirst($type);
+            $fncName = 'log' . $type;
+            
+            if (!cls::load($rec->coverClass, TRUE)) return ;
+            
+            $inst = cls::get($rec->coverClass);
+            
+            $inst->$fncName($action, $rec->coverId, $lifeDays);
+            
+            return TRUE;
+        } catch (core_exception_Expect $e) {
+            
+            reportException($e);
+        }
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *

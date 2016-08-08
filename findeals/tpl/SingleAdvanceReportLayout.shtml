@@ -3,7 +3,7 @@
    <tr>
       <td class='custom-header-bg' style="width: 35%"><b>|Подочетно лице|*</b></td>
       <td  rowspan='2' class='centered'>
-         <div class="document-title">|авансов ордер|*</div>
+         <div class="document-title">|авансов отчет|*</div>
          <div style="padding-top:5px;">
             № <span class="bigData">[#number#]</span> /
             <span class="bigData">[#valior#]</span>

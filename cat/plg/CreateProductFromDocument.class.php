@@ -245,7 +245,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			$folderTitle = doc_Folders::recToVerbal(doc_Folders::fetch($masterRec->folderId))->title;
 			$form->title = "Създаване на нов нестандартен артикул в|* {$folderTitle}";
 				
-			$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис');
+			if(isset($form->rec->proto)){
+				$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис');
+			} else {
+				$form->toolbar->addBtn('Запис', array(), 'ef_icon = img/16/disk.png, title = Запис');
+			}
+			
 			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
 				
 			// Рендиране на опаковката

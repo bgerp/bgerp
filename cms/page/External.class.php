@@ -54,6 +54,7 @@ class cms_page_External extends core_page_Active
         }
         
         $this->push('cms/css/Wide.css', 'CSS');
+       // $this->push('cms/css/Modern.css', 'CSS');
 
         $this->push('js/overthrow-detect.js', 'JS');
         
@@ -66,8 +67,10 @@ class cms_page_External extends core_page_Active
             $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
             $this->push('Expires: -1', 'HTTP_HEADER');
         }
-                
+
         $pageTpl = getFileContent('cms/tpl/Page.shtml');
+                
+        //$pageTpl = getFileContent('cms/tpl/PageModern.shtml');
         if(isDebug() && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';
         }

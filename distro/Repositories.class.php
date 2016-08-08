@@ -34,6 +34,12 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Директория за грешките
+     */
+    protected static $errPath = 'err';
+    
+    
+    /**
      * Заглавие на таблицата
      */
     public $title = "Път до хранилище";
@@ -212,6 +218,7 @@ class distro_Repositories extends core_Master
         $oPath .= '/' . $name;
         $path = escapeshellarg($oPath);
         
+        // TODO - асинхронно
         $sshObj->exec('mkdir -p ' . $path);
         
         return $oPath;
@@ -347,6 +354,45 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Връща настройките на хост за съответното хранилище
+     * 
+     * @param integer|stdObjec $id
+     * 
+     * @return FALSE|array
+     */
+    public static function getHostParams($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        try {
+            $hostConfig = ssh_Hosts::fetchConfig($rec->hostId);
+        } catch (core_exception_Expect $e) {
+            $this->logErr($e->getMessage(), $id);
+			
+            return FALSE;
+        }
+        
+        return $hostConfig;
+    }
+    
+    
+    /**
+     * Връща пътя до директрията с грешките файл, където ще се записват данните от inotifywait
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    public static function getErrPath($id)
+    {
+        $rec = self::fetch($id);
+        $errPath = rtrim($rec->path, '/');
+        $errPath .= '/' . self::$systemPath . '/' . self::$errPath . '/';
+        
+        return $errPath;
+    }
+    
+    /**
      * Парсира подадения ред от файла
      * 
      * @param integer $repoId
@@ -437,11 +483,19 @@ class distro_Repositories extends core_Master
      * 
      * @return FALSE|ssh_Actions
      */
-    protected static function connectToRepo($rec)
+    public static function connectToRepo($rec)
     {
         $rec = self::fetchRec($rec);
         
         $repoConnectArr = array();
+        
+        if (!$rec) {
+            $repoConnectArr[$rec->id] = FALSE;
+            self::logNotice('Изтрито хранилище');
+        } elseif ($rec->state == 'rejected') {
+            $repoConnectArr[$rec->id] = FALSE;
+            self::logNotice('Оттеглено хранилище', $rec->id);
+        }
         
         if (!isset($repoConnectArr[$rec->id])) {
             try {
@@ -602,6 +656,7 @@ class distro_Repositories extends core_Master
     public static function on_AfterCreate($mvc, $rec, $fields, $mode)
     {
         $sysDir = $mvc->createDir($rec->id, self::$systemPath . '/');
+        $errDir = $mvc->createDir($rec->id, self::$systemPath . '/' . self::$errPath . '/');
         
         if ($sysDir === FALSE) return ;
         

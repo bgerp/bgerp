@@ -2,7 +2,7 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа acc_AllocatedExpenseses
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа acc_ValueCorrections
  *
  * @category  bgerp
  * @package   acc

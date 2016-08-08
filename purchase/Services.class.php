@@ -161,20 +161,6 @@ class purchase_Services extends deals_ServiceMaster
     public function description()
     {
         parent::setServiceFields($this);
-        $this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център на дейност,mandatory,after=locationId');
-    }
-     
-     
-    /**
-     * След преобразуване на записа в четим за хора вид
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    	if($rec->activityCenterId){
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    			$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
-    		}
-    	}
     }
     
     
@@ -216,16 +202,6 @@ class purchase_Services extends deals_ServiceMaster
     {
     	$dealInfo = static::getOrigin($data->form->rec)->getAggregateDealInfo();
     	$data->form->dealInfo = $dealInfo;
-    	$data->form->setDefault('activityCenterId', $dealInfo->get('activityCenterId'));
-    	
-    	// Ако имаме само един център не показваме полето за избор на център
-    	if(hr_Departments::count() == 1){
-    		$data->form->setField('activityCenterId', 'input=none');
-    	} else {
-    		$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
-    		$data->form->setDefault('activityCenterId', $defCenter);
-    	}
-    	
     	$data->form->setDefault('received', core_Users::getCurrent('names'));
     }
     

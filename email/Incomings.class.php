@@ -27,8 +27,9 @@ class email_Incomings extends core_Master
      * SL - Sierra Leone
      * HK - Hong Kong
      * BO - Bolivia
+     * NP - Nepal
      */
-    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO');
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP');
     
     
     /**
