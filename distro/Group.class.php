@@ -417,22 +417,22 @@ class distro_Group extends core_Master
                 status_Messages::newStatus('|Грешка при свързване към хранилище|* ' . distro_Repositories::getLinkToSingle($repoId, 'name'), 'warning');
             } else {
                 if (empty($res)) {
-                    status_Messages::newStatus('|Хранилището|* ' . distro_Repositories::getLinkToSingle($repoId, 'name') . ' |е било синхронизирано|* ');
+                    status_Messages::newStatus('|Хранилището|* ' . distro_Repositories::getLinkToSingle($repoId, 'name') . ' |е било синхронизирано|*');
                 } else {
                     $msg = '';
                     
                     if ($res['addToDB']) {
-                        $msg .= 'Добавени файлове от хранилището: ' . $res['addToDB'];
+                        $msg .= '|Добавени файлове от хранилището|*: ' . $res['addToDB'];
                     }
                     
                     if ($res['delFromDb']) {
                         $msg .= $msg ? "<br>" : $msg;
-                        $msg .= 'Изтрити файлове от хранилището: ' . $res['delFromDb'];
+                        $msg .= '|Изтрити файлове от хранилището|*: ' . $res['delFromDb'];
                     }
                     
                     if ($res['absorbFromDb']) {
                         $msg .= $msg ? "<br>" : $msg;
-                        $msg .= 'Свалени файлове в хранилището: ' . $res['absorbFromDb'];
+                        $msg .= '|Свалени файлове в хранилището|*: ' . $res['absorbFromDb'];
                     }
                     
                     status_Messages::newStatus('|Действия в хранилището|*: ' . distro_Repositories::getLinkToSingle($repoId, 'name') . "<br>" . $msg);
