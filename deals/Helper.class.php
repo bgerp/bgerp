@@ -488,7 +488,7 @@ abstract class deals_Helper
 	 * @param NULL|varchar $batch
 	 * @return FALSE|stdClass
 	 */
-	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL)
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL, $expenseItemId = NULL)
 	{
 		$cond = "#{$mvc->masterKey} = $masterId";
 		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -514,6 +514,14 @@ abstract class deals_Helper
 		
 		if($id){
 			$cond .= " AND #id != {$id}";
+		}
+		
+		if($mvc->getField('expenseItemId', FALSE)){
+			if(isset($expenseItemId)){
+				$cond .= " AND #expenseItemId = {$expenseItemId}";
+			} else {
+				$cond .= " AND #expenseItemId IS NULL";
+			}
 		}
 		
 		return $mvc->fetch($cond);
