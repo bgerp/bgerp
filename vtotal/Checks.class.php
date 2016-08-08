@@ -81,6 +81,8 @@ class vtotal_Checks extends core_Master
 
     public function act_manualCheck()
     {
+        $this->requireRightFor('admin, debug');
+
         $md5 = Request::get('md5');
         $query = fileman_Files::getQuery();
         $query->where(array("#fileHnd = '[#1#]'", Request::get('fileHnd')));
@@ -127,7 +129,7 @@ class vtotal_Checks extends core_Master
     {
         expect(is_file($path));
         $path = escapeshellarg($path);
-        $command = escapeshellcmd(self::get('AVAST_COMMAND') . " " . $path);
+        $command = escapeshellcmd(vtotal_Setup::get('AVAST_COMMAND') . " " . $path);
         $output = exec($command, $output, $code);
 
         preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
