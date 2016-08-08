@@ -489,6 +489,14 @@ class distro_Repositories extends core_Master
         
         $repoConnectArr = array();
         
+        if (!$rec) {
+            $repoConnectArr[$rec->id] = FALSE;
+            self::logNotice('Изтрито хранилище');
+        } elseif ($rec->state == 'rejected') {
+            $repoConnectArr[$rec->id] = FALSE;
+            self::logNotice('Оттеглено хранилище', $rec->id);
+        }
+        
         if (!isset($repoConnectArr[$rec->id])) {
             try {
                 $repoConnectArr[$rec->id] = new ssh_Actions($rec->hostId);
