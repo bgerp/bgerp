@@ -7,15 +7,15 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class doc_ExpensesSummary extends core_Manager
 {
     
-	public $oldClassName = 'doc_CostObjectSummaries';
-    /**
+	
+	/**
      * Заглавие
      */
     public $title = "История на разходните пера";
@@ -49,12 +49,6 @@ class doc_ExpensesSummary extends core_Manager
      * Кой има право да изтрива?
      */
     public $canDelete = 'no_one';
-    
-    
-    /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'doc_Wrapper';
     
     
     /**
@@ -189,8 +183,10 @@ class doc_ExpensesSummary extends core_Manager
     		}
     	}
     	
+    	$currencyCode = acc_Periods::getBaseCurrencyCode();
+    	
     	// Рендиране на таблицата
-    	$tableHtml = $table->get($data->rows, 'valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума');
+    	$tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
     	
     	$tpl->append($tableHtml);
     	
@@ -224,21 +220,19 @@ class doc_ExpensesSummary extends core_Manager
     	
     	if(is_array($entries)){
     		foreach($entries as $ent){
-    			foreach (array('debit', 'credit') as $type){
-    				if($ent->{"{$type}Item1"} == $itemRec->id && $ent->{"{$type}AccId"} == $accId){
-    					$sign = ($type == 'debit') ? 1 : -1;
+    			if($ent->debitItem1 == $itemRec->id && $ent->debitAccId == $accId){
+    				$sign = ($type == 'debit') ? 1 : -1;
     					
-    					$r = (object)array('docType'   => $ent->docType, 
-    									   'docId'     => $ent->docId,
-    									   'accId'     => $ent->{"{$type}AccId"},
-    									   'item1Id'   => $ent->{"{$type}Item1"},
-    									   'item2Id'   => $ent->{"{$type}Item2"},
-    									   'item3Id'   => $ent->{"{$type}Item3"},
-    									   'valior'    => $ent->valior,
-    									   'quantity'  => $sign * $ent->{"{$type}Quantity"},
-    									   'amount'    => $sign * $ent->amount,);
-    					$recs[] = $r;
-    				}
+    				$r = (object)array('docType'   => $ent->docType, 
+    								   'docId'     => $ent->docId,
+    								   'accId'     => $ent->debitAccId,
+    								   'item1Id'   => $ent->debitItem1,
+    								   'item2Id'   => $ent->debitItem2,
+    								   'item3Id'   => $ent->debitItem3,
+    								   'valior'    => $ent->valior,
+    								   'quantity'  => $ent->debitQuantity,
+    								   'amount'    => $ent->amount,);
+    				$recs[] = $r;
     			}
     		}
     	}

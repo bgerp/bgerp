@@ -290,7 +290,7 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		if(Request::get('Act') != 'CreateProduct'){
     			// Ако има такъв запис, сетваме грешка
-    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
+    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, $rec->expenseItemId);
     			if($exRec){
     				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
     				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
@@ -326,6 +326,12 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
+    		
+    		// Ако има информация за разход
+    		if(isset($rec->expenseItemId)){
+    			$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
+    			$row->productId .= "<div class='small'><b>" . tr('Разход за') . "</b>: {$eItem}</div>";
+    		}
     		
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

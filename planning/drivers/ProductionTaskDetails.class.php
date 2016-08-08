@@ -186,7 +186,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if(count($employees)){
     		$form->setSuggestions('employees', $employees);
     	} else {
-    		$form->setReadOnly('employees');
+    		$form->setField('employees', 'input=none');
     	}
     }
     

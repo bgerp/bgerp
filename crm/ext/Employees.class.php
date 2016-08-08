@@ -104,7 +104,7 @@ class crm_ext_Employees extends core_Manager
     		if(!empty($rec->code)){
     			$rec->code = strtoupper($rec->code);
     			
-    			if($personId = $mvc->fetchField("#code = '{$rec->code}' AND #personId != {$rec->personId}", 'personId')){
+    			if($personId = $mvc->fetchField(array("#code = '[#1#]' AND #personId != {$rec->personId}", $rec->code), 'personId')){
     				$personLink = crm_Persons::getHyperlink($personId, TRUE);
     				$form->setError($personId, "Номерът е зает от|* {$personLink}");
     			}

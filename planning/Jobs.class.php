@@ -665,6 +665,17 @@ class planning_Jobs extends core_Master
     	// След активиране на заданието, добавяме артикула като перо
     	$listId = acc_Lists::fetchBySystemId('catProducts')->id;
     	acc_Items::force('cat_Products', $rec->productId, $listId);
+    	
+    	// След активиране на заданието, ако е към продажба, форсираме я като разходно перо
+    	if(isset($rec->saleId)) {
+    		if(cat_Products::fetchField($rec->productId, 'canStore') == 'no'){
+    			if(!acc_Items::isItemInList('sales_Sales', $rec->saleId, 'costObjects')){
+    				$listId = acc_Lists::fetchBySystemId('costObjects')->id;
+    				acc_Items::force('sales_Sales', $rec->saleId, $listId);
+    				doc_ExpensesSummary::save((object)array('containerId' => sales_Sales::fetchField($rec->saleId, 'containerId')));
+    			}
+    		}
+    	}
     }
     
     

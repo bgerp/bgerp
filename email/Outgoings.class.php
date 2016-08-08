@@ -2754,7 +2754,7 @@ class email_Outgoings extends core_Master
         while ($personsRec = $personsQuery->fetch()) {
             
             // Добавяме в масива
-            $personsArr[$personsRec->id] = crm_Persons::getVerbal($personsRec, 'name');
+            $personsArr[$personsRec->id] = $personsRec->name;
         }
         
         // Ако има открити стойности
@@ -2778,7 +2778,7 @@ class email_Outgoings extends core_Master
         while ($companiesRec = $companyQuery->fetch()) {
             
             // Добавяме в масива
-            $companiesArr[$companiesRec->id] = crm_Companies::getVerbal($companiesRec, 'name');
+            $companiesArr[$companiesRec->id] = $companiesRec->name;
         }
         
         // Ако има открити стойности

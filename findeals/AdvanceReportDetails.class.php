@@ -9,30 +9,24 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class findeals_AdvanceReportDetails extends doc_Detail
 {
     
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'deals_AdvanceReportDetails';
-	
     
     /**
      * Заглавие
      */
-    public $title = 'Детайли на АО';
+    public $title = 'Детайли на авансовия отчет';
 
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Артикул';
     
     
     /**
@@ -72,12 +66,6 @@ class findeals_AdvanceReportDetails extends doc_Detail
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, pettyCashReport';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, pettyCashReport';
@@ -86,7 +74,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,activityCenterId,measureId=Мярка,quantity,description,amount=Сума';
+    public $listFields = 'productId,measureId=Мярка,quantity,description,amount=Сума';
     
     
 	/**
@@ -101,12 +89,12 @@ class findeals_AdvanceReportDetails extends doc_Detail
     public function description()
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,refreshForm,silent,tdClass=productCell leftCol wrap');
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,mandatory,removeAndRefreshForm=amount|quantity|vat|expenseItemId,silent,tdClass=productCell leftCol wrap');
+    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=productId,caption=Разход за');
     	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory');
     	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=Количество,smartCenter');
     	$this->FLD('vat', 'percent', 'caption=ДДС,smartCenter');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=3)', 'caption=Описание');
-    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център,mandatory,remember,smartCenter');
     }
     
     
@@ -129,7 +117,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
         
     	$form->setOptions('productId', $products);
     	$form->setDefault('quantity', 1);
-    	$form->setSuggestions('vat', ',0 %,7 %,20 %');
+    	$form->setSuggestions('vat', ',0 %,9 %,20 %');
     	
     	if(isset($rec->id)){
     		$rec->amount /= $masterRec->rate;
@@ -139,18 +127,18 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	
     	// Ако има избран артикул, извличаме му мярката и я показваме
     	if(isset($rec->productId)){
-    		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+    		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     		$shortUom = cat_UoM::getShortName($measureId);
     		$form->setField('quantity', "unit={$shortUom}");
     	}
     	
-    	// По дефолт е избран неопределения център
-    	$defCenterId = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
-    	$form->setDefault('activityCenterId', $defCenterId);
-    	
-    	// Ако има само един център на дейност, скриваме полето
-    	if(hr_Departments::count() === 1){
-    		$form->setReadOnly('activityCenterId');
+    	// Ако е избран артикул и той е невложим и имаме разходни пера,
+    	// показваме полето за избор на разход
+    	if(isset($rec->productId)){
+    		$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset');
+    		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && acc_Lists::getItemsCountInList('costObjects')){
+    			$form->setField('expenseItemId', 'input,mandatory');
+    		}
     	}
     }
     
@@ -176,21 +164,24 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      *  Обработки по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	
     	$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
     	$row->measureId = cat_UoM::getShortName($measureId);
     	
-    	$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
-    	
     	$masterRec = $mvc->Master->fetch($rec->reportId);
     	$rec->amount /= $masterRec->rate;
     	$rec->amount *= 1 + $rec->vat;
     	
-    	if($rec->description){
-    		$row->productId .= "<div class='quiet'>{$row->description}</div>";
+    	if(isset($rec->expenseItemId)){
+    		$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
+    		$row->productId .= "<div class='small'><b>" . tr('Разход за') . "</b>: {$eItem}</div>";
+    	}
+    	
+    	if(!empty($rec->description)){
+    		$row->productId .= "<div class='small'>{$row->description}</div>";
     	}
     }
     
@@ -198,7 +189,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
     		if($mvc->Master->fetchField($rec->reportId, 'state') != 'draft'){
@@ -218,9 +209,29 @@ class findeals_AdvanceReportDetails extends doc_Detail
     
     
     /**
+     * След подготовка на лист тулбара
+     */
+    public static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+    	if (!empty($data->toolbar->buttons['btnAdd'])) {
+    		$masterRec = $data->masterData->rec;
+    		
+    		if(!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, 'canBuy', 'canStore', 1))){
+                $error = "error=Няма купуваеми нескладируеми артикули, ";
+            }
+            
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
+            "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
+            
+            unset($data->toolbar->buttons['btnAdd']);
+        }
+    }
+    
+    
+    /**
      * Преди рендиране на таблицата
      */
-    public static function on_BeforeRenderListTable($mvc, &$res, &$data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, &$data)
     {
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
     }

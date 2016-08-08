@@ -856,6 +856,11 @@ class acc_Items extends core_Manager
             $item->lists = $lists;
             
             static::save($item);
+        } else {
+        	if($item->num != $num){
+        		$item->num = $num;
+        		static::save($item, 'num');
+        	}
         }
         
         return $item;

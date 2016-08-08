@@ -1000,6 +1000,9 @@ a.more-btn {
   background-position: 3px center;
   padding: 0.1em; }
 
+.narrow .docBgIcon {
+  background-position: 3px 5px; }
+
 .wide .icon {
   display: inline-block;
   height: 16px;

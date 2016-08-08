@@ -14,11 +14,32 @@
  */
 
 class unit_MinkPPayment extends core_Manager {
-   /** Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
-    *return $browser->getHtml();
+   /**Изпълнява се след unit_MinkPbgERP 
+    * Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
     */
     
+    //http://localhost/unit_MinkPPayment/Run/
+    public function act_Run()
+    {
     
+        $res = '';
+        $res .= $this->act_CreateSaleWaitP();
+        $res .= $this->act_CreateSaleOverdue3days();
+        $res .= $this->act_CreateSaleMomentOverdueNull();
+        $res .= $this->act_CreateSaleExped();
+        $res .= $this->act_CreateSaleExpedn();
+        $res .= $this->act_CreateSaleOverpaid();
+        $res .= $this->act_CreateSaleMomentWait3();
+        $res .= $this->act_CreateSaleWait3();
+        $res .= $this->act_CreateSaleMomentNow();
+        $res .= $this->act_CreateSale();
+        $res .= $this->act_CreatePurchaseOverdue();
+        $res .= $this->act_CreatePurchaseWait();
+        $res .= $this->act_CreatePurchaseOverpaid();
+        $res .= $this->act_CreatePurchase3();
+           
+        return $res;
+    }
     /**
      * Логване
      */
@@ -59,13 +80,11 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleWaitP/
     function act_CreateSaleWaitP()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-        
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -114,11 +133,11 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '254,43')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleWaitP";
         }
         if(strpos($browser->gettext(), 'Хиляда петстотин двадесет и шест BGN и 0,57')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleWaitP";
         }
     
         // експедиционно нареждане
@@ -146,7 +165,7 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         $browser->press('Контиране');
-    
+        
         // ПКО
         $browser->press('ПКО');
         $browser->setValue('depositor', 'Иван Петров');
@@ -161,10 +180,11 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('amountDeal', '100');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
-            return "Грешно чакащо плащане в деня на падеж";
+            return "Грешно чакащо плащане в деня на падеж - MinkPPayment/CreateSaleWaitP";
         }
+        //return $browser->getHtml();
     }
     
     /**
@@ -175,13 +195,11 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleOverdue3days/
     function act_CreateSaleOverdue3days()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
          
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -230,12 +248,12 @@ class unit_MinkPPayment extends core_Manager {
              
         if(strpos($browser->gettext(), '95,09')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleOverdue3days";
         }
     
         if(strpos($browser->gettext(), 'Петстотин и седемдесет BGN и 0,55')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleOverdue3days";
         }
         // експедиционно нареждане
         $browser->press('Експедиране');
@@ -279,7 +297,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSaleOverdue3days";
         }
     }
     
@@ -291,7 +309,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleMomentOverdueNull/
     function act_CreateSaleMomentOverdueNull()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -344,12 +361,12 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '203,63')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleMomentOverdueNull";
         }
         
         if(strpos($browser->gettext(), 'Хиляда двеста двадесет и един BGN и 0,77')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleMomentOverdueNull";
         }
         
         // експедиционно нареждане
@@ -389,9 +406,8 @@ class unit_MinkPPayment extends core_Manager {
          
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSaleMomentOverdueNull";
         }     
-            
     }
      
     /**
@@ -402,13 +418,11 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleExped/
     function act_CreateSaleExped()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -463,11 +477,11 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '574,69')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleExped";
         }
         if(strpos($browser->gettext(), 'Три хиляди четиристотин четиридесет и осем BGN и 0,13')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleExped";
         }
     
         // ПКО
@@ -512,7 +526,7 @@ class unit_MinkPPayment extends core_Manager {
         //}
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSaleExped";
         }
     }
     
@@ -570,11 +584,11 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '27,74')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleExpedn";
         }
         if(strpos($browser->gettext(), 'Сто шестдесет и шест BGN и 0,42')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleExpedn";
         }
     
         // ПКО
@@ -602,7 +616,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSaleExpedn";
         }
     }
     
@@ -662,11 +676,11 @@ class unit_MinkPPayment extends core_Manager {
              
         if(strpos($browser->gettext(), '27,88')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleOverpaid";
         }
         if(strpos($browser->gettext(), 'Сто шестдесет и седем BGN и 0,26')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleOverpaid";
         }
     
         // ПКО
@@ -692,11 +706,10 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('storeId', 'Склад 1');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане (вярно - Не)";
+            return "Грешно чакащо плащане (вярно - Няма) - MinkPPayment/CreateSaleOverpaid";
         }
-    
     }
     
     /**
@@ -704,16 +717,14 @@ class unit_MinkPPayment extends core_Manager {
      * Проверка състояние плащане - чакащо, метод - на момента, падежът е днес
      * Нова продажба на съществуваща фирма с папка
      */
-    //http://localhost/unit_MinkPPayment/CreateSaleMomentWaitP/
-    function act_CreateSaleMomentWaitP()
+    //http://localhost/unit_MinkPPayment/CreateSaleMomentWait3/
+    function act_CreateSaleMomentWait3()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -726,7 +737,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'MomentWaitP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPPaymentSaleMomentWaitP');
+        $browser->setValue('note', 'MinkPPaymentSaleMomentWait3');
         $browser->setValue('paymentMethodId', "На момента");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
@@ -763,12 +774,12 @@ class unit_MinkPPayment extends core_Manager {
          
         if(strpos($browser->gettext(), '274,74')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleMomentWait3";
         }
         
         if(strpos($browser->gettext(), 'Хиляда шестстотин четиридесет и осем BGN и 0,46')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleMomentWait3";
         }
         // експедиционно нареждане
         $browser->press('Експедиране');
@@ -791,8 +802,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         //$browser->setValue('dueDate', date('d-m-Y', $valior));
         $browser->setValue('dueDate', null);
-        //$browser->setValue('numlimit', '2000000 - 3000000');
-        $browser->setValue('numlimit', '0 - 2000000');
+        $browser->setValue('numlimit', '2000000 - 3000000');
+        //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -805,11 +816,10 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSaleMomentWait3";
         }    
-           
     }
     
     /**
@@ -820,7 +830,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreateSaleWait3/
     function act_CreateSaleWait3()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -828,7 +837,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
-    
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
         } else {
@@ -875,12 +883,12 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '574,22')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleWait3";
         }
         
         if(strpos($browser->gettext(), 'Три хиляди четиристотин четиридесет и пет BGN и 0,34')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleWait3";
         }
         
         // експедиционно нареждане
@@ -924,11 +932,10 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
          
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSaleWait3";
         }     
-            
     }
     
     /**
@@ -936,10 +943,9 @@ class unit_MinkPPayment extends core_Manager {
      * Проверка състояние чакащо плащане - не, метод - на момента
      * Бърза продажба на съществуваща фирма с папка
      */
-    //http://localhost/unit_MinkPPayment/CreateSaleMoment/
-    function act_CreateSaleMoment()
+    //http://localhost/unit_MinkPPayment/CreateSaleMomentNow/
+    function act_CreateSaleMomentNow()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
          
@@ -947,7 +953,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser = $this->SetFirm();
     
         // нова продажба - проверка има ли бутон
-    
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
         } else {
@@ -1007,12 +1012,12 @@ class unit_MinkPPayment extends core_Manager {
     
         if(strpos($browser->gettext(), '181,16')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSaleMomentNow";
         }
     
         if(strpos($browser->gettext(), 'Хиляда осемдесет и шест BGN и 0,92')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSaleMomentNow";
         }
          
         // Фактура
@@ -1023,9 +1028,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
          
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSaleMomentNow";
         }
     }
     
@@ -1033,20 +1038,16 @@ class unit_MinkPPayment extends core_Manager {
      * 5. Нова продажба на съществуваща фирма с папка
      * Проверка количество и цени - изрази
      * Проверка състояние чакащо плащане - не (платено)
-     * Да се добави за схема с авансово плащане .....................................
      */
      
     //http://localhost/unit_MinkPPayment/CreateSale/
-    
     function act_CreateSale()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -1123,15 +1124,16 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
-         
+        
+        //if(strpos($browser->gettext(), '887,87')) { 
         if(strpos($browser->gettext(), '887,87')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreateSale";
         }
         
         if(strpos($browser->gettext(), 'Пет хиляди триста двадесет и седем BGN и 0,18')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreateSale";
         }
         // експедиционно нареждане
         $browser->press('Експедиране');
@@ -1142,9 +1144,8 @@ class unit_MinkPPayment extends core_Manager {
         //if(strpos($browser->gettext(), 'Контиране')) {
         //}
         if(strpos($browser->gettext(), 'Четири хиляди седемстотин петдесет и осем BGN и 0,35')) {
-        // връща грешка, ако не е избрано ЕН с цени
         } else {
-            return "Грешна сума в ЕН";
+            return "Грешна сума в ЕН - MinkPPayment/CreateSale";
         }
                      
         // протокол
@@ -1185,9 +1186,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         //return  $browser->getHtml();
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreateSale";
         }
     }            
             
@@ -1199,7 +1200,6 @@ class unit_MinkPPayment extends core_Manager {
     //http://localhost/unit_MinkPPayment/CreatePurchaseOverdue/
     function act_CreatePurchaseOverdue()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -1253,12 +1253,12 @@ class unit_MinkPPayment extends core_Manager {
          
         if(strpos($browser->gettext(), '138,76')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreatePurchaseOverdue";
         }
         
         if(strpos($browser->gettext(), 'Осемстотин тридесет и два BGN и 0,56')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreatePurchaseOverdue";
         }
         
         // Складова разписка
@@ -1304,13 +1304,13 @@ class unit_MinkPPayment extends core_Manager {
         // Проверка Чакащо плащане
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreatePurchaseOverdue";
         }
     }    
                     
     /**
      * 6. Нова покупка от съществуваща фирма с папка
-     * Проверка състояние чакащо плащане - да
+     * Проверка състояние чакащо плащане - Има
      */
     //http://localhost/unit_MinkPPayment/CreatePurchaseWait/
     function act_CreatePurchaseWait()
@@ -1367,11 +1367,11 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '75,61')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreatePurchaseWait";
         }
         if(strpos($browser->gettext(), 'Четиристотин петдесет и три BGN и 0,68')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreatePurchaseWait";
         }
          
         // Складова разписка
@@ -1413,9 +1413,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         // Проверка Чакащо плащане
-        if(strpos($browser->gettext(), 'Чакащо плащане: Да')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreatePurchaseWait";
         }
     }        
                 
@@ -1425,7 +1425,7 @@ class unit_MinkPPayment extends core_Manager {
      */
      
     //http://localhost/unit_MinkPPayment/CreatePurchaseOverpaid/
-    // Фактура - № се сменя при повторен тест!
+    // Фактура - №17923 се оттегля при повторен тест!
     function act_CreatePurchaseOverpaid()
     {
         // Логваме се
@@ -1479,11 +1479,11 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         if(strpos($browser->gettext(), '209,52')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreatePurchaseOverpaid";
         }
         if(strpos($browser->gettext(), 'Хиляда двеста петдесет и седем BGN и 0,13')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreatePurchaseOverpaid";
         }
     
         // Складова разписка
@@ -1502,7 +1502,7 @@ class unit_MinkPPayment extends core_Manager {
         //  $browser->press('Контиране');
         //}
     
-        // Фактура - № се сменя при повторен тест!
+        // Фактурата се оттегля при повторен тест!
         $browser->press('Вх. фактура');
         $browser->setValue('number', '17923');
         $browser->setValue('date', date('d-m-Y', $valior));
@@ -1527,23 +1527,21 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Контиране');
     
         // Проверка Чакащо плащане
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreatePurchaseOverpaid";
         }
     }
-    
     
     /**
      * 6. Нова покупка от съществуваща фирма с папка
      * Проверка количество и цени - изрази
-     * Проверка състояние чакащо плащане - не (платено)
+     * Проверка състояние чакащо плащане - няма (платено)
      */
      
-    //http://localhost/unit_MinkPPayment/CreatePurchase/
-    function act_CreatePurchase()
+    //http://localhost/unit_MinkPPayment/CreatePurchase3/
+    function act_CreatePurchase3()
     {
-    
         // Логваме се
         $browser = $this->SetUp();
     
@@ -1611,12 +1609,12 @@ class unit_MinkPPayment extends core_Manager {
          
         if(strpos($browser->gettext(), '967,64')) {
         } else {
-            return "Грешно ДДС";
+            return "Грешно ДДС - MinkPPayment/CreatePurchase3";
         }
         
         if(strpos($browser->gettext(), 'Пет хиляди осемстотин и пет BGN и 0,83')) {
         } else {
-            return "Грешна обща сума";
+            return "Грешна обща сума - MinkPPayment/CreatePurchase3";
         }
         // Складова разписка
         $browser->press('Засклаждане');
@@ -1656,11 +1654,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешно чакащо плащане - MinkPPayment/CreatePurchase3";
         }
-            
     }
-   
 }

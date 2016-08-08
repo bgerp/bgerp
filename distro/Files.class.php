@@ -18,67 +18,79 @@ class distro_Files extends core_Detail
     /**
      * Заглавие на модела
      */
-    var $title = 'Разпределена група файлове';
+    public $title = 'Разпределена група файлове';
     
     
     /**
      * 
      */
-    var $singleTitle = 'Файл';
+    public $singleTitle = 'Файл';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    var $canAdd = 'powerUser';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'admin';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    var $canList = 'admin';
-    
-    
-    /**
-     * Кой има право да го изтрие?
-     */
-    var $canDelete = 'no_one';
-    
-    
-    /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2';
-    
-    
-    /**
-     * Име на поле от модела, външен ключ към мастър записа
-     */
-    var $masterKey = 'groupId';
+    public $canEdit = 'no_one';
     
     
     /**
      * 
      */
-    var $depends = 'fileman=0.1';
+    public $canEditsysdata = 'no_one';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'powerUser';
+    
+    
+    /**
+     * Кой има право да го види?
+     */
+    public $canView = 'admin';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+    
+    
+    /**
+     * Кой има право да го изтрие?
+     */
+    public $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой има право да го оттегли?
+     */
+    public $canReject = 'no_one';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2, plg_SaveAndNew';
+    
+    
+    /**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    public $masterKey = 'groupId';
+    
+    
+    /**
+     * 
+     */
+    public $depends = 'fileman=0.1';
     
     
     /**
@@ -86,7 +98,7 @@ class distro_Files extends core_Detail
      * 
      * @see plg_RowTools2
      */
-    var $rowToolsSingleField = 'id';
+    public $rowToolsSingleField = 'id';
     
     
     /**
@@ -101,31 +113,25 @@ class distro_Files extends core_Detail
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, sourceFh, repos, groupId, name';
+    public $fetchFieldsBeforeDelete = 'id, sourceFh, repos, groupId, name';
     
     
     /**
      * Флаг, който указва дали да се изтрие и файла след изтриване на хранилището
      */
-    var $onlyDelRepo = FALSE;
+    public $onlyDelRepo = FALSE;
     
     
     /**
      * 
      */
-    var $currentTab = 'Групи';
+    public $currentTab = 'Групи';
     
     
     /**
      * Какво действие ще се прави с файловете
      */
-    var $actionWithFile = array();
-    
-    
-    /**
-     * Името на кофата за файловете
-     */
-    public static $bucket = 'distroFiles';
+    public $actionWithFile = array();
     
     
 	/**
@@ -134,9 +140,9 @@ class distro_Files extends core_Detail
     function description()
     {
         $this->FLD('groupId', 'key(mvc=distro_Group, select=title)', 'caption=Група, mandatory');
-        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . self::$bucket . ')', 'caption=Файл, mandatory');
+        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory, remember=info');
         $this->FLD('name', 'varchar', 'caption=Име, width=100%, input=none');
-        $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Информация, width=100%, input=none');
+        $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, width=100%, input=none');
         $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
         $this->FLD('info', 'varchar', 'caption=Информация, width=100%');
         $this->FLD('md5', 'varchar(32)', 'caption=Хеш на файла, width=100%,input=none');
@@ -168,81 +174,205 @@ class distro_Files extends core_Detail
     }
     
     
-	/**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+    /**
+     * Връща пълния път до файла в хранилището
+     * 
+     * @param stdObject|integer $id
+     * @param NULL|integer $repoId
+     * @param NULL|integer $groupId
+     * @param NULL|string $name
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public function getRealPathOfFile($id, $repoId = NULL, $groupId = NULL, $name = NULL)
     {
-        // Ако ще добавяме/редактираме записа
-        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
-            
-            // Ако има master
-            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
-                
-                // Ако няма права за добавяне на детайл
-                if (!$mvc->Master->canAddDetail($rec->$masterKey)) {
-                    
-                    // Да не може да добавя
-                    $requiredRoles = 'no_one';
-                }
-            }
-        }
-    }
-    
-    
-	/**
-     * След подготвяне на формата
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        // Записа
-        $rec = $data->form->rec;
+        $rec = self::fetchRec((int) $id);
         
-        // Ако създаваме нов запис
-        if ($rec->id) {
-            // Избора на файл да е задължителен
-            $data->form->setField('sourceFh', 'input=none');
-            $data->form->setField('repos', 'input=none');
-        } else {
-            $reposArr = array();
-            
-            // Ако има мастер
-            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
-            
-                // Вземаме масива с хранилищата, които са зададени в мастера
-                $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
-            }
-            
-            expect(!empty($reposArr));
-            
-            $data->form->setSuggestions('repos', $reposArr);
-        }
+        $repoId = isset($repoId) ? $repoId : $rec->repoId;
+        $groupId = isset($groupId) ? $groupId : $rec->{$this->masterKey};
+        
+        $rRec = distro_Repositories::fetch((int) $repoId);
+        
+        $subDirName = $this->Master->getSubDirName($groupId);
+        
+        $name = $name ? $name : $rec->name;
+        
+        $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
+        
+        return $path;
     }
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * Връща уникално име за файла, който ще се добавя в хранилището
      * 
-     * @param distro_Files $mvc
-     * @param core_Form $form
+     * @param integer $id
+     * @param NULL|integer $repoId
+     * 
+     * @return FALSE|string
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    public function getUniqFileName($id, $repoId = NULL)
     {
-        if ($form->isSubmitted()) {
-            if (isset($form->rec->sourceFh)) {
-                $form->rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
-                $form->rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
+        $rec = self::fetchRec($id);
+        
+        $repoId = isset($repoId) ? $repoId : $rec->repoId;
+        
+        $sshObj = distro_Repositories::connectToRepo($repoId);
+        
+        expect($sshObj !== FALSE);
+        
+        $destFilePath = $this->getRealPathOfFile($id, $repoId);
+        
+        $maxCnt = 32;
+        
+        while (TRUE) {
+            $destFilePathE = escapeshellarg($destFilePath);
+            
+            $sshObj->exec("if [ ! -f {$destFilePathE} ]; then echo 'OK'; fi", $res);
+            
+            if (trim($res) == "OK") break;
+            
+            $destFilePath = $this->getNextFileName($destFilePath);
+            
+            expect($maxCnt--);
+        }
+        
+        return $destFilePath;
+    }
+    
+    
+    /**
+     * Връща масив със записи, където се среща съответния файл
+     * 
+     * @param integer $groupId
+     * @param string|NULL $md5
+     * @param string|NULL $name
+     * @param boolean $group
+     * 
+     * @return array
+     */
+    public static function getRepoWithFile($groupId, $md5 = NULL, $name = NULL, $group = FALSE)
+    {
+        $query = self::getQuery();
+        $query->where(array("#groupId = '[#1#]'", $groupId));
+        
+        if (isset($md5)) {
+            $query->where(array("#md5 = '[#1#]'", $md5));
+        }
+        if (isset($name)) {
+            $query->where(array("#name = '[#1#]'", $name));
+        }
+        
+        if ($group) {
+            $query->groupBy('repoId');
+        }
+        
+        return $query->fetchAll();
+    }
+    
+    
+    /**
+     * Връща следващото име за използване на файла
+     * 
+     * @param string $fName
+     * 
+     * @return string
+     */
+    protected function getNextFileName($fName)
+    {
+        // Вземаме името на файла и разширението
+        $nameArr = fileman_Files::getNameAndExt($fName);
+        
+        // Намираме името на файла до последния '_'
+        if(($underscorePos = mb_strrpos($nameArr['name'], '_')) !== FALSE) {
+            $name = mb_substr($nameArr['name'], 0, $underscorePos);
+            $nameId = mb_substr($nameArr['name'], $underscorePos+1);
+        
+            if (is_numeric($nameId)) {
+                $nameId++;
+            } else {
+                $nameId .= '_1';
+            }
+        
+            $nameArr['name'] = $name . '_' . $nameId;
+        } else {
+            $nameArr['name'] .= '_1';
+        }
+        
+        $fName = $nameArr['name'] . '.' . $nameArr['ext'];
+        
+        return $fName;
+    }
+    
+    
+    /**
+     * Форсира синхронизирането на файловете в хранилището с БД
+     * 
+     * @param integer $groupId
+     * @param integer $repoId
+     * 
+     * @return FALSE|array
+     */
+    public function forceSync($groupId, $repoId)
+    {
+        $conn = distro_Repositories::connectToRepo($repoId);
+        
+        if (!$conn) return FALSE;
+        
+        $actArr = array();
+        
+        $subDirName = $this->Master->getSubDirName($groupId);
+        
+        $repoRec = distro_Repositories::fetch((int) $repoId);
+        
+        $path = rtrim($repoRec->path, '/');
+        $path .= '/' . $subDirName;
+        $path = escapeshellarg($path);
+        
+        // Всички файлове от това хранилище
+        $conn->exec("ls -p {$path}| grep -v '/$'", $res);
+        
+        $resArr = explode("\n", $res);
+        
+        // Всички файлове в БД
+        $query = distro_Files::getQuery();
+        $query->where(array("#{$this->masterKey} = '[#1#]'", $groupId));
+        $query->where(array("#repoId = '[#1#]'", $repoId));
+        
+        $dbArr = array();
+        while ($rec = $query->fetch()) {
+            $dbArr[$rec->name] = $rec;
+        }
+        
+        foreach ($resArr as $fName) {
+            $fName = trim($fName);
+            if (!$fName) continue ;
+            
+            // Ако файла съществува в БД
+            if (isset($dbArr[$fName])) {
+                unset($dbArr[$fName]);
+            } else {
+                
+                // Добавяме файла в БД
+                $this->addFileToBD($groupId, $fName, $repoId);
+                $actArr['addToDB']++;
             }
         }
+        
+        // Ако файлът съществува в БД, но не и в хранилището
+        if (!empty($dbArr)) {
+            foreach ($dbArr as $fRec) {
+                if (!isset($fRec->sourceFh) || !trim($fRec->sourceFh)) {
+                    // Ако не е архивиран, премахваме от базата и отбелязваме в лога
+                    distro_Actions::addToRepo($fRec, 'distro_DeleteDriver', TRUE);
+                    $actArr['delFromDb']++;
+                } else {
+                    // Ако файлът е качен в системата - сваляме го в хранилището
+                    distro_Actions::addToRepo($fRec, 'distro_AbsorbDriver');
+                    $actArr['absorbFromDb']++;
+                }
+            }
+        }
+        
+        return $actArr;
     }
     
     
@@ -292,7 +422,7 @@ class distro_Files extends core_Detail
                 if ($lArr['act'] == 'create' || $lArr['act'] == 'edit') {
                     
                     // Ако вече е бил изтрит, няма смисъл да се добавя
-                    if ($repoActArr[$groupId]['delete'][$lArr['name']]) continue; // TODO - може и да не се прескача, ако ще се записва в лога
+                    if ($repoActArr[$groupId]['delete'][$lArr['name']]) continue;
                 }
                 
                 $repoActArr[$groupId][$lArr['act']][$lArr['name']] = $lArr['date'];
@@ -301,39 +431,11 @@ class distro_Files extends core_Detail
             foreach ($repoActArr as $groupId => $actArr) {
                     
                 foreach ((array)$actArr['create'] as $name => $date) {
+                    $addRes = $this->addFileToBD($groupId, $name, $repoId);
                     
-                    $subDir = $this->Master->getSubDirName($groupId);
+                    if (!isset($addRes)) continue;
                     
-                    $nRec = new stdClass();
-                    
-                    $nRec->md5 = $this->getMd5($repoId, $subDir, $name);
-                    
-                    $fRec = $this->getRecForFile($groupId, $name, $repoId);
-                    
-                    if ($fRec) {
-                        
-                        // Ако хешовете им съвпадат
-                        if ($fRec->md5 == $nRec->md5) continue;
-                        
-                        // TODO - ако двата файла не съвпадат, трядбва да се преименува
-                        
-                        continue;
-                    }
-                    
-                    $nRec->repoId = $repoId;
-                    $nRec->groupId = $groupId;
-                    $nRec->name = $name;
-                    
-                    $nRec->createdBy = -1;
-                    
-                    // Проверяваме дали подадената дата е коректна за използване
-                    if ($this->checkDate($date)) {
-                        $nRec->createdOn = $date;
-                    }
-                    
-                    $this->save($nRec);
-                    
-                    $resArr['create'][$nRec->id] = $nRec->id;
+                    $resArr['create'][$addRes] = $addRes;
                 }
                 
                 foreach ((array)$actArr['edit'] as $name => $date) {
@@ -352,10 +454,15 @@ class distro_Files extends core_Detail
                     }
                     
                     $subDir = $this->Master->getSubDirName($groupId);
-                    $fRec->md5 = $this->getMd5($repoId, $subDir, $name);
+                    $newMd5 = $this->getMd5($repoId, $subDir, $name);
+                    
+                    if ($newMd5 != $fRec->md5) {
+                        $fRec->md5 = $newMd5;
+                        $fRec->sourceFh = NULL;
+                    }
                     
                     // Прекъсваемо е за да не се промянят от плъгина
-                    $this->save_($fRec, 'modifiedOn, modifiedBy, md5');
+                    $this->save_($fRec, 'modifiedOn, modifiedBy, md5, sourceFh');
                     $this->Master->touchRec($groupId);
                     
                     $resArr['edit'][$fRec->id] = $fRec->id;
@@ -365,14 +472,14 @@ class distro_Files extends core_Detail
                     $fRec = $this->getRecForFile($groupId, $name, $repoId);
                     
                     if ($fRec === FALSE) {
-                        $this->logWarning('Няма запис за файл, който ще се изтрие.');
+                        $this->logNotice('Записът за файла е бил премахнат при изтриване');
                         
                         continue;
                     }
                     
                     $resArr['delete'][$fRec->id] = $fRec->id;
                     
-                    $this->delete($fRec->id); // TODO - може да записва в лога или оттегля записа
+                    distro_Actions::addToRepo($fRec, 'distro_DeleteDriver', TRUE);
                 }
             }
             
@@ -381,6 +488,67 @@ class distro_Files extends core_Detail
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     * Добавя запис за файла в БД
+     * 
+     * @param integer $groupId
+     * @param string $name
+     * @param integer $repoId
+     * 
+     * @return NULL|integer
+     */
+    protected function addFileToBD($groupId, $name, $repoId)
+    {
+        $subDir = $this->Master->getSubDirName($groupId);
+        
+        $nRec = new stdClass();
+        
+        $nRec->md5 = $this->getMd5($repoId, $subDir, $name);
+        
+        $fRec = $this->getRecForFile($groupId, $name, $repoId);
+        
+        if ($fRec) {
+        
+            // Ако хешовете им съвпадат
+            if ($fRec->md5 == $nRec->md5) {
+                $this->logNotice('Съществуващ файл', $fRec->id);
+                
+                return NULL;
+            }
+        
+            // Ако са различни файлове, преименуваме единия
+            $ssh = distro_Repositories::connectToRepo($repoId);
+            if ($ssh) {
+                $uniqName = $this->getUniqFileName($fRec->id, $repoId);
+                $newName = escapeshellarg($uniqName);
+        
+                $oldName = $this->getRealPathOfFile($fRec->id, $repoId);
+                $oldName = escapeshellarg($oldName);
+        
+                $exec = "mv {$oldName} {$newName}";
+                $ssh->exec($exec);
+        
+                $name = pathinfo($uniqName, PATHINFO_BASENAME);
+            }
+        }
+        
+        $nRec->repoId = $repoId;
+        $nRec->groupId = $groupId;
+        $nRec->name = $name;
+        
+        $nRec->createdBy = -1;
+        
+        // Проверяваме дали подадената дата е коректна за използване
+        if ($this->checkDate($date)) {
+            $nRec->createdOn = $date;
+        }
+        
+        $this->save($nRec);
+        
+        return $nRec->id;
     }
     
     
@@ -444,6 +612,89 @@ class distro_Files extends core_Detail
     }
     
     
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако ще добавяме/редактираме записа
+        if ($action == 'add') {
+            
+            // Ако има master
+            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
+                
+                // Ако няма права за добавяне на детайл
+                if (!$mvc->Master->canAddDetail($rec->$masterKey)) {
+                    
+                    // Да не може да добавя
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+    
+    
+	/**
+     * След подготвяне на формата
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Записа
+        $rec = $data->form->rec;
+        
+        // Ако редактираме записа
+        if ($rec->id) {
+            // Избора на файл да е задължителен
+            $data->form->setField('sourceFh', 'input=none');
+            $data->form->setField('repos', 'input=none');
+        } else {
+            $reposArr = array();
+            
+            // Ако има мастер
+            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
+            
+                // Вземаме масива с хранилищата, които са зададени в мастера
+                $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
+            }
+            
+            expect(!empty($reposArr));
+            
+            $data->form->setSuggestions('repos', $reposArr);
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param distro_Files $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+            if (isset($rec->sourceFh)) {
+                $rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
+                $rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
+                
+                if (!$rec->id) {
+                    $rec->__addToRepo = TRUE;
+                }
+            }
+        }
+    }
+    
+    
     /**
      * 
      * 
@@ -461,13 +712,43 @@ class distro_Files extends core_Detail
             foreach ($reposArr as $repoId) {
                 $rec->repos = NULL;
                 $rec->repoId = $repoId;
-            
+                
+                // Опитваме се да генерираме уникално име на файла
+                $origName = $rec->name;
+                $maxCnt = 64;
+                while (TRUE) {
+                    if ($mvc->isUnique($rec)) break;
+                    
+                    $rec->name = $mvc->getNextFileName($rec->name);
+                    
+                    expect($maxCnt--);
+                }
+                
                 $mvc->save($rec);
-            
+                
+                $rec->name = $origName;
+                
                 unset($rec->id);
             }
             
             return FALSE;
+        }
+    }
+    
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Сваляме файла в хранилището
+        if (isset($rec->__addToRepo)) {
+        
+            distro_Actions::addToRepo($rec);
         }
     }
     
@@ -563,10 +844,26 @@ class distro_Files extends core_Detail
                 // Данни за модифициране
                 $data->rowReposAndFilesArr[$repoId][$id]->modified = $data->rows[$id]->modifiedOn . tr(' |от|* ') . $data->rows[$id]->modifiedBy;
                 
+                core_RowToolbar::createIfNotExists($data->rows[$id]->_rowTools);
+                
+                distro_Actions::addActionToFile($data->rows[$id]->_rowTools, $data->recs[$id]);
+                
                 // Бутони за действия
                 $data->rowReposAndFilesArr[$repoId][$id]->tools = $data->rows[$id]->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
             }
         }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('modifiedOn', 'DESC');
     }
     
     
@@ -703,6 +1000,9 @@ class distro_Files extends core_Detail
     
     /**
      * Изпълнява се след създаването на модела
+     * 
+     * @param distro_Files $mvc
+     * @param string $res
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
@@ -716,8 +1016,5 @@ class distro_Files extends core_Detail
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
-        
-        //Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', NULL, '104857600', 'user', 'user');
     }
 }

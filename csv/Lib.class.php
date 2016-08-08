@@ -239,8 +239,8 @@ class csv_Lib
             }
         }
         
-        $delimiter = str_replace(array('&comma;', 'semicolon', 'colon', 'vertica', '&Tab;', 'comma', '&vert;'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
-        
+        $delimiter = str_replace(array('&comma;', 'semicolon', 'colon', '&vert;', '&Tab;', 'comma', 'vertical'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
+
         if(strlen($delimiter) > 1) {
             $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }

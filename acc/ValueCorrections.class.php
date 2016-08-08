@@ -9,11 +9,11 @@
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_AllocatedExpenses extends core_Master
+class acc_ValueCorrections extends core_Master
 {
     
 	
@@ -32,7 +32,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $oldClassName = 'acc_ExpenseAllocations';
+    public $oldClassName = 'acc_AllocatedExpenses';
     
     
     /**
@@ -81,7 +81,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Aex";
+    public $abbr = "Crv";
     
     
     /**
