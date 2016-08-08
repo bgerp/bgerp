@@ -23,7 +23,7 @@ class vtotal_Plugin extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
     {
-        if ($mvc->haveRightFor('single', $data->rec)) {
+        if ($mvc->haveRightFor('single', $data->rec) && haveRole('admin, debug')) {
             try {
                 $rec = $data->rec;
 

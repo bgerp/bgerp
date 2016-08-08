@@ -449,5 +449,4 @@ class vtotal_Checks extends core_Master
         return $rate;
     }
 
-    publ
 }
