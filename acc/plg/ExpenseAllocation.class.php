@@ -59,7 +59,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 		}
 		
 		// Ако към документа има вече друг неоотеглен документ за разпределение на разход, се показва бутон-линк към него
-		if($allocationId = acc_ExpenseAllocations::fetchField("#originId = {$data->rec->containerId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
+		if($allocationId = acc_ExpenseAllocations::fetchField("#originId = {$data->rec->containerId} AND #id != '{$data->rec->id}' AND #state != 'rejected'")){
 			$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
 			
 			$data->toolbar->addBtn("Разходи|* {$arrow}", array('acc_ExpenseAllocations', 'single', $allocationId, 'ret_url' => TRUE), "ef_icon = img/16/view.png,title=Към документа за разпределяне на разходи,order=15");
