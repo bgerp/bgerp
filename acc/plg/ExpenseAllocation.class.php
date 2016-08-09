@@ -123,4 +123,19 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 		// Намерените редове за разпределяне
 		return $res;
 	}
+	
+	
+	/**
+	 * Реализация по пдоразбиране на метода canAllocateExpense
+	 * @see acc_ExpenseAllocatableIntf::canAllocateExpense
+	 * 
+	 * @param mixed $id - ид или запис
+	 * @return boolean
+	 */
+	public static function on_AfterCanAllocateExpenses($mvc, &$res, $id)
+	{
+		if(is_null($res)){
+			$res = TRUE;
+		}
+	}
 }
