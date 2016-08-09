@@ -639,6 +639,7 @@ class purchase_Purchases extends deals_DealMaster
     	$rec = $this->fetchRec($id);
     	$purchaseActions = type_Set::toArray($rec->contoActions);
     	
+    	// Само към бърза покупка може да се пуска документ за разпределяне на разходи
     	return isset($purchaseActions['ship']);
     }
 }
