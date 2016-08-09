@@ -119,10 +119,20 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     		$recOptions = array("{$rec->originRecId}" => $recOptions[$rec->originRecId]);
     		$form->setField('productId', 'input=hidden');
     	} else {
-    		$recOptions = array('' => '') + $recOptions;
+    		
+    		// Ако е една опцията, не добавяме празен ред
+    		if(count($recOptions) > 1){
+    			$recOptions = array('' => '') + $recOptions;
+    		}
     	}
     	
     	$form->setOptions('originRecId', $recOptions);
+    	
+    	// Ако има само една опция, задава се по дефолт
+    	if(count($recOptions) == 1){
+    		$form->setDefault('originRecId', key($recOptions));
+    	}
+    	
     	$form->setField('quantity', 'caption=К-во');
     	
     	// Ако няма избран ред, другите полета се скриват
