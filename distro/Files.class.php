@@ -497,7 +497,7 @@ class distro_Files extends core_Detail
      * @param integer $groupId
      * @param string $name
      * @param integer $repoId
-     * @param datetime $date
+     * @param NULL|datetime $date
      * 
      * @return NULL|integer
      */
