@@ -268,20 +268,10 @@ class acc_ExpenseAllocations extends core_Master
     			//return;
     		}
     		
-    		// Ако оригиналния документ е 'Предавателен протокол', и не е за отказ от Услуга, не може да се добавя 
-    		if($origin->className == 'sales_Services'){
-    			if($origin->fetchField('isReverse') == 'no'){
-    				$requiredRoles = 'no_one';
-    				return;
-    			}
-    		} elseif($origin->className == 'purchase_Purchases') {
-    			
-    			// Ако ориджина е покупка и не е бърза, не може да се добави
-    			$purchaseActions = type_Set::toArray($origin->fetchField('contoActions'));
-    			if(!isset($purchaseActions['ship'])){
-    				$requiredRoles = 'no_one';
-    				return;
-    			}
+    		// Ако към оригиния документ не може да се разпределят разходи, не може да се създава документ към него
+    		if(!$origin->canAllocateExpenses()){
+    			$requiredRoles = 'no_one';
+    			return;
     		}
     		
     		//... и да има доспусимия интерфейс
