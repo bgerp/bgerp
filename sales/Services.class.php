@@ -326,6 +326,7 @@ class sales_Services extends deals_ServiceMaster
     {
     	$rec = $this->fetchRec($id);
     	
+    	// Само ако документа е към покупка, може да се пуска разпределение на разходи
     	return $rec->isReverse != 'no';
     }
 }
