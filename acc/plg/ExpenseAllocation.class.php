@@ -96,9 +96,10 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 		$query = $Detail->getQuery();
 		$query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$mvc->productIdFld}");
 		$query->EXT('fixedAsset', 'cat_Products', "externalName=fixedAsset,externalKey={$mvc->productIdFld}");
+		$query->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey={$mvc->productIdFld}");
 		$query->where("#{$Detail->masterKey} = {$id}");
 		$query->where("#{$mvc->expenseItemIdFld} IS NULL");
-		$query->where("#canStore = 'no' AND #fixedAsset = 'no'");
+		$query->where("#canStore = 'no' AND #fixedAsset = 'no' AND #canConvert = 'no'");
 		$query->orderBy('id', 'ASC');
 		
 		if(isset($limit)){
