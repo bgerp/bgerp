@@ -251,6 +251,7 @@ class acc_ExpenseAllocations extends core_Master
     			return;
     		}
     		
+    		
     		// Ако към ориджина има вече документ за разпределяне на разходи, не може да се добавя
     		if(acc_ExpenseAllocations::fetchField("#originId = {$rec->originId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
     			//$requiredRoles = 'no_one';
@@ -260,9 +261,24 @@ class acc_ExpenseAllocations extends core_Master
     		// Към кой документ, ще се добавя разпределят разходи
     		$origin = doc_Containers::getDocument($rec->originId);
     		
+    		//... и да е активен
+    		$state = $origin->fetchField('state');
+    		if($state != 'active'){
+    			//$requiredRoles = 'no_one';
+    			//return;
+    		}
+    		
     		// Ако оригиналния документ е 'Предавателен протокол', и не е за отказ от Услуга, не може да се добавя 
     		if($origin->className == 'sales_Services'){
     			if($origin->fetchField('isReverse') == 'no'){
+    				$requiredRoles = 'no_one';
+    				return;
+    			}
+    		} elseif($origin->className == 'purchase_Purchases') {
+    			
+    			// Ако ориджина е покупка и не е бърза, не може да се добави
+    			$purchaseActions = type_Set::toArray($origin->fetchField('contoActions'));
+    			if(!isset($purchaseActions['ship'])){
     				$requiredRoles = 'no_one';
     				return;
     			}
@@ -278,13 +294,6 @@ class acc_ExpenseAllocations extends core_Master
     		if(!$origin->haveRightFor('single')){
     			$requiredRoles = 'no_one';
     			return;
-    		}
-    		
-    		//... и да е активен
-    		$state = $origin->fetchField('state');
-    		if($state != 'active'){
-    			//$requiredRoles = 'no_one';
-    			//return;
     		}
     		
     		// Ако няма за разпределяне, не може да се добавя
