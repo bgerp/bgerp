@@ -431,7 +431,7 @@ class distro_Files extends core_Detail
             foreach ($repoActArr as $groupId => $actArr) {
                     
                 foreach ((array)$actArr['create'] as $name => $date) {
-                    $addRes = $this->addFileToBD($groupId, $name, $repoId);
+                    $addRes = $this->addFileToBD($groupId, $name, $repoId, $date);
                     
                     if (!isset($addRes)) continue;
                     
@@ -497,10 +497,11 @@ class distro_Files extends core_Detail
      * @param integer $groupId
      * @param string $name
      * @param integer $repoId
+     * @param datetime $date
      * 
      * @return NULL|integer
      */
-    protected function addFileToBD($groupId, $name, $repoId)
+    protected function addFileToBD($groupId, $name, $repoId, $date = NULL)
     {
         $subDir = $this->Master->getSubDirName($groupId);
         
@@ -542,7 +543,7 @@ class distro_Files extends core_Detail
         $nRec->createdBy = -1;
         
         // Проверяваме дали подадената дата е коректна за използване
-        if ($this->checkDate($date)) {
+        if (isset($date) && $this->checkDate($date)) {
             $nRec->createdOn = $date;
         }
         
