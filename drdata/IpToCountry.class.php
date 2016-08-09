@@ -79,12 +79,7 @@ class drdata_IpToCountry extends core_Manager {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
         
-        $me = cls::get('drdata_IpToCountry');
-        
-        $query = $me->getQuery();
-        $query->limit(1);
-        
-        $cRec = $query->fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
+        $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
         
         return $cRec->country2;
     }
