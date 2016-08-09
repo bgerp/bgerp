@@ -43,4 +43,16 @@ class acc_ExpenseAllocatableIntf extends doc_DocumentIntf
     {
     	$this->class->getRecsForAllocation($id, $limit);
     }
+    
+    
+    /**
+     * Дали към документа може да се пуска документ за разпределяне на разходи
+     *
+     * @param mixed $id - ид или запис
+     * @return boolean
+     */
+    public function canAllocateExpenses($id)
+    {
+    	$this->class->canAllocateExpenses($id);
+    }
 }
