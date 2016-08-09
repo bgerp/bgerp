@@ -250,13 +250,20 @@ class acc_ExpenseAllocations extends core_Master
     			//$requiredRoles = 'no_one';
     			//return;
     		}
-    		
+    		 
+    		// Към кой документ, ще се добавя разпределят разходи
     		$origin = doc_Containers::getDocument($rec->originId);
     		
-    		// Ако няма за разпределяне, не може да се добавя
-    		$recsToAllocate = $origin->getRecsForAllocation(1);
+    		// Ако оригиналния документ е 'Предавателен протокол', и не е за отказ от Услуга, не може да се добавя 
+    		if($origin->className == 'sales_Services'){
+    			if($origin->fetchField('isReverse') == 'no'){
+    				$requiredRoles = 'no_one';
+    				return;
+    			}
+    		}
     		
-    		if(!count($recsToAllocate)){
+    		//... и да има доспусимия интерфейс
+    		if(!$origin->haveInterface('acc_ExpenseAllocatableIntf')){
     			$requiredRoles = 'no_one';
     			return;
     		}
@@ -267,17 +274,19 @@ class acc_ExpenseAllocations extends core_Master
     			return;
     		}
     		
-    		//... и да има доспусимия интерфейс
-    		if(!$origin->haveInterface('acc_ExpenseAllocatableIntf')){
-    			$requiredRoles = 'no_one';
-    			return;
-    		}
-    		
     		//... и да е активен
     		$state = $origin->fetchField('state');
     		if($state != 'active'){
     			//$requiredRoles = 'no_one';
     			//return;
+    		}
+    		
+    		// Ако няма за разпределяне, не може да се добавя
+    		$recsToAllocate = $origin->getRecsForAllocation(1);
+    		
+    		if(!count($recsToAllocate)){
+    			$requiredRoles = 'no_one';
+    			return;
     		}
     		
     		//... и да е в отворен период
