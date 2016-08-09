@@ -343,7 +343,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали документа може да бъде разоден обект
         if ($mvc->haveRightFor('forceexpenseitem', $data->rec)) {
         	$data->toolbar->addBtn('Разходен обект', array($mvc, 'forceexpenseitem', $data->rec->id),
-        			"warning=Наистина ли искате да направите документа разходен обект?, row=1,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png');
+        			"warning=Наистина ли искате да направите документа разходен обект?, row=2,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png');
         }
     }
     
