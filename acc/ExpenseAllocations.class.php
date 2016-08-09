@@ -329,6 +329,28 @@ class acc_ExpenseAllocations extends core_Master
     
     
     /**
+     * Записва редът (записа) в таблицата
+     */
+    function save_(&$rec, $fields = NULL, $mode = NULL)
+    {
+    	// Викане на ф-ята за запис от бащата на класа
+    	$id = parent::save_($rec, $fields, $mode);
+    	
+    	// Ако няма тред в записа, извличаме го
+    	$threadId = $rec->threadId;
+    	if(empty($threadId) && $id){
+    		$threadId = $this->fetchField($id, 'threadId');
+    	}
+    	
+    	// Инвалидираме кеша на документите в треда
+    	doc_DocumentCache::threadCacheInvalidation($threadId);
+    	
+    	// Връщане на резултата от записа
+    	return $id;
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
