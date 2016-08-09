@@ -30,7 +30,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 	 *
 	 * @param core_Mvc $mvc
 	 */
-	public static function on_AfterDescription(core_Mvc $mvc)
+	public static function on_AfterDescription($mvc)
 	{
 		$mvc->declareInterface('acc_ExpenseAllocatableIntf');
 		
