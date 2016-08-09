@@ -32,7 +32,7 @@ class acc_ExpenseAllocations extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_Wrapper, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -53,6 +53,12 @@ class acc_ExpenseAllocations extends core_Master
 	public $canSingle = 'acc, ceo, purchase';
     
     
+	/**
+	 * Кой може да активира документа?
+	 */
+	public $canActivate = 'acc, ceo, purchase';
+	
+	
     /**
      * Заглавие на единичен документ
      */
@@ -298,17 +304,36 @@ class acc_ExpenseAllocations extends core_Master
     		}
     	}
     	
-    	// Не може да се редактира документа след като е създаден, защото няма полета за редакция
-    	if($action == 'edit' && isset($rec->id)){
-    		$requiredRoles = 'no_one';
-    	}
-    	
     	// Не може да се възстановява, ако към същия ориджин има друг неоттеглен документ
     	if($action == 'restore' && isset($rec->id)){
     		if(acc_ExpenseAllocations::fetchField("#originId = {$rec->originId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	// При активиране
+    	if($action == 'activate'){
+    		if(isset($rec->id)){
+    			
+    			// Ако няма ред в детайла, не може да се активира
+    			if(!acc_ExpenseAllocationDetails::fetchField("#allocationId = {$rec->id}")){
+    				$requiredRoles = 'no_one';
+    			}
+    		} else {
+    			
+    			// Ако няма запис, не може да се активира
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnEdit');
     }
     
     
