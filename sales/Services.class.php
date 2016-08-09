@@ -314,4 +314,18 @@ class sales_Services extends deals_ServiceMaster
     		}
     	}
     }
+    
+    
+    /**
+     * Дали към документа може да се пуска документ за разпределяне на разходи
+     *
+     * @param mixed $id - ид или запис
+     * @return boolean
+     */
+    public function canAllocateExpenses($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return $rec->isReverse != 'no';
+    }
 }
