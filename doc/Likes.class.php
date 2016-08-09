@@ -149,7 +149,7 @@ class doc_Likes extends core_Manager
     {
         $likedArr = self::prepareLikedArr($cid, $threadId);
         
-        if (!$userId) {
+        if (!isset($userId)) {
             
             $isEmpty = empty($likedArr);
             
