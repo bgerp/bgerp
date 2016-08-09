@@ -133,11 +133,11 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	}
     	
     	// Ако е избран артикул и той е невложим и имаме разходни пера,
-    	// показваме полето за избор на разход
+    	// показване на полето за избор на разход
     	if(isset($rec->productId)){
     		$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset');
     		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && acc_Lists::getItemsCountInList('costObjects')){
-    			$form->setField('expenseItemId', 'input,mandatory');
+    			$form->setField('expenseItemId', 'input');
     		}
     	}
     }
