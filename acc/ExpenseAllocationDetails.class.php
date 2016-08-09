@@ -276,6 +276,7 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     		$row->packPrice = $mvc->getFieldType('packPrice')->toVerbal($originRec->packPrice);
     	}
     	
+    	$rec->quantity = $rec->quantity / $rec->quantityInPack;
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	
     	// Показваме подробната информация за опаковката при нужда
@@ -294,7 +295,6 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     
-    	if(!count($recs)) return;
     	$masterRec = $data->masterData->rec;
     	
     	// В каква валута е сумата
