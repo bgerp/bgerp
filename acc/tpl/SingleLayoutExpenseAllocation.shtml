@@ -1,0 +1,6 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div><span class='quiet'>|Към документ|*</span>: [#originId#]</div>
+    <div style='margin-top:10px'>
+    [#acc_ExpenseAllocationDetails#]
+    </div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
