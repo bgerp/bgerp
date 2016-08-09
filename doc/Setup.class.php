@@ -180,7 +180,8 @@ class doc_Setup extends core_ProtoSetup
     	'doc_Likes',
     	'doc_ExpensesSummary',
         'migrate::repairAllBrokenRelations',
-        'migrate::repairBrokenFolderId'
+        'migrate::repairBrokenFolderId',
+        'migrate::repairLikeThread',
     );
 
     
@@ -382,5 +383,26 @@ class doc_Setup extends core_ProtoSetup
         }
         
         return $cnt;
+    }
+    
+    
+    /**
+     * Добавяне на id на нишките в харесванията - за бързодействие
+     */
+    public static function repairLikeThread()
+    {
+        $query = doc_Likes::getQuery();
+        $query->where("#threadId IS NULL OR #threadId = ''");
+        
+        while ($rec = $query->fetch()) {
+            try {
+                $rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId');
+                
+                doc_Likes::save($rec, 'threadId');
+            } catch (Exception $e) {
+                
+                continue;
+            }
+        }
     }
 }
