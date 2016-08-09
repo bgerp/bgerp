@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_plg_AllocateExpensesPlg extends core_Plugin
+class acc_plg_ExpenseAllocation extends core_Plugin
 {
 	
 	
