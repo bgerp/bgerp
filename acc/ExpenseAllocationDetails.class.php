@@ -173,7 +173,7 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     	if($form->isSubmitted()){
     		
     		// Колко ще бъде разпределено след записа
-    		$allocatedQuantity = $mvc->getAllocatedInDocument($rec->allocationId, $rec->originRecId);
+    		$allocatedQuantity = $mvc->getAllocatedInDocument($rec->allocationId, $rec->originRecId, $rec->id);
     		$allocatedQuantity += $rec->quantity;
     		
     		// Колко е максималното допустимо количество за разпределяне
@@ -195,14 +195,19 @@ class acc_ExpenseAllocationDetails extends doc_Detail
      * 
      * @param int $allocationId - ид на документа          
      * @param int $originRecId  - кой ред от оригиналния документ отговаря
+     * @param int $id           - ид на записа ако има
      * @return double $allocatedQuantity - разпределеното досега количество
      */
-    private function getAllocatedInDocument($allocationId, $originRecId)
+    private function getAllocatedInDocument($allocationId, $originRecId, $id = NULL)
     {
     	$query = static::getQuery();
     	
     	// Сумиране на разпределените количества към реда
     	$query->where("#allocationId = {$allocationId} AND #originRecId = {$originRecId}");
+    	if(isset($id)){
+    		$query->where("#id != {$id}");
+    	}
+    	
     	$query->XPR('allocatedQuantity', 'double', 'sum(#quantity)');
     	$query->show('allocatedQuantity');
     	
