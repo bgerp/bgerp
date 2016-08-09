@@ -200,7 +200,7 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         // Цвятове за линковете и h2 заглавията
         $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
-        $css .= "\n    #cmsNavigation .nav_item a:visited { color: #{$visitedFontColor} !important;}";
+        $css .= "\n    #all #maincontent a:visited{ color: #{$visitedFontColor} !important;}";
         $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor};}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
