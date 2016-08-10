@@ -124,6 +124,8 @@ class acc_Setup extends core_ProtoSetup
     	'acc_BalanceTransfers',
     	'acc_ValueCorrections',
         'acc_FeatureTitles',
+    	'acc_ExpenseAllocations',
+    	'acc_ExpenseAllocationDetails',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     	'migrate::updateClosedItems3',
