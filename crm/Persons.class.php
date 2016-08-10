@@ -1088,7 +1088,7 @@ class crm_Persons extends core_Master
         if(crm_Persons::haveRightFor('add') && crm_Companies::haveRightFor('edit', $data->masterId)){
 		    $addUrl = array('crm_Persons', 'add', 'buzCompanyId' => $data->masterId, 'ret_url' => TRUE);
 		    
-		    if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+		    if(!Mode::isReadOnly()){
 		    	$data->addBtn = ht::createLink('', $addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на представител'));
 		    }
         }

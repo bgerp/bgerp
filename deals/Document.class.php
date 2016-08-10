@@ -260,7 +260,7 @@ abstract class deals_Document extends deals_PaymentDocument
 			$fromHandle = $origin->getHandle();
 			$row->dealHandle = "#" . $fromHandle;
 			$row->nextHandle = "#" . $nextHandle;
-			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+			if(!Mode::isReadOnly()){
 				$row->dealHandle = ht::createLink($row->dealHandle, $origin->getSingleUrlArray());
 				$row->nextHandle = ht::createLink($row->nextHandle, findeals_Deals::getSingleUrlArray($rec->dealId));
 			}

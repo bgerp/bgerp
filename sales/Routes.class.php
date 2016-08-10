@@ -313,7 +313,7 @@ class sales_Routes extends core_Manager {
     	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 
     	
     	if($rec->state == 'active'){
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			if(crm_Locations::haveRightFor('createsale', $rec->locationId)){
     				core_RowToolbar::createIfNotExists($row->_rowTools);
     				$row->_rowTools->addLink('Продажба', array('crm_Locations', 'createSale', $rec->locationId, 'ret_url' => TRUE), 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към локацията');
@@ -410,7 +410,7 @@ class sales_Routes extends core_Manager {
     	$title = $this->title;
     	$listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
     	
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    	if(!Mode::isReadOnly()){
     		if($this->haveRightFor('list')){
     			$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговски маршрути');
     		}
