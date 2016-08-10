@@ -634,21 +634,11 @@ class acc_ExpenseAllocations extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+    	// При запис в активно състояние и оттегляне на активен документ
     	if($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')){
     		$originId = ($rec->originId) ? $rec->originId : $mvc->fetchField($rec->id, 'originId');
     		$mvc->recontoOrigin($originId);
     	}
-    }
-    
-    
-   
-    /**
-     * Функция, която се извиква след активирането на документа
-     */
-    public static function on_AfterActivation($mvc, &$rec)
-    {
-    	// При първоначално активиране, се реконтира оригиналния документ
-    	
     }
     
     
