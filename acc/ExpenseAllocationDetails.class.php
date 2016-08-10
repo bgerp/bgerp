@@ -249,12 +249,14 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     	$shortUom = cat_UoM::getShortName($obj->packagingId);
     	
     	Mode::push('text', 'plain');
-    	$price = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($obj->packPrice);
+    	$price = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($obj->packPrice);
     	$discount = cls::get('type_Percent')->toVerbal($obj->discount);
     	Mode::pop('text');
+    	$price = str_replace(",", '.', $price);
     	
     	$name = "|Ред|* {$countVerbal}: {$pVerbal} / |{$shortUom}|* / {$price} {$obj->currencyCode} / {$discount}";
-    
+    	$name = trim($name, '/ ');
+    	
     	return $name;
     }
     
