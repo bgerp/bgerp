@@ -730,7 +730,7 @@ class acc_Balances extends core_Master
         }
         
         if ($accountRec->id && strlen($num) >= 3) {
-            if(acc_Balances::haveRightFor('read', $rec) && !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+            if(acc_Balances::haveRightFor('read', $rec) && !Mode::isReadOnly()){
                 
                 // Ако има номенклатури, правим линк към обобщението на сметката
                 if ($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) {
