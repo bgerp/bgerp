@@ -1214,6 +1214,14 @@ class doc_Folders extends core_Master
         if (!$rec->coverClass) return ;
         $class = cls::get($rec->coverClass);
         $title = $class->getTitle();
+        
+        if ($class instanceof core_Master) {
+            $singleTitle = $class->singleTitle;
+            if ($singleTitle && ($title != $singleTitle)) {
+                $title .= ' ' . $singleTitle;
+            }
+        }
+        
         $searchKeywords .= " " . plg_Search::normalizeText($title);
     }
     
