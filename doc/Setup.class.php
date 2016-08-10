@@ -182,6 +182,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairAllBrokenRelations',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
+        'migrate::repairFoldersKeywords',
     );
 
     
@@ -399,6 +400,24 @@ class doc_Setup extends core_ProtoSetup
                 $rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId');
                 
                 doc_Likes::save($rec, 'threadId');
+            } catch (Exception $e) {
+                
+                continue;
+            }
+        }
+    }
+    
+    
+    /**
+     * Регенерира на ключовите думи на папките
+     */
+    public static function repairFoldersKeywords()
+    {
+        $query = doc_Folders::getQuery();
+        
+        while ($rec = $query->fetch()) {
+            try {
+                doc_Folders::save($rec, 'searchKeywords');
             } catch (Exception $e) {
                 
                 continue;
