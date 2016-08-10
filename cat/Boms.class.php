@@ -800,6 +800,10 @@ class cat_Boms extends core_Master
     		}
     	}
     	 
+    	if(Mode::isReadOnly()){
+    		$data->hideToolsCol = TRUE;
+    	}
+    	
     	$masterInfo = cat_Products::getProductInfo($data->masterId);
     	if(!isset($masterInfo->meta['canManifacture'])){
     		$data->notManifacturable = TRUE;
