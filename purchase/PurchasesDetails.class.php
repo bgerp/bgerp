@@ -125,7 +125,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     		$pRec = cat_Products::fetch($rec->productId, 'canConvert,canStore,fixedAsset');
     		
     		if($pRec->canConvert == 'no' && $pRec->canStore == 'no' && $pRec->fixedAsset == 'no'){
-    			if(acc_Lists::getItemsCountInList('costObjects')){
+    			if(acc_Lists::getItemsCountInList('costObjects') > 1){
     				$form->setField('expenseItemId', 'input');
     			}
     		}

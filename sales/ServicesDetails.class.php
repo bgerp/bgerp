@@ -110,7 +110,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     	// показваме полето за избор на разход
     	if(isset($rec->productId)){
     		$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset');
-    		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && $data->masterRec->isReverse == 'yes' && acc_Lists::getItemsCountInList('costObjects')){
+    		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && $data->masterRec->isReverse == 'yes' && acc_Lists::getItemsCountInList('costObjects') > 1){
     			$form->setField('expenseItemId', 'input');
     		}
     	}
