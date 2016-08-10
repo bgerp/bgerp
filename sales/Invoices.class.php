@@ -715,7 +715,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
    	public static function on_BeforeExportCsv($mvc, &$recs)
    	{
-   	    if (!$recs) continue;
+   	    if (!$recs) return ;
    	    
    	    foreach ($recs as &$rec) {
    	        $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
