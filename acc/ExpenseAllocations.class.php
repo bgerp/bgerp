@@ -301,8 +301,7 @@ class acc_ExpenseAllocations extends core_Master
     		
     		//... и да е в отворен период
     		$valior = $origin->fetchField($origin->valiorFld);
-    		$period = acc_Periods::fetchByDate($valior);
-    		if(!$period || $period->state == 'closed'){
+    		if(acc_Periods::isClosed($valior)){
     			$requiredRoles = 'no_one';
     			return;
     		}

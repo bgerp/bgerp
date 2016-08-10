@@ -730,9 +730,9 @@ class acc_Periods extends core_Manager
     public static function  isClosed($date)
     {
     	// В кой период е датата
-    	$period = self::fetchByDate($valior);
+    	$period = self::fetchByDate($date);
     	
-    	// Ако няма период или той е затворен, връща се че е затворен
-    	return (!$period || $period->state == 'closed');
+    	// Проверка дали периода е затворен
+    	return $period->state == 'closed';
     }
 }

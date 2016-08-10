@@ -891,10 +891,9 @@ class findeals_Deals extends deals_DealBase
     			// Които са контиращи документи
     			if($desc->haveInterface('acc_TransactionSourceIntf') && $desc->fetchField('state') == 'active'){
     				$date = $desc->getValiorValue();
-    				$pRec = acc_Periods::fetchByDate($date);
     				
     				// И вальора им е в приключен период
-    				if($pRec->state == 'closed'){
+    				if(acc_Periods::isClosed($date)){
     					$handle = $desc->getHandle();
     					
     					// Запомняме ги
