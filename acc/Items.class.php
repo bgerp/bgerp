@@ -796,6 +796,7 @@ class acc_Items extends core_Manager
         // Дали е документ
         $isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
         
+        core_Mode::push('text', 'plain');
         while ($cRec = $query->fetch()){
             
             // Ако е документ и е чернова, не може да стане перо
@@ -803,7 +804,8 @@ class acc_Items extends core_Manager
             
             $options[$cRec->id] = $Class->getTitleById($cRec->id);
         }
-        
+        core_Mode::pop('text');
+        		
         if(count($options)) {
             $form->FNC($className, "keylist(mvc={$className},maxSuggestions=1)", "caption={$Class->title},input,columns=1");
             $form->setSuggestions($className, $options);
