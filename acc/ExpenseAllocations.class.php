@@ -118,6 +118,8 @@ class acc_ExpenseAllocations extends core_Master
      */
     function description()
     {
+    	// Вальора на оригиналния документ, да не се извлича всеки път
+    	$this->FLD('originValior', 'date', 'input=hidden,mandarory');
     }
     
     
@@ -132,6 +134,7 @@ class acc_ExpenseAllocations extends core_Master
     	$form = &$data->form;
     	$rec = &$form->rec;
     	expect($origin = doc_Containers::getDocument($rec->originId));
+    	$form->setDefault('originValior', $origin->fetchField($origin->valiorFld));
     	$form->info = tr("Разпределяне на разходи по редовете на") . " " . $origin->getLink(0);
     	
     	// Редовете за разпределяне
@@ -144,7 +147,7 @@ class acc_ExpenseAllocations extends core_Master
     		// Вербалното име на реда е и секцията във формата
     		$name = acc_ExpenseAllocationDetails::getOriginRecTitle($product, $count);
     			
-    		// Поставяме полета за всеки артикул за разпределяне
+    		// Поставяне на полета за всеки артикул за разпределяне
     		$form->FLD("originRecId|{$key}", 'int', "input=hidden,silent");
     		$form->FLD("productId|{$key}", 'key(mvc=cat_Products)', "input=hidden,silent");
     		$form->FLD("packagingId|{$key}", 'key(mvc=cat_UoM)',"input=hidden,silent");
@@ -157,7 +160,7 @@ class acc_ExpenseAllocations extends core_Master
     			$form->setDefault("{$fld}|{$key}", $product->{$fld});
     		}
     		
-    		// Увеличаваме брояча
+    		// Увеличаване на брояча
     		$count++;
     	}
     }
@@ -300,8 +303,7 @@ class acc_ExpenseAllocations extends core_Master
     		}
     		
     		//... и да е в отворен период
-    		$valior = $origin->fetchField($origin->valiorFld);
-    		if(acc_Periods::isClosed($valior)){
+    		if(acc_Periods::isClosed($rec->originValior)){
     			$requiredRoles = 'no_one';
     			return;
     		}
@@ -321,10 +323,21 @@ class acc_ExpenseAllocations extends core_Master
     			// Ако няма ред в детайла, не може да се активира
     			if(!acc_ExpenseAllocationDetails::fetchField("#allocationId = {$rec->id}")){
     				$requiredRoles = 'no_one';
+    			} else {
+    				if(acc_Periods::isClosed($rec->originValior)){
+    					$requiredRoles = 'no_one';
+    				}
     			}
     		} else {
     			
     			// Ако няма запис, не може да се активира
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	// Не може да се оттегля или възстановява, ако вальора на оригиналния документ е в затворен период
+    	if(($action == 'restore' || $action == 'reject') && isset($rec)){
+    		if(acc_Periods::isClosed($rec->originValior)){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -358,7 +371,17 @@ class acc_ExpenseAllocations extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+    	$rec = $data->rec;
     	$data->toolbar->removeBtn('btnEdit');
+    	
+    	// Ако вальора на документа е в затворен сч. период показваме бутона, но да показва грешка
+    	if($rec->state == 'draft' && !$data->toolbar->hasBtn('btnActivate') && acc_ExpenseAllocationDetails::fetchField("#allocationId = {$rec->id}")){
+    		if(haveRole($mvc->canActivate)){
+    			if(acc_Periods::isClosed($rec->originValior)){
+    				$data->toolbar->addBtn('Активиране', array(), array('error' => 'Не може да се активира, когато е към документ в затворен сч. период'), 'id=btnActivate,ef_icon = img/16/lightning.png,title=Активиране на документа');
+    			}
+    		}
+    	}
     }
     
     
@@ -451,6 +474,7 @@ class acc_ExpenseAllocations extends core_Master
     	// Запомнят се общата сума и к-во за разпределяне
     	$totalQuantity = $quantity;
     	$totalAmount = $amount;
+    	$allocatedAmount = 0;
     	
     	// Ако са намерени записи
     	if(is_array($dRecs) && count($dRecs)){
@@ -459,7 +483,8 @@ class acc_ExpenseAllocations extends core_Master
     		// За всеки запис
     		for($i = 0; $i <= count($dRecs) - 1; $i++){
     			$dRec = $dRecs[$i];
-    	
+    			$nextRec = $dRecs[$i + 1];
+    			
     			// Подготвят се данните за разпределяне
     			$r = (object)array('productId' => $productId);
     			$r->reason = 'Приети услуги и нескладируеми консумативи';
@@ -470,12 +495,23 @@ class acc_ExpenseAllocations extends core_Master
     				
     			// Задаване на к-то и приспадане
     			$r->quantity = $dRec->quantity;
+    			
+    			// Какво к-во остава за разпределяне
     			$quantity -= $r->quantity;
     			
-    			// пропорционално изчисляване на сумата и приспадане
-    			$r->amount = round($r->quantity / $totalQuantity * $totalAmount, 2);
-    			$amount -= $r->amount;
-    	
+    			// Ако няма следващ обект и цялото к-во е разпределено
+    			if(!is_object($nextRec) && $quantity <= 0){
+    				
+    				// Сумата е остатака от сумата за разпределяне и разпределеното до сега
+    				// така е подсигурено че няма да има разлики в сумите
+    				$r->amount = $totalAmount - $allocatedAmount;
+    			} else {
+    				
+    				// Ако има следващ обект и още к-во за разпределяне, сумата се изчислява пропорционално
+    				$r->amount = round($r->quantity / $totalQuantity * $totalAmount, 2);
+    				$allocatedAmount += $r->amount;
+    			}
+    			
     			// Добавяне на редовете
     			$res[] = $r;
     		}
@@ -488,7 +524,7 @@ class acc_ExpenseAllocations extends core_Master
     			$r->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
     			$r->expenseItemId = self::getUnallocatedItemId();
     			$r->quantity = $quantity;
-    			$r->amount = $amount;
+    			$r->amount = $totalAmount - $allocatedAmount;
     			 
     			$res[] = $r;
     		}
@@ -586,5 +622,57 @@ class acc_ExpenseAllocations extends core_Master
     
     	// връщане на редовете
     	return $res;
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')){
+    		$originId = ($rec->originId) ? $rec->originId : $mvc->fetchField($rec->id, 'originId');
+    		$mvc->recontoOrigin($originId);
+    	}
+    }
+    
+    
+   
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	// При първоначално активиране, се реконтира оригиналния документ
+    	
+    }
+    
+    
+    /**
+     * Реконтиране на оригиналния документ
+     * 
+     * @param int $originId - ид на ориджина
+     * @return void
+     */
+    private function recontoOrigin($originId)
+    {
+    	// Оригиналния документ трябва да не е в затворен период
+    	$origin = doc_Containers::getDocument($originId);
+    	expect(!acc_Periods::isClosed($origin->fetchField($origin->valiorFld)), 'Периода не трябва да е затворен');
+    	
+    	// Изтриване на старата транзакция на документа
+    	acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
+    	
+    	// Записване на новата транзакция на документа
+    	$success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, FALSE);
+    	expect($success, $success);
+    	
+    	// Нотифициране на потребителя
+    	$msg = "Реконтиране на|* #{$origin->getHandle()}";
+    	core_Statuses::newStatus($msg);
     }
 }
