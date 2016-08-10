@@ -250,9 +250,10 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     	
     	Mode::push('text', 'plain');
     	$price = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($obj->packPrice);
-    	$discount = cls::get('type_Percent')->toVerbal($obj->discount);
+    	$discount = cls::get('type_Percent', array('params' => array('smartRound' => TRUE)))->toVerbal($obj->discount);
     	Mode::pop('text');
     	$price = str_replace(",", '.', $price);
+    	$discount = str_replace(",", '.', $discount);
     	
     	$name = "|Ред|* {$countVerbal}: {$pVerbal} / |{$shortUom}|* / {$price} {$obj->currencyCode} / {$discount}";
     	$name = trim($name, '/ ');
