@@ -680,9 +680,20 @@ class acc_ExpenseAllocations extends core_Master
     {
     	$string = '';
     	
+    	// Ако има разход
     	if(isset($expenseItemId)){
     		$eItem = acc_Items::getVerbal($expenseItemId, 'titleLink');
-    		$string = "<div class='small'><b class='quiet'>" . tr('Разход за') . "</b>: {$eItem}</div>";
+    		$pInfo = cat_Products::getProductInfo($productId);
+    		$hint = isset($pInfo->meta['fixedAsset']) ? 'Артикулът вече е ДМА' : (isset($pInfo->meta['canConvert']) ? 'Артикулът вече е вложим' : NULL);
+    		
+    		// Ако артикулът е ДМА или Вложим и има избран разход, то той ще бъде пренебренат, за това се показва информация на потребителя
+    		$content = "<b class='quiet'>" . tr("Разход за") . "</b>: {$eItem}";
+    		if($hint){
+    			$content = ht::createHint($content, $hint, 'warning', FALSE)->getContent();
+    			$content = "<span style='color:red !important'>{$content}</span>";
+    		}
+    		
+    		$string = "<div class='small'>{$content}</div>";
     	}
     	
     	return $string;
