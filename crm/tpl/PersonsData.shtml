@@ -19,4 +19,15 @@
 	    </div>
 	</fieldset>
 	<!--ET_END CODE-->
+	
+	<!--ET_BEGIN CYCLES-->
+	<fieldset class='top-tab-content' style='margin-top:10px'>
+	<legend class='groupTitle'>|Работен график|* [#cyclesBtn#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		        [#CYCLES#]
+		    </div>
+	    </div>
+	</fieldset>
+	<!--ET_END CYCLES-->
 </div>
