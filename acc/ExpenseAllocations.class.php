@@ -504,7 +504,7 @@ class acc_ExpenseAllocations extends core_Master
     				
     				// Сумата е остатака от сумата за разпределяне и разпределеното до сега
     				// така е подсигурено че няма да има разлики в сумите
-    				$r->amount = $totalAmount - $allocatedAmount;
+    				$r->amount = round($totalAmount - $allocatedAmount, 2);
     			} else {
     				
     				// Ако има следващ обект и още к-во за разпределяне, сумата се изчислява пропорционално
@@ -524,7 +524,7 @@ class acc_ExpenseAllocations extends core_Master
     			$r->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
     			$r->expenseItemId = self::getUnallocatedItemId();
     			$r->quantity = $quantity;
-    			$r->amount = $totalAmount - $allocatedAmount;
+    			$r->amount = round($totalAmount - $allocatedAmount, 2);
     			 
     			$res[] = $r;
     		}
@@ -572,10 +572,10 @@ class acc_ExpenseAllocations extends core_Master
     	// Ако артикула е складируем, се пропуска
     	$pInfo = cat_Products::getProductInfo($productId);
     	if(isset($pInfo->meta['canStore'])) return $res;
-    
+    	
     	// От сумата се приспада отстъпката, ако има
     	$amount = ($discount) ?  $amount * (1 - $discount) : $amount;
-    
+    	
     	$obj = (object)array('productId'     => $productId, 
     						 'quantity'      => $quantity, 
     						 'expenseItemId' => $expenseItemId,
