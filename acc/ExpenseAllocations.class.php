@@ -684,7 +684,7 @@ class acc_ExpenseAllocations extends core_Master
     	if(isset($expenseItemId)){
     		$eItem = acc_Items::getVerbal($expenseItemId, 'titleLink');
     		$pInfo = cat_Products::getProductInfo($productId);
-    		$hint = isset($pInfo->meta['fixedAsset']) ? 'Артикулът вече е ДМА' : (isset($pInfo->meta['canConvert']) ? 'Артикулът вече е вложим' : NULL);
+    		$hint = isset($pInfo->meta['fixedAsset']) ? 'Артикулът вече е ДА и не може да бъде разпределян като разход' : (isset($pInfo->meta['canConvert']) ? 'Артикулът вече е вложим и не може да бъде разпределян като разход' : NULL);
     		
     		// Ако артикулът е ДМА или Вложим и има избран разход, то той ще бъде пренебренат, за това се показва информация на потребителя
     		$content = "<b class='quiet'>" . tr("Разход за") . "</b>: {$eItem}";
