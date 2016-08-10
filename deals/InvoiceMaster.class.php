@@ -902,7 +902,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
     	}
     	
-    	$row->number = strip_tags(static::getVerbal($rec, 'number'));
+    	$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	$num = ($row->number) ? $row->number : $rec->id;
     
     	return tr("|{$row->type}|* №{$num}");
