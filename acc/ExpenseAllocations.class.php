@@ -609,8 +609,10 @@ class acc_ExpenseAllocations extends core_Master
     		}
     		
     		// Ако не е уточнено как се разпределя, отива към неразпределени
-    		$obj->expenseItemId = self::getUnallocatedItemId();
-    		$obj->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
+    		if(empty($obj->expenseItemId)) {
+    			$obj->expenseItemId = self::getUnallocatedItemId();
+    			$obj->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
+    		}
     	}
     	
     	// Задължително трябва да има разходно перо
