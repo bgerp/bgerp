@@ -112,7 +112,8 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 			$r->originRecId = $dRec->id;
 			$r->packPrice = deals_Helper::getDisplayPrice($dRec->{$mvc->packPriceFld}, 0.2, $rec->currencyRate, $rec->chargeVat);
 			$r->discount = $dRec->{$mvc->discountFld};
-	
+			$r->currencyCode = $rec->currencyId;
+			
 			foreach (array('productId', 'packagingId', 'quantityInPack', 'quantity') as $fld){
 				$r->{$fld} = $dRec->{$mvc->{"{$fld}Fld"}};
 			}
