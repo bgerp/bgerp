@@ -60,13 +60,29 @@ class cad2_Ellipse  extends cad2_Shape {
 
 
     /**
-     * Метод за изчертаване на окръжност в текущата точка, с радиус $r
+     * Метод за изчертаване на елиппса в текущата точка, с радиуси $r1 и  $r2
      */
     public static function draw($svg, $x, $y, $r1, $r2)
     {
         $rRatio = $r1/$r2;
 
         for($angle=0;  $angle < 2*pi();  $angle+=0.01) {
+            $x1 = $x + $r1 * cos($angle);
+            $y1 = $y - $rRatio * $r1 *sin($angle);
+
+            $svg->lineTo($x1, $y1, TRUE);
+        }
+    }
+
+
+    /**
+     * Метод за изчертаване на окръжност в текущата точка, с радиус $r
+     */
+    public static function drawArcOfEllipse($svg, $x, $y, $r1, $r2, $angle1, $angle2)
+    {
+        $rRatio = $r1/$r2;
+
+        for($angle=$angle1;  $angle > $angle2;  $angle-=0.01) {
             $x1 = $x + $r1 * cos($angle);
             $y1 = $y - $rRatio * $r1 *sin($angle);
 
