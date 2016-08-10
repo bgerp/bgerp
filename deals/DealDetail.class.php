@@ -328,10 +328,7 @@ abstract class deals_DealDetail extends doc_Detail
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		
     		// Ако има информация за разход
-    		if(isset($rec->expenseItemId)){
-    			$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-    			$row->productId .= "<div class='small'><b>" . tr('Разход за') . "</b>: {$eItem}</div>";
-    		}
+    		$row->productId .= acc_ExpenseAllocations::displayExpenseItemId($rec->expenseItemId, $rec->productId);
     		
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

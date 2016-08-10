@@ -665,4 +665,24 @@ class acc_ExpenseAllocations extends core_Master
     	$msg = "Реконтиране на|* #{$origin->getHandle()}";
     	core_Statuses::newStatus($msg);
     }
+    
+    
+    /**
+     * Визуализиране на направения разход
+     * 
+     * @param int|NULL $expenseItemId - ид на перо на разход, или NULL ако няма
+     * @param int $productId          - ид на артикул
+     * @return string $string         - визуализирането на разхода
+     */
+    public static function displayExpenseItemId($expenseItemId, $productId)
+    {
+    	$string = '';
+    	
+    	if(isset($expenseItemId)){
+    		$eItem = acc_Items::getVerbal($expenseItemId, 'titleLink');
+    		$string = "<div class='small'><b class='quiet'>" . tr('Разход за') . "</b>: {$eItem}</div>";
+    	}
+    	
+    	return $string;
+    }
 }

@@ -283,9 +283,7 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     	
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-    	
-    	$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-    	$row->productId .= "<div class='small'><b class='quiet'>" . tr('Разход за') . "</b>: {$eItem}</div>";
+    	$row->productId .= acc_ExpenseAllocations::displayExpenseItemId($rec->expenseItemId, $rec->productId);
     }
     
     

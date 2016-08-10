@@ -159,10 +159,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
-    			if(isset($rec->expenseItemId)){
-    				$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-    				$row->productId .= "<div class='small'><b class='quiet1'>" . tr('Разход за') . "</b>: {$eItem}</div>";
-    			}
+    			$row->productId .= acc_ExpenseAllocations::displayExpenseItemId($rec->expenseItemId, $rec->productId);
     			
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";

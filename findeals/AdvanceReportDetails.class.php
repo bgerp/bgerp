@@ -175,10 +175,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	$rec->amount /= $masterRec->rate;
     	$rec->amount *= 1 + $rec->vat;
     	
-    	if(isset($rec->expenseItemId)){
-    		$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-    		$row->productId .= "<div class='small'><b>" . tr('Разход за') . "</b>: {$eItem}</div>";
-    	}
+    	$row->productId .= acc_ExpenseAllocations::displayExpenseItemId($rec->expenseItemId, $rec->productId);
     	
     	if(!empty($rec->description)){
     		$row->productId .= "<div class='small'>{$row->description}</div>";
