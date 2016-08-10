@@ -634,7 +634,7 @@ if($step == 3) {
 
     // Необходими модули на PHP
     $log[] = 'h:Проверка за необходимите PHP модули:';
-    $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
+    $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date',
                                 'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
                                 'mbstring', 'mysql', 'pcre', 'session', 'SimpleXML',
                                 'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap', 'curl');
