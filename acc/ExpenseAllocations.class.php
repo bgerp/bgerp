@@ -259,8 +259,8 @@ class acc_ExpenseAllocations extends core_Master
     		
     		// Ако към ориджина има вече документ за разпределяне на разходи, не може да се добавя
     		if(acc_ExpenseAllocations::fetchField("#originId = {$rec->originId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
-    			//$requiredRoles = 'no_one';
-    			//return;
+    			$requiredRoles = 'no_one';
+    			return;
     		}
     		 
     		// Към кой документ, ще се добавя разпределят разходи
@@ -269,8 +269,8 @@ class acc_ExpenseAllocations extends core_Master
     		//... и да е активен
     		$state = $origin->fetchField('state');
     		if($state != 'active'){
-    			//$requiredRoles = 'no_one';
-    			//return;
+    			$requiredRoles = 'no_one';
+    			return;
     		}
     		
     		// Ако към оригиния документ не може да се разпределят разходи, не може да се създава документ към него
@@ -562,12 +562,12 @@ class acc_ExpenseAllocations extends core_Master
     		// Ако няма разходен обект
     		if(empty($obj->expenseItemId)) {
     			// Проверка имали към документа, документ за разпределяне на разходи
-    			if($id = self::fetchField(array("#originId = [#1#] AND #state != 'rejected'", $originId))){
-    		
+    			if($id = self::fetchField(array("#originId = [#1#] AND #state = 'active'", $originId))){
+    				
 	    			// Опит за връщане на обработените записи от документа
 	    			acc_journal_Exception::expect(!$expenseItemId, 'Наличен разход в документ, при пуснато разпределение на разходи');
 	    			$dRecs = self::getRowRecs($id, $recId, $productId, $quantity, $amount);
-	    		
+	    			
 	    			// Ако има записи се връщат директно
 	    			if(count($dRecs)) return $dRecs;
     			}

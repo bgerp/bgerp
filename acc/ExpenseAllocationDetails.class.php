@@ -62,7 +62,7 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_AlignDecimals2, plg_SaveAndNew, plg_RowZebra';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_AlignDecimals2, plg_SaveAndNew, plg_RowZebra, plg_RowNumbering';
     
     
     /**
