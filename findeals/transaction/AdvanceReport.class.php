@@ -46,7 +46,8 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
     	$dQuery->where("#reportId = '{$rec->id}'");
     	while($dRec = $dQuery->fetch()){
     		
-    		$splitRecs = deals_Helper::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount);
+    		// Към кои разходни обекти ще се разпределят разходите
+    		$splitRecs = acc_ExpenseAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->id, $dRec->amount);
     		
     		foreach ($splitRecs as $dRec1){
     			$amount = round($dRec1->amount, 2);

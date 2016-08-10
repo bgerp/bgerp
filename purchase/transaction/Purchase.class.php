@@ -164,7 +164,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	$pInfo = cat_Products::getProductInfo($dRec->productId);
         	if(isset($pInfo->meta['canStore'])) continue;
         	
-        	$splitRecs = deals_Helper::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->discount);
+        	// Към кои разходни обекти ще се разпределят разходите
+        	$splitRecs = acc_ExpenseAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->id, $dRec->discount);
         	
         	foreach ($splitRecs as $dRec1){
         		$amount = $dRec1->amount;

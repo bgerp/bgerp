@@ -17,6 +17,12 @@ class acc_ExpenseAllocations extends core_Master
 {
     
 	
+	/**
+	 * Име на перото за неразпределени разходи
+	 */
+	const UNALLOCATED_ITEM_NAME = 'Неразпределени разходи';
+
+	
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -197,7 +203,7 @@ class acc_ExpenseAllocations extends core_Master
     	foreach ($arr as $k => $v){
     		
     		 // Ако има динамични полета във формата
-    		 if(strpos($k, "|") != FALSE){
+    		 if(strpos($k, "|") !== FALSE){
     		 	$split = explode('|', $k);
     		 	$recsToSave[$split[1]][$split[0]] = $v;
     		 }
@@ -250,7 +256,6 @@ class acc_ExpenseAllocations extends core_Master
     			$requiredRoles = 'no_one';
     			return;
     		}
-    		
     		
     		// Ако към ориджина има вече документ за разпределяне на разходи, не може да се добавя
     		if(acc_ExpenseAllocations::fetchField("#originId = {$rec->originId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
@@ -405,6 +410,182 @@ class acc_ExpenseAllocations extends core_Master
     	// Връщаме кешираната информация
     	$res = isset($recId) ? static::$cache[$originId][$recId] : static::$cache[$originId];
     	
+    	return $res;
+    }
+    
+    
+    /**
+     * Форсира ид-то на перото за неразпределени разходи
+     * 
+     * @return int - ид на перото
+     */
+    public static function getUnallocatedItemId()
+    {
+    	return acc_Items::forceSystemItem(self::UNALLOCATED_ITEM_NAME, 'unallocated', 'costObjects')->id;
+    }
+    
+    
+    /**
+     * Помощен метод обработващ записите за подаден ред
+     * 
+     * @param int $id          - ид на запис
+     * @param int $originRecId - ид на запис от оригиналния документ
+     * @param int $productId   - ид на артикул
+     * @param double $quantity - оригинално к-во
+     * @param double $amount   - обща сума за разпределяне
+     * @return array $res      - обработените записи
+     * 		о amount        - сума за разпределяне
+     * 		o productId     - ид на артикула
+     * 		о quantity      - к-во за разпределяне
+     * 		o reason        - описание на контировката
+     * 		o expenseItemId - ид-то на перото към което ще се разпределя
+     */
+    private static function getRowRecs($id, $originRecId, $productId, $quantity, $amount)
+    {
+    	$res = array();
+    	
+    	// Извличане на записите за въпросния ред от оригиналния документ
+    	$dQuery = acc_ExpenseAllocationDetails::getQuery();
+    	$dQuery->where(array("#allocationId = [#1#] AND #originRecId = [#2#]", $id, $originRecId));
+    	$dRecs = $dQuery->fetchAll();
+    	
+    	// Запомнят се общата сума и к-во за разпределяне
+    	$totalQuantity = $quantity;
+    	$totalAmount = $amount;
+    	
+    	// Ако са намерени записи
+    	if(is_array($dRecs) && count($dRecs)){
+    		$dRecs = array_values($dRecs);
+    		
+    		// За всеки запис
+    		for($i = 0; $i <= count($dRecs) - 1; $i++){
+    			$dRec = $dRecs[$i];
+    	
+    			// Подготвят се данните за разпределяне
+    			$r = (object)array('productId' => $productId);
+    			$r->reason = 'Приети услуги и нескладируеми консумативи';
+    			
+    			$r->expenseItemId = $dRec->expenseItemId;
+    			acc_journal_Exception::expect($r->expenseItemId, 'Невалиден раход');
+    			acc_journal_Exception::expect($dRec->productId == $productId, 'Невалиден артикул');
+    				
+    			// Задаване на к-то и приспадане
+    			$r->quantity = $dRec->quantity;
+    			$quantity -= $r->quantity;
+    			
+    			// пропорционално изчисляване на сумата и приспадане
+    			$r->amount = round($r->quantity / $totalQuantity * $totalAmount, 2);
+    			$amount -= $r->amount;
+    	
+    			// Добавяне на редовете
+    			$res[] = $r;
+    		}
+    		
+    		// Ако има неразпределено количество
+    		if($quantity > 0){
+    			
+    			// Неразпределеното количество, се отнася към неразпределения разход обект
+    			$r = (object)array('productId' => $productId);
+    			$r->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
+    			$r->expenseItemId = self::getUnallocatedItemId();
+    			$r->quantity = $quantity;
+    			$r->amount = $amount;
+    			 
+    			$res[] = $r;
+    		}
+    	}
+    	
+    	// Връщане на намерените резултати
+    	return $res;
+    }
+    
+    
+    /**
+     * Помощна ф-я, определяща как ще се разпределят редовете по разходи
+     * Вика се от документите за купуване на услуги. Там за всеки запис на невложима и не ДМА услуга, 
+     * се проверява как трябва да се разпредели по разходи, Ако в записа има перо за разпределяне директно се
+     * разпределя, Ако няма се проверява дали има към документа, документ за разпределяне на разходи.
+     * Ако има се гледа какво к-во от оригиналния ред към кой разход се отнася, неразпределеното се отнася към
+     * неразпределените.
+     * 
+     * Ако артикула е невложим и не е ДМА:
+     * Ако в реда от оригиналния документ имаме разходен обект към него.
+     * Ако няма се гледа имали документ за Разпределение на разходи към документа, в които е разпределено
+     * к-во от реда, ако има се разбива записа по-количествата, а остатъка отива към неразпределени
+     * 
+     * Ако артикула е Вложим, винаги отива към неразпределени.
+     * Ако е ДМА се разпределя към себе си.
+     * 
+     * @param int $originId         - ориджин на документа
+     * @param int $productId        - ид на артикул
+     * @param double $quantity      - к-во от оригиналния документ
+     * @param int $expenseItemId    - перо за разпределяне от оригиналния документ
+     * @param double $amount        - сума на реда за разпределяне
+     * @param int $recId            - ид на реда, който ще се разпределя
+     * @param double|NULL $discount - отстъпката от цената, ако има
+     * @return array $res           - масив с данни за контировката на услугата
+     * 			о amount        - сума за разпределяне
+     * 			o productId     - ид на артикула
+     * 			о quantity      - к-во за разпределяне
+     * 			o reason        - описание на контировката
+     * 			o expenseItemId - ид-то на перото към което ще се разпределя
+     */
+    public static function getRecsByExpenses($originId, $productId, $quantity, $expenseItemId, $amount, $recId, $discount = NULL)
+    {
+    	$res = array();
+    	
+    	// Ако артикула е складируем, се пропуска
+    	$pInfo = cat_Products::getProductInfo($productId);
+    	if(isset($pInfo->meta['canStore'])) return $res;
+    
+    	// От сумата се приспада отстъпката, ако има
+    	$amount = ($discount) ?  $amount * (1 - $discount) : $amount;
+    
+    	$obj = (object)array('productId'     => $productId, 
+    						 'quantity'      => $quantity, 
+    						 'expenseItemId' => $expenseItemId,
+    						 'amount'        => round($amount, 2),
+    						 'reason'        => 'Приети услуги и нескладируеми консумативи');
+    	
+    	if(isset($pInfo->meta['fixedAsset'])){
+    		
+    		// Ако артикула е ДМА се отнася като разход към себе си
+    		$obj->expenseItemId = array('cat_Products', $productId);
+    		$obj->reason = 'Приети ДА';
+    	} elseif($pInfo->meta['canConvert']){
+    		
+    		// Ако артикула е вложим, отива към 'неразпределени'
+    		$obj->expenseItemId = self::getUnallocatedItemId();
+    		$obj->reason = 'Приети услуги и нескладируеми консумативи за производството';
+    	} else {
+    		
+    		// Ако няма разходен обект
+    		if(empty($obj->expenseItemId)) {
+    			// Проверка имали към документа, документ за разпределяне на разходи
+    			if($id = self::fetchField(array("#originId = [#1#] AND #state != 'rejected'", $originId))){
+    		
+	    			// Опит за връщане на обработените записи от документа
+	    			acc_journal_Exception::expect(!$expenseItemId, 'Наличен разход в документ, при пуснато разпределение на разходи');
+	    			$dRecs = self::getRowRecs($id, $recId, $productId, $quantity, $amount);
+	    		
+	    			// Ако има записи се връщат директно
+	    			if(count($dRecs)) return $dRecs;
+    			}
+    		}
+    		
+    		// Ако не е уточнено как се разпределя, отива към неразпределени
+    		$obj->expenseItemId = self::getUnallocatedItemId();
+    		$obj->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
+    	}
+    	
+    	// Задължително трябва да има разходно перо
+    	if(!is_array($obj->expenseItemId)){
+    		acc_journal_Exception::expect(acc_Items::fetch($obj->expenseItemId), 'Невалидно разходно перо');
+    	}
+    	
+    	$res[] = $obj;
+    
+    	// връщане на редовете
     	return $res;
     }
 }
