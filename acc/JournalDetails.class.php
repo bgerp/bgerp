@@ -277,8 +277,9 @@ class acc_JournalDetails extends core_Detail
     
     /**
      * Коя е основната валута за посочения период
-     * @param unknown $valior
-     * @return multitype:
+     * 
+     * @param date $valior - вальор
+     * @return int
      */
     public static function getBaseCurrencyItemId($valior)
     {
