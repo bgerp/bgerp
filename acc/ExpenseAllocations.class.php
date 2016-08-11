@@ -114,6 +114,12 @@ class acc_ExpenseAllocations extends core_Master
     
     
     /**
+     * Икона на единичния обект
+     */
+    public $singleIcon = 'img/16/chart16.png';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
