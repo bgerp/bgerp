@@ -42,7 +42,7 @@ class findeals_AdvanceReports extends core_Master
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Printing, acc_plg_Contable, 
                     doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,acc_plg_ExpenseAllocation';
 
     
     /**
@@ -108,9 +108,15 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'findeals_AdvanceReportDetails' ;
+    public $details = 'findeals_AdvanceReportDetails';
     
 
+    /**
+     * Кой е основния детайл
+     */
+    public $mainDetail = 'findeals_AdvanceReportDetails';
+    
+    
     /**
      * Заглавие в единствено число
      */
