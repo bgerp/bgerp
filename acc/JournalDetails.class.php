@@ -275,14 +275,20 @@ class acc_JournalDetails extends core_Detail
     }
     
     
+    /**
+     * Коя е основната валута за посочения период
+     * @param unknown $valior
+     * @return multitype:
+     */
     public static function getBaseCurrencyItemId($valior)
     {
-    	if(!array_key_exists("{$valior}", self::$baseCurrencyItems)){
-    		$currencyId = acc_Periods::getBaseCurrencyId($valior);
-    		self::$baseCurrencyItems["{$valior}"] = acc_Items::fetchItem('currency_Currencies', $currencyId)->id;
+    	$periodRec = acc_Periods::fetchByDate($valior);
+    	
+    	if(!array_key_exists("{$periodRec->id}", self::$baseCurrencyItems)){
+    		self::$baseCurrencyItems["{$periodRec->id}"] = acc_Items::fetchItem('currency_Currencies', acc_Periods::getBaseCurrencyId($valior))->id;
     	}
     	
-    	return self::$baseCurrencyItems["{$valior}"];
+    	return self::$baseCurrencyItems["{$periodRec->id}"];
     }
     
     
@@ -322,9 +328,9 @@ class acc_JournalDetails extends core_Detail
     			// И то е различно от сумата на реда замества се
     			// Така се подсигуряваме че К-то и сумата на основната валута винаги ще са еднакви
     			if(trim($replaceAmount) != trim($rec->amount)){
-    				$msg = "Replace journalId {$rec->journalId} amount '{$rec->amount}' with '{$replaceAmount}'";
+    				$msg = "Replace amount '{$rec->amount}' with '{$replaceAmount}'";
     				$rec->amount = $replaceAmount;
-    				$this->logDebug($msg);
+    				acc_Journal::logDebug($msg, $rec->journalId);
     			}
     		}
     	}
