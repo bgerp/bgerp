@@ -60,6 +60,12 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
+     * Работен кеш
+     */
+    protected static $baseCurrencyItems = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -266,5 +272,67 @@ class acc_JournalDetails extends core_Detail
         if($rec->reasonCode){
         	$row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$row->reasonCode}</div>";
         }
+    }
+    
+    
+    public static function getBaseCurrencyItemId($valior)
+    {
+    	if(!array_key_exists("{$valior}", self::$baseCurrencyItems)){
+    		$currencyId = acc_Periods::getBaseCurrencyId($valior);
+    		self::$baseCurrencyItems["{$valior}"] = acc_Items::fetchItem('currency_Currencies', $currencyId)->id;
+    	}
+    	
+    	return self::$baseCurrencyItems["{$valior}"];
+    }
+    
+    
+    /**
+     * Записва редът (записа) в таблицата
+     */
+    function save_(&$rec, $fields = NULL, $mode = NULL)
+    {
+    	if(empty($fields)){
+    		
+    		// Кое е перото на основната валута за периода
+    		$valior = ($rec->valior) ? $rec->valior : acc_Journal::fetchField($rec->journalId, 'valior');
+    		$baseCurrencyItemId = self::getBaseCurrencyItemId($valior);
+    		 
+    		$replaceAmount = FALSE;
+    		
+    		// Обикаляме дебита и кредита, гледа се имали перо на основната валута.
+    		foreach (array('debit', 'credit') as $type){
+    			foreach (range(3, 1) as $i){
+    				$fld = $rec->{"{$type}Item{$i}"};
+    				if(!empty($fld)){
+    					
+    					// Ако има перо на основната валута запомняме и количеството
+    					if($fld === $baseCurrencyItemId){
+    						$replaceAmount = $rec->{"{$type}Quantity"};
+    						break;
+    					}
+    				}
+    			}
+    			
+    			if($replaceAmount !== FALSE) break;
+    		}
+    		
+    		// Ако е намерено к-во на основната валута
+    		if($replaceAmount !== FALSE){
+    			
+    			// И то е различно от сумата на реда замества се
+    			// Така се подсигуряваме че К-то и сумата на основната валута винаги ще са еднакви
+    			if(trim($replaceAmount) != trim($rec->amount)){
+    				$msg = "Replace journalId {$rec->journalId} amount '{$rec->amount}' with '{$replaceAmount}'";
+    				$rec->amount = $replaceAmount;
+    				$this->logDebug($msg);
+    			}
+    		}
+    	}
+    	
+    	// Викане на ф-ята за запис от бащата на класа
+    	$id = parent::save_($rec, $fields, $mode);
+    	 
+    	// Връщане на резултата от записа
+    	return $id;
     }
 }
