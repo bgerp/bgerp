@@ -191,7 +191,7 @@ class cat_products_Params extends doc_Detail
     {
     	$rec = $data->form->rec;
     	if(isset($rec->classId) && isset($rec->productId)){
-    		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id);
+    		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
     }
     
