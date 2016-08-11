@@ -372,15 +372,8 @@ class findeals_AdvanceReports extends core_Master
     {
     	$rec = $data->rec;
     	
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$Companies = cls::get('crm_Companies');
-    	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$data->row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE);
-    	
-    	$ContragentClass = cls::get($data->rec->contragentClassId);
-    	$cData = $ContragentClass->getContragentData($data->rec->contragentId);
-    	$data->row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-    	$data->row->contragentAddress = $ContragentClass->getFullAdress($data->rec->contragentId)->getContent();
+    	$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+    	$data->row = (object)((array)$data->row + (array)$headerInfo);
     }
     
     

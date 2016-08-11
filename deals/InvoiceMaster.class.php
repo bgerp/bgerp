@@ -225,26 +225,6 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
-     * Подготвя вербалните данни на моята фирма
-     */
-    protected function prepareMyCompanyInfo(&$row)
-    {
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$Companies = cls::get('crm_Companies');
-    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = core_Lg::transliterate(tr($row->MyCompany));
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
-    	
-    	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-    	if($uic != $ownCompanyData->vatNo){
-    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
-    	}
-    
-    	$row->uicId = $uic;
-    }
-
-
-    /**
      * След подготовка на тулбара на единичен изглед.
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
@@ -885,7 +865,12 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     		
-    		$mvc->prepareMyCompanyInfo($row);
+    		// Вербална обработка на данните на моята фирма и името на контрагента
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+    		foreach (array('MyCompany', 'MyAddress', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld){
+    			$row->{$fld} = $headerInfo[$fld];
+    		}
+    		
     		core_Lg::pop();
     	}
     }

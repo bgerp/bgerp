@@ -713,4 +713,66 @@ abstract class deals_Helper
 		
 		return TRUE;
 	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща подходящо представяне на клиентсктие данни и тези на моята фирма
+	 * в бизнес документите
+	 * 
+	 * @param mixed $contragentClass - клас на контрагента
+	 * @param int $contragentId      - ид на контрагента
+	 * @param int $contragentName    - името на контрагента, ако е предварително известно
+	 * @return array $res
+	 * 				['MyCompany']         - Името на моята фирма
+	 * 				['MyAddress']         - Адреса на моята фирма
+	 * 				['MyCompanyVatNo']    - ДДС номера на моята фирма
+	 * 				['uicId']             - Националния номер на моята фирма
+	 *  			['contragentName']    - Името на контрагента
+	 *   			['contragentAddress'] - Адреса на контрагента
+	 *              ['vatNo']             - ДДС номера на контрагента
+	 */
+	public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = NULL)
+	{
+		$res = array();
+		
+		// Данните на 'Моята фирма'
+		$ownCompanyData = crm_Companies::fetchOwnCompany();
+		
+		// Името и адреса на 'Моята фирма'
+		$Companies = cls::get('crm_Companies');
+		$res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+		$res['MyCompany'] = transliterate(tr($res['MyCompany']));
+		$res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
+		
+		// ДДС и националния номер на 'Моята фирма'
+		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+		if($uic != $ownCompanyData->vatNo){
+			$res['MyCompanyVatNo'] = $ownCompanyData->vatNo;
+		}
+		$res['uicId'] = $uic;
+			
+		// името, адреса и ДДС номера на контрагента
+		if(isset($contragentClass) && isset($contragentId)){
+			$ContragentClass = cls::get($contragentClass);
+			$cData = $ContragentClass->getContragentData($contragentId);
+			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
+			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
+			$res['vatNo'] = $cData->vatNo;
+		}
+		
+		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml'));
+		
+		// Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
+		if($makeLink === TRUE){
+			$res['MyCompany'] = ht::createLink($res['MyCompany'], crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
+			$res['MyCompany'] = $res['MyCompany']->getContent();
+			
+			if(isset($contragentClass) && isset($contragentId)){
+				$res['contragentName'] = ht::createLink($res['contragentName'], $ContragentClass::getSingleUrlArray($contragentId));
+				$res['contragentName'] = $res['contragentName']->getContent();
+			}
+		}
+		
+		return $res;
+	}
 }

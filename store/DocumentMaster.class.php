@@ -243,32 +243,6 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Подготвя данните на хедъра на документа
-     */
-    public static function prepareHeaderInfo(&$row, $rec)
-    {
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$Companies = cls::get('crm_Companies');
-    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = transliterate(tr($row->MyCompany));
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
-    	
-    	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-    	if($uic != $ownCompanyData->vatNo){
-    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
-    	}
-    	$row->uicId = $uic;
-    	 
-    	// Данните на клиента
-    	$ContragentClass = cls::get($rec->contragentClassId);
-    	$cData = $ContragentClass->getContragentData($rec->contragentId);
-    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-    	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-    	$row->vatNo = $cData->vatNo;
-    }
-    
-    
-    /**
      * След рендиране на сингъла
      */
    public static function on_AfterRenderSingle($mvc, $tpl, $data)
@@ -324,7 +298,8 @@ abstract class store_DocumentMaster extends core_Master
 	   		
 	   		core_Lg::push($rec->tplLang);
 	   		
-	   		self::prepareHeaderInfo($row, $rec);
+	   		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+    		$row = (object)((array)$row + (array)$headerInfo);
 	   		
 	   		if($rec->locationId){
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
