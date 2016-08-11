@@ -520,8 +520,10 @@ class log_Data extends core_Manager
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);
         $data->listFilter->setDefault('users', $default);
         
-        // По - подразбиране да се търси месец назад
-        $data->listFilter->setDefault('from', dt::subtractSecs(type_Time::SECONDS_IN_MONTH));
+        if (is_null(Request::get('class'))) {
+            // По - подразбиране да се търси месец назад
+            $data->listFilter->setDefault('from', dt::subtractSecs(type_Time::SECONDS_IN_MONTH));
+        }
         
         $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
         
@@ -529,7 +531,7 @@ class log_Data extends core_Manager
         
         $data->listFilter->view = 'vertical';
         
-        $data->listFilter->input($data->listFilter->showFields);
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
         
         $rec = $data->listFilter->rec;
         $query = $data->query;
