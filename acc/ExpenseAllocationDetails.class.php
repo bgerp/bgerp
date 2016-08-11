@@ -153,6 +153,10 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     			$form->setDefault($fld, $originRecs[$rec->originRecId]->{$fld});
     		}
     		
+    		$shortUom = cat_UoM::getShortName($form->rec->packagingId);
+    		$quantityVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($originRecs[$rec->originRecId]->quantity);
+    		$form->info = tr("К-во за разпределяне|*: <b>{$quantityVerbal} {$shortUom}</b>");
+    		
     		// Какво количество остава за разпределяне 
     		$allocatedQuantity = $mvc->getAllocatedInDocument($rec->allocationId, $rec->originRecId);
     		$quantityByFar = $originRecs[$rec->originRecId]->quantity - $allocatedQuantity;
@@ -164,14 +168,11 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     		}
     		
     		// Показване на мярката и колко е разпределено с документа до сега
-    		if(isset($rec->packagingId)){
-    			$shortUom = cat_UoM::getShortName($rec->packagingId);
-    			if(empty($rec->id)){
-    				$shortUom .= "|* (|разпределено|* <b>{$quantityAllocatedVerbal}</b>)";
-    			}
-    			
-    			$form->setField('quantity', "unit={$shortUom}");
+    		if(empty($rec->id)){
+    			$shortUom .= "|* (|разпределено|* <b>{$quantityAllocatedVerbal}</b>)";
     		}
+    			
+    		$form->setField('quantity', "unit={$shortUom}");
     	}
     }
     
@@ -268,7 +269,6 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$originId = acc_ExpenseAllocations::fetchField($rec->allocationId, 'originId');
-    	
     	$originRec = acc_ExpenseAllocations::getRecsForAllocationFromOrigin($originId, $rec->originRecId);
     	
     	// Вербално показване на данните от реда
