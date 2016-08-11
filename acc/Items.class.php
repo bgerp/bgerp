@@ -690,55 +690,43 @@ class acc_Items extends core_Manager
         expect($listRec = acc_Lists::fetch($listId));
         
         $intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
-        $options = core_Classes::getOptionsByInterface($intName);
+        $options = core_Classes::getOptionsByInterface($intName, 'title');
         $listTitle = acc_Lists::getVerbal($listId, 'name');
         
         $form = cls::get('core_Form');
         $form->title = "Добавяне на пера към номенклатура|* '{$listTitle}'";
         
-        foreach ($options as $className){
-            $this->prepareInsertForm($form, $className, $listId);
-        }
+        $this->prepareInsertForm($form, $options, $listId);
+        
         $form->input();
-        
-        $fields = $form->selectFields();
-        
-        // Ако няма налични пера редирект
-        if(!count($fields)) return followRetUrl(NULL, tr('Няма налични пера за избор'));
-        
+       
         if($form->isSubmitted()){
-            $areAdded = FALSE;
-            $fieldNames = '';
+            $count = 0;
+            $rec = $form->rec;
+            $Class = cls::get($rec->classId);
             
-            foreach ($fields as $name => $fld){
-                $fieldNames .= "$name,";
-                
-                if($items = keylist::toArray($form->rec->{$name})){
-                    foreach($items as $id){
-                        
-                        // Всеки избран запис, се добавя като перо към номенклатурата
-                        acc_Lists::addItem($listId, $name, $id);
-                        $areAdded = TRUE;
-                    }
-                }
-            }
-            
-            // Трябва да има поне едно избрано перо да се добави
-            if(empty($areAdded)){
-                $form->setError($fieldNames, 'Не са избрани пера');
+            $items = keylist::toArray($form->rec->objects);
+            if(count($items)){
+            	foreach($items as $id){
+            		acc_Lists::addItem($listId, $Class->className, $id);
+            		$count++;
+            	}
             }
             
             if(!$form->gotErrors()){
-                return followRetUrl(NULL, tr('Перата са добавени успешно'));
+            	$listName = acc_Lists::getVerbal($listId, 'name');
+            	$title = ($count == 1) ? $Class->singleTitle : $Class->title;
+            	$title = mb_strtolower($title);
+                return followRetUrl(NULL, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
-        
+       
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite("Добавяне на обекти, като пера");
-        
+       
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -775,43 +763,51 @@ class acc_Items extends core_Manager
      * @param mixed $className - име на клас
      * @param int $listId - ид на наменклатура
      */
-    private function prepareInsertForm(core_Form &$form, $className, $listId)
+    private function prepareInsertForm(core_Form &$form, $options, $listId)
     {
-        $options = array();
-        core_Debug::$isLogging = FALSE;
-        $Class = cls::get($className);
-        
-        // Намират се перата, които вече участват на този мениджър
-        $items = static::getClassItems($Class, $listId);
-        
-        // Извличат се всички записи на мениджъра, които не са пера
-        $query = $Class->getQuery();
-        $query->where("#state != 'rejected'");
-        
-        if(count($items)){
-            $query->notIn('id', $items);
-        }
-        $query->show('id,state');
-        
-        // Дали е документ
-        $isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
-        
-        core_Mode::push('text', 'plain');
-        while ($cRec = $query->fetch()){
+		$form->FLD('classId', 'int', 'caption=Мениджър,mandatory,silent,removeAndRefreshForm=objects');
+    	
+    	if(count($options) > 1){
+    		$options = array('' => '') + $options;
+    	}
+		
+		$form->setOptions('classId', $options);
+		
+		if(count($options) == 1){
+			$form->setDefault('classId', key($options));
+		}
+		
+		$form->input(NULL, 'silent');
+		$rec = $form->rec;
+		
+		if(isset($rec->classId)){
+			core_Debug::$isLogging = FALSE;
+			
+			$form->FLD('objects', "keylist(mvc={$Class->className})", "caption=Избор");
+			$Class = cls::get($rec->classId);
+			$items = static::getClassItems($Class, $listId);
+			$query = $Class->getQuery();
+			$query->where("#state != 'rejected' AND #state != 'closed'");
+			if(count($items)){
+				$query->notIn('id', $items);
+			}
+			
+			$isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
+			core_App::setTimeLimit($query->count() * 0.015);
+			
+			$suggestions = array();
+			core_Mode::push('text', 'plain');
+        	while ($cRec = $query->fetch()){
             
-            // Ако е документ и е чернова, не може да стане перо
-            if($isDoc && $cRec->state == 'draft') continue;
-            
-            $options[$cRec->id] = $Class->getTitleById($cRec->id);
-        }
-        core_Mode::pop('text');
-        		
-        if(count($options)) {
-            $form->FNC($className, "keylist(mvc={$className},maxSuggestions=1)", "caption={$Class->title},input,columns=1");
-            $form->setSuggestions($className, $options);
-        }
-        
-        core_Debug::$isLogging = TRUE;
+            	// Ако е документ и е чернова, не може да стане перо
+            	if($isDoc && $cRec->state == 'draft') continue;
+            	$suggestions[$cRec->id] = $Class->getRecTitle($cRec);
+        	}
+        	core_Mode::pop('text');
+        	
+        	$form->setSuggestions('objects', $suggestions);
+        	core_Debug::$isLogging = TRUE;
+		}
     }
     
     
