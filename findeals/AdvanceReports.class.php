@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'findeals_AdvanceReports'
  *
@@ -18,12 +19,6 @@ class findeals_AdvanceReports extends core_Master
 {
     
 	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'deals_AdvanceReports';
-	
-    
     /**
      * Заглавие
      */
@@ -45,7 +40,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
+    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Printing, acc_plg_Contable, 
                     doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
 
@@ -143,13 +138,13 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'total';
+    public $priceFields = 'value,discountValue,neto,vat02BaseAmount,vat02Amount,vat009BaseAmount,vat009Amount,vat0BaseAmount,vat0Amount,total,sayWords';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior,number,folderId, id';
+    public $searchFields = 'valior,folderId';
     
     
     /**
@@ -159,14 +154,17 @@ class findeals_AdvanceReports extends core_Master
     {
     	$this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$this->FLD("valior", 'date', 'caption=Дата, mandatory');
-    	$this->FLD("number", 'int', 'caption=Номер');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,removeAndRefreshForm=rate');
-    	$this->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
-    	$this->FLD('total', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=currencyRate');
+    	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden,oldFieldName=rate');
+    	$this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
+    	$this->FLD('amountVat', 'double(decimals=2)', 'input=none');
+    	$this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
+    	
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
     	$this->FLD('contragentId', 'int', 'input=hidden');
+    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС');
     	
     	$this->setDbUnique('number');
     }
@@ -189,7 +187,7 @@ class findeals_AdvanceReports extends core_Master
     	$form->dealInfo = $dealInfo;
     	$form->setDefault('operationSysId', 'debitDeals');
     	
-    	$form->setDefault('currencyId', currency_Currencies::getIdByCode($dealInfo->get('currency')));
+    	$form->setDefault('currencyId', $dealInfo->get('currency'));
     	$Cover = doc_Folders::getCover($form->rec->folderId);
     	
     	$form->setDefault('contragentClassId', $Cover->getClassId());
@@ -198,6 +196,7 @@ class findeals_AdvanceReports extends core_Master
     	if(isset($form->rec->id)){
     		if(findeals_AdvanceReportDetails::fetchField("#reportId = {$form->rec->id}", 'id')){
     			$form->setReadOnly('currencyId');
+    			$form->setReadOnly('chargeVat');
     		}
     	}
     }
@@ -214,38 +213,12 @@ class findeals_AdvanceReports extends core_Master
     		$operations = $form->dealInfo->get('allowedPaymentOperations');
     		$operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
     		$rec->creditAccount = $operation['credit'];
+    		$rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     		
-    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
-    		
-    		if(!$rec->rate){
-    			$form->setError('rate', "Не може да се изчисли курс");
+    		if(!$rec->currencyRate){
+    			$form->setError('currencyRate', "Не може да се изчисли курс");
     		}
     	}
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     */
-    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	// Ако след запис, няма номер, тогава номера му става ид-то на документа
-    	if(!$rec->number){
-    		$rec->number = $rec->id;
-    		$mvc->save($rec);
-    	}
-    }
-    
-    
-    /**
-     *  Обработки по вербалното представяне на данните
-     */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    	$rec->total /= $rec->rate;
-    	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
-    	$row->title = $mvc->getLink($rec->id, 0);
     }
     
     
@@ -258,15 +231,22 @@ class findeals_AdvanceReports extends core_Master
     public function updateMaster_($id)
     {
     	$rec = $this->fetchRec($id);
-    	$rec->total = 0;
-    	
-    	$query = findeals_AdvanceReportDetails::getQuery();
-    	$query->where("#reportId = '{$id}'");
-    	while($dRec = $query->fetch()){
-    		$rec->total += $dRec->amount * (1 + $dRec->vat);
-    	}
-    
-    	return $this->save($rec);
+		 
+		$query = findeals_AdvanceReportDetails::getQuery();
+		$query->where("#reportId = '{$id}'");
+		$recs = $query->fetchAll();
+	
+		deals_Helper::fillRecs($this, $recs, $rec);
+	
+		// ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
+		$amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+		$amount -= $this->_total->discount;
+		
+		$rec->amount = $amount * $rec->currencyRate;
+		$rec->amountVat = $this->_total->vat * $rec->currencyRate;
+		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+		
+		return $this->save($rec);
     }
     
     
@@ -354,10 +334,10 @@ class findeals_AdvanceReports extends core_Master
     {
     	$rec = $this->fetch($id);
     	$row = new stdClass();
-    	$row->title = $this->singleTitle . " №{$id}";
+    	$row->title    = $this->singleTitle . " №{$id}";
     	$row->authorId = $rec->createdBy;
-    	$row->author = $this->getVerbal($rec, 'createdBy');
-    	$row->state = $rec->state;
+    	$row->author   = $this->getVerbal($rec, 'createdBy');
+    	$row->state    = $rec->state;
     	$row->recTitle = $row->title;
     
     	return $row;
@@ -365,11 +345,17 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
-     * Документа не може да се активира ако има детайл с количество 0
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    public function prepareSingle_($data)
     {
-    	if(!$rec->total) $res = FALSE;
+    	parent::prepareSingle_($data);
+    	 
+    	$rec = &$data->rec;
+    	if(empty($data->noTotal)){
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
     }
     
     
@@ -435,7 +421,7 @@ class findeals_AdvanceReports extends core_Master
     	
     	if($rec->state == 'active'){
     		if(purchase_Invoices::haveRightFor('add', (object)array('sourceContainerId' => $rec->containerId, 'threadId' => $rec->threadId))){
-    			$data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, '', 'rate' => $rec->rate), NULL, 'ef_icon = img/16/invoice.png,title=Създаване на нова входяща фактура');
+    			$data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, '', 'rate' => $rec->currencyRate), NULL, 'ef_icon = img/16/invoice.png,title=Създаване на нова входяща фактура');
     		}
     	}
     }
@@ -459,20 +445,23 @@ class findeals_AdvanceReports extends core_Master
     {
     	$details = array();
     	$rec = static::fetchRec($id);
-    
+    	 
     	$query = findeals_AdvanceReportDetails::getQuery();
     	$query->where("#reportId = {$rec->id}");
     	while($dRec = $query->fetch()){
-    		$nRec = new stdClass();
-    		$nRec->productId = $dRec->productId;
-    		$nRec->packagingId = cat_Products::fetchField($dRec->productId, 'measureId');
-    		$nRec->quantityInPack = 1;
-    		$nRec->quantity = $dRec->quantity;
-    		$nRec->price = $dRec->amount / $dRec->quantity;
-    		
-    		$details[] = $nRec;
+    		$dRec->quantity /= $dRec->quantityInPack;
+    		if(!($forMvc instanceof sales_Proformas)){
+    			$dRec->price -= $dRec->price * $dRec->discount;
+    			unset($dRec->discount);
+    		}
+    
+    		unset($dRec->id);
+    		unset($dRec->reportId);
+    		unset($dRec->createdOn);
+    		unset($dRec->createdBy);
+    		$details[] = $dRec;
     	}
-    	
+    	 
     	return $details;
     }
 }
