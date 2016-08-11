@@ -203,6 +203,25 @@ class acc_ExpenseAllocationDetails extends doc_Detail
     			$shortUom = cat_UoM::getShortName($rec->packagingId);
     			$form->setError('quantity', "Разпределяне над допустимото количество от|* <b>{$maxQuantity}</b> {$shortUom}");
     		}
+    		
+    		if(!$form->gotErrors()){
+    			
+    			// Проверка дали въведеното к-во е допустимо
+    			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
+    			if($roundQuantity == 0){
+    				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
+    				return;
+    			}
+    			
+    			if(trim($roundQuantity) != trim($rec->quantity)){
+    				$form->setWarning('packQuantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
+    				
+    				if(!$form->gotErrors()){
+    					$rec->quantity = $roundQuantity;
+    				}
+    			}
+    		}
+    		
     	}
     }
     
