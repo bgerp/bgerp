@@ -90,7 +90,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior,title=Документ,number,currencyId=Валута, total,folderId,createdOn,createdBy';
+    public $listFields = 'valior,title=Документ,amount,currencyId,folderId,createdOn,createdBy';
 
     
    /**
@@ -462,5 +462,23 @@ class findeals_AdvanceReports extends core_Master
     	}
     	 
     	return $details;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($fields['-list'])){
+    		$row->title = $mvc->getLink($rec->id, 0);
+    		
+    		$amount = ($rec->amount + $rec->amountVat) / $rec->currencyRate;
+    		$row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
+    		
+    		if($amount ==- 0){
+    			$row->amount = "<span class='quiet'><b>{$row->amount}</b></span>";
+    		}
+    	}
     }
 }
