@@ -38,6 +38,7 @@ class crm_PersonsDetails extends core_Manager
 		while($eRec = $eQuery->fetch()){
 		    $data->masterId = $eRec->departmentId;
 		    $data->Cycles = cls::get('hr_WorkingCycles');
+		   
 		}
 		
 		$data->Cards = cls::get('crm_ext_IdCards');
@@ -45,6 +46,7 @@ class crm_PersonsDetails extends core_Manager
 		
 		if(isset($data->Cycles)){
 			$data->Cycles->prepareGrafic($data);
+			$data->TabCaption = 'HR';
 		}
 		
 		if(isset($data->Codes)){
