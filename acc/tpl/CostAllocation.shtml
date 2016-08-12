@@ -1,0 +1,11 @@
+<div>
+<!--ET_BEGIN ROW-->
+[#ROW#]
+<div>
+<span>[#tools#]</span>
+<span class='small'>[#expenseItemId#] [#quantity#] [#uomId#]</span>
+</div>
+
+<!--ET_END ROW-->
+</div>
+<small>[#buttons#]</small>
