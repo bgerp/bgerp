@@ -705,6 +705,7 @@ class acc_Items extends core_Manager
             $rec = $form->rec;
             $Class = cls::get($rec->classId);
             
+            // Ако има избрани обекти, те се добавят към номенклатурата
             $items = keylist::toArray($form->rec->objects);
             if(count($items)){
             	foreach($items as $id){
@@ -713,6 +714,7 @@ class acc_Items extends core_Manager
             	}
             }
             
+            // Ако всичко е наред, редирект и съобщение
             if(!$form->gotErrors()){
             	$listName = acc_Lists::getVerbal($listId, 'name');
             	$title = ($count == 1) ? $Class->singleTitle : $Class->title;
@@ -721,6 +723,7 @@ class acc_Items extends core_Manager
             }
         }
        
+        // Добавяне на бутони
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
@@ -728,31 +731,6 @@ class acc_Items extends core_Manager
         $this->logWrite("Добавяне на обекти, като пера");
        
         return $this->renderWrapping($form->renderHtml());
-    }
-    
-    
-    /**
-     * Помощен метод за намиране на всички записи от даден мениджър,
-     * които са пера в определена номенклатура
-     * @param mixed $class - име на клас
-     * @param int $listId - ид на намонклатура
-     * @return array $items - списък с ид-та на обектите, които са пера
-     */
-    public static function getClassItems($class, $listId)
-    {
-        $items = array();
-        expect($Class = cls::get($class));
-        
-        $itemsQuery = static::getQuery();
-        $itemsQuery->like('lists', "|{$listId}|");
-        $itemsQuery->where("#classId = {$Class->getClassId()}");
-        $itemsQuery->show('objectId');
-        
-        while($itemRec = $itemsQuery->fetch()){
-            $items[] = $itemRec->objectId;
-        }
-        
-        return $items;
     }
     
     
@@ -765,35 +743,57 @@ class acc_Items extends core_Manager
      */
     private function prepareInsertForm(core_Form &$form, $options, $listId)
     {
-		$form->FLD('classId', 'int', 'caption=Мениджър,mandatory,silent,removeAndRefreshForm=objects');
+		// Ако номенклатурата е 'Разходни обекти' оставяме само документите с допустимия интерфейс
+    	$costObjectListId = acc_Lists::fetchBySystemId('costObjects')->id;
+		if($costObjectListId == $listId){
+			$allowed = type_Keylist::toArray(acc_Setup::get('COST_OBJECT_DOCUMENTS'));
+			$options = array_intersect_key($options, $allowed);
+		}
+    	
+		// Поле за избор на клас
+    	$form->FLD('classId', 'int', 'caption=Мениджър,mandatory,silent,removeAndRefreshForm=objects');
     	
     	if(count($options) > 1){
     		$options = array('' => '') + $options;
     	}
 		
+    	// Задаване на опции
 		$form->setOptions('classId', $options);
 		
+		// Ако е само една опцията, тя е избрана по дефолт
 		if(count($options) == 1){
 			$form->setDefault('classId', key($options));
 		}
 		
+		// Инпут на 'тихите' полета
 		$form->input(NULL, 'silent');
 		$rec = $form->rec;
 		
+		// Ако има избран клас
 		if(isset($rec->classId)){
 			core_Debug::$isLogging = FALSE;
 			
-			$form->FLD('objects', "keylist(mvc={$Class->className})", "caption=Избор");
+			// Добавяне на поле за избор на обекти от класа
 			$Class = cls::get($rec->classId);
+			$form->FLD('objects', "keylist(mvc={$Class->className})", "caption=Избор");
+			
+			// Намиране на перата от този, клас които са вече част от номенклатурата
 			$items = static::getClassItems($Class, $listId);
 			$query = $Class->getQuery();
+			
+			// Пропускат се оттеглените и затворените обекти, както и тези които вече са в номенклатурата
 			$query->where("#state != 'rejected' AND #state != 'closed'");
 			if(count($items)){
 				$query->notIn('id', $items);
 			}
 			
+			// Дали е документ
 			$isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
-			core_App::setTimeLimit($query->count() * 0.015);
+			
+			$count = $query->count();
+			if($count > 500){
+				core_App::setTimeLimit($count * 0.015);
+			}
 			
 			$suggestions = array();
 			core_Mode::push('text', 'plain');
@@ -808,6 +808,31 @@ class acc_Items extends core_Manager
         	$form->setSuggestions('objects', $suggestions);
         	core_Debug::$isLogging = TRUE;
 		}
+    }
+    
+    
+    /**
+     * Помощен метод за намиране на всички записи от даден мениджър,
+     * които са пера в определена номенклатура
+     * @param mixed $class - име на клас
+     * @param int $listId - ид на намонклатура
+     * @return array $items - списък с ид-та на обектите, които са пера
+     */
+    public static function getClassItems($class, $listId)
+    {
+    	$items = array();
+    	expect($Class = cls::get($class));
+    
+    	$itemsQuery = static::getQuery();
+    	$itemsQuery->like('lists', "|{$listId}|");
+    	$itemsQuery->where("#classId = {$Class->getClassId()}");
+    	$itemsQuery->show('objectId');
+    
+    	while($itemRec = $itemsQuery->fetch()){
+    		$items[] = $itemRec->objectId;
+    	}
+    
+    	return $items;
     }
     
     
