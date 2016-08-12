@@ -16,7 +16,7 @@
 class unit_MinkPbgERP extends core_Manager {
    
    /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
-    *
+    *ДА СЕ ДОБАВЯТ ПОКУПКА И ПРОДАЖБА ВЪВ ВАЛУТА!
     */
     //http://localhost/unit_MinkPbgERP/Run/
     public function act_Run()
@@ -49,9 +49,11 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  24.".$this->act_CreateInq();
         $res .= "  25.".$this->act_CreateQuotation();
         $res .= "  26.".$this->act_CreatePurchase();
+        $res .= "  27.".$this->act_CreatePurchaseC();
         $res .= "  27.".$this->act_CreatePlanningJob();
-        $res .= "  28.".$this->act_CreateSale();
-        $res .= "  29.".$this->act_CreateTask();
+        $res .= "  29.".$this->act_CreateSale();
+        $res .= "  30.".$this->act_CreateTask();
+        
         return $res;
     }
     /**
@@ -871,6 +873,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         // Активиране на офертата
         $browser->press('Активиране');
+        $browser->press('Продажба');
+        ////Опционален артикул
+        ////$browser->setValue('9|yes|9|1', 2);
+        $browser->press('Създай');
+        $browser->press('Активиране');
         //return $browser->getHtml();
     }
     
@@ -980,6 +987,118 @@ class unit_MinkPbgERP extends core_Manager {
             return "Грешно чакащо плащане - MinkPbgERP/CreatePurchase";
         }
         //return $browser->getHtml();
+    }
+    
+    /**
+     * 2. Нова покупка - валута от съществуваща фирма с папка
+     */
+     
+    //http://localhost/unit_MinkPbgERP/CreatePurchaseC/
+    function act_CreatePurchaseC()
+    {
+        // Логваме се
+        $browser = $this->SetUp();
+    
+        //Отваряме папката на фирмата
+        $browser->click('Визитник');
+        $browser->click('N');
+        $Company = "NEW INTERNATIONAL GMBH";
+        $browser->click($Company);
+        $browser->press('Папка');
+    
+        // нова покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Покупка');
+        }
+         
+        //$browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPTestCreatePurchaseC');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        //$browser->setValue('chargeVat', "Освободено от ДДС"); //// ДАВА ГРЕШКА!
+        $browser->setValue('chargeVat', "Без начисляване на ДДС");
+        $browser->setValue('template', "Purchase contract");
+        //return $browser->getHtml();
+        $browser->press('Чернова');
+    
+        // Записваме черновата на покупката
+        // Добавяме артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '15');
+        $browser->setValue('packPrice', '1,66');
+        $browser->setValue('discount', 4);
+    
+        // Записваме артикула и добавяме нов - услуга
+        $browser->press('Запис и Нов');
+        $browser->setValue('productId', 'Други външни услуги');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 1);
+        $browser->setValue('packPrice', '6');
+        $browser->setValue('discount', 5);
+        // Записваме артикула
+        $browser->press('Запис');
+         
+        // активираме покупката
+        $browser->press('Активиране');
+        //return  $browser->getHtml();
+        //$browser->press('Активиране/Контиране');
+        if(strpos($browser->gettext(), '1,30')) {
+        } else {
+            return "Грешна отстъпка - MinkPbgERP/CreatePurchaseC";
+        }
+        if(strpos($browser->gettext(), 'Twenty-nine EUR and 0,60')) {
+        } else {
+            return "Грешна обща сума - MinkPbgERP/CreatePurchaseC";
+        }
+    
+        // Складова разписка
+        $browser->press('Засклаждане');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // протокол
+        $browser->press('Приемане');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Контиране')) {
+        //  $browser->press('Контиране');
+        //}
+    
+        // Фактура
+        $browser->press('Вх. фактура');
+        $browser->setValue('number', '176');
+        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // РКО
+        $browser->press('РКО');
+        $browser->setValue('beneficiary', 'Tom Frank');
+        $browser->setValue('amountDeal', '10');
+        $browser->setValue('peroCase', 'КАСА 1');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // РБД
+        $browser->press('РБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        //Приключване
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        } else {
+            return "Грешно чакащо плащане - MinkPbgERP/CreatePurchaseC";
+        }
+        return $browser->getHtml();
     }
     
     /**
@@ -1206,5 +1325,5 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         //return $browser->getHtml();
     }
-         
+    
 }
