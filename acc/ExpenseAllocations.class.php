@@ -601,7 +601,7 @@ class acc_ExpenseAllocations extends core_Master
     	} else {
     		
     		// Ако няма разходен обект
-    		if(empty($obj->expenseItemId)) {
+    		/*if(empty($obj->expenseItemId)) {
     			// Проверка имали към документа, документ за разпределяне на разходи
     			if($id = self::fetchField(array("#originId = [#1#] AND #state = 'active'", $originId))){
     				
@@ -612,7 +612,7 @@ class acc_ExpenseAllocations extends core_Master
 	    			// Ако има записи се връщат директно
 	    			if(count($dRecs)) return $dRecs;
     			}
-    		}
+    		}*/
     		
     		// Ако не е уточнено как се разпределя, отива към неразпределени
     		if(empty($obj->expenseItemId)) {
