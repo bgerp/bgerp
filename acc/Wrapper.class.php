@@ -57,7 +57,6 @@ class acc_Wrapper extends plg_ProtoWrapper
         $this->TAB('acc_Articles', 'Операции->Мемориални ордери', 'acc,ceo');
         $this->TAB('acc_ClosePeriods', 'Операции->Приключване на период', 'ceo,accMaster');
         $this->TAB('acc_BalanceRepairs', 'Операции->Поправки', 'ceo,acc');
-        $this->TAB('acc_ExpenseAllocations', 'Операции->Разходи', 'acc, ceo, purchase');
         $this->TAB('acc_BalanceTransfers', 'Операции->Трансфери', 'ceo,accMaster');
         $this->TAB('acc_ValueCorrections', 'Операции->Корекции', 'ceo,acc');
         

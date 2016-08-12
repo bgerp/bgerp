@@ -40,7 +40,7 @@ class purchase_Services extends deals_ServiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
-                    acc_plg_DocumentSummary,acc_plg_ExpenseAllocation,
+                    acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,plg_Search, doc_SharablePlg';
 
     

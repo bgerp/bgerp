@@ -42,7 +42,7 @@ class findeals_AdvanceReports extends core_Master
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Printing, acc_plg_Contable, 
                     doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,acc_plg_ExpenseAllocation';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
     /**
