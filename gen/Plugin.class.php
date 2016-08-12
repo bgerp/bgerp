@@ -49,13 +49,13 @@ class gen_Plugin extends core_Plugin
         if($rec->mother) {
         
             $gen = "<div style='margin-top:5px;'>Майка: " . 
-                    ht::createLink($mvc->getVerbal($rec, 'mother'), array('crm_Persons', 'single', $mvc->getVerbal($rec, 'mother'))) .
+                    ht::createLink($mvc->getVerbal($rec, 'mother'), array('crm_Persons', 'single', $rec->mother)) .
                     "</div>";
         }
         
         if($rec->father) {
             $gen .= "<div style='margin-top:5px;'>Баща: " .
-                    ht::createLink($mvc->getVerbal($rec, 'father') , array('crm_Persons', 'single', $mvc->getVerbal($rec, 'father'))) .
+                    ht::createLink($mvc->getVerbal($rec, 'father') , array('crm_Persons', 'single',  $rec->father)) .
                     "</div>";
         }
  
