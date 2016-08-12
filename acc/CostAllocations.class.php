@@ -83,22 +83,11 @@ class acc_CostAllocations extends core_Manager
 	
 	
 	/**
-	 * Логика за определяне къде да се пренасочва потребителския интерфейс.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
-	 */
-	public static function on_AfterPrepareRetUrl($mvc, $data)
-	{
-		//bp($data->form->rec, $mvc->haveR);
-	}
-	
-	
-	/**
 	 * След подготовката на заглавието на формата
 	 */
 	protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
 	{
+		// По-хубаво заглавие на формата
 		$rec = $data->form->rec;
 		if(isset($rec->containerId)){
 			$origin = doc_Containers::getDocument($rec->containerId);
@@ -146,6 +135,7 @@ class acc_CostAllocations extends core_Manager
 		$form = &$data->form;
 		$rec = $data->form->rec;
 		
+		// Какво к-во се очаква да се разпредели
 		$maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
 		$maxQuantityVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($maxQuantity);
 		$uomId = key(cat_Products::getPacks($rec->productId));
@@ -156,13 +146,22 @@ class acc_CostAllocations extends core_Manager
 		$form->info = "<b>{$productName}</b>, ";
 		$form->info .= tr("|Общо к-во|* <b>{$maxQuantityVerbal}</b> {$shortUom}<br>");
 		
+		// Колко има още за разпределяне
 		$allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
 		$toAllocate = $maxQuantity - $allocatedQuantity;
 		$form->setDefault('quantity', $toAllocate);
 		
-		$allocatedQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($allocatedQuantity);
-		$form->setField('quantity', "unit=|Разпределено|*: <b>{$allocatedQuantity}</b> {$shortUom}");
+		// Показване на к-то
+		if($maxQuantity == 1 && $uomId == cat_UoM::fetchBySinonim('pcs')->id){
+			$form->setFieldType('quantity', core_Type::getByName('percent'));
+			$allocatedQuantity = cls::get('type_Percent')->toVerbal($allocatedQuantity);
+			$form->setField('quantity', "unit=|Разпределено|*: <b>{$allocatedQuantity}</b>");
+		} else {
+			$allocatedQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($allocatedQuantity);
+			$form->setField('quantity', "unit=|Разпределено|*: <b>{$allocatedQuantity}</b> {$shortUom}");
+		}
 		
+		// Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
 		if(isset($rec->expenseItemId)){
 			$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
 			if($itemClassId == sales_Sales::getClassId() || $itemClassId == purchase_Purchases::getClassId()){
@@ -188,33 +187,39 @@ class acc_CostAllocations extends core_Manager
 			// Колко ще бъде разпределено след записа
 			$allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
 			$allocatedQuantity += $rec->quantity;
+			$uomId = key(cat_Products::getPacks($rec->productId));
 			
 			// Проверка дали ще се разпределя повече от допустимото количество
 			$maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
 			if($allocatedQuantity > $maxQuantity){
 				$maxQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($maxQuantity);
-				$shortUom = cat_UoM::getShortName(key(cat_Products::getPacks($rec->productId)));
+				$shortUom = cat_UoM::getShortName($uomId);
 				$form->setError('quantity', "Разпределяне над допустимото количество от|* <b>{$maxQuantity}</b> {$shortUom}");
 			}
 			
 			if(!$form->gotErrors()){
-				 
-				// Проверка дали въведеното к-во е допустимо
-				$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
-				if($roundQuantity == 0){
-					$form->setError('quantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-					return;
-				}
-				 
-				if(trim($roundQuantity) != trim($rec->quantity)){
-					$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-			
-					if(!$form->gotErrors()){
-						$rec->quantity = $roundQuantity;
+				
+				// Проверяване дали е въведено допустимо к-во само ако реда не е за 1 брой
+				if(!($maxQuantity == 1 && $uomId == cat_UoM::fetchBySinonim('pcs')->id)){
+					
+					// Проверка дали въведеното к-во е допустимо
+					$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
+					if($roundQuantity == 0){
+						$form->setError('quantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
+						return;
+					}
+						
+					if(trim($roundQuantity) != trim($rec->quantity)){
+						$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
+							
+						if(!$form->gotErrors()){
+							$rec->quantity = $roundQuantity;
+						}
 					}
 				}
 			}
 			
+			// Ако к-то е достигнато се подсигуряваме, че няма да има 'Запис и нов'
 			if(!$form->gotErrors()){
 				if($allocatedQuantity >= $maxQuantity){
 					$form->cmd = 'save';
@@ -230,14 +235,29 @@ class acc_CostAllocations extends core_Manager
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		$uomId = key(cat_Products::getPacks($rec->productId));
-		$row->uomId = tr(cat_UoM::getShortName($uomId));
 		
+		// Ако к-то е в  1 брой показва се като процент
+		$isPercent = FALSE;
+		if($uomId == cat_UoM::fetchBySinonim('pcs')->id){
+			$maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
+			if($maxQuantity == 1){
+				$row->quantity = cls::get('type_Percent')->toVerbal($rec->quantity);
+				$isPercent = TRUE;
+			}
+		}
+		
+		if($isPercent === FALSE){
+			$row->uomId = tr(cat_UoM::getShortName($uomId));
+		}
+		
+		// Линк към обекта на перото
 		$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleNum');
 		$iRec = acc_Items::fetch($rec->expenseItemId);
 		if(method_exists(cls::get($iRec->classId), 'getSingleUrlArray') && !Mode::isReadOnly()){
 			$eItem = ht::createLink($eItem, cls::get($iRec->classId)->getSingleUrlArray($iRec->objectId));
 		}
 		
+		// Допълнителна проверка дали артикула е нескладируем, невложим и не ДМА
 		$pInfo = cat_Products::getProductInfo($rec->productId);
 		$hint = isset($pInfo->meta['fixedAsset']) ? 'Артикулът вече е ДА и не може да бъде разпределян като разход' : (isset($pInfo->meta['canConvert']) ? 'Артикулът вече е вложим и не може да бъде разпределян като разход' : NULL);
 		
@@ -249,11 +269,17 @@ class acc_CostAllocations extends core_Manager
 	}
 	
 	
+	/**
+	 * Подготовка на разходи
+	 * 
+	 * @param stdClass $data
+	 */
 	private static function prepareAllocatedExpenses(&$data)
 	{
 		$rec = &$data->rec;
 		$data->recs = $data->rows = array();
 		
+		// Какви разходи са отчетени към реда
 		$query = self::getQuery();
 		$query->where("#detailClassId = {$rec->detailClassId} AND #detailRecId = {$rec->detailRecId}");
 		while($dRec = $query->fetch()){
@@ -261,6 +287,7 @@ class acc_CostAllocations extends core_Manager
 			$data->rows[$dRec->id] = self::recToVerbal($dRec);
 		}
 		
+		// Можели да се добавя нова разбивка на разходите
 		if(self::haveRightFor('add', (object)$rec) && !Mode::isReadOnly()){
 			$url = array('acc_CostAllocations', 'add') + (array)$rec;
 			$url['ret_url'] = TRUE;
@@ -271,6 +298,13 @@ class acc_CostAllocations extends core_Manager
 		}
 	}
 	
+	
+	/**
+	 * Рендиране на разпределените разходи към ред
+	 * 
+	 * @param stdClass $data - данни
+	 * @return core_ET $tpl  - рендиран шаблон
+	 */
 	private static function renderAllocatedExpenses(&$data)
 	{
 		$tpl = getTplFromFile('acc/tpl/CostAllocation.shtml');
@@ -294,17 +328,34 @@ class acc_CostAllocations extends core_Manager
 		return $tpl;
 	}
 	
-	public static function getAllocatedExpenses($Detail, $id, $containerId, $productId, $packagingId, $quantityInPack)
+	
+	/**
+	 * Връща представянето на разпределените разходи към даден ред от документ за купуване на разходи
+	 * 
+	 * @param core_Detail $Detail     - Детайл на документ
+	 * @param int $id                 - ид на ред от детайл на документ
+	 * @param int $containerId        - ид на контейнера на документа
+	 * @param int $productId          - ид на артикул
+	 * @param int $packagingId        - ид на опаковка/мярка
+	 * @param double $quantityInPack  - к-во в опаковка
+	 * @return string $res            - направените разходи към реда
+	 */
+	public static function getAllocatedExpenses(core_Detail $Detail, $id, $containerId, $productId, $packagingId, $quantityInPack)
 	{
 		$res = '';
 		
+		// Подготвяне на данните
 		$Detail = cls::get($Detail);
 		$arr = array('detailClassId' => $Detail->getClassId(), 'detailRecId' => $id, 'containerId' => $containerId, 'productId' => $productId);
 		$data = (object)array('rec' => (object)$arr);
 		
+		// Подготвяне на разпределените разходи
 		static::prepareAllocatedExpenses($data);
+		
+		// Рендиране на разпределените разходи
 		$res = static::renderAllocatedExpenses($data)->getContent();
 		
+		// Връщане на рендираните разпределени разходи
 		return $res;
 	}
 	
@@ -315,11 +366,13 @@ class acc_CostAllocations extends core_Manager
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+			
 			if(empty($rec->detailClassId) || empty($rec->detailRecId) || empty($rec->containerId) || empty($rec->productId)){
 				$requiredRoles = 'no_one';
 				return;
 			}
 			
+			// Артикулът трябва да е нескладируем, невложим и не-ДМА
 			$pInfo = cat_Products::getProductInfo($rec->productId);
 			if(isset($pInfo->meta['canStore']) || isset($pInfo->meta['canConvert']) || isset($pInfo->meta['fixedAsset'])){
 				$requiredRoles = 'no_one';
@@ -350,6 +403,8 @@ class acc_CostAllocations extends core_Manager
 		}
 		
 		if($action == 'add' && isset($rec)){
+			
+			// Ако е разпределено очакването, не може да се разпределят разходи
 			if(isset($rec->detailClassId) && isset($rec->detailRecId)){
 				$maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
 				$allocatedByFar = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId);
@@ -359,36 +414,5 @@ class acc_CostAllocations extends core_Manager
 				}
 			}
 		}
-	}
-	
-	
-	/**
-	 * След подготовка на туклбара на списъчния изглед
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $data
-	 */
-	public static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		if(haveRole('admin,debug,ceo')){
-			$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
-		}
-	}
-	
-	
-	/**
-	 * Изчиства записите в балансите
-	 */
-	public function act_Truncate()
-	{
-		requireRole('admin,debug,ceo');
-			
-		// Изчистваме записите от моделите
-		self::truncate();
-			
-		// Записваме, че потребителя е разглеждал този списък
-		$this->logWrite("Изтриване на кеша на изгледите на артикула");
-	
-		return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
 	}
 }
