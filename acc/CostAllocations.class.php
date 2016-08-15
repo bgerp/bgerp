@@ -277,7 +277,7 @@ class acc_CostAllocations extends core_Manager
 			
 			// Проверка дали ще се разпределя повече от допустимото количество
 			$maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
-			bp($allocatedQuantity);
+			
 			if($allocatedQuantity > $maxQuantity){
 				$maxQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($maxQuantity);
 				$shortUom = cat_UoM::getShortName($uomId);
