@@ -454,6 +454,6 @@ class deals_plg_DpInvoice extends core_Plugin
     	$total->vat    += $dpVat;
     	$total->amount += $dpAmount;
     	
-    	$total->vats = array("{$vat}" => (object)array('amount' => $dpVat, 'sum' => $masterRec->dpAmount));
+    	$total->vats = array("{$vat}" => (object)array('amount' => $dpVat, 'sum' => $masterRec->dpAmount / $masterRec->rate));
     }
 }
