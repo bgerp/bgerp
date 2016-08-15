@@ -134,12 +134,6 @@ class acc_CostAllocations extends core_Manager
 		if(count($mvc->recontoQueue)){
 			foreach ($mvc->recontoQueue as $containerId){
 				
-				
-				//return;
-				
-				
-				
-				
 				// Оригиналния документ трябва да не е в затворен период
 				$origin = doc_Containers::getDocument($containerId);
 				if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) continue;
@@ -243,7 +237,7 @@ class acc_CostAllocations extends core_Manager
 		if($maxQuantity == 1 && $uomId == cat_UoM::fetchBySinonim('pcs')->id){
 			
 			// Ако е 1 и мярката е в брой, се показва в проценти
-			$form->setFieldType('quantity', core_Type::getByName('percent'));
+			$form->setFieldType('quantity', core_Type::getByName('percent(Min=0)'));
 			$allocatedQuantity = cls::get('type_Percent')->toVerbal($allocatedQuantity);
 			$form->setField('quantity', "unit=|Разпределено|*: <b>{$allocatedQuantity}</b>");
 		} else {
@@ -275,7 +269,7 @@ class acc_CostAllocations extends core_Manager
 		$rec = &$form->rec;
 		 
 		if($form->isSubmitted()){
-	
+			
 			// Колко ще бъде разпределено след записа
 			$allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
 			$allocatedQuantity += $rec->quantity;
@@ -283,6 +277,7 @@ class acc_CostAllocations extends core_Manager
 			
 			// Проверка дали ще се разпределя повече от допустимото количество
 			$maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
+			bp($allocatedQuantity);
 			if($allocatedQuantity > $maxQuantity){
 				$maxQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($maxQuantity);
 				$shortUom = cat_UoM::getShortName($uomId);
