@@ -156,9 +156,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
 
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-                $row->productId .= acc_ExpenseAllocations::displayExpenseItemId($rec->expenseItemId, $rec->productId);
-                
-    			if($rec->notes){
+                if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
     			}
     		}

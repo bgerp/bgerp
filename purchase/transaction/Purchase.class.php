@@ -165,7 +165,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	if(isset($pInfo->meta['canStore'])) continue;
         	
         	// Към кои разходни обекти ще се разпределят разходите
-        	$splitRecs = acc_ExpenseAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->id, $dRec->discount);
+        	$splitRecs = acc_CostAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->id, $dRec->discount);
         	
         	foreach ($splitRecs as $dRec1){
         		$amount = $dRec1->amount;
