@@ -86,7 +86,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     		foreach ($rec->details as $dRec) {
     			
     			// Към кои разходни обекти ще се разпределят разходите
-    			$splitRecs = acc_CostAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->id, $dRec->discount);
+    			$splitRecs = acc_CostAllocations::getRecsByExpenses('purchase_ServicesDetails', $dRec->id, $dRec->productId, $dRec->quantity, $dRec->amount, $dRec->discount);
     			
     			foreach ($splitRecs as $dRec1){
     				$amount = $dRec1->amount;

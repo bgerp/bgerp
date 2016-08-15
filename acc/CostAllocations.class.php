@@ -42,12 +42,6 @@ class acc_CostAllocations extends core_Manager
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
-    
-    
-    /**
      * Кой може да добавя?
      */
     public $canAdd = 'ceo, acc, purchase';
@@ -71,6 +65,18 @@ class acc_CostAllocations extends core_Manager
 	public $canList = 'admin,debug';
 	
 	
+	/**
+	 * Опашка от чакащите документи за реконтиране
+	 */
+	private $recontoQueue = array();
+	
+	
+	/**
+	 * Кои полета да се извличат при изтриване
+	 */
+	public $fetchFieldsBeforeDelete = 'containerId';
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -85,6 +91,71 @@ class acc_CostAllocations extends core_Manager
     	$this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
     	
     	$this->setDbIndex('detailClassId,detailRecId');
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 */
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		$origin = doc_Containers::getDocument($rec->containerId);
+		if($origin->fetchField('state') == 'active'){
+			
+			// Запомняне на контейнера за реконтиране
+			$mvc->recontoQueue[$rec->containerId] = $rec->containerId;
+		}
+	}
+	
+	
+	/**
+	 * След изтриване на запис
+	 */
+	protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+	{
+		foreach ($query->getDeletedRecs() as $id => $rec) {
+			
+			$origin = doc_Containers::getDocument($rec->containerId);
+			if($origin->fetchField('state') == 'active'){
+				
+				// Запомняне на контейнера за реконтиране
+				$mvc->recontoQueue[$rec->containerId] = $rec->containerId;
+			}
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се при спиране изпълнението на скрипта
+	 */
+	public static function on_Shutdown($mvc)
+	{
+		// Реконтират се отбелязаните документи ако е нужно
+		if(count($mvc->recontoQueue)){
+			foreach ($mvc->recontoQueue as $containerId){
+				
+				
+				//return;
+				
+				
+				
+				
+				// Оригиналния документ трябва да не е в затворен период
+				$origin = doc_Containers::getDocument($containerId);
+				if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) continue;
+				
+				// Изтриване на старата транзакция на документа
+				acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
+				 
+				// Записване на новата транзакция на документа
+				$success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, FALSE);
+				expect($success, $success);
+				 
+				// Нотифициране на потребителя
+				$msg = "Реконтиране на|* #{$origin->getHandle()}";
+				core_Statuses::newStatus($msg);
+			}
+		}
 	}
 	
 	
@@ -170,10 +241,14 @@ class acc_CostAllocations extends core_Manager
 		
 		// Показване на к-то
 		if($maxQuantity == 1 && $uomId == cat_UoM::fetchBySinonim('pcs')->id){
+			
+			// Ако е 1 и мярката е в брой, се показва в проценти
 			$form->setFieldType('quantity', core_Type::getByName('percent'));
 			$allocatedQuantity = cls::get('type_Percent')->toVerbal($allocatedQuantity);
 			$form->setField('quantity', "unit=|Разпределено|*: <b>{$allocatedQuantity}</b>");
 		} else {
+			
+			// Иначе се показва като двоично число
 			$allocatedQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($allocatedQuantity);
 			$form->setField('quantity', "unit=|Разпределено|*: <b>{$allocatedQuantity}</b> {$shortUom}");
 		}
@@ -341,7 +416,6 @@ class acc_CostAllocations extends core_Manager
 			$tpl->append($data->addBtn, 'buttons');
 		}
 		
-		
 		return $tpl;
 	}
 	
@@ -450,8 +524,8 @@ class acc_CostAllocations extends core_Manager
 	/**
 	 * Помощен метод обработващ записите за подаден ред
 	 *
-	 * @param int $id          - ид на запис
-	 * @param int $originRecId - ид на запис от оригиналния документ
+	 * @param int $docClassId  - клас на детайла
+	 * @param int $docRecId    - ид на реда
 	 * @param int $productId   - ид на артикул
 	 * @param double $quantity - оригинално к-во
 	 * @param double $amount   - обща сума за разпределяне
@@ -461,16 +535,18 @@ class acc_CostAllocations extends core_Manager
 	 * 		о quantity      - к-во за разпределяне
 	 * 		o reason        - описание на контировката
 	 * 		o expenseItemId - ид-то на перото към което ще се разпределя
+	 * 		o allocationBy  - как ще се разпределя разхода, ако може
 	 */
-	private static function getRowRecs($id, $originRecId, $productId, $quantity, $amount)
+	private static function getRecsWithAllocatedAmount($docClassId, $docRecId, $productId, $quantity, $amount)
 	{
 		$res = array();
-		 
+		$Detail = cls::get($docClassId);
+		
 		// Извличане на записите за въпросния ред от оригиналния документ
-		$dQuery = acc_ExpenseAllocationDetails::getQuery();
-		$dQuery->where(array("#allocationId = [#1#] AND #originRecId = [#2#]", $id, $originRecId));
+		$dQuery = self::getQuery();
+		$dQuery->where(array("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$docRecId}"));
 		$dRecs = $dQuery->fetchAll();
-		 
+		
 		// Запомнят се общата сума и к-во за разпределяне
 		$totalQuantity = $quantity;
 		$totalAmount = $amount;
@@ -488,10 +564,12 @@ class acc_CostAllocations extends core_Manager
 				// Подготвят се данните за разпределяне
 				$r = (object)array('productId' => $productId);
 				$r->reason = 'Приети услуги и нескладируеми консумативи';
-				 
+				if(isset($dRec->allocationBy)){
+					$r->allocationBy = $dRec->allocationBy;
+				}
+				
 				$r->expenseItemId = $dRec->expenseItemId;
 				acc_journal_Exception::expect($r->expenseItemId, 'Невалиден раход');
-				acc_journal_Exception::expect($dRec->productId == $productId, 'Невалиден артикул');
 	
 				// Задаване на к-то и приспадане
 				$r->quantity = $dRec->quantity;
@@ -529,7 +607,7 @@ class acc_CostAllocations extends core_Manager
 				$res[] = $r;
 			}
 		}
-		 
+	
 		// Връщане на намерените резултати
 		return $res;
 	}
@@ -551,12 +629,11 @@ class acc_CostAllocations extends core_Manager
 	 * Ако артикула е Вложим, винаги отива към неразпределени.
 	 * Ако е ДМА се разпределя към себе си.
 	 *
-	 * @param int $originId         - ориджин на документа
+	 * @param int $docClassId       - клас на детайла
+	 * @param int $recId            - ид на ред от детайла
 	 * @param int $productId        - ид на артикул
 	 * @param double $quantity      - к-во от оригиналния документ
-	 * @param int $expenseItemId    - перо за разпределяне от оригиналния документ
 	 * @param double $amount        - сума на реда за разпределяне
-	 * @param int $recId            - ид на реда, който ще се разпределя
 	 * @param double|NULL $discount - отстъпката от цената, ако има
 	 * @return array $res           - масив с данни за контировката на услугата
 	 * 			о amount        - сума за разпределяне
@@ -565,23 +642,22 @@ class acc_CostAllocations extends core_Manager
 	 * 			o reason        - описание на контировката
 	 * 			o expenseItemId - ид-то на перото към което ще се разпределя
 	 */
-	public static function getRecsByExpenses($originId, $productId, $quantity, $expenseItemId, $amount, $recId, $discount = NULL)
+	public static function getRecsByExpenses($docClassId, $docRecId, $productId, $quantity, $amount, $discount)
 	{
 		$res = array();
-		 
+		
 		// Ако артикула е складируем, се пропуска
 		$pInfo = cat_Products::getProductInfo($productId);
 		if(isset($pInfo->meta['canStore'])) return $res;
 		 
 		// От сумата се приспада отстъпката, ако има
 		$amount = ($discount) ?  $amount * (1 - $discount) : $amount;
-		 
-		$obj = (object)array('productId'     => $productId,
-				'quantity'      => $quantity,
-				'expenseItemId' => $expenseItemId,
-				'amount'        => round($amount, 2),
-				'reason'        => 'Приети услуги и нескладируеми консумативи');
-		 
+		
+		$obj = (object)array('productId' => $productId,
+							 'quantity'  => $quantity,
+							 'amount'    => round($amount, 2),
+							 'reason'    => 'Приети услуги и нескладируеми консумативи');
+		
 		if(isset($pInfo->meta['fixedAsset'])){
 	
 			// Ако артикула е ДМА се отнася като разход към себе си
@@ -593,20 +669,8 @@ class acc_CostAllocations extends core_Manager
 			$obj->expenseItemId = self::getUnallocatedItemId();
 			$obj->reason = 'Приети услуги и нескладируеми консумативи за производството';
 		} else {
-	
-			// Ако няма разходен обект
-			if(empty($obj->expenseItemId)) {
-				// Проверка имали към документа, документ за разпределяне на разходи
-				/*if($id = self::fetchField(array("#originId = [#1#] AND #state = 'active'", $originId))){
-	
-					// Опит за връщане на обработените записи от документа
-					acc_journal_Exception::expect(!$expenseItemId, 'Наличен разход в документ, при пуснато разпределение на разходи');
-					$dRecs = self::getRowRecs($id, $recId, $productId, $quantity, $amount);
-	
-					// Ако има записи се връщат директно
-					if(count($dRecs)) return $dRecs;
-				}*/
-			}
+			$dRecs = self::getRecsWithAllocatedAmount($docClassId, $docRecId, $productId, $quantity, $amount);
+			if(count($dRecs)) return $dRecs;
 	
 			// Ако не е уточнено как се разпределя, отива към неразпределени
 			if(empty($obj->expenseItemId)) {
@@ -621,7 +685,7 @@ class acc_CostAllocations extends core_Manager
 		}
 		 
 		$res[] = $obj;
-	
+		
 		// връщане на редовете
 		return $res;
 	}

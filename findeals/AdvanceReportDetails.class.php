@@ -38,7 +38,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering';
+    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering,acc_plg_ExpenseAllocation';
     
     
     /**
