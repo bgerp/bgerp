@@ -80,6 +80,14 @@ class crm_PersonsDetails extends core_Manager
 		    $resTpl->removeBlock('legend');
 		    $resTpl->removeBlocks();
 		    $tpl->append($resTpl, 'CYCLES');
+	
+		    if (crm_Persons::haveRightFor('single', (object)array('personId' => $data->masterId))) {
+    		    // правим url  за принтиране
+                $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$data->Cycles->month, 'cal_year' =>$data->Cycles->year);
+                $efIcon = 'img/16/printer.png';
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $tpl->append($link, 'print');
+		    }
 		}
 
 		return $tpl;
