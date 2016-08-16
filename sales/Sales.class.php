@@ -1041,7 +1041,7 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($rec->bankAccountId)){
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
     		}
     	}
@@ -1053,7 +1053,7 @@ class sales_Sales extends deals_DealMaster
     	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     		
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			if($rec->contragentClassId == crm_Companies::getClassId()){
     				$companyRec = crm_Companies::fetch($rec->contragentId);
     				$bulgariaCountryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");

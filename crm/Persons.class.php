@@ -729,14 +729,20 @@ class crm_Persons extends core_Master
      * @param crm_Persons $mvc
      * @param array $options
      * @param type_Key $typeKey
+     * @param string $where
      */    
-    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey, $where = '')
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
 	       $mvc->restrictAccess($query);
+	       $query->where("#state != 'rejected'");
 	       
-	       while($rec = $query->fetch("#state != 'rejected'")) {
+	       if (trim($where)) {
+	           $query->where($where);
+	       }
+	       
+	       while($rec = $query->fetch()) {
 	       	   $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
 	       }
        }
@@ -1082,7 +1088,7 @@ class crm_Persons extends core_Master
         if(crm_Persons::haveRightFor('add') && crm_Companies::haveRightFor('edit', $data->masterId)){
 		    $addUrl = array('crm_Persons', 'add', 'buzCompanyId' => $data->masterId, 'ret_url' => TRUE);
 		    
-		    if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+		    if(!Mode::isReadOnly()){
 		    	$data->addBtn = ht::createLink('', $addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на представител'));
 		    }
         }

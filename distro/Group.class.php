@@ -46,6 +46,12 @@ class distro_Group extends core_Master
     
     
     /**
+     * Кой може да пуска синхронизирането
+     */
+    public $canSync = 'powerUser';
+    
+    
+    /**
      * Кой има право да чете?
      */
     public $canRead = 'admin';
@@ -201,7 +207,7 @@ class distro_Group extends core_Master
 	/**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param core_Mvc $mvc
+     * @param distro_Group $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
@@ -233,6 +239,15 @@ class distro_Group extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        // За да може да синхронизира файловете, трябва да има права за сингъла
+        if ($action == 'sync') {
+            if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                
+                // Никой да не може
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -259,7 +274,6 @@ class distro_Group extends core_Master
                 
                 $handle = $mvc->getSubDirName($rec->id);
                 
-                // TODO Async
                 // Създаваме директория в хранилището
                 distro_Repositories::createDir($repoId, $handle);
             }
@@ -377,6 +391,66 @@ class distro_Group extends core_Master
     
     
     /**
+     * Екшън за форсирано обновяване на хранилище
+     * 
+     * @return Redirect
+     */
+    function act_Sync()
+    {
+        $id = Request::get('id', 'int');
+        
+        $this->requireRightFor('sync', $id);
+        
+        expect($rec = $this->fetch($id));
+        
+        $this->logWrite('Синхронизиране на файловете', $id);
+        
+        $reposArr = type_Keylist::toArray($rec->repos);
+		
+        foreach ($reposArr as $repoId) {
+            
+            $Files = cls::get('distro_Files');
+            
+            $res = $Files->forceSync($rec->id, $repoId);
+            
+            if ($res === FALSE) {
+                status_Messages::newStatus('|Грешка при свързване към хранилище|* ' . distro_Repositories::getLinkToSingle($repoId, 'name'), 'warning');
+            } else {
+                if (empty($res)) {
+                    status_Messages::newStatus('|Хранилището|* ' . distro_Repositories::getLinkToSingle($repoId, 'name') . ' |е било синхронизирано|*');
+                } else {
+                    $msg = '';
+                    
+                    if ($res['addToDB']) {
+                        $msg .= '|Добавени файлове от хранилището|*: ' . $res['addToDB'];
+                    }
+                    
+                    if ($res['delFromDb']) {
+                        $msg .= $msg ? "<br>" : $msg;
+                        $msg .= '|Изтрити файлове от хранилището|*: ' . $res['delFromDb'];
+                    }
+                    
+                    if ($res['absorbFromDb']) {
+                        $msg .= $msg ? "<br>" : $msg;
+                        $msg .= '|Свалени файлове в хранилището|*: ' . $res['absorbFromDb'];
+                    }
+                    
+                    status_Messages::newStatus('|Действия в хранилището|*: ' . distro_Repositories::getLinkToSingle($repoId, 'name') . "<br>" . $msg);
+                }
+            }
+        }
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $id);
+        }
+        
+        return new Redirect($retUrl);
+    }
+    
+    
+    /**
      * 
      * 
      * @param core_Master $mvc
@@ -407,6 +481,22 @@ class distro_Group extends core_Master
                 
                 continue;
             }
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param distro_Group $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        if ($mvc->haveRightFor('sync', $data->rec)) {
+            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', $data->rec->id, 'ret_url' => TRUE), 
+                        "id='btn-syncRepo', ef_icon=img/16/update-icon.png", 
+                        array('order'=>'30', 'row' => 2, 'title' => 'Форсира синхронизирането файловете в групата с хранилището'));
         }
     }
     

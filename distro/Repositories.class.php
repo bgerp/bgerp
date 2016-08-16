@@ -218,6 +218,7 @@ class distro_Repositories extends core_Master
         $oPath .= '/' . $name;
         $path = escapeshellarg($oPath);
         
+        // TODO - асинхронно
         $sshObj->exec('mkdir -p ' . $path);
         
         return $oPath;
@@ -366,7 +367,7 @@ class distro_Repositories extends core_Master
         try {
             $hostConfig = ssh_Hosts::fetchConfig($rec->hostId);
         } catch (core_exception_Expect $e) {
-            $this->logErr($e->getMessage(), $id);
+            self::logErr($e->getMessage(), $id);
 			
             return FALSE;
         }
@@ -487,6 +488,14 @@ class distro_Repositories extends core_Master
         $rec = self::fetchRec($rec);
         
         $repoConnectArr = array();
+        
+        if (!$rec) {
+            $repoConnectArr[$rec->id] = FALSE;
+            self::logNotice('Изтрито хранилище');
+        } elseif ($rec->state == 'rejected') {
+            $repoConnectArr[$rec->id] = FALSE;
+            self::logNotice('Оттеглено хранилище', $rec->id);
+        }
         
         if (!isset($repoConnectArr[$rec->id])) {
             try {

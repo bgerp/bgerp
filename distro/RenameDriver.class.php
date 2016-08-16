@@ -248,12 +248,14 @@ class distro_RenameDriver extends core_Mvc
      */
     public static function on_AfterRecToVerbal($mvc, $embeder, &$row, $rec)
     {
-        $fileName = '"' . type_Varchar::escape($rec->newFileName) . '"';
+        $fRec = distro_Files::fetch($rec->fileId);
+        
+        $fileName = $embeder->getFileName($rec);
         
         if ($rec->oldFileName && $rec->newFileName != $rec->oldFileName) {
-            $fileName .= ' (' . tr('от') . ' "' . type_Varchar::escape($rec->oldFileName) . '"' . ')';
+            $fileName .= ' (' . tr('старо име') . ' "' . type_Varchar::escape($rec->oldFileName) . '"' . ')';
         }
         
-        $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('в') . ' "' . $embeder->getVerbal($rec, 'repoId') . '" ';
+        $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
     }
 }

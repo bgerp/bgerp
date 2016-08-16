@@ -84,7 +84,9 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 			$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
 			
     		foreach ($rec->details as $dRec) {
-    			$splitRecs = deals_Helper::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->discount);
+    			
+    			// Към кои разходни обекти ще се разпределят разходите
+    			$splitRecs = acc_ExpenseAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->id, $dRec->discount);
     			
     			foreach ($splitRecs as $dRec1){
     				$amount = $dRec1->amount;

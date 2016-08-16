@@ -27,7 +27,22 @@ class vtotal_Setup extends core_ProtoSetup
 
     function install()
     {
+        $Plugins = cls::get('core_Plugins');
         $html = parent::install();
+
+        $html .= $Plugins->forcePlugin('Ръчна проверка със VirusTotal', 'vtotal_Plugin', 'fileman_Files', 'private');
+
+        return $html;
+    }
+
+    function deinstall()
+    {
+        $html = parent::deinstall();
+
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+
+        $html .= "<li>Премахнати са всички инсталации на 'vtotal_Plugin'";
 
         return $html;
     }

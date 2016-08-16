@@ -19,25 +19,49 @@ class fileman_Buckets extends core_Manager {
     /**
      * Заглавие на модула
      */
-    var $title = 'Кофи за файлове';
+    public $title = 'Кофи за файлове';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = 'Кофа за файлове';
+    public $singleTitle = 'Кофа за файлове';
 	
 	
 	/**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	public $canList = 'admin';
+
+
+	/**
+	 * Кой може да добавя?
+	 */
+	public $canAdd = 'no_one';
+
+
+	/**
+	 * Кой може да редактира?
+	 */
+	public $canEdit = 'admin';
+
+
+	/**
+	 * Кой може да редактира данните добавени от системата?
+	 */
+	public $canEditsysdata = 'admin';
+
+
+	/**
+	 * Кой може да изтрива?
+	 */
+	public $canDelete= 'no_one';
 	
 	
 	/**
 	 * 
 	 */
-    var $loadList = 'plg_Translate';
+    public $loadList = 'plg_Translate, plg_Created, plg_Modified, Files=fileman_Files, plg_RowTools2, fileman_Wrapper';
     
 	
     /**
@@ -45,29 +69,15 @@ class fileman_Buckets extends core_Manager {
      */
     function description()
     {
-        // Име на кофата
         $this->FLD("name", "varchar(255)", 'notNull,caption=Име');
-
-        // Информация за кофата
         $this->FLD("info", "varchar", 'caption=Информация, translate');
-
-        // Файлови разширения
         $this->FLD("extensions", "text", 'caption=Допустими разширения');
-
-        // Максимален размер на файловете в папката
         $this->FLD("maxSize", "fileman_FileSize", 'caption=Макс. размер');
-
-        // Потребители с какви роли могат да добавят в кофата?
         $this->FLD("rolesForAdding", "keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Роли->за добавяне');
-
-        // Потребители с какви роли могат да свалят от кофата?
         $this->FLD("rolesForDownload", "keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Роли->за сваляне');
-
-        // Колко време след последната си употреба, файла ще живее в кофата?
         $this->FLD("lifetime", "int", 'caption=Живот');
-
-        // Плъгини за контрол на записа и модифицирането
-        $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools2,fileman_Wrapper');
+        
+        $this->setDbUnique('name');
     }
     
     
@@ -106,6 +116,20 @@ class fileman_Buckets extends core_Manager {
         } else {
 
             return $rec->{$part};
+        }
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->form->rec->id) {
+            $data->form->setReadOnly('name');
         }
     }
 
@@ -231,19 +255,39 @@ class fileman_Buckets extends core_Manager {
     static function createBucket($name, $info = '', $extensions = '', $maxSize = NULL,
         $rolesForDownload = NULL, $rolesForAdding = NULL, $lifetime = NULL)
     {
-        $rec = new stdClass();
-        $rec->id = self::fetchField(array("#name = '[#1#]'", $name), 'id');
-
+        $rec = self::fetch(array("#name = '[#1#]'", $name));
+        
+        if (!$rec) {
+            $rec = new stdClass();
+        }
+        
+        $FileSize = cls::get('fileman_FileSize');
+        $maxSize = $FileSize->fromVerbal($maxSize);
+        
         if($rec->id) {
             $res = "<li> Съществуваща кофа за файлове \"{$name}\"</li>";
+            $maxSize = max($maxSize, $rec->maxSize);
+            
+            if ($rec->modifiedBy != -1) {
+                
+                if ($maxSize > $rec->maxSize) {
+                    $rec->maxSize = $maxSize;
+                    self::save($rec, 'maxSize');
+                    
+                    $res .= "<li style='color:darkgreen;'> Променен допустим размер на файловете в кофата</li>";
+                } else {
+                    $res .= "<li style='color: #660000;'> Без промяна на настройките на кофата</li>";
+                }
+                
+                return $res;
+            }
         } else {
             $res = "<li style='color:green;'> Създаване на кофа за файлове \"{$name}\"</li>";
         }
-
-        $FileSize = cls::get('fileman_FileSize');
+        
         $rec->name = $name;
         $rec->info = $info;
-        $rec->maxSize = $FileSize->fromVerbal($maxSize);
+        $rec->maxSize = $maxSize;
         $rec->rolesForDownload = core_Roles::getRolesAsKeylist($rolesForDownload);
         $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rolesForAdding);
         $rec->lifetime = $lifetime;

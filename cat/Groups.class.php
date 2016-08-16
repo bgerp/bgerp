@@ -137,13 +137,19 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * След дефиниране на полетата на модела
-     *
-     * @param core_Mvc $mvc
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterDescription(core_Mvc $mvc)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$mvc->setDbUnique("name,parentId");
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		$condition = "#name = '[#1#]' AND #id != '{$rec->id}' AND ";
+    		$condition .= isset($rec->parentId) ? "#parentId = {$rec->parentId}" : " #parentId IS NULL";
+    		
+    		if($mvc->fetchField(array($condition, $rec->name))){
+    			$form->setError('name,parentId', 'Вече съществува запис със същите данни');
+    		}
+    	}
     }
     
     

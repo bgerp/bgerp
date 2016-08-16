@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   purchase
- * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -625,5 +625,21 @@ class purchase_Purchases extends deals_DealMaster
     	
     	// Отново вкарваме езика на шаблона в сесията
     	core_Lg::push($data->rec->tplLang);
+    }
+    
+    
+    /**
+     * Дали към документа може да се пуска документ за разпределяне на разходи
+     * 
+     * @param mixed $id - ид или запис
+     * @return boolean
+     */
+    public function canAllocateExpenses($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$purchaseActions = type_Set::toArray($rec->contoActions);
+    	
+    	// Само към бърза покупка може да се пуска документ за разпределяне на разходи
+    	return isset($purchaseActions['ship']);
     }
 }

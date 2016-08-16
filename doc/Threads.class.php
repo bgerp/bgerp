@@ -987,14 +987,21 @@ class doc_Threads extends core_Manager
 
             // Брояч на грешките при преместване
             $errCnt = 0;
-
+            
+            $loggedToFolders = FALSE;
+            $moveW = count($selArr) > 1 ? 'Преместени нишки' : 'Преместена нишка';
+            
             foreach($selArr as $threadId) {
                 try {
                     $this->move($threadId, $folderId);
 					
-                    doc_Folders::logWrite('Преместена нишка от', $threadRec->folderId);
+                    if (!$loggedToFolders) {
+                        doc_Folders::logWrite("{$moveW} от", $threadRec->folderId);
+                        doc_Folders::logWrite("{$moveW} в", $folderId);
+                        $loggedToFolders = TRUE;
+                    }
+                    
                     doc_Threads::logWrite('Преместена нишка', $threadId);
-                    doc_Folders::logWrite('Преместена нишка в', $folderId);
                     
                     $successCnt++;
                 } catch (core_Exception_Expect $expect) { 

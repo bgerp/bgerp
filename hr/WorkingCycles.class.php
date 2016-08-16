@@ -130,6 +130,13 @@ class hr_WorkingCycles extends core_Master
         
         $maxNight = $tTime->toVerbal($maxNight);
         
+        if (hr_Departments::haveRightFor('single', $rec)) {
+            $url = array('hr_WorkingCycles',"Print", $rec);
+            $efIcon = 'img/16/printer.png'; bp($data);
+            $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");
+            $data->row->print = $link;
+        }
+        
         //$data->row->info = "Max night: $maxNight<br>";
     }
     
@@ -320,20 +327,21 @@ class hr_WorkingCycles extends core_Master
                 
                 $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d, $header);
                 $tpl->append($calendar, 'calendar');
-                
-                $url = toUrl(array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year));
-                $title = "<legend class='groupTitle'>" . tr('Работен график') . "</legend>";
-                
-                $tpl->append($url, 'id');
-                $tpl->append($title, 'title');
+
+                // правим url  за принтиране
+                $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year);
+                $efIcon = 'img/16/printer.png';
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $tpl->append($link, 'print');
             }
         }
         
         if(Mode::is('printing')) {
-            
+
             $month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'F',  'bg'), MB_CASE_LOWER, "UTF-8");
+            $tpl->content = str_replace("Работен график", "", $tpl->content);
             $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($prepareRecs->name) . tr(" за месец ") . tr($month) . "<br /></b>";
-            $tpl->append($title, 'title');
+            $tpl->append($title, 'printTitle');
             
             $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
             $tpl->append($calendar, 'calendar');
@@ -357,6 +365,7 @@ class hr_WorkingCycles extends core_Master
         
         return $tpl;
     }
+
     
     /**
      * @todo Чака за документация...
@@ -461,7 +470,7 @@ class hr_WorkingCycles extends core_Master
     function act_Print()
     {
         $data = new stdClass();
-        $id = Request::get('masterId', 'int');
+        $id = Request::get('masterId', 'int'); 
         $data->masterId  = $id;
         
         if(Mode::is('printing')) {

@@ -488,7 +488,7 @@ abstract class deals_Helper
 	 * @param NULL|varchar $batch
 	 * @return FALSE|stdClass
 	 */
-	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL)
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL, $expenseItemId = NULL)
 	{
 		$cond = "#{$mvc->masterKey} = $masterId";
 		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -514,6 +514,14 @@ abstract class deals_Helper
 		
 		if($id){
 			$cond .= " AND #id != {$id}";
+		}
+		
+		if($mvc->getField('expenseItemId', FALSE)){
+			if(isset($expenseItemId)){
+				$cond .= " AND #expenseItemId = {$expenseItemId}";
+			} else {
+				$cond .= " AND #expenseItemId IS NULL";
+			}
 		}
 		
 		return $mvc->fetch($cond);
@@ -707,42 +715,63 @@ abstract class deals_Helper
 	}
 	
 	
-	
-	
-	
-	
-	public static function getRecsByExpenses($originId, $productId, $quantity, $expenseItemId, $amount, $discount = NULL)
+	/**
+	 * Помощна ф-я връщаща подходящо представяне на клиентсктие данни и тези на моята фирма
+	 * в бизнес документите
+	 * 
+	 * @param mixed $contragentClass - клас на контрагента
+	 * @param int $contragentId      - ид на контрагента
+	 * @param int $contragentName    - името на контрагента, ако е предварително известно
+	 * @return array $res
+	 * 				['MyCompany']         - Името на моята фирма
+	 * 				['MyAddress']         - Адреса на моята фирма
+	 * 				['MyCompanyVatNo']    - ДДС номера на моята фирма
+	 * 				['uicId']             - Националния номер на моята фирма
+	 *  			['contragentName']    - Името на контрагента
+	 *   			['contragentAddress'] - Адреса на контрагента
+	 *              ['vatNo']             - ДДС номера на контрагента
+	 */
+	public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = NULL)
 	{
 		$res = array();
-		$pInfo = cat_Products::getProductInfo($productId);
-		if(isset($pInfo->meta['canStore'])) return $res;
 		
-		$amount = ($discount) ?  $amount * (1 - $discount) : $amount;
-		$amount = round($amount, 2);
+		// Данните на 'Моята фирма'
+		$ownCompanyData = crm_Companies::fetchOwnCompany();
 		
-		$objectToClone = (object)array('productId' => $productId, 'quantity' => $quantity);
-		$obj = clone $objectToClone;
-		$obj->amount = $amount;
+		// Името и адреса на 'Моята фирма'
+		$Companies = cls::get('crm_Companies');
+		$res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+		$res['MyCompany'] = transliterate(tr($res['MyCompany']));
+		$res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
 		
-		if(!empty($expenseItemId)){
-			$obj->expenseItemId = $expenseItemId;
-			$obj->reason = 'Приети услуги и нескладируеми консумативи';
-		} elseif(isset($pInfo->meta['fixedAsset'])){
-			$obj->expenseItemId = array('cat_Products', $productId);
-			$obj->reason = 'Приети ДА';
-		} elseif($pInfo->meta['canConvert']){
-			$obj->expenseItemId = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-			$obj->reason = 'Приети услуги и нескладируеми консумативи за производството';
-		} elseif(empty($obj->expenseItemId)){
-			$obj->expenseItemId = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-			$obj->reason = 'Приети непроизводствени услуги и нескладируеми консумативи';
+		// ДДС и националния номер на 'Моята фирма'
+		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+		if($uic != $ownCompanyData->vatNo){
+			$res['MyCompanyVatNo'] = $ownCompanyData->vatNo;
+		}
+		$res['uicId'] = $uic;
+			
+		// името, адреса и ДДС номера на контрагента
+		if(isset($contragentClass) && isset($contragentId)){
+			$ContragentClass = cls::get($contragentClass);
+			$cData = $ContragentClass->getContragentData($contragentId);
+			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
+			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
+			$res['vatNo'] = $cData->vatNo;
 		}
 		
-		if(!is_array($obj->expenseItemId)){
-			acc_journal_Exception::expect(acc_Items::fetch($obj->expenseItemId), 'Невалидно разходно перо');
-		}
+		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml'));
 		
-		$res[] = $obj;
+		// Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
+		if($makeLink === TRUE){
+			$res['MyCompany'] = ht::createLink($res['MyCompany'], crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
+			$res['MyCompany'] = $res['MyCompany']->getContent();
+			
+			if(isset($contragentClass) && isset($contragentId)){
+				$res['contragentName'] = ht::createLink($res['contragentName'], $ContragentClass::getSingleUrlArray($contragentId));
+				$res['contragentName'] = $res['contragentName']->getContent();
+			}
+		}
 		
 		return $res;
 	}

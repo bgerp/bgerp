@@ -5,7 +5,11 @@
     [#blank#]
     <!--ET_END blank-->
     <fieldset class="detail-info">
-        [#title#]
+
+    <!--ET_BEGIN legend-->
+    <legend class='groupTitle'>|Работен график|*[#print#][#printTitle#]</legend>
+    <!--ET_END legend-->
+    
         [#calendar#]<br>
         <table class='mc-calendar cal-legend'>
             <tr>

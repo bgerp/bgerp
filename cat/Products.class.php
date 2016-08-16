@@ -1452,13 +1452,13 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if(isset($rec->proto)){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			if(!Mode::isReadOnly()){
     				$row->proto = $mvc->getHyperlink($rec->proto);
     			}
     		}
     		
     		if($mvc->haveRightFor('edit', $rec)){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')){
+    			if(!Mode::isReadOnly()){
     				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
     			}
     		}
@@ -1470,7 +1470,7 @@ class cat_Products extends embed_Manager {
     			$row->groups = '';
     			foreach ($groups as $grId){
     				if($mvc->haveRightFor('list')){
-    					if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    					if(!Mode::isReadOnly()){
     						$listUrl = array($mvc, 'list', 'groupId' => $grId);
     					}
     				}
@@ -2068,21 +2068,23 @@ class cat_Products extends embed_Manager {
     	if(!$date){
     		$date = dt::now();
     	}
-    	
+
     	$res = array();
     	$bomId = static::getLastActiveBom($id, 'production')->id;
+    
     	if(!$bomId) {
     		$bomId = static::getLastActiveBom($id, 'sales')->id;
     	}
     	
     	if (isset($bomId)) {
 	    	$info = cat_Boms::getResourceInfo($bomId, $quantity, $date);
-	    	
+	    
 	    	foreach ($info['resources'] as $materialId => $rRec){
 	    		if($rRec->type != 'input') continue;
 	    		
-	    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
-	    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
+	    		$quantity1 = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
+
+	    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity1);
 	    	}
     	}
     	

@@ -78,7 +78,7 @@ class distro_Files extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2';
+    public $loadList = 'distro_Wrapper, plg_Modified, plg_Created, plg_RowTools2, plg_SaveAndNew';
     
     
     /**
@@ -140,7 +140,7 @@ class distro_Files extends core_Detail
     function description()
     {
         $this->FLD('groupId', 'key(mvc=distro_Group, select=title)', 'caption=Група, mandatory');
-        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory');
+        $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory, remember=info');
         $this->FLD('name', 'varchar', 'caption=Име, width=100%, input=none');
         $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, width=100%, input=none');
         $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
@@ -217,7 +217,7 @@ class distro_Files extends core_Detail
         
         $sshObj = distro_Repositories::connectToRepo($repoId);
         
-        if ($sshObj === FALSE) return FALSE; // TODO да репортва
+        expect($sshObj !== FALSE);
         
         $destFilePath = $this->getRealPathOfFile($id, $repoId);
         
@@ -304,6 +304,79 @@ class distro_Files extends core_Detail
     
     
     /**
+     * Форсира синхронизирането на файловете в хранилището с БД
+     * 
+     * @param integer $groupId
+     * @param integer $repoId
+     * 
+     * @return FALSE|array
+     */
+    public function forceSync($groupId, $repoId)
+    {
+        $conn = distro_Repositories::connectToRepo($repoId);
+        
+        if (!$conn) return FALSE;
+        
+        $actArr = array();
+        
+        $subDirName = $this->Master->getSubDirName($groupId);
+        
+        $repoRec = distro_Repositories::fetch((int) $repoId);
+        
+        $path = rtrim($repoRec->path, '/');
+        $path .= '/' . $subDirName;
+        $path = escapeshellarg($path);
+        
+        // Всички файлове от това хранилище
+        $conn->exec("ls -p {$path}| grep -v '/$'", $res);
+        
+        $resArr = explode("\n", $res);
+        
+        // Всички файлове в БД
+        $query = distro_Files::getQuery();
+        $query->where(array("#{$this->masterKey} = '[#1#]'", $groupId));
+        $query->where(array("#repoId = '[#1#]'", $repoId));
+        
+        $dbArr = array();
+        while ($rec = $query->fetch()) {
+            $dbArr[$rec->name] = $rec;
+        }
+        
+        foreach ($resArr as $fName) {
+            $fName = trim($fName);
+            if (!$fName) continue ;
+            
+            // Ако файла съществува в БД
+            if (isset($dbArr[$fName])) {
+                unset($dbArr[$fName]);
+            } else {
+                
+                // Добавяме файла в БД
+                $this->addFileToBD($groupId, $fName, $repoId);
+                $actArr['addToDB']++;
+            }
+        }
+        
+        // Ако файлът съществува в БД, но не и в хранилището
+        if (!empty($dbArr)) {
+            foreach ($dbArr as $fRec) {
+                if (!isset($fRec->sourceFh) || !trim($fRec->sourceFh)) {
+                    // Ако не е архивиран, премахваме от базата и отбелязваме в лога
+                    distro_Actions::addToRepo($fRec, 'distro_DeleteDriver', TRUE);
+                    $actArr['delFromDb']++;
+                } else {
+                    // Ако файлът е качен в системата - сваляме го в хранилището
+                    distro_Actions::addToRepo($fRec, 'distro_AbsorbDriver');
+                    $actArr['absorbFromDb']++;
+                }
+            }
+        }
+        
+        return $actArr;
+    }
+    
+    
+    /**
      * Синхронизира съдържанието на хранилищата с модела
      * 
      * @return array
@@ -349,7 +422,7 @@ class distro_Files extends core_Detail
                 if ($lArr['act'] == 'create' || $lArr['act'] == 'edit') {
                     
                     // Ако вече е бил изтрит, няма смисъл да се добавя
-                    if ($repoActArr[$groupId]['delete'][$lArr['name']]) continue; // TODO - може и да не се прескача, ако ще се записва в лога
+                    if ($repoActArr[$groupId]['delete'][$lArr['name']]) continue;
                 }
                 
                 $repoActArr[$groupId][$lArr['act']][$lArr['name']] = $lArr['date'];
@@ -358,42 +431,11 @@ class distro_Files extends core_Detail
             foreach ($repoActArr as $groupId => $actArr) {
                     
                 foreach ((array)$actArr['create'] as $name => $date) {
+                    $addRes = $this->addFileToBD($groupId, $name, $repoId, $date);
                     
-                    $subDir = $this->Master->getSubDirName($groupId);
+                    if (!isset($addRes)) continue;
                     
-                    $nRec = new stdClass();
-                    
-                    $nRec->md5 = $this->getMd5($repoId, $subDir, $name);
-                    
-                    $fRec = $this->getRecForFile($groupId, $name, $repoId);
-                    
-                    if ($fRec) {
-                        
-                        // Ако хешовете им съвпадат
-                        if ($fRec->md5 == $nRec->md5) {
-                            $this->logNotice('Съществуващ файл', $fRec->id);
-                            continue;
-                        }
-                        
-                        // TODO - ако двата файла не съвпадат, трядбва да се преименува
-                        
-                        continue;
-                    }
-                    
-                    $nRec->repoId = $repoId;
-                    $nRec->groupId = $groupId;
-                    $nRec->name = $name;
-                    
-                    $nRec->createdBy = -1;
-                    
-                    // Проверяваме дали подадената дата е коректна за използване
-                    if ($this->checkDate($date)) {
-                        $nRec->createdOn = $date;
-                    }
-                    
-                    $this->save($nRec);
-                    
-                    $resArr['create'][$nRec->id] = $nRec->id;
+                    $resArr['create'][$addRes] = $addRes;
                 }
                 
                 foreach ((array)$actArr['edit'] as $name => $date) {
@@ -437,7 +479,7 @@ class distro_Files extends core_Detail
                     
                     $resArr['delete'][$fRec->id] = $fRec->id;
                     
-                    $this->delete($fRec->id); // TODO - може да записва в лога или оттегля записа
+                    distro_Actions::addToRepo($fRec, 'distro_DeleteDriver', TRUE);
                 }
             }
             
@@ -446,6 +488,68 @@ class distro_Files extends core_Detail
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     * Добавя запис за файла в БД
+     * 
+     * @param integer $groupId
+     * @param string $name
+     * @param integer $repoId
+     * @param NULL|datetime $date
+     * 
+     * @return NULL|integer
+     */
+    protected function addFileToBD($groupId, $name, $repoId, $date = NULL)
+    {
+        $subDir = $this->Master->getSubDirName($groupId);
+        
+        $nRec = new stdClass();
+        
+        $nRec->md5 = $this->getMd5($repoId, $subDir, $name);
+        
+        $fRec = $this->getRecForFile($groupId, $name, $repoId);
+        
+        if ($fRec) {
+        
+            // Ако хешовете им съвпадат
+            if ($fRec->md5 == $nRec->md5) {
+                $this->logNotice('Съществуващ файл', $fRec->id);
+                
+                return NULL;
+            }
+        
+            // Ако са различни файлове, преименуваме единия
+            $ssh = distro_Repositories::connectToRepo($repoId);
+            if ($ssh) {
+                $uniqName = $this->getUniqFileName($fRec->id, $repoId);
+                $newName = escapeshellarg($uniqName);
+        
+                $oldName = $this->getRealPathOfFile($fRec->id, $repoId);
+                $oldName = escapeshellarg($oldName);
+        
+                $exec = "mv {$oldName} {$newName}";
+                $ssh->exec($exec);
+        
+                $name = pathinfo($uniqName, PATHINFO_BASENAME);
+            }
+        }
+        
+        $nRec->repoId = $repoId;
+        $nRec->groupId = $groupId;
+        $nRec->name = $name;
+        
+        $nRec->createdBy = -1;
+        
+        // Проверяваме дали подадената дата е коректна за използване
+        if (isset($date) && $this->checkDate($date)) {
+            $nRec->createdOn = $date;
+        }
+        
+        $this->save($nRec);
+        
+        return $nRec->id;
     }
     
     

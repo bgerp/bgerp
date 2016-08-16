@@ -195,4 +195,18 @@ class core_Mode
         self::$mode = NULL;
         self::$stack = array();
     }
+    
+    
+    /**
+     * Проверява дали режима е 'readOnly'
+     */
+    public static function isReadOnly()
+    {
+    	// Ако режима е xhtml, printing, pdf, inlineDocument
+    	if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('inlineDocument')){
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
 }

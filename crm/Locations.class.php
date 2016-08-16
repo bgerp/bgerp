@@ -197,7 +197,7 @@ class crm_Locations extends core_Master {
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
     	$data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id, 'на');
@@ -227,7 +227,7 @@ class crm_Locations extends core_Master {
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = NULL)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = NULL)
     {
     	$f = arr::make($fields, TRUE);
     	
@@ -250,12 +250,9 @@ class crm_Locations extends core_Master {
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $cMvc = cls::get($rec->contragentCls);
         expect($rec->contragentId);
         
         if(isset($fields['-single'])){
-        	$row->contragent = $cMvc->getLinkForObject($rec->contragentId);
-        
         	if(isset($rec->image)) {
         		$Fancybox = cls::get('fancybox_Fancybox');
         		$row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
@@ -266,6 +263,11 @@ class crm_Locations extends core_Master {
         	}
         }
 		
+        if(isset($fields['-single']) || isset($fields['-list'])){
+        	$cMvc = cls::get($rec->contragentCls);
+        	$row->contragent = $cMvc->getHyperlink($rec->contragentId, TRUE);
+        }
+        
         if($rec->state == 'rejected'){
         	if($fields['-single']){
         		$row->headerRejected = ' state-rejected';
@@ -308,7 +310,7 @@ class crm_Locations extends core_Master {
     /**
      * Премахване на бутона за добавяне на нова локация от лист изгледа
      */
-    public static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
+    protected static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
     {
         $data->toolbar->removeBtn('btnAdd');
     }

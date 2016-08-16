@@ -263,7 +263,7 @@ class acc_ReportDetails extends core_Manager
     	
     	if(isset($data->balanceRec->periodId)){
     		$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => "Оборотна ведомост за|* \"{$link}\""));
     		}
     		 
@@ -310,7 +310,7 @@ class acc_ReportDetails extends core_Manager
                 	unset($fields['blPrice']);
                 }
                 
-                if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')){
+                if(Mode::isReadOnly()){
                 	unset($fields['tools']);
                 }
                 
@@ -391,7 +391,7 @@ class acc_ReportDetails extends core_Manager
         
         // Ако потребителя може да добавя счетоводни лимити
         if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId())) 
-                && !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('inlineDocument')){
+                && !Mode::isReadOnly()){
         	$url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
         	$btn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново ограничение на перото');
         	$tpl->append($btn, 'BTN_LIMITS');

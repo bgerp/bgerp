@@ -37,54 +37,61 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
     	expect($rec = $this->class->fetchRec($id));
     	expect($origin = $this->class->getOrigin($rec));
     	$originRec = $origin->fetch();
-    	 
-    	$entries = array();
-    	$creditArr = array($rec->creditAccount, array($originRec->contragentClassId, $originRec->contragentId), array($origin->className, $origin->that), array('currency_Currencies', $rec->currencyId));
+    	$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
     	
-    	$vatAmount = 0;
+    	$entries = array();
+    	$creditArr = array($rec->creditAccount, 
+    						array($originRec->contragentClassId, $originRec->contragentId), 
+    						array($origin->className, $origin->that), 
+    						array('currency_Currencies', $currencyId));
+    	
     	$dQuery = findeals_AdvanceReportDetails::getQuery();
     	$dQuery->where("#reportId = '{$rec->id}'");
-    	while($dRec = $dQuery->fetch()){
-    		
-    		$splitRecs = deals_Helper::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount);
+    	$details = $dQuery->fetchAll();
+    	
+    	deals_Helper::fillRecs($this->class, $details, $rec, array('alwaysHideVat' => TRUE));
+    	
+    	foreach ($details as $dRec) {
+    		 
+    		// Към кои разходни обекти ще се разпределят разходите
+    		$splitRecs = acc_ExpenseAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->id, $dRec->discount);
     		
     		foreach ($splitRecs as $dRec1){
-    			$amount = round($dRec1->amount, 2);
+    			$amount = $dRec1->amount;
+    			$creditArr['quantity'] = $amount;
     			
-    			$vatAmount += $dRec1->amount * $dRec->vat;
-    			$vatAmount = round($vatAmount, 2);
-    			
-    			$creditArr['quantity'] = $dRec1->amount / $rec->rate;
-    			
-    			$entries[] = array('amount' => $amount,
-    							   'debit'  => array('60201', 
-    							   					$dRec1->expenseItemId, 
-    							   					array('cat_Products', $dRec1->productId),
-    							   					'quantity' => $dRec1->quantity),
-    							   'credit' => $creditArr,
-    							   'reason' => $dRec1->reason,
+    			$entries[] = array(
+    					'amount' => $amount * $rec->currencyRate, // В основна валута
+    					'debit' => array('60201', 
+    										$dRec1->expenseItemId,
+    										array('cat_Products', $dRec1->productId),
+    										'quantity' => $dRec1->quantity),
+    					'credit' => $creditArr,
+    					'reason' => $dRec1->reason,
     			);
     		}
     	}
     	
-    	$entries[] = array(
-    			'amount' => $vatAmount,
-    			'credit' => array(
-    					$rec->creditAccount,
-    					array($originRec->contragentClassId, $originRec->contragentId),
-    					array($origin->className, $origin->that),
-    					array('currency_Currencies', $rec->currencyId),
-    					'quantity' => $vatAmount / $rec->rate,
-    			),
-    	
-    			'debit' => array('4530', array($origin->className, $origin->that),),
-    	);
+    	// Отчитаме ддс-то
+    	if($this->class->_total){
+    		$vat = $this->class->_total->vat;
+    		$vatAmount = $this->class->_total->vat * $rec->currencyRate;
+    		$creditArr['quantity'] = $vat;
+    		
+    		$entries[] = array(
+    				'amount' => $vatAmount,
+    				'credit' => $creditArr,
+    				'debit' => array('4530', array($origin->className, $origin->that),),
+    				'reason' => 'ДДС за начисляване при фактуриране',
+    		);
+    	}
     	
     	$result = (object)array(
     			'reason'  => $this->class->getRecTitle($rec),
     			'valior'  => $rec->valior,
     			'entries' => $entries);
     	 
+    	
     	return $result;
     }
 }

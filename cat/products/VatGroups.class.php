@@ -202,7 +202,7 @@ class cat_products_VatGroups extends core_Detail
         $tpl = $table->get($data->rows, $data->listFields);
     	
     	$title = 'ДДС';
-    	if($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('inlineDocument') && !Mode::is('pdf')){
+    	if($data->addUrl && !Mode::isReadOnly()){
 			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ДДС група');
 		}
     	

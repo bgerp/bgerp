@@ -267,18 +267,15 @@ class distro_CopyDriver extends core_Mvc
     public static function on_AfterRecToVerbal($mvc, $embeder, &$row, $rec)
     {
         if ($rec->sourceRepoId) {
-            $fileName = $embeder->getVerbal($rec, 'fileId');
-            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' "' . $fileName . '" ' . tr('от') . ' "' . $embeder->getVerbal($rec, 'repoId') . '" ';
-            $row->Info .= tr('в') . ' "' . distro_Repositories::getVerbal($rec->sourceRepoId, 'name') . '"';
+            $fileName = $embeder->getFileName($rec);
+            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' "' . $fileName . '" ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
             
-            $newName = type_Varchar::escape($rec->newFileName);
-            
-            if ($rec->newFileId) {
-                $newName = distro_Files::getVerbal($rec->newFileId, 'name');
-            }    
-            
-            if ($newName && ($fileName != $newName)) {
-                $row->Info .= " ({$newName})";
+            if ($rec->newFileId && $rec->newFileName && ($rec->newFileName != $rec->fileName)) {
+                
+                $newName = type_Varchar::escape($rec->newFileName);
+                
+                $row->Info .=  ' ' . tr('с нов име') . " \"{$newName}\"";
             }
         }
     }

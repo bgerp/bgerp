@@ -256,20 +256,27 @@ class type_Key extends type_Int
                 $field = $this->getSelectFld();
             }
             
+            $where = '';
+            
             if ($this->params['where']) {
                 $where = $this->params['where'];
             }
             
             // Ако е зададено поле group='sysId'
             if ($this->params['group']) {
-                $where = $this->filterByGroup($mvc);
+                
+                $fWhere = $this->filterByGroup($mvc);
+                
+                if ($fWhere) {
+                    $where = empty($where) ? $fWhere : "({$where}) AND ({$fWhere})" ;
+                }
             }
             
             Debug::startTimer('prepareOPT ' . $this->params['mvc']);
             
             $options = array();
             
-            $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
+            $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this, $where));
  
             if (!count($options)) {
                 
@@ -315,7 +322,7 @@ class type_Key extends type_Int
             
             $this->options = &$options;
             
-            $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+            $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this, $where));
         } else {
             $options = $this->options;
         }
