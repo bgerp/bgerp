@@ -292,19 +292,47 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 	
 	
 	
-	public static function getCorrectionEntries($products, $productId, $expenseItemId, $amount, $allocateBy)
+	/**
+	 * 
+	 * 
+	 * 
+	 * @param array $products - масив с информация за артикули
+     * 			    o productId       - ид на артикул
+     * 				o name            - име на артикула
+     *  			o quantity        - к-во
+     *   			o amount          - сума на артикула
+     *     			o inStores        - к-та с които артикула присъства в складовете, ако е повече от 1
+	 * @param int $productId                           - ид на артикул
+	 * @param int $expenseItemId                       - ид на разходен обект
+	 * @param double $amount                           - сума за разпределяне
+	 * @param quantity|value|weight|volume $allocateBy - начин на разпределяне
+	 * @return array $entries
+	 */
+	public static function getCorrectionEntries($products, $productId, $expenseItemId, $value, $allocateBy)
 	{
 		$entries = array();
 		
-		$errorMsg = acc_ValueCorrections::allocateAmount($products, $amount, $allocateBy);
+		$errorMsg = acc_ValueCorrections::allocateAmount($products, $value, $allocateBy);
 		if(!empty($errorMsg)) return $entries;
 		$itemRec = acc_Items::fetch($expenseItemId);
+		$isPurchase = ($itemRec->classId == purchase_Purchases::getClassId());
 		
 		foreach ($products as $p){
 			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $p->allocated);
 		
-			if($itemRec->classId == purchase_Purchases::getClassId()){
-				bp();
+			if($isPurchase){
+				foreach ($p->inStores as $storeId => $storeQuantity){
+					
+					$allocated = round($p->allocated * ($storeQuantity / $p->quantity), 2);
+					$creditArr['quantity'] = $allocated;
+					
+					$entries[] = array('debit' => array('321',
+													array('store_Stores', $storeId),
+													array('cat_Products', $p->productId),
+													'quantity' => 0),
+									   'credit' => $creditArr, 
+							'reason' => 'Корекция на стойност');
+				}
 			} else {
 				$canStore = cat_Products::fetchField($p->productId, 'canStore');
 				$accountSysId = ($canStore == 'yes') ? '701' : '703';

@@ -501,6 +501,12 @@ class acc_ValueCorrections extends core_Master
      * 		Ако някой артикул няма тегло не може да се разпредели
      * 
      * @param array $products - масив с информация за артикули
+     * 			    o productId       - ид на артикул
+     * 				o name            - име на артикула
+     *  			o quantity        - к-во
+     *   			o amount          - сума на артикула
+     *    			o transportWeight - транспортно тегло на артикула
+     *     			o transportVolume - транспортен обем на артикула
      * @param double $amount - сумата за разпределяне
      * @param value|quantity|volume|weight - режим на разпределяне
      * @return mixed
@@ -510,19 +516,25 @@ class acc_ValueCorrections extends core_Master
     	$denominator = 0;
     	$errorArr = array();
     	
-    	// Първо обхождаме записите и изчисляваме знаменателя чрез който ще изчислим коефициента
+    	// Първо обхождаме записите и изчисляване на знаменателя, чрез който ще изчислим коефициента
     	switch ($allocateBy){
     		case 'value':
+    			
+    			// Ако се разпределя по стойност изчисляване на общата сума
     			foreach ($products as $p){
     				$denominator += $p->amount;
     			}
     			break;
     		case 'quantity':
+    			
+    			// Ако се разпределя по к-во изчисляване на общото к-во
     			foreach ($products as $p){
     				$denominator += $p->quantity;
     			}
     			break;
     		case 'weight':
+    			
+    			// Изчисляване на общото транспортно тегло
     			foreach ($products as $p){
     				if(!isset($p->transportWeight)){
     					$errorArr[$p->productId] = $p->name;
@@ -532,6 +544,8 @@ class acc_ValueCorrections extends core_Master
     			}
     			break;
     		case 'volume':
+    			
+    			// Изчисляване на общия транспортен обем
     			foreach ($products as $p){
     				if(!isset($p->transportVolume)){
     					$errorArr[$p->productId] = $p->name;
@@ -542,14 +556,17 @@ class acc_ValueCorrections extends core_Master
     			break;
     	}
     	
+    	// Ако има намерени артикули без транспортен обем или тегло, при съответното разпределяне
     	if(count($errorArr)){
     		$string = implode(", ", $errorArr);
     		$type = ($allocateBy == 'weight') ? 'тегло' : 'обем';
+    		
+    		// Връщане на информация, кои артикули имат липсващи параметри
     		$msg = "Не може да се избере разпределяне по {$type}, защото|* <b>{$string}</b> |нямат {$type}|*";
     		return $msg;
     	}
     	
-    	// Изчисляваме коефициента, според указания начин за разпределяне
+    	// Изчисляване на коефициента, според указания начин за разпределяне
     	foreach ($products as &$p){
 	    	switch ($allocateBy){
 	    		case 'value':
@@ -560,14 +577,13 @@ class acc_ValueCorrections extends core_Master
 	    			break;
 	    		case 'weight':
 	    			$coefficient = ($p->transportWeight * $p->quantity) / $denominator;
-	    			
 	    			break;
 	    		case 'volume':
 	    			$coefficient = ($p->transportVolume * $p->quantity) / $denominator;
 	    			break;
 	    	}
 	    	
-	    	// Изчисляваме сумата за разпределяне (коефициент * сума за разпределение)
+	    	// Изчисляване на сумата за разпределяне (коефициент * сума за разпределение)
 	    	$p->allocated = round($coefficient * $amount, 2);
     	}
     }
