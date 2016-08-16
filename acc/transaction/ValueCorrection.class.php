@@ -289,4 +289,35 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 		
 		return $entries;
 	}
+	
+	
+	
+	public static function getCorrectionEntries($products, $productId, $expenseItemId, $amount, $allocateBy)
+	{
+		$entries = array();
+		
+		$errorMsg = acc_ValueCorrections::allocateAmount($products, $amount, $allocateBy);
+		if(!empty($errorMsg)) return $entries;
+		$itemRec = acc_Items::fetch($expenseItemId);
+		
+		foreach ($products as $p){
+			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $p->allocated);
+		
+			if($itemRec->classId == purchase_Purchases::getClassId()){
+				bp();
+			} else {
+				$canStore = cat_Products::fetchField($p->productId, 'canStore');
+				$accountSysId = ($canStore == 'yes') ? '701' : '703';
+				$dealRec = cls::get($itemRec->classId)->fetch($itemRec->objectId, 'contragentClassId, contragentId');
+					
+				$entries[] = array('debit' => array($accountSysId,
+								array($dealRec->contragentClassId, $dealRec->contragentId),
+								$expenseItemId, array('cat_Products', $p->productId),
+								'quantity' => $p->allocated),
+						'credit' => $creditArr, 'reason' => 'Корекция на стойност');
+			}
+		}
+		 
+		return $entries;
+	}
 }

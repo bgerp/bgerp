@@ -89,7 +89,6 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     public function description()
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=productId,caption=Разход за');
     	parent::setDocumentFields($this);
     }
     
@@ -101,15 +100,6 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
-    	// Ако е избран артикул и той е невложим и имаме разходни пера,
-    	// показваме полето за избор на разход
-    	if(isset($rec->productId)){
-    		$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset');
-    		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && $data->masterRec->isReverse != 'yes' && acc_Lists::getItemsCountInList('costObjects') > 1){
-    			$form->setField('expenseItemId', 'input');
-    		}
-    	}
     	
     	$form->setField('packPrice', 'mandatory');
     	$form->setField('discount', 'input=none');

@@ -86,9 +86,10 @@ class acc_CostAllocations extends core_Manager
     	$this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory,silent,input=hidden,remember');
     	$this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden,remember');
     	$this->FLD('quantity', 'double(Min=0,smartRound)', 'caption=Количество,mandatory,smartCenter');
-    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'after=quantity,silent,mandatory,caption=Разход за,removeAndRefreshForm=allocationBy');
-    	$this->FLD('allocationBy', 'enum(no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none');
+    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'after=quantity,silent,mandatory,caption=Разход за,removeAndRefreshForm=allocationBy|productsData|chosenProducts');
+    	$this->FLD('allocationBy', 'enum(no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts');
     	$this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
+    	$this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
     	
     	$this->setDbIndex('detailClassId,detailRecId');
 	}
@@ -249,8 +250,9 @@ class acc_CostAllocations extends core_Manager
 		
 		// Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
 		if(isset($rec->expenseItemId)){
-			$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
-			if($itemClassId == sales_Sales::getClassId() || $itemClassId == purchase_Purchases::getClassId()){
+			$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+			
+			if($itemRec->classId == sales_Sales::getClassId() || $itemRec->classId == purchase_Purchases::getClassId()){
 				$form->setField('allocationBy', 'input');
 				$form->setDefault('allocationBy', 'no');
 			}
@@ -268,6 +270,14 @@ class acc_CostAllocations extends core_Manager
 	{
 		$rec = &$form->rec;
 		 
+		if(isset($rec->expenseItemId)){
+			if(isset($rec->allocationBy) && $rec->allocationBy != 'no'){
+				$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+				$origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+				acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+			}
+		}
+		
 		if($form->isSubmitted()){
 			
 			// Колко ще бъде разпределено след записа
@@ -310,6 +320,20 @@ class acc_CostAllocations extends core_Manager
 			if(!$form->gotErrors()){
 				if($allocatedQuantity >= $maxQuantity){
 					$form->cmd = 'save';
+				}
+				
+				// Проверка на избраните артикули
+				if(isset($rec->allocationBy) && $rec->allocationBy != 'no'){
+					if(!count($form->allProducts)){
+						$form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
+					} else {
+						$rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+						$copyArr = $rec->productsData;
+						if($error = acc_ValueCorrections::allocateAmount($copyArr, $rec->quantity, $rec->allocationBy)){
+							$form->setError('allocateBy,chosenProducts', $error);
+						}
+					}
+					
 				}
 			}
 		}
@@ -585,6 +609,10 @@ class acc_CostAllocations extends core_Manager
 					$allocatedAmount += $r->amount;
 				}
 				 
+				if($dRec->allocationBy != 'no'){
+					$r->correctProducts = $dRec->productsData;
+				}
+				
 				// Добавяне на редовете
 				$res[] = $r;
 			}

@@ -39,7 +39,7 @@ class acc_ValueCorrections extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank,deals_plg_SelectDeal';
+                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank';
     
     
     /**
@@ -81,7 +81,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Crv";
+    public $abbr = "Vcr";
     
     
     /**
@@ -103,45 +103,15 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
-     * Кой може да го оттегля
-     */
-    public $canRevert = 'acc, ceo';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'acc/tpl/SingleAllocatedExpensesLayout.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutValueCorrections.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'contragentFolderId, notes';
-    
-    
-    /**
-     * Поле в което ще се записва контейнера на избраната сделка
-     * 
-     * @see deals_plg_SelectDeal
-     */
-    public $selectedDealOriginFieldName = 'correspondingDealOriginId';
-    
-    
-    /**
-     * След кое поле да се покаже секцията за избор на сделка
-     *
-     * @see deals_plg_SelectDeal
-     */
-    public $selectDealAfterField = 'allocateBy';
-    
-    
-    /**
-     * От кои класове на сделки може да се избира
-     *
-     * @see deals_plg_SelectDeal
-     */
-    public $selectedDealClasses = 'findeals_Deals,purchase_Purchases';
+    public $searchFields = 'folderId,notes';
     
     
     /**
@@ -150,30 +120,20 @@ class acc_ValueCorrections extends core_Master
     function description()
     {
     	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
-    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
+    	$this->FLD('amount', 'double(decimals=2,Min=0)', 'caption=Сума,mandatory');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
     	$this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
     	
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
-    	
-    	// Функционално поле за избор на артикули
-    	$this->FNC('chosenProducts', 'text', 'caption=Корекция на стойността на->Артикули,mandatory,input');
+    	$this->FLD('correspondingDealOriginId', 'int', 'input=hidden,tdClass=leftColImportant');
     	
     	// Кеш поле за цялата информация на възможните артикули
     	$this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
-    	
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
-    }
-    
-    
-    /**
-     * Извиква се след описанието на модела
-     */
-    public static function on_AfterDescription(core_Master &$mvc)
-    {
+    	
     	// Поставяне на уникален индекс
-    	$mvc->setDbIndex('correspondingDealOriginId');
+    	$this->setDbIndex('correspondingDealOriginId');
     }
     
     
@@ -187,6 +147,11 @@ class acc_ValueCorrections extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	if($firstDoc->fetchField('containerId') != $rec->correspondingDealOriginId){
+    		$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+    	} else {
+    		unset($row->correspondingDealOriginId);
+    	}
     	
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->dealOriginId = $firstDoc->getLink(0);
@@ -323,6 +288,43 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
+     * Добавя полета към формата за избор на артикули
+     * 
+     * @param core_Form $form
+     * @param core_ObjectReference $origin
+     * @param string $dataField
+     */
+    public static function addProductsFromOriginToForm(&$form, core_ObjectReference $origin, $dataField = 'productsData')
+    {
+    	// Запомняне на всички експедирани/заскладени артикули от оридижина
+    	$products = self::getChosenProducts($origin);
+    	$form->allProducts = $products;
+    	
+    	if(count($products)){
+    	
+    		// Добавяме всички възможни артикули като опции в SET поле
+    		$nProducts = array();
+    		foreach ($products as $p){
+    			$nProducts[$p->productId] = $p->name;
+    		}
+    		
+    		$form->FNC('chosenProducts', 'set', 'caption=Корекция на стойността на->Артикули,mandatory,input,columns=1');
+    		$form->setSuggestions('chosenProducts', $nProducts);
+    		
+    		// Ако има запис остават само тези, които са в кешираното блоб поле
+    		if($form->rec->id && $form->rec->{$dataField}){
+    			$products = array_intersect_key($products, $form->rec->{$dataField});
+    		}
+    	
+    		// Задаване на избран дефолт, така двете полета се синхронизирват
+    		$defaults = cls::get('type_Set')->fromVerbal($products);
+    		$form->setDefault('chosenProducts', $defaults);
+    		$form->input('chosenProducts');
+    	}
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -336,30 +338,7 @@ class acc_ValueCorrections extends core_Master
     	
     	// Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
     	expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
-    	
-    	// Намираме имали артикули, на които да се разпределят разходите
-    	$products = $mvc->getChosenProducts($firstDoc);
-    	$form->allProducts = $products;
-    	
-    	if(count($products)){
-    		
-    		// Добавяме всички възможни артикули като опции в SET поле
-    		$nProducts = array();
-    		foreach ($products as $p){
-    			$nProducts[$p->productId] = $p->name;
-    		}
-    		$form->fields['chosenProducts']->type = cls::get('type_Set', array('suggestions' => $nProducts));
-    		$form->setField('chosenProducts', 'columns=1');
-    		
-    		// Ако имаме запис оставяме само тези, които са в кешираното блоб поле
-    		if($rec->id && $rec->productsData){
-    			$products = array_intersect_key($products, $rec->productsData);
-    		}
-    		
-    		// Задаваме ги за избрани по дефолт, така двете полета се синхронизирват
-    		$defaults = cls::get('type_Set')->fromVerbal($products);
-    		$form->setDefault('chosenProducts', $defaults);
-    	}
+    	self::addProductsFromOriginToForm($form, $firstDoc);
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
     	$form->setDefault('currencyId', $firstDoc->fetchField('currencyId'));
@@ -394,7 +373,7 @@ class acc_ValueCorrections extends core_Master
      * @param core_ObjectReference $firstDoc - първи документ в нишката
      * @return array $products - масив с опции за избор на артикули
      */
-    private function getChosenProducts(core_ObjectReference $firstDoc)
+    private static function getChosenProducts(core_ObjectReference $firstDoc)
     {
     	// Aко първия документ е продажба
     	if($firstDoc->isInstanceOf('sales_Sales')){
@@ -456,32 +435,6 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
-     * Проверява хендлъра дали може да се избере
-     * 
-     * @param core_Mvc $mvc  - класа
-     * @param string $error  - текста на грешката
-     * @param string $handle - хендлъра на сделката
-     * @param stdClass $rec  - текущия запис
-     */
-    public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
-    {
-    	if($error) return $error;
-    	
-    	$firstDocumentHandle = doc_Threads::getFirstDocument($rec->threadId)->getHandle();
-    	if($rec->dealHandler && $rec->dealHandler != $firstDocumentHandle){
-    		$doc = doc_Containers::getDocumentByHandle($handle);
-    		if($doc){
-    			 
-    			// и да може да бъде избрана
-    			if(!$mvc->checkCorespondingDocument($doc)){
-    				$error = 'Трябва да е избрана активна финансова сделка или покупка само с услуги';
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc $mvc
@@ -504,36 +457,10 @@ class acc_ValueCorrections extends core_Master
     		
     		// Намираме контейнера на първия документ в нишката
     		$doc = doc_Threads::getFirstDocument($rec->threadId);
-    		$firstDocument = $doc;
-    		$baseContainerId = $doc->fetchField('containerId');
-    		$firstDocumentHandle = $doc->getHandle();
-    		
-    		// Ако има избран хендлър на сделка и тя не е текущата сделка
-    		if($rec->dealHandler && $rec->dealHandler != $firstDocumentHandle){
-    			
-    			 // Намираме документа по хендлъра
-    			 $doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
-    		}
-    		
     		$correpspondingContainerId = $doc->fetchField('containerId');
-    		
-    		// Ако текущата сделка е кореспондент, трябва да се попълнена сумата
-    		if($correpspondingContainerId === $baseContainerId && empty($rec->amount)){
-    			$form->setError('amount', 'Трябва да е попълнена сумата, aко е текущата сделка кореспондент');
-    		}
     		
     		if(!$form->gotErrors()){
     			$rec->correspondingDealOriginId = $correpspondingContainerId;
-    			if(!isset($rec->amount)){
-    				$chargeVat = $firstDocument->fetchField('chargeVat');
-    				$rec->amount = $mvc->getDefaultAmountToAllocate($rec->correspondingDealOriginId, $chargeVat);
-    				$rec->amount /= $rec->rate;
-    				
-    				if(empty($rec->amount)){
-    					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте ръчно');
-    				}
-    			}
-    			
     			$rec->amount *= $rec->rate;
     			
     			if($form->chargeVat == 'yes' || $form->chargeVat == 'separate'){
@@ -543,15 +470,10 @@ class acc_ValueCorrections extends core_Master
     			
     			// Kешираме от всички възможни продукти, тези които са били избрани във функционалното поле
     			$rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
-    			$mvc->allocateAmount($rec->productsData, $rec->amount, $rec->allocateBy, $msg);
-    			
-    			if(isset($msg)){
-    				$form->setError('allocateBy', $msg);
+    			$error = self::allocateAmount($rec->productsData, $rec->amount, $rec->allocateBy);
+    			if(!empty($error)){
+    				$form->setError('allocateBy', $error);
     			}
-    		}
-    		
-    		if($rec->amount == 0){
-    			$form->setError('amount', 'Сумата не може да е 0');
     		}
     	}
     }
@@ -583,9 +505,10 @@ class acc_ValueCorrections extends core_Master
      * @param value|quantity|volume|weight - режим на разпределяне
      * @return mixed
      */
-    private function allocateAmount(&$products, $amount, $allocateBy, &$msg)
+    public static function allocateAmount(&$products, $amount, $allocateBy)
     {
     	$denominator = 0;
+    	$errorArr = array();
     	
     	// Първо обхождаме записите и изчисляваме знаменателя чрез който ще изчислим коефициента
     	switch ($allocateBy){
@@ -601,17 +524,29 @@ class acc_ValueCorrections extends core_Master
     			break;
     		case 'weight':
     			foreach ($products as $p){
-    				if(!isset($p->transportWeight)) return $msg = 'Не може да се разпредели по тегло, докато има артикул(и) без транспортно тегло';
-    				
-    				$denominator += $p->transportWeight * $p->quantity;
+    				if(!isset($p->transportWeight)){
+    					$errorArr[$p->productId] = $p->name;
+    				} else {
+    					$denominator += $p->transportWeight * $p->quantity;
+    				}
     			}
     			break;
     		case 'volume':
     			foreach ($products as $p){
-    				if(!isset($p->transportVolume)) return $msg = 'Не може да се разпредели по обем, докато има артикул(и) без транспортен обем';
-    				$denominator += $p->transportVolume * $p->quantity;
+    				if(!isset($p->transportVolume)){
+    					$errorArr[$p->productId] = $p->name;
+    				} else {
+    					$denominator += $p->transportVolume * $p->quantity;
+    				}
     			}
     			break;
+    	}
+    	
+    	if(count($errorArr)){
+    		$string = implode(", ", $errorArr);
+    		$type = ($allocateBy == 'weight') ? 'тегло' : 'обем';
+    		$msg = "Не може да се избере разпределяне по {$type}, защото|* <b>{$string}</b> |нямат {$type}|*";
+    		return $msg;
     	}
     	
     	// Изчисляваме коефициента, според указания начин за разпределяне
@@ -635,76 +570,6 @@ class acc_ValueCorrections extends core_Master
 	    	// Изчисляваме сумата за разпределяне (коефициент * сума за разпределение)
 	    	$p->allocated = round($coefficient * $amount, 2);
     	}
-    }
-    
-    
-    /**
-     * Връща дефолтната сума за разпределяне
-     * 
-     * @param int $correspondingOriginId - ориджин на документ кореспондент
-     * @return double $amount - дефолтната сума
-     */
-    private function getDefaultAmountToAllocate($correspondingOriginId, $chargeVat)
-    {
-    	$doc = doc_Containers::getDocument($correspondingOriginId);
-    	$amount = 0;
-    	
-    	if($doc->isInstanceOf('findeals_Deals')){
-    		$amount = $doc->fetchField('amountDeal');
-    	} elseif($doc->isInstanceOf('purchase_Purchases')){
-    		$dRec = $doc->fetch();
-    		$amount = $dRec->amountDeal;
-    		if($chargeVat != 'yes' && $chargeVat != 'separate'){
-    			$amount -= $dRec->amountVat;
-    		}
-    	}
-    	
-    	return $amount;
-    }
-    
-    
-    /**
-     * Проверяваме дали избрания кореспондиращ документ е валиден
-     * 
-     * Трябва да е активен
-     * и да е финансова сделка или покупка само с услуги
-     * 
-     * @param core_ObjectReference $doc - кореспондиращ документ
-     * @return boolean - валиден ли е или не
-     */
-    private function checkCorespondingDocument(core_ObjectReference $doc)
-    {
-    	// Дали е активен ?
-    	if($doc->fetchField('state') != 'active'){
-    		return FALSE;
-    	}
-    	
-    	// Ако е финансова сделка, винаги може
-    	if($doc->isInstanceOf('findeals_Deals')){
-    		
-    		return TRUE;
-    		
-    		// Ако е покупка
-    	} elseif($doc->isInstanceOf('purchase_Purchases')){
-    		
-    		// Намираме  артикулите
-    		$pQuery = purchase_PurchasesDetails::getQuery();
-    		$pQuery->where("#requestId = {$doc->that}");
-    		$pQuery->show('productId');
-    		 
-    		// Ако има поне един складируем артикул не може да се създаде
-    		while($dRec = $pQuery->fetch()){
-    			$pInfo = cat_Products::getProductInfo($dRec->productId);
-    			if(isset($pInfo->meta['canStore'])){
-    				return FALSE;
-    			}
-    		}
-    		
-    		// Иначе може
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
     }
     
     
@@ -735,7 +600,7 @@ class acc_ValueCorrections extends core_Master
     			} else {
     				 
     				// Ако няма артикули за разпределяне, не може да се създава документа
-    				$products = $mvc->getChosenProducts($firstDoc);
+    				$products = self::getChosenProducts($firstDoc);
     				if(!count($products)){
     					$requiredRoles = 'no_one';
     				}
@@ -795,44 +660,5 @@ class acc_ValueCorrections extends core_Master
     		
     		$res = " " . $res . " " . $detailsKeywords;
     	}
-    }
-    
-    
-    public static function getAmountsForCorrection($productId, $itemId, $amount, $allocationType)
-    {
-    	$res = array();
-    	$itemRec = acc_Items::fetch($itemId);
-    	$purchaseClassId = purchase_Purchases::getClassId();
-    	
-    	if($itemRec->classId != sales_Sales::getClassId() && $itemRec->classId != $purchaseClassId) return $res;
-    	expect(in_array($allocationType, array('value', 'quantity', 'weight', 'volume')));
-    	$firstDoc = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-    	
-    	//$allocationType = 'volume';
-    	
-    	$me = cls::get('acc_ValueCorrections');
-    	$products = $me->getChosenProducts($firstDoc);
-    	$me->allocateAmount($products, $amount, $allocationType, $msg);
-    	
-    	foreach ($products as $p){
-    		$creditArr = array('60201', $itemId, array('cat_Products', $productId), 'quantity' => $p->quantity);
-    		
-    		if($itemRec->classId == $purchaseClassId){
-    			bp();
-    		} else {
-    			$canStore = cat_Products::fetchField($p->productId, 'canStore');
-    			$accountSysId = (isset($pInfo->meta['canStore'])) ? '701' : '703';
-    			$dealRec = cls::get($itemRec->classId)->fetch($itemRec->objectId, 'contragentClassId, contragentId');
-    			
-    			$res[] = array('amount' => $p->allocated, 
-    					       'debit' => array($accountSysId, 
-    					       					array($dealRec->contragentClassId, $dealRec->contragentId),
-    					       					$itemId, array('cat_Products', $p->productId), 
-    					       					'quantity' => 0), 
-    						   'credit' => $creditArr, 'reason' => 'Корекция на стойности');
-    		}
-    	}
-    	
-    	return $res;
     }
 }
