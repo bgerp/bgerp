@@ -498,11 +498,11 @@ class currency_FinIndexes extends core_Manager {
 
     public static function getIndex($name, $period, $date, $force = TRUE)
     {
-        expect(in_array($name, array('SOFIBOR', 'SOFIBID', 'EONIA', 'EURIBOR'), $name);
+        expect(in_array($name, array('SOFIBOR', 'SOFIBID', 'EONIA', 'EURIBOR'), $name));
 
         $me = cls::get('currency_FinIndexes');
         $periodType = $me->getFieldType('period');
-        expect(in_array($period, $periodType->options, $period);
+        expect(in_array($period, $periodType->options), $period);
 
         $res = self::fetchField("#indexName = '{$name}' AND #period = '{$period}' AND #date = '{$date}'", 'indexValue');
         
