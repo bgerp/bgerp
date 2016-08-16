@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
+class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 {
 	
 	

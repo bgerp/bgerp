@@ -20,7 +20,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_AllocatedExpense';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_ValueCorrection';
     
     
     /**
@@ -543,7 +543,8 @@ class acc_ValueCorrections extends core_Master
     			
     			// Kешираме от всички възможни продукти, тези които са били избрани във функционалното поле
     			$rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
-    			$msg = $mvc->allocateAmount($rec->productsData, $rec->amount, $rec->allocateBy);
+    			$mvc->allocateAmount($rec->productsData, $rec->amount, $rec->allocateBy, $msg);
+    			
     			if(isset($msg)){
     				$form->setError('allocateBy', $msg);
     			}
@@ -582,7 +583,7 @@ class acc_ValueCorrections extends core_Master
      * @param value|quantity|volume|weight - режим на разпределяне
      * @return mixed
      */
-    private function allocateAmount(&$products, $amount, $allocateBy)
+    private function allocateAmount(&$products, $amount, $allocateBy, &$msg)
     {
     	$denominator = 0;
     	
@@ -600,14 +601,14 @@ class acc_ValueCorrections extends core_Master
     			break;
     		case 'weight':
     			foreach ($products as $p){
-    				if(!isset($p->transportWeight)) return 'Не може да се разпредели по тегло, докато има артикул без транспортно тегло';
+    				if(!isset($p->transportWeight)) return $msg = 'Не може да се разпредели по тегло, докато има артикул(и) без транспортно тегло';
     				
     				$denominator += $p->transportWeight * $p->quantity;
     			}
     			break;
     		case 'volume':
     			foreach ($products as $p){
-    				if(!isset($p->transportVolume)) return 'Не може да се разпредели по обем, докато има артикул без транспортен обем';
+    				if(!isset($p->transportVolume)) return $msg = 'Не може да се разпредели по обем, докато има артикул(и) без транспортен обем';
     				$denominator += $p->transportVolume * $p->quantity;
     			}
     			break;
@@ -794,5 +795,44 @@ class acc_ValueCorrections extends core_Master
     		
     		$res = " " . $res . " " . $detailsKeywords;
     	}
+    }
+    
+    
+    public static function getAmountsForCorrection($productId, $itemId, $amount, $allocationType)
+    {
+    	$res = array();
+    	$itemRec = acc_Items::fetch($itemId);
+    	$purchaseClassId = purchase_Purchases::getClassId();
+    	
+    	if($itemRec->classId != sales_Sales::getClassId() && $itemRec->classId != $purchaseClassId) return $res;
+    	expect(in_array($allocationType, array('value', 'quantity', 'weight', 'volume')));
+    	$firstDoc = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+    	
+    	//$allocationType = 'volume';
+    	
+    	$me = cls::get('acc_ValueCorrections');
+    	$products = $me->getChosenProducts($firstDoc);
+    	$me->allocateAmount($products, $amount, $allocationType, $msg);
+    	
+    	foreach ($products as $p){
+    		$creditArr = array('60201', $itemId, array('cat_Products', $productId), 'quantity' => $p->quantity);
+    		
+    		if($itemRec->classId == $purchaseClassId){
+    			bp();
+    		} else {
+    			$canStore = cat_Products::fetchField($p->productId, 'canStore');
+    			$accountSysId = (isset($pInfo->meta['canStore'])) ? '701' : '703';
+    			$dealRec = cls::get($itemRec->classId)->fetch($itemRec->objectId, 'contragentClassId, contragentId');
+    			
+    			$res[] = array('amount' => $p->allocated, 
+    					       'debit' => array($accountSysId, 
+    					       					array($dealRec->contragentClassId, $dealRec->contragentId),
+    					       					$itemId, array('cat_Products', $p->productId), 
+    					       					'quantity' => 0), 
+    						   'credit' => $creditArr, 'reason' => 'Корекция на стойности');
+    		}
+    	}
+    	
+    	return $res;
     }
 }
