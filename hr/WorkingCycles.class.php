@@ -245,7 +245,7 @@ class hr_WorkingCycles extends core_Master
             
             // Броя на дните в месеца (= на последната дата в месеца);
             $lastDay = date('t', $firstDayTms);
-            
+           
             for($i = 1; $i <= $lastDay; $i++){
                 $daysTs = mktime(0, 0, 0, $month, $i, $year);
                 $date = date("Y-m-d H:i", $daysTs);
@@ -253,9 +253,9 @@ class hr_WorkingCycles extends core_Master
                 
                 $start = explode("-", $startingOn);
                 
-                if($month < $start[1] && $year == $start[0]){
+                if($month < $start[1] && $year == $start[0]) {
                     $d[$i]->html = "";
-                }else{
+                } else { 
                     $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
                 }
                 
@@ -267,7 +267,7 @@ class hr_WorkingCycles extends core_Master
                     }
                 }
                 $d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
-                
+              
                 $url = array("cal_Calendar" , "day", "from" => $i . '.' . $month . '.' . $year);
                 $url = toUrl($url);
                 
@@ -348,8 +348,8 @@ class hr_WorkingCycles extends core_Master
         }
         
         for($j = 0; $j <= 4; $j++){
-            for($i = 1; $i <= $prepareRecs->lastDay; $i++){
-                if($prepareRecs->d[$i]->type == '0' && '0' == $j && $prepareRecs->month >= $prepareRecs->start){
+            for($i = 1; $i <= $prepareRecs->lastDay; $i++){ 
+                if($prepareRecs->d[$i]->type == '0' && '0' == $j){
                     $tpl->append(' rest', "shift{$j}");
                 } elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
                     $tpl->append(' first', "shift{$j}");
@@ -362,7 +362,7 @@ class hr_WorkingCycles extends core_Master
                 }
             }
         }
-        
+
         return $tpl;
     }
 
