@@ -608,7 +608,7 @@ class doc_Containers extends core_Manager
         	}
         	
         	if (log_System::haveRightFor('list')){
-        	    $data->toolbar->addBtn('История', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->threadId), 'ef_icon=img/16/view-choose.png', 'title=Разглеждане на историята на нишката');
+        	    $data->toolbar->addBtn('История', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->threadId), 'ef_icon=img/16/memo.png', 'title=Разглеждане на историята на нишката');
         	}
         	
         }

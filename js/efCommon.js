@@ -1884,6 +1884,7 @@ function refreshForm(form, removeFields) {
 	frm.css('cursor', 'wait');
 	
 	frm.find('input, select, textarea').css('cursor', 'wait');
+    frm.find('#save, #saveAndNew').prop( "disabled", true );
 	
 	var params = frm.serializeArray();
 
@@ -1893,7 +1894,7 @@ function refreshForm(form, removeFields) {
 	} else {
 		var filteredParams = params.filter(function(e){ return $.inArray(e.name, removeFields) == -1});
 	}
-	
+
 	var serialized = $.param(filteredParams);
 
 	// form.submit();
@@ -2001,7 +2002,7 @@ function replaceFormData(frm, data)
 	
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
-	
+    frm.find('#save, #saveAndNew').prop( "disabled", false );
 	frm.find('input, select, textarea').css('cursor', 'default');
 }
 /**

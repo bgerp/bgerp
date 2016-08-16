@@ -1272,6 +1272,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Приемане');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->press('Чернова');
+        //return $browser->gethtml();
         $browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Контиране')) {
         //  $browser->press('Контиране');
