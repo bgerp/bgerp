@@ -364,8 +364,11 @@ class acc_CostAllocations extends core_Manager
 		// Линк към обекта на перото
 		$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleNum');
 		$iRec = acc_Items::fetch($rec->expenseItemId);
-		if(method_exists(cls::get($iRec->classId), 'getSingleUrlArray') && !Mode::isReadOnly()){
-			$eItem = ht::createLink($eItem, cls::get($iRec->classId)->getSingleUrlArray($iRec->objectId));
+		$Register = new core_ObjectReference($iRec->classId, $iRec->objectId);
+		if(method_exists($Register->getInstance(), 'getSingleUrlArray') && !Mode::isReadOnly()){
+			$singleUrl = $Register->getSingleUrlArray();
+			$singleUrl['Sid'] = $Register->fetchField('containerId');
+			$eItem = ht::createLink($eItem, $singleUrl);
 		}
 		
 		// Допълнителна проверка дали артикула е нескладируем, невложим и не ДМА
