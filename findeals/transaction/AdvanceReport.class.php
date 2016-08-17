@@ -71,6 +71,7 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
     					'reason' => $dRec1->reason,
     			);
     			
+    			// Корекция на стойности при нужда
     			if(isset($dRec1->correctProducts) && count($dRec1->correctProducts)){
     				$correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy);
     				if(count($correctionEntries)){

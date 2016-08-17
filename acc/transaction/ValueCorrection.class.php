@@ -306,11 +306,13 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 	 * @param int $expenseItemId                       - ид на разходен обект
 	 * @param double $amount                           - сума за разпределяне
 	 * @param quantity|value|weight|volume $allocateBy - начин на разпределяне
+	 * @param boolean $sign                            - дали сумите да са отрицателни
 	 * @return array $entries
 	 */
-	public static function getCorrectionEntries($products, $productId, $expenseItemId, $value, $allocateBy)
+	public static function getCorrectionEntries($products, $productId, $expenseItemId, $value, $allocateBy, $reverse = FALSE)
 	{
 		$entries = array();
+		$sign = ($reverse) ? -1 : 1;
 		
 		$errorMsg = acc_ValueCorrections::allocateAmount($products, $value, $allocateBy);
 		if(!empty($errorMsg)) return $entries;
@@ -318,13 +320,13 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 		$isPurchase = ($itemRec->classId == purchase_Purchases::getClassId());
 		
 		foreach ($products as $p){
-			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $p->allocated);
+			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
 		
 			if($isPurchase){
 				foreach ($p->inStores as $storeId => $storeQuantity){
 					
 					$allocated = round($p->allocated * ($storeQuantity / $p->quantity), 2);
-					$creditArr['quantity'] = $allocated;
+					$creditArr['quantity'] = $sign * $allocated;
 					
 					$entries[] = array('debit' => array('321',
 													array('store_Stores', $storeId),
@@ -341,7 +343,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				$entries[] = array('debit' => array($accountSysId,
 								array($dealRec->contragentClassId, $dealRec->contragentId),
 								$expenseItemId, array('cat_Products', $p->productId),
-								'quantity' => $p->allocated),
+								'quantity' => $sign * $p->allocated),
 						'credit' => $creditArr, 'reason' => 'Корекция на стойност');
 			}
 		}
