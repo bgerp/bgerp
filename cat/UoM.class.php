@@ -469,7 +469,7 @@ class cat_UoM extends core_Manager
     	
     	// Ако записа е създаден от системния потребител, може да се 
     	if($rec->createdBy == core_Users::SYSTEM_USER){
-    		foreach (array('name', 'shortName', 'baseUnitId', 'baseUnitRatio', 'sysId', 'sinonims', 'round') as $fld){
+    		foreach (array('name', 'shortName', 'baseUnitId', 'baseUnitRatio', 'sysId', 'sinonims') as $fld){
     			$data->form->setField($fld, 'input=none');
     		}
     	}

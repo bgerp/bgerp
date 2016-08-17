@@ -496,7 +496,7 @@ class doc_UnsortedFolders extends core_Master
         		
         		if($timeStart){
         			// ако няма продължителност на задачата
-    	    		if(!$recTask->timeDuration) {
+    	    		if(!$recTask->timeDuration && !$timeEnd) {
     	    			// продължителността на задачата е края - началото
     	    			$timeDuration = 1800;
     	    		} elseif(!$recTask->timeDuration && $timeEnd) {
