@@ -103,8 +103,8 @@ class acc_CostAllocations extends core_Manager
 		$origin = doc_Containers::getDocument($rec->containerId);
 		if($origin->fetchField('state') == 'active'){
 			
-			// Запомняне на контейнера за реконтиране
-			$mvc->recontoQueue[$rec->containerId] = $rec->containerId;
+			// Реконтиране на документа
+			self::reconto($rec->containerId);
 		}
 	}
 	
@@ -119,38 +119,37 @@ class acc_CostAllocations extends core_Manager
 			$origin = doc_Containers::getDocument($rec->containerId);
 			if($origin->fetchField('state') == 'active'){
 				
-				// Запомняне на контейнера за реконтиране
-				$mvc->recontoQueue[$rec->containerId] = $rec->containerId;
+				// Реконтиране на документа
+				self::reconto($rec->containerId);
 			}
 		}
 	}
 	
 	
 	/**
-	 * Изпълнява се при спиране изпълнението на скрипта
+	 * Реконтиране на документ по контейнер
+	 * 
+	 * @param int $containerId - ид на контейнер
+	 * @return boolean $success - резултат
 	 */
-	public static function on_Shutdown($mvc)
+	private static function reconto($containerId)
 	{
-		// Реконтират се отбелязаните документи ако е нужно
-		if(count($mvc->recontoQueue)){
-			foreach ($mvc->recontoQueue as $containerId){
-				
-				// Оригиналния документ трябва да не е в затворен период
-				$origin = doc_Containers::getDocument($containerId);
-				if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) continue;
-				
-				// Изтриване на старата транзакция на документа
-				acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
-				 
-				// Записване на новата транзакция на документа
-				$success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, FALSE);
-				expect($success, $success);
-				 
-				// Нотифициране на потребителя
-				$msg = "Реконтиране на|* #{$origin->getHandle()}";
-				core_Statuses::newStatus($msg);
-			}
-		}
+		// Оригиналния документ трябва да не е в затворен период
+		$origin = doc_Containers::getDocument($containerId);
+		if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) continue;
+		
+		// Изтриване на старата транзакция на документа
+		acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
+			
+		// Записване на новата транзакция на документа
+		$success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, FALSE);
+		expect($success, $success);
+			
+		// Нотифициране на потребителя
+		$msg = "Реконтиране на|* #{$origin->getHandle()} |{$success}|";
+		core_Statuses::newStatus($msg);
+		
+		return $success;
 	}
 	
 	
