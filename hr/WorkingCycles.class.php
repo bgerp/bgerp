@@ -132,7 +132,7 @@ class hr_WorkingCycles extends core_Master
         
         if (hr_Departments::haveRightFor('single', $rec)) {
             $url = array('hr_WorkingCycles',"Print", $rec);
-            $efIcon = 'img/16/printer.png'; bp($data);
+            $efIcon = 'img/16/printer.png';
             $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");
             $data->row->print = $link;
         }
