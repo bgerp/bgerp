@@ -566,26 +566,40 @@ class acc_ValueCorrections extends core_Master
     		return $msg;
     	}
     	
-    	// Изчисляване на коефициента, според указания начин за разпределяне
-    	foreach ($products as &$p){
-	    	switch ($allocateBy){
-	    		case 'value':
-	    			$coefficient = $p->amount / $denominator;
-	    			break;
-	    		case 'quantity':
-	    			$coefficient = $p->quantity / $denominator;
-	    			break;
-	    		case 'weight':
-	    			$coefficient = ($p->transportWeight * $p->quantity) / $denominator;
-	    			break;
-	    		case 'volume':
-	    			$coefficient = ($p->transportVolume * $p->quantity) / $denominator;
-	    			break;
-	    	}
-	    	
-	    	// Изчисляване на сумата за разпределяне (коефициент * сума за разпределение)
-	    	$p->allocated = round($coefficient * $amount, 2);
+    	$values = array_values($products);
+    	$restAmount = $amount;
+    	$count = count($values);
+    	
+    	for($i = 0; $i <= $count - 1; $i++){
+    		$p = $values[$i];
+    		$next = $values[$i+1];
+    		
+    		if(is_object($next)){
+    			switch ($allocateBy){
+    				case 'value':
+    					$coefficient = $p->amount / $denominator;
+    					break;
+    				case 'quantity':
+    					$coefficient = $p->quantity / $denominator;
+    					break;
+    				case 'weight':
+    					$coefficient = ($p->transportWeight * $p->quantity) / $denominator;
+    					break;
+    				case 'volume':
+    					$coefficient = ($p->transportVolume * $p->quantity) / $denominator;
+    					break;
+    			}
+    			
+    			// Изчисляване на сумата за разпределяне (коефициент * сума за разпределение)
+    			$p->allocated = round($coefficient * $amount, 2);
+    			$restAmount -= $p->allocated;
+    			$restAmount = round($restAmount, 2);
+    		} else {
+    			$p->allocated = $restAmount;
+    		}
     	}
+    	
+    	$products = array_combine(array_keys($products), $values);
     }
     
     
