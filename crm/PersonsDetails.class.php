@@ -36,9 +36,8 @@ class crm_PersonsDetails extends core_Manager
 		
 		$dQuery = hr_Departments::getQuery();
 		while($eRec = $eQuery->fetch()){
-		    $data->masterId = $eRec->departmentId;
 		    $data->Cycles = cls::get('hr_WorkingCycles');
-		   
+		    $data->Cycles->masterId = $eRec->departmentId;
 		}
 		
 		$data->Cards = cls::get('crm_ext_IdCards');
