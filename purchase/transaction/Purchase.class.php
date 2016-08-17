@@ -169,9 +169,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	
         	foreach ($splitRecs as $dRec1){
         		$amount = $dRec1->amount;
-        	
+        		$amountAllocated = $amount * $rec->currencyRate;
+        		
         		$entries[] = array(
-        				'amount' => $amount * $rec->currencyRate, // В основна валута
+        				'amount' => $amountAllocated,
         				'debit' => array('60201',
         						$dRec1->expenseItemId,
         						array('cat_Products', $dRec1->productId),
@@ -183,6 +184,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         									'quantity' => $amount),
         				'reason' => $dRec1->reason,
         		);
+        		
+        		// Корекция на стойности при нужда
+        		if(isset($dRec1->correctProducts) && count($dRec1->correctProducts)){
+        			$correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy);
+        			if(count($correctionEntries)){
+        				$entries = array_merge($entries, $correctionEntries);
+        			}
+        		}
         	}
         }
         

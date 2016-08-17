@@ -491,8 +491,9 @@ class acc_CostAllocations extends core_Manager
 			
 			$origin = doc_Containers::getDocument($rec->containerId);
 			if($origin->isInstanceOf('purchase_Purchases')){
-				$purchaseActions = type_Set::toArray($origin->fetchField('contoActions'));
-				if(!isset($purchaseActions['ship'])){
+				$originRec = $origin->fetch('contoActions,state');
+				$purchaseActions = type_Set::toArray($originRec->contoActions);
+				if(!isset($purchaseActions['ship']) && $originRec->state != 'draft'){
 					$requiredRoles = 'no_one';
 					return;
 				}
