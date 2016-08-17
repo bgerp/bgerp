@@ -570,6 +570,7 @@ class acc_ValueCorrections extends core_Master
     	$restAmount = $amount;
     	$count = count($values);
     	
+    	// Обхождане на артикулите
     	for($i = 0; $i <= $count - 1; $i++){
     		$p = $values[$i];
     		$next = $values[$i+1];
@@ -595,10 +596,14 @@ class acc_ValueCorrections extends core_Master
     			$restAmount -= $p->allocated;
     			$restAmount = round($restAmount, 2);
     		} else {
+    			
+    			// Ако няма следващ елемент значи този е последен, и да няма грешки от закръгляне
+    			// Оставащата сума е остатъка
     			$p->allocated = $restAmount;
     		}
     	}
     	
+    	// Подсигуряване че артикулите са със същите ключове
     	$products = array_combine(array_keys($products), $values);
     }
     
