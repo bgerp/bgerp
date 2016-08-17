@@ -337,10 +337,18 @@ class hr_WorkingCycles extends core_Master
         }
         
         if(Mode::is('printing')) {
-
+            $curUrl = getCurrentUrl();
+  
+            
             $month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'F',  'bg'), MB_CASE_LOWER, "UTF-8");
             $tpl->content = str_replace("Работен график", "", $tpl->content);
-            $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($prepareRecs->name) . tr(" за месец ") . tr($month) . "<br /></b>";
+            
+            if ($curUrl['personId']) {
+                $personName = crm_Persons::fetchField($curUrl['personId'], 'name');
+                $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($personName) . tr(" за месец ") . tr($month) . "<br /></b>";
+            } else {
+                $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($prepareRecs->name) . tr(" за месец ") . tr($month) . "<br /></b>";
+            }
             $tpl->append($title, 'printTitle');
             
             $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
