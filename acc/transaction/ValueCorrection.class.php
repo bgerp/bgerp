@@ -131,7 +131,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 			
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){
-					
+					$storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 					
 					$entries[] = array('amount' => $sign * $amount,
@@ -212,6 +212,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 		} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){
+					$storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 						
 					$entries[] = array('amount' => $sign * $amount,
@@ -271,6 +272,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 			
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){
+					$storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 			
 					$entries[] = array('amount' => $sign * $amount,
@@ -323,9 +325,16 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
 		
 			if($isPurchase){
-				foreach ($p->inStores as $storeId => $storeQuantity){
+				foreach ($p->inStores as $storeId => $arr){
+					if(is_array($arr)){
+						$q = $arr['amount'];
+						$am = $p->amount;
+					} else {
+						$q = $arr;
+						$am = $p->quantity;
+					}
 					
-					$allocated = round($p->allocated * ($storeQuantity / $p->quantity), 2);
+					$allocated = round($p->allocated * ($q / $am), 2);
 					$creditArr['quantity'] = $sign * $allocated;
 					
 					$entries[] = array('debit' => array('321',
