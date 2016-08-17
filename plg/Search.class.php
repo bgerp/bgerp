@@ -102,7 +102,7 @@ class plg_Search extends core_Plugin
                     $verbalVal = $mvc->getVerbal($cRec, $field);
                     
                     if (!($fieldObj->type instanceof type_Varchar)) {
-                        $verbalVal = strip_tags($verbalVal);
+                        $verbalVal = type_Richtext::stripTags($verbalVal); 
                     }
             
                     $searchKeywords .= ' ' . static::normalizeText($verbalVal);
