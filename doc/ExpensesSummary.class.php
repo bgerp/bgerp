@@ -121,6 +121,7 @@ class doc_ExpensesSummary extends core_Manager
         // Ако има записи вербализираме ги
         $data->rows = array();
         $data->recs = $rec->data;
+       
         if(is_array($rec->data)){
         	foreach ($rec->data as $index => $r){
         		$data->rows[$index] = $this->getVerbalRow($r);
@@ -132,21 +133,51 @@ class doc_ExpensesSummary extends core_Manager
     /**
      * Вербализира записа за разхода
      * 
-     * @param stdClass $r
+     * @param stdClass $rec
      * @return stdClass $row
      */
-    private function getVerbalRow($r)
+    private function getVerbalRow($rec)
     {
     	$row = new stdClass();
-    	$row->docId = cls::get($r->docType)->getLink($r->docId, 0);
-    	$row->item2Id = acc_Items::getVerbal($r->item2Id, 'titleLink');
-    	
-    	foreach (array('quantity', 'amount') as $fld){
-    		$Double = cls::get('type_Double');
-    		$row->{$fld} = $Double->toVerbal($r->{$fld});
+    	if(isset($rec->docId)){
+    		$row->docId = cls::get($rec->docType)->getLink($rec->docId, 0);
     	}
     	
-    	$row->valior = cls::get('type_Date')->toVerbal($r->valior);
+    	if(isset($rec->item2Id)){
+    		$row->item2Id = acc_Items::getVerbal($rec->item2Id, 'titleLink');
+    	} else {
+    		$row->item2Id = tr('Не отнесени');
+    	}
+    	
+    	$row->ROW_ATTR['class'] = ($rec->type == 'corrected') ? 'state-closed' : 'state-active';
+    	
+    	// Вербализиране на числата
+    	foreach (array('quantity', 'amount') as $fld){
+    		$Double = cls::get('type_Double');
+    		$row->{$fld} = $Double->toVerbal($rec->{$fld});
+    	}
+    	
+    	$row->valior = cls::get('type_Date')->toVerbal($rec->valior);
+    	
+    	if($rec->type == 'corrected'){
+    		if($rec->notDistributed !== TRUE){
+    			unset($row->docId, $row->valior);
+    		}
+    		
+    		$item1rec = acc_Items::fetch($rec->item1Id);
+    		
+    		if($item1rec->classId == store_Stores::getClassId()){
+    			$item1 = acc_Items::getVerbal($item1rec, 'titleLink');
+    			$row->item2Id = "<b>{$row->item2Id}</b>";
+    			$row->item2Id .= tr("|* |в склад|* <b>{$item1}</b>");
+    		}
+    		
+    		if($rec->notDistributed !== TRUE){
+    			$row->item2Id = tr('за') . " {$row->item2Id}";
+    		}
+    		
+    		$row->item2Id = "<div class='small'>{$row->item2Id}<div>";
+    	}
     	
     	return $row;
     }
@@ -176,6 +207,10 @@ class doc_ExpensesSummary extends core_Manager
     	if(is_array($data->recs)){
     		foreach ($data->recs as $index => $rec){
     			foreach (array('quantity', 'amount') as $fld){
+    				if($rec->type == 'corrected'){
+    					$data->rows[$index]->{$fld} = "<small>{$data->rows[$index]->{$fld}}</small>";
+    				}
+    				
     				if($rec->{$fld} < 0){
     					$data->rows[$index]->{$fld} = "<span class='red'>{$data->rows[$index]->{$fld}}</span>";
     				}
@@ -212,7 +247,7 @@ class doc_ExpensesSummary extends core_Manager
     		self::save($rec);
     	}
     	
-    	$recs = array();
+    	$recs = $allocated = array();
     	
     	// Извличаме от журнала направените записи за разхода
     	$entries = acc_Journal::getEntries($itemRec);
@@ -220,26 +255,72 @@ class doc_ExpensesSummary extends core_Manager
     	
     	if(is_array($entries)){
     		foreach($entries as $ent){
+    			$add = FALSE;
+    			
     			if($ent->debitItem1 == $itemRec->id && $ent->debitAccId == $accId){
-    				$sign = ($type == 'debit') ? 1 : -1;
-    					
-    				$r = (object)array('docType'   => $ent->docType, 
-    								   'docId'     => $ent->docId,
-    								   'accId'     => $ent->debitAccId,
-    								   'item1Id'   => $ent->debitItem1,
-    								   'item2Id'   => $ent->debitItem2,
-    								   'item3Id'   => $ent->debitItem3,
-    								   'valior'    => $ent->valior,
-    								   'quantity'  => $ent->debitQuantity,
-    								   'amount'    => $ent->amount,);
-    				$recs[] = $r;
+    				$add = TRUE;
+    				$arr = &$recs;
+    				$type = 'allocated';
+    				$side = 'debit';
+    			} elseif($ent->creditItem1 == $itemRec->id && $ent->creditAccId == $accId){
+    				$add = TRUE;
+    				$arr = &$allocated;
+    				$side = 'credit';
+    				$type = 'corrected';
+    			}
+    			
+    			if($add === TRUE){
+    				$index = $ent->docType . "|" . $ent->docId . "|" . $ent->{"{$side}AccId"} . "|" . $ent->{"{$side}Item1"} . "|" . $ent->{"{$side}Item2"} . "|" . $ent->{"{$side}Item3"};
+    				$r = (object)array('docType'  => $ent->docType,
+    								   'docId'    => $ent->docId,
+    						           'accId'    => $ent->{"{$side}AccId"},
+    						           'item1Id'  => $ent->{"debitItem1"},
+    						           'item2Id'  => $ent->{"debitItem2"},
+    						           'item3Id'  => $ent->{"debitItem3"},
+    						           'index'   => $index,
+    						           'valior'   => $ent->valior,
+    						           'quantity' => $ent->{"{$side}Quantity"},
+    						           'type'     => $type,
+    						           'amount'   => $ent->amount,);
+    				$arr[] = $r;
     			}
     		}
     	}
     	
-    	// Кеширане на данните и бройката за контейнера
-    	$rec->data = $recs;
     	$rec->count = count($recs);
+    	$notDistributed = $allocated;
+    	
+    	foreach ($recs as $rec1){
+    		$index = $rec1->index;
+    		$res[] = $rec1;
+    		
+    		// Отделяне на тези записи, които съдържат текущия маркер
+    		$foundArr = array_filter($allocated, function ($e) use ($index) {
+    			return $e->index == $index;
+    		});
+    		
+    		if(count($foundArr)){
+    			$notDistributed = array_diff_key($notDistributed, $foundArr);
+    			$res = array_merge($res, $foundArr);
+    		}
+    	}
+    
+    	if(count($notDistributed)){
+    		$res[] = (object)array('type' => 'allocated');
+    		foreach ($notDistributed as &$nRec){
+    			$nRec->notDistributed = TRUE;
+    		}
+    		$res = array_merge($res, $notDistributed);
+    	}
+    	
+    	// Кеширане на данните и бройката за контейнера
+    	$rec->data = $res;
     	self::save($rec, 'data,count');
+    }
+    
+    
+    function act_Test()
+    {
+    	self::updateSummary('165465', '3265');
     }
 }
