@@ -34,12 +34,6 @@ class doc_ExpensesSummary extends core_Manager
     
     
     /**
-     * Кой има право да го види?
-     */
-    public $canView = 'debug';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
@@ -253,6 +247,11 @@ class doc_ExpensesSummary extends core_Manager
     	$entries = acc_Journal::getEntries($itemRec);
     	$accId = acc_Accounts::getRecBySystemId('60201')->id;
     	
+    	$sysIds = array('701', '703', '321');
+    	foreach ($sysIds as &$sysId){
+    		$sysId = acc_Accounts::fetchField("#systemId = {$sysId}");
+    	}
+    	
     	if(is_array($entries)){
     		foreach($entries as $ent){
     			$add = FALSE;
@@ -267,8 +266,10 @@ class doc_ExpensesSummary extends core_Manager
     				$arr = &$allocated;
     				$side = 'credit';
     				$type = 'corrected';
+    				if(!in_array($ent->debitAccId, $sysIds)) continue;
     			}
     			
+    			// Извличане на нужните записи
     			if($add === TRUE){
     				$index = $ent->docType . "|" . $ent->docId . "|" . $ent->{"{$side}AccId"} . "|" . $ent->{"{$side}Item1"} . "|" . $ent->{"{$side}Item2"} . "|" . $ent->{"{$side}Item3"};
     				$r = (object)array('docType'  => $ent->docType,
@@ -290,6 +291,7 @@ class doc_ExpensesSummary extends core_Manager
     	$rec->count = count($recs);
     	$notDistributed = $allocated;
     	
+    	// За всички отнесени разходи
     	foreach ($recs as $rec1){
     		$index = $rec1->index;
     		$res[] = $rec1;
@@ -299,12 +301,14 @@ class doc_ExpensesSummary extends core_Manager
     			return $e->index == $index;
     		});
     		
+    		// Ако има и коригиращи записи, добавят се след тях
     		if(count($foundArr)){
     			$notDistributed = array_diff_key($notDistributed, $foundArr);
     			$res = array_merge($res, $foundArr);
     		}
     	}
     
+    	// Ако има останали неразпределени добавят се най-отдолу
     	if(count($notDistributed)){
     		$res[] = (object)array('type' => 'allocated');
     		foreach ($notDistributed as &$nRec){
@@ -316,11 +320,5 @@ class doc_ExpensesSummary extends core_Manager
     	// Кеширане на данните и бройката за контейнера
     	$rec->data = $res;
     	self::save($rec, 'data,count');
-    }
-    
-    
-    function act_Test()
-    {
-    	self::updateSummary('165465', '3265');
     }
 }
