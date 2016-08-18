@@ -86,7 +86,7 @@ class acc_CostAllocations extends core_Manager
     	$this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory,silent,input=hidden,remember');
     	$this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden,remember');
     	$this->FLD('quantity', 'double(Min=0,smartRound)', 'caption=Количество,mandatory,smartCenter');
-    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'after=quantity,silent,mandatory,caption=Разход за,removeAndRefreshForm=allocationBy|productsData|chosenProducts');
+    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', 'after=quantity,silent,mandatory,caption=Разход за,removeAndRefreshForm=allocationBy|productsData|chosenProducts');
     	$this->FLD('allocationBy', 'enum(no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts');
     	$this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
     	$this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
