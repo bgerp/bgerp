@@ -305,7 +305,9 @@ class acc_ValueCorrections extends core_Master
     		// Добавяме всички възможни артикули като опции в SET поле
     		$nProducts = array();
     		foreach ($products as $p){
-    			$nProducts[$p->productId] = $p->name;
+    			$measureId = cat_Products::getProductInfo($p->productId)->productRec->measureId;
+    			$suffix = $p->quantity . " " . cat_UoM::getShortName($measureId);
+    			$nProducts[$p->productId] = "{$p->name} / {$suffix}";
     		}
     		
     		$form->FNC('chosenProducts', 'set', 'caption=Корекция на стойността на->Артикули,mandatory,input,columns=1');
