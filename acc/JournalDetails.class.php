@@ -113,8 +113,7 @@ class acc_JournalDetails extends core_Detail
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass $res - данни
      */
     static function on_AfterPrepareListRows($mvc, &$res)
     {
