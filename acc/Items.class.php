@@ -327,7 +327,7 @@ class acc_Items extends core_Manager
     /**
      * Добавя филтър към перата
      *
-     * @param core_Mvc $mvc
+     * @param acc_Items $mvc
      * @param stdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
