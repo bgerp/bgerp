@@ -13,12 +13,17 @@
  * @license   GPL 3
  * @since     v 0.1
  * 
+ * @property string valiorFld
  * @method fetch(mixed $fields = '*', boolean $cache = TRUE)
  * @method fetchField(string $field = 'id', boolean $cache = TRUE)
  * @method core_Query getQuery()
  * @method getHandle()
  * @method getHyperlink(boolean $icon = FALSE, boolean $short = FALSE)
  * @method getShortHyperlink(boolean $icon = FALSE)
+ * @method getSingleUrlArray()
+ * @method getClassId()
+ * @method getLink(boolean $maxLength, array $attr)
+ * @method getTitleById(boolean $escaped)
  */
 class core_ObjectReference
 {

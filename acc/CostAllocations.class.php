@@ -181,9 +181,9 @@ class acc_CostAllocations extends core_Manager
 	/**
 	 * Връща количеството разпределено за реда в документа
 	 *
-	 * @param int $allocationId - ид на документа
-	 * @param int $originRecId  - кой ред от оригиналния документ отговаря
-	 * @param int $id           - ид на записа ако има
+	 * @param int $detailClassId         - клас на документа
+	 * @param int $detailRecId           - кой ред от оригиналния документ отговаря
+	 * @param int $id                    - ид на записа ако има
 	 * @return double $allocatedQuantity - разпределеното досега количество
 	 */
 	public static function getAllocatedInDocument($detailClassId, $detailRecId, $id = NULL)
@@ -379,7 +379,7 @@ class acc_CostAllocations extends core_Manager
 		$hint = isset($pInfo->meta['fixedAsset']) ? 'Артикулът вече е ДА и не може да бъде разпределян като разход' : (isset($pInfo->meta['canConvert']) ? 'Артикулът вече е вложим и не може да бъде разпределян като разход' : NULL);
 		
 		$row->expenseItemId = "<b class='quiet'>" . tr("Разход за") . "</b>: {$eItem}";
-		if($hint){
+		if(isset($hint)){
 			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE, array('height' => 14, 'weight' => 14))->getContent();
 			$row->expenseItemId = "<span style='opacity: 0.7;'>{$row->expenseItemId}</span>";
 		}
@@ -466,10 +466,10 @@ class acc_CostAllocations extends core_Manager
 		$data = (object)array('rec' => (object)$arr);
 		
 		// Подготвяне на разпределените разходи
-		static::prepareAllocatedExpenses($data);
+		self::prepareAllocatedExpenses($data);
 		
 		// Рендиране на разпределените разходи
-		$res = static::renderAllocatedExpenses($data)->getContent();
+		$res = self::renderAllocatedExpenses($data)->getContent();
 		
 		// Връщане на рендираните разпределени разходи
 		return $res;
@@ -660,11 +660,12 @@ class acc_CostAllocations extends core_Manager
 	 * Ако е ДМА се разпределя към себе си.
 	 *
 	 * @param int $docClassId       - клас на детайла
-	 * @param int $recId            - ид на ред от детайла
+	 * @param int $docRecId         - ид на ред от детайла
 	 * @param int $productId        - ид на артикул
 	 * @param double $quantity      - к-во от оригиналния документ
 	 * @param double $amount        - сума на реда за разпределяне
 	 * @param double|NULL $discount - отстъпката от цената, ако има
+	 * 
 	 * @return array $res           - масив с данни за контировката на услугата
 	 * 			о amount        - сума за разпределяне
 	 * 			o productId     - ид на артикула
