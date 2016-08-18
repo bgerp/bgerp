@@ -19,13 +19,13 @@ class hr_WorkingCycles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Графици";
+    var $title = "Цикли";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Работни графици";
+    var $singleTitle = "Работни цикли";
     
     
     /**
