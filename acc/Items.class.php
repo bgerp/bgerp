@@ -345,13 +345,12 @@ class acc_Items extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
+        // Показваме само това поле. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'listId, search';
-        
-        $data->listFilter->setDefault('listId', $listId = $mvc->getCurrentListId());
-        
         $filter = $data->listFilter->input();
+        if(!$filter->listId){
+        	$filter->listId = $mvc->getCurrentListId();
+        }
         
         expect($filter->listId);
         
