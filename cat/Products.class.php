@@ -1357,11 +1357,11 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
+     * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
      * 
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
-     * @return double - теглото на еденица от продукта
+     * @return double - теглото на единица от продукта
      */
     public static function getWeight($productId, $packagingId = NULL)
     {
@@ -1379,11 +1379,11 @@ class cat_Products extends embed_Manager {
     
     
 	/**
-     * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
+     * Връща обема на единица от продукта, ако е в опаковка връща нейния обем
      * 
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
-     * @return double - теглото на еденица от продукта
+     * @return double - теглото на единица от продукта
      */
     public static function getVolume($productId, $packagingId = NULL)
     {
