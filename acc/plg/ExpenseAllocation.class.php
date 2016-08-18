@@ -51,7 +51,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 		if(!$firstDocument->isInstanceOf('purchase_Purchases') && !$firstDocument->isInstanceOf('findeals_Deals')) return;
 		
 		// Добавяне на виртуални полета
-		$form->FNC('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', "input1=none,after={$mvc->expenseItemAfterField},caption=Отнасяне (и разпределяне) на разходи->Разход за,removeAndRefreshForm=allocationBy");
+		$form->FNC('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', "input=none,after={$mvc->expenseItemAfterField},caption=Отнасяне (и разпределяне) на разходи->Разход за,removeAndRefreshForm=allocationBy");
 		$form->FNC('allocationBy', 'enum(no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'input=none,caption=Отнасяне (и разпределяне) на разходи->Разпределяне,after=expenseItemId,silent,removeAndRefreshForm=chosenProducts');
 		
 		// Ако е избран артикул
