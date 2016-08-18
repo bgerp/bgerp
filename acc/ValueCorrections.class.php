@@ -521,17 +521,24 @@ class acc_ValueCorrections extends core_Master
     	// Първо обхождаме записите и изчисляване на знаменателя, чрез който ще изчислим коефициента
     	switch ($allocateBy){
     		case 'value':
-    			
     			// Ако се разпределя по стойност изчисляване на общата сума
     			foreach ($products as $p){
     				$denominator += $p->amount;
     			}
     			break;
     		case 'quantity':
+    			$measures = array();
     			
     			// Ако се разпределя по к-во изчисляване на общото к-во
     			foreach ($products as $p){
     				$denominator += $p->quantity;
+    				$measureId = cat_Products::getProductInfo($p->productId)->productRec->measureId;
+    				$measures[$measureId] = $measureId;
+    			}
+    			
+    			// Ако има повече от една мярка
+    			if(count($measures) != 1){
+    				$errorArr = array(1 => TRUE);
     			}
     			break;
     		case 'weight':
@@ -558,13 +565,18 @@ class acc_ValueCorrections extends core_Master
     			break;
     	}
     	
-    	// Ако има намерени артикули без транспортен обем или тегло, при съответното разпределяне
+    	// Ако има намерени артикули без транспортен обем, тегло или к-во, при съответното разпределяне
     	if(count($errorArr)){
-    		$string = implode(", ", $errorArr);
-    		$type = ($allocateBy == 'weight') ? 'тегло' : 'обем';
+    		if($allocateBy == 'quantity'){
+    			$msg = "Не може да се избере разпределяне по количество, защото артикулите са в различни мерки";
+    		} else {
+    			$string = implode(", ", $errorArr);
+    			$type = ($allocateBy == 'weight') ? 'тегло' : 'обем';
+    			
+    			// Връщане на информация, кои артикули имат липсващи параметри
+    			$msg = "Не може да се избере разпределяне по {$type}, защото|* <b>{$string}</b> |нямат {$type}|*";
+    		}
     		
-    		// Връщане на информация, кои артикули имат липсващи параметри
-    		$msg = "Не може да се избере разпределяне по {$type}, защото|* <b>{$string}</b> |нямат {$type}|*";
     		return $msg;
     	}
     	
