@@ -368,6 +368,10 @@ class acc_CostAllocations extends core_Manager
 			$singleUrl = $Register->getSingleUrlArray();
 			$singleUrl['Sid'] = $Register->fetchField('containerId');
 			$eItem = ht::createLink($eItem, $singleUrl);
+			if($iRec->state == 'closed'){
+				$eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', FALSE, array('height' => 14, 'weight' => 14))->getContent();
+				$eItem = "<span class='state-closed' style='padding:3px'>{$eItem}</span>";
+			}
 		}
 		
 		// Допълнителна проверка дали артикула е нескладируем, невложим и не ДМА
@@ -376,8 +380,8 @@ class acc_CostAllocations extends core_Manager
 		
 		$row->expenseItemId = "<b class='quiet'>" . tr("Разход за") . "</b>: {$eItem}";
 		if($hint){
-			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE)->getContent();
-			$row->expenseItemId = "<span style='color:red !important'>{$row->expenseItemId}</span>";
+			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE, array('height' => 14, 'weight' => 14))->getContent();
+			$row->expenseItemId = "<span style='opacity: 0.7;'>{$row->expenseItemId}</span>";
 		}
 	}
 	
