@@ -735,10 +735,10 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Подготовка на полетата на формата за избиране на записи от мениджър,
-     * които ще стават пера
+     * Подготовка на полетата на формата за избиране на записи от мениджър, които ще стават пера
+     * 
      * @param core_Form $form - форма
-     * @param mixed $className - име на клас
+     * @param array $options - опции
      * @param int $listId - ид на наменклатура
      */
     private function prepareInsertForm(core_Form &$form, $options, $listId)
@@ -1000,7 +1000,7 @@ class acc_Items extends core_Manager
     {
     	$itemsArr = array();
     	
-    	if(!$date){
+    	if(!isset($date)){
     		$date = dt::today();
     	}
     	
