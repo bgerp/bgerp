@@ -348,11 +348,12 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				$canStore = cat_Products::fetchField($p->productId, 'canStore');
 				$accountSysId = ($canStore == 'yes') ? '701' : '703';
 				$dealRec = cls::get($itemRec->classId)->fetch($itemRec->objectId, 'contragentClassId, contragentId');
-					
+				$creditArr['quantity'] = $sign * $p->allocated;
+				
 				$entries[] = array('debit' => array($accountSysId,
 								array($dealRec->contragentClassId, $dealRec->contragentId),
 								$expenseItemId, array('cat_Products', $p->productId),
-								'quantity' => $sign * $p->allocated),
+								'quantity' => 0),
 						'credit' => $creditArr, 'reason' => 'Корекция на стойност');
 			}
 		}
