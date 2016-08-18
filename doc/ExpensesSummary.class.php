@@ -142,8 +142,14 @@ class doc_ExpensesSummary extends core_Manager
     		$row->docId = cls::get($rec->docType)->getLink($rec->docId, 0);
     	}
     	
-    	if(isset($rec->item2Id)){
-    		$row->item2Id = acc_Items::getVerbal($rec->item2Id, 'titleLink');
+    	if($rec->accId){
+    		$accSysId = acc_Accounts::fetchField($rec->accId, 'systemId');
+    		$productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
+    		if(isset($rec->{"item{$productPosition}Id"})){
+    			$row->item2Id = acc_Items::getVerbal($rec->{"item{$productPosition}Id"}, 'titleLink');
+    		} else {
+    			$row->item2Id = tr('Не отнесени');
+    		}
     	} else {
     		$row->item2Id = tr('Не отнесени');
     	}
@@ -163,10 +169,9 @@ class doc_ExpensesSummary extends core_Manager
     			unset($row->docId, $row->valior);
     		}
     		
-    		$item1rec = acc_Items::fetch($rec->item1Id);
-    		
-    		if($item1rec->classId == store_Stores::getClassId()){
-    			$item1 = acc_Items::getVerbal($item1rec, 'titleLink');
+    		$storePosition = acc_Lists::getPosition($accSysId, 'store_AccRegIntf');
+    		if(isset($rec->{"item{$storePosition}Id"})){
+    			$item1 = acc_Items::getVerbal($rec->{"item{$storePosition}Id"}, 'titleLink');
     			$row->item2Id = "<b>{$row->item2Id}</b>";
     			$row->item2Id .= tr("|* |в склад|* <b>{$item1}</b>");
     		}
@@ -284,13 +289,13 @@ class doc_ExpensesSummary extends core_Manager
     				$index = $ent->docType . "|" . $ent->docId . "|" . $ent->{"{$side}AccId"} . "|" . $ent->{"{$side}Item1"} . "|" . $ent->{"{$side}Item2"} . "|" . $ent->{"{$side}Item3"};
     				$r = (object)array('docType'  => $ent->docType,
     								   'docId'    => $ent->docId,
-    						           'accId'    => $ent->{"{$side}AccId"},
+    						           'accId'    => $ent->{"debitAccId"},
     						           'item1Id'  => $ent->{"debitItem1"},
     						           'item2Id'  => $ent->{"debitItem2"},
     						           'item3Id'  => $ent->{"debitItem3"},
     						           'index'   => $index,
     						           'valior'   => $ent->valior,
-    						           'quantity' => $ent->{"{$side}Quantity"},
+    						           'quantity' => $ent->{"debitQuantity"},
     						           'type'     => $type,
     						           'amount'   => $ent->amount,);
     				$arr[] = $r;
