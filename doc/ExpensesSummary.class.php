@@ -121,6 +121,11 @@ class doc_ExpensesSummary extends core_Manager
         		$data->rows[$index] = $this->getVerbalRow($r);
         	}
         }
+        
+        $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
+        if($itemRec->state == 'closed'){
+        	$data->isClosed = tr('Перото е затворено');
+        }
     }
     
     
@@ -216,6 +221,11 @@ class doc_ExpensesSummary extends core_Manager
     	
     	// Рендиране на таблицата
     	$tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
+    	
+    	if(isset($data->isClosed)){
+    		$nTpl = new core_ET("<div class='red' style='margin-bottom:5px'>{$data->isClosed}</div>");
+    		$tableHtml->prepend($nTpl);
+    	}
     	
     	$tpl->append($tableHtml);
     	
