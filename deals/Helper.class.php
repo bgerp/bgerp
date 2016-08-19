@@ -580,9 +580,9 @@ abstract class deals_Helper
 		if(count($combined)){
 			foreach ($combined as &$det){
 				@$det->price = $det->sumAmounts / ($det->quantity * (1 - $det->discount));
-				//if($det->price < 0){
-					//$det->price = 0;
-				//}
+				if($det->price < 0){
+					$det->price = 0;
+				}
 			}
 		}
 		
