@@ -327,7 +327,7 @@ class acc_Items extends core_Manager
     /**
      * Добавя филтър към перата
      *
-     * @param core_Mvc $mvc
+     * @param acc_Items $mvc
      * @param stdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -345,13 +345,12 @@ class acc_Items extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
+        // Показваме само това поле. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'listId, search';
-        
-        $data->listFilter->setDefault('listId', $listId = $mvc->getCurrentListId());
-        
         $filter = $data->listFilter->input();
+        if(!$filter->listId){
+        	$filter->listId = $mvc->getCurrentListId();
+        }
         
         expect($filter->listId);
         
@@ -690,56 +689,124 @@ class acc_Items extends core_Manager
         expect($listRec = acc_Lists::fetch($listId));
         
         $intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
-        $options = core_Classes::getOptionsByInterface($intName);
+        $options = core_Classes::getOptionsByInterface($intName, 'title');
         $listTitle = acc_Lists::getVerbal($listId, 'name');
         
         $form = cls::get('core_Form');
         $form->title = "Добавяне на пера към номенклатура|* '{$listTitle}'";
         
-        foreach ($options as $className){
-            $this->prepareInsertForm($form, $className, $listId);
-        }
+        $this->prepareInsertForm($form, $options, $listId);
+        
         $form->input();
-        
-        $fields = $form->selectFields();
-        
-        // Ако няма налични пера редирект
-        if(!count($fields)) return followRetUrl(NULL, tr('Няма налични пера за избор'));
-        
+       
         if($form->isSubmitted()){
-            $areAdded = FALSE;
-            $fieldNames = '';
+            $count = 0;
+            $rec = $form->rec;
+            $Class = cls::get($rec->classId);
             
-            foreach ($fields as $name => $fld){
-                $fieldNames .= "$name,";
-                
-                if($items = keylist::toArray($form->rec->{$name})){
-                    foreach($items as $id){
-                        
-                        // Всеки избран запис, се добавя като перо към номенклатурата
-                        acc_Lists::addItem($listId, $name, $id);
-                        $areAdded = TRUE;
-                    }
-                }
+            // Ако има избрани обекти, те се добавят към номенклатурата
+            $items = keylist::toArray($form->rec->objects);
+            if(count($items)){
+            	foreach($items as $id){
+            		acc_Lists::addItem($listId, $Class->className, $id);
+            		$count++;
+            	}
             }
             
-            // Трябва да има поне едно избрано перо да се добави
-            if(empty($areAdded)){
-                $form->setError($fieldNames, 'Не са избрани пера');
-            }
-            
+            // Ако всичко е наред, редирект и съобщение
             if(!$form->gotErrors()){
-                return followRetUrl(NULL, tr('Перата са добавени успешно'));
+            	$listName = acc_Lists::getVerbal($listId, 'name');
+            	$title = ($count == 1) ? $Class->singleTitle : $Class->title;
+            	$title = mb_strtolower($title);
+                return followRetUrl(NULL, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
-        
+       
+        // Добавяне на бутони
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite("Добавяне на обекти, като пера");
-        
+       
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Подготовка на полетата на формата за избиране на записи от мениджър, които ще стават пера
+     * 
+     * @param core_Form $form - форма
+     * @param array $options - опции
+     * @param int $listId - ид на наменклатура
+     */
+    private function prepareInsertForm(core_Form &$form, $options, $listId)
+    {
+		// Ако номенклатурата е 'Разходни обекти' оставяме само документите с допустимия интерфейс
+    	$costObjectListId = acc_Lists::fetchBySystemId('costObjects')->id;
+		if($costObjectListId == $listId){
+			$allowed = type_Keylist::toArray(acc_Setup::get('COST_OBJECT_DOCUMENTS'));
+			$options = array_intersect_key($options, $allowed);
+		}
+    	
+		// Поле за избор на клас
+    	$form->FLD('classId', 'int', 'caption=Мениджър,mandatory,silent,removeAndRefreshForm=objects');
+    	
+    	if(count($options) > 1){
+    		$options = array('' => '') + $options;
+    	}
+		
+    	// Задаване на опции
+		$form->setOptions('classId', $options);
+		
+		// Ако е само една опцията, тя е избрана по дефолт
+		if(count($options) == 1){
+			$form->setDefault('classId', key($options));
+		}
+		
+		// Инпут на 'тихите' полета
+		$form->input(NULL, 'silent');
+		$rec = $form->rec;
+		
+		// Ако има избран клас
+		if(isset($rec->classId)){
+			core_Debug::$isLogging = FALSE;
+			
+			// Добавяне на поле за избор на обекти от класа
+			$Class = cls::get($rec->classId);
+			$form->FLD('objects', "keylist(mvc={$Class->className})", "caption=Избор");
+			
+			// Намиране на перата от този, клас които са вече част от номенклатурата
+			$items = static::getClassItems($Class, $listId);
+			$query = $Class->getQuery();
+			
+			// Пропускат се оттеглените и затворените обекти, както и тези които вече са в номенклатурата
+			$query->where("#state != 'rejected' AND #state != 'closed'");
+			if(count($items)){
+				$query->notIn('id', $items);
+			}
+			
+			// Дали е документ
+			$isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
+			
+			$count = $query->count();
+			if($count > 500){
+				core_App::setTimeLimit($count * 0.015);
+			}
+			
+			$suggestions = array();
+			core_Mode::push('text', 'plain');
+        	while ($cRec = $query->fetch()){
+            
+            	// Ако е документ и е чернова, не може да стане перо
+            	if($isDoc && $cRec->state == 'draft') continue;
+            	$suggestions[$cRec->id] = $Class->getRecTitle($cRec);
+        	}
+        	core_Mode::pop('text');
+        	
+        	$form->setSuggestions('objects', $suggestions);
+        	core_Debug::$isLogging = TRUE;
+		}
     }
     
     
@@ -752,64 +819,19 @@ class acc_Items extends core_Manager
      */
     public static function getClassItems($class, $listId)
     {
-        $items = array();
-        expect($Class = cls::get($class));
-        
-        $itemsQuery = static::getQuery();
-        $itemsQuery->like('lists', "|{$listId}|");
-        $itemsQuery->where("#classId = {$Class->getClassId()}");
-        $itemsQuery->show('objectId');
-        
-        while($itemRec = $itemsQuery->fetch()){
-            $items[] = $itemRec->objectId;
-        }
-        
-        return $items;
-    }
+    	$items = array();
+    	expect($Class = cls::get($class));
     
+    	$itemsQuery = static::getQuery();
+    	$itemsQuery->like('lists', "|{$listId}|");
+    	$itemsQuery->where("#classId = {$Class->getClassId()}");
+    	$itemsQuery->show('objectId');
     
-    /**
-     * Подготовка на полетата на формата за избиране на записи от мениджър,
-     * които ще стават пера
-     * @param core_Form $form - форма
-     * @param mixed $className - име на клас
-     * @param int $listId - ид на наменклатура
-     */
-    private function prepareInsertForm(core_Form &$form, $className, $listId)
-    {
-        $options = array();
-        core_Debug::$isLogging = FALSE;
-        $Class = cls::get($className);
-        
-        // Намират се перата, които вече участват на този мениджър
-        $items = static::getClassItems($Class, $listId);
-        
-        // Извличат се всички записи на мениджъра, които не са пера
-        $query = $Class->getQuery();
-        $query->where("#state != 'rejected'");
-        
-        if(count($items)){
-            $query->notIn('id', $items);
-        }
-        $query->show('id,state');
-        
-        // Дали е документ
-        $isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
-        
-        while ($cRec = $query->fetch()){
-            
-            // Ако е документ и е чернова, не може да стане перо
-            if($isDoc && $cRec->state == 'draft') continue;
-            
-            $options[$cRec->id] = $Class->getTitleById($cRec->id);
-        }
-        
-        if(count($options)) {
-            $form->FNC($className, "keylist(mvc={$className},maxSuggestions=1)", "caption={$Class->title},input,columns=1");
-            $form->setSuggestions($className, $options);
-        }
-        
-        core_Debug::$isLogging = TRUE;
+    	while($itemRec = $itemsQuery->fetch()){
+    		$items[] = $itemRec->objectId;
+    	}
+    
+    	return $items;
     }
     
     
@@ -962,43 +984,6 @@ class acc_Items extends core_Manager
     	}
     	
     	return $this->cache;
-    }
-    
-    
-    /**
-     * Помощна фунцкция: връщаща перата които участват в баланса на някоя сметка за дадена дата
-     * 
-     * @param string $accSysId     - систем ид на сметка
-     * @param unknown $interfaceId - интерфейс на перато
-     * @param string $date - дата, NULL ако е текущата
-     * @return array - масив с опции
-     */
-    public static function getItemOptionsInAccount($accSysId, $interfaceId, $date = NULL)
-    {
-    	$itemsArr = array();
-    	
-    	if(!$date){
-    		$date = dt::today();
-    	}
-    	
-    	// Намираме на коя позиция е интерфейса в сметката
-    	$posId = acc_Lists::getPosition($accSysId, $interfaceId);
-    	if(!$posId) return $itemsArr;
-    	
-    	// За кой баланс ще извличаме перата
-    	$bId = acc_Balances::fetchField("#fromDate <= '{$date}' && #toDate >= '{$date}'", 'id');
-    	
-    	// Филтрираме записите, така че да намерим само тези пера
-    	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $bId, $accSysId);
-    	$bQuery->show("ent{$posId}Id");
-    	while($bRec = $bQuery->fetch()){
-    		if(isset($bRec->{"ent{$posId}Id"})){
-    			$itemsArr[$bRec->{"ent{$posId}Id"}] = acc_Items::getTitleById($bRec->{"ent{$posId}Id"}, FALSE);
-    		}
-    	}
-    	
-    	return $itemsArr;
     }
     
     

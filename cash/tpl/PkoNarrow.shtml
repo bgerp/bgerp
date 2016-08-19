@@ -29,9 +29,9 @@
                             [#creditAccounts#]
                         </td>
                         <td>
-                            <b>[#organisation#]</b>
+                            <b>[#MyCompany#]</b>
                             <div class='address-block'>
-                                [#organisationAddress#]
+                                [#MyAddress#]
                             </div>
                             <div class='address-block'>
                                 |Каса|*<b>: [#peroCase#]</b>

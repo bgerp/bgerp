@@ -191,7 +191,7 @@ class cat_products_Params extends doc_Detail
     {
     	$rec = $data->form->rec;
     	if(isset($rec->classId) && isset($rec->productId)){
-    		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id);
+    		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
     }
     
@@ -263,7 +263,7 @@ class cat_products_Params extends doc_Detail
         $mvc = cls::get(get_called_class());
         foreach((array)$data->params as $row) {
         	core_RowToolbar::createIfNotExists($row->_rowTools);
-        	if($data->noChange !== TRUE){
+        	if($data->noChange !== TRUE && !Mode::isReadOnly()){
         		$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
         	} else {
         		unset($row->tools);
@@ -363,7 +363,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderParams($data)
     {
-        if($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('inlineDocument')) {
+        if($data->addUrl  && !Mode::isReadOnly()) {
             $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нов параметър');
         }
 
@@ -398,10 +398,7 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	cat_Products::touchRec($rec->productId);
-    	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
-    		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
-    	}
+    	$mvc->syncWithFeature($rec->paramId, $rec->productId);
     }
     
     
@@ -411,11 +408,24 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
-        	cat_Products::touchRec($rec->productId);
-        	if(cat_Params::fetchField("#id = '{$rec->paramId}'", 'isFeature') == 'yes'){
-        		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
-        	}
+        	$mvc->syncWithFeature($rec->paramId, $rec->productId);
         }
+    }
+    
+    
+    /**
+     * Синхронизира свойствата
+     * 
+     * @param int $paramId
+     * @param int $productId
+     * @return void
+     */
+    private function syncWithFeature($paramId, $productId)
+    {
+    	cat_Products::touchRec($productId);
+    	if(cat_Params::fetchField("#id = '{$paramId}'", 'isFeature') == 'yes'){
+    		acc_Features::syncFeatures(cat_Products::getClassId(), $productId);
+    	}
     }
     
     

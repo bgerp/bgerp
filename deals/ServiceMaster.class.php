@@ -110,9 +110,10 @@ abstract class deals_ServiceMaster extends core_Master
 				$info = cat_Products::getProductInfo($product->productId);
 				
 				$toShip = $normalizedProducts[$index]->quantity;
-    			$price = $normalizedProducts[$index]->price;
-    			$discount = $normalizedProducts[$index]->discount;
 				
+				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
+				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
+    			
 				// Пропускат се експедираните и складируемите артикули
 				if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;
 				 
@@ -161,31 +162,6 @@ abstract class deals_ServiceMaster extends core_Master
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
-
-
-	/**
-	 * Подготвя вербалните данни на моята фирма
-	 */
-	protected function prepareHeaderInfo(&$row, $rec)
-	{
-		$ownCompanyData = crm_Companies::fetchOwnCompany();
-		$Companies = cls::get('crm_Companies');
-		$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-		$row->MyCompany = transliterate(tr($row->MyCompany));
-		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
-		
-		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-		if($uic != $ownCompanyData->vatNo){
-			$row->MyCompanyVatNo = $ownCompanyData->vatNo;
-		}
-		$row->uicId = $uic;
-		 
-		// Данните на клиента
-		$ContragentClass = cls::get($rec->contragentClassId);
-		$cData = $ContragentClass->getContragentData($rec->contragentId);
-		$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-	}
 
 
 	/**
@@ -242,7 +218,9 @@ abstract class deals_ServiceMaster extends core_Master
     	
     	if(isset($fields['-single'])){
     		core_Lg::push($rec->tplLang);
-    		$mvc->prepareHeaderInfo($row, $rec);
+    		
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+    		$row = (object)((array)$row + (array)$headerInfo);
     		
     		if($rec->locationId){
     			$row->locationId = crm_Locations::getHyperlink($rec->locationId);

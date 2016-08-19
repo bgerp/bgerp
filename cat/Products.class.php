@@ -1357,11 +1357,11 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
+     * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
      * 
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
-     * @return double - теглото на еденица от продукта
+     * @return double - теглото на единица от продукта
      */
     public static function getWeight($productId, $packagingId = NULL)
     {
@@ -1379,11 +1379,11 @@ class cat_Products extends embed_Manager {
     
     
 	/**
-     * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
+     * Връща обема на единица от продукта, ако е в опаковка връща нейния обем
      * 
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
-     * @return double - теглото на еденица от продукта
+     * @return double - теглото на единица от продукта
      */
     public static function getVolume($productId, $packagingId = NULL)
     {
@@ -1452,13 +1452,13 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if(isset($rec->proto)){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			if(!Mode::isReadOnly()){
     				$row->proto = $mvc->getHyperlink($rec->proto);
     			}
     		}
     		
     		if($mvc->haveRightFor('edit', $rec)){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')){
+    			if(!Mode::isReadOnly()){
     				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
     			}
     		}
@@ -1470,7 +1470,7 @@ class cat_Products extends embed_Manager {
     			$row->groups = '';
     			foreach ($groups as $grId){
     				if($mvc->haveRightFor('list')){
-    					if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    					if(!Mode::isReadOnly()){
     						$listUrl = array($mvc, 'list', 'groupId' => $grId);
     					}
     				}

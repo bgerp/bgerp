@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -29,23 +29,47 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
      *
-     *	Dt: 501. Каси 					(Каса, Валута)
-     *  Ct: 501. Каси					(Каса, Валута)
+     *	Ако избраната валута е в основна валута
+     *
+     *  Dt: 501. Каси 					(Каси, Валути)
+     *    Ct: 501. Каси					(Каси, Валути)
+     *    
+     *  Ако е в друга валута различна от основната
+     *  
+     *  Dt: 501. Каси 					         (Каси, Валути)
+     *  Ct: 481. Разчети по курсови разлики		 (Валути)
+     *  
+     *  Dt: 481. Разчети по курсови разлики	     (Валути)
+     *  Ct: 501. Каси 					         (Каси, Валути)
      */
     public function getTransaction($id)
     {
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     
-    	$entry = array('debit' => array('501',
-					    			array('cash_Cases', $rec->peroTo),
-					    			array('currency_Currencies', $rec->debitCurrency),
-					    			'quantity' => $rec->debitQuantity), 
-    				   'credit' => array('501',
-					    			array('cash_Cases', $rec->peroFrom),
-					    			array('currency_Currencies', $rec->creditCurrency),
-					    			'quantity' => $rec->creditQuantity));
-    	$entry = array($entry);
+    	$toCase = array('501',
+    			array('cash_Cases', $rec->peroTo),
+    			array('currency_Currencies', $rec->debitCurrency),
+    			'quantity' => $rec->debitQuantity);
+    			
+    	$fromCase = array('501',
+    			array('cash_Cases', $rec->peroFrom),
+    			array('currency_Currencies', $rec->creditCurrency),
+    			'quantity' => $rec->creditQuantity);
+    	if($rec->debitCurrency == acc_Periods::getBaseCurrencyId($rec->valior)){
+    		$dCode = currency_Currencies::getCodeById($rec->debitCurrency);
+    		$rate = currency_CurrencyRates::getRate($rec->valior, $dCode, NULL);
+    		$entry = array();
+    		$entry[] = array('amount' => $rec->debitQuantity,
+    				'debit' => $toCase,
+    				'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
+    		$entry[] = array(
+    				'debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
+    				'credit' => $fromCase);
+    	} else {
+    		$entry = array('debit' => $toCase, 'credit' => $fromCase);
+    		$entry = array($entry);
+    	}
     	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(

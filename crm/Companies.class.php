@@ -983,14 +983,20 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param array $options
      * @param type_Key $typeKey
+     * @param string $where
      */    
-    protected static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    protected static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey, $where = '')
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
 	       $mvc->restrictAccess($query);
+	       $query->where("#state != 'rejected'");
 	       
-	       while($rec = $query->fetch("#state != 'rejected'")) {
+	       if (trim($where)) {
+	           $query->where($where);
+	       }
+	       
+	       while($rec = $query->fetch()) {
 	       	   $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
 	       }
        }

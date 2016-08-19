@@ -39,7 +39,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_SaveAndNew,
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_SaveAndNew, acc_plg_ExpenseAllocation,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices,ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy';
     
     
@@ -97,7 +97,6 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     public function description()
     {
     	$this->FLD('shipmentId', 'key(mvc=purchase_Services)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=productId,caption=Разход за');
     	parent::setDocumentFields($this);
     }
     
@@ -113,25 +112,6 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
     	
     	return $products;
-    }
-
-
-    /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
-    {
-    	$form = &$data->form;
-    	$rec = &$form->rec;
-    	
-    	// Ако е избран артикул и той е невложим и имаме разходни пера,
-    	// показваме полето за избор на разход
-    	if(isset($rec->productId)){
-    		$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset');
-    		if($pRec->canConvert == 'no' && $pRec->fixedAsset == 'no' && $data->masterRec->isReverse != 'yes' && acc_Lists::getItemsCountInList('costObjects')){
-    			$form->setField('expenseItemId', 'input');
-    		}
-    	}
     }
     
     
@@ -157,12 +137,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-    
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
-    			if(isset($rec->expenseItemId)){
-    				$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-    				$row->productId .= "<div class='small'><b class='quiet1'>" . tr('Разход за') . "</b>: {$eItem}</div>";
-    			}
     			
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";

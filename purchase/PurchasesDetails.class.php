@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'purchase_PurchasesDetails'
  *
@@ -36,7 +39,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument';
+    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering,acc_plg_ExpenseAllocation, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument';
     
     
     /**
@@ -105,31 +108,8 @@ class purchase_PurchasesDetails extends deals_DealDetail
     public function description()
     {
         $this->FLD('requestId', 'key(mvc=purchase_Purchases)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=productId,caption=Разход за');
         
         parent::getDealDetailFields($this);
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$form = &$data->form;
-    	$rec = &$form->rec;
-    	
-    	// Ако е избран артикул и той е невложим и нескладируем и имаме разходни пера,
-    	// показваме полето за избор на разход
-    	if(isset($rec->productId)){
-    		$pRec = cat_Products::fetch($rec->productId, 'canConvert,canStore,fixedAsset');
-    		
-    		if($pRec->canConvert == 'no' && $pRec->canStore == 'no' && $pRec->fixedAsset == 'no'){
-    			if(acc_Lists::getItemsCountInList('costObjects')){
-    				$form->setField('expenseItemId', 'input');
-    			}
-    		}
-    	}
     }
     
     

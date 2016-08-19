@@ -34,12 +34,6 @@ class doc_ExpensesSummary extends core_Manager
     
     
     /**
-     * Кой има право да го види?
-     */
-    public $canView = 'debug';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
@@ -121,10 +115,16 @@ class doc_ExpensesSummary extends core_Manager
         // Ако има записи вербализираме ги
         $data->rows = array();
         $data->recs = $rec->data;
+       
         if(is_array($rec->data)){
         	foreach ($rec->data as $index => $r){
         		$data->rows[$index] = $this->getVerbalRow($r);
         	}
+        }
+        
+        $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
+        if($itemRec->state == 'closed'){
+        	$data->isClosed = tr('Перото е затворено');
         }
     }
     
@@ -132,21 +132,56 @@ class doc_ExpensesSummary extends core_Manager
     /**
      * Вербализира записа за разхода
      * 
-     * @param stdClass $r
+     * @param stdClass $rec
      * @return stdClass $row
      */
-    private function getVerbalRow($r)
+    private function getVerbalRow($rec)
     {
     	$row = new stdClass();
-    	$row->docId = cls::get($r->docType)->getLink($r->docId, 0);
-    	$row->item2Id = acc_Items::getVerbal($r->item2Id, 'titleLink');
-    	
-    	foreach (array('quantity', 'amount') as $fld){
-    		$Double = cls::get('type_Double');
-    		$row->{$fld} = $Double->toVerbal($r->{$fld});
+    	if(isset($rec->docId)){
+    		$row->docId = cls::get($rec->docType)->getLink($rec->docId, 0);
     	}
     	
-    	$row->valior = cls::get('type_Date')->toVerbal($r->valior);
+    	if($rec->accId){
+    		$accSysId = acc_Accounts::fetchField($rec->accId, 'systemId');
+    		$productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
+    		if(isset($rec->{"item{$productPosition}Id"})){
+    			$row->item2Id = acc_Items::getVerbal($rec->{"item{$productPosition}Id"}, 'titleLink');
+    		} else {
+    			$row->item2Id = tr('Не отнесени');
+    		}
+    	} else {
+    		$row->item2Id = tr('Не отнесени');
+    	}
+    	
+    	$row->ROW_ATTR['class'] = ($rec->type == 'corrected') ? 'state-closed' : 'state-active';
+    	
+    	// Вербализиране на числата
+    	foreach (array('quantity', 'amount') as $fld){
+    		$Double = cls::get('type_Double');
+    		$row->{$fld} = $Double->toVerbal($rec->{$fld});
+    	}
+    	
+    	$row->valior = cls::get('type_Date')->toVerbal($rec->valior);
+    	
+    	if($rec->type == 'corrected'){
+    		if($rec->notDistributed !== TRUE){
+    			unset($row->docId, $row->valior);
+    		}
+    		
+    		$storePosition = acc_Lists::getPosition($accSysId, 'store_AccRegIntf');
+    		if(isset($rec->{"item{$storePosition}Id"})){
+    			$item1 = acc_Items::getVerbal($rec->{"item{$storePosition}Id"}, 'titleLink');
+    			$row->item2Id = "<b>{$row->item2Id}</b>";
+    			$row->item2Id .= tr("|* |в склад|* <b>{$item1}</b>");
+    		}
+    		
+    		if($rec->notDistributed !== TRUE){
+    			$row->item2Id = tr('за') . " {$row->item2Id}";
+    		}
+    		
+    		$row->item2Id = "<div class='small'>{$row->item2Id}<div>";
+    	}
     	
     	return $row;
     }
@@ -176,6 +211,10 @@ class doc_ExpensesSummary extends core_Manager
     	if(is_array($data->recs)){
     		foreach ($data->recs as $index => $rec){
     			foreach (array('quantity', 'amount') as $fld){
+    				if($rec->type == 'corrected'){
+    					$data->rows[$index]->{$fld} = "<small>{$data->rows[$index]->{$fld}}</small>";
+    				}
+    				
     				if($rec->{$fld} < 0){
     					$data->rows[$index]->{$fld} = "<span class='red'>{$data->rows[$index]->{$fld}}</span>";
     				}
@@ -187,6 +226,11 @@ class doc_ExpensesSummary extends core_Manager
     	
     	// Рендиране на таблицата
     	$tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
+    	
+    	if(isset($data->isClosed)){
+    		$nTpl = new core_ET("<div class='red' style='margin-bottom:5px'>{$data->isClosed}</div>");
+    		$tableHtml->prepend($nTpl);
+    	}
     	
     	$tpl->append($tableHtml);
     	
@@ -212,34 +256,84 @@ class doc_ExpensesSummary extends core_Manager
     		self::save($rec);
     	}
     	
-    	$recs = array();
+    	$recs = $allocated = array();
     	
     	// Извличаме от журнала направените записи за разхода
     	$entries = acc_Journal::getEntries($itemRec);
     	$accId = acc_Accounts::getRecBySystemId('60201')->id;
     	
+    	$sysIds = array('701', '703', '321');
+    	foreach ($sysIds as &$sysId){
+    		$sysId = acc_Accounts::fetchField("#systemId = {$sysId}");
+    	}
+    	
     	if(is_array($entries)){
     		foreach($entries as $ent){
+    			$add = FALSE;
+    			
     			if($ent->debitItem1 == $itemRec->id && $ent->debitAccId == $accId){
-    				$sign = ($type == 'debit') ? 1 : -1;
-    					
-    				$r = (object)array('docType'   => $ent->docType, 
-    								   'docId'     => $ent->docId,
-    								   'accId'     => $ent->debitAccId,
-    								   'item1Id'   => $ent->debitItem1,
-    								   'item2Id'   => $ent->debitItem2,
-    								   'item3Id'   => $ent->debitItem3,
-    								   'valior'    => $ent->valior,
-    								   'quantity'  => $ent->debitQuantity,
-    								   'amount'    => $ent->amount,);
-    				$recs[] = $r;
+    				$add = TRUE;
+    				$arr = &$recs;
+    				$type = 'allocated';
+    				$side = 'debit';
+    			} elseif($ent->creditItem1 == $itemRec->id && $ent->creditAccId == $accId){
+    				$add = TRUE;
+    				$arr = &$allocated;
+    				$side = 'credit';
+    				$type = 'corrected';
+    				if(!in_array($ent->debitAccId, $sysIds)) continue;
+    			}
+    			
+    			// Извличане на нужните записи
+    			if($add === TRUE){
+    				$index = $ent->docType . "|" . $ent->docId . "|" . $ent->{"{$side}AccId"} . "|" . $ent->{"{$side}Item1"} . "|" . $ent->{"{$side}Item2"} . "|" . $ent->{"{$side}Item3"};
+    				$r = (object)array('docType'  => $ent->docType,
+    								   'docId'    => $ent->docId,
+    						           'accId'    => $ent->{"debitAccId"},
+    						           'item1Id'  => $ent->{"debitItem1"},
+    						           'item2Id'  => $ent->{"debitItem2"},
+    						           'item3Id'  => $ent->{"debitItem3"},
+    						           'index'   => $index,
+    						           'valior'   => $ent->valior,
+    						           'quantity' => $ent->{"debitQuantity"},
+    						           'type'     => $type,
+    						           'amount'   => $ent->amount,);
+    				$arr[] = $r;
     			}
     		}
     	}
     	
-    	// Кеширане на данните и бройката за контейнера
-    	$rec->data = $recs;
     	$rec->count = count($recs);
+    	$notDistributed = $allocated;
+    	
+    	// За всички отнесени разходи
+    	foreach ($recs as $rec1){
+    		$index = $rec1->index;
+    		$res[] = $rec1;
+    		
+    		// Отделяне на тези записи, които съдържат текущия маркер
+    		$foundArr = array_filter($allocated, function ($e) use ($index) {
+    			return $e->index == $index;
+    		});
+    		
+    		// Ако има и коригиращи записи, добавят се след тях
+    		if(count($foundArr)){
+    			$notDistributed = array_diff_key($notDistributed, $foundArr);
+    			$res = array_merge($res, $foundArr);
+    		}
+    	}
+    
+    	// Ако има останали неразпределени добавят се най-отдолу
+    	if(count($notDistributed)){
+    		$res[] = (object)array('type' => 'allocated');
+    		foreach ($notDistributed as &$nRec){
+    			$nRec->notDistributed = TRUE;
+    		}
+    		$res = array_merge($res, $notDistributed);
+    	}
+    	
+    	// Кеширане на данните и бройката за контейнера
+    	$rec->data = $res;
     	self::save($rec, 'data,count');
     }
 }

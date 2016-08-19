@@ -719,4 +719,20 @@ class acc_Periods extends core_Manager
         
         return (object) array('from'=> $fromCompare , 'to'=> $toCompare);
     }
+    
+    
+    /**
+     * Дали датата е в затворен счетоводен период
+     * 
+     * @param date $date - дата
+     * @return boolean - Затворен ли е периода в който е датата
+     */
+    public static function  isClosed($date)
+    {
+    	// В кой период е датата
+    	$period = self::fetchByDate($date);
+    	
+    	// Проверка дали периода е затворен
+    	return $period->state == 'closed';
+    }
 }

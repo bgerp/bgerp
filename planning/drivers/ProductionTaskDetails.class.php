@@ -111,7 +111,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
-    	$this->FLD('time', 'time', 'caption=Време,smartCenter,input=none');
     }
     
     
@@ -217,22 +216,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			if($error = planning_TaskSerials::isSerialinValid($rec->serial, $productId, $rec->taskId, $type)){
     				$form->setError('serial', $error);
     			}
-    		}
-    		
-    		switch($rec->type){
-    			case 'product':
-    				$time = planning_Tasks::fetch($rec->taskId)->indTime;
-    				break;
-    			case 'start':
-    				$time = planning_Tasks::fetch($rec->taskId)->startTime;
-    				break;
-    			default:
-    				$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-    				break;
-    		}
-    		
-    		if(!empty($time)){
-    			$rec->time = $rec->quantity * $time;
     		}
     	}
     }

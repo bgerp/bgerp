@@ -14,8 +14,8 @@
  */
 
 class unit_MinkPPayment extends core_Manager {
-   /**Изпълнява се след unit_MinkPbgERP 
-    * Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
+   /** Изпълнява се след unit_MinkPbgERP!
+    *  Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
     */
     
     //http://localhost/unit_MinkPPayment/Run/
@@ -23,20 +23,20 @@ class unit_MinkPPayment extends core_Manager {
     {
     
         $res = '';
-        $res .= $this->act_CreateSaleWaitP();
-        $res .= $this->act_CreateSaleOverdue3days();
-        $res .= $this->act_CreateSaleMomentOverdueNull();
-        $res .= $this->act_CreateSaleExped();
-        $res .= $this->act_CreateSaleExpedn();
-        $res .= $this->act_CreateSaleOverpaid();
-        $res .= $this->act_CreateSaleMomentWait3();
-        $res .= $this->act_CreateSaleWait3();
-        $res .= $this->act_CreateSaleMomentNow();
-        $res .= $this->act_CreateSale();
-        $res .= $this->act_CreatePurchaseOverdue();
-        $res .= $this->act_CreatePurchaseWait();
-        $res .= $this->act_CreatePurchaseOverpaid();
-        $res .= $this->act_CreatePurchase3();
+        $res .= "  1.".$this->act_CreateSaleWaitP();
+        $res .= "  2.".$this->act_CreateSaleOverdue3days();
+        $res .= "  3.".$this->act_CreateSaleMomentOverdueNull();
+        $res .= "  4.".$this->act_CreateSaleExped();
+        $res .= "  5.".$this->act_CreateSaleExpedn();
+        $res .= "  6.".$this->act_CreateSaleOverpaid();
+        $res .= "  7.".$this->act_CreateSaleMomentWait3();
+        $res .= "  8.".$this->act_CreateSaleWait3();
+        $res .= "  9.".$this->act_CreateSaleMomentNow();
+        $res .= "  10.".$this->act_CreateSale();
+        $res .= "  11.".$this->act_CreatePurchaseOverdue();
+        $res .= "  12.".$this->act_CreatePurchaseWait();
+        $res .= "  13.".$this->act_CreatePurchaseOverpaid();
+        $res .= "  14.".$this->act_CreatePurchase3();
            
         return $res;
     }
@@ -1272,6 +1272,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Приемане');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->press('Чернова');
+        //return $browser->gethtml();
         $browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Контиране')) {
         //  $browser->press('Контиране');

@@ -438,7 +438,7 @@ class sales_Quotations extends core_Master
     		
     			$date = dt::verbal2mysql($validDate, FALSE);
     			if($date < dt::today()){
-    				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				if(!Mode::isReadOnly()){
     					$row->validDate = "<span class='red'>{$row->validDate}</span>";
     					
     					if($rec->state == 'draft'){

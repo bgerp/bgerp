@@ -13,6 +13,7 @@
  */
 
 class unit_MinkPSales extends core_Manager {
+    //Изпълнява се след unit_MinkPbgERP!
     //http://localhost/unit_MinkPSales/Run/
     public function act_Run()
     {
@@ -499,7 +500,7 @@ class unit_MinkPSales extends core_Manager {
         //bp($browser->gettext());
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         //////Не работи!
-        return $browser->getText();
+        return $browser->getHtml();
         $browser->press('Чернова');
         $browser->press('Контиране');
         

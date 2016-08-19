@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
+class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 {
 	
 	
@@ -131,7 +131,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){
-					
+					$storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 					
 					$entries[] = array('amount' => $sign * $amount,
@@ -212,6 +212,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 		} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){
+					$storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 						
 					$entries[] = array('amount' => $sign * $amount,
@@ -271,6 +272,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){
+					$storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 			
 					$entries[] = array('amount' => $sign * $amount,
@@ -287,6 +289,90 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			}
 		}
 		
+		return $entries;
+	}
+	
+	
+	
+	/**
+	 * Връща контировката на корекцията на стойности
+	 * 
+	 * Ако разходния обект е покупка:
+	 * 
+	 * 	Dt: 321. Суровини, материали, продукция, стоки                (Складове, Артикули)
+	 *  Ct: 60201. Разходи за (нескладируеми) услуги и консумативи    (Разходни обекти, Артикули)
+	 *  
+	 *  Ако разходния обект е продажба, и разхода е складируем
+	 *  
+	 *  Dt: 701. Приходи от продажби на Стоки и Продукти              (Контрагенти, Сделки, Артикули)
+	 *  Ct: 60201. Разходи за (нескладируеми) услуги и консумативи    (Разходни обекти, Артикули)
+	 * 
+	 *  Ако разходния обект е продажба, и разхода е услуга
+	 *  
+	 *  Dt: 703. Приходи от продажби на услуги                        (Контрагенти, Сделки, Артикули)
+	 *  Ct: 60201. Разходи за (нескладируеми) услуги и консумативи    (Разходни обекти, Артикули)
+	 * 
+	 * 
+	 * @param array $products - масив с информация за артикули
+     * 			    o productId       - ид на артикул
+     * 				o name            - име на артикула
+     *  			o quantity        - к-во
+     *   			o value          - сума на артикула
+     *     			o inStores        - к-та с които артикула присъства в складовете, ако е повече от 1
+	 * @param int $productId                           - ид на артикул
+	 * @param int $expenseItemId                       - ид на разходен обект
+	 * @param double $amount                           - сума за разпределяне
+	 * @param quantity|value|weight|volume $allocateBy - начин на разпределяне
+	 * @param boolean $reverse                         - дали сумите да са отрицателни
+	 * @return array $entries
+	 */
+	public static function getCorrectionEntries($products, $productId, $expenseItemId, $value, $allocateBy, $reverse = FALSE)
+	{
+		$entries = array();
+		$sign = ($reverse) ? -1 : 1;
+		
+		$errorMsg = acc_ValueCorrections::allocateAmount($products, $value, $allocateBy);
+		if(!empty($errorMsg)) return $entries;
+		$itemRec = acc_Items::fetch($expenseItemId);
+		$isPurchase = ($itemRec->classId == purchase_Purchases::getClassId());
+		
+		foreach ($products as $p){
+			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
+		
+			if($isPurchase){
+				foreach ($p->inStores as $storeId => $arr){
+					if(is_array($arr)){
+						$q = $arr['amount'];
+						$am = $p->amount;
+					} else {
+						$q = $arr;
+						$am = $p->quantity;
+					}
+					
+					$allocated = round($p->allocated * ($q / $am), 2);
+					$creditArr['quantity'] = $sign * $allocated;
+					
+					$entries[] = array('debit' => array('321',
+													array('store_Stores', $storeId),
+													array('cat_Products', $p->productId),
+													'quantity' => 0),
+									   'credit' => $creditArr, 
+							'reason' => 'Корекция на стойност');
+				}
+			} else {
+				$canStore = cat_Products::fetchField($p->productId, 'canStore');
+				$accountSysId = ($canStore == 'yes') ? '701' : '703';
+				$dealRec = cls::get($itemRec->classId)->fetch($itemRec->objectId, 'contragentClassId, contragentId');
+				$creditArr['quantity'] = $sign * $p->allocated;
+				
+				$entries[] = array('debit' => array($accountSysId,
+								array($dealRec->contragentClassId, $dealRec->contragentId),
+								$expenseItemId, array('cat_Products', $p->productId),
+								'quantity' => 0),
+						'credit' => $creditArr, 'reason' => 'Корекция на стойност');
+			}
+		}
+		 
 		return $entries;
 	}
 }

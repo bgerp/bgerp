@@ -95,7 +95,10 @@ class plg_AlignDecimals2 extends core_Plugin
 							$count2 = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
 							$repeatString = ($count2 >= $minShowDigits) ? "<span style='visibility:hidden;'>{$repeatString}</span>" : "0";
 						}
-						$padString .= str_repeat($repeatString, $padCount);
+						
+						if($padCount >= 0){
+							$padString .= str_repeat($repeatString, $padCount);
+						}
 						
 						$rows[$id]->$fName .= $padString;
 						

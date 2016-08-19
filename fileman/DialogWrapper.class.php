@@ -159,11 +159,6 @@ class fileman_DialogWrapper extends core_Plugin
         }
         
         // Ако има права за добавяне
-        if (fileman_Upload2::haveRightFor('add') && haveRole('debug')) {
-            $tabs['fileman_Upload2'] = 'caption=К v2,Ctr=fileman_Upload2,Act=Dialog';
-        }
-        
-        // Ако има права за добавяне
         if (fileman_Get::haveRightFor('add')) {
             $tabs['fileman_Get'] = 'caption=От URL,Ctr=fileman_Get,Act=Dialog';
         }

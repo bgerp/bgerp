@@ -1214,6 +1214,14 @@ class doc_Folders extends core_Master
         if (!$rec->coverClass) return ;
         $class = cls::get($rec->coverClass);
         $title = $class->getTitle();
+        
+        if ($class instanceof core_Master) {
+            $singleTitle = $class->singleTitle;
+            if ($singleTitle && ($title != $singleTitle)) {
+                $title .= ' ' . $singleTitle;
+            }
+        }
+        
         $searchKeywords .= " " . plg_Search::normalizeText($title);
     }
     
@@ -1295,7 +1303,9 @@ class doc_Folders extends core_Master
         // Добавяме функционални полета
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени теми->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
-        $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на темите->Правило, input=input');
+
+        $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
+
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Получен личен имейл->Известяване, input=input');
         

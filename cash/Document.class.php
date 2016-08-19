@@ -476,9 +476,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	$row->title = $mvc->getLink($rec->id, 0);
     	
     	if($fields['-single']){
-    
-    		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-    		$row->contragentAddress = $contragent->getFullAdress();
     		
     		if($rec->dealCurrencyId != $rec->currencyId){
     			$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
@@ -507,10 +504,10 @@ abstract class cash_Document extends deals_PaymentDocument
     		$row->amountVerbal = str::mbUcfirst($amountVerbal);
     		 
     		// Вземаме данните за нашата фирма
-    		$ownCompanyData = crm_Companies::fetchOwnCompany();
-    		$Companies = cls::get('crm_Companies');
-    		$row->organisation = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    		$row->organisationAddress = $Companies->getFullAdress($ownCompanyData->companyId);
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+    		foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld){
+    			$row->{$fld} = $headerInfo[$fld];
+    		}
     
     		// Извличаме имената на създателя на документа (касиера)
     		$cashierRec = core_Users::fetch($rec->createdBy);

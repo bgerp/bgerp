@@ -154,8 +154,8 @@
                                         <hr class='printVisible'>
                                         <div class='custom-bg-block'><b>Бележки</b></div>
                                         <div>[#additionalInfo#]</div>
-                                        <hr>
                                         <!--ET_END additionalInfo-->
+                                        <hr>
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
                                                 <td class='centered'>Съставил:</td>
