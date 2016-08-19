@@ -247,7 +247,7 @@ class colab_Threads extends core_Manager
 		
 		$data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
 		$data->listFilter->setField('folderId', 'input=hidden,silent');
-		$data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)',
+		$data->listFilter->FNC('order', 'enum(' . doc_Threads::filterList . ')',
 				'allowEmpty,caption=Подредба,input,silent,autoFilter');
 		$data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
 		

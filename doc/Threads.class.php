@@ -22,7 +22,13 @@ class doc_Threads extends core_Manager
      */
     const maxLenTitle = 70;
     
-    
+
+    /**
+     * Възможности за филтриране на нишките в една папка
+     */
+    const filterList = 'open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите';
+
+
     /**
      * Плъгини за зареждане
      */
@@ -521,7 +527,7 @@ class doc_Threads extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите)', 
+        $data->listFilter->FNC('order', 'enum(' . self::filterList . ')', 
             'allowEmpty,caption=Подредба,input,silent,autoFilter');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently,autoFilter');
@@ -707,7 +713,7 @@ class doc_Threads extends core_Manager
 
                         // Извличаме тредовете, където потребителя е лайквал документи
                         $lQuery = doc_Likes::getQuery();
-                        $lQuery->EXT('threadId', 'doc_Containers', 'externalKey=containerId');
+
                         $lQuery->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
                         $lQuery->show('threadId');
                         $lQuery->groupBy('threadId');

@@ -416,11 +416,10 @@ class store_InventoryNotes extends core_Master
     	$rec = &$data->rec;
     	$row = &$data->row;
     	
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = transliterate(tr($row->MyCompany));
-    	$row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
- 		
+    	$headerInfo = deals_Helper::getDocumentHeaderInfo(NULL, NULL);
+    	$row = (object)((array)$row + (array)$headerInfo);
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    	
     	$toDate = dt::addDays(-1, $rec->valior);
     	$toDate = dt::verbal2mysql($toDate, FALSE);
     	$row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);

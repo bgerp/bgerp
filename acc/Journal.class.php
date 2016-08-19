@@ -445,7 +445,8 @@ class acc_Journal extends core_Master
      */
     public static function deleteTransaction($docClassId, $docId)
     {
-        $query = static::getQuery();
+    	$docClassId = cls::get($docClassId)->getClassId();
+    	$query = static::getQuery();
         $query->where("#docType = {$docClassId} AND #docId = {$docId}");
     	
         // Изтриваме всички записи направени в журнала от документа

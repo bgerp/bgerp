@@ -87,7 +87,7 @@ class cat_PriceDetails extends core_Manager
     private function preparePriceInfo($data)
     {
     	$hideIcons = FALSE;
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+    	if(Mode::isReadOnly()){
     		$hideIcons = TRUE;
     	}
     	

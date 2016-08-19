@@ -19,13 +19,13 @@ class hr_WorkingCycles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Графици";
+    var $title = "Цикли";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Работни графици";
+    var $singleTitle = "Работни цикли";
     
     
     /**
@@ -129,6 +129,13 @@ class hr_WorkingCycles extends core_Master
         }
         
         $maxNight = $tTime->toVerbal($maxNight);
+        
+        if (hr_Departments::haveRightFor('single', $rec)) {
+            $url = array('hr_WorkingCycles',"Print", $rec);
+            $efIcon = 'img/16/printer.png';
+            $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");
+            $data->row->print = $link;
+        }
         
         //$data->row->info = "Max night: $maxNight<br>";
     }
@@ -238,7 +245,7 @@ class hr_WorkingCycles extends core_Master
             
             // Броя на дните в месеца (= на последната дата в месеца);
             $lastDay = date('t', $firstDayTms);
-            
+           
             for($i = 1; $i <= $lastDay; $i++){
                 $daysTs = mktime(0, 0, 0, $month, $i, $year);
                 $date = date("Y-m-d H:i", $daysTs);
@@ -246,9 +253,9 @@ class hr_WorkingCycles extends core_Master
                 
                 $start = explode("-", $startingOn);
                 
-                if($month < $start[1] && $year == $start[0]){
+                if($month < $start[1] && $year == $start[0]) {
                     $d[$i]->html = "";
-                }else{
+                } else { 
                     $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
                 }
                 
@@ -260,7 +267,7 @@ class hr_WorkingCycles extends core_Master
                     }
                 }
                 $d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
-                
+              
                 $url = array("cal_Calendar" , "day", "from" => $i . '.' . $month . '.' . $year);
                 $url = toUrl($url);
                 
@@ -320,28 +327,37 @@ class hr_WorkingCycles extends core_Master
                 
                 $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d, $header);
                 $tpl->append($calendar, 'calendar');
-                
-                $url = toUrl(array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year));
-                $title = "<legend class='groupTitle'>" . tr('Работен график') . "</legend>";
-                
-                $tpl->append($url, 'id');
-                $tpl->append($title, 'title');
+
+                // правим url  за принтиране
+                $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year);
+                $efIcon = 'img/16/printer.png';
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $tpl->append($link, 'print');
             }
         }
         
         if(Mode::is('printing')) {
+            $curUrl = getCurrentUrl();
+  
             
             $month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'F',  'bg'), MB_CASE_LOWER, "UTF-8");
-            $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($prepareRecs->name) . tr(" за месец ") . tr($month) . "<br /></b>";
-            $tpl->append($title, 'title');
+            $tpl->content = str_replace("Работен график", "", $tpl->content);
+            
+            if ($curUrl['personId']) {
+                $personName = crm_Persons::fetchField($curUrl['personId'], 'name');
+                $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($personName) . tr(" за месец ") . tr($month) . "<br /></b>";
+            } else {
+                $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($prepareRecs->name) . tr(" за месец ") . tr($month) . "<br /></b>";
+            }
+            $tpl->append($title, 'printTitle');
             
             $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
             $tpl->append($calendar, 'calendar');
         }
         
         for($j = 0; $j <= 4; $j++){
-            for($i = 1; $i <= $prepareRecs->lastDay; $i++){
-                if($prepareRecs->d[$i]->type == '0' && '0' == $j && $prepareRecs->month >= $prepareRecs->start){
+            for($i = 1; $i <= $prepareRecs->lastDay; $i++){ 
+                if($prepareRecs->d[$i]->type == '0' && '0' == $j){
                     $tpl->append(' rest', "shift{$j}");
                 } elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
                     $tpl->append(' first', "shift{$j}");
@@ -354,9 +370,10 @@ class hr_WorkingCycles extends core_Master
                 }
             }
         }
-        
+
         return $tpl;
     }
+
     
     /**
      * @todo Чака за документация...
@@ -461,7 +478,7 @@ class hr_WorkingCycles extends core_Master
     function act_Print()
     {
         $data = new stdClass();
-        $id = Request::get('masterId', 'int');
+        $id = Request::get('masterId', 'int'); 
         $data->masterId  = $id;
         
         if(Mode::is('printing')) {

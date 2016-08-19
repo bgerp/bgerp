@@ -18,9 +18,9 @@
                 </tr>
                 <tr>
                     <td>
-                        <b>[#companyName#]</b>
+                        <b>[#MyCompany#]</b>
                         <div class='address-block'>
-                            [#companyAddress#]
+                            [#MyAddress#]
                         </div>
                     </td>
                     <td class='align-top-td'>

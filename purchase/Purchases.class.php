@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   purchase
- * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1

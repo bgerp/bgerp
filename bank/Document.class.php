@@ -398,13 +398,11 @@ abstract class bank_Document extends deals_PaymentDocument
 				unset($row->rate);
 			}
 	
-			$ownCompany = crm_Companies::fetchOwnCompany();
-			$Companies = cls::get('crm_Companies');
-			$row->companyName = cls::get('type_Varchar')->toVerbal($ownCompany->company);
-			$row->companyAddress = $Companies->getFullAdress($ownCompany->companyId);
-	
-			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-			$row->contragentAddress = $contragent->getFullAdress();
+			// Вземаме данните за нашата фирма
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+    		foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld){
+    			$row->{$fld} = $headerInfo[$fld];
+    		}
 	
 			if(isset($rec->ownAccount)){
 				$row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);

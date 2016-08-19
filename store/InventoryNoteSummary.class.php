@@ -626,7 +626,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	if($masterRec->state == 'draft'){
     		$unsetCharge = TRUE;
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
+    		if(!Mode::isReadOnly() && !Mode::is('blank')){
     			if(static::haveRightFor('setresponsibleperson', $rec)){
     				$attr = array();
     				$attr['class']       = "toggle-charge";

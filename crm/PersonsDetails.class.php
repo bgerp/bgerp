@@ -31,15 +31,34 @@ class crm_PersonsDetails extends core_Manager
 			$data->TabCaption = 'HR';
 		}
 		
+		$eQuery = crm_ext_Employees::getQuery();
+		$eQuery->where("#personId = '{$data->masterId}'"); 
+	
+		while($eRec = $eQuery->fetch()){
+		    
+		    $keys = keylist::toArray($eRec->departments);
+		    if (count($keys) == 1) {
+		        foreach($keys as $key) {
+		            $data->Cycles = cls::get('hr_WorkingCycles');
+		            $data->Cycles->masterId = $key;
+		        }
+		    }
+		}
+
 		$data->Cards = cls::get('crm_ext_IdCards');
-		if(isset($data->Codes)){
-			$data->Codes->prepareData($data);
-			if(crm_ext_Employees::haveRightFor('add', (object)array('personId' => $data->masterId))){
-				$data->addResourceUrl = array('crm_ext_Employees', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
-			}
+		$data->Cards->prepareIdCard($data);
+		
+		if(isset($data->Cycles)){
+			$data->Cycles->prepareGrafic($data);
+			$data->TabCaption = 'HR';
 		}
 		
-		$data->Cards->prepareIdCard($data);
+		if(isset($data->Codes)){
+		    $data->Codes->prepareData($data);
+		    if(crm_ext_Employees::haveRightFor('add', (object)array('personId' => $data->masterId))){
+		        $data->addResourceUrl = array('crm_ext_Employees', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
+		    }
+		}
 	}
 	
 	
@@ -60,6 +79,21 @@ class crm_PersonsDetails extends core_Manager
 			$tpl->append($resTpl, 'CODE');
 		}
 		
+		if(isset($data->Cycles)){ 
+		    $resTpl = $data->Cycles->renderGrafic($data->Cycles);
+		    $resTpl->removeBlock('legend');
+		    $resTpl->removeBlocks();
+		    $tpl->append($resTpl, 'CYCLES');
+
+		    if (crm_Persons::haveRightFor('single', (object)array('personId' => $data->masterId))) {
+    		    // правим url  за принтиране
+                $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->Cycles->masterId, 'cal_month'=>$data->Cycles->month, 'cal_year'=>$data->Cycles->year, 'personId'=>$data->masterId);
+                $efIcon = 'img/16/printer.png';
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $tpl->append($link, 'print');
+		    }
+		}
+
 		return $tpl;
 	}
 }

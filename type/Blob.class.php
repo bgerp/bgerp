@@ -72,9 +72,13 @@ class type_Blob extends core_Type {
     function toVerbal($value)
     {
         if(empty($value)) return NULL;
-        
-        $value = static::mixedToString($value);
- 
+        $value = $this->fromMysql($value);
+
+        if($value && !$this->params['binary']) { 
+            $value = ht::wrapMixedToHtml(ht::mixedToHtml($value, 1));      
+            return $value;
+        }
+
         setIfNot($rowLen, $this->params['rowLen'], 16);
         setIfNot($maxRows, $this->params['maxRows'], 100);
         $len = min(strlen($value), $rowLen * $maxRows);
@@ -172,21 +176,23 @@ class type_Blob extends core_Type {
      */
     public function fromMysql($value)
     {   
-        // Ако е указано - декомпресираме
-        if($value !== NULL && $value !== '' && $this->params['compress']) {
-            $valueUnCompr = @gzuncompress($value);
-            
-            // Ако компресирането е било успешно
-            if($valueUnCompr !== FALSE) {
+        if(is_scalar($value)) {
+            // Ако е указано - декомпресираме
+            if($value !== NULL && $value !== '' && $this->params['compress']) {
+                $valueUnCompr = @gzuncompress($value);
                 
-                // Използваме го
-                $value = $valueUnCompr;
+                // Ако компресирането е било успешно
+                if($valueUnCompr !== FALSE) {
+                    
+                    // Използваме го
+                    $value = $valueUnCompr;
+                }
             }
-        }
-        
-        // Ако е указано - десериализираме
-        if ($value !== NULL && $value !== '' && $this->params['serialize']) {
-            $value = @unserialize($value);
+            
+            // Ако е указано - десериализираме
+            if ($value !== NULL && $value !== '' && $this->params['serialize']) {
+                $value = @unserialize($value);
+            }
         }
         
         return parent::fromMysql($value);

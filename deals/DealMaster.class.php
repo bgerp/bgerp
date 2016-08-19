@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime';
+	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate';
 	
 	
 	/**
@@ -299,32 +299,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		return $this->save($rec);
 	}
-
-    
-	/**
-     * Подготвя данните на хедъра на документа
-     */
-    private function prepareHeaderInfo(&$row, $rec)
-    {
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-        $Companies = cls::get('crm_Companies');
-        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-        $row->MyCompany = transliterate(tr($row->MyCompany));
-        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
-        
-        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-        if($uic != $ownCompanyData->vatNo){
-    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
-    	}
-    	$row->uicId = $uic;
-    	
-    	// Данните на клиента
-        $ContragentClass = cls::get($rec->contragentClassId);
-        $cData = $ContragentClass->getContragentData($rec->contragentId);
-    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-    	
-    	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-    }
 
 
     /**
@@ -911,7 +885,9 @@ abstract class deals_DealMaster extends deals_DealBase
 
 			core_Lg::push($rec->tplLang);
 			
-			$mvc->prepareHeaderInfo($row, $rec);
+			// Подготовка на имената на моята фирма и контрагента
+			$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+			$row = (object)((array)$row + (array)$headerInfo);
 			
 			if(isset($actions['ship'])){
 				$row->isDelivered .= mb_strtoupper(tr('доставено'));
@@ -1664,7 +1640,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 				  o quantity       - количество опаковка
      * 				  o quantityInPack - количество в опаковката
      * 				  o discount       - отстъпка
-     * 				  o price          - цена за еденица от основната мярка
+     * 				  o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {

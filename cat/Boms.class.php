@@ -506,7 +506,7 @@ class cat_Boms extends core_Master
     			
     			$row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
     		
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $rec->state != 'rejected'){
+    			if(!Mode::isReadOnly() && $rec->state != 'rejected'){
     				$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
     			}
     		}
@@ -800,6 +800,10 @@ class cat_Boms extends core_Master
     		}
     	}
     	 
+    	if(Mode::isReadOnly()){
+    		$data->hideToolsCol = TRUE;
+    	}
+    	
     	$masterInfo = cat_Products::getProductInfo($data->masterId);
     	if(!isset($masterInfo->meta['canManifacture'])){
     		$data->notManifacturable = TRUE;
@@ -834,7 +838,7 @@ class cat_Boms extends core_Master
     	 $title = tr('Технологични рецепти');
     	 $tpl->append($title, 'title');
     	 
-    	 if(isset($data->addUrl)){
+    	 if(isset($data->addUrl) && !Mode::isReadOnly()){
     	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова търговска технологична рецепта');
     	 	$tpl->append($addBtn, 'title');
     	 }
@@ -1105,7 +1109,7 @@ class cat_Boms extends core_Master
     	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
     	if($rQuantity != cat_BomDetails::CALC_ERROR){
     		
-    		// Искаме количеството да е за еденица, не за опаковка
+    		// Искаме количеството да е за единица, не за опаковка
     		$rQuantity *= $rec->quantityInPack;
     	}
     	

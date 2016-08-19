@@ -35,47 +35,44 @@ class unit_Mink extends core_Manager {
     }
     
     /**
-    * Създаване на фирма и папка към нея, допуска дублиране - ОК
-    * Select2 трябва да е деинсталиран
-    */
-    //http://localhost/unit_Mink/CompanyName/
-    function act_CompanyName()
+     * Избор на фирма
+     */
+    public function SetFirm()
     {
-        // Логване
         $browser = $this->SetUp();
-    
-        // Създаване на нова фирма
-        $Company = "";
         $browser->click('Визитник');
-        $browser->press('Нова фирма');
-        $browser->setValue('name', '<FONT COLOR=RED>!!! BUG !!!</FONT> " &lt; &#9829; \' [#title#]');
-        ///!!redBUG!!
-        //$browser->setValue('name', '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]');
-        
-        $browser->setValue('place', 'Ст. Загора');
-        $browser->setValue('pCode', '6400');
-        $browser->setValue('address', '<b>!BUG!</b>"&lt;&#9829;\'[#title#]');
-        $browser->setValue('fax', '036111111');
-        $browser->setValue('tel', '036111111');
-        $browser->setValue('uicId', '110001322');
-        $browser->setValue('Клиенти', '1');
-        $browser->setValue('Доставчици', '2');
-        $browser->press('Запис');
-        return $browser->getText();
-        
-        if (strpos($browser->getText(),"Предупреждение:")){
-            $browser->setValue('Ignore', 1);
-            $browser->press('Запис');
+        $browser->click('F');
+        $Company = 'Фирма bgErp';
+        $browser->click($Company);
+        $browser->press('Папка');
+        return $browser;
+          
+    }
+    
+    /**
+     * Проверка за дублиране - не работи
+     */
+    public function CheckDublicate()
+    {   
+        $browser = $this->SetUp();
+       
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            $result='Дублиране';
         }
-        
-        if(strpos($browser->gettext(), '<FONT COLOR=RED>!!redBUG!!</FONT>"&lt;&#9829;\'[#title#]')) {
-        // if(strpos($browser->gettext(), '<FONT COLOR=RED>!!redBUG!!</FONT>"<&#9829;[#title#]')) {    
-            return "Име";
-        } else {                       
-            //return $browser->getHtml();
-            return "Грешно име";
-        }
-        
+        return $result;
+    }
+    /**
+     * Задаване на стойности - не работи
+     */
+    public function SetVal($name,$suffix)
+    { 
+        $browser = $this->SetUp();
+        echo $name;
+        echo $suffix;
+        $browser->setValue('name', $name);
+        $browser->setValue('suffix', $suffix);
+        return $browser;
     }
     
     /**
@@ -87,7 +84,6 @@ class unit_Mink extends core_Manager {
          
         // Логване
         $browser = $this->SetUp();
-    
         // Създаване на нов параметър
         $browser->click('Каталог');
         $browser->click('Параметри');
@@ -96,20 +92,66 @@ class unit_Mink extends core_Manager {
         $browser->refresh('Запис');
         $browser->setValue('name', '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
         $browser->setValue('suffix', 'text');
-        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]'); 
-        $browser->setValue('rows', '2'); 
+        $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]');
+        $browser->setValue('rows', '2');
+        //$browser = $this->SetVal(ime,suf);
+        //$browser = self::SetVal(ime,suf);
         $browser->press('Запис');
-       
+        //return $browser->getHtml();
+        //$browser=$this->CheckDublicate();
+        //$browser=self::CheckDublicate();
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
+            return Дублиране;
         }
         if(strpos($browser->gettext(), '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]]')) {
         } else {
             return "Грешно име";
         }
-        //return $browser->getHtml();
-    }  
+            
+    }
     
+    /**
+    * Създаване на фирма и папка към нея, допуска дублиране - ОК
+    * Select2 трябва да е деинсталиран
+    */
+    //http://localhost/unit_Mink/CompanyName/
+    function act_CompanyName()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова фирма
+        $company = '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]';
+        $browser->click('Визитник');
+        $browser->press('Нова фирма');
+        //$browser->setValue('name', '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]');
+        $browser->setValue('name',  $company);
+        $browser->setValue('place', 'Ст. Загора');
+        $browser->setValue('pCode', '6400');
+        $browser->setValue('address', '<b>!BUG!</b>"&lt;&#9829;\'[#title#]');
+        $browser->setValue('fax', '036111111');
+        $browser->setValue('tel', '036111111');
+        $browser->setValue('uicId', '110001322');
+        $browser->setValue('Клиенти', '1');
+        $browser->setValue('Доставчици', '2');
+        $browser->press('Запис');
+        //return $browser->getText();
+        
+        if (strpos($browser->getText(),"Предупреждение:")){
+            $browser->setValue('Ignore', 1);
+            $browser->press('Запис');
+        }
+        //if(strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]')) {
+        if(strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " <&#9829; \' [#title#]')) {
+            return "Име";
+        } else {  
+            return $company . " Грешно име";                     
+        }
+        
+    }
+    
+   
     /**
     * Създаване на параметър - избор.
     */
@@ -242,6 +284,6 @@ class unit_Mink extends core_Manager {
         $browser->setValue('Ignore', 1);
         $browser->press('Запис');
         return $browser->getText();
-    }
-        
+     }
+     
 }

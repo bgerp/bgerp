@@ -179,6 +179,8 @@ class doc_DocumentCache extends core_Master
 	public static function threadCacheInvalidation($threadId)
 	{
 		$res = 0;
+		
+		// Ако не е включено кеширането на документите в нишката не правим нищо
 		if(!(doc_Setup::get('CACHE_LIFETIME') > 0)) return $res;
 		expect($threadId);
 		

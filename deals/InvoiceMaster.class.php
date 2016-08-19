@@ -225,26 +225,6 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
-     * Подготвя вербалните данни на моята фирма
-     */
-    protected function prepareMyCompanyInfo(&$row)
-    {
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$Companies = cls::get('crm_Companies');
-    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = core_Lg::transliterate(tr($row->MyCompany));
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
-    	
-    	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-    	if($uic != $ownCompanyData->vatNo){
-    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
-    	}
-    
-    	$row->uicId = $uic;
-    }
-
-
-    /**
      * След подготовка на тулбара на единичен изглед.
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
@@ -885,7 +865,12 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     		
-    		$mvc->prepareMyCompanyInfo($row);
+    		// Вербална обработка на данните на моята фирма и името на контрагента
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+    		foreach (array('MyCompany', 'MyAddress', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld){
+    			$row->{$fld} = $headerInfo[$fld];
+    		}
+    		
     		core_Lg::pop();
     	}
     }
@@ -902,7 +887,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
     	}
     	
-    	$row->number = strip_tags(static::getVerbal($rec, 'number'));
+    	$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	$num = ($row->number) ? $row->number : $rec->id;
     
     	return tr("|{$row->type}|* №{$num}");
@@ -1151,7 +1136,7 @@ abstract class deals_InvoiceMaster extends core_Master
      * 				  o quantity       - количество опаковка
      * 				  o quantityInPack - количество в опаковката
      * 				  o discount       - отстъпка
-     * 				  o price          - цена за еденица от основната мярка
+     * 				  o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {
