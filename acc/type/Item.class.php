@@ -78,6 +78,12 @@ class acc_type_Item extends type_Key
                 );
             }
             
+            $closedOptions = array();
+            $oneList = (count($lists) == 1);
+            if ($oneList === TRUE) {
+            	$closedOptions["c{$listRec->id}"] = (object)array('title' => tr('Затворени'), 'group' => TRUE,);
+            }
+            
             // Извличаме перата на текущата номенклатура
             $query = clone($cleanQuery);
             $query->where("#lists LIKE '%|{$listRec->id}|%'");
@@ -97,17 +103,25 @@ class acc_type_Item extends type_Key
             
             while ($itemRec = $query->fetch()) {
                 $title = $itemRec->{$select};
+                $arr = &$this->options;
                 
                 // Ако перото е затворено, указваме го в името му
                 if($itemRec->state == 'closed'){
-                    $title .= " (" . tr('затворено') . ")";
+                	if($oneList === TRUE){
+                		$arr = &$closedOptions;
+                	} else {
+                		$title .= " (" . tr('затворено') . ")";
+                	}
                 }
                 
-                // Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
-                $this->options["{$itemRec->id}.{$listRec->id}"] = $title;
+                $arr["{$itemRec->id}.{$listRec->id}"] = $title;
             }
             
             $where .= ($query->where) ? $query->getWhereAndHaving()->w : ' ';
+        }
+        
+        if(count($closedOptions)){
+        	$this->options += $closedOptions;
         }
         
         $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
