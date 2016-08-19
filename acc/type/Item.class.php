@@ -120,7 +120,7 @@ class acc_type_Item extends type_Key
             $where .= ($query->where) ? $query->getWhereAndHaving()->w : ' ';
         }
         
-        if(count($closedOptions)){
+        if(count($closedOptions) && count($closedOptions) != 1){
         	$this->options += $closedOptions;
         }
         
