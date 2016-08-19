@@ -163,10 +163,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$form->setDefault('productId', key($products));
 		}
 		
+		$originDoc = doc_Containers::getDocument($rec->originId);
+		$originRec = $originDoc->fetch();
+		
 		// Ако задачата е дефолтна за артикула, задаваме и дефолтите
 		if(isset($rec->systemId)){
-			$originDoc = doc_Containers::getDocument($rec->originId);
-			$originRec = $originDoc->fetch();
 			
 			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
 			if(isset($tasks[$rec->systemId])){
@@ -177,6 +178,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			}
 		}
 
+		$form->setDefault('productId', $originRec->productId);
+		$form->setDefault('plannedQuantity', $originRec->quantity);
+		
 		if(isset($rec->productId)){
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
