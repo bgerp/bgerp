@@ -110,9 +110,10 @@ abstract class deals_ServiceMaster extends core_Master
 				$info = cat_Products::getProductInfo($product->productId);
 				
 				$toShip = $normalizedProducts[$index]->quantity;
-    			$price = $normalizedProducts[$index]->price;
-    			$discount = $normalizedProducts[$index]->discount;
 				
+				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
+				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
+    			
 				// Пропускат се експедираните и складируемите артикули
 				if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;
 				 

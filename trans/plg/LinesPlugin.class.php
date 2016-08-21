@@ -100,7 +100,8 @@ class trans_plg_LinesPlugin extends core_Plugin
         $exLineId = $rec->lineId;
 
 		$form = cls::get('core_Form');
-		$form->title = 'Промяна на транспорт за|* <b>' . $mvc->getRecTitle($rec) . "</b>";
+		
+		$form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
 		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty,where=#state \\= \\\'active\\\')', 'caption=Транспорт' . ($exLineId?'':''));
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');

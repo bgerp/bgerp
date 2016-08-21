@@ -92,6 +92,14 @@ class core_Form extends core_FieldSet
     
     
     /**
+     * Тулбар на формата
+     * 
+     * @param core_Toolbar
+     */
+    public $toolbar;
+    
+    
+    /**
      * Инициализира формата с мениджърския клас и лейаута по подразбиране
      */
     function init($params = array())

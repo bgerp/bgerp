@@ -1546,6 +1546,11 @@ function setFormElementsWidth() {
         $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
     } else {
+        $('.formTable .hiddenFormRow select.w50').css('width', "50%");
+        $('.formTable .hiddenFormRow select.w75').css('width', "75%");
+        $('.formTable .hiddenFormRow select.w100').css('width', "100%");
+        $('.formTable .hiddenFormRow select.w25').css('width', "25%");
+
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");

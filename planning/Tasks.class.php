@@ -115,13 +115,13 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * След рендиране на задачи към задание
 	 * 
-	 * @param core_Mvc $mvc
+	 * @param core_Manager $mvc
 	 * @param stdClass $data
 	 * @return void
 	 */
 	public static function on_AfterPrepareTasks($mvc, &$data)
 	{
-		if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('inlineDocument')) return;
+		if(Mode::isReadOnly()) return;
 		$masterRec = $data->masterData->rec;
 		$containerId = $data->masterData->rec->containerId;
 		$defDriver = planning_drivers_ProductionTask::getClassId();

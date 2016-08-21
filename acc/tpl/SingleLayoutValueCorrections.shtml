@@ -3,7 +3,9 @@
                 <div class='fleft' style='width: 50%'>
                     <div style='margin-top:10px;'><span class='quiet'>|Вальор|*</span>: <b>[#valior#]</b></div>
                     <div style='margin-top:5px;'><span class='quiet'>|Основна сделка|*</span>: [#dealOriginId#]</div>
+                    <!--ET_BEGIN correspondingDealOriginId-->
                     <div style='margin-top:5px;'><span class='quiet'>|Кореспондираща сделка|*</span>: [#correspondingDealOriginId#]</div>
+                    <!--ET_END correspondingDealOriginId-->
                 </div>
                 <div class='fright' style='width: 50%'>
 	                <div style='margin-top:5px;'><span class='quiet'>|Корекция|*</span>: <b>[#action#]</b></div>

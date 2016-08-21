@@ -18,125 +18,185 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 	
 	
 	/**
-	 * Кои са допустимите класове, към които може да се прикача
-	 * 
-	 * @param array
-	 */
-	private static $allowedClasses = array('purchase_Services', 'sales_Services', 'purchase_Purchases', 'findeals_AdvanceReports');
-	
-	
-	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
 	 */
 	public static function on_AfterDescription($mvc)
 	{
-		$mvc->declareInterface('acc_ExpenseAllocatableIntf');
-		
-		// Мениджъра трябва да е в допустимите класове
-		expect(in_array($mvc->className, self::$allowedClasses));
-		
 		// Дефолтни имена на полетата от модела
-		setIfNot($mvc->expenseItemIdFld, 'expenseItemId');
-		setIfNot($mvc->discountFld, 'discount');
-		setIfNot($mvc->packPriceFld, 'packPrice');
-		setIfNot($mvc->productIdFld, 'productId');
+		setIfNot($mvc->packQuantityFld, 'packQuantity');
 		setIfNot($mvc->packagingIdFld, 'packagingId');
 		setIfNot($mvc->quantityInPackFld, 'quantityInPack');
+		setIfNot($mvc->productIdFld, 'productId');
 		setIfNot($mvc->quantityFld, 'quantity');
+		setIfNot($mvc->expenseItemAfterField, 'notes');
 	}
 	
 	
 	/**
-	 * След подготовка на тулбара на единичен изглед
-	 */
-	public static function on_AfterPrepareSingleToolbar($mvc, &$data)
-	{
-		// Ако може да се добавя разпределение на разход, се показва бутона
-		if(acc_ExpenseAllocations::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
-			$data->toolbar->addBtn('Разходи', array('acc_ExpenseAllocations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), "ef_icon = img/16/star_2.png,title=Разпределение на разходи към документа,order=15");
-		}
-		
-		// Ако към документа има вече друг неоотеглен документ за разпределение на разход, се показва бутон-линк към него
-		if($allocationId = acc_ExpenseAllocations::fetchField("#originId = {$data->rec->containerId} AND #id != '{$data->rec->id}' AND #state != 'rejected'")){
-			$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-			
-			$data->toolbar->addBtn("Разходи|* {$arrow}", array('acc_ExpenseAllocations', 'single', $allocationId, 'ret_url' => TRUE), "ef_icon = img/16/chart16.png,title=Към документа за разпределяне на разходи,order=15");
-		}
-	}
-	
-	
-	/**
-	 * Връща нескладируемите артикули върху, които
-	 * не са разпределени разходи от документа
+	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param int $id       - ид
-	 * @param string $limit - брой записи, NULL за всички
-	 * @return array $res   - масив със всички записи
-	 * 
-	 * 				o originRecId    - към кой ред от детайла е записа
-	 * 				o productId      - ид на артикула
-	 * 				o packagingId    - ид на опаковката/мярката
-	 * 				o quantityInPack - к-во в опаковка, ако е основната е 1
-	 * 				o quantity       - чисто количество (брой в опаковка по брой опаковки)
-	 * 				o discount       - отстъпката върху цената
-	 * 				o packPrice      - цената във валутата с която се показва в документа 
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
 	 */
-	public static function on_AfterGetRecsForAllocation($mvc, &$res, $id, $limit = NULL)
+	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
-		if(isset($res)) return;
+		$form = &$data->form;
+		$rec = $form->rec;
+		if(isset($rec->id)) return;
 		
-		$rec = $mvc->fetchRec($id);
-		$res = array();
+		// Ако началото на нишката не е Покупка или ФС, не се прави нищо
+		$firstDocument = doc_Threads::getFirstDocument($data->masterRec->threadId);
+		if(!$firstDocument->isInstanceOf('purchase_Purchases') && !$firstDocument->isInstanceOf('findeals_Deals')) return;
 		
-		$Detail = cls::get($mvc->mainDetail);
+		// Добавяне на виртуални полета
+		$form->FNC('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', "input=none,after={$mvc->expenseItemAfterField},caption=Отнасяне (и разпределяне) на разходи->Разход за,removeAndRefreshForm=allocationBy");
+		$form->FNC('allocationBy', 'enum(no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'input=none,caption=Отнасяне (и разпределяне) на разходи->Разпределяне,after=expenseItemId,silent,removeAndRefreshForm=chosenProducts');
 		
-		// Пресяват се само редовете с нескладируеми артикули, които не са ДМА и са неразпределени
-		$query = $Detail->getQuery();
-		$query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$mvc->productIdFld}");
-		$query->EXT('fixedAsset', 'cat_Products', "externalName=fixedAsset,externalKey={$mvc->productIdFld}");
-		$query->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey={$mvc->productIdFld}");
-		$query->where("#{$Detail->masterKey} = {$id}");
-		$query->where("#{$mvc->expenseItemIdFld} IS NULL");
-		$query->where("#canStore = 'no' AND #fixedAsset = 'no' AND #canConvert = 'no'");
-		$query->orderBy('id', 'ASC');
-		
-		if(isset($limit)){
-			$query->limit($limit);
-		}
-		 
-		// За всеки запис
-		while($dRec = $query->fetch()){
-			$r = new stdClass();
-			$r->originRecId = $dRec->id;
-			$r->packPrice = deals_Helper::getDisplayPrice($dRec->{$mvc->packPriceFld}, 0.2, $rec->currencyRate, $rec->chargeVat);
-			$r->discount = $dRec->{$mvc->discountFld};
-			$r->currencyCode = $rec->currencyId;
+		// Ако е избран артикул
+		if(isset($rec->productId)){
+			$pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset,canStore');
 			
-			foreach (array('productId', 'packagingId', 'quantityInPack', 'quantity') as $fld){
-				$r->{$fld} = $dRec->{$mvc->{"{$fld}Fld"}};
+			// И той не е ДМА, не е Вложим и не е Складируем
+			if($pRec->canStore == 'no' && $pRec->fixedAsset == 'no' && $pRec->canConvert == 'no'){
+				
+				// И има поне две разходни пера
+				if(acc_Lists::getItemsCountInList('costObjects') > 1){
+					
+					// Показва се полето за избор на разход
+					$form->setField('expenseItemId', 'input');
+					if($exItemId = Request::get('expenseItemId', 'int')){
+						$form->setDefault('expenseItemId', $exItemId);
+					}
+					
+					// Ако е избран разход
+					if(isset($rec->expenseItemId)){
+						
+						// и той е покупка или продажба, показва се полето за разпределяне
+						$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
+						if($itemClassId == sales_Sales::getClassId() || $itemClassId == purchase_Purchases::getClassId()){
+							$form->setField('allocationBy', 'input');
+							
+							if($allocationBy = Request::get('allocationBy', 'enum(no,value,quantity,weight,volume)')){
+								$form->setDefault('allocationBy', $allocationBy);
+							}
+							
+							$form->setDefault('allocationBy', 'no');
+						}
+					}
+				}
 			}
-	
-			$res[$dRec->id] = $r;
 		}
-		
-		// Намерените редове за разпределяне
-		return $res;
 	}
 	
 	
 	/**
-	 * Реализация по пдоразбиране на метода canAllocateExpense
-	 * @see acc_ExpenseAllocatableIntf::canAllocateExpense
-	 * 
-	 * @param mixed $id - ид или запис
-	 * @return boolean
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Form $form
 	 */
-	public static function on_AfterCanAllocateExpenses($mvc, &$res, $id)
+	public static function on_AfterInputEditForm($mvc, &$form)
 	{
-		if(is_null($res)){
-			$res = TRUE;
+		$rec = $form->rec;
+		
+		if(isset($rec->allocationBy) && $rec->allocationBy != 'no'){
+			$itemRec = acc_Items::fetch($rec->expenseItemId);
+			$origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+			acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+		}
+		
+		if($form->isSubmitted()){
+			if(isset($rec->id)){
+				
+				// Колко разпределено по-реда
+				$allocated = acc_CostAllocations::getAllocatedInDocument($mvc->getClassId(), $rec->id);
+				$inputQuantity = $rec->{$mvc->quantityInPackFld} * $rec->{$mvc->packQuantityFld};
+				
+				// Проверка дали не е въведено по-малко к-во от вече разпределеното
+				if($inputQuantity < $allocated){
+					$allocatedVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($allocated);
+					$uomName = cat_UoM::getShortName(key(cat_Products::getPacks($rec->productId)));
+					$form->setError($mvc->packQuantityFld, "Въведеното к-во е по-малко от к-то разпределеното по разходи|* <b>{$allocatedVerbal}</b> |{$uomName}|*");
+				}
+			} else {
+				
+				// Проверка на избраните артикули
+				if(isset($rec->chosenProducts)){
+					$rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+					$copyArr = $rec->productsData;
+				
+					if($error = acc_ValueCorrections::allocateAmount($copyArr, $rec->quantity, $rec->allocationBy)){
+						$form->setError('allocateBy,chosenProducts', $error);
+					}
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+		// След създаване, ако има избрано разходно перо
+		if(isset($rec->expenseItemId)){
+			$containerId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'containerId');
+		
+			// Записва се в регистъра на разходи
+			$costRec = (object)array('detailClassId' => $mvc->getClassId(),
+									 'expenseItemId' => $rec->expenseItemId,
+									 'allocationBy'  => $rec->allocationBy,
+								     'detailRecId'   => $rec->id,
+					                 'productId'     => $rec->{$mvc->productIdFld},
+					                 'quantity'      => $rec->{$mvc->quantityFld},
+					                 'productsData'  => $rec->productsData,
+					                 'containerId'   => $containerId);
+			
+			// Запис на разхода
+			acc_CostAllocations::save($costRec);
+		}
+	}
+	
+	
+	/**
+	 * Колко е максималното к-во за реда
+	 */
+	public static function on_AfterGetMaxQuantity($mvc, &$res, $id)
+	{
+		if(!$res){
+			$res = $mvc->fetchField($id, $mvc->quantityFld);
+		}
+	}
+	
+	
+	/**
+	 * След изтриване на запис
+	 */
+	public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+	{
+		// След изтриване на ред, се изтриват съответстващите му записи
+		foreach ($query->getDeletedRecs() as $id => $rec) {
+			acc_CostAllocations::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$id}");
+		}
+	}
+	
+	
+	/**
+	 * Преди рендиране на таблицата
+	 */
+	protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+	{
+		$rows = &$data->rows;
+		if(!count($rows)) return;
+		
+		foreach ($rows as $id => $row){
+			$rec = $data->recs[$id];
+			
+			// Показване на разпределените разходи за всеки ред
+			$row->productId .= acc_CostAllocations::getAllocatedExpenses($mvc, $rec->id, $data->masterData->rec->containerId, $rec->{$mvc->productIdFld}, $rec->{$mvc->packagingIdFld}, $rec->{$mvc->quantityInPackFld});
 		}
 	}
 }

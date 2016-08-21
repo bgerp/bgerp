@@ -1109,7 +1109,7 @@ class cat_Boms extends core_Master
     	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
     	if($rQuantity != cat_BomDetails::CALC_ERROR){
     		
-    		// Искаме количеството да е за еденица, не за опаковка
+    		// Искаме количеството да е за единица, не за опаковка
     		$rQuantity *= $rec->quantityInPack;
     	}
     	

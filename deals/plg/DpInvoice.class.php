@@ -297,7 +297,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	}
 	    	
 	    	if(!is_null($rec->dpAmount)){
-	    		$rec->dpAmount = core_Math::roundNumber(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate);
+	    		$rec->dpAmount = deals_Helper::getPurePrice($rec->dpAmount, $vat, $rec->rate, $rec->vatRate);
 	    	}
 	    	
 	    	// Обновяваме данните на мастър-записа при редакция
@@ -454,6 +454,11 @@ class deals_plg_DpInvoice extends core_Plugin
     	$total->vat    += $dpVat;
     	$total->amount += $dpAmount;
     	
-    	$total->vats = array("{$vat}" => (object)array('amount' => $dpVat, 'sum' => $masterRec->dpAmount));
+    	if(isset($total->vats["{$vat}"])){
+    		$total->vats["{$vat}"]->amount -= $dpVat;
+    		$total->vats["{$vat}"]->sum += $masterRec->dpAmount / $masterRec->rate;
+    	} else {
+    		$total->vats = array("{$vat}" => (object)array('amount' => $dpVat, 'sum' => $masterRec->dpAmount / $masterRec->rate));
+    	}
     }
 }

@@ -15,7 +15,7 @@
 
     <!--ET_BEGIN Expenses-->
     <fieldset class='top-tab-content' style='margin-top:10px'>
-		<legend class="groupTitle">|Разходи|*</legend>
+		<legend class="groupTitle">|Отнесени разходи|* (|и разпределяне|*)</legend>
     	[#Expenses#]
 	</fieldset>
 	<!--ET_END Expenses-->
