@@ -149,7 +149,9 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
 	public function moveTo($x, $y, $absolute = FALSE)
     {   
-        expect($this->currentPath !== NULL);
+        if($this->currentPath === NULL) {
+            $this->startPath();
+        }
 
         $this->toAbs($x, $y, $absolute);
         
@@ -168,7 +170,9 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
 	public function doLineTo($x, $y, $absolute = FALSE)
     {
-        expect($this->currentPath !== NULL);
+        if($this->currentPath === NULL) {
+            $this->startPath();
+        }
 
         $path = $this->contents[$this->currentPath];
 
@@ -187,7 +191,9 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
 	public function curveTo($x1, $y1, $x2, $y2, $x, $y, $absolute = FALSE)
     {
-        expect($this->currentPath !== NULL);
+        if($this->currentPath === NULL) {
+            $this->startPath();
+        }
 
         $path = $this->contents[$this->currentPath];
 
