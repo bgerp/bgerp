@@ -103,7 +103,9 @@ class cad2_MeasureLine  extends cad2_Shape {
         // Текст
         $ab = new cad_Vector($B1->x - $A1->x, $B1->y - $A1->y);
         $text = $measureText ? $measureText . ' mm' : round($ab->r). ' mm';
-        $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / $svg->pixPerMm);
+
+        $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
+
         $ab1 = $svg->p($ab->a, -$width);
         $td = $svg->p($ab->a + pi()/2, -2);
         if(rad2deg($ab->a) > (90 - 0.001) && rad2deg($ab->a) < (270 - 0.001)) {
