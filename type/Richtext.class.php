@@ -177,7 +177,8 @@ class type_Richtext extends type_Blob
         if (!strlen($value)) return NULL;
         
         if (Mode::is('text', 'plain')) {
-            $res = strip_tags($this->toHtml($value));
+            $res = $this->toHtml($value);  ;
+            $res = self::stripTags($res); 
             $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
         } else {
             $res = $this->toHtml($value);
@@ -637,7 +638,7 @@ class type_Richtext extends type_Blob
     {  
         if(Mode::is('text', 'plain')) {
             if(Mode::is('htmlEntity', 'none')) {
-                $res = strip_tags($match[1]);
+                $res = self::stripTags($match[1]);
             } else {
                 $res = html2text_Converter::toRichText($match[1]);
             }
@@ -649,6 +650,18 @@ class type_Richtext extends type_Blob
         }
 
 		return $res;
+    }
+
+
+    /**
+     * Премахва таговете, като добавя нови редове пред някои от тях
+     */
+    public static function stripTags($html)
+    {
+        $res = str_ireplace(array('<br', '<div', '<p', '<table'),  array("\n<br", "\n<div", "\n<p", "\n<table"), $html); 
+        $res = strip_tags($res);
+
+        return $res;
     }
     
         
