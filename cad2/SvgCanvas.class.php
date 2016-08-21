@@ -73,7 +73,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Задава размерите и падингите на хартията
      */
-    public function setPaper($width = 210, $height = 297, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10)
+    public function setPaper ($width = 210, $height = 297, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10)
     {
         // Задаваме размерите и отстъпите на страницата
         list($this->width, 
