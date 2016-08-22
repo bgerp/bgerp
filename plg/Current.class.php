@@ -6,28 +6,16 @@
  * Клас 'plg_Current' - Прави текущ за сесията избран запис от модела
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class plg_Current extends core_Plugin
 {
-	/**
-     * След дефиниране на полетата на модела
-     */
-    public static function on_AfterDescription(core_Mvc $mvc)
-    {
-    	// Ако има поле за отговорник
-    	if(isset($mvc->inChargeField)){
-    		
-    		// Трябва да е инстанция на type_UserList
-    		expect($mvc->getFieldType($mvc->inChargeField) instanceof type_UserList, 'Полето за отговорник трябва да е от типа type_UserList');
-    	}
-    }
-    
+	
     
     /**
      * Връща указаната част (по подразбиране - id-то) на текущия за сесията запис
@@ -37,7 +25,7 @@ class plg_Current extends core_Plugin
      * @param string $part поле от модела-домакин
      * @param boolean $bForce Дали да редирект към мениджъра ако не е избран текущ обект
      */
-    function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = TRUE)
+    public static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = TRUE)
     {
         if(!$res) {
         	
@@ -52,7 +40,9 @@ class plg_Current extends core_Plugin
             // Ако форсираме
             if($bForce){
             	
-            	// Извличаме обектите, на които е отговорник потребителя
+            	//@TODO
+            	/*
+            	 * // Извличаме обектите, на които е отговорник потребителя
             	$query = $mvc->getQuery();
             	$cu = core_Users::getCurrent('id', FALSE);
             	
@@ -74,6 +64,7 @@ class plg_Current extends core_Plugin
             			return;
             		}
             	}
+            	 */
             	
             	// Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
             	if(empty($res) && ($mvc->className != Request::get('Ctr'))) {
@@ -94,7 +85,7 @@ class plg_Current extends core_Plugin
      * @param string $action
      * @return boolean
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action == 'setcurrent') {
            
@@ -177,7 +168,7 @@ class plg_Current extends core_Plugin
      *
      * @param $mvc
      */
-    function on_AfterPrepareListFields($mvc, &$res, $data)
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
     {
         $data->listFields['currentPlg'] = "Текущ";
         $mvc->FNC('currentPlg', 'varchar', 'caption=Терминал,tdClass=centerCol');
@@ -191,7 +182,7 @@ class plg_Current extends core_Plugin
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Проверяваме имали текущ обект
     	$currentId = $mvc->getCurrent('id', FALSE);
@@ -224,19 +215,10 @@ class plg_Current extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'select' && isset($rec)){
-    		
     		if($rec->state == 'rejected'){
     			
     			// Никой не може да се логва в оттеглен обект
     			$res = 'no_one';
-    		} else {
-    			
-    			// Ако има поле за отговорник и текущия потребител, не е отговорник или е отговорник но с премахнати права, той няма права да избира
-    			if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField)
-    			&& (!keylist::isIn($userId, $rec->{$mvc->inChargeField}) || (keylist::isIn($userId, $rec->{$mvc->inChargeField}) && !haveRole($mvc->getFieldType($mvc->inChargeField)->getRoles())))){
-    				 
-    				$res = 'no_one';
-    			}
     		}
     	}
     }

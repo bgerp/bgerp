@@ -34,24 +34,18 @@ class planning_TaskSerials extends core_Manager
 	 * Кой има право да променя?
 	 */
 	public $canWrite = 'no_one';
-	
-	
-	/**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created';
+    public $loadList = 'plg_Created';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,serial,productId,taskId,labelNo,domain,createdOn,createdBy';
+    public $listFields = 'productId,taskId,serial=С. номер,labelNo,domain,createdOn,createdBy';
 
     
 	/**
