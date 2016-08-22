@@ -40,31 +40,8 @@ class plg_Current extends core_Plugin
             // Ако форсираме
             if($bForce){
             	
-            	//@TODO
-            	/*
-            	 * // Извличаме обектите, на които е отговорник потребителя
-            	$query = $mvc->getQuery();
-            	$cu = core_Users::getCurrent('id', FALSE);
-            	
-            	// И има поле за отговорник
-            	if(isset($mvc->inChargeField)){
-            		$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
-            		if($mvc->getField('state', TRUE)){
-            			$query->where("#state != 'rejected'");
-            		}
-            	}
-            	
-            	// Ако е точно един обект и все още потребителя може да го избере, го задаваме в сесията като избран
-            	if($query->count() == 1) {
-            		$rec = $query->fetch();
-             	    if($id = $mvc->selectCurrent($rec)) {
-            			 
-            			$res = $id;
-  
-            			return;
-            		}
-            	}
-            	 */
+            	// Генериране на събитие, нотифициращо че предстои форсиране на обекта
+            	$mvc->invoke('BeforeSelectByForce', array(&$res));
             	
             	// Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
             	if(empty($res) && ($mvc->className != Request::get('Ctr'))) {

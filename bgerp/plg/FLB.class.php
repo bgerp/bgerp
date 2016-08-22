@@ -172,18 +172,61 @@ class bgerp_plg_FLB extends core_Plugin
 	 */
 	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
+		$allowEmpty = (haveRole('ceo')) ? 'allowEmpty' : '';
 		$data->listFilter->view = 'horizontal';
-		$data->listFilter->FNC('user', "user(rolesForAll=ceo|admin,rolesForAll=ceo|manager|admin)", 'caption=Потребител,silent,autoFilter,remember');
+		$data->listFilter->FLD('user', "user(rolesForAll=ceo|admin,rolesForAll=ceo|manager|admin,{$allowEmpty})", 'caption=Потребител,silent,autoFilter,remember');
 		$data->listFilter->showFields = 'user';
-		$data->listFilter->setDefault('user', core_Users::getCurrent());
+		$data->listFilter->input('user', 'silent');
+		
+		if((!haveRole('ceo'))){
+			$data->listFilter->setDefault('user', core_Users::getCurrent());
+		}
 		
 		// Скриване на записите до които няма достъп
 		if($selectedUser = $data->listFilter->rec->user){
-			if(!haveRole('ceo')){
-				$data->query->likeKeylist($mvc->canActivateUserFld, $selectedUser);
-				$data->query->orLikeKeylist($mvc->canActivateRoleFld, $selectedUser);
-				$data->query->orLikeKeylist($mvc->canSelectUserFld, $selectedUser);
-				$data->query->orLikeKeylist($mvc->canSelectRoleFld, $selectedUser);
+			self::addUserFilterToQuery($mvc, $data->query, $selectedUser);
+		}
+	}
+	
+	
+	/**
+	 * Добавя филтър към заявката
+	 * 
+	 * @param core_Master $mvc
+	 * @param core_Query $query
+	 * @param int|NULL $userId
+	 * @return void
+	 */
+	private static function addUserFilterToQuery($mvc, core_Query &$query, $userId = NULL)
+	{
+		$userId = ($userId) ? $userId : core_Users::getCurrent();
+		
+		$query->likeKeylist($mvc->canActivateUserFld, $userId);
+		$query->orLikeKeylist($mvc->canActivateRoleFld, $userId);
+		$query->orLikeKeylist($mvc->canSelectUserFld, $userId);
+		$query->orLikeKeylist($mvc->canSelectRoleFld, $userId);
+		$query->orWhere("#inCharge = {$userId}");
+	}
+	
+	
+	/**
+	 * Преди форсиране на обекта
+	 */
+	public static function on_BeforeSelectByForce($mvc, &$res)
+	{
+		$query = $mvc->getQuery();
+		$query->where("#state != 'rejected' || #state != 'closed'");
+
+		// Само ако потребителя не е ceo, се филтрира по полетата
+		if(!haveRole('ceo')){
+			self::addUserFilterToQuery($mvc, $query);
+		}
+		
+		// Ако има точно един обект, който потребителя може да избере се избира автоматично
+		if($query->count() == 1) {
+			$rec = $query->fetch();
+			if($id = $mvc->selectCurrent($rec)) {
+				$res = $id;
 			}
 		}
 	}
