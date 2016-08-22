@@ -5,9 +5,30 @@
  * Коя да е основната мярка на универсалните артикули
  */
 defIfNot('VTOTAL_AVAST_COMMAND', "scan");
+
+
+/**
+ * 
+ */
 defIfNot('VTOTAL_API_KEY', '');
+
+
+/**
+ * 
+ */
 defIfNot('VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL', '3');
+
+
+/**
+ * 
+ */
 defIfNot('VTOTAL_BETWEEN_TIME_SCANS', '864000'); // Десет дена
+
+
+/**
+ * 
+ */
+defIfNot('VTOTAL_DANGER_EXTENSIONS', 'exe,pif,application,gadget,msi,msp,com,scr,hta,cpl,msc,jar,bat,cmd,vb,vbs,js,jse,ws,wsh,wsc,wsf,ps1,ps1xml,ps2,ps2xml,psc1,psc2,scf,lnk,inf,reg,doc,xls,ppt,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm,sldm');
 
 
 
@@ -58,6 +79,7 @@ class vtotal_Setup extends core_ProtoSetup
         'VTOTAL_BETWEEN_TIME_SCANS' => array ('time(suggestions=5 дена|10 дена)', 'caption=Времете между което ще се пуска VirusTotal за неопределените, миналото
         сканирване файлове'),
         'VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL' => array("int", 'caption=По колко файла да се вземат от VirusTotal за сканирване'),
+        'VTOTAL_DANGER_EXTENSIONS' => array("varchar(1024)", 'caption=Разширения, които може да са опасни'),
     );
 
     /**

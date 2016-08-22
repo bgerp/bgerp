@@ -10,7 +10,9 @@ defIfNot('EF_DB_SET_PARAMS', TRUE);
 
 
 /**
- *
+ * SQL енджина по подразбиране
+ * Ако се промени на `InnoDB` в `index.cfg.php` трябва да се сетне `set global innodb_flush_log_at_trx_commit = 0;`,
+ * защото оптимизирането на таблиците по крон става много бавно. Или да се спре този процес (`OptimizeTables`).
  */
 defIfNot('CORE_SQL_DEFAULT_ENGINE', 'MYISAM');
 
