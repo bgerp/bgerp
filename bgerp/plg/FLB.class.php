@@ -103,7 +103,7 @@ class bgerp_plg_FLB extends core_Plugin
 		$rec = $mvc->fetchRec($rec);
 		
 		// Ако потребителя е ceo винаги има достъп
-		//if(core_Users::haveRole('ceo')) return TRUE;
+		if(core_Users::haveRole('ceo')) return TRUE;
 		
 		// Отговорника на папката винаги може да прави всичко с нея
 		if($rec->inCharge == $userId) return TRUE;
@@ -154,7 +154,7 @@ class bgerp_plg_FLB extends core_Plugin
 	public static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
 	{
 		$cu = core_Users::getCurrent();
-		//if(haveRole('ceo', $cu)) return;
+		if(haveRole('ceo', $cu)) return;
 		
 		// Ако потребителя не може да избира обекта от списъка се маха
 		if(is_array($res)){
