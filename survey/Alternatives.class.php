@@ -205,6 +205,11 @@ class survey_Alternatives extends core_Detail {
     	$url = toUrl(array('survey_Votes', 'vote'));
     	$tpl->appendOnce("voteUrl = '{$url}';", 'SCRIPTS');
     	
+    	// Рендиране на пейджъра
+    	if($data->pager){
+    	    $tpl->append($data->pager->getHtml(), 'PAGER');
+    	}
+    	
     	return $tpl;
     }
     
