@@ -4,9 +4,31 @@
 /**
  * Коя да е основната мярка на универсалните артикули
  */
+defIfNot('VTOTAL_AVAST_COMMAND', "scan");
+
+
+/**
+ * 
+ */
 defIfNot('VTOTAL_API_KEY', '');
+
+
+/**
+ * 
+ */
 defIfNot('VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL', '3');
+
+
+/**
+ * 
+ */
 defIfNot('VTOTAL_BETWEEN_TIME_SCANS', '864000'); // Десет дена
+
+
+/**
+ * 
+ */
+defIfNot('VTOTAL_DANGER_EXTENSIONS', 'exe,pif,application,gadget,msi,msp,com,scr,hta,cpl,msc,jar,bat,cmd,vb,vbs,js,jse,ws,wsh,wsc,wsf,ps1,ps1xml,ps2,ps2xml,psc1,psc2,scf,lnk,inf,reg,doc,xls,ppt,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm,sldm');
 
 
 
@@ -26,7 +48,22 @@ class vtotal_Setup extends core_ProtoSetup
 
     function install()
     {
+        $Plugins = cls::get('core_Plugins');
         $html = parent::install();
+
+        $html .= $Plugins->forcePlugin('Ръчна проверка със VirusTotal', 'vtotal_Plugin', 'fileman_Files', 'private');
+
+        return $html;
+    }
+
+    function deinstall()
+    {
+        $html = parent::deinstall();
+
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+
+        $html .= "<li>Премахнати са всички инсталации на 'vtotal_Plugin'";
 
         return $html;
     }
@@ -39,9 +76,9 @@ class vtotal_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         'VTOTAL_API_KEY' => array("varchar", 'caption=Ключ за API системата на '),
-        'VTOTAL_BETWEEN_TIME_SCANS' => array ('time(suggestions=5 дена|10 дена)', 'caption=Времете между което ще се пуска VirusTotal за неопределените, миналото
-        сканирване файлове'),
-        'VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL' => array("int", 'caption=По колко файла да се вземат от VirusTotal за сканирване'),
+        'VTOTAL_BETWEEN_TIME_SCANS' => array ('time(suggestions=5 дена|10 дена|15 дена)', 'caption=Повторно сканиране след'),
+        'VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL' => array("int", 'caption=По колко файла да се сканират'),
+        'VTOTAL_DANGER_EXTENSIONS' => array("varchar(1024)", 'caption=Списък с потенциално опасни разширения'),
     );
 
     /**
@@ -68,4 +105,27 @@ class vtotal_Setup extends core_ProtoSetup
             'timeLimit' => 40
         ),
     );
+
+
+
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return NULL|string
+     */
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return NULL|string
+     */
+    public function checkConfig()
+    {
+        $command = escapeshellcmd(self::get('AVAST_COMMAND'));
+        exec($command . ' --help', $output, $code);
+        
+        if ($code == 127) {
+            
+            return "Програмата Avast за Linux не е инсталирана. За да инсталирате, моля посетете https://www.avast.com/";
+        }
+    }
 }
