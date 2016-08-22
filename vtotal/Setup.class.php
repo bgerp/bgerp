@@ -76,10 +76,9 @@ class vtotal_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         'VTOTAL_API_KEY' => array("varchar", 'caption=Ключ за API системата на '),
-        'VTOTAL_BETWEEN_TIME_SCANS' => array ('time(suggestions=5 дена|10 дена)', 'caption=Времете между което ще се пуска VirusTotal за неопределените, миналото
-        сканирване файлове'),
-        'VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL' => array("int", 'caption=По колко файла да се вземат от VirusTotal за сканирване'),
-        'VTOTAL_DANGER_EXTENSIONS' => array("varchar(1024)", 'caption=Разширения, които може да са опасни'),
+        'VTOTAL_BETWEEN_TIME_SCANS' => array ('time(suggestions=5 дена|10 дена|15 дена)', 'caption=Повторно сканиране след'),
+        'VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL' => array("int", 'caption=По колко файла да се сканират'),
+        'VTOTAL_DANGER_EXTENSIONS' => array("varchar(1024)", 'caption=Списък с потенциално опасни разширения'),
     );
 
     /**
