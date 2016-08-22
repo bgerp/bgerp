@@ -3420,7 +3420,7 @@ function render_sumOfChildrenWidth() {
 * Може да се комбинира с efae
 */
 function render_setFormElementsWidth() {
-        setFormElementsWidth();
+	setFormElementsWidth();
 }
 
 
@@ -3429,7 +3429,7 @@ function render_setFormElementsWidth() {
 * Може да се комбинира с efae
 */
 function render_setThreadElemWidth() {
-        setThreadElemWidth();
+	setThreadElemWidth();
 }
 
 
