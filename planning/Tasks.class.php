@@ -303,7 +303,7 @@ class planning_Tasks extends tasks_Tasks
 		
 		
 		// Форсираме сериен номер
-		$res['SERIAL'] = 
+		//$res['SERIAL'] = 
 	
 		// Хендлъра на заданието
 		$res['JOB'] = "#" . $origin->getHandle();
