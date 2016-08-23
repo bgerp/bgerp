@@ -803,6 +803,14 @@ class label_TemplateFormats extends core_Detail
                 }
             }
         }
+        
+        // Ако шаблона е създаден от системата никой, не може да променя параметрите му
+        if(($action == 'add' || $action == 'edit') && isset($rec)){
+        	$createdBy = label_Templates::fetchField($rec->templateId, 'createdBy');
+        	if($createdBy == core_Users::SYSTEM_USER){
+        		$requiredRoles = 'no_one';
+        	}
+        }
     }
     
     
