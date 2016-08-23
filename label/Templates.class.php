@@ -574,7 +574,6 @@ class label_Templates extends core_Master
     		
     		// Ако няма запис
     		$exRec = self::fetch("#sysId = '{$sysId}'");
-    		$exRec->sizes = '100x72 mm';
     		
     		if(!$exRec){
     			$exRec = new stdClass();
@@ -583,6 +582,7 @@ class label_Templates extends core_Master
     			core_Classes::add('planning_Tasks');
     			$exRec->classId = planning_Tasks::getClassId();
     		}
+    		$exRec->sizes = '100x72 mm';
     		$exRec->state = 'active';
     		
     		// Ако има промяна в шаблона, ъпдейтва се
