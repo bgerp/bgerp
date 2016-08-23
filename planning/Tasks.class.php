@@ -254,6 +254,12 @@ class planning_Tasks extends tasks_Tasks
 	}
 	
 	
+	/**
+	 * Генерира баркод изображение от даден сериен номер
+	 * 
+	 * @param string $serial - сериен номер
+	 * @return core_ET $img - баркода
+	 */
 	public static function getBarcodeImg($serial)
 	{
 		$attr = array();
@@ -270,6 +276,7 @@ class planning_Tasks extends tasks_Tasks
 			$attr['addText'] = array();
 		}
 		
+		// Генериране на баркод от серийния номер, според зададените параметри
 		$img = barcode_Generator::getLink($barcodeType, $serial, $size, $attr);
 		
 		return $img;
