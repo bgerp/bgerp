@@ -215,8 +215,8 @@ class tasks_Tasks extends embed_Manager
     	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
-    		$expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
-    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($expectedTimeEnd);
+    		$rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
+    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
     	}
     	
     	if($rec->originId){

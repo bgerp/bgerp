@@ -83,6 +83,45 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		
+		// Ако няма зададено очаквано начало и край, се приема, че са стандартните
+		$rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : NULL);
+		$rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : NULL);
+		
+		// Проверяване на времената
+		foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField){
+			
+			// Вербализиране на времената
+			$DateTime = core_Type::getByName("datetime(format=d.m H:i)");
+			$row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
+			$row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
+			
+			// Ако има очаквано и оригинално време
+			if(isset($rec->{$eTimeField}) && isset($rec->{$timeField})){
+				
+				// Колко е разликата в минути между тях?
+				$diffVerbal = NULL;
+				$diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
+				$diff = ceil($diff / 60);
+				
+				// Ако има разлика
+				if($diff != 0){
+					
+					// Подготовка на показването на разликата
+					$diffVerbal = cls::get('type_Int')->toVerbal($diff);
+					$diffVerbal = ($diff > 0) ? "<span class='red'>+{$diffVerbal}</span>" : "<span class='green'>{$diffVerbal}</span>";
+				}
+			
+				// Ако има разлика
+				if(isset($diffVerbal)){
+					
+					// Показва се след очакваното време в скоби, с хинт оригиналната дата
+					$hint = tr("Зададено") . ": {$row->{$timeField}}";
+					$diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', TRUE, array('height' => '12', 'width' => '12'));
+					$row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
+				}
+			}
+		}
 	}
 	
 	
@@ -333,12 +372,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         }
         
         if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
-        	$resArr['start'] =  array('name' => tr('Планирани времена'), 'val' => tr("|*<!--ET_BEGIN timeStart--><div><span style='font-weight:normal'>|Начало|*</span>: [#timeStart#]</div><!--ET_END timeStart-->
-        																			 <!--ET_BEGIN timeDuration--><div><span style='font-weight:normal'>|Прод-ност|*</span>: [#timeDuration#]</div><!--ET_END timeDuration-->
-        																			 <!--ET_BEGIN timeEnd--><div><span style='font-weight:normal'>|Край|*</span>: [#timeEnd#]</div><!--ET_END timeEnd-->
-        			 												                 <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime-->
-																        			 <!--ET_BEGIN expectedTimeStart--><div><span style='font-weight:normal'>|Очаквано начало|*</span>: [#expectedTimeStart#]</div><!--ET_END expectedTimeStart-->
-																        			 <!--ET_BEGIN expectedTimeEnd--><div><span style='font-weight:normal'>|Очакван край|*</span>: [#expectedTimeEnd#]</div><!--ET_END expectedTimeEnd-->"));
+        	
+        	$resArr['start'] =  array('name' => tr('Планирани времена'), 'val' => tr("|*<!--ET_BEGIN expectedTimeStart--><div><span style='font-weight:normal'>|Очаквано начало|*</span>: [#expectedTimeStart#]</div><!--ET_END expectedTimeStart-->
+																					 <!--ET_BEGIN timeDuration--><div><span style='font-weight:normal'>|Прод-ност|*</span>: [#timeDuration#]</div><!--ET_END timeDuration--> 
+        			 																 <!--ET_BEGIN expectedTimeEnd--><div><span style='font-weight:normal'>|Очакван край|*</span>: [#expectedTimeEnd#]</div><!--ET_END expectedTimeEnd-->
+        																			 <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime-->"));
         }
         
         return $resArr;
