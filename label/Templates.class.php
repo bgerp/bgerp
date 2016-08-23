@@ -574,6 +574,8 @@ class label_Templates extends core_Master
     		
     		// Ако няма запис
     		$exRec = self::fetch("#sysId = '{$sysId}'");
+    		$exRec->sizes = '100x72 mm';
+    		
     		if(!$exRec){
     			$exRec = new stdClass();
     			$exRec->sysId = $sysId;
@@ -589,8 +591,23 @@ class label_Templates extends core_Master
     			($exRec->id) ? $updated++ : $added;
     			$exRec->template = getFileContent($tplPath);
     			
+    			if(isset($exRec->id)){
+    				label_TemplateFormats::delete("#templateId = {$exRec->id}");
+    			}
+    			
     			core_Users::forceSystemUser();
     			self::save($exRec);
+    			
+    			// Добавяне на плейсхолдърите
+    			$arr = $this->getPlaceholders($exRec->template);
+    			if(is_array($arr)){
+    				foreach ($arr as $placeholder){
+    					$type = (in_array($placeholder, array('BARCODE', 'PREVIEW'))) ? 'image' : 'caption';
+    					$dRec = (object)array('placeHolder' => $placeholder, 'type' => $type, 'templateId' => $exRec->id);
+    					label_TemplateFormats::save($dRec);
+    				}
+    			}
+    			
     			core_Users::cancelSystemUser();
     		} else {
     			$skipped++;
