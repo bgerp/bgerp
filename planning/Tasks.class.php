@@ -254,6 +254,28 @@ class planning_Tasks extends tasks_Tasks
 	}
 	
 	
+	public static function getBarcodeImg($serial)
+	{
+		$attr = array();
+		
+		$conf = core_Packs::getConfig('planning');
+		$barcodeType = $conf->PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE;
+		$size = array('width' => $conf->PLANNING_TASK_LABEL_WIDTH, 'height' => $conf->PLANNING_TASK_LABEL_HEIGHT);
+		$attr['ratio'] = $conf->PLANNING_TASK_LABEL_RATIO;
+		if ($conf->PLANNING_TASK_LABEL_ROTATION == 'yes') {
+			$attr['angle'] = 90;
+		}
+		
+		if ($conf->PLANNING_TASK_LABEL_COUNTER_SHOWING == 'barcodeAndStr') {
+			$attr['addText'] = array();
+		}
+		
+		$img = barcode_Generator::getLink($barcodeType, $serial, $size, $attr);
+		
+		return $img;
+	}
+	
+	
 	/**
 	 * Връща данни за етикети
 	 * 
@@ -271,8 +293,17 @@ class planning_Tasks extends tasks_Tasks
 		expect($origin = doc_Containers::getDocument($rec->originId));
 		$jobRec = $origin->fetch();
 	    
+		$res['JOB'] = "#" . $origin->getHandle();
+		$res['NAME'] = cat_Products::getTitleById($rec->productId);
+		
+		$serial = planning_TaskSerials::force($id, $labelNo, $rec->productId);
+		$res['BARCODE'] = self::getBarcodeImg($serial)->getContent();
+		
+		return $res;
+		
+		
 		// Форсираме сериен номер
-		$res['SERIAL'] = planning_TaskSerials::force($id, $labelNo, $rec->productId);
+		$res['SERIAL'] = 
 	
 		// Хендлъра на заданието
 		$res['JOB'] = "#" . $origin->getHandle();
