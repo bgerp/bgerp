@@ -313,50 +313,32 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public static function prepareFieldLetterHeaded($rec, $row)
     {
         $resArr = array();
+        $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
+        																 <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
+        																 <span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
+        																 <!--ET_BEGIN fixedAssets--><br><span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<!--ET_END fixedAssets-->
+        																 <br>[#progressBar#] [#progress#]"));
         
-        $resArr['productId'] = array('name' => tr('Артикул'), 'val' =>"[#productId#]");
         
-        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
-        		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity--></div>"));
-
-        $resArr['packagingId'] = array('name' => tr('Мярка'), 'val' =>"[#packagingId#]");
+        $packagingId = cat_UoM::getTitleById($rec->packagingId);
+        $resArr['quantity'] = array('name' => tr("Количества|*, |{$packagingId}|*"), 'val' => tr("|*<span style='font-weight:normal'>|Планувано|*</span>: [#plannedQuantity#]<br>
+        																						    <span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]"));
         
-        if (!empty($row->totalWeight)) {
-            $resArr['totalWeight'] =  array('name' => tr('Общо тегло'), 'val' =>"[#totalWeight#]");
+        if(!empty($rec->startTime) || !empty($rec->indTime)){
+        	if(isset($rec->indTime)){
+        		$row->indTime .= "/" . tr($packagingId);
+        	}
+        	
+        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#startTime#]</div><!--ET_END startTime-->"));
         }
         
-        if (!empty($row->fixedAssets)) {
-            $resArr['fixedAssets'] =  array('name' => tr('Оборудване'), 'val' =>"[#fixedAssets#]");
-        }
-        
-        if(!empty($row->indTime) || !empty($row->startTime)){
-        	$resArr['indTime'] =  array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN indTime--><div class='nowrap'><span style='font-weight:normal'>|Изпълнение|*:</span> [#indTime#]</div><!--ET_END indTime--><!--ET_BEGIN startTime--><div class='nowrap'><span style='font-weight:normal'>|Стартиране|*:</span> [#startTime#]</div><!--ET_END startTime-->"));
-        }
-       
-        $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
-        
-        if (!empty($row->originId)) {
-            $resArr['originId'] =  array('name' => tr('Информация'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Задание|*</span>: [#originId#]<!--ET_BEGIN storeId--><br><span style='font-weight:normal'>|Склад|*</span>: [#storeId#]<!--ET_END storeId--></div>"));
-        }
-        
-        if (!empty($row->timeStart)) {
-        	$resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
-        }
-        
-        if (!empty($row->timeDuration)) {
-        	$resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
-        }
-        
-        if (!empty($row->timeEnd)) {
-        	$resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
-        }
-        
-        if (!empty($row->expectedTimeStart)) {
-        	$resArr['expectedTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectedTimeStart#]");
-        }
-        
-        if (!empty($row->expectedTimeEnd)) {
-        	$resArr['expectedTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectedTimeEnd#]");
+        if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
+        	$resArr['start'] =  array('name' => tr('Планирани времена'), 'val' => tr("|*<!--ET_BEGIN timeStart--><div><span style='font-weight:normal'>|Начало|*</span>: [#timeStart#]</div><!--ET_END timeStart-->
+        																			 <!--ET_BEGIN timeDuration--><div><span style='font-weight:normal'>|Прод-ност|*</span>: [#timeDuration#]</div><!--ET_END timeDuration-->
+        																			 <!--ET_BEGIN timeEnd--><div><span style='font-weight:normal'>|Край|*</span>: [#timeEnd#]</div><!--ET_END timeEnd-->
+        			 												                 <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime-->
+																        			 <!--ET_BEGIN expectedTimeStart--><div><span style='font-weight:normal'>|Очаквано начало|*</span>: [#expectedTimeStart#]</div><!--ET_END expectedTimeStart-->
+																        			 <!--ET_BEGIN expectedTimeEnd--><div><span style='font-weight:normal'>|Очакван край|*</span>: [#expectedTimeEnd#]</div><!--ET_END expectedTimeEnd-->"));
         }
         
         return $resArr;
