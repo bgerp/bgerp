@@ -294,7 +294,7 @@ class cat_BomDetails extends doc_Detail
     	$context = array();
     	if(is_array($params)){
     		foreach ($params as $var => $val){
-    			if($value !== self::CALC_ERROR && $var != '$T') {
+    			if($val !== self::CALC_ERROR && $var != '$T') {
     				$Double = cls::get('type_Double', array('params' => array('smartRound' => TRUE)));
     				$context[$var] = "<span style='color:blue' title='{$Double->toVerbal($val)}'>{$var}</span>";
     			} else {
