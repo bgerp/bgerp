@@ -41,6 +41,7 @@ class crm_PersonsDetails extends core_Manager
 		        foreach($keys as $key) {
 		            $data->Cycles = cls::get('hr_WorkingCycles');
 		            $data->Cycles->masterId = $key;
+		            $data->Cycles->personId = $data->masterId;
 		        }
 		    }
 		}
@@ -79,8 +80,8 @@ class crm_PersonsDetails extends core_Manager
 			$tpl->append($resTpl, 'CODE');
 		}
 		
-		if(isset($data->Cycles)){ 
-		    $resTpl = $data->Cycles->renderGrafic($data->Cycles);
+		if(isset($data->Cycles)){
+		    $resTpl = $data->Cycles->renderGrafic($data);
 		    $resTpl->removeBlock('legend');
 		    $resTpl->removeBlocks();
 		    $tpl->append($resTpl, 'CYCLES');
