@@ -779,7 +779,7 @@ class cat_BomDetails extends doc_Detail
 			$res[$rec->resourceId . "|" . $rec->packagingId] = $obj;
 			
 			if($rec->type != 'stage'){
-				static::getComponents($rec->resourceId, $res);
+				self::getComponents($rec->resourceId, $res);
 			}
 			$this->getDescendents($rec->id, $res);
 		}
@@ -850,7 +850,7 @@ class cat_BomDetails extends doc_Detail
     	if(!count($data->recs)) return;
     	
     	// Подреждаме детайлите
-    	static::orderBomDetails($data->recs, $outArr);
+    	self::orderBomDetails($data->recs, $outArr);
     	$data->recs = $outArr;
     }
     
@@ -860,13 +860,19 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-		if(is_array($data->recs)){
+    	$hasSameQuantities = TRUE;
+    	
+    	if(is_array($data->recs)){
 			foreach ($data->recs as $id => &$rec){
 				if($rec->parentId){
 					if($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR){
 						$rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
 						$data->recs[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
 					}
+				}
+				
+				if($rec->rowQuantity != $rec->propQuantity){
+					$hasSameQuantities = FALSE;
 				}
 			}
     	}
@@ -875,6 +881,7 @@ class cat_BomDetails extends doc_Detail
     	if($hasSameQuantities === TRUE){
     		unset($data->listFields['propQuantity']);
     	}
+    	
     	unset($data->listFields['coefficient']);
     }
     
