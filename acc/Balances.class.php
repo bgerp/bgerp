@@ -364,7 +364,8 @@ class acc_Balances extends core_Master
     		}
     		
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
+    		$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
+    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
     		
     		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
     		$bD->saveBalance($rec->id);
