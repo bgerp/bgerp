@@ -2156,7 +2156,7 @@ function getContextMenuFromAjax() {
 
     $('.ajaxContext').each(function(){
         var el = $(this);
-        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'click', 'sizeStyle': 'context', 'displayAround': 'cursor'});
+        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
 }
 
