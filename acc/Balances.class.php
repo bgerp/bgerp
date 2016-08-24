@@ -112,6 +112,12 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Текущата сметка
+     */
+    private $accountRec;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

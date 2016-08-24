@@ -36,6 +36,12 @@ class acc_BalanceHistory extends core_Manager
     
     
     /**
+     * Тук ще се зарежда баланса
+     */
+    public $Balance;
+    
+    
+    /**
      * Брой записи от историята на страница
      */
     public $listHistoryItemsPerPage = 40;
@@ -176,7 +182,7 @@ class acc_BalanceHistory extends core_Manager
         // За всеки запис, обръщаме го във вербален вид
         if(count($data->recs)){
         	foreach ($data->recs as $jRec){
-        		$data->rows[] = $this->getVerbalHistoryRow($jRec, $Double, $Date);
+        		$data->rows[] = $this->getVerbalHistoryRow($jRec);
         	}
         }
     }

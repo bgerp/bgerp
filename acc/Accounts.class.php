@@ -604,7 +604,7 @@ class acc_Accounts extends core_Manager
      * Връща ид на сметка по номер на сметка
      *
      * @param string $num номер на сметка
-     * @return int ид на сметка
+     * @return int|FALSE ид на сметка
      */
     function getIdByNum($num)
     {
@@ -613,7 +613,7 @@ class acc_Accounts extends core_Manager
         }
         
         if (!isset(self::$numToIdMap[$num])) {
-            return false;
+            return FALSE;
         }
         
         return self::$numToIdMap[$num];
