@@ -71,11 +71,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     			$result->entries = array_merge($result->entries, $closeEntries);
     		}
     	} else {
-    		$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
-    		
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
-    	
-    		$this->blAmount = $this->shortBalance->getAmount('411');
     		
     		// Създаване на запис за прехвърляне на всеки аванс
     		$entry2 = $this->transferDownpayments($dealInfo, $downpaymentAmounts, $firstDoc, $result);
@@ -227,10 +223,10 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
-    						'quantity' => $blAmount),
+    						'quantity' => round($blAmount / $docRec->currencyRate, 5)),
     				'reason' => 'Доначисляване на ДДС');
-    
-    		$this->blAmount  += $blAmount;
+    		
+    		//$this->blAmount  += $blAmount;
     	}
     	 
     	return $entries;
