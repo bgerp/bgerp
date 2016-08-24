@@ -164,6 +164,9 @@ class select2_Adapter
             return ;
         }
         
+        $q = plg_Search::normalizeText($q);
+        $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
+        
         $resArr = array();
         
         $cnt = 0;

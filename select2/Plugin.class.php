@@ -44,7 +44,7 @@ class select2_Plugin extends core_Plugin
      */
     protected static $minItems = 1;
     
-	
+
     /**
      * Броя на опциите, преди обработка
      */
@@ -369,9 +369,6 @@ class select2_Plugin extends core_Plugin
         }
         
         $q = Request::get('q');
-        
-        $q = plg_Search::normalizeText($q);
-        $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
         select2_Adapter::getAjaxRes('keylist', $hnd, $q, $maxSuggestions);
         
