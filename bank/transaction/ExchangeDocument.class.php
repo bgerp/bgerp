@@ -46,7 +46,8 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     {
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
-    
+    	$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+    	
     	$cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
     	$dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
     
@@ -60,7 +61,7 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
 				array('currency_Currencies', $cOwnAcc->currencyId),
 				'quantity' => $rec->creditQuantity);
 
-		if($dOwnAcc->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
+		if($dOwnAcc->currencyId == $baseCurrencyId && $cOwnAcc->currencyId != $baseCurrencyId){
 			$entry = array();
 			$entry[] = array('amount' => $rec->debitQuantity,
 					         'debit' => $toBank,
