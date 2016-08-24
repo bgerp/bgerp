@@ -254,20 +254,21 @@ class acc_Balances extends core_Master
     public static function alternate($date)
     {
     	static $dateArr = array();
-        
-        if($dateArr[$date]) {
-
-            return;
-        }
-
+        if($dateArr[$date])  return;
         $dateArr[$date] = TRUE;
         
         $now = dt::now();
 
         $query = self::getQuery();
+        $query->where("#toDate >= '{$date}'");
+        
+        // Ако последния ден от месеца на датата е последния ден от текущия месец, ще се маркира и междинния баланс
+        if(dt::getLastDayOfMonth($date) == dt::getLastDayOfMonth()){
+        	$query->orWhere("#periodId IS NULL");
+        }
         
         // Инвалидираме баланса, ако датата е по-малка от края на периода
-        while($rec = $query->fetch("#toDate >= '{$date}'")) {
+        while($rec = $query->fetch()) {
             $rec->lastAlternation = $now;
             self::save($rec, 'lastAlternation');
         }
