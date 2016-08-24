@@ -3,18 +3,20 @@
 
 
 /**
- * Клас 'trans_CostCalcIntf' - Интерфейс за класове, които определят цената за транспорт
+ * Клас 'tcost_CostCalcIntf' - Интерфейс за класове, които определят цената за транспорт
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   tcost
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_CostCalcIntf
+class tcost_CostCalcIntf
 {
+	
+	
     /**
      * Определяне на обемното тегло, на база на обема на товара
      * 

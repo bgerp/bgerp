@@ -2,20 +2,26 @@
 
 
 /**
- * Модел "Изчисляване на налва"
+ * Модел "Изчисляване на навла"
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   tcost
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Fees extends core_Detail
+class tcost_Fees extends core_Detail
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'trans_Fees';
+	
+	
     /**
      * Заглавие
      */
@@ -25,7 +31,7 @@ class trans_Fees extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper, plg_AlignDecimals2";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2";
 
 
     /**
@@ -43,49 +49,31 @@ class trans_Fees extends core_Detail
     /**
      * Време за опресняване информацията при лист на събитията
      */
-    var $refreshRowsTime = 5000;
-
-
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'ceo,admin,trans';
+    public $refreshRowsTime = 5000;
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin,trans';
+    public $canEdit = 'ceo,admin,trans';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin,trans';
+    public $canAdd = 'ceo,admin,trans';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,admin,trans';
-
-
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    var $canSingle = 'ceo,admin,trans';
-
-
-    /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,admin,trans';
+    public $canList = 'ceo,admin,trans';
 
 
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,trans';
+    public $canDelete = 'ceo,admin,trans';
 
 
     /**
@@ -99,7 +87,7 @@ class trans_Fees extends core_Detail
      */
     public function description()
     {
-        $this->FLD('feeId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
+        $this->FLD('feeId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
         $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->Тегло, mandatory');
         $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Цена, mandatory');
     }
@@ -141,9 +129,9 @@ class trans_Fees extends core_Detail
         $smallestWeight = null;
         $biggestWeight = null;
 
-        //Преглеждаме базата за зоните, чиито id съвпада с въведенето
-        $query = trans_Fees::getQuery();
-            $query->where(array("#feeId = [#1#]", $zone['zoneId']));
+        // Преглеждаме базата за зоните, чиито id съвпада с въведенето
+        $query = self::getQuery();
+        $query->where(array("#feeId = [#1#]", $zone['zoneId']));
 
         while($rec = $query->fetch()){
             //Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight

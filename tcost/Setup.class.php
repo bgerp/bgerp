@@ -1,23 +1,18 @@
 <?php
 
-/**
- * Период, на който крона ще затваря миналите Линии и ще генерира нови
- */
-defIfNot('TRANS_LINES_CRON_INTERVAL', 60 * 60);
-
 
 /**
  * Транспорт
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   tcost
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Setup extends core_ProtoSetup
+class tcost_Setup extends core_ProtoSetup
 {
     
     
@@ -30,7 +25,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'trans_Lines';
+    var $startCtr = 'tcost_FeeZones';
     
     
     /**
@@ -42,43 +37,31 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Организация на вътрешния транспорт";
+    var $info = "Калкулиране на цени за транспорт";
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'trans_Vehicles',
-    		'trans_Lines',
+            'tcost_FeeZones',
+            'tcost_Zones',
+            'tcost_Fees'
         );
 
         
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'trans';
+    var $roles = 'tcost';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', "trans, ceo"),
+            array(3.5, 'Логистика', 'Навла', 'tcost_FeeZones', 'default', "tcost, ceo"),
         );
-
-    /**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии->Време'),
-	);
-
-	
-	/**
-	 * Път до css файла
-	 */
-//	var $commonCSS = 'trans/tpl/LineStyles.css';
 	
 	
     /**
