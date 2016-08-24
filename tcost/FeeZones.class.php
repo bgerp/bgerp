@@ -37,7 +37,7 @@ class tcost_FeeZones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, tcost_Wrapper";
+    public $loadList = "plg_Created, plg_RowTools2, plg_Printing, tcost_Wrapper";
 
 
     /**
@@ -99,7 +99,6 @@ class tcost_FeeZones extends core_Master
      */
     public function description()
     {
-        //id column
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
     }

@@ -43,7 +43,7 @@ class tcost_CostCalcIntf
      *
      * @return double                   Цена, която ще бъде платена за $weight тегло
      */
-    function getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight=1)
+    function getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight = 1)
     {
         return $this->class->getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight);
     }

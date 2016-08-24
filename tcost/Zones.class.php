@@ -167,25 +167,23 @@ class tcost_Zones extends core_Detail
             $query->where(array("#countryId = [#1#] AND #pCode = '[#2#]'", $countryId, $pCode));
             $rec = $query->fetch();
             $bestZone = $rec;
-        }
-        
-        //Обхождане на tcost_zones базата и намиране на най-подходящата зона
-        else{
-        $query->where(array('#countryId = [#1#]', $countryId));
-        $bestSimilarityCount = 0;
-        while($rec = $query->fetch()) {
-            $similarityCount = self::strNearPCode((string)$pCode, $rec->pCode);
-                if ($similarityCount > $bestSimilarityCount) {
-                    $bestSimilarityCount = $similarityCount;
-                    $bestZone = $rec;
+        } else{
+        	// Обхождане на tcost_zones базата и намиране на най-подходящата зона
+        	$query->where(array('#countryId = [#1#]', $countryId));
+        	$bestSimilarityCount = 0;
+        	while($rec = $query->fetch()) {
+            	$similarityCount = self::strNearPCode((string)$pCode, $rec->pCode);
+                	if($similarityCount > $bestSimilarityCount) {
+                    	$bestSimilarityCount = $similarityCount;
+                    	$bestZone = $rec;
                 }
             }
         }
 
-        //Намиране на името на намерената зона
+        // Намиране на името на намерената зона
         $zoneName = tcost_FeeZones::getVerbal($bestZone->zoneId, 'name');
 
-        //Намиране на условието на доставка на зоната
+        // Намиране на условието на доставка на зоната
         $zoneDeliveryTerm = tcost_FeeZones::getVerbal($bestZone->zoneId, 'deliveryTermId');
 
         return array('zoneId' => $bestZone->zoneId, 'zoneName' => $zoneName, 'deliveryTermId' => $zoneDeliveryTerm);
@@ -193,9 +191,9 @@ class tcost_Zones extends core_Detail
 
 
     /**
-     * @param       $pc1    Първи данни за сравнение
-     * @param       $pc2    Втори данни за сравнение
-     * @return      int     Брой съвпадения
+     * @param   $pc1    Първи данни за сравнение
+     * @param   $pc2    Втори данни за сравнение
+     * @return  int     Брой съвпадения
      */
     private static function strNearPCode($pc1, $pc2)
     {

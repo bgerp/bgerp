@@ -110,31 +110,27 @@ class tcost_Fees extends core_Detail
     {
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
-        //Определяне на зоната на транспорт
-        $zone = trans_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
+        // Определяне на зоната на транспорт
+        $zone = tcost_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
 
-        //Ако не се намери зона се връща 0
-        if($zone == null){
-            
-            return 0;
-        }
-
+        // Ако не се намери зона се връща 0
+        if(is_null($zone)) return 0;
         expect($zone['zoneId'] > 0);
 
-        //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
+        // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
 
-        $weightsLeft = null;
+        $weightsLeft = NULL;
         $weightsRight = INF;
-        $smallestWeight = null;
-        $biggestWeight = null;
+        $smallestWeight = NULL;
+        $biggestWeight = NULL;
 
         // Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = self::getQuery();
         $query->where(array("#feeId = [#1#]", $zone['zoneId']));
 
         while($rec = $query->fetch()){
-            //Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
+            // Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
             if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {
                 $smallestWeight = $rec->weight;
             }
@@ -156,31 +152,29 @@ class tcost_Fees extends core_Detail
         $indexedArray = array_keys($arrayOfWeightPrice);
 
         //Покриване на специалните случаи, които въведеното тегло е най-малко
-        if (!isset($weightsLeft)){
+        if(!isset($weightsLeft)){
             $weightsLeft = 0;
         }
 
         // Покриване на специалните случаи, които въведеното тегло е най-голямо
-        if ($biggestWeight < $weightsRight){
+        if($biggestWeight < $weightsRight){
             end($indexedArray);
             $key = key($indexedArray);
             $weightsRight = $indexedArray[$key];
             $weightsLeft = $indexedArray[$key - 1];
         }
 
-
-        $finalPrice = null;
+        $finalPrice = NULL;
         //Ако е въведеното тегло е по-малко от най-малкото тегло в базата,то трябва да се върне отношение 1:1
 
         //Ако съществува точно такова тегло, трябва да се върне цената директно цената за него
         if($totalWeight == $weightsLeft){
             $finalPrice = $arrayOfWeightPrice[$weightsLeft];
-        }
-        elseif($totalWeight == $smallestWeight){
+        } elseif($totalWeight == $smallestWeight){
             $finalPrice =  $totalWeight;
-        }
-        //Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
-        else{
+        } else{
+        	//Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
+            
             /** Формули за сметката
              * y = price
              * x = weight
@@ -201,15 +195,15 @@ class tcost_Fees extends core_Detail
             $b = $priceLeft - (($priceLeft - $priceRight) / ($weightsLeft - $weightsRight) * $weightsLeft);
 
             $finalPrice = $a * $totalWeight + $b;
-
         }
 
 
         /*
          * Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
          */
-        $result = $finalPrice/ $totalWeight * $singleWeight;
+        $result = $finalPrice / $totalWeight * $singleWeight;
 
+        
         /*
          * Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
          */
