@@ -28,30 +28,30 @@ class select2_PluginSelect extends core_Plugin
     
     
     /**
-     * 
+     * Броя на опциите, преди обработка
      */
-    protected $optCnt = NULL;
+    protected static $optCnt = NULL;
     
     
     /**
      * Изпълнява се преди рендирането на input
      * 
-     * @param core_Type $invoker
+     * @param type_Key $invoker
      * @param core_ET $tpl
      * @param string $name
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
+    public static function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
         ht::setUniqId($attr);
         
         $invoker->options = $invoker->prepareOptions();
-        $this->optCnt = count($invoker->options);
+        self::$optCnt = count($invoker->options);
         
         $maxSuggestions = $invoker->getMaxSuggestions();
         
-        if ($this->optCnt > $maxSuggestions) {
+        if (self::$optCnt > $maxSuggestions) {
             if (!$value) {
                 $value = $attr['value'];
             }
@@ -77,7 +77,7 @@ class select2_PluginSelect extends core_Plugin
         }
     }
     
-
+    
     /**
      * Изпълнява се след рендирането на input
      * 
@@ -87,7 +87,7 @@ class select2_PluginSelect extends core_Plugin
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
+    public static function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
         if ($invoker->params['isReadOnly']) return ;
         
@@ -97,8 +97,8 @@ class select2_PluginSelect extends core_Plugin
         }
         
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
-    	
-        $optionsCnt = isset($this->optCnt) ? $this->optCnt : count($invoker->options);
+        
+        $optionsCnt = isset(self::$optCnt) ? self::$optCnt : count($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
         if($optionsCnt <= $minItems) return;
@@ -127,117 +127,50 @@ class select2_PluginSelect extends core_Plugin
         
         // Добавяме необходимите файлове и стартирам select2
         select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, NULL, $ajaxUrl);
-   }
-   
-   
-   /**
+    }
+    
+    
+    /**
     * Отпечатва резултата от опциите в JSON формат
     * 
-    * @param core_Type $invoker
+    * @param type_Key $invoker
     * @param string|NULL|core_ET $res
     * @param string $action
     */
-   function on_BeforeAction($invoker, &$res, $action)
-   {
+    function on_BeforeAction($invoker, &$res, $action)
+    {
         if ($action != 'getoptions') return ;
-       
+        
         if (!Request::get('ajax_mode')) return ;
-       
+        $hnd = Request::get('hnd');
+        
+        $maxSuggestions = Request::get('maxSugg', 'int');
+        if (!$maxSuggestions) {
+            $maxSuggestions = $invoker->getMaxSuggestions();
+        }
+        
         $q = Request::get('q');
+        
         $q = plg_Search::normalizeText($q);
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
-        $hnd = Request::get('hnd');
-        
-        if (!$hnd || !($options = unserialize(core_Cache::get($invoker->selectOpt, $hnd)))) {
-            
-            core_App::getJson(array(
-                (object)array('name' => 'Липсват допълнителни опции')
-            ));
-            
-            return FALSE;
-        }
-        
-        $resArr = array();
-        
-        $cnt = 0;
-        
-        if (!($maxSuggestions = Request::get('maxSugg', 'int'))) {
-            $maxSuggestions = $invoker->getMaxSuggestions();
-        }
-        $group = FALSE;
-        foreach ($options as $key => $titleArr) {
-            $isGroup=FALSE;
-            
-            $title = $titleArr['title'];
-            $titleNormalized = $titleArr['id'];
-            
-            $attr = array();
-            
-            if ($key == '') continue;
-            
-            if(!isset($title->group) && $q && (!preg_match($q, ' ' . $titleNormalized)) ) continue;
-            
-            $r = new stdClass();
-            $r->id = $key;
-            
-            if (is_object($title)) {
-                $r->text = $title->title;
-                
-                $r->element = new stdClass();
-                
-                $r->element->className = $title->attr['class'];
-                
-                if ($title->group) {
-                    
-                    $r->element->className .= ($r->element->className) ? ' ' : '';
-                    $r->element->className .= 'group';
-                    $r->group = TRUE;
-                    $r->element->group = TRUE;
-                    
-                    $r->id = NULL;
-                    $group = $r;
-                    $isGroup = TRUE;
-                }
-                
-                if ($title->attr) {
-                    $r->attr = $title->attr;
-                }
-            } else {
-                $r->text = $title;
-            }
-            
-            // Предпазва от добавяне на група без елементи в нея
-            if ($isGroup && $group) continue;
-            if (!$isGroup && $group) {
-                $resArr[] = $group;
-                $group = FALSE;
-            }
-            
-            $resArr[] = $r;
-            
-            $cnt++;
-            
-            if ($cnt >= $maxSuggestions) break;
-        }
-        
-        core_App::getJson($resArr);
+        select2_Adapter::getAjaxRes($invoker->selectOpt, $hnd, $q, $maxSuggestions);
         
         return FALSE;
-   }
-   
-   
-   /**
+    }
+    
+    
+    /**
     * 
     * 
-    * @param core_Type $invoker
+    * @param type_Key $invoker
     * @param integer|NULL $res
     */
-   function on_AfterGetMaxSuggestions($invoker, &$res)
-   {
+    function on_AfterGetMaxSuggestions($invoker, &$res)
+    {
        if (!isset($res)) {
            
-           $res = 1000000;
+           $res = 1000;
        }
-   }
+    }
 }
