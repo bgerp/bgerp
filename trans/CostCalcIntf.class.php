@@ -25,7 +25,7 @@ class trans_CostCalcIntf
      */
     public function getVolumicWeight($weight, $volume)
     {
-        return $this->class->getVolumicWeight($weight, $volume)
+        return $this->class->getVolumicWeight($weight, $volume);
     }
 
 
@@ -43,6 +43,6 @@ class trans_CostCalcIntf
      */
     function getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight=1)
     {
-        return $this->class->getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight)
+        return $this->class->getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight);
     }
 }
