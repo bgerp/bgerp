@@ -310,7 +310,7 @@ class type_Keylist extends core_Type {
     /**
      * Подготвя предложенията за списъка
      */
-    private function prepareSuggestions()
+    public function prepareSuggestions()
     {
         $mvc = cls::get($this->params['mvc']);
         
@@ -424,6 +424,8 @@ class type_Keylist extends core_Type {
         }
         
         $mvc->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
+        
+        return $this->suggestions;
     }
     
     
