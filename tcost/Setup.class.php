@@ -70,6 +70,7 @@ class tcost_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
+    	$res = '';
         $res .= bgerp_Menu::remove($this);
         
         return $res;
