@@ -84,7 +84,7 @@ class vtotal_Setup extends core_ProtoSetup
         'VTOTAL_API_KEY' => array("varchar", 'caption=Ключ за API системата на '),
         'VTOTAL_BETWEEN_TIME_SCANS' => array ('time(suggestions=5 дена|10 дена|15 дена)', 'caption=Повторно сканиране след'),
         'VTOTAL_NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL' => array("int", 'caption=По колко файла да се сканират'),
-        'VTOTAL_VTOTAL_MAX_SCAN_OF_FILE' => array("int", 'caption=Колко пъти да се сканира'),
+        'VTOTAL_MAX_SCAN_OF_FILE' => array("int", 'caption=Колко пъти да се сканира'),
         'VTOTAL_DANGER_EXTENSIONS' => array("varchar(1024)", 'caption=Списък с потенциално опасни разширения'),
     );
 
