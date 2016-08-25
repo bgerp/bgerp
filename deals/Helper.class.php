@@ -752,6 +752,8 @@ abstract class deals_Helper
 			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
 			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
 			$res['vatNo'] = $cData->vatNo;
+		} elseif(isset($contragentName)){
+			$res['contragentName'] = $contragentName;
 		}
 		
 		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml'));
