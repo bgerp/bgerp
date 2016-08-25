@@ -75,8 +75,6 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     			$result->entries = array_merge($result->entries, $closeEntries);
     		}
     	} else {
-    		$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
-    		
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
     		 
     		// Кеширане на перото на текущата година
