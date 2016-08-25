@@ -51,6 +51,21 @@ class bgerp_A extends core_Mvc
         return Request::forward(array('Ctr' => 'blogm_Articles', 'Act' => 'Article'));
     }
 
+
+    /**
+     * Създава watchpoint
+     */
+    function act_wp()
+    {
+        $url = Request::get('pUrl');
+
+        // Хоризонтално скролиране
+        wp($url);
+
+        return array();
+    }
+
+
     /**
      * Връща кратко URL към съдържание на статия
      */

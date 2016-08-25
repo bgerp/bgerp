@@ -4424,6 +4424,18 @@ function addBugReportInput(form, nameInput, value)
 }
 
 
+/**
+ * При хоризонтален скрол на страницата, да създадем watch point
+ */
+function detectScrollAndWp(url){
+    if($('#packWrapper').outerWidth() > $(window).width() ) {
+        resObj = new Object();
+        resObj['url'] = url;
+        getEfae().process(resObj);
+    }
+}
+
+
 function removeNarrowScroll() {
 	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
 		$('body').removeClass('narrow-scroll');

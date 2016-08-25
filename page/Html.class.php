@@ -124,6 +124,10 @@ class page_Html extends core_ET {
         jquery_Jquery::run($tpl, 'smartCenter();');
         jquery_Jquery::run($tpl, 'showTooltip();');
         jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
+
+        $url = json_encode(toUrl(array('bgerp_A', 'wp', 'pUrl' => getCurrentUrl()), 'local'));
+        jquery_Jquery::run($tpl, "detectScrollAndWp({$url});");
+
         
         return $tpl;
     }
