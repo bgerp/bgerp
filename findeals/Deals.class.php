@@ -43,7 +43,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues';
     
     
     /**
@@ -97,19 +97,13 @@ class findeals_Deals extends deals_DealBase
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
+    public $listFields = 'detailedName,folderId,state,createdOn,createdBy';
     
     
     /**
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = TRUE;
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -253,8 +247,16 @@ class findeals_Deals extends deals_DealBase
     		unset($options[$accId]);
     	}
     	
-    	
     	$form->setOptions('accountId', $options);
+    	
+    	if(count($options) == 2){
+    		$form->setField('accountId', 'input=hidden');
+    		foreach ($options as $key => $opt){
+    			if(!is_object($opt)){
+    				$form->setDefault('accountId', $key);
+    			}
+    		}
+    	}
     }
     
     
