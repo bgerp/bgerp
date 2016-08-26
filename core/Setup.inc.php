@@ -1259,7 +1259,7 @@ function gitHasChanges($repoPath, &$log)
     if (!empty($arrRes)) {
         foreach ($arrRes as $row) {
             $row = trim($row);
-            $arr = split(" ", $row);
+            $arr = explode(" ", $row);
             if (isset($statesWarning[$arr[0]])) {
                 $log[] = "wrn:<b>[{$repoName}]</b> " . $statesWarning[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
                 $wrn = TRUE;
