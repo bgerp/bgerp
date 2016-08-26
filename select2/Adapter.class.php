@@ -141,4 +141,93 @@ class select2_Adapter
         
         $tpl->push(('select2/js/adapter.js'), 'JS');
     }
+    
+    
+    /**
+     * Връща резултат за показване в AJAX формат
+     * Показва резултата в JSON формат и вика shutdown()
+     * 
+     * @param string $type
+     * @param string $hnd
+     * @param string $q
+     * @param integer $maxSuggestions
+     * @return boolean
+     */
+    public static function getAjaxRes($type, $hnd, $q, $maxSuggestions = 100)
+    {
+        if (!$hnd || !($sugg = unserialize(core_Cache::get($type, $hnd)))) {
+        
+            core_App::getJson(array(
+                (object)array('text' => tr('Липсват допълнителни опции'))
+            ));
+        	
+            return ;
+        }
+        
+        $q = plg_Search::normalizeText($q);
+        $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
+        
+        $resArr = array();
+        
+        $cnt = 0;
+        
+        $group = FALSE;
+        
+        foreach ((array)$sugg as $key => $titleArr) {
+            $isGroup=FALSE;
+        	
+            $title = $titleArr['title'];
+            $titleNormalized = $titleArr['id'];
+        	
+            $attr = array();
+        	
+            if ($key == '') continue;
+        	
+            if (!isset($title->group) && $q && (!preg_match($q, ' ' . $titleNormalized))) continue;
+        	
+            $sVal = new stdClass();
+            $sVal->id = $key;
+        	
+            if (is_object($title)) {
+                $sVal->text = $title->title;
+        		
+                $sVal->element = new stdClass();
+        		
+                $sVal->element->className = $title->attr['class'];
+        		
+                if ($title->group) {
+        			
+                    $sVal->element->className .= ($sVal->element->className) ? ' ' : '';
+                    $sVal->element->className .= 'group';
+                    $sVal->group = TRUE;
+                    $sVal->element->group = TRUE;
+        			
+                    $sVal->id = NULL;
+                    $group = $sVal;
+                    $isGroup = TRUE;
+                }
+        		
+                if ($title->attr) {
+                    $sVal->attr = $title->attr;
+                }
+            } else {
+                $sVal->text = $title;
+            }
+        	
+            // Предпазва от добавяне на група без елементи в нея
+            if ($isGroup && $group) continue;
+            if (!$isGroup && $group) {
+                $resArr[] = $group;
+                $group = FALSE;
+            }
+        	
+            $resArr[] = $sVal;
+        	
+            $cnt++;
+        	
+            if ($cnt >= $maxSuggestions) break;
+        }
+        
+        core_App::getJson($resArr);
+    }
 }

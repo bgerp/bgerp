@@ -70,7 +70,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('contragentId', 'int', 'input=hidden');
     	$mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData');
     	$mvc->FLD('responsible', 'varchar(255)', 'caption=Контрагент->Отговорник, class=contactData');
-    	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId');
+    	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId');
     	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo');
     	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId');
     	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
@@ -244,6 +244,11 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
+    	if($this instanceof purchase_Invoices){
+    		$form->setField('contragentSource', 'input=none');
+    		$form->setField('selectedContragentId', 'input=none');
+    	}
+    	
     	$caption = ($form->rec->type == 'debit_note') ? 'Увеличение' : 'Намаление';
     	$invArr = (array)$origin->fetch();
     	
@@ -299,7 +304,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	// Копиране на повечето от полетата на фактурата
     	foreach($invArr as $field => $value){
-    		$form->setDefault($field, $value);
+    		$form->rec->{$field} = $value;
     	}
     	 
     	$form->setDefault('date', dt::today());
@@ -562,16 +567,27 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$form = &$data->form;
     	$form->setDefault('date', dt::today());
+    	if(empty($form->rec->id)){
+    		$form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
+    		$form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+    	}
+    	
+    	// При създаване на нова ф-ра зареждаме полетата на
+    	// формата с разумни стойности по подразбиране.
+    	expect($origin = $mvc::getOrigin($form->rec));
+    	$firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
     	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-    	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
+    	$form->setDefault('contragentName', $coverClass::fetchField($coverId, 'name'));
     
-    	$className = doc_Folders::fetchCoverClassName($form->rec->folderId);
-    	if($className == 'crm_Persons'){
-    		$numType = 'bglocal_EgnType';
-    		$form->setField('uicNo', 'caption=Контрагент->ЕГН');
-    		$form->getField('uicNo')->type = cls::get($numType);
+    	if(!$firstDocument->isInstanceOf('findeals_AdvanceDeals')){
+    		$className = doc_Folders::fetchCoverClassName($form->rec->folderId);
+    		if($className == 'crm_Persons'){
+    			$numType = 'bglocal_EgnType';
+    			$form->setField('uicNo', 'caption=Контрагент->ЕГН');
+    			$form->getField('uicNo')->type = cls::get($numType);
+    		}
     	}
     
     	$type = Request::get('type');
@@ -579,13 +595,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$type = 'invoice';
     	}
     	$form->setDefault('type', $type);
-    	 
-    	// При създаване на нова ф-ра зареждаме полетата на
-    	// формата с разумни стойности по подразбиране.
-    	expect($origin = $mvc::getOrigin($form->rec));
     	
-    	if($origin->haveInterface('bgerp_DealAggregatorIntf')){
-    		$aggregateInfo         = $origin->getAggregateDealInfo();
+    	if($firstDocument->haveInterface('bgerp_DealAggregatorIntf')){
+    		$aggregateInfo = $firstDocument->getAggregateDealInfo();
     		
     		$form->rec->vatRate    = $aggregateInfo->get('vatType');
     		$form->rec->currencyId = $aggregateInfo->get('currency');
@@ -619,7 +631,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	 
     	if(empty($data->flag)){
-    		$form->setDefault('currencyId', drdata_Countries::fetchField(($form->rec->contragentCountryId) ? $form->rec->contragentCountryId : $mvc->fetchField($form->rec->id, 'contragentCountryId'), 'currencyCode'));
     		$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
     		$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
     	}
@@ -732,11 +743,6 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function beforeInvoiceSave($rec)
     {
-    	if (!empty($rec->folderId)) {
-    		$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    		$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-    	}
-    
     	if($rec->state == 'active'){
     		 
     		if(empty($rec->place) && $rec->state == 'active'){

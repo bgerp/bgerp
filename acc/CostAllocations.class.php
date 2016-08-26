@@ -136,7 +136,7 @@ class acc_CostAllocations extends core_Manager
 	{
 		// Оригиналния документ трябва да не е в затворен период
 		$origin = doc_Containers::getDocument($containerId);
-		if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) continue;
+		if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) return;
 		
 		// Изтриване на старата транзакция на документа
 		acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);

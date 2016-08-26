@@ -2,20 +2,26 @@
 
 
 /**
- * Модел "Изчисляване на налва"
+ * Модел "Изчисляване на навла"
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   tcost
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Fees extends core_Detail
+class tcost_Fees extends core_Detail
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'trans_Fees';
+	
+	
     /**
      * Заглавие
      */
@@ -25,7 +31,7 @@ class trans_Fees extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper, plg_AlignDecimals2";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2";
 
 
     /**
@@ -43,49 +49,31 @@ class trans_Fees extends core_Detail
     /**
      * Време за опресняване информацията при лист на събитията
      */
-    var $refreshRowsTime = 5000;
-
-
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'ceo,admin,trans';
+    public $refreshRowsTime = 5000;
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin,trans';
+    public $canEdit = 'ceo,admin,trans';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin,trans';
+    public $canAdd = 'ceo,admin,trans';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,admin,trans';
-
-
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    var $canSingle = 'ceo,admin,trans';
-
-
-    /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,admin,trans';
+    public $canList = 'ceo,admin,trans';
 
 
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,trans';
+    public $canDelete = 'ceo,admin,trans';
 
 
     /**
@@ -99,7 +87,7 @@ class trans_Fees extends core_Detail
      */
     public function description()
     {
-        $this->FLD('feeId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
+        $this->FLD('feeId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
         $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->Тегло, mandatory');
         $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Цена, mandatory');
     }
@@ -122,31 +110,27 @@ class trans_Fees extends core_Detail
     {
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
-        //Определяне на зоната на транспорт
-        $zone = trans_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
+        // Определяне на зоната на транспорт
+        $zone = tcost_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
 
-        //Ако не се намери зона се връща 0
-        if($zone == null){
-            
-            return 0;
-        }
-
+        // Ако не се намери зона се връща 0
+        if(is_null($zone)) return 0;
         expect($zone['zoneId'] > 0);
 
-        //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
+        // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
 
-        $weightsLeft = null;
+        $weightsLeft = NULL;
         $weightsRight = INF;
-        $smallestWeight = null;
-        $biggestWeight = null;
+        $smallestWeight = NULL;
+        $biggestWeight = NULL;
 
-        //Преглеждаме базата за зоните, чиито id съвпада с въведенето
-        $query = trans_Fees::getQuery();
-            $query->where(array("#feeId = [#1#]", $zone['zoneId']));
+        // Преглеждаме базата за зоните, чиито id съвпада с въведенето
+        $query = self::getQuery();
+        $query->where(array("#feeId = [#1#]", $zone['zoneId']));
 
         while($rec = $query->fetch()){
-            //Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
+            // Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
             if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {
                 $smallestWeight = $rec->weight;
             }
@@ -168,31 +152,29 @@ class trans_Fees extends core_Detail
         $indexedArray = array_keys($arrayOfWeightPrice);
 
         //Покриване на специалните случаи, които въведеното тегло е най-малко
-        if (!isset($weightsLeft)){
+        if(!isset($weightsLeft)){
             $weightsLeft = 0;
         }
 
         // Покриване на специалните случаи, които въведеното тегло е най-голямо
-        if ($biggestWeight < $weightsRight){
+        if($biggestWeight < $weightsRight){
             end($indexedArray);
             $key = key($indexedArray);
             $weightsRight = $indexedArray[$key];
             $weightsLeft = $indexedArray[$key - 1];
         }
 
-
-        $finalPrice = null;
+        $finalPrice = NULL;
         //Ако е въведеното тегло е по-малко от най-малкото тегло в базата,то трябва да се върне отношение 1:1
 
         //Ако съществува точно такова тегло, трябва да се върне цената директно цената за него
         if($totalWeight == $weightsLeft){
             $finalPrice = $arrayOfWeightPrice[$weightsLeft];
-        }
-        elseif($totalWeight == $smallestWeight){
+        } elseif($totalWeight == $smallestWeight){
             $finalPrice =  $totalWeight;
-        }
-        //Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
-        else{
+        } else{
+        	//Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
+            
             /** Формули за сметката
              * y = price
              * x = weight
@@ -213,15 +195,15 @@ class trans_Fees extends core_Detail
             $b = $priceLeft - (($priceLeft - $priceRight) / ($weightsLeft - $weightsRight) * $weightsLeft);
 
             $finalPrice = $a * $totalWeight + $b;
-
         }
 
 
         /*
          * Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
          */
-        $result = $finalPrice/ $totalWeight * $singleWeight;
+        $result = $finalPrice / $totalWeight * $singleWeight;
 
+        
         /*
          * Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
          */

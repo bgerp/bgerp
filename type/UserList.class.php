@@ -47,7 +47,7 @@ class type_UserList extends type_Keylist
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    private function prepareSuggestions($defUser =  NULL)
+    public function prepareSuggestions()
     {
         $mvc = cls::get($this->params['mvc']);
         
@@ -169,7 +169,7 @@ class type_UserList extends type_Keylist
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $this->prepareSuggestions($value);
+        $this->prepareSuggestions();
 
         $res = parent::renderInput_($name, $value, $attr);
         

@@ -46,7 +46,8 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     {
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
-    
+    	$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+    	
     	$toCase = array('501',
     			array('cash_Cases', $rec->peroTo),
     			array('currency_Currencies', $rec->debitCurrency),
@@ -56,7 +57,7 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     			array('cash_Cases', $rec->peroFrom),
     			array('currency_Currencies', $rec->creditCurrency),
     			'quantity' => $rec->creditQuantity);
-    	if($rec->debitCurrency == acc_Periods::getBaseCurrencyId($rec->valior)){
+    	if($rec->debitCurrency == $baseCurrencyId && $rec->creditCurrency != $baseCurrencyId){
     		$dCode = currency_Currencies::getCodeById($rec->debitCurrency);
     		$rate = currency_CurrencyRates::getRate($rec->valior, $dCode, NULL);
     		$entry = array();

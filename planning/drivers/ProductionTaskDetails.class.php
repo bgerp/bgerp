@@ -173,7 +173,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$unit = cat_UoM::getShortName($unit);
     		
     		
-    		$planned = tr("Планувано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'plannedQuantity') . "</b>";
+    		$planned = tr("Планирано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'plannedQuantity') . "</b>";
     		$real = tr("Изпълнено|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'realQuantity') . "</b>";
     		$form->info = "{$planned}<br>$real";
     		

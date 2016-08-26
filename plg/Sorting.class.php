@@ -125,11 +125,13 @@ class plg_Sorting extends core_Plugin
                 }
                  
                 if(isset($mvc->fields[$field]) && $mvc->fields[$field]->type->getTdClass() == 'rightCol') {
+                	$lastF = ltrim($lastF, '|*');
                     $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
                     " width='16' height='16' alt='sort' class='sortBtn'></a>" . "<div class='l'>|{$lastF}|*</div></div>";  
                 } else {
+                	$lastF = ltrim($lastF, '|*');
                     $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
