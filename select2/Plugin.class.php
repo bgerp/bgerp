@@ -77,7 +77,7 @@ class select2_Plugin extends core_Plugin
         if (!isset($invoker->suggestions)) {
             $invoker->prepareSuggestions();
             
-            if (!$invoker->suggestions && $invoker->options) {
+            if (!$invoker->suggestions && isset($invoker->options)) {
                 $invoker->suggestions = $invoker->options;
             }
         }
@@ -131,7 +131,7 @@ class select2_Plugin extends core_Plugin
     /**
      * Изпълнява се след рендирането на input
      * 
-     * @param core_Type $invoker
+     * @param type_Keylist $invoker
      * @param core_ET $tpl
      * @param string $name
      * @param string|array|NULL $value
@@ -265,13 +265,13 @@ class select2_Plugin extends core_Plugin
      * Задава манипулатор, който ще се използва за кеширане
      * 
      * @param type_Keylist $invoker
-     * @param string $val
+     * @param string|array|NULL $val
      */
     protected static function setHandler(&$invoker, $val)
     {
         if (isset($invoker->handler)) return ;
         
-        $invoker->handler = md5(serialize($invoker->suggestions) . '|' . $val);
+        $invoker->handler = md5(serialize($invoker->suggestions) . '|' . serialize($val));
     }
     
     
@@ -280,7 +280,6 @@ class select2_Plugin extends core_Plugin
      * Нормализира текста, в който ще се търси
      * 
      * @param type_Keylist $invoker
-     * @param string $val
      */
     protected static function prepareSuggestionsForCache(&$invoker)
     {
