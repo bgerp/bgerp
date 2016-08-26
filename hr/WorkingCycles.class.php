@@ -316,52 +316,58 @@ class hr_WorkingCycles extends core_Master
             if(is_array($custom)) {
         
                 foreach($custom as $cRec) {
+                     
+                    if (isset($cRec->typeDepartmen)) {
+                        $typeDate = $cRec->typeDepartmen;
+                    } else {
+                        $typeDate = $cRec->typePerson;
+                    }
+
                     $dateTms = dt::mysql2timestamp($cRec->date);
                      
                     $cYear = date('Y', $dateTms);
                     $cMonth = date('m', $dateTms);
                     $cDay = date('d', $dateTms);
-                    
-                    if ($start[0] >= $year) {
-                        if ($month == $cMonth) {
-                            if ($d[$cDay]) {
-                                switch ($cRec->typeDate) {
-                                    case 'working':
-                                        $day = hr_WorkingCycleDetails::getWorkingShiftType($cRec->start, $cRec->duration);
-                                        $hour = gmdate("H:i", $cRec->start);
+        
+                    if ($month == $cMonth) {
+                        if ($d[$cDay]) {
+                            switch ($typeDate) {
+                  
+                                case 'working':
+                                    $day = hr_WorkingCycleDetails::getWorkingShiftType($cRec->start, $cRec->duration);
+                                    $hour = gmdate("H:i", $cRec->start);
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[$day] .  "   " .  $hour . "</span>";
-                                        $d[$cDay]->type =  $day;
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[$day] .  "   " .  $hour . "</span>";
+                                    $d[$cDay]->type =  $day;
                                         
-                                        break;
+                                    break;
                                         
-                                    case 'nonworking':
+                                case 'nonworking':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[0] . "</span>";
-                                        $d[$cDay]->type = "0";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[0] . "</span>";
+                                    $d[$cDay]->type = "0";
 
-                                        break;
+                                    break;
                                         
-                                    case 'leave':
+                                case 'leave':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[5] . "</span>";
-                                        $d[$cDay]->type = "5";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[5] . "</span>";
+                                    $d[$cDay]->type = "5";
                                         
-                                        break;
-                                    case 'traveling':
+                                    break;
+                                case 'traveling':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[6] . "</span>";
-                                        $d[$cDay]->type = "6";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[6] . "</span>";
+                                    $d[$cDay]->type = "6";
                                         
-                                        break;
-                                    case 'sicDay':
+                                    break;
+                                case 'sicDay':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[7] . "</span>";
-                                        $d[$cDay]->type = "7";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[7] . "</span>";
+                                    $d[$cDay]->type = "7";
                                         
-                                        break;
-                                } 
-                            }
+                                    break;
+                            } 
                         }
                     }
                 }
