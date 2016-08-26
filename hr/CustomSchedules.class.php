@@ -129,7 +129,6 @@ class hr_CustomSchedules extends core_Master
                 $form->setError('departmenId', "Не  може да изберете едновременно структура и служител");
             }
         }
-     
     }
     
     
@@ -163,7 +162,6 @@ class hr_CustomSchedules extends core_Master
             $data->form->setField('duration', 'input');
             $data->form->setField('break', 'input');
         }
-
     }
 
 }
