@@ -43,7 +43,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone';
     
     
     /**
@@ -197,6 +197,20 @@ class findeals_Deals extends deals_DealBase
     public static $defaultStrategies = array(
     	'currencyId'   => 'lastDocUser|lastDoc|CoverMethod',
     );
+    
+    
+    /**
+     * Документа продажба може да бъде само начало на нишка
+     */
+    public $onlyFirstInThread = TRUE;
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'amountDeal';
     
     
     /**
@@ -371,6 +385,9 @@ class findeals_Deals extends deals_DealBase
     		}
 
     		$row->accountId = acc_Balances::getAccountLink($rec->accountId, NULL, TRUE, TRUE);
+    		if(empty($row->contragentCaption)){
+    			$row->contragentCaption = tr('Контрагент');
+    		}
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -550,7 +567,7 @@ class findeals_Deals extends deals_DealBase
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
     	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
-    	$tpl->append($table->get($data->history, $fields), 'DETAILS');
+    	$tpl->append($table->get($data->history, $fields), 'HISTORY');
     	
     	if($data->pager){
     		$tpl->replace($data->pager->getHtml(), 'PAGER');
