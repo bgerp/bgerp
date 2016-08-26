@@ -293,11 +293,23 @@ class purchase_Invoices extends deals_InvoiceMaster
     		foreach (array("contragentName", "contragentClassId", "contragentId", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
     			unset($rec->{$fld});
     		}
+    		
+    		$ownCountryId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', TRUE);
+    		$rec->contragentCountryId = drdata_Countries::fetchField("#commonName = '{$ownCountryId}'", 'id');
     	}
     	
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
+    		if($rec->contragentSource == 'newContragent'){
+    			$cRec = self::getContragentRec($rec);
+    			
+    			// Проверяваме да няма дублиране на записи
+    			$resStr = crm_Companies::getSimilarWarningStr($cRec);
+    			if ($resStr) {
+    				$form->setWarning('contragentName,contragentCountryId,contragentVatNo,uicNo,contragentPCode,contragentPlace,contragentAddress', $resStr);
+    			}
+    		}
     		
     		if(empty($rec->number)){
     			$rec->number = NULL;
@@ -307,6 +319,20 @@ class purchase_Invoices extends deals_InvoiceMaster
     			$form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща запис с данните на контрагента
+     * 
+     * @param stdClass $rec
+     * @return stdClass $cRec
+     */
+    private static function getContragentRec($rec)
+    {
+    	$cRec = (object)array('name' => $rec->contragentName, 'country' => $rec->contragentCountryId, 'vatId' => $rec->contragentVatNo, 'uicId' => $rec->uicNo, 'pCode' => $rec->contragentPCode, 'place' => $rec->contragentPlace, 'address' => $rec->contragentAddress);
+    
+    	return $cRec;
     }
     
     
@@ -362,6 +388,16 @@ class purchase_Invoices extends deals_InvoiceMaster
     			if($dueTime){
     				$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
     			}
+    		}
+    	}
+    	
+    	// Форсиране на нова фирма, ако е указано
+    	if($rec->state == 'draft'){
+    		if($rec->contragentSource == 'newContragent'){
+    			$cRec = self::getContragentRec($rec);
+    			$rec->contragentId = crm_Companies::save($cRec);
+    			$rec->contragentClassId = crm_Companies::getClassId();
+    			core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
     		}
     	}
     }
