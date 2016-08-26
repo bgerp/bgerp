@@ -125,12 +125,12 @@ class page_Html extends core_ET {
         jquery_Jquery::run($tpl, 'showTooltip();');
         jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
         
-        $pUrl = toUrl(getCurrentUrl(), TRUE);
-        $pUrl = urlencode($pUrl);
-        $url = json_encode(toUrl(array('bgerp_A', 'wp', 'pUrl' => $pUrl), 'local'));
-        
-        jquery_Jquery::run($tpl, "detectScrollAndWp({$url});");
-
+        if (Mode::is('screenMode', 'narrow')) {
+            $pUrl = toUrl(getCurrentUrl(), TRUE);
+            $pUrl = urlencode($pUrl);
+            $url = json_encode(toUrl(array('bgerp_A', 'wp', 'pUrl' => $pUrl), 'local'));
+            jquery_Jquery::run($tpl, "detectScrollAndWp({$url});");
+        }
         
         return $tpl;
     }
