@@ -236,9 +236,9 @@ class type_Richtext extends type_Blob
         
         // Намаляме стойността за да не гърми по-лош начин
         if (core_Os::isWindows()) {
-            ini_set('pcre.recursion_limit', '524');
+            ini_set('pcre.recursion_limit', '505');
         } else {
-            ini_set('pcre.recursion_limit', '16777');
+            ini_set('pcre.recursion_limit', '16666');
         }
         
         // Заместваме й с ѝ
