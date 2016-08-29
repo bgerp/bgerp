@@ -166,8 +166,8 @@ class purchase_Invoices extends deals_InvoiceMaster
     public static function on_AfterGetForm($mvc, &$form, $params = array())
     {
     	
-    	$form->FLD('contragentSource', 'enum(recently=Предишни отчети,company=Фирми,newContragent=Нов доставчик)', 'input,silent,removeAndRefreshForm=selectedContragentId,caption=Контрагент->Източник,before=contragentName');
-    	$form->setDefault('contragentSource', 'recently');
+    	$form->FLD('contragentSource', 'enum(company=Фирми,newContragent=Нов доставчик)', 'input,silent,removeAndRefreshForm=selectedContragentId,caption=Контрагент->Източник,before=contragentName');
+    	$form->setDefault('contragentSource', 'company');
     	$form->FLD('selectedContragentId', 'int', 'input=none,silent,removeAndRefreshForm,caption=Контрагент->Избор,after=contragentSource');
     }
     
@@ -202,20 +202,9 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	// Ако има избрано поле за източник на контрагента
     	if(isset($rec->contragentSource)){
-    		if($rec->contragentSource != 'newContragent'){
+    		if($rec->contragentSource == 'company'){
     			$form->setField('selectedContragentId', 'input');
-    			if($rec->contragentSource == 'company'){
-    				$form->setFieldType('selectedContragentId' , core_Type::getByName('key(mvc=crm_Companies,select=name,allowEmpty)'));
-    			} elseif($rec->contragentSource == 'recently'){
-    				$options = array();
-    				$query = self::getQuery();
-    				$query->where("#folderId = {$rec->folderId} AND #state = 'active'");
-    				$query->show("contragentName");
-    				while($iRec = $query->fetch()){
-    					$options[$iRec->id] = $iRec->contragentName;
-    				}
-    				$form->setOptions('selectedContragentId', array('' => '') + $options);
-    			}
+    			$form->setFieldType('selectedContragentId' , core_Type::getByName('key(mvc=crm_Companies,select=name,allowEmpty)'));
     		}
     	}
     	
@@ -265,10 +254,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		
     		// Ако е избран контрагент замества ме му данните
     		if(isset($rec->selectedContragentId)){
-    			if($rec->contragentSource == 'recently'){
-    				$arr = (array)self::fetch($rec->selectedContragentId, "contragentName,contragentClassId,contragentId,contragentCountryId,contragentVatNo,uicNo,contragentPCode,contragentPlace,contragentAddress");
-    				unset($arr['id']);
-    			} elseif($rec->contragentSource == 'company') {
+    			if($rec->contragentSource == 'company') {
     				$cData = crm_Companies::getContragentData($rec->selectedContragentId);
     				foreach (array('contragentName' => 'company', 'contragentCountryId' => 'countryId', 'contragentVatNo' => 'vatNo', 'uicNo' => 'uicId', 'contragentPCode' => 'pCode', 'contragentPlace' => 'place', 'contragentAddress' => 'address') as $k => $v){
     					$arr[$k] = $cData->$v;
