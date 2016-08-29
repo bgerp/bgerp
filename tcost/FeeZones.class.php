@@ -147,8 +147,35 @@ class tcost_FeeZones extends core_Master
      */
     public function getVolumicWeight($weight, $volume)
     {
-    	$volumicWeight = max($weight, $volume * self::V2C);
+    	$volumicWeight = NULL;
+    	if(!empty($weight) || !empty($volume)){
+    		$volumicWeight = max($weight, $volume * self::V2C);
+    	}
     	
     	return $volumicWeight;
+    }
+    
+    
+    /**
+     * Определяне цената за транспорт при посочените параметри
+     *
+     * @param int $productId         - ид на артикул
+     * @param int $totalWeight       - Общо тегло на товара
+     * @param int $toCountry         - id на страната на мястото за получаване
+     * @param string $toPostalCode   - пощенски код на мястото за получаване
+     * @param int $fromCountry       - id на страната на мястото за изпращане
+     * @param string $fromPostalCode - пощенски код на мястото за изпращане
+     *
+     * @return double|NULL           - цена, която ще бъде платена за теглото на артикул, или NULL ако няма
+     */
+    function getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    {
+    	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
+    	if(empty($singleWeight)) return NULL;
+    	
+    	$feeArr = tcost_Fees::calcFee($toCountry, $toPostalCode, $totalWeight, $singleWeight);
+    	$fee = (isset($feeArr[1])) ? $feeArr[1] : 0;
+    	
+    	return $fee;
     }
 }
