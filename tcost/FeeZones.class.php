@@ -7,7 +7,7 @@
  *
  * @category  bgerp
  * @package   tcost
- * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -16,6 +16,12 @@ class tcost_FeeZones extends core_Master
 {
 
 
+	/**
+	 * Поддържани интерфейси
+	 */
+	public $interfaces = 'tcost_CostCalcIntf';
+	
+	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
@@ -95,6 +101,14 @@ class tcost_FeeZones extends core_Master
 
 
     /**
+     * Константа, специфична за дадения режим на транспорт
+     * 
+     * @var double
+     */
+    const V2C = 0.5;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -102,7 +116,6 @@ class tcost_FeeZones extends core_Master
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
     }
-    
     
     
     /**
@@ -121,5 +134,21 @@ class tcost_FeeZones extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Определяне на обемното тегло, на база на обема на товара
+     *
+     * @param double $weight  - Тегло на товара
+     * @param double $volume  - Обем  на товара
+     *
+     * @return double         - Обемно тегло на товара
+     */
+    public function getVolumicWeight($weight, $volume)
+    {
+    	$volumicWeight = max($weight, $volume * self::V2C);
+    	
+    	return $volumicWeight;
     }
 }
