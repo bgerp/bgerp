@@ -299,10 +299,10 @@ class fileman_Setup extends core_ProtoSetup
         if ($versionArr) {
             
             // Ако версията 8.71
-            if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71)) {
+            if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71) || ($versionArr['version'] == 9) && ($versionArr['subVersion'] == 18)) {
                     
                 // Добавяме съобщение
-                return "<li class='debug-error'>Версията на GhostScript \"" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\" e 8.71. С тази версия има проблеми. Моля да я обновите.</li>";
+                return "Версията на GhostScript \"" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\" e {$versionArr['version']}.{$versionArr['subVersion']}. С тази версия има проблеми. Моля да я обновите.";
             }
         }
     }
