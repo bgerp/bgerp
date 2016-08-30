@@ -284,10 +284,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     		$rec->contragentCountryId = drdata_Countries::fetchField("#commonName = '{$ownCountryId}'", 'id');
     	}
     	
-    	// Ако източника е фирма и не е избрана фирма, забраняваме определени полета
-    	if($rec->contragentSource == 'company' && empty($rec->selectedContragentId)) {
-    		foreach (array("contragentName", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
-    			$form->setReadOnly($fld);
+    	if($rec->type != 'dc_note'){
+    		// Ако източника е фирма и не е избрана фирма, забраняваме определени полета
+    		if($rec->contragentSource == 'company' && empty($rec->selectedContragentId)) {
+    			foreach (array("contragentName", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
+    				$form->setReadOnly($fld);
+    			}
     		}
     	}
     	
