@@ -592,7 +592,7 @@ abstract class deals_Helper
 						$det->price = 0;
 					}
 				} else {
-					$det->price = 0
+					$det->price = 0;
 				}
 			}
 		}
