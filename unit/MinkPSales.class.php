@@ -906,7 +906,12 @@ class unit_MinkPSales extends core_Manager {
         //return 'paymentType';
         //$browser->setValue('paymentType', 'По банков път');
         $browser->press('Контиране');
-    
+
+        if(strpos($browser->gettext(), 'Двеста и четиридесет BGN')) {
+        } else {
+            return "Грешна сума във фактурата за аванс";
+        }
+       
         // ПБД
         $browser->press('ПБД');
         $browser->setValue('ownAccount', '#BG11CREX92603114548401');
