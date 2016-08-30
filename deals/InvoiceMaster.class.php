@@ -293,8 +293,8 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId') as $key){
+    	
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount') as $key){
     		unset($invArr[$key]);
     	}
     
@@ -304,8 +304,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	// Копиране на повечето от полетата на фактурата
     	foreach($invArr as $field => $value){
-    		$form->rec->{$field} = $value;
-    		//$form->setDefault($field, $value);
+    		$form->setDefault($field, $value);
     	}
     	 
     	$form->setDefault('date', dt::today());
