@@ -11,6 +11,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @title 
  */
 class tcost_FeeZones extends core_Master
 {
@@ -177,5 +178,19 @@ class tcost_FeeZones extends core_Master
     	$fee = (isset($feeArr[1])) ? $feeArr[1] : 0;
     	
     	return $fee;
+    }
+    
+    
+    function act_Test()
+    {
+    	$productId = '1150';
+    	$totalWeight = 100;
+    	$toCountry = drdata_Countries::fetchField("#commonName = 'Germany'", 'id');
+    	$toPostalCode = '76479';
+    	$fromCountry = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	$fromPostalCode = '5000';
+    	 
+    	$r = self::getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
+    	bp($r);
     }
 }
