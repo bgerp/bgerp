@@ -239,6 +239,7 @@ class cat_Params extends embed_Manager
     			4 => "options",
     			5 => "default",
     			6 => "showInPublicDocuments",
+    			7 => "csv_params",
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -272,5 +273,15 @@ class cat_Params extends embed_Manager
     {
     	core_Classes::add($rec->driverClass);
     	$rec->driverClass = cls::get($rec->driverClass)->getClassId();
+    	
+    	// Импортиране на параметри при нужда
+    	if(isset($rec->csv_params)){
+    		$params = arr::make($rec->csv_params);
+    		foreach ($params as $k => $v){
+    			if(!isset($rec->{$k})){
+    				$rec->{$k} = $v;
+    			}
+    		}
+    	}
     }
 }
