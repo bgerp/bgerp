@@ -216,6 +216,10 @@ class type_UserList extends type_Keylist
             
             $teams = core_Roles::getRolesByType('team');
             
+            if(is_array($value)) {
+                $value = $this->fromArray($value);
+            }
+            
             $valuesArr = explode($value{0}, trim($value, $value{0}));
             
             $nValArr = array();
