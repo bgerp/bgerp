@@ -306,7 +306,7 @@ class acc_BalanceDetails extends core_Detail
         $data->summary = new stdClass();
         
         foreach ($arr as $param){
-            $data->summary->{$param} = $this->getFieldType($param)->toVerbal($param);
+            $data->summary->{$param} = $this->getFieldType($param)->toVerbal(${$param});
             
             if(${$param} < 0){
                 $data->summary->{$param} = "<span style='color:red'>{$data->summary->{$param}}</span>";
