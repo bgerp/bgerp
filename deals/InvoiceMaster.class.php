@@ -787,9 +787,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
     		
-    		$totalToVerbal = (!empty($rec->rate)) ? $total / $rec->rate : 0;
-    		$novatToVerbal = (!empty($rec->rate)) ? $noVat / $rec->rate : 0;
-    		$amountToVerbal = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : 0;
+    		$totalToVerbal = (!empty($rec->rate)) ? $total / $rec->rate : $total;
+    		$novatToVerbal = (!empty($rec->rate)) ? $noVat / $rec->rate : $noVat;
+    		$amountToVerbal = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
     		
     		$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($totalToVerbal);
     		$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);

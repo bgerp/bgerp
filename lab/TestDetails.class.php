@@ -214,7 +214,11 @@ class lab_TestDetails extends core_Detail
                     $totalResults++;
                 }
             }
-            @$rec->value = $sum / $totalResults;
+            
+            $rec->value = 0;
+            if (!empty($totalResults)) {
+                $rec->value = $sum / $totalResults;
+            }
             
             if ($resCnt > 1) {
                 // Намираме грешката

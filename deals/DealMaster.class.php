@@ -793,7 +793,7 @@ abstract class deals_DealMaster extends deals_DealBase
             	if(!empty($rec->currencyRate)){
             		$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
             	} else {
-            		$value = 0;
+            		$value = round($rec->{"amount{$amnt}"}, 2);;
             	}
             	
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);

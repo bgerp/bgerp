@@ -276,7 +276,7 @@ abstract class store_DocumentMaster extends core_Master
 	   	if(!empty($rec->currencyRate)){
 	   		$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
 	   	} else {
-	   		$amountDelivered = 0;
+	   		$amountDelivered = $rec->amountDelivered;
 	   	}
 	   	
 	   	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);

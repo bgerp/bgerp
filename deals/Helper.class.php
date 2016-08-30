@@ -69,8 +69,8 @@ abstract class deals_Helper
         	$arr['noVat'] = $price / $rate;
         	$arr['withVat'] = ($price * (1 + $vat)) / $rate;
         } else {
-        	$arr['noVat'] = 0;
-        	$arr['withVat'] = 0;
+        	$arr['noVat'] = $price;
+        	$arr['withVat'] = ($price * (1 + $vat));
         }
 		
 		$arr['noVat'] = $arr['noVat'];
