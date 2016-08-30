@@ -192,7 +192,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	$query->show($name);
     	$query->limit(1);
     	
-    	return $query->fetch()->$name;
+    	return $query->fetch()->{$name};
     }
     
     
@@ -218,7 +218,7 @@ class cond_plg_DefaultValues extends core_Plugin
                 if($cData->countryId == $cData2->countryId){
                     
                     // Ако контрагента е от същата държава 
-                    return $oRec->$name;
+                    return $oRec->{$name};
                 }
             } catch(core_exception_Expect $e){}
         }

@@ -400,9 +400,9 @@ class acc_ClosePeriods extends core_Master
     		$nRow = new stdClass();
     		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, $bId, TRUE, TRUE);
     		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    			$nRow->$fld = $Double->toVerbal($dRec->$fld);
-    			if($dRec->$fld < 0){
-    				$nRow->$fld = "<span class='red'>{$nRow->$fld}</span>";
+    			$nRow->{$fld} = $Double->toVerbal($dRec->{$fld});
+    			if($dRec->{$fld} < 0){
+    				$nRow->{$fld} = "<span class='red'>{$nRow->{$fld}}</span>";
     			}
     		}
     		

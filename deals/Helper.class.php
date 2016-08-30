@@ -102,62 +102,62 @@ abstract class deals_Helper
 		$map = array_merge(self::$map, $map);
 	
 		// Дали трябва винаги да не се показва ддс-то към цената
-		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
+		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->{$map['chargeVat']} == 'yes') ? TRUE : FALSE);
 		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
 		$vats = array();
 		
 		// Обработваме всеки запис
 		foreach($recs as &$rec){
 			$vat = 0;
-			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-				$vat = cat_Products::getVat($rec->$map['productId'], $masterRec->$map['valior']);
+			if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
+				$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
 			}
 			
 			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
-			$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
+			$price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
+			$rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
 			
-			$noVatAmount = round($price->noVat * $rec->$map['quantityFld'], 2);
+			$noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, 2);
         	
-			if($rec->$map['discount']){
-				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->$map['discount']), 2);
+			if($rec->{$map['discount']}){
+				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
 				$withoutVatAndDisc = $noVatAmount;
 			}
 			
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
 			
-        	$rec->$map['amountFld'] = $noVatAmount;
-        	if($masterRec->$map['chargeVat'] == 'yes' && !$map['alwaysHideVat']){
-        		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + round($noVatAmount * $vat, 2), 2);
+        	$rec->{$map['amountFld']} = $noVatAmount;
+        	if($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']){
+        		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, 2), 2);
         	}
 
-        	if($rec->$map['discount']){
-        		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
+        	if($rec->{$map['discount']}){
+        		$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
         	}
         	
         	// Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
         	if($masterRec->type === 'dc_note'){
         		if($rec->changedQuantity === TRUE || $rec->changedPrice === TRUE){
         			
-        			$amountRow += $rec->$map['amountFld'];
+        			$amountRow += $rec->{$map['amountFld']};
         			$amount += $noVatAmount;
         			$amountVat += $vatRow;
         			 
         			$amountJournal += $withoutVatAndDisc;
-        			if($masterRec->$map['chargeVat'] == 'yes') {
+        			if($masterRec->{$map['chargeVat']} == 'yes') {
         				$amountJournal += $vatRow;
         			}
         		}
         	} else {
         		
         		// За всички останали събираме нормално
-        		$amountRow += $rec->$map['amountFld'];
+        		$amountRow += $rec->{$map['amountFld']};
         		$amount += $noVatAmount;
         		$amountVat += $vatRow;
         		 
         		$amountJournal += $withoutVatAndDisc;
-        		if($masterRec->$map['chargeVat'] == 'yes') {
+        		if($masterRec->{$map['chargeVat']} == 'yes') {
         			$amountJournal += $vatRow;
         		}
         	}

@@ -475,12 +475,12 @@ class sales_Quotations extends core_Master
     		$row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
     		
     		foreach (array('pCode', 'place', 'address') as $fld){
-    			if($cData->$fld){
-    				$row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->$fld);
+    			if($cData->{$fld}){
+    				$row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->{$fld});
     			}
     	
-    			if($ownCompanyData->$fld){
-    				$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
+    			if($ownCompanyData->{$fld}){
+    				$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->{$fld});
     				$row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
     			}
     		}

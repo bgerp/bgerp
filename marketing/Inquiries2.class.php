@@ -774,8 +774,8 @@ class marketing_Inquiries2 extends embed_Manager
                     $fieldNamesArr = array_keys($contactFields);
                     $userData = array();
                     foreach ((array)$fieldNamesArr as $fName) {
-                        if (!trim($form->rec->$fName)) continue;
-                        $userData[$fName] = $form->rec->$fName;
+                        if (!trim($form->rec->{$fName})) continue;
+                        $userData[$fName] = $form->rec->{$fName};
                     }
                     log_Browsers::setVars($userData);
     			}

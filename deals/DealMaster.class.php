@@ -231,7 +231,7 @@ abstract class deals_DealMaster extends deals_DealBase
         	
         	// Не може да се сменя ДДС-то ако има вече детайли
         	$Detail = $mvc->mainDetail;
-        	if($mvc->$Detail->fetch("#{$mvc->$Detail->masterKey} = {$form->rec->id}")){
+        	if($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$form->rec->id}")){
         		foreach (array('chargeVat', 'currencyId', 'deliveryTermId') as $fld){
         			$form->setReadOnly($fld, isset($form->rec->{$fld}) ? $form->rec->{$fld} : $mvc->fetchField($form->rec->id, $fld));
         		}
@@ -282,8 +282,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		$rec = $this->fetchRec($id);
 		
 		$Detail = $this->mainDetail;
-		$query = $this->$Detail->getQuery();
-		$query->where("#{$this->$Detail->masterKey} = '{$id}'");
+		$query = $this->{$Detail}->getQuery();
+		$query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
 		$recs = $query->fetchAll();
 	
 		deals_Helper::fillRecs($this, $recs, $rec);
@@ -657,8 +657,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$rec = $this->fetchRec($id);
     	
     	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->where("#{$this->$Detail->masterKey} = {$rec->id}");
+    	$dQuery = $this->{$Detail}->getQuery();
+    	$dQuery->where("#{$this->{$Detail}->masterKey} = {$rec->id}");
     	
     	while($d = $dQuery->fetch()){
         	$info = cat_Products::getProductInfo($d->productId);
@@ -688,10 +688,10 @@ abstract class deals_DealMaster extends deals_DealBase
 
      	// заявка към детайлите
      	$Detail = $mvc->mainDetail;
-     	$query = $mvc->$Detail->getQuery();
+     	$query = $mvc->{$Detail}->getQuery();
      	
      	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->$Detail->masterKey}  = '{$rec->id}'");
+     	$query->where("#{$mvc->{$Detail}->masterKey}  = '{$rec->id}'");
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите
@@ -865,7 +865,7 @@ abstract class deals_DealMaster extends deals_DealBase
 					$fld = 'noVat';
 					break;
 			}
-			$row->$fld = ' ';
+			$row->{$fld} = ' ';
 			
 			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
@@ -1000,12 +1000,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
     	// Изтриваме досегашните детайли на сделката
     	$Detail = $mvc->mainDetail;
-    	$Detail::delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
+    	$Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
     	
     	$details = deals_Helper::normalizeProducts($details);
     	if(count($details)){
     		foreach ($details as &$det1){
-    			$det1->{$mvc->$Detail->masterKey} = $rec->id;
+    			$det1->{$mvc->{$Detail}->masterKey} = $rec->id;
     			$Detail::save($det1);
     		}
     	}

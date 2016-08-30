@@ -447,8 +447,8 @@ class acc_ArticleDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
-            if(isset($rec->$fld)){
-                $row->$fld = acc_Items::getVerbal($rec->$fld, 'titleLink');
+            if(isset($rec->{$fld})){
+                $row->{$fld} = acc_Items::getVerbal($rec->{$fld}, 'titleLink');
             }
         }
         
@@ -458,8 +458,8 @@ class acc_ArticleDetails extends doc_Detail
         
         // Кешираме линковете към сметките
         foreach (array('debitAccId', 'creditAccId') as $accId){
-            if(!isset(static::$cache['accs'][$rec->$accId])){
-                static::$cache['accs'][$rec->$accId] = acc_Balances::getAccountLink($rec->$accId, $balanceValior);
+            if(!isset(static::$cache['accs'][$rec->{$accId}])){
+                static::$cache['accs'][$rec->{$accId}] = acc_Balances::getAccountLink($rec->{$accId}, $balanceValior);
             }
         }
         
