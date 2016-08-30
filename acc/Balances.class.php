@@ -114,7 +114,7 @@ class acc_Balances extends core_Master
     /**
      * Текущата сметка
      */
-    private $accountRec;
+    public $accountRec;
     
     
     /**

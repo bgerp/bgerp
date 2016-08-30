@@ -790,7 +790,12 @@ abstract class deals_DealMaster extends deals_DealBase
             	$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
             	$row->{"amount{$amnt}"} = '<span class="quiet">0' . $pointSign . '00</span>';
             } else {
-            	@$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
+            	if(!empty($rec->currencyRate)){
+            		$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
+            	} else {
+            		$value = 0;
+            	}
+            	
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
