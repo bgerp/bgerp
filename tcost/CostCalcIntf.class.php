@@ -45,6 +45,6 @@ class tcost_CostCalcIntf
      */
     function getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
-        return $this->class->getTransportFee($weight, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
+        return $this->class->getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
     }
 }
