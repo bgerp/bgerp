@@ -495,6 +495,7 @@ class currency_CurrencyRates extends core_Detail
      * Функция изчисляваща дали има отклонение между подадена сума
      * и курса от системата между две валути.
      * Приемливото отклонение е дефинирано в , дефолт 5%
+     * 
      * @param double $givenRate - подаден курс.
      * @param string $from - код от коя валута
      * @param string $to - код към коя валута
@@ -508,7 +509,8 @@ class currency_CurrencyRates extends core_Detail
     	$percent = $conf->EXCHANGE_DEVIATION * 100;
     	$knownRate = static::getRate($date, $from, $to);
     	
-    	@$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
+    	$delimeter = min($givenRate, $knownRate) * 100;
+    	$difference = (!empty($delimeter)) ? round(abs($givenRate - $knownRate) / $delimeter) : 0;
     	if($difference > $percent) {
 		    return "Въведения курс е много различен от очаквания '{$knownRate}'";
 		}
