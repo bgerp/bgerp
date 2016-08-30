@@ -352,7 +352,7 @@ abstract class deals_Helper
 	public static function getPurePrice($price, $vat, $rate, $chargeVat)
 	{
 		// Ако няма цена, но има такъв запис се взима цената от него
-	    if ($chargeVat == 'yes') {
+	    if ($chargeVat == 'yes' || $chargeVat == 'separate') {
 	         
 	    	 // Премахваме ДДС-то при нужда
 	         $price /= 1 + $vat;
