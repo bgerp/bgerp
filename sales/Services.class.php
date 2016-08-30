@@ -245,7 +245,7 @@ class sales_Services extends deals_ServiceMaster
      * 				  o quantity       - количество опаковка
      * 				  o quantityInPack - количество в опаковката
      * 				  o discount       - отстъпка
-     * 				  o price          - цена за еденица от основната мярка
+     * 				  o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {
@@ -313,20 +313,5 @@ class sales_Services extends deals_ServiceMaster
     			}
     		}
     	}
-    }
-    
-    
-    /**
-     * Дали към документа може да се пуска документ за разпределяне на разходи
-     *
-     * @param mixed $id - ид или запис
-     * @return boolean
-     */
-    public function canAllocateExpenses($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	// Само ако документа е към покупка, може да се пуска разпределение на разходи
-    	return $rec->isReverse != 'no';
     }
 }

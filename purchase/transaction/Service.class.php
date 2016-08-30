@@ -78,6 +78,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     {
     	$entries = array();
     	$sign = ($reverse) ? -1 : 1;
+    	$dClass = ($reverse) ? 'sales_ServicesDetails' : 'purchase_ServicesDetails';
     	
     	if(count($rec->details)){
     		deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
@@ -86,16 +87,17 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     		foreach ($rec->details as $dRec) {
     			
     			// Към кои разходни обекти ще се разпределят разходите
-    			$splitRecs = acc_ExpenseAllocations::getRecsByExpenses($rec->containerId, $dRec->productId, $dRec->quantity, $dRec->expenseItemId, $dRec->amount, $dRec->id, $dRec->discount);
+    			$splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $dRec->id, $dRec->productId, $dRec->quantity, $dRec->amount, $dRec->discount);
     			
     			foreach ($splitRecs as $dRec1){
     				$amount = $dRec1->amount;
+    				$amountAllocated = $amount * $rec->currencyRate;
     				
     				$entries[] = array(
-    						'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
+    						'amount' => $sign * $amountAllocated, // В основна валута
     						'debit' => array('60201', 
     										 $dRec1->expenseItemId, 
-    										 array('cat_Products', $dRec1->productId), 
+    										array('cat_Products', $dRec1->productId),
     										'quantity' => $sign * $dRec1->quantity),
     						'credit' => array($rec->accountId,
     										  array($rec->contragentClassId, $rec->contragentId),
@@ -105,6 +107,14 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     						),
     						'reason' => $dRec1->reason,
     				);
+    				
+    				// Корекция на стойности при нужда
+    				if(isset($dRec1->correctProducts) && count($dRec1->correctProducts)){
+    					$correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy, $reverse);
+    					if(count($correctionEntries)){
+    						$entries = array_merge($entries, $correctionEntries);
+    					}
+    				}
     			}
     		}
     		

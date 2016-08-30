@@ -82,7 +82,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         expect(in_array($to, array('pdf', 'png')));
         
-        $lineExec = "inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-page";
+        $lineExec = "inkscape [#INPUTF#]  --export-text-to-path  --export-pdf=[#OUTPUTF#] --export-area-page";
         
         if ($to == 'png') {
             $height = static::$pngExportHeight;

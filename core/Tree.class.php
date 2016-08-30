@@ -130,8 +130,11 @@ class core_Tree extends core_BaseClass
         
         foreach ($this->nodes as $path => $n) {
             
+            $n->title = json_encode($n->title);
+            $n->url = json_encode($n->url);
+            
             // Генерираме стринга
-            $treeDescription .= "\n{$name}.add({$n->id}, {$n->pid}, '{$n->title}', '{$n->url}');";
+            $treeDescription .= "\n{$name}.add({$n->id}, {$n->pid}, {$n->title}, {$n->url});";
         }
         
         // Аппендваме стринга

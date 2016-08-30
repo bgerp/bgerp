@@ -1546,6 +1546,11 @@ function setFormElementsWidth() {
         $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
     } else {
+        $('.formTable .hiddenFormRow select.w50').css('width', "50%");
+        $('.formTable .hiddenFormRow select.w75').css('width', "75%");
+        $('.formTable .hiddenFormRow select.w100').css('width', "100%");
+        $('.formTable .hiddenFormRow select.w25').css('width', "25%");
+
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
@@ -2151,7 +2156,7 @@ function getContextMenuFromAjax() {
 
     $('.ajaxContext').each(function(){
         var el = $(this);
-        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'click', 'sizeStyle': 'context', 'displayAround': 'cursor'});
+        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
 }
 
@@ -3415,7 +3420,7 @@ function render_sumOfChildrenWidth() {
 * Може да се комбинира с efae
 */
 function render_setFormElementsWidth() {
-        setFormElementsWidth();
+	setFormElementsWidth();
 }
 
 
@@ -3424,7 +3429,7 @@ function render_setFormElementsWidth() {
 * Може да се комбинира с efae
 */
 function render_setThreadElemWidth() {
-        setThreadElemWidth();
+	setThreadElemWidth();
 }
 
 
@@ -4416,6 +4421,18 @@ function addBugReportInput(form, nameInput, value)
 	        value: value
 	    }).appendTo(form);
 	}
+}
+
+
+/**
+ * При хоризонтален скрол на страницата, да създадем watch point
+ */
+function detectScrollAndWp(url){
+    if($('#packWrapper').outerWidth() > $(window).width() ) {
+        resObj = new Object();
+        resObj['url'] = url;
+        getEfae().process(resObj);
+    }
 }
 
 

@@ -547,16 +547,10 @@ abstract class deals_Helper
 					if(is_array($arr)){
 						foreach ($arr as $p){
 							$index = $p->productId;
-							if(isset($p->expenseItemId)){
-								$index .= "|" . $p->expenseItemId;
-							}
 							
 							if(!isset($combined[$index])){
 								$combined[$index] = new stdClass();
 								$combined[$index]->productId = $p->productId;
-								if(isset($p->expenseItemId)){
-									$combined[$index]->expenseItemId = $p->expenseItemId;
-								}
 							}
 								
 							$d = &$combined[$index];
@@ -758,6 +752,8 @@ abstract class deals_Helper
 			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
 			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
 			$res['vatNo'] = $cData->vatNo;
+		} elseif(isset($contragentName)){
+			$res['contragentName'] = $contragentName;
 		}
 		
 		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml'));

@@ -112,6 +112,12 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Текущата сметка
+     */
+    private $accountRec;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -254,20 +260,16 @@ class acc_Balances extends core_Master
     public static function alternate($date)
     {
     	static $dateArr = array();
-        
-        if($dateArr[$date]) {
-
-            return;
-        }
-
+        if($dateArr[$date])  return;
         $dateArr[$date] = TRUE;
         
         $now = dt::now();
 
         $query = self::getQuery();
+        $query->where("#toDate >= '{$date}'");
         
         // Инвалидираме баланса, ако датата е по-малка от края на периода
-        while($rec = $query->fetch("#toDate >= '{$date}'")) {
+        while($rec = $query->fetch()) {
             $rec->lastAlternation = $now;
             self::save($rec, 'lastAlternation');
         }
@@ -363,7 +365,8 @@ class acc_Balances extends core_Master
     		}
     		
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
+    		$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
+    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
     		
     		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
     		$bD->saveBalance($rec->id);

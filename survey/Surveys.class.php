@@ -31,7 +31,7 @@ class survey_Surveys extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
+    public $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,plg_Clone,
      	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg';
     
     

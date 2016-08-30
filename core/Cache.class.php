@@ -91,7 +91,7 @@ class core_Cache extends core_Manager
     function description()
     {
         $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
-        $this->FLD('data', 'blob(16777215)', 'caption=Данни');
+        $this->FLD('data', 'blob(16777215,serialize,compress)', 'caption=Данни');
         $this->FLD('lifetime', 'int', 'caption=Живот,notNull');     // В секунди
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
@@ -373,12 +373,13 @@ class core_Cache extends core_Manager
             }
                         
             $data = $rec->data;
-            
-            if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
-                $data = gzuncompress($data);
+            if (!is_object($rec->data)) {
+                if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
+                    $data = gzuncompress($data);
+                }
+                
+                $data = unserialize($data);
             }
-            
-            $data = unserialize($data);
             
             return $data;
         }

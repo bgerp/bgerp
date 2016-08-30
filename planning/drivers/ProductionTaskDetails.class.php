@@ -104,7 +104,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
     	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък,start=Пускане)', 'input=hidden,silent,smartCenter');
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter,focus');
-    	$this->FLD('quantity', 'double', 'caption=Количество,mandatory,smartCenter');
+    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,mandatory,smartCenter');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,smartCenter');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
@@ -173,7 +173,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$unit = cat_UoM::getShortName($unit);
     		
     		
-    		$planned = tr("Планувано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'plannedQuantity') . "</b>";
+    		$planned = tr("Планирано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'plannedQuantity') . "</b>";
     		$real = tr("Изпълнено|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'realQuantity') . "</b>";
     		$form->info = "{$planned}<br>$real";
     		

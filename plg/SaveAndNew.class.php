@@ -29,7 +29,7 @@ class plg_SaveAndNew extends core_Plugin
         if ($data->form->cmd == 'save_n_new') {
             
             $data->retUrl = array($mvc, 'add', 'ret_url' => $data->retUrl);
-            
+           
             // Добавяме стойностите на връщане към "тихите" полета
             $fields = $data->form->selectFields("#silent == 'silent'");
            

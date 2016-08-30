@@ -71,6 +71,7 @@ class hr_Setup extends core_ProtoSetup
      */
    var $managers = array(
    		    'hr_Departments',
+            'hr_CustomSchedules',
             'hr_WorkingCycles',
             'hr_WorkingCycleDetails',
             'hr_Shifts',

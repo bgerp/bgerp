@@ -55,7 +55,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
-		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
+		$fieldset->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
 		$fieldset->FLD("startTime", 'time(noSmart)', 'caption=Норма->Произ-во,smartCenter');
 		$fieldset->FLD("indTime", 'time(noSmart)', 'caption=Норма->Пускане,smartCenter');
@@ -83,6 +83,45 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		
+		// Ако няма зададено очаквано начало и край, се приема, че са стандартните
+		$rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : NULL);
+		$rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : NULL);
+		
+		// Проверяване на времената
+		foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField){
+			
+			// Вербализиране на времената
+			$DateTime = core_Type::getByName("datetime(format=d.m H:i)");
+			$row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
+			$row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
+			
+			// Ако има очаквано и оригинално време
+			if(isset($rec->{$eTimeField}) && isset($rec->{$timeField})){
+				
+				// Колко е разликата в минути между тях?
+				$diffVerbal = NULL;
+				$diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
+				$diff = ceil($diff / 60);
+				
+				// Ако има разлика
+				if($diff != 0){
+					
+					// Подготовка на показването на разликата
+					$diffVerbal = cls::get('type_Int')->toVerbal($diff);
+					$diffVerbal = ($diff > 0) ? "<span class='red'>+{$diffVerbal}</span>" : "<span class='green'>{$diffVerbal}</span>";
+				}
+			
+				// Ако има разлика
+				if(isset($diffVerbal)){
+					
+					// Показва се след очакваното време в скоби, с хинт оригиналната дата
+					$hint = tr("Зададено") . ": {$row->{$timeField}}";
+					$diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', TRUE, array('height' => '12', 'width' => '12'));
+					$row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
+				}
+			}
+		}
 	}
 	
 	
@@ -163,10 +202,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$form->setDefault('productId', key($products));
 		}
 		
+		$originDoc = doc_Containers::getDocument($rec->originId);
+		$originRec = $originDoc->fetch();
+		
 		// Ако задачата е дефолтна за артикула, задаваме и дефолтите
 		if(isset($rec->systemId)){
-			$originDoc = doc_Containers::getDocument($rec->originId);
-			$originRec = $originDoc->fetch();
 			
 			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
 			if(isset($tasks[$rec->systemId])){
@@ -177,6 +217,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			}
 		}
 
+		$form->setDefault('productId', $originRec->productId);
+		$form->setDefault('plannedQuantity', $originRec->quantity);
+		
 		if(isset($rec->productId)){
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
@@ -249,6 +292,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		 
 		// Изчисляваме колко % от зададеното количество е направено
 		@$rec->progress = round($rec->totalQuantity / $rec->plannedQuantity, 2);
+		if($rec->progress < 0){
+			$rec->progress = 0;
+		}
 		
 		// Записваме операцията в регистъра
 		$taskOrigin = doc_Containers::getDocument($rec->originId);
@@ -309,50 +355,31 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public static function prepareFieldLetterHeaded($rec, $row)
     {
         $resArr = array();
+        $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
+        																 <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
+        																 <span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
+        																 <!--ET_BEGIN fixedAssets--><br><span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<!--ET_END fixedAssets-->
+        																 <br>[#progressBar#] [#progress#]"));
         
-        $resArr['productId'] = array('name' => tr('Артикул'), 'val' =>"[#productId#]");
         
-        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
-        		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity--></div>"));
-
-        $resArr['packagingId'] = array('name' => tr('Мярка'), 'val' =>"[#packagingId#]");
+        $packagingId = cat_UoM::getTitleById($rec->packagingId);
+        $resArr['quantity'] = array('name' => tr("Количества|*, |{$packagingId}|*"), 'val' => tr("|*<span style='font-weight:normal'>|Планирано|*</span>: [#plannedQuantity#]<br>
+        																						    <span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]"));
         
-        if (!empty($row->totalWeight)) {
-            $resArr['totalWeight'] =  array('name' => tr('Общо тегло'), 'val' =>"[#totalWeight#]");
+        if(!empty($rec->startTime) || !empty($rec->indTime)){
+        	if(isset($rec->indTime)){
+        		$row->indTime .= "/" . tr($packagingId);
+        	}
+        	
+        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#startTime#]</div><!--ET_END startTime-->"));
         }
         
-        if (!empty($row->fixedAssets)) {
-            $resArr['fixedAssets'] =  array('name' => tr('Оборудване'), 'val' =>"[#fixedAssets#]");
-        }
-        
-        if(!empty($row->indTime) || !empty($row->startTime)){
-        	$resArr['indTime'] =  array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN indTime--><div class='nowrap'><span style='font-weight:normal'>|Изпълнение|*:</span> [#indTime#]</div><!--ET_END indTime--><!--ET_BEGIN startTime--><div class='nowrap'><span style='font-weight:normal'>|Стартиране|*:</span> [#startTime#]</div><!--ET_END startTime-->"));
-        }
-       
-        $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
-        
-        if (!empty($row->originId)) {
-            $resArr['originId'] =  array('name' => tr('Информация'), 'val' => tr("|*<div class='nowrap'><span style='font-weight:normal'>|Задание|*</span>: [#originId#]<!--ET_BEGIN storeId--><br><span style='font-weight:normal'>|Склад|*</span>: [#storeId#]<!--ET_END storeId--></div>"));
-        }
-        
-        if (!empty($row->timeStart)) {
-        	$resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
-        }
-        
-        if (!empty($row->timeDuration)) {
-        	$resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
-        }
-        
-        if (!empty($row->timeEnd)) {
-        	$resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
-        }
-        
-        if (!empty($row->expectedTimeStart)) {
-        	$resArr['expectedTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectedTimeStart#]");
-        }
-        
-        if (!empty($row->expectedTimeEnd)) {
-        	$resArr['expectedTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectedTimeEnd#]");
+        if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
+        	
+        	$resArr['start'] =  array('name' => tr('Планирани времена'), 'val' => tr("|*<!--ET_BEGIN expectedTimeStart--><div><span style='font-weight:normal'>|Очаквано начало|*</span>: [#expectedTimeStart#]</div><!--ET_END expectedTimeStart-->
+																					 <!--ET_BEGIN timeDuration--><div><span style='font-weight:normal'>|Прод-ност|*</span>: [#timeDuration#]</div><!--ET_END timeDuration--> 
+        			 																 <!--ET_BEGIN expectedTimeEnd--><div><span style='font-weight:normal'>|Очакван край|*</span>: [#expectedTimeEnd#]</div><!--ET_END expectedTimeEnd-->
+        																			 <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime-->"));
         }
         
         return $resArr;

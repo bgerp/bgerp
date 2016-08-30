@@ -1,0 +1,526 @@
+<?php
+
+defIfNot('CAD2_MAX_CANVAS_SIZE', 1000);
+
+/**
+ *
+ */
+class cad2_PdfCanvas extends cad2_Canvas {
+    
+    /**
+     * Текуща точка
+     */
+    var $cX;
+    var $cY;
+    
+    public $pageStyle = array();
+ 
+
+    /**
+     * Масив с XML обекти - тагове
+     */
+	var $contents = array();
+    
+    
+    /**
+     * Текущи атрибути на лементите
+     */
+    var $attr = array();
+    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'fill', 'fill-opacity', 'fill-rule', 'font-size', 'font-weight', 'font-family', 'text-color');
+
+
+    //
+    public $addX = 10;
+    public $addY = 10;
+    
+    /**
+     * Параметри на страницата
+     */
+    public $width;
+    public $height;
+
+    // Падинги на страницата
+    public $paddingTop;
+    public $paddingRight;
+    public $paddingBottom;
+    public $paddingLeft;
+
+    /**
+     * Текущи параметри на молива, запълването и шрифта
+     * stroke, stroke-width, stroke-linecap, stroke-dasharray
+     * fill-color, fill-opacity
+     * font-face, font-size, font-weight
+     */
+	function __construct()
+    {   
+	}
+
+
+    /**
+     * Задава размерите и падингите на хартията
+     */
+    public function setPaper($width = 210, $height = 297, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10)
+    {
+        // Задаваме размерите и отстъпите на страницата
+        list($this->width, 
+             $this->height,
+             $this->paddingTop,
+             $this->paddingRight,
+             $this->paddingBottom,
+             $this->paddingLeft,
+            ) = array($width, $height, $paddingTop, $paddingRight, $paddingBottom, $paddingLeft);
+
+        $this->fitPoint($this->width, $this->height);
+        $this->fitPoint(0, 0);
+    }
+
+
+    /**
+     * Задава точка от чертежа, която трябва да се побере на хартията.
+     * Тази точка евентуално може да разшири автоматично
+     * изчислявания размер на хартията
+     */
+	protected function fitPoint($x, $y)
+    {
+        // В svg pixels
+		$this->minY = min($y, $this->minY);
+		$this->maxX = max($x, $this->maxX);
+		$this->maxY = max($y, $this->maxY);
+		$this->minX = min($x, $this->minX);
+	}
+
+    /**
+     * Задава текуща стойност на посочения атрибит
+     */
+    public function setAttr($name, $value = NULL)
+    {
+        if(is_array($name)) {
+            foreach($name as $n => $v) {
+                $this->setAttr($n, $v);
+            }
+
+            return;
+        }
+        expect(in_array($name, $this->alowedAttributes), $name);
+
+        $this->attr[$name] = $value;
+    }
+
+
+    /**
+     * Връща стойността на посочения атрибут
+     */
+    public function getAttr($name)
+    {
+        expect(in_array($name, $this->alowedAttributes), $name);
+
+        return $this->attr[$name];
+    }
+
+
+    /**
+     * Започва нов път (поредица от линии и премествания)
+     */
+	public function startPath($attr = array())
+    {
+        $this->closePath();
+        $this->setAttr($attr);
+        $e = (object) array('tag' => 'path', 'attr' => $this->attr, 'data' => array());
+        $this->contents[] = $e;
+        $this->currentPath = count($this->contents) -1;
+	}
+    
+    
+    /**
+     * Затваря текущия път или под-път
+     */
+	public function closePath($close = TRUE)
+    {
+        if($this->currentPath !== NULL) {
+            $this->contents[$this->currentPath]->close = $close;
+            $this->currentPath = NULL;
+        }
+	}
+
+
+    /**
+     * Премества текущата позиция на посочените координати
+     * без да рисува линия
+     */
+	public function moveTo($x, $y, $absolute = FALSE)
+    {   
+        if($this->currentPath === NULL) {
+            $this->startPath();
+        }
+
+        $this->toAbs($x, $y, $absolute);
+        
+        $path = $this->contents[$this->currentPath];
+
+        $path->data[] = array('M', $x, $y);
+
+        $this->fitPoint($x, $y);
+
+        $this->setCP($x, $y);
+	}
+
+
+    /**
+     * Рисува линия до посочените координати
+     */
+	public function doLineTo($x, $y, $absolute = FALSE)
+    {
+        if($this->currentPath === NULL) {
+            $this->startPath();
+        }
+
+        $path = $this->contents[$this->currentPath];
+
+        $this->toAbs($x, $y, $absolute);
+
+        $path->data[] = array('L', $x, $y);
+
+        $this->fitPoint($x, $y);
+
+        $this->setCP($x, $y);
+	}
+
+
+    /**
+     * Изчертава крива на Безие с посочените координати
+     */
+	public function curveTo($x1, $y1, $x2, $y2, $x, $y, $absolute = FALSE)
+    {
+        if($this->currentPath === NULL) {
+            $this->startPath();
+        }
+
+        $path = $this->contents[$this->currentPath];
+
+        $this->toAbs($x, $y, $absolute);
+        $this->toAbs($x1, $y1, $absolute);
+        $this->toAbs($x2, $y2, $absolute);
+
+        $path->data[] = array('C', $x1, $y1, $x2, $y2, $x, $y);
+
+        $this->fitPoint($x, $y);
+
+        $this->setCP($x, $y);
+	}
+
+
+    /**
+     * Изписва текст
+     */
+    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
+    {   
+        $y -= 3.5;
+        $x -= 1;
+        $rotation = -$rotation;
+        if($rotation) {
+            $x -= 2;
+            $y += 3;
+        }
+        $this->toAbs($x, $y, $absolute);
+        $e = (object) array('tag' => 'text', 'x' => $x, 'y' => $y, 'rotation' => $rotation, 'text' => $text, 'attr' => $this->attr);
+
+        $this->fitPoint($x, $y);
+
+        $this->contents[] = $e;
+
+	}
+
+
+	
+
+    /**
+     * Отваря нова група
+     */
+    public function openGroup($attr = array())
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'openGroup', 'attr' => $attr);
+        $this->contents[] = $e;
+	}
+    
+
+    /**
+     * Затваряне на група
+     */
+	public function closeGroup()
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'closeGroup', 'attr' => $attr);
+        $this->contents[] = $e;
+	}
+	
+	
+	/**
+	 * Отваря новa шарка
+	 */
+	public function openPattern($attr = array())
+	{
+	}
+	
+	
+	/**
+	 * Затваряне на шарка
+	 */
+	public function closePattern()
+	{
+	}
+	
+	
+	/**
+	 * Отваряне на дефиниции
+	 */
+	public function openDefinitions($attr = array())
+	{
+	}
+
+	
+	/**
+	 * Затваряне на дефиниции
+	 */
+	public function closeDefinitions()
+	{
+	}
+
+
+    /**
+     * Отваряне на дефиниции за линеен градиент
+     */
+    public function openGradient($attr = array())
+    {
+    }
+
+
+    /**
+     * Затваряне на дефиниции за линеен градиент
+     */
+    public function closeGradient()
+    {
+    }
+
+
+    /**
+     * Задаване на стъпка от градиента
+     */
+    public function addStop($attr = array())
+    {
+    }
+
+
+ 	
+    /**
+     * Връща XML текста на SVG чертежа
+     */
+    public function render()
+    {   
+        $width  = $this->maxX - $this->minX + $this->paddingLeft + $this->paddingRight;
+        $height = $this->maxY - $this->minY + $this->paddingTop + $this->paddingBottom;
+        
+        $this->addX = $this->paddingLeft - $this->minX;
+        $this->addY = $this->paddingTop  - $this->minY;
+ 
+ 
+        // create new PDF document
+        $this->pdf = new tcpdf_Instance('', 'mm', array($width, $height), true, 'UTF-8', false);
+
+        // set document information
+        $this->pdf->SetCreator('bgERP');
+        $this->pdf->SetAuthor(core_Users::getCurrent('names'));
+        $this->pdf->SetTitle('CadProduct');
+        $this->pdf->SetSubject('TCPDF Tutorial');
+        $this->pdf->SetKeywords('TCPDF, PDF, example, test, guide');
+        $this->pdf->setPrintHeader(false);
+        $this->pdf->setPrintFooter(false);
+        $this->pdf->AddPage();
+        $this->pdf->SetAutoPageBreak(FALSE);
+
+        // set default monospaced font
+        $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+        foreach($this->contents as $e) {
+            $func = 'do' . $e->tag;
+            $this->{$func}($e);
+        }
+
+        $res = $this->pdf->getPDFData();
+
+        return $res;
+    }
+
+
+
+    /**
+     * Чертае път в PDF-а, според данните в елемента
+     */
+    function doPath($e)
+    {  
+        static $res1;
+
+        $res[$e->attr['stroke']] = self::hexToRgb($e->attr['stroke']);
+ 
+        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => 'butt', 'join' => 'miter', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToRgb($e->attr['stroke'])));
+        
+        $fillColor = array();
+        
+        $fill = '';
+
+        if(($e->attr['fill-opacity'] || !isset($e->attr['fill-opacity'])) && ($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none')) {
+            $fill = 'FD';  
+ 
+            if(isset($e->attr['fill'])) {
+                $fillColor = self::hexToRgb($e->attr['fill']);
+            }
+            
+            if($e->attr['fill-opacity']) {
+                $this->pdf->SetAlpha($e->attr['fill-opacity']);
+            } else {
+                $this->pdf->SetAlpha(1);
+            }
+        }
+        
+        foreach($e->data as &$d) {
+            $d[1] += $this->addX;
+            $d[2] += $this->addY;
+            if(count($d) > 3) {
+                $d[3] += $this->addX;
+                $d[4] += $this->addY;
+                $d[5] += $this->addX;
+                $d[6] += $this->addY;
+            }
+
+            if($d[0] == 'M') {
+                $startX = $d[1];
+                $startY = $d[2];
+                $start++;
+            }
+        }
+
+        if($e->close && $start == 1) {
+            $e->data[] = array('L', $startX, $startY); 
+        }
+ 
+        $this->pdf->drawPath($e->data, $fill, array(), $fillColor);
+        $this->pdf->SetAlpha(1);
+    }
+
+
+    /**
+     * Отваря група
+     */
+    function doOpenGroup($e)
+    {
+        $this->pdf->startLayer();
+        $this->pdf->StartTransform();
+    }
+    
+
+    /**
+     *
+     */
+    function doCloseGroup($e)
+    {   
+       $this->pdf->StopTransform();
+        $this->pdf->endLayer();
+    }
+
+
+    /**
+     * Показва текста в PDF-а, както е указан в елемента
+     */
+    function doText($e)
+    {
+        if($e->rotation) {
+            $this->pdf->StartTransform();
+            $this->pdf->Rotate($e->rotation, $e->x + $this->addX, $e->y + $this->addY);
+        }
+        
+        $attr = $e->attr;
+        
+        list($font, ) = explode(',', $attr['font-family']);
+        $font = trim('helvetica');
+ 
+        $this->pdf->SetFont($font, $attr['font-weight'] == 'bold' ? 'B' : '', $attr['font-size']/4);
+
+        $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text);
+
+        if($e->rotation) {
+            $this->pdf->StopTransform();
+        }
+    }
+
+
+    /**
+     * Връща текущата позиция
+     */
+    function getCP()
+    {
+        return array($this->cX, $this->cY);
+    }
+
+
+    /**
+     * Връща текущата позиция
+     */
+    function setCP($x, $y)
+    {
+        $this->cX = $x;
+        $this->cY = $y;
+    }
+
+
+    /**
+     * Ако е необходимо, конвертира към абсолютни стойности дадената точка
+     */
+    function toAbs(&$x, &$y, $absolute)
+    {
+        if(!$absolute) {
+            $x += $this->cX;
+            $y += $this->cY;
+        }
+
+        $x = round($x, 6);
+        $y = round($y, 6);
+    }
+    
+
+    /**
+     * Преобразува hex цвят към RGB
+     */
+    function hexToRgb($hexColor)
+    {
+
+        if($color = color_Object::getNamedColor($hexColor)) {
+            $hexColor = $color;
+        }
+
+        if($hexColor{0} == '#') $hexColor = substr($hexColor, 1);
+        
+        if(preg_match("/[0-9a-f]{3}([0-9a-f]{3})/i", $hexColor) || preg_match("/[0-9a-f]{3}/i", $hexColor)) {
+            if(strlen($hexColor) == 3) {
+                $r = hexdec($hexColor{0} . $hexColor{0});
+                $g = hexdec($hexColor{1} . $hexColor{1});
+                $b = hexdec($hexColor{2} . $hexColor{2});
+
+                return array($r, $g, $b);
+
+            } elseif(strlen($hexColor) == 6) {
+                $r = hexdec($hexColor{0} . $hexColor{1});
+                $g = hexdec($hexColor{2} . $hexColor{3});
+                $b = hexdec($hexColor{4} . $hexColor{5});
+
+                return array($r, $g, $b);
+            } else {
+                return FALSE;
+            }
+        } else {
+            return FALSE;
+        }
+        
+        return TRUE;
+    }
+
+}

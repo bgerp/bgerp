@@ -939,9 +939,10 @@ class acc_BalanceDetails extends core_Detail
      *
      * @param string $from дата в MySQL формат
      * @param string $to дата в MySQL формат
+     * @param boolean $isMiddleBalance - дали се изчислява зареждането на данни от междинния баланс
      * @return boolean $hasUpdatedJournal - дали да продължи преизчисляването или не
      */
-    public function calcBalanceForPeriod($from, $to)
+    public function calcBalanceForPeriod($from, $to, $isMiddleBalance = FALSE)
     {
         $JournalDetails = &cls::get('acc_JournalDetails');
         
@@ -961,10 +962,25 @@ class acc_BalanceDetails extends core_Detail
         
         if(count($recs)){
             
-            // Захранваме стратегиите при нужда
-            foreach ($recs as $rec){
-                $this->feedStrategy($rec);
-            }
+        	if($isMiddleBalance === TRUE){
+        		
+        		// Ако зареждаме данните от журнала, които са в междинния баланс
+        		// за храненето на стратегията се взимат всичките записи до края
+        		$queryClone = $JournalDetails->getQuery();
+        		$to = dt::getLastDayOfMonth($to);
+        		acc_JournalDetails::filterQuery($queryClone, $from, $to);
+        		$queryClone->orderBy('valior,id', 'ASC');
+        		$strategyRecs = $queryClone->fetchAll();
+        	} else {
+        		$strategyRecs = $recs;
+        	}
+        	
+        	// Хранене на стратегията със записите от журнала
+        	if(is_array($strategyRecs)){
+        		foreach ($strategyRecs as $rec1){
+        			$this->feedStrategy($rec1);
+        		}
+        	}
             
             foreach ($recs as $rec){
                 $this->calcAmount($rec);

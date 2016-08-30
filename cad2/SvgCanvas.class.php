@@ -5,7 +5,7 @@ defIfNot('CAD2_MAX_CANVAS_SIZE', 1000);
 /**
  *
  */
-class cad2_SvgCanvas extends core_BaseClass {
+class cad2_SvgCanvas extends cad2_Canvas {
     
     /**
      * Колко вътрешни svg единици отговарят на 1 мм
@@ -26,51 +26,41 @@ class cad2_SvgCanvas extends core_BaseClass {
     var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'fill', 'fill-opacity', 'fill-rule', 'font-size', 'font-weight', 'font-family', 'text-color');
 
 
+    //
+    public $addX = 10;
+    public $addY = 10;
+    
     /**
      * Параметри на страницата
      */
-    var $width;
-    var $height;
-    var $paddingTop;
-    var $paddingRight;
-    var $paddingBottom;
-    var $paddingLeft;
+    public $width;
+    public $height;
 
+    // Падинги на страницата
+    public $paddingTop;
+    public $paddingRight;
+    public $paddingBottom;
+    public $paddingLeft;
 
     /**
      * Текущи параметри на молива, запълването и шрифта
      * stroke, stroke-width, stroke-linecap, stroke-dasharray
      * fill-color, fill-opacity
      * font-face, font-size, font-weight
-
      */
-
-	function __construct($width = 210, $height = 297, $pixPerMm = 10, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10)
+	function __construct()
     {   
         // Отношение между милиметри и svg пиксели
-        $this->pixPerMm = $pixPerMm;
+        $this->pixPerMm = 10;
         
         // Кодиране
 		$this->encoding = "UTF-8";
-        
-        // Задаваме размерите и отстъпите на страницата
-        list($this->width, 
-             $this->height,
-             $this->paddingTop,
-             $this->paddingRight,
-             $this->paddingBottom,
-             $this->paddingLeft,
-            ) = self::toPix($width, $height, $paddingTop, $paddingRight, $paddingBottom, $paddingLeft);
-        
-        $conf = core_Packs::getConfig('cad');
+ 
+		$this->minX = 0;
+		$this->maxX = $width * $pixPerMm;
+        $this->minY = 0;
+		$this->maxY = $height * $pixPerMm;
 
-		$this->minX = $paddingLeft * $pixPerMm;
-		$this->maxX = ($width - $paddingLeft) * $pixPerMm;
-        $this->minY = $paddingTop * $pixPerMm;
-		$this->maxY = ($height - $paddingBottom) * $pixPerMm;
-
-        $this->setCP($this->width - $this->paddingRight, $this->height - $this->paddingBottom, TRUE);
-        $this->setCP($this->paddingLeft, $this->paddingTop, TRUE);
 
         $this->setAttr('stroke', 'black');
         $this->setAttr('stroke-width', 0.2);
@@ -81,11 +71,30 @@ class cad2_SvgCanvas extends core_BaseClass {
 
 
     /**
+     * Задава размерите и падингите на хартията
+     */
+    public function setPaper ($width = 210, $height = 297, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10)
+    {
+        // Задаваме размерите и отстъпите на страницата
+        list($this->width, 
+             $this->height,
+             $this->paddingTop,
+             $this->paddingRight,
+             $this->paddingBottom,
+             $this->paddingLeft,
+            ) = self::toPix($width, $height, $paddingTop, $paddingRight, $paddingBottom, $paddingLeft);
+
+        $this->setCP($this->width, $this->height, TRUE);
+        $this->setCP(0, 0, TRUE);
+    }
+
+
+    /**
      * Задава точка от чертежа, която трябва да се побере на хартията.
      * Тази точка евентуално може да разшири автоматично
      * изчислявания размер на хартията
      */
-	private function fitPoint($x, $y)
+	protected function fitPoint($x, $y)
     {
         // В svg pixels
 		$this->minY = min($y, $this->minY);
@@ -93,23 +102,13 @@ class cad2_SvgCanvas extends core_BaseClass {
 		$this->maxY = max($y, $this->maxY);
 		$this->minX = min($x, $this->minX);
  
-
-        
-      //  $conf = core_Packs::getConfig('cad2');
-
-      //  expect((min($this->minY, $this->minX) > (0 - $conf->CAD2_MAX_CANVAS_SIZE * $this->pixPerMm)) &&
-      //         (max($this->maxY, $this->maxX) < $conf->CAD2_MAX_CANVAS_SIZE * $this->pixPerMm) ,
-      //         'Размерът е извън допъстимите граници',
-      //         $this,
-       //        $conf->CAD2_MAX_CANVAS_SIZE * $this->pixPerMm
-      //      );
 	}
 
 
     /**
      * Конвертира координатите от милиметри към единиците на viewport
      */
-	private function toPix()
+	protected function toPix()
     {   
         $args = func_get_args();
 
@@ -124,7 +123,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Задава текушата точка
      */
-	private function setCP($x, $y, $absolute = FALSE, $fitPoint = TRUE)
+	protected function setCP($x, $y, $absolute = FALSE, $fitPoint = TRUE)
     {   
         if($absolute) {
             $this->x = $x;
@@ -150,76 +149,10 @@ class cad2_SvgCanvas extends core_BaseClass {
 
 
     /**
-     * Задава текущия прозорец
-     */
-    function setWindow($x, $y, $w, $h)
-    {
-        $this->window = array($x, $y, $x+$w, $y+$h);
-    }
-
-    /**
-     * Премахва текущия прозорец
-     */
-    function unsetWindow()
-    {
-        $this->window = NULL;
-    }
-
-
-    /**
-     * Проверява дали точката се намира в прозореца
-     */
-    function isInWindow($x, $y)
-    {
-        if(!$this->window) return TRUE;
-        
-        list($x1,$y1,$x2,$y2) = $this->window;
-
-        if(min($x1,$x2) <= $x && max($x1,$x2) >= $x && min($y1,$y2) <= $y && max($y1,$y2) >= $y) {
-
-            return TRUE;
-        }
-
-        return FALSE;
-    }
-
-
-    /**
-     * Намира точка в която зададената отсечка сече прозореца
-     */
-    function getWindowIntersection($Ax, $Ay, $Bx, $By)
-    {      
-        if(!$this->window) return TRUE;
-        
-        list($x1,$y1,$x2,$y2) = $this->window;
-        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x1, $y2);
-        if($p) return $p;
-
-        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x2, $y1, $x2, $y2);
-        if($p) return $p;
-      
-        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x2, $y1);
-        if($p) return $p;
-
-        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y2, $x2, $y2);
-        if($p) return $p;
-
-        if($this->isInWindow($Ax, $Ay)) {
-            return self::d($Ax, $Ay);
-        }
-
-        if($this->isInWindow($Bx, $By)) {
-
-             return self::d($Bx, $By);
-        }
-    }
-
-
-    /**
      * Връща тага на текущия път
      * Очаква той да е последния добавен в съдържанието
      */
-    private function getCurrentPath()
+    protected function getCurrentPath()
     {
         $path = $this->content[count($this->content)-1];
 
@@ -232,7 +165,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Задава текуща стойност на посочения атрибит
      */
-    function setAttr($name, $value)
+    public function setAttr($name, $value)
     {
         expect(in_array($name, $this->alowedAttributes), $name);
 
@@ -243,7 +176,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Връща стойността на посочения атрибут
      */
-    function getAttr($name)
+    public function getAttr($name)
     {
         expect(in_array($name, $this->alowedAttributes), $name);
 
@@ -281,7 +214,7 @@ class cad2_SvgCanvas extends core_BaseClass {
      * Премества текущата позиция на посочените координати
      * без да рисува линия
      */
-	function moveTo($x, $y, $absolute = FALSE)
+	public function moveTo($x, $y, $absolute = FALSE)
     {   
 
         $path = $this->getCurrentPath();
@@ -301,17 +234,18 @@ class cad2_SvgCanvas extends core_BaseClass {
         
         if(!$this->isInWindow($x1, $y1)) return;
 
-        $m = $absolute ? ' M' : ' m';
+        $m = $absolute ? 'M' : 'm';
 
-        $path->attr['d'] .= " {$m}{$x},{$y}";
 
+        // $path->attr['d'] .= " {$m}{$x},{$y}";
+        $path->data[] = array($m, $x, $y);
 	}
 
 
     /**
      * Рисува линия до посочените координати
      */
-	function lineTo($x, $y, $absolute = FALSE)
+	public function doLineTo($x, $y, $absolute = FALSE)
     {
         list($x0, $y0) = $this->getCP();
         
@@ -350,91 +284,44 @@ class cad2_SvgCanvas extends core_BaseClass {
                 $absolute = TRUE;
             }
         }
-//expect( $x !=0 || $y != 0, $this->isInWindow($x0, $y0) ,  $this->isInWindow($x1, $y1));
+
         $path = $this->getCurrentPath();
         list($x, $y) = self::toPix($x, $y);
         $l = $absolute ? 'L' : 'l';
-        $path->attr['d'] .= " {$l}{$x},{$y}";
         $this->setCP($x, $y, $absolute);
+
+ 
+        // $path->attr['d'] .= " {$l}{$x},{$y}";
+
+        $path->data[] = array($l, $x, $y);
+
 	}
 
 
     /**
      * Изчертава крива на Безие с посочените координати
      */
-	function curveTo($x1, $y1, $x2, $y2, $x, $y, $absolute = FALSE)
+	public function curveTo($x1, $y1, $x2, $y2, $x, $y, $absolute = FALSE)
     {
         $path = $this->getCurrentPath();
         
         list($x1, $y1, $x2, $y2, $x, $y) = self::toPix($x1, $y1, $x2, $y2, $x, $y);
 
         $c = $absolute ? 'C' : 'c';
-
-		$path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
  
+		// $path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
+ 		$path->data[] = array($c, $x1, $y1, $x2, $y2, $x, $y);
+
 		$this->setCP($x1, $y1, $absolute);
         $this->setCP($x2, $y2, $absolute);
 		$this->setCP($x, $y, $absolute);
 	}
     
-    
-    /**
-     * Чертае закръгляне до посочената точка
-     */
-    function roundTo($x1, $y1, $x, $y, $r, $absolute = FALSE)
-    {
-        // Вземаме абсолютните координати на началната
-        list($x0, $y0)  = $this->getCP();
-
-        // Правим координатите абсолютни
-        if(!$absolute) {
-            $x1 += $x0;
-            $y1 += $y0;
-            $x += $x0;
-            $y += $y0;
-        }
-
-        $A = new cad2_Vector($x0, $y0);
-        $B = new cad2_Vector($x1, $y1);
-        $C = new cad2_Vector($x, $y);
-
-        $AB = $B->add($A->neg());
-        $BC = $C->add($B->neg());
-        $BA = $AB->neg();
-        
-        $m = abs($r * tan(($BC->a - $AB->a)/2));
- 
-        $M = $B->add($this->p($BA->a, $m));
-        $N = $B->add($this->p($BC->a, $m));
-        
-        $c = 4/3*(M_SQRT2-1);
-        
-        $MB = $B->add($M->neg());
-        
-        $Mc = $M->add($this->p($MB->a, $MB->r * $c));
-
-        $NB = $B->add($N->neg());
-        $Nc = $N->add($this->p($NB->a, $NB->r * $c));
-
-
-        if(round($A->x, 5) != round($M->x, 5) || round($A->y, 5) != round($M->y, 5)) {
-            $this->lineTo($M->x, $M->y, TRUE);
-        }
-
-        $this->curveTo($Mc->x, $Mc->y, $Nc->x, $Nc->y, $N->x, $N->y, TRUE);
-        
-        if(round($C->x, 5) != round($N->x, 5) || round($C->y, 5) != round($N->y, 5)) {
-            $this->lineTo($C->x, $C->y, TRUE);
-        }
-        
-    }
-
-
 
     /**
      * Изписва текст
      */
-    function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
+    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
     {
         
         if(!$absolute) {
@@ -490,54 +377,24 @@ class cad2_SvgCanvas extends core_BaseClass {
             $width = $size * strlen($text) * 0.3;
             $height = $size;
 
-            $x1 = $x + cos(deg2rad($rotation+90))*$height;
-            $y1 = $y + sin(deg2rad($rotation+90))*$height;
-            
-            $alpha = atan($height/$width);
-            $l = sqrt($width*$width + $height*$height);
 
-            $x2 = $x + cos(deg2rad($rotation)+$alpha)*$l;
-            $y2 = $y + sin(deg2rad($rotation)+$alpha)*$l;
-
-            $x3 = $x + cos(deg2rad($rotation))*$width;
-            $y3 = $y + sin(deg2rad($rotation))*$width;
-
-			$a = round(cos(deg2rad($rotation)),5);
-			$b = round(sin(deg2rad($rotation)),5);
-			$c = -$b;
-			$d = $a;
-			$gr->attr = array('transform' => "matrix($a, $b, $c, $d, ".(-$x*$a+$y*$b+$x).", ".(-$x*$b-$y*$a+$y).")");
+            // "matrix($a, $b, $c, $d, ".(-$x*$a+$y*$b+$x).", ".(-$x*$b-$y*$a+$y).")"
+			$gr->transform = array($width, $height, $rotation, $x, $y);
 		}
 	}
 
-
-    /**
-     * Изчертава арка
-     */
-    function arcTo($x1, $y1, $r, $absolute = FALSE)
-    {
-    	cad2_ArcTo::draw($this, $x1, $y1, $r, $absolute);
-    }
-    
-    
-    /**
-     * Задаване на начупена линия
-     */
-    function jaggedLineTo($x1, $y1, $md = 1, $td = NULL, $spacer = 0, $absolute = FALSE)
-    {
-    	cad2_JaggedLine::draw($this, $x1, $y1, $md, $td, $spacer, $absolute);
-    }
 
 
     /**
      * Затваря текущия път или под-път
      */
-	function closePath($close = TRUE)
+	public function closePath($close = TRUE)
     {
         $path = $this->getCurrentPath();
         
         if($close) {
-            $path->attr['d'] .= ' z';
+            // $path->attr['d'] .= ' z';
+            $path->data[] = array('z');
         }
 	}
 	
@@ -545,7 +402,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Отваря нова група
      */
-    function openGroup($attr = array())
+    public function openGroup($attr = array())
     {
         $group = $this->content[] = new stdClass();
         $group->name = 'g';
@@ -557,7 +414,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Затваряне на група
      */
-	function closeGroup()
+	public function closeGroup()
     {
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/g';
@@ -567,7 +424,7 @@ class cad2_SvgCanvas extends core_BaseClass {
 	/**
 	 * Отваря новa шарка
 	 */
-	function openPattern($attr = array())
+	public function openPattern($attr = array())
 	{
 		$group = $this->content[] = new stdClass();
 		$group->name = 'pattern';
@@ -579,7 +436,7 @@ class cad2_SvgCanvas extends core_BaseClass {
 	/**
 	 * Затваряне на шарка
 	 */
-	function closePattern()
+	public function closePattern()
 	{
 		$groupEnd = $this->content[] = new stdClass();
 		$groupEnd->name = '/pattern';
@@ -589,7 +446,7 @@ class cad2_SvgCanvas extends core_BaseClass {
 	/**
 	 * Отваряне на дефиниции
 	 */
-	function openDefinitions($attr = array())
+	public function openDefinitions($attr = array())
 	{
         $defs = $this->content[] = new stdClass();
         $defs->name = 'defs';
@@ -601,7 +458,7 @@ class cad2_SvgCanvas extends core_BaseClass {
 	/**
 	 * Затваряне на дефиниции
 	 */
-	function closeDefinitions()
+	public function closeDefinitions()
 	{
 		$groupEnd = $this->content[] = new stdClass();
 		$groupEnd->name = '/defs';
@@ -611,7 +468,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Отваряне на дефиниции за линеен градиент
      */
-    function openGradient($attr = array())
+    public function openGradient($attr = array())
     {
         $defs = $this->content[] = new stdClass();
         $defs->name = 'linearGradient';
@@ -623,7 +480,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Затваряне на дефиниции за линеен градиент
      */
-    function closeGradient()
+    public function closeGradient()
     {
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/linearGradient';
@@ -633,7 +490,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Задаване на стъпка от градиента
      */
-    function addStop($attr = array())
+    public function addStop($attr = array())
     {
         $defs = $this->content[] = new stdClass();
         $defs->name = 'stop';
@@ -641,39 +498,25 @@ class cad2_SvgCanvas extends core_BaseClass {
     }
 
 
-	/**
-	 * Преобразуване от градуси към радиани
-	 */
-	function gradusToRad($gradus)
-	{
-		return $gradus*(pi()/180);
-	}
-	
-	
-	/**
-	 * Преобразуване от радиани към градуси
-	 */
-	function radToGradus($rad)
-	{
-		return $rad*180/pi();
-	}
-	
-	
+ 	
     /**
      * Връща XML текста на SVG чертежа
      */
-    function render()
+    public function render()
     {
         // Параметрите на viewbox
-		$top    = $this->minY - $this->paddingTop;
-        $right  = $this->maxX + $this->paddingRight;
-        $bottom = $this->maxY + $this->paddingBottom;
-		$left   = $this->minX - $this->paddingLeft;
+        $this->addX = -$this->minX + $this->paddingLeft;
+        $this->addY = -$this->minY + $this->paddingTop;
+ 
+		$left   = 0;
+		$top    = 0;
+        $right  = $this->maxX -$this->minX + $this->paddingRight + $this->paddingLeft;
+        $bottom = $this->maxY -$this->minY + $this->paddingBottom + $this->paddingTop;
  
         // Динамично изчислените размери на страницата
-		$width  = max($this->width,  $right - $left);
-		$height = max($this->height, $bottom - $top);
-
+		$width  = $right - $left ;
+		$height = $bottom - $top ;
+ 
         // Размерите в mm
         $widthMm  = $width  / $this->pixPerMm;
         $heightMm = $height / $this->pixPerMm;
@@ -695,9 +538,81 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Връща XML текста, съответстващ на обекта - таг
      */
-    function getXML($tag)
+    private function getXML($tag)
     {
         if($tag->name) {
+            
+            list($aX, $aY) = array($this->addX, $this->addY);
+
+            if($tag->name == 'path') {
+                if(!$tag->data) {
+                    $tag->data = array();
+                }
+                foreach($tag->data as $cmd) {
+                    
+                    $cmdName = $cmd[0];
+
+                    if($cmdName == 'L' || $cmdName == 'M') { 
+                        $cmd[1] += $aX;
+                        $cmd[2] += $aY; 
+                    } elseif($cmdName == 'C') {
+                        $cmd[1] += $aX;
+                        $cmd[2] += $aY;
+                        $cmd[3] += $aX;
+                        $cmd[4] += $aY;
+                        $cmd[5] += $aX;
+                        $cmd[6] += $aY;
+                    } 
+ 
+                    if(count($cmd) == 7) {
+                        $tag->attr['d'] .= " {$cmdName}{$cmd[1]},{$cmd[2]} {$cmd[3]},{$cmd[4]} {$cmd[5]},{$cmd[6]}";
+                    } elseif(count($cmd) == 3 ) {
+                        $tag->attr['d'] .= " {$cmdName}{$cmd[1]},{$cmd[2]}";  
+                    } elseif(count($cmd) == 1 ) {
+                        $tag->attr['d'] .= " {$cmdName}";
+                    }
+                }
+            }
+
+            if($tag->name == 'text') {
+                list($aX, $aY) = array($this->addX, $this->addY);
+
+                $tag->attr['x'] += $aX;
+                $tag->attr['y'] += $aY;
+            }
+
+            if($tag->name == 'g') {
+                if(is_array($tag->transform)) {
+                    
+                    list($width, $height, $rotation, $x, $y) = $tag->transform;
+                    
+                    list($aX, $aY) = array($this->addX, $this->addY);
+
+                    $x += $aX;
+                    $y += $aY;
+
+                    $x1 = $x + cos(deg2rad($rotation+90))*$height;
+                    $y1 = $y + sin(deg2rad($rotation+90))*$height;
+                    
+                    $alpha = atan($height/$width);
+                    $l = sqrt($width*$width + $height*$height);
+
+                    $x2 = $x + cos(deg2rad($rotation)+$alpha)*$l;
+                    $y2 = $y + sin(deg2rad($rotation)+$alpha)*$l;
+
+                    $x3 = $x + cos(deg2rad($rotation))*$width;
+                    $y3 = $y + sin(deg2rad($rotation))*$width;
+
+                    $a = round(cos(deg2rad($rotation)),5);
+                    $b = round(sin(deg2rad($rotation)),5);
+                    $c = -$b;
+                    $d = $a;
+                    
+                    $tag->attr['transform'] = "matrix($a, $b, $c, $d, ".(-$x*$a+$y*$b+$x).", ".(-$x*$b-$y*$a+$y).")";
+                }
+            }
+
+
             if ($tag->attr && count($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
                   
@@ -743,62 +658,5 @@ class cad2_SvgCanvas extends core_BaseClass {
 
         return $element;
     }
-
-
-    /**
-     * Връща вектор с посочените декартови координати
-     */
-    public static function d($x, $y)
-    {
-        $v = new cad2_Vector($x, $y);
-
-        return $v;
-    }
-
-
-    /**
-     * Връща вектор с посочените полярни координати
-     */
-    public static function p($a, $r)
-    {
-        $v = new cad2_Vector($a, $r, 'polar');
-
-        return $v;
-    }
-
-
-    /**
-     * Computes the intersection between two segments. 
-     * @param x1 Starting point of Segment 1
-     * @param y1 Starting point of Segment 1
-     * @param x2 Ending point of Segment 1
-     * @param y2 Ending point of Segment 1
-     * @param x3 Starting point of Segment 2
-     * @param y3 Starting point of Segment 2
-     * @param x4 Ending point of Segment 2
-     * @param y4 Ending point of Segment 2
-     * @return Point where the segments intersect, or null if they don't
-     */
-    public static function getIntersection($x1,  $y1,  $x2,  $y2, $x3, $y3, $x4, $y4)
-    {
-        $x1 += 0.00001;
-        $y1 -= 0.00002;
-        
-        $x3 += 0.00003;
-        $y3 -= 0.00004;
-
-        $d = ($x1-$x2)*($y3-$y4) - ($y1-$y2)*($x3-$x4);
-        if ($d == 0) return null;
-    
-        $xi = (($x3-$x4)*($x1*$y2-$y1*$x2)-($x1-$x2)*($x3*$y4-$y3*$x4))/$d;
-        $yi = (($y3-$y4)*($x1*$y2-$y1*$x2)-($y1-$y2)*($x3*$y4-$y3*$x4))/$d;
-
-
-        if ($xi < min($x1,$x2) || $xi > max($x1,$x2)) return null;
-        if ($xi < min($x3,$x4) || $xi > max($x3,$x4)) return null;
-
-        return self::d(round($xi*10000)/10000, round($yi*10000)/10000);
-    }
-    
     
 }
