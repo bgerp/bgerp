@@ -189,8 +189,8 @@ class acc_ValueCorrections extends core_Master
     	$pRec->allocated /= $rec->rate;
     	
     	foreach (array('amount', 'allocated', 'quantity', 'allocated') as $fld){
-    		if(isset($pRec->$fld)){
-    			$row->$fld = $Double->toVerbal($pRec->$fld);
+    		if(isset($pRec->{$fld})){
+    			$row->{$fld} = $Double->toVerbal($pRec->{$fld});
     		}
     	}
     	

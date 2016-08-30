@@ -257,7 +257,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     			if($rec->contragentSource == 'company') {
     				$cData = crm_Companies::getContragentData($rec->selectedContragentId);
     				foreach (array('contragentName' => 'company', 'contragentCountryId' => 'countryId', 'contragentVatNo' => 'vatNo', 'uicNo' => 'uicId', 'contragentPCode' => 'pCode', 'contragentPlace' => 'place', 'contragentAddress' => 'address') as $k => $v){
-    					$arr[$k] = $cData->$v;
+    					$arr[$k] = $cData->{$v};
     				}
     				$arr['contragentClassId'] = crm_Companies::getClassId();
     				$arr['contragentId'] = $rec->selectedContragentId;

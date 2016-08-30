@@ -228,12 +228,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
-    		if(!empty($rec->$fld)){
+    		if(!empty($rec->{$fld})){
     			if($fld == 'address'){
-    				$row->$fld = core_Lg::transliterate($row->$fld);
+    				$row->{$fld} = core_Lg::transliterate($row->{$fld});
     			}
     			
-    			$row->deliveryTo .= ", {$row->$fld}";
+    			$row->deliveryTo .= ", {$row->{$fld}}";
     		}
     	}
     	
@@ -272,7 +272,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         	
         	if($rec->locationId){
         		foreach (array('company','person','tel','country','pCode','place','address',) as $del){
-        			 if($rec->$del){
+        			 if($rec->{$del}){
         			 	$form->setError("locationId,{$del}", 'Не може да има избрана локация и въведени адресни данни');
         			 	break;
         			 }

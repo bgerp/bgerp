@@ -552,7 +552,7 @@ class cat_Products extends embed_Manager {
     	if($rec->meta){
     		$metas = type_Set::toArray($rec->meta);
     		foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture') as $fld){
-    			$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
+    			$rec->{$fld} = (isset($metas[$fld])) ? 'yes' : 'no';
     		}
     	}
     	

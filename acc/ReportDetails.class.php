@@ -207,8 +207,8 @@ class acc_ReportDetails extends core_Manager
                 
                 // К-то и сумата се обръщат във вербален вид
                 foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld){
-                    $style = ($dRec->$fld < 0) ? "color:red" : "";
-                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
+                    $style = ($dRec->{$fld} < 0) ? "color:red" : "";
+                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->{$fld}) . "</span>";
                 }
                 
                 $row['amountRec'] = $dRec->blAmount;

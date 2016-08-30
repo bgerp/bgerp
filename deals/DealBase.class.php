@@ -451,7 +451,7 @@ abstract class deals_DealBase extends core_Master
     		// Ако има избран таб и това не е статистиката, рендираме го
     		if(isset($data->{$data->selectedTab}) && $data->selectedTab != 'Statistic'){
     			$method = "render{$data->selectedTab}";
-    			$mvc->$method($tpl, $data);
+    			$mvc->{$method($tpl, $data)};
     		}
     		
     		if(isset($data->rec->tplLang)){
@@ -516,7 +516,7 @@ abstract class deals_DealBase extends core_Master
     	// Ако има селектиран таб викаме му метода за подготовка на данните
     	if(isset($data->selectedTab) && $data->selectedTab != 'Statistic'){
     		$method = "prepare{$data->selectedTab}";
-    		$mvc->$method($data);
+    		$mvc->{$method($data)};
     		
     		// Ако е зареден флаг в урл-то за експорт експортираме
     		if(Request::get('export', 'int') && $data->selectedTab == 'DealReport' && $mvc->haveRightFor('export', $data->rec)){
@@ -711,7 +711,7 @@ abstract class deals_DealBase extends core_Master
     	
     	foreach ($report as $id =>  $r) { 
         	foreach (array('shipQuantity', 'bQuantity') as $fld){
-        	    $r->$fld =  $Double->toVerbal($r->$fld);
+        	    $r->{$fld} =  $Double->toVerbal($r->{$fld});
         	}
 
         	if($r->bQuantity > 0){
@@ -809,7 +809,7 @@ abstract class deals_DealBase extends core_Master
     				}
     				 
     				foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld){
-    					$obj->$fld = "<span style='float:right'>" . $Double->toVerbal($ent->$fld) . "</span>";
+    					$obj->{$fld} = "<span style='float:right'>" . $Double->toVerbal($ent->{$fld}) . "</span>";
     				}
     				 
     				$history[] = $obj;

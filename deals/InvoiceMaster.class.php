@@ -133,8 +133,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		// Ако е известие и има поне един детайл обновяваме мастъра
     		$Detail = $mvc->mainDetail;
-    		$query = $mvc->$Detail->getQuery();
-    		$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+    		$query = $mvc->{$Detail}->getQuery();
+    		$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
     		if($query->fetch()){
     			$mvc->updateQueue[$rec->id] = $rec->id;
     		}
@@ -153,8 +153,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec = $this->fetchRec($id);
     	$Detail = $this->mainDetail;
     	
-    	$query = $this->$Detail->getQuery();
-    	$query->where("#{$this->$Detail->masterKey} = '{$rec->id}'");
+    	$query = $this->{$Detail}->getQuery();
+    	$query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
     	$recs = $query->fetchAll();
     	
     	if(count($recs)){
@@ -163,7 +163,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
-    	$this->$Detail->calculateAmount($recs, $rec);
+    	$this->{$Detail}->calculateAmount($recs, $rec);
     	
     	$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     	
@@ -315,7 +315,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$form->setField('displayRate', 'input=hidden');
     	
     	foreach(array('contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress') as $name){
-    		if($form->rec->$name){
+    		if($form->rec->{$name}){
     			$form->setReadOnly($name);
     		}
     	}
@@ -440,8 +440,8 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	 
 	   	if($rec->type != 'dc_note'){
 	   		$Detail = $mvc->mainDetail;
-	   		$dQuery = $mvc->$Detail->getQuery();
-	   		$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
+	   		$dQuery = $mvc->{$Detail}->getQuery();
+	   		$dQuery->where("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
 	   		$dQuery->where("#quantity = 0");
 	   		 
 	   		// Ако има поне едно 0-во к-во документа, не може да се активира
@@ -1011,7 +1011,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$query = $Detail::getQuery();
     		
     		$count = 0;
-    		$query->where("#{$this->$Detail->masterKey} = '{$document->that}'");
+    		$query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
     		while($dRec = $query->fetch()){
     			$cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
     			$count++;
