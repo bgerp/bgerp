@@ -542,7 +542,13 @@ class currency_CurrencyRates extends core_Detail
     	$conf = core_Packs::getConfig('currency');
     	$percent = $conf->EXCHANGE_DEVIATION * 100;
     	
-    	@$difference = round(abs($amountTo - $expectedAmount) / min($amountTo, $expectedAmount) * 100);
+    	$difference = 0;
+    	$minAmount = min($amountTo, $expectedAmount);
+    	
+    	if (!empty($minAmount)) {
+    	    $difference = round(abs($amountTo - $expectedAmount) / $minAmount * 100);
+    	}
+    	
     	if($difference > $percent) {
     		
     		return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";
