@@ -1026,7 +1026,11 @@ class acc_BalanceDetails extends core_Detail
     		if($rec->{$quantityField}){
     			
     			// Изчисляваме цената
-    			@$price = round($rec->amount / $rec->{$quantityField}, 10);
+    			if(!empty($rec->{$quantityField})){
+    				$price = round($rec->amount / $rec->{$quantityField}, 10);
+    			} else {
+    				$price = 0;
+    			}
     			
     			// Ако изчислената сума е различна от записаната в журнала
     			if(trim($rec->{$priceField}) != trim($price)){
@@ -1059,7 +1063,11 @@ class acc_BalanceDetails extends core_Detail
     									
     								// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
     								$rec->amount = $defCost * $rec->{$quantityField};
-    								@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    								if(!empty($rec->{$quantityField})){
+    									$price = round($rec->amount / $rec->{$quantityField}, 4);
+    								} else {
+    									$price = 0;
+    								}
     							}
     						}
     					}

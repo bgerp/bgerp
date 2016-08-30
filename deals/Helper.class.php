@@ -65,8 +65,13 @@ abstract class deals_Helper
 		$arr = array();
         
         // Конвертиране цените във валутата
-        @$arr['noVat'] = $price / $rate;
-		@$arr['withVat'] = ($price * (1 + $vat)) / $rate;
+        if(!empty($rate)){
+        	$arr['noVat'] = $price / $rate;
+        	$arr['withVat'] = ($price * (1 + $vat)) / $rate;
+        } else {
+        	$arr['noVat'] = 0;
+        	$arr['withVat'] = 0;
+        }
 		
 		$arr['noVat'] = $arr['noVat'];
 		$arr['withVat'] = $arr['withVat'];
@@ -579,9 +584,15 @@ abstract class deals_Helper
 		
 		if(count($combined)){
 			foreach ($combined as &$det){
-				@$det->price = $det->sumAmounts / ($det->quantity * (1 - $det->discount));
-				if($det->price < 0){
-					$det->price = 0;
+				$delimiter = ($det->quantity * (1 - $det->discount));
+				if(!empty($delimiter)){
+					$det->price = $det->sumAmounts / $delimiter;
+					
+					if($det->price < 0){
+						$det->price = 0;
+					}
+				} else {
+					$det->price = 0
 				}
 			}
 		}

@@ -787,9 +787,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
     		
-    		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
-    		@$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($noVat / $rec->rate);
-    		@$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($rec->vatAmount / $rec->rate);
+    		$totalToVerbal = (!empty($rec->rate)) ? $total / $rec->rate : 0;
+    		$novatToVerbal = (!empty($rec->rate)) ? $noVat / $rec->rate : 0;
+    		$amountToVerbal = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : 0;
+    		
+    		$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($totalToVerbal);
+    		$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
+    		$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($amountToVerbal);
     		
     		if($total < 0){
     			$row->dealValue = "<span class='red'>{$row->dealValue}</span>";

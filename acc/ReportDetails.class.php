@@ -171,7 +171,7 @@ class acc_ReportDetails extends core_Manager
         
         if(is_array($data->recs)) {
             foreach ($data->recs as $dRec){
-                @$dRec->blPrice = $dRec->blAmount / $dRec->blQuantity;
+                $dRec->blPrice = (!empty($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
                 
                 // На коя позиция се намира, перото на мастъра
                 $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);

@@ -273,7 +273,12 @@ abstract class store_DocumentMaster extends core_Master
     */
    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    {
-	   	@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
+	   	if(!empty($rec->currencyRate)){
+	   		$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
+	   	} else {
+	   		$amountDelivered = 0;
+	   	}
+	   	
 	   	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
 	   
 	   	if(!isset($rec->weight)) {
