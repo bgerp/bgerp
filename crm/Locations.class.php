@@ -492,6 +492,29 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * GLN на всички локации на зададен контрагент + id-тата им
+     * 
+     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
+     * @param int $contragentId първичен ключ на контрагента (в мениджъра му)
+     * @return array масив от GLN на локации, ключ - ид на локации
+     */
+    public static function getContragentGLNs($contragentClassId, $contragentId)
+    {
+        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
+        
+        $resRecs = array();
+        foreach ($locationRecs as $rec) {
+            $resRecs["$rec->id"] = new stdClass();
+            $resRecs["$rec->id"]->id = $rec->id;
+            $resRecs["$rec->id"]->gln = $rec->gln;
+        }
+        unset($locationRecs);
+        
+        return $resRecs;
+    }
+    
+    
+    /**
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
      * 
      * @param int $id

@@ -161,21 +161,50 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Връща асоциираната форма към MVC-обекта
+     */
+    public static function on_AfterGetForm($mvc, &$form, $params = array())
+    {
+    	
+    	$form->FLD('contragentSource', 'enum(company=Фирми,newContragent=Нов доставчик)', 'input,silent,removeAndRefreshForm=selectedContragentId,caption=Контрагент->Източник,before=contragentName');
+    	$form->setDefault('contragentSource', 'company');
+    	$form->FLD('selectedContragentId', 'int', 'input=none,silent,removeAndRefreshForm,caption=Контрагент->Избор,after=contragentSource');
+    }
+    
+    
+    /**
      * След подготовка на формата
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-		$rec = $data->form->rec;
-    	$origin = $mvc->getOrigin($data->form->rec);
+		$form = $data->form;
+    	$rec = $form->rec;
+    	$origin = $mvc->getOrigin($form->rec);
+    	
     	if($origin->isInstanceOf('findeals_AdvanceReports')){
-    		$data->form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
-    		$data->form->setField('vatRate', 'input');
-    		$data->form->setDefault('vatRate', 'separate');
+    		$form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
+    		$form->setField('vatRate', 'input');
+    		$form->setDefault('vatRate', 'separate');
     		
-    		if(isset($data->form->rec->id)){
-    			if(purchase_InvoiceDetails::fetch("#invoiceId = {$data->form->rec->id}")){
-    				$data->form->setReadOnly('vatRate');
+    		if(isset($form->rec->id)){
+    			if(purchase_InvoiceDetails::fetch("#invoiceId = {$form->rec->id}")){
+    				$form->setReadOnly('vatRate');
     			}
+    		}
+    	}
+    	
+    	// Ако ф-та не е към служебен аванс не искаме да се сменя контрагента
+    	$firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
+    	if(!$firstDocument->isInstanceOf('findeals_AdvanceDeals')){
+    		$form->setField('contragentSource', 'input=none');
+    		unset($form->rec->contragentSource);
+    	}
+    	
+    	// Ако има избрано поле за източник на контрагента
+    	if(isset($rec->contragentSource)){
+    		if($rec->contragentSource == 'company'){
+    			$form->setField('selectedContragentId', 'input');
+    			$form->setFieldType('selectedContragentId' , core_Type::getByName('key(mvc=crm_Companies,select=name,allowEmpty)'));
     		}
     	}
     	
@@ -183,21 +212,21 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	if($data->aggregateInfo){
     		if($data->aggregateInfo->get('bankAccountId')){
-    			$data->form->rec->accountId = $data->aggregateInfo->get('bankAccountId');
+    			$form->rec->accountId = $data->aggregateInfo->get('bankAccountId');
     		}
     	}
     	
-    	$coverClass = doc_Folders::fetchCoverClassName($data->form->rec->folderId);
-    	$coverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
-    	$data->form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, TRUE));
+    	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
+    	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+    	$form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, TRUE));
     	
-    	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
-    		$data->form->setField('vatReason', 'mandatory');
+    	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
+    		$form->setField('vatReason', 'mandatory');
     	}
     	
     	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
     	if($rec->contragentCountryId == $bgId){
-    		$data->form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
+    		$form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
     	}
     }
     
@@ -207,10 +236,76 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
+    	$rec = &$form->rec;
+    	
+    	$unsetFields = FALSE;
+    	
+    	// Махане на дефолтните данни при нужда
+    	if((empty($rec->id) && $form->cmd != 'save' && isset($rec->contragentSource) && $rec->contragentSource != 'newContragent' && empty($rec->selectedContragentId))){
+    		$unsetFields = TRUE;
+    	}
+    	
+    	if($form->cmd == 'refresh'){
+    		if($rec->contragentSource == 'newContragent'){
+    			$unsetFields = TRUE;
+    		}
+    		
+    		$arr = array();
+    		
+    		// Ако е избран контрагент замества ме му данните
+    		if(isset($rec->selectedContragentId)){
+    			if($rec->contragentSource == 'company') {
+    				$cData = crm_Companies::getContragentData($rec->selectedContragentId);
+    				foreach (array('contragentName' => 'company', 'contragentCountryId' => 'countryId', 'contragentVatNo' => 'vatNo', 'uicNo' => 'uicId', 'contragentPCode' => 'pCode', 'contragentPlace' => 'place', 'contragentAddress' => 'address') as $k => $v){
+    					$arr[$k] = $cData->{$v};
+    				}
+    				$arr['contragentClassId'] = crm_Companies::getClassId();
+    				$arr['contragentId'] = $rec->selectedContragentId;
+    			} else {
+    				$arr['contragentClassId'] = NULL;
+    				$arr['contragentId'] = NULL;
+    			}
+    			 
+    			if(count($arr)){
+    				foreach (array("contragentName", "contragentClassId", "contragentId", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
+    					$form->rec->{$fld} = $arr[$fld];
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Ако е указано да махнем записаните данни, правим го
+    	if($unsetFields === TRUE){
+    		foreach (array("contragentName", "contragentClassId", "contragentId", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
+    			unset($rec->{$fld});
+    		}
+    		
+    		$ownCountryId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', TRUE);
+    		$rec->contragentCountryId = drdata_Countries::fetchField("#commonName = '{$ownCountryId}'", 'id');
+    	}
+    	
+    	if($rec->type != 'dc_note'){
+    		// Ако източника е фирма и не е избрана фирма, забраняваме определени полета
+    		if($rec->contragentSource == 'company' && empty($rec->selectedContragentId)) {
+    			foreach (array("contragentName", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
+    				$form->setReadOnly($fld);
+    			}
+    		}
+    	}
+    	
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
-    		$rec = &$form->rec;
+    		if($rec->contragentSource == 'newContragent'){
+    			$cRec = self::getContragentRec($rec);
+    			
+    			// Проверяваме да няма дублиране на записи
+    			$resStr = crm_Companies::getSimilarWarningStr($cRec);
+    			if ($resStr) {
+    				$form->setWarning('contragentName,contragentCountryId,contragentVatNo,uicNo,contragentPCode,contragentPlace,contragentAddress', $resStr);
+    			}
+    		}
+    		
     		if(empty($rec->number)){
     			$rec->number = NULL;
     		}
@@ -219,6 +314,20 @@ class purchase_Invoices extends deals_InvoiceMaster
     			$form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща запис с данните на контрагента
+     * 
+     * @param stdClass $rec
+     * @return stdClass $cRec
+     */
+    private static function getContragentRec($rec)
+    {
+    	$cRec = (object)array('name' => $rec->contragentName, 'country' => $rec->contragentCountryId, 'vatId' => $rec->contragentVatNo, 'uicId' => $rec->uicNo, 'pCode' => $rec->contragentPCode, 'place' => $rec->contragentPlace, 'address' => $rec->contragentAddress);
+    
+    	return $cRec;
     }
     
     
@@ -274,6 +383,16 @@ class purchase_Invoices extends deals_InvoiceMaster
     			if($dueTime){
     				$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
     			}
+    		}
+    	}
+    	
+    	// Форсиране на нова фирма, ако е указано
+    	if($rec->state == 'draft'){
+    		if($rec->contragentSource == 'newContragent'){
+    			$cRec = self::getContragentRec($rec);
+    			$rec->contragentId = crm_Companies::save($cRec);
+    			$rec->contragentClassId = crm_Companies::getClassId();
+    			core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
     		}
     	}
     }

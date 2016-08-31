@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,19 +25,19 @@ class acc_Articles extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'acc_TransactionSourceIntf=acc_transaction_Article';
+    public $interfaces = 'acc_TransactionSourceIntf=acc_transaction_Article';
     
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Мемориални ордери";
+    public $title = "Мемориални ордери";
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Clone, plg_Printing, doc_plg_HidePrices,
+    public $loadList = 'plg_RowTools2, plg_Clone, plg_Printing, doc_plg_HidePrices,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
     
@@ -52,115 +52,97 @@ class acc_Articles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title= Документ, reason, valior, totalAmount, tools=Пулт";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    public $listFields = "title= Документ, reason, valior, totalAmount";
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'acc_ArticleDetails';
+    public $details = 'acc_ArticleDetails';
     
     
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Мемориален ордер';
+    public $singleTitle = 'Мемориален ордер';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/blog.png';
+    public $singleIcon = 'img/16/blog.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Mo";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'acc,ceo';
+    public $abbr = "Mo";
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'acc,ceo';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'acc,ceo';
+    public $canWrite = 'acc,ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc,ceo';
-    
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    var $canReject = 'acc,ceo';
+    public $canConto = 'acc,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,acc';
+    public $canList = 'ceo,acc';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,acc';
+    public $canSingle = 'ceo,acc';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason, valior, id';
+    public $searchFields = 'reason, valior, id';
     
     
     /**
      * Полета свързани с цени
      */
-    var $priceFields = 'totalAmount';
+    public $priceFields = 'totalAmount';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "6.1|Счетоводни";
+    public $newBtnGroup = "6.1|Счетоводни";
     
     
     /**
      * Да се правили проверка дали документа може да се контира в нишката
      */
-    var $checkIfCanContoInThread = FALSE;
+    public $checkIfCanContoInThread = FALSE;
+    
+    
+    /**
+     * Дали може да се използват затворени пера
+     */
+    public $canUseClosedItems = FALSE;
     
     
     /**

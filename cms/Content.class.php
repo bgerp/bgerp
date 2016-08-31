@@ -198,8 +198,10 @@ class cms_Content extends core_Manager
         $query->orderBy('#order');
 
         $data->domainId = cms_Domains::getPublicDomain('id');
-
-        $data->items = $query->fetchAll("#state = 'active' AND #domainId = {$data->domainId}");  
+        
+        if($data->domainId) {
+            $data->items = $query->fetchAll("#state = 'active' AND #domainId = {$data->domainId}");
+        }
     }
 
     

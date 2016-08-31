@@ -154,7 +154,7 @@ abstract class deals_ManifactureMaster extends core_Master
 			
 			$Detail = $mvc->mainDetail;
 			$dQuery = $Detail::getQuery();
-			$dQuery->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+			$dQuery->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
 			$dQuery->show('productId');
 			while($dRec = $dQuery->fetch()){
 				$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->productId));

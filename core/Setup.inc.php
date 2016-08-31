@@ -634,7 +634,7 @@ if($step == 3) {
 
     // Необходими модули на PHP
     $log[] = 'h:Проверка за необходимите PHP модули:';
-    $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date',
+    $requiredPhpModules = array('imap', 'calendar', 'Core', 'ctype', 'date',
                                 'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
                                 'mbstring', 'mysqli', 'pcre', 'session', 'SimpleXML',
                                 'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap', 'curl');
@@ -1259,7 +1259,7 @@ function gitHasChanges($repoPath, &$log)
     if (!empty($arrRes)) {
         foreach ($arrRes as $row) {
             $row = trim($row);
-            $arr = split(" ", $row);
+            $arr = explode(" ", $row);
             if (isset($statesWarning[$arr[0]])) {
                 $log[] = "wrn:<b>[{$repoName}]</b> " . $statesWarning[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
                 $wrn = TRUE;

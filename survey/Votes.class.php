@@ -91,7 +91,7 @@ class survey_Votes extends core_Manager {
     	$rec = new stdClass();
     	$rec->alternativeId = $alternativeId;
     	$rec->rate = $rowId;
-    	$rec->userUid = static::getUserUid();
+    	$rec->userUid = static::getUserUid($alternativeId);
     	
     	$altRec = new stdClass();
     	$altRec->id = $alternativeId;
@@ -116,7 +116,7 @@ class survey_Votes extends core_Manager {
      */
     static function lastUserVote($alternativeId)
     {
-    	$userUid = static::getUserUid();
+    	$userUid = static::getUserUid($alternativeId);
     	$query = static::getQuery();
     	$query->where(array("#alternativeId = [#1#]", $alternativeId));
     	$query->where(array("#userUid = '[#1#]'", $userUid));
@@ -137,17 +137,25 @@ class survey_Votes extends core_Manager {
      * Ип-то му
      * @return varchar $userUid - Потребителя, който е гласувал
      */
-    static function getUserUid()
+    static function getUserUid($alternativeId)
     {
+        expect($alternativeId > 0);
+
+        $aRec = survey_Alternatives::fetch((int) $alternativeId);
+        $sRec = survey_Surveys::fetch($aRec->surveyId);
+
+
     	$uid = "";
-    	if($mid = Request::get('m')) {
+    	if($mid = Request::get('m') && $sRec->userBy != 'browser') {
     		$uid = "mid|" . $mid;
-    	} elseif(core_Users::haveRole('user')) {
+    	} elseif(core_Users::haveRole('user') && $sRec->userBy != 'browser') {
     		$uid = "id|" . core_Users::getCurrent();
-    	} else {
+    	} elseif($sRec->userBy == 'browser') {
+    		$uid = "brid|" . log_Browsers::getBridId();
+        } else {
     		$uid = "ip|" . $_SERVER['REMOTE_ADDR'];
     	}
-
+ 
     	return $uid;
     }
     

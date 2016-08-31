@@ -1008,7 +1008,7 @@ class core_App
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
 
-	   if (is_readable($shortPath)) {
+	   if (@is_readable($shortPath)) {
            
            return $shortPath;
        }
@@ -1022,7 +1022,7 @@ class core_App
         foreach($pathsArr as $base) {
             $fullPath = $base . '/' . $shortPath;
  
-            if(is_readable($fullPath)) return $fullPath;
+            if(@is_readable($fullPath)) return $fullPath;
         }
 
         return FALSE;

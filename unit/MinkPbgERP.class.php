@@ -1384,7 +1384,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('template', 'Експедиционно нареждане с цени');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и девет BGN и 0,99 ')) {
+        if(strpos($browser->gettext(), 'Двадесет и четири EUR и 0,99')) {
         } else {
             return "Грешна сума в ЕН";
         }

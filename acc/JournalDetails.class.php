@@ -247,8 +247,8 @@ class acc_JournalDetails extends core_Detail
     {
         foreach ($query->getDeletedRecs() as $rec) {
             foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
-                if(isset($rec->$item)){
-                    $mvc->Master->affectedItems[$rec->$item] = $rec->$item;
+                if(isset($rec->{$item})){
+                    $mvc->Master->affectedItems[$rec->{$item}] = $rec->{$item};
                 }
             }
         }

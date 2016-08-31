@@ -214,9 +214,9 @@ class acc_Journal extends core_Master
             
             while($dRec = $dQuery->fetch()){
                 foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
-                    if(isset($dRec->$item)){
-                        $mvc->affectedItems[$dRec->$item] = $dRec->$item;
-                        acc_Items::updateEarliestUsedOn($dRec->$item, $rec->valior);
+                    if(isset($dRec->{$item})){
+                        $mvc->affectedItems[$dRec->{$item}] = $dRec->{$item};
+                        acc_Items::updateEarliestUsedOn($dRec->{$item}, $rec->valior);
                     }
                 }
             }

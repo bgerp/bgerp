@@ -170,8 +170,8 @@ abstract class store_DocumentMaster extends core_Master
     	$rec = $this->fetchRec($id);
     	 
     	$Detail = $this->mainDetail;
-    	$query = $this->$Detail->getQuery();
-    	$query->where("#{$this->$Detail->masterKey} = '{$id}'");
+    	$query = $this->{$Detail}->getQuery();
+    	$query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
     
     	$recs = $query->fetchAll();
     
@@ -224,7 +224,7 @@ abstract class store_DocumentMaster extends core_Master
     				if (!isset($info->meta['canStore']) || ($toShip <= 0)) continue;
     				 
     				$shipProduct = new stdClass();
-    				$shipProduct->{$mvc->$Detail->masterKey}  = $rec->id;
+    				$shipProduct->{$mvc->{$Detail}->masterKey}  = $rec->id;
     				$shipProduct->productId   = $product->productId;
     				$shipProduct->packagingId = $product->packagingId;
     				$shipProduct->quantity    = $toShip;
@@ -273,7 +273,12 @@ abstract class store_DocumentMaster extends core_Master
     */
    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    {
-	   	@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
+	   	if(!empty($rec->currencyRate)){
+	   		$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
+	   	} else {
+	   		$amountDelivered = $rec->amountDelivered;
+	   	}
+	   	
 	   	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
 	   
 	   	if(!isset($rec->weight)) {
@@ -528,10 +533,10 @@ abstract class store_DocumentMaster extends core_Master
     	$Detail = $mvc->mainDetail;
     	
     	// заявка към детайлите
-    	$query = $mvc->$Detail->getQuery();
+    	$query = $mvc->{$Detail}->getQuery();
     	
     	// точно на тази фактура детайлите търсим
-    	$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+    	$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
     
     	while ($recDetails = $query->fetch()){
     		// взимаме заглавията на продуктите
@@ -564,8 +569,8 @@ abstract class store_DocumentMaster extends core_Master
     	$aggregator->setIfNot('shippedValior', $rec->valior);
     
     	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->where("#{$this->$Detail->masterKey} = {$rec->id}");
+    	$dQuery = $this->{$Detail}->getQuery();
+    	$dQuery->where("#{$this->{$Detail}->masterKey} = {$rec->id}");
     
     	// Подаваме на интерфейса най-малката опаковка с която е експедиран продукта
     	while ($dRec = $dQuery->fetch()) {

@@ -90,6 +90,12 @@ class acc_Periods extends core_Manager
     
     
     /**
+     * Лог
+     */
+    public $actLog;
+    
+    
+    /**
      * Описание на модела
      */
     function description()

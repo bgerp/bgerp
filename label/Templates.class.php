@@ -102,7 +102,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, sizes, template=Шаблон, classId, createdOn, createdBy';
+    var $listFields = 'id, title, sizes, classId, createdOn, createdBy';
     
     
     /**
@@ -139,6 +139,9 @@ class label_Templates extends core_Master
         $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Интерфейс');
         $this->FLD('template', 'html', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
+        $this->FLD('sysId', 'varchar', 'input=none');
+        
+        $this->setDbUnique('sysId');
     }
     
     
@@ -553,5 +556,67 @@ class label_Templates extends core_Master
                 $detailInst->save($dRec);
             }
         }
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    function loadSetupData()
+    {
+    	$res = '';
+    	$added = $skipped = $updated = 0;
+    	
+    	// Добавяне на дефолтни шаблони
+    	$templateArr = array('defaultTpl' => 'label/tpl/DefaultLabelBG.shtml', 'defaultTplEn' => 'label/tpl/DefaultLabelEN.shtml');
+    	foreach ($templateArr as $sysId => $tplPath){
+    		$title = ($sysId == 'defaultTpl') ? 'Базов шаблон за етикети' : 'Default label template';
+    		
+    		// Ако няма запис
+    		$exRec = self::fetch("#sysId = '{$sysId}'");
+    		
+    		if(!$exRec){
+    			$exRec = new stdClass();
+    			$exRec->sysId = $sysId;
+    			$exRec->title = $title;
+    			core_Classes::add('planning_Tasks');
+    			$exRec->classId = planning_Tasks::getClassId();
+    		}
+    		$exRec->sizes = '100x72 mm';
+    		$exRec->state = 'active';
+    		
+    		// Ако има промяна в шаблона, ъпдейтва се
+    		$templateHash = md5_file(getFullPath($tplPath));
+    		if(md5($exRec->template) != $templateHash || $exRec->title != $title){
+    			($exRec->id) ? $updated++ : $added;
+    			$exRec->template = getFileContent($tplPath);
+    			
+    			if(isset($exRec->id)){
+    				label_TemplateFormats::delete("#templateId = {$exRec->id}");
+    			}
+    			
+    			core_Users::forceSystemUser();
+    			self::save($exRec);
+    			
+    			// Добавяне на плейсхолдърите
+    			$arr = $this->getPlaceholders($exRec->template);
+    			if(is_array($arr)){
+    				foreach ($arr as $placeholder){
+    					$type = (in_array($placeholder, array('BARCODE', 'PREVIEW'))) ? 'image' : 'caption';
+    					$dRec = (object)array('placeHolder' => $placeholder, 'type' => $type, 'templateId' => $exRec->id);
+    					label_TemplateFormats::save($dRec);
+    				}
+    			}
+    			
+    			core_Users::cancelSystemUser();
+    		} else {
+    			$skipped++;
+    		}
+    	}
+    	
+    	$class = ($added > 0 || $updated > 0) ? ' class="green"' : '';
+    	$res = "<li{$class}>Добавени са {$added} шаблона за етикети, обновени са {$updated}, пропуснати са {$skipped}</li>";
+    	 
+    	return $res;
     }
 }

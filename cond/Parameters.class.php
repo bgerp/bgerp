@@ -26,13 +26,13 @@ class cond_Parameters extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name, driverClass, state';
+    public $listFields = 'name, driverClass, state';
     
     
     /**
@@ -72,12 +72,6 @@ class cond_Parameters extends embed_Manager
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
@@ -95,7 +89,6 @@ class cond_Parameters extends embed_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Символи,text=Текст,date=Дата,enum=Изброим,percent=Процент,payMethod=Начин за плащане,delCond=Условие на доставка)', 'caption=Тип,input=none');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id, input=hidden');
         $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');

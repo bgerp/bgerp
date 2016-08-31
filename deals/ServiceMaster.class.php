@@ -71,8 +71,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$rec = $this->fetchRec($id);
 		 
 		$Detail = $this->mainDetail;
-		$query = $this->$Detail->getQuery();
-		$query->where("#{$this->$Detail->masterKey} = '{$id}'");
+		$query = $this->{$Detail}->getQuery();
+		$query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
 		$recs = $query->fetchAll();
 	
 		deals_Helper::fillRecs($this, $recs, $rec);
@@ -132,7 +132,7 @@ abstract class deals_ServiceMaster extends core_Master
 				}
 				
 				$Detail = $mvc->mainDetail;
-				$mvc->$Detail->save($shipProduct);
+				$mvc->{$Detail}->save($shipProduct);
 			}
 		}
 	}
@@ -307,8 +307,8 @@ abstract class deals_ServiceMaster extends core_Master
     	$aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
     
     	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->where("#{$this->$Detail->masterKey} = {$rec->id}");
+    	$dQuery = $this->{$Detail}->getQuery();
+    	$dQuery->where("#{$this->{$Detail}->masterKey} = {$rec->id}");
     
     	while ($dRec = $dQuery->fetch()) {
     		$p = new stdClass();
@@ -344,10 +344,10 @@ abstract class deals_ServiceMaster extends core_Master
 
      	// заявка към детайлите
      	$Detail = $mvc->mainDetail;
-     	$query = $mvc->$Detail->getQuery();
+     	$query = $mvc->{$Detail}->getQuery();
      	
      	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+     	$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите

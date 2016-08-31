@@ -45,7 +45,7 @@ class plg_GroupByField extends core_Plugin
 		 
 		// Изчличаме в масив всички уникални стойностти на полето
 		foreach ($recs as $index => $rec1){
-			$groups[$rec1->$field] = $data->rows[$index]->$field;
+			$groups[$rec1->{$field}] = $data->rows[$index]->{$field};
 		}
 		 
 		$rows = array();

@@ -72,6 +72,12 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * Индекси в базата данни
+     */
+    public $dbIndexes;
+    
+    
+    /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     function _Singleton() {}

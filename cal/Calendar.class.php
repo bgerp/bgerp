@@ -329,13 +329,7 @@ class cal_Calendar extends core_Master
        
         // TODO
         $attr = array();
-        if($rec->type == 'leave'){
-        	$attr['ef_icon'] = 'img/16/leaves.png';
-        } elseif($rec->type == 'sickday') {
-        	$attr['ef_icon'] = 'img/16/sick.png';
-        } elseif($rec->type == 'trip'){
-			$attr['ef_icon'] = 'img/16/working-travel.png';    		
-        } elseif(!strpos($rec->type, '/')) {
+        if(!strpos($rec->type, '/')) {
          	$attr['ef_icon'] = "img/16/{$lowerType}.png";
     	} elseif($rec->type = 'reminder') {
          	$attr['ef_icon'] = "img/16/alarm_clock.png";
@@ -675,6 +669,16 @@ class cal_Calendar extends core_Master
         if (is_array($state->recs)) {
             $data = array();
             foreach($state->recs as $id => $rec) {
+                
+                $time = dt::mysql2timestamp($rec->time);
+                $i = (int) date('j', $time);
+                
+                if(!isset($data[$i])) {
+                    $data[$i] = new stdClass();
+                     
+                }
+                 
+                list ($d, $t) = explode(" ", $rec->time);
             
                 if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                     $time = dt::mysql2timestamp($rec->time);
@@ -685,19 +689,22 @@ class cal_Calendar extends core_Master
                     }
                     $data[$i]->type = $rec->type;
                    
+                } elseif($rec->type == 'working-travel') { 
+                    
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .">&nbsp;";
+
+                } elseif($rec->type == 'leaves') { 
+                    
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .">&nbsp;";
+
+                } elseif($rec->type == 'sick') { 
+                    
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .">&nbsp;";
+
                 } elseif($rec->type == 'workday') {
                 
                 } elseif($rec->type == 'task' || $rec->type == 'reminder'){
-                	$time = dt::mysql2timestamp($rec->time);
-                	$i = (int) date('j', $time);
-                	
-                	if(!isset($data[$i])) {
-                		$data[$i] = new stdClass();
-                		 
-                	}
-                	
-                	list ($d, $t) = explode(" ", $rec->time);
-                
+
                 	if ($arr[$d] != 'active') { 
                 		if($rec->state == 'active' || $rec->state == 'pending') { 
                 			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";

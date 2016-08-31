@@ -42,7 +42,7 @@ class plg_AlignDecimals2 extends core_Plugin
 		// тука определяме най-дългата дробна част, без да записваме числото
 		foreach ($recs as $id => $rec){
 			foreach ($decFields as $fName){
-				core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
+				core_Math::roundNumber($rec->{$fName}, ${"{$fName}FracLen"});
 			}
 		}
 		
@@ -56,7 +56,7 @@ class plg_AlignDecimals2 extends core_Plugin
 			
 			foreach ($decFields as $col => $fName){
 		
-				if(isset($rows[$id]->$fName)){
+				if(isset($rows[$id]->{$fName})){
 					$Type = clone $mvc->fields[$fName]->type;
 					setIfNot($Type->params['minDecimals'], 0);
 					setIfNot($Type->params['maxDecimals'], 6);
@@ -69,20 +69,20 @@ class plg_AlignDecimals2 extends core_Plugin
 					$Type->params['smartRound'] = TRUE;
 					
 					// Вербализираме числово само ако наистина е число
-					if(is_numeric($rec->$fName)){
-						$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
-						$count = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
+					if(is_numeric($rec->{$fName})){
+						$rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
+						$count = strlen(substr(strrchr($rows[$id]->{$fName}, $decPoint), 1));
 						
 						$padCount = $optDecimals - $count;
 						
 						if($count === 1){
-							$rows[$id]->$fName .= "0";
+							$rows[$id]->{$fName} .= "0";
 							$padCount--;
 						}
 						
 						$padString = '';
-						if((strpos($rows[$id]->$fName, $decPoint) === FALSE) && $optDecimals != 0){
-							$rows[$id]->$fName .= "{$decPoint}00";
+						if((strpos($rows[$id]->{$fName}, $decPoint) === FALSE) && $optDecimals != 0){
+							$rows[$id]->{$fName} .= "{$decPoint}00";
 							$padCount -= 2;
 						}
 						
@@ -92,7 +92,7 @@ class plg_AlignDecimals2 extends core_Plugin
 						
 						$repeatString = "0";
 						if($padCount > 0){
-							$count2 = strlen(substr(strrchr($rows[$id]->$fName, $decPoint), 1));
+							$count2 = strlen(substr(strrchr($rows[$id]->{$fName}, $decPoint), 1));
 							$repeatString = ($count2 >= $minShowDigits) ? "<span style='visibility:hidden;'>{$repeatString}</span>" : "0";
 						}
 						
@@ -100,7 +100,7 @@ class plg_AlignDecimals2 extends core_Plugin
 							$padString .= str_repeat($repeatString, $padCount);
 						}
 						
-						$rows[$id]->$fName .= $padString;
+						$rows[$id]->{$fName} .= $padString;
 						
 						if($optDecimals != 4){
 							// Хак за правилно показване
