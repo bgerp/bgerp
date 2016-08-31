@@ -372,7 +372,7 @@ class hr_WorkingCycles extends core_Master
                     }
                 }
             }
- 
+        
             return (object) array('year'=>$year,
                 'month'=>$month,
                 'd'=>$d,
@@ -450,7 +450,7 @@ class hr_WorkingCycles extends core_Master
             $tpl->append($calendar, 'calendar');
         }
         
-        for($j = 0; $j <= 4; $j++){
+        for($j = 0; $j <= 7; $j++){
             for($i = 1; $i <= $prepareRecs->lastDay; $i++){ 
                 if($prepareRecs->d[$i]->type == '0' && '0' == $j){
                     $tpl->append(' rest', "shift{$j}");
@@ -462,6 +462,12 @@ class hr_WorkingCycles extends core_Master
                     $tpl->append(' third', "shift{$j}");
                 } elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
                     $tpl->append(' diurnal', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '5' && '5' == $j){
+                    $tpl->append(' leave', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '6' && '6' == $j){
+                    $tpl->append(' sick', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '7' && '7' == $j){
+                    $tpl->append(' traveling', "shift{$j}");
                 }
             }
         }
