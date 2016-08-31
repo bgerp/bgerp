@@ -417,18 +417,20 @@ class unit_MinkPSales extends core_Manager {
     }
        
     /**
-    * Продажба - освободено от ДДС
+    * Продажба EUR - освободена от ДДС
     */
          
-    //http://localhost/unit_MinkPSales/CreateSaleVatFree/
-    function act_CreateSaleVatFree()
+    //http://localhost/unit_MinkPSales/CreateSaleEURVatFree/
+    function act_CreateSaleEURVatFree()
     {
         // Логване
         $browser = $this->SetUp();
         
-        //Отваряне папката на фирмата
-         $browser = $this->SetFirm();
-        
+        //Избор на фирмата и отваряне на папката
+         $browser->click('Визитник');
+         $Company = "NEW INTERNATIONAL GMBH";
+         $browser->click($Company);
+         $browser->press('Папка');
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -443,8 +445,8 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatFree');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-        //$browser->setValue('chargeVat', "Освободено от ДДС");
-        $browser->setValue('chargeVat', "Без начисляване на ДДС");
+        $browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         // Записване черновата на продажбата
         $browser->press('Чернова');
         
@@ -474,7 +476,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна отстъпка";
         }
-        if(strpos($browser->gettext(), 'Тридесет и три BGN и 0,19')) {
+        if(strpos($browser->gettext(), 'Thirty-three EUR and 0,19')) {
         } else {
             return "Грешна обща сума";
         }    
@@ -484,8 +486,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('template', 'Експедиционно нареждане с цени');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
-        // връща грешка, ако не е избрано ЕН с цени
+        if(strpos($browser->gettext(), 'Двадесет и три EUR и 0,18')) {
         } else {
             return "Грешна сума в ЕН";
         }
@@ -497,12 +498,13 @@ class unit_MinkPSales extends core_Manager {
         
         // Фактура
         $browser->press('Фактура');
-        //bp($browser->gettext());
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
-        //////Не работи!
-        return $browser->getHtml();
         $browser->press('Чернова');
         $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа: 64,91 BGN')) {
+        } else {
+            return "Грешна данъчна основа във фактурата";
+        }
         
         // ПКО
         $browser->press('ПКО');
@@ -523,7 +525,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Не')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
         }
@@ -602,7 +604,7 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - сума
         $browser->press('Известие');
         $browser->setValue('changeAmount', '-22.36');
-        return $browser->getHtml();
+        //return $browser->getHtml();
         $browser->press('Чернова');
        
         $browser->press('Контиране');
@@ -755,7 +757,7 @@ class unit_MinkPSales extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'BGN 887,86')) {
+        if(strpos($browser->gettext(), 'Авансово: BGN 887,86')) {
         } else {
             return "Грешно авансово плащане";
         }
@@ -883,7 +885,7 @@ class unit_MinkPSales extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '240')) {
+        if(strpos($browser->gettext(), 'Авансово: BGN 240,00')) {
         } else {
             return "Грешно авансово плащане";
         }
