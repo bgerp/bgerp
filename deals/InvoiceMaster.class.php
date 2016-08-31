@@ -745,10 +745,12 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	
-    	if(!$firstDoc->isInstanceOf('findeals_AdvanceDeals')){
-    		if (!empty($rec->folderId)) {
-    			$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    			$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+    	if($firstDoc){
+    		if(!$firstDoc->isInstanceOf('findeals_AdvanceDeals')){
+    			if (!empty($rec->folderId)) {
+    				$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+    				$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+    			}
     		}
     	}
     	
