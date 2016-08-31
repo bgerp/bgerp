@@ -43,7 +43,7 @@ class hr_CustomSchedules extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing';
+    var $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper,  plg_Printing';
     
     
     /**
@@ -84,7 +84,7 @@ class hr_CustomSchedules extends core_Master
     /**
      * Полетата, които ще се показват в листов изглед
      */
-    var $listFields = 'id,date,str=Структура / Служител,type=Вид / Документ,start,duration,break';
+    var $listFields = 'date,str=Структура / Служител,type=Вид / Документ,start,duration,break';
     
     
     /**
