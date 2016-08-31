@@ -78,6 +78,16 @@ function initElements() {
 }
 
 
+/**
+ * Пренаписване на функция, която извиква подготвянето на setThreadElemWidth и setMaxWidth
+ * Може да се комбинира с efae
+ */
+function render_setThreadElemWidth() {
+	setThreadElemWidth();
+	setMaxWidth();
+}
+
+
 function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;

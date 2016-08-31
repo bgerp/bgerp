@@ -41,8 +41,13 @@ class core_Math
             $significantDigits = $conf->EF_ROUND_SIGNIFICANT_DIGITS;
         }
 	    
+        $r = 0;
+        if ($number) {
+            $r = log10(abs($number));
+        }
+        
 	    // Плаваща, лимитирана от долу прецизност
-	    $precision =  max($fractionalLen, round($significantDigits - log10(abs($number))));
+	    $precision =  max($fractionalLen, round($significantDigits - $r));
 		
 	    // Закръгляваме
 	    $number = round($number, $precision);

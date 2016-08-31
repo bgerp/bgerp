@@ -1149,7 +1149,7 @@ class cat_Boms extends core_Master
     			}
     		} else {
     			// Ако не е търсим най-подходящата цена за рецептата
-    			$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+    			$price = self::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
     		}
     		
     		// Записваме намерената цена
@@ -1188,7 +1188,7 @@ class cat_Boms extends core_Master
     		while($dRec = $query->fetch()){
     			
     			// Опитваме се да намерим цената му
-    			$dRec->primeCost = static::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
+    			$dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
     			
     			// Ако няма цена връщаме FALSE
     			if($dRec->primeCost === FALSE){
@@ -1287,7 +1287,7 @@ class cat_Boms extends core_Master
     			self::pushParams($params, $pushParams);
     			
     			// Опитваме се да намерим себестойността за основното количество
-    			$rowCost1 = static::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
+    			$rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
     			
     			// Ако няма връщаме FALSE
     			if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
@@ -1296,13 +1296,13 @@ class cat_Boms extends core_Master
     			if($minDelta != $maxDelta){
     				
     				$params['$T'] = $t1;
-    				$rowCost1 = static::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
+    				$rowCost1 = self::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
     				
     				if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost1 += $rowCost1;
     					
     				$params['$T'] = $t2;
-    				$rowCost2 = static::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
+    				$rowCost2 = self::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
     				if($rowCost2 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost2 += $rowCost2;
     				
@@ -1448,8 +1448,6 @@ class cat_Boms extends core_Master
     			if($quantityS == cat_BomDetails::CALC_ERROR){
     				$quantityS = 0;
     			}
-    			
-    			$quantityS = $quantityS;
     			
     			$place = ($cRec->type == 'pop') ? 'waste' : 'input';
     			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);

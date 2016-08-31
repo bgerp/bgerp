@@ -112,15 +112,15 @@ class acc_type_Account extends type_Key
                 foreach (range(0, 2) as $i){
                 	$fld = "groupId" . ($i + 1);
                 	
-                	if(isset($arr[$i]) && $arr[$i] != 'none' && !isset($rec->$fld)){
+                	if(isset($arr[$i]) && $arr[$i] != 'none' && !isset($rec->{$fld})){
                 		unset($suggestions[$id]);
                 		break;
                 	}
                 	
-                	if(empty($rec->$fld)) continue;
+                	if(empty($rec->{$fld})) continue;
                 	
                 	// Ако има аналитичност, се извлича интерфейса, който поддържа
-                	$listIntf = acc_Lists::fetchField($rec->$fld, 'regInterfaceId');
+                	$listIntf = acc_Lists::fetchField($rec->{$fld}, 'regInterfaceId');
                 	
                 	if($listIntf != $arr[$i]){
                 		unset($suggestions[$id]);

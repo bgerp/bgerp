@@ -127,7 +127,7 @@ class plg_State2 extends core_Plugin
                 $row->state = ht::createLink($rec->state == $this->activeState ? $cancel : $add ,
                     array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
                     NULL,
-                    array('title' => $rec->state == $this->activeState ? 'Скриване' : 'Показване'));
+                    array('title' => $rec->state == $this->activeState ? 'Деактивиране' : 'Активиране'));
             
                 $row->state = ht::createElement('div',
                     array('style' => "text-align:center;"), $row->state);
@@ -137,9 +137,9 @@ class plg_State2 extends core_Plugin
                 $singleTitle = mb_strtolower($singleTitle);
                 
                 if($rec->state == $this->activeState) {
-                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb_off.png,title=Деактивиране на|* {$singleTitle}");
+                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle}");
                 } else {
-                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb.png,title=Активиране на|* {$singleTitle}");
+                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle}");
                 }
 
             }

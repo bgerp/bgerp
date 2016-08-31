@@ -569,7 +569,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
                     } elseif(count($cmd) == 3 ) {
                         $tag->attr['d'] .= " {$cmdName}{$cmd[1]},{$cmd[2]}";  
                     } elseif(count($cmd) == 1 ) {
-                        $tag->attr['d'] .= " {$cmdName}}";
+                        $tag->attr['d'] .= " {$cmdName}";
                     }
                 }
             }

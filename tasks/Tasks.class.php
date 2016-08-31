@@ -154,12 +154,12 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)',
-    			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
+    			'caption=Времена->Начало, changable, tdClass=leftColImportant,formOrder=101');
     	$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
     	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
-    	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'silent,input=hidden,caption=Очаквано начало');
+    	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
     	
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
     	
@@ -215,8 +215,8 @@ class tasks_Tasks extends embed_Manager
     	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
-    		$expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
-    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($expectedTimeEnd);
+    		$rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
+    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
     	}
     	
     	if($rec->originId){

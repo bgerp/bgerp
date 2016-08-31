@@ -656,8 +656,13 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	
     	$selfValueLabor = planning_ObjectResources::getSelfValue($resource604, 1, $this->periodRec->end);
     	
-    	@$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
-    	@$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;
+    	if(!empty($selfValueLabor)){
+    		$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
+    		$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;
+    	} else {
+    		$rec604->blQuantity = 0;
+    		$rec605->blQuantity = 0;
+    	}
     	
     	if(round($rec604->blAmount, 2) != 0){
     		$entries[] = array('amount' => abs($rec604->blAmount),

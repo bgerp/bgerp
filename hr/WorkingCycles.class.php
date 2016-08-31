@@ -204,22 +204,30 @@ class hr_WorkingCycles extends core_Master
         expect($data->masterId); 
         $shift = hr_Departments::fetchField($data->masterId, 'schedule');
         
-        if(isset($data->masterData->rec)) {
+        $customScheQuery = hr_CustomSchedules::getQuery();
+        $custom = array();
+        
+        if($data->Cycles) {
+            $customScheQuery->where("#personId = {$data->Cycles->personId} AND #personId IS NOT NULL");
+            
+            $shift = hr_Departments::fetchField($data->Cycles->masterId, 'schedule');
+            $startingOn = hr_Departments::fetchField($data->Cycles->masterId, 'startingOn');
+            $name = hr_Departments::fetchField($data->Cycles->masterId, 'name');
             
         } else {
-            $customScheQuery = hr_CustomSchedules::getQuery();
             $customScheQuery->where("#departmenId = {$data->masterId}");
         
-            $custom = array();
-            while($customRec = $customScheQuery->fetch()) {
-                $custom[] = (object) $customRec;
-            }
-        }
-  
-        if($shift){
-            $name = hr_Departments::fetchField($data->masterId, 'name');
+            $shift = hr_Departments::fetchField($data->masterId, 'schedule');
             $startingOn = hr_Departments::fetchField($data->masterId, 'startingOn');
-            
+            $name = hr_Departments::fetchField($data->masterId, 'name');
+        }
+        
+        while($customRec = $customScheQuery->fetch()) {
+            $custom[] = (object) $customRec;
+        }
+
+        if($shift){ 
+
             $state = self::getQuery();
             $state->where("#id='{$shift}'");
             $cycleDetails = $state->fetch();
@@ -279,7 +287,7 @@ class hr_WorkingCycles extends core_Master
                 $d[$i] = new stdClass();
                 
                 $start = explode("-", $startingOn);
-                
+     
                 if($month < $start[1] && $year == $start[0]) {
                     $d[$i]->html = "";
                 } else { 
@@ -304,61 +312,67 @@ class hr_WorkingCycles extends core_Master
             
             $data->TabCaption = tr('График');
             $month = str_pad($month, 2, ' ', STR_PAD_LEFT);
-            //bp($custom);
+  
             if(is_array($custom)) {
-         
+        
                 foreach($custom as $cRec) {
+                     
+                    if (isset($cRec->typeDepartmen)) {
+                        $typeDate = $cRec->typeDepartmen;
+                    } else {
+                        $typeDate = $cRec->typePerson;
+                    }
+
                     $dateTms = dt::mysql2timestamp($cRec->date);
                      
                     $cYear = date('Y', $dateTms);
                     $cMonth = date('m', $dateTms);
                     $cDay = date('d', $dateTms);
-     
-                    if ($start[0] >= $year) {
-                        if ($month == $cMonth) {
-                            if ($d[$cDay]) {
-                                switch ($cRec->typeDate) {
-                                    case 'working':
-                                        $day = hr_WorkingCycleDetails::getWorkingShiftType($cRec->start, $cRec->duration);
-                                        $hour = gmdate("H:i", $cRec->start);
+        
+                    if ($month == $cMonth) {
+                        if ($d[$cDay]) {
+                            switch ($typeDate) {
+                  
+                                case 'working':
+                                    $day = hr_WorkingCycleDetails::getWorkingShiftType($cRec->start, $cRec->duration);
+                                    $hour = gmdate("H:i", $cRec->start);
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[$day] .  "   " .  $hour . "</span>";
-                                        $d[$cDay]->type =  $day;
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[$day] .  "   " .  $hour . "</span>";
+                                    $d[$cDay]->type =  $day;
                                         
-                                        break;
+                                    break;
                                         
-                                    case 'nonworking':
+                                case 'nonworking':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[0] . "</span>";
-                                        $d[$cDay]->type = "0";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[0] . "</span>";
+                                    $d[$cDay]->type = "0";
 
-                                        break;
+                                    break;
                                         
-                                    case 'leave':
+                                case 'leave':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[5] . "</span>";
-                                        $d[$cDay]->type = "5";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[5] . "</span>";
+                                    $d[$cDay]->type = "5";
                                         
-                                        break;
-                                    case 'traveling':
+                                    break;
+                                case 'traveling':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[6] . "</span>";
-                                        $d[$cDay]->type = "6";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[6] . "</span>";
+                                    $d[$cDay]->type = "6";
                                         
-                                        break;
-                                    case 'sicDay':
+                                    break;
+                                case 'sicDay':
                                         
-                                        $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[7] . "</span>";
-                                        $d[$cDay]->type = "7";
+                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[7] . "</span>";
+                                    $d[$cDay]->type = "7";
                                         
-                                        break;
-                                } 
-                            }
+                                    break;
+                            } 
                         }
                     }
                 }
             }
-
+ 
             return (object) array('year'=>$year,
                 'month'=>$month,
                 'd'=>$d,
@@ -385,7 +399,7 @@ class hr_WorkingCycles extends core_Master
     function renderGrafic($data)
     {
         $prepareRecs = static::prepareGrafic($data);
-        
+  
         $tpl = new ET(getTplFromFile('hr/tpl/SingleLayoutShift.shtml'));
         $tpl->push('hr/tpl/style.css', 'CSS');
         
@@ -529,7 +543,7 @@ class hr_WorkingCycles extends core_Master
         
         // Намираме кога започва графика
         $startingOn = hr_Departments::fetchField($masterId, 'startingOn');
-        
+       
         $curDate = $leaveFrom;
         
         // От началната дата до крайната, проверяваме всеки ден

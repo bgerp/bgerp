@@ -44,11 +44,17 @@ class select2_Plugin extends core_Plugin
      */
     protected static $minItems = 1;
     
+
+    /**
+     * Броя на опциите, преди обработка
+     */
+    protected static $suggCnt = NULL;
+    
     
     /**
      * Изпълнява се преди рендирането на input
      * 
-     * @param core_Type $invoker
+     * @param type_Keylist $invoker
      * @param core_ET $tpl
      * @param string $name
      * @param string|array|NULL $value
@@ -67,13 +73,65 @@ class select2_Plugin extends core_Plugin
         }
         
         ht::setUniqId($attr);
+        
+        if (!isset($invoker->suggestions)) {
+            $invoker->prepareSuggestions();
+            
+            if (!$invoker->suggestions && isset($invoker->options)) {
+                $invoker->suggestions = $invoker->options;
+            }
+        }
+        
+        self::$suggCnt = count($invoker->suggestions);
+        
+        $maxSuggestions = $invoker->getMaxSuggestions();
+        
+        // Ако няма да се показват всички възможност стойности, а ще се извличат по AJAX
+        if (self::$suggCnt > $maxSuggestions) {
+            
+            // Подготвяме опциите за кеширане
+            self::setHandler($invoker, $value);
+            $cSugg = self::prepareSuggestionsForCache($invoker);
+            core_Cache::set('keylist', $invoker->handler, $cSugg, 20, $invoker->params['mvc']);
+            
+            // Ако има избрани стойности, винаги да са включени в опциите и да се показват най-отгоре
+            $sValArr = array();
+            if (isset($value)) {
+                
+                $vArr = $invoker->toArray($value);
+                
+                foreach ($vArr as $v) {
+                    $sValArr[$v] = $invoker->suggestions[$v];
+                    unset($invoker->suggestions[$v]);
+                }
+            }
+            
+            // Опитваме се да покажем толкова на брой опции, колкото са зададени
+            $rSugg = $maxSuggestions - count($sValArr);
+                        
+            if ($rSugg <= 0) {
+                $rSugg = $maxSuggestions;
+            }
+            
+            $invoker->suggestions = array_slice($invoker->suggestions, 0, $rSugg, TRUE);
+            
+            // Ако последният елемент е група, премахваме от списъка
+            $endElement = end($invoker->suggestions);
+            if ($rSugg > 2 && is_object($endElement) && $endElement->group) {
+                array_pop($invoker->suggestions);
+            }
+            
+            if (!empty($sValArr)) {
+                $invoker->suggestions = $sValArr + $invoker->suggestions;
+            }
+        }
     }
     
     
     /**
      * Изпълнява се след рендирането на input
      * 
-     * @param core_Type $invoker
+     * @param type_Keylist $invoker
      * @param core_ET $tpl
      * @param string $name
      * @param string|array|NULL $value
@@ -85,12 +143,16 @@ class select2_Plugin extends core_Plugin
         
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
     	
-        if (!is_null($invoker->suggestions)) {
-            $cnt = count($invoker->suggestions);
-            $optArr = $invoker->suggestions;
-        } else {
-            $cnt = count($invoker->options);
-            $optArr = $invoker->options;
+        $optArr = isset($invoker->suggestions) ? $invoker->suggestions : $invoker->options;
+        
+        $cnt = self::$suggCnt;
+        
+        if (!isset($cnt)) {
+            if (isset($invoker->suggestions)) {
+                $cnt = count($invoker->suggestions);
+            } else {
+                $cnt = count($invoker->options);
+            }
         }
         
         // Ако нямаме JS или има много малко предложения - не правим нищо
@@ -181,10 +243,59 @@ class select2_Plugin extends core_Plugin
             }
         }
         
+        $maxSuggestions = $invoker->getMaxSuggestions();
+        
+        $ajaxUrl = '';
+        
+        if ($cnt > $maxSuggestions) {
+            
+            self::setHandler($invoker, $value);
+            
+            $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
+        }
+        
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, NULL, $ajaxUrl);
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Задава манипулатор, който ще се използва за кеширане
+     * 
+     * @param type_Keylist $invoker
+     * @param string|array|NULL $val
+     */
+    protected static function setHandler(&$invoker, $val)
+    {
+        if (isset($invoker->handler)) return ;
+        
+        $invoker->handler = md5(serialize($invoker->suggestions) . '|' . serialize($val));
+    }
+    
+    
+    /**
+     * Подготвяме опциите за кеширане
+     * Нормализира текста, в който ще се търси
+     * 
+     * @param type_Keylist $invoker
+     */
+    protected static function prepareSuggestionsForCache(&$invoker)
+    {
+        $newSugg = array();
+        foreach ($invoker->suggestions as $key => $sugg) {
+            if (is_object($sugg)) {
+                $suggV = $sugg->title;
+            } else {
+                $suggV = $sugg;
+            }
+            
+            $newSugg[$key]['id'] = trim(preg_replace('/[^a-z0-9\*]+/', ' ', strtolower(str::utf2ascii($suggV))));
+            $newSugg[$key]['title'] = $sugg;
+        }
+        
+        return serialize($newSugg);
     }
     
     
@@ -222,5 +333,44 @@ class select2_Plugin extends core_Plugin
             
             return FALSE;
         }
+    }
+   
+   
+    /**
+     * Връща максималния брой на опциите, които може да се избере
+     * 
+     * @param type_Key $invoker
+     * @param integer|NULL $res
+     */
+    function on_AfterGetMaxSuggestions($invoker, &$res)
+    {
+        setIfNot($res, $invoker->params['maxSuggestions'], core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', TRUE), 1000);
+    }
+    
+    
+    /**
+    * Отпечатва резултата от опциите в JSON формат
+    * 
+    * @param type_Key $invoker
+    * @param string|NULL|core_ET $res
+    * @param string $action
+    */
+    function on_BeforeAction($invoker, &$res, $action)
+    {
+        if ($action != 'getoptions') return ;
+        
+        if (!Request::get('ajax_mode')) return ;
+        $hnd = Request::get('hnd');
+        
+        $maxSuggestions = Request::get('maxSugg', 'int');
+        if (!$maxSuggestions) {
+            $maxSuggestions = $invoker->getMaxSuggestions();
+        }
+        
+        $q = Request::get('q');
+        
+        select2_Adapter::getAjaxRes('keylist', $hnd, $q, $maxSuggestions);
+        
+        return FALSE;
     }
 }

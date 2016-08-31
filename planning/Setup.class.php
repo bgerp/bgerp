@@ -7,6 +7,42 @@ defIfNot('PLANNING_TASK_SERIAL_COUNTER', 1000);
 
 
 /**
+ * Тип на дефолтния брояч за етикета на задачата за производство
+ */
+defIfNot('PLANNING_TASK_LABEL_COUNTER_SHOWING', 'barcodeAndStr');
+
+
+/**
+ * Клас на дефолтния брояч
+*/
+defIfNot('PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE', 'code128');
+
+
+/**
+ * Съотношение на дефолтния броян
+*/
+defIfNot('PLANNING_TASK_LABEL_RATIO', 4);
+
+
+/**
+ * Широчина на дефолтния
+*/
+defIfNot('PLANNING_TASK_LABEL_WIDTH', 160);
+
+
+/**
+ * Височина
+*/
+defIfNot('PLANNING_TASK_LABEL_HEIGHT', 60);
+
+
+/**
+ * Ротация на баркода
+*/
+defIfNot('PLANNING_TASK_LABEL_ROTATION', 'yes');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -55,7 +91,13 @@ class planning_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'PLANNING_TASK_SERIAL_COUNTER'   => array ('int', 'caption=Задачи->Стартов сериен номер'),
+    		'PLANNING_TASK_SERIAL_COUNTER'             => array ('int', 'caption=Задачи->Стартов сериен номер'),
+    		'PLANNING_TASK_LABEL_COUNTER_SHOWING'      => array('enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'caption=Шаблон за етикети на задачите->Показване'),
+    		'PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE' => array('varchar', 'caption=Шаблон за етикети на задачите->Тип баркод,optionsFunc=barcode_Generator::getAllowedBarcodeTypesArr'),
+    		'PLANNING_TASK_LABEL_RATIO'                => array('enum(1=1,2=2,3=3,4=4)', 'caption=Шаблон за етикети на задачите->Съотношение'),
+    		'PLANNING_TASK_LABEL_WIDTH'                => array('int(min=1, max=5000)', 'caption=Шаблон за етикети на задачите->Широчина,unit=px'),
+    		'PLANNING_TASK_LABEL_HEIGHT'               => array('int(min=1, max=5000)', 'caption=Шаблон за етикети на задачите->Височина,unit=px'),
+    		'PLANNING_TASK_LABEL_ROTATION'             => array('enum(yes=Да, no=Не)', 'caption=Шаблон за етикети на задачите->Ротация'),
     		);
     
     /**

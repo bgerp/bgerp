@@ -26,8 +26,8 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  6.".$this->act_CreateSaleVatInclude();
         ////$res .= "  7.".$this->act_CreateSaleVatFree();
         $res .= "  8.".$this->act_CreateCreditDebitInvoice();
-        $res .= "  9.".$this->act_CreateSaleAdvancePayment();
-        
+        $res .= "  9.".$this->act_CreateSaleAdvancePaymentInclVAT();
+        $res .= "  10.".$this->act_CreateSaleAdvancePayment();
         return $res;
     }
        
@@ -602,7 +602,9 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - сума
         $browser->press('Известие');
         $browser->setValue('changeAmount', '-22.36');
+        return $browser->getHtml();
         $browser->press('Чернова');
+       
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Минус двадесет и шест BGN и 0,83')) {
         } else {
@@ -669,12 +671,12 @@ class unit_MinkPSales extends core_Manager {
     }  
     
     /**
-     * Продажба - схема с авансово плащане
+     * Продажба - схема с авансово плащане, Включено ДДС в цените
      * Проверка състояние чакащо плащане - не (платено)
      */
      
-    //http://localhost/unit_MinkPSales/CreateSaleAdvancePayment/
-    function act_CreateSaleAdvancePayment()
+    //http://localhost/unit_MinkPSales/CreateSaleAdvancePaymentInclVAT/
+    function act_CreateSaleAdvancePaymentInclVAT()
     {
     
         // Логваме се
@@ -699,7 +701,7 @@ class unit_MinkPSales extends core_Manager {
     
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPAdvancePayment');
+        $browser->setValue('note', 'MinkPAdvancePaymentInclVAT');
         $browser->setValue('paymentMethodId', "20% авансово и 80% преди експедиция");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
          
@@ -827,5 +829,122 @@ class unit_MinkPSales extends core_Manager {
             return "Грешно чакащо плащане";
         }
         //return $browser->getHtml();
+    }
+    
+    /**
+     * Продажба - схема с авансово плащане, отделно ДДС
+     * НЕ РАБОТИ ДОБРЕ, СУМАТА ВЪВ ФАКТУРАТА ЗА АВАНС НЕ Е ВЯРНА
+     * Проверка състояние чакащо плащане - не (платено)
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateSaleAdvancePayment/
+    function act_CreateSaleAdvancePayment()
+    {
+    
+        // Логваме се
+        $browser = $this->SetUp();
+    
+        //Отваряме папката на фирмата
+        $browser = $this->SetFirm();
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+         
+        //$browser->hasText('Създаване на продажба');
+        $endhour=strtotime("+5 hours");
+        $enddate=strtotime("+1 Day");
+        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
+       
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPAdvancePayment');
+        $browser->setValue('paymentMethodId', "20% авансово и 80% преди експедиция");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+         
+        // Записваме черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяме нов артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '100');
+        $browser->setValue('packPrice', '10');
+        
+        // Записваме артикула
+        $browser->press('Запис');
+        // активираме продажбата
+        $browser->press('Активиране');
+        //return  $browser->getHtml();
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), '240')) {
+        } else {
+            return "Грешно авансово плащане";
+        }
+    
+        if(strpos($browser->gettext(), 'Хиляда и двеста BGN')) {
+        } else {
+            return "Грешна обща сума";
+        }
+         
+        // ПБД
+        $browser->press('ПБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->setValue('amountDeal', '240');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // Фактура
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        //return 'paymentType';
+        //$browser->setValue('paymentType', 'По банков път');
+        $browser->press('Контиране');
+
+        if(strpos($browser->gettext(), 'Двеста и четиридесет BGN')) {
+        } else {
+            return "Грешна сума във фактурата за аванс";
+        }
+       
+        // ПБД
+        $browser->press('ПБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->setValue('amountDeal', '960.00');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // експедиционно нареждане
+        $browser->press('Експедиране');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Експедиционно нареждане с цени');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+       
+        // Фактура
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), '-200,00')) {
+        } else {
+            return "Грешна сума за приспадане";
+        }
+         
+        // Приключване
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        //return  $browser->getHtml();
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        } else {
+            return "Грешно чакащо плащане";
+        }
+        return $browser->getHtml();
     }
 }

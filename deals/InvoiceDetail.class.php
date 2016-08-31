@@ -57,7 +57,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public static function setInvoiceDetailFields(&$mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул','tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory','tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,smartCenter,input=hidden');
 		$mvc->FLD('quantity', 'double', 'caption=Количество','tdClass=small-field,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
@@ -208,11 +208,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			foreach (array('Quantity' => 'quantity', 'Price' => 'packPrice', 'Amount' => 'amount') as $key => $fld){
 				if($rec->{"changed{$key}"} === TRUE){
 					$changed = TRUE;
-					if($rec->$fld < 0){ 
-						$row->$fld = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
-						$row->$fld = "<span style='color:red'>{$row->$fld}</span>";
-					} elseif($rec->$fld > 0){
-						$row->$fld = "<span style='color:green'>+{$row->$fld}</span>";
+					if($rec->{$fld} < 0){ 
+						$row->{$fld} = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
+						$row->{$fld} = "<span style='color:red'>{$row->{$fld}}</span>";
+					} elseif($rec->{$fld} > 0){
+						$row->{$fld} = "<span style='color:green'>+{$row->{$fld}}</span>";
 					}
 				}
 			}

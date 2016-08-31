@@ -122,10 +122,10 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 				// Проверяваме всички пера
 				$continue = TRUE;
 				foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent){
-					if(!empty($bRec->$ent)){
+					if(!empty($bRec->{$ent})){
 						
 						// Ако има поне едно затворено
-						if($itemsArr['items'][$bRec->$ent]->state == 'closed'){
+						if($itemsArr['items'][$bRec->{$ent}]->state == 'closed'){
 							$continue = FALSE;
 							break;
 						}

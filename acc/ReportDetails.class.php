@@ -171,7 +171,7 @@ class acc_ReportDetails extends core_Manager
         
         if(is_array($data->recs)) {
             foreach ($data->recs as $dRec){
-                @$dRec->blPrice = $dRec->blAmount / $dRec->blQuantity;
+                $dRec->blPrice = (!empty($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
                 
                 // На коя позиция се намира, перото на мастъра
                 $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
@@ -207,8 +207,8 @@ class acc_ReportDetails extends core_Manager
                 
                 // К-то и сумата се обръщат във вербален вид
                 foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld){
-                    $style = ($dRec->$fld < 0) ? "color:red" : "";
-                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
+                    $style = ($dRec->{$fld} < 0) ? "color:red" : "";
+                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->{$fld}) . "</span>";
                 }
                 
                 $row['amountRec'] = $dRec->blAmount;
