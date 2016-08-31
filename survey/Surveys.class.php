@@ -129,6 +129,7 @@ class survey_Surveys extends core_Master {
     	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,mandatory');
     	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory');
     	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
+      	$this->FLD('userBy', 'enum(browser=Браузър,ip=IP)', 'caption=Разграничаване на потребителите->Признак');
     }
     
     
