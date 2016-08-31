@@ -744,12 +744,11 @@ abstract class deals_InvoiceMaster extends core_Master
     protected static function beforeInvoiceSave($rec)
     {
     	if (!empty($rec->folderId)) {
-    			if(empty($rec->contragentClassId)){
-    				$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    			}
-    			if(empty($rec->contragentId)){
-    				$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-    			}
+    		if(empty($rec->contragentClassId)){
+    			$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+    		}
+    		if(empty($rec->contragentId)){
+    			$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
     		}
     	}
     	
