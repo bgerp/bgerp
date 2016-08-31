@@ -25,10 +25,10 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  5.".$this->act_SaleDiscount101();
         $res .= "  6.".$this->act_CreateSaleVatInclude();
         $res .= "  7.".$this->act_CreateSaleEURVatFree();
-        $res .= "  8.".$this->act_CreateSaleEURVatFree();
+        $res .= "  8.".$this->act_CreateSaleEURVatFreeAdv();
         $res .= "  9.".$this->act_CreateCreditDebitInvoice();
-        $res .= "  10.".$this->act_CreateSaleAdvancePaymentInclVAT();
-        $res .= "  11.".$this->act_CreateSaleAdvancePayment();
+        $res .= "  10.".$this->act_CreateSaleAdvPaymentInclVAT();
+        $res .= "  11.".$this->act_CreateSaleAdvPayment();
         return $res;
     }
        
@@ -777,8 +777,8 @@ class unit_MinkPSales extends core_Manager {
      * Проверка състояние чакащо плащане - не (платено)
      */
      
-    //http://localhost/unit_MinkPSales/CreateSaleAdvancePaymentInclVAT/
-    function act_CreateSaleAdvancePaymentInclVAT()
+    //http://localhost/unit_MinkPSales/CreateSaleAdvPaymentInclVAT/
+    function act_CreateSaleAdvPaymentInclVAT()
     {
     
         // Логваме се
@@ -935,12 +935,11 @@ class unit_MinkPSales extends core_Manager {
     
     /**
      * Продажба - схема с авансово плащане, отделно ДДС
-     * НЕ РАБОТИ ДОБРЕ, СУМАТА ВЪВ ФАКТУРАТА ЗА АВАНС НЕ Е ВЯРНА
      * Проверка състояние чакащо плащане - не (платено)
      */
      
-    //http://localhost/unit_MinkPSales/CreateSaleAdvancePayment/
-    function act_CreateSaleAdvancePayment()
+    //http://localhost/unit_MinkPSales/CreateSaleAdvPayment/
+    function act_CreateSaleAdvPayment()
     {
     
         // Логваме се
@@ -961,7 +960,6 @@ class unit_MinkPSales extends core_Manager {
         $endhour=strtotime("+5 hours");
         $enddate=strtotime("+1 Day");
         $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-       
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvancePayment');
@@ -1047,6 +1045,6 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешно чакащо плащане";
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
 }
