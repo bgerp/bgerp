@@ -174,7 +174,7 @@ class hr_Shifts extends core_Master
             
             $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . "</span>";
             $d[$i]->type = (string)static::getShiftDay($data->rec, $date);
-            bp($d);
+
             if($d[$i]->type == '0'){
                 $res->row->shift0 = ' rest';
             } elseif($d[$i]->type == '1'){
