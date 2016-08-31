@@ -405,12 +405,8 @@ class cad2_PdfCanvas extends cad2_Canvas {
      * Чертае път в PDF-а, според данните в елемента
      */
     function doPath($e)
-    {  
-        static $res1;
-
-        $res[$e->attr['stroke']] = self::hexToRgb($e->attr['stroke']);
- 
-        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => 'round', 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToRgb($e->attr['stroke'])));
+    {   
+        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => 'round', 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToCmyk($e->attr['stroke'])));
         
         $fillColor = array();
         
@@ -420,7 +416,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
             $fill = 'FD';  
  
             if(isset($e->attr['fill'])) {
-                $fillColor = self::hexToRgb($e->attr['fill']);
+                $fillColor = self::hexToCmyk($e->attr['fill']);
             }
             
             if($e->attr['fill-opacity']) {
@@ -528,6 +524,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
  
         $this->pdf->SetFont($font, $attr['font-weight'] == 'bold' ? 'B' : '', $attr['font-size']/4);
 
+        if($color = self::hexToCmyk($attr['text-color'])) {
+            $this->pdf->SetTextColorArray($color);
+        }
+
         $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text);
 
         if($e->rotation) {
@@ -605,5 +605,32 @@ class cad2_PdfCanvas extends cad2_Canvas {
         
         return TRUE;
     }
+
+
+
+    /**
+     * Преобразува hex цвят към CMYK
+     */
+    function hexToCmyk($hexColor)
+    {
+        $rgb = self::hexToRgb($hexColor);
+
+        if(!is_array($rgb)) return FALSE;
+
+        $r = $rgb[0];
+        $g = $rgb[1];
+        $b = $rgb[2];
+  
+        $cyan    = 255 - $r;
+        $magenta = 255 - $g;
+        $yellow  = 255 - $b;
+        $black   = min($cyan, $magenta, $yellow);
+        $cyan    = sDiv(($cyan - $black), (255 - $black)) * 255;
+        $magenta = sDiv(($magenta - $black), (255 - $black)) * 255;
+        $yellow  = sDiv(($yellow  - $black), (255 - $black)) * 255;
+      
+        return array($cyan/2.55, $magenta/2.55, $yellow/2.55, $black/2.55);
+    }
+
 
 }
