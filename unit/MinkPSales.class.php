@@ -24,10 +24,11 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  4.".$this->act_SaleDiscountMinus();
         $res .= "  5.".$this->act_SaleDiscount101();
         $res .= "  6.".$this->act_CreateSaleVatInclude();
-        ////$res .= "  7.".$this->act_CreateSaleVatFree();
-        $res .= "  8.".$this->act_CreateCreditDebitInvoice();
-        $res .= "  9.".$this->act_CreateSaleAdvancePaymentInclVAT();
-        $res .= "  10.".$this->act_CreateSaleAdvancePayment();
+        $res .= "  7.".$this->act_CreateSaleEURVatFree();
+        $res .= "  8.".$this->act_CreateSaleEURVatFree();
+        $res .= "  9.".$this->act_CreateCreditDebitInvoice();
+        $res .= "  10.".$this->act_CreateSaleAdvancePaymentInclVAT();
+        $res .= "  11.".$this->act_CreateSaleAdvancePayment();
         return $res;
     }
        
@@ -439,8 +440,6 @@ class unit_MinkPSales extends core_Manager {
             $browser->press('Продажба');
         }
         $enddate=strtotime("+2 Days");
-        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-        $browser->setValue('deliveryTime[t]', '10:30');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatFree');
@@ -520,6 +519,107 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         
+        // Приключване
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        } else {
+            return "Грешно чакащо плащане";
+        }
+        //return $browser->getHtml();
+    }
+    
+    /**
+     * Продажба EUR - освободена от ДДС, авансово пл.
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateSaleEURVatFreeAdv/
+    function act_CreateSaleEURVatFreeAdv()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Избор на фирмата и отваряне на папката
+        $browser->click('Визитник');
+        $Company = "NEW INTERNATIONAL GMBH";
+        $browser->click($Company);
+        $browser->press('Папка');
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+        $enddate=strtotime("+2 Days");
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleVatFree');
+        $browser->setValue('paymentMethodId', "100% авансово");
+        $browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '3');
+        $browser->setValue('packPrice', '1,123');
+        $browser->setValue('discount', 2);
+    
+        $browser->press('Запис');
+         
+        // активиране на продажбата
+        $browser->press('Активиране');
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Discount: EUR 0,07')) {
+        } else {
+            return "Грешна отстъпка";
+        }
+        if(strpos($browser->gettext(), 'Three EUR and 0,30')) {
+        } else {
+            return "Грешна обща сума";
+        }
+        // експедиционно нареждане
+        $browser->press('Експедиране');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Експедиционно нареждане с цени');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Словом: Три EUR и 0,30')) {
+        } else {
+            return "Грешна сума в ЕН";
+        }
+         
+        // Фактура
+        $browser->press('Фактура');
+        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа: 6,45 BGN')) {
+        } else {
+            return "Грешна данъчна основа във фактурата";
+        }
+    
+        // ПКО
+        $browser->press('ПКО');
+        $browser->setValue('depositor', 'Иван Петров');
+        $browser->setValue('amountDeal', '10');
+        $browser->setValue('peroCase', 'КАСА 1');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // ПБД
+        $browser->press('ПБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
         // Приключване
         $browser->press('Приключване');
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
