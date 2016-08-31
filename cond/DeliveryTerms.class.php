@@ -11,101 +11,84 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class cond_DeliveryTerms extends core_Master
 {
     
-    /**
-     * Старо име на класа
-     */
-	var $oldClassName = 'salecond_DeliveryTerms';
-	
-	
+    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, codeName, term, state';
+    public $listFields = 'codeName, term, state';
     
     
     /**
      * Поле в което ще се показва тулбара
      */
-    var $rowToolsSingleField = 'codeName';
-
-    /**
-     * 
-     * Полетата, които ще се показват в единичния изглед
-     */
-    var $singleFields = 'id, term, codeName, forSeller, forBuyer, transport';
-    
-    
-    /**
-     * Кой може да чете
-     */
-    var $canRead = 'ceo,cond';
+    public $rowToolsSingleField = 'codeName';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,cond';
+    public $canWrite = 'ceo,cond';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'ceo,cond';
+    public $canAdd = 'ceo,cond';
     
     
     /**
      * Кой може да променя
      */
-    var $canEdit = 'ceo,admin';
+    public $canEdit = 'ceo,cond';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'powerUser';
+	public $canList = 'ceo,cond';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'powerUser';
+	public $canSingle = 'ceo,cond';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Условия на доставка';
+    public $title = 'Условия на доставка';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Условие на доставка";
+    public $singleTitle = "Условие на доставка";
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/delivery.png';
+    public $singleIcon = 'img/16/delivery.png';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cond/tpl/SingleDeliveryTerms.shtml';
+    public $singleLayoutFile = 'cond/tpl/SingleDeliveryTerms.shtml';
     
     
     /**
@@ -118,6 +101,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('forSeller', 'text', 'caption=За продавача');
         $this->FLD('forBuyer', 'text', 'caption=За купувача');
         $this->FLD('transport', 'text', 'caption=Транспорт');
+        $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         
         $this->setDbUnique('codeName');
     }
@@ -126,7 +110,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cond/csv/DeliveryTerms.csv";
     	$fields = array( 

@@ -126,6 +126,14 @@ class type_Keylist extends core_Type {
     
     /**
      * Рендира HTML инпут поле
+     * 
+     * @param string $name
+     * @param string $value
+     * @param array|NULL $attr
+     * 
+     * @see core_Type::renderInput_()
+     * 
+     * @return core_ET
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
@@ -309,6 +317,8 @@ class type_Keylist extends core_Type {
 
     /**
      * Подготвя предложенията за списъка
+     * 
+     * @return array
      */
     public function prepareSuggestions()
     {
@@ -431,6 +441,12 @@ class type_Keylist extends core_Type {
     
     /**
      * Конвертира стойността от вербална към (int)  
+     * 
+     * @param mixed $verbalValue
+     * 
+     * @see core_Type::fromVerbal_()
+     * 
+     * @return mixed
      */
     function fromVerbal_($value)
     {
@@ -449,10 +465,16 @@ class type_Keylist extends core_Type {
     
     /**
      * Преобразува от масив с индекси ключовете към keylist
+     * 
+     * @param array $value
+     * 
+     * @return string
      */
     static function fromArray($value)
     {
-        if(count($value)) {
+        $res = '';
+        
+        if (is_array($value) && !empty($value)) {
 
             // Сортираме ключовете на масива, за да има
             // стринга винаги нормализиран вид - от по-малките към по-големите
@@ -468,6 +490,7 @@ class type_Keylist extends core_Type {
                 
                 $res .= "|" . $id;
             }
+            
             $res = $res . "|";
         }
         

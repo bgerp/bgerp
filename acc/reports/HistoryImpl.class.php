@@ -235,7 +235,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 		$innerState = &$this->innerState;
 		
 		foreach (array('baseAmount', 'baseQuantity', 'blQuantity', 'blAmount') as $fld){
-			unset($innerState->row->$fld);
+			unset($innerState->row->{$fld});
 		}
 		
 		unset($innerState->recs);
@@ -325,8 +325,8 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	        $dataRec[] = cls::get('acc_BalanceHistory')->getVerbalHistoryRow($rec);
 
 	        foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity','date', 'valior') as $fld){
-	            if(!is_null($dataRec[$id]->$fld)){ 
-	               $dataRec[$id]->$fld = $rec[$fld];
+	            if(!is_null($dataRec[$id]->{$fld})){ 
+	               $dataRec[$id]->{$fld} = $rec[$fld];
 	           }
 	        }
 

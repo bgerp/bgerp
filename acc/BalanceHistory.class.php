@@ -633,8 +633,8 @@ class acc_BalanceHistory extends core_Manager
         $details = $table->get($data->rows, $data->listFields);
         
         foreach (array('blQuantity', 'blAmount', 'midQuantity', 'midAmount') as $fld){
-            if($data->rec->$fld < 0){
-                $data->row->$fld = "<span style='color:red'>{$data->row->$fld}</span>";
+            if($data->rec->{$fld} < 0){
+                $data->row->{$fld} = "<span style='color:red'>{$data->row->{$fld}}</span>";
             }
         }
         

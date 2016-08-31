@@ -132,6 +132,10 @@ class core_Type extends core_BaseClass
     /**
      * Този метод трябва да конвертира от вербално към вътрешно
      * представяне дадената стойност
+     * 
+     * @param mixed $verbalValue
+     * 
+     * @return mixed
      */
     function fromVerbal_($verbalValue)
     {
@@ -142,6 +146,12 @@ class core_Type extends core_BaseClass
     /**
      * Този метод трябва генерира хHTML код, който да представлява
      * полето за въвеждане на конкретния формат информация
+     * 
+     * @param string $name
+     * @param string $value
+     * @param array|NULL $attr
+     * 
+     * @return core_ET
      */
     function renderInput_($name, $value = '', &$attr = array())
     {

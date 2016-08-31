@@ -133,8 +133,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		// Ако е известие и има поне един детайл обновяваме мастъра
     		$Detail = $mvc->mainDetail;
-    		$query = $mvc->$Detail->getQuery();
-    		$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+    		$query = $mvc->{$Detail}->getQuery();
+    		$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
     		if($query->fetch()){
     			$mvc->updateQueue[$rec->id] = $rec->id;
     		}
@@ -153,8 +153,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec = $this->fetchRec($id);
     	$Detail = $this->mainDetail;
     	
-    	$query = $this->$Detail->getQuery();
-    	$query->where("#{$this->$Detail->masterKey} = '{$rec->id}'");
+    	$query = $this->{$Detail}->getQuery();
+    	$query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
     	$recs = $query->fetchAll();
     	
     	if(count($recs)){
@@ -163,7 +163,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
-    	$this->$Detail->calculateAmount($recs, $rec);
+    	$this->{$Detail}->calculateAmount($recs, $rec);
     	
     	$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     	
@@ -293,8 +293,8 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate') as $key){
+    	
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount') as $key){
     		unset($invArr[$key]);
     	}
     
@@ -304,7 +304,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	// Копиране на повечето от полетата на фактурата
     	foreach($invArr as $field => $value){
-    		$form->rec->{$field} = $value;
+    		$form->setDefault($field, $value);
     	}
     	 
     	$form->setDefault('date', dt::today());
@@ -314,8 +314,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$form->setField('deliveryPlaceId', 'input=none');
     	$form->setField('displayRate', 'input=hidden');
     	
-    	foreach(array('contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
-    		if($form->rec->$name){
+    	foreach(array('contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress') as $name){
+    		if($form->rec->{$name}){
     			$form->setReadOnly($name);
     		}
     	}
@@ -440,8 +440,8 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	 
 	   	if($rec->type != 'dc_note'){
 	   		$Detail = $mvc->mainDetail;
-	   		$dQuery = $mvc->$Detail->getQuery();
-	   		$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
+	   		$dQuery = $mvc->{$Detail}->getQuery();
+	   		$dQuery->where("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
 	   		$dQuery->where("#quantity = 0");
 	   		 
 	   		// Ако има поне едно 0-во к-во документа, не може да се активира
@@ -743,6 +743,15 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function beforeInvoiceSave($rec)
     {
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	
+    	if(!$firstDoc->isInstanceOf('findeals_AdvanceDeals')){
+    		if (!empty($rec->folderId)) {
+    			$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+    			$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+    		}
+    	}
+    	
     	if($rec->state == 'active'){
     		 
     		if(empty($rec->place) && $rec->state == 'active'){
@@ -787,9 +796,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
     		
-    		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
-    		@$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($noVat / $rec->rate);
-    		@$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($rec->vatAmount / $rec->rate);
+    		$totalToVerbal = (!empty($rec->rate)) ? $total / $rec->rate : $total;
+    		$novatToVerbal = (!empty($rec->rate)) ? $noVat / $rec->rate : $noVat;
+    		$amountToVerbal = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
+    		
+    		$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($totalToVerbal);
+    		$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
+    		$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($amountToVerbal);
     		
     		if($total < 0){
     			$row->dealValue = "<span class='red'>{$row->dealValue}</span>";
@@ -1007,7 +1020,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$query = $Detail::getQuery();
     		
     		$count = 0;
-    		$query->where("#{$this->$Detail->masterKey} = '{$document->that}'");
+    		$query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
     		while($dRec = $query->fetch()){
     			$cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
     			$count++;

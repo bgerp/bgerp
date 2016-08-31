@@ -65,8 +65,13 @@ abstract class deals_Helper
 		$arr = array();
         
         // Конвертиране цените във валутата
-        @$arr['noVat'] = $price / $rate;
-		@$arr['withVat'] = ($price * (1 + $vat)) / $rate;
+        if(!empty($rate)){
+        	$arr['noVat'] = $price / $rate;
+        	$arr['withVat'] = ($price * (1 + $vat)) / $rate;
+        } else {
+        	$arr['noVat'] = $price;
+        	$arr['withVat'] = ($price * (1 + $vat));
+        }
 		
 		$arr['noVat'] = $arr['noVat'];
 		$arr['withVat'] = $arr['withVat'];
@@ -97,62 +102,62 @@ abstract class deals_Helper
 		$map = array_merge(self::$map, $map);
 	
 		// Дали трябва винаги да не се показва ддс-то към цената
-		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
+		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->{$map['chargeVat']} == 'yes') ? TRUE : FALSE);
 		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
 		$vats = array();
 		
 		// Обработваме всеки запис
 		foreach($recs as &$rec){
 			$vat = 0;
-			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-				$vat = cat_Products::getVat($rec->$map['productId'], $masterRec->$map['valior']);
+			if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
+				$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
 			}
 			
 			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
-			$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
+			$price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
+			$rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
 			
-			$noVatAmount = round($price->noVat * $rec->$map['quantityFld'], 2);
+			$noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, 2);
         	
-			if($rec->$map['discount']){
-				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->$map['discount']), 2);
+			if($rec->{$map['discount']}){
+				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
 				$withoutVatAndDisc = $noVatAmount;
 			}
 			
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
 			
-        	$rec->$map['amountFld'] = $noVatAmount;
-        	if($masterRec->$map['chargeVat'] == 'yes' && !$map['alwaysHideVat']){
-        		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + round($noVatAmount * $vat, 2), 2);
+        	$rec->{$map['amountFld']} = $noVatAmount;
+        	if($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']){
+        		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, 2), 2);
         	}
 
-        	if($rec->$map['discount']){
-        		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
+        	if($rec->{$map['discount']}){
+        		$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
         	}
         	
         	// Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
         	if($masterRec->type === 'dc_note'){
         		if($rec->changedQuantity === TRUE || $rec->changedPrice === TRUE){
         			
-        			$amountRow += $rec->$map['amountFld'];
+        			$amountRow += $rec->{$map['amountFld']};
         			$amount += $noVatAmount;
         			$amountVat += $vatRow;
         			 
         			$amountJournal += $withoutVatAndDisc;
-        			if($masterRec->$map['chargeVat'] == 'yes') {
+        			if($masterRec->{$map['chargeVat']} == 'yes') {
         				$amountJournal += $vatRow;
         			}
         		}
         	} else {
         		
         		// За всички останали събираме нормално
-        		$amountRow += $rec->$map['amountFld'];
+        		$amountRow += $rec->{$map['amountFld']};
         		$amount += $noVatAmount;
         		$amountVat += $vatRow;
         		 
         		$amountJournal += $withoutVatAndDisc;
-        		if($masterRec->$map['chargeVat'] == 'yes') {
+        		if($masterRec->{$map['chargeVat']} == 'yes') {
         			$amountJournal += $vatRow;
         		}
         	}
@@ -347,7 +352,7 @@ abstract class deals_Helper
 	public static function getPurePrice($price, $vat, $rate, $chargeVat)
 	{
 		// Ако няма цена, но има такъв запис се взима цената от него
-	    if ($chargeVat == 'yes') {
+	    if ($chargeVat == 'yes' || $chargeVat == 'separate') {
 	         
 	    	 // Премахваме ДДС-то при нужда
 	         $price /= 1 + $vat;
@@ -579,8 +584,14 @@ abstract class deals_Helper
 		
 		if(count($combined)){
 			foreach ($combined as &$det){
-				@$det->price = $det->sumAmounts / ($det->quantity * (1 - $det->discount));
-				if($det->price < 0){
+				$delimiter = ($det->quantity * (1 - $det->discount));
+				if(!empty($delimiter)){
+					$det->price = $det->sumAmounts / $delimiter;
+					
+					if($det->price < 0){
+						$det->price = 0;
+					}
+				} else {
 					$det->price = 0;
 				}
 			}

@@ -20,10 +20,10 @@ class tcost_CostCalcIntf
     /**
      * Определяне на обемното тегло, на база на обема на товара
      * 
-     * @param    double  $weight    Тегло на товара
-     * @param    double  $volume    Обем  на товара
+     * @param double $weight  - Тегло на товара
+     * @param double $volume  - Обем  на товара
      *
-     * @return   double             Обемно тегло на товара  
+     * @return double         - Обемно тегло на товара  
      */
     public function getVolumicWeight($weight, $volume)
     {
@@ -34,17 +34,17 @@ class tcost_CostCalcIntf
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param   int     $fromCountry    id на страната на мястото на изпращане
-     * @param   string  $fromPCode      пощенски код на мястото на изпращане
-     * @param   int     $toCountry      id на страната на мястото за получаване
-     * @param   string  $toPCode        пощенски код на мястото за получаване
-     * @param   double  $totalWeight    Общо тегло на товара
-     * @param   double  $weight         Тегло за което искаме да изчислим цената
+     * @param int $productId         - ид на артикул
+     * @param int $totalWeight       - Общо тегло на товара
+     * @param int $toCountry         - id на страната на мястото за получаване
+     * @param string $toPostalCode   - пощенски код на мястото за получаване
+     * @param int $fromCountry       - id на страната на мястото за изпращане
+     * @param string $fromPostalCode - пощенски код на мястото за изпращане
      *
-     * @return double                   Цена, която ще бъде платена за $weight тегло
+     * @return double                - цена, която ще бъде платена за теглото на артикул
      */
-    function getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight = 1)
+    function getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
-        return $this->class->getTransportFee($fromCountry, $fromPCode, $toCountry, $toPCode, $totalWeight, $weight);
+        return $this->class->getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
     }
 }

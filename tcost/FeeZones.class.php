@@ -7,15 +7,22 @@
  *
  * @category  bgerp
  * @package   tcost
- * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @title 
  */
 class tcost_FeeZones extends core_Master
 {
 
 
+	/**
+	 * Поддържани интерфейси
+	 */
+	public $interfaces = 'tcost_CostCalcIntf';
+	
+	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
@@ -95,6 +102,14 @@ class tcost_FeeZones extends core_Master
 
 
     /**
+     * Константа, специфична за дадения режим на транспорт
+     * 
+     * @var double
+     */
+    const V2C = 0.5;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -102,7 +117,6 @@ class tcost_FeeZones extends core_Master
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
     }
-    
     
     
     /**
@@ -121,5 +135,62 @@ class tcost_FeeZones extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Определяне на обемното тегло, на база на обема на товара
+     *
+     * @param double $weight  - Тегло на товара
+     * @param double $volume  - Обем  на товара
+     *
+     * @return double         - Обемно тегло на товара
+     */
+    public function getVolumicWeight($weight, $volume)
+    {
+    	$volumicWeight = NULL;
+    	if(!empty($weight) || !empty($volume)){
+    		$volumicWeight = max($weight, $volume * self::V2C);
+    	}
+    	
+    	return $volumicWeight;
+    }
+    
+    
+    /**
+     * Определяне цената за транспорт при посочените параметри
+     *
+     * @param int $productId         - ид на артикул
+     * @param int $totalWeight       - Общо тегло на товара
+     * @param int $toCountry         - id на страната на мястото за получаване
+     * @param string $toPostalCode   - пощенски код на мястото за получаване
+     * @param int $fromCountry       - id на страната на мястото за изпращане
+     * @param string $fromPostalCode - пощенски код на мястото за изпращане
+     *
+     * @return double|NULL           - цена, която ще бъде платена за теглото на артикул, или NULL ако няма
+     */
+    function getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    {
+    	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
+    	if(empty($singleWeight)) return NULL;
+    	
+    	$feeArr = tcost_Fees::calcFee($toCountry, $toPostalCode, $totalWeight, $singleWeight);
+    	$fee = (isset($feeArr[1])) ? $feeArr[1] : 0;
+    	
+    	return $fee;
+    }
+    
+    
+    function act_Test()
+    {
+    	$productId = '1150';
+    	$totalWeight = 100;
+    	$toCountry = drdata_Countries::fetchField("#commonName = 'Germany'", 'id');
+    	$toPostalCode = '76479';
+    	$fromCountry = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	$fromPostalCode = '5000';
+    	 
+    	$r = self::getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
+    	bp($r);
     }
 }

@@ -285,8 +285,10 @@ class core_Users extends core_Manager
             
             // Ако е зададен ник
             if ($nick) {
-                $nick = strtolower($nick);
+                $nick = mb_strtolower($nick);
                 $query->where(array("LOWER(#nick) LIKE '[#1#]%'", $nick));
+                $query->orWhere(array("LOWER(#names) LIKE '[#1#]%'", $nick));
+                $query->orWhere(array("LOWER(#names) LIKE '% [#1#]%'", $nick));
             }
             
             // Ако е зададено ограничение

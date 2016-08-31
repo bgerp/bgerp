@@ -306,10 +306,10 @@ class acc_BalanceDetails extends core_Detail
         $data->summary = new stdClass();
         
         foreach ($arr as $param){
-            $data->summary->$param = $this->getFieldType($param)->toVerbal(${$param});
+            $data->summary->{$param} = $this->getFieldType($param)->toVerbal(${$param});
             
             if(${$param} < 0){
-                $data->summary->$param = "<span style='color:red'>{$data->summary->$param}</span>";
+                $data->summary->{$param} = "<span style='color:red'>{$data->summary->{$param}}</span>";
             }
         }
     }
@@ -483,19 +483,19 @@ class acc_BalanceDetails extends core_Detail
     		
     		// Групиране на данните
     		foreach (array('ent1Id', 'ent2Id', 'ent3Id', 'accountNum', 'balanceId') as $fld){
-    			$r->$fld = $rec1->$fld;
+    			$r->{$fld} = $rec1->{$fld};
     		}
     		 
     		// Събираме числовите данни
     		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    			if (!is_null($rec1->$fld)) {
-    				$r->$fld += $rec1->$fld;
+    			if (!is_null($rec1->{$fld})) {
+    				$r->{$fld} += $rec1->{$fld};
     			}
     		}
     		
     		foreach (array('grouping1', 'grouping2', 'grouping3') as $gr){
-    			if(isset($rec1->$gr)){
-    				$r->$gr = $rec1->$gr;
+    			if(isset($rec1->{$gr})){
+    				$r->{$gr} = $rec1->{$gr};
     			}
     		}
     	}
@@ -1026,7 +1026,11 @@ class acc_BalanceDetails extends core_Detail
     		if($rec->{$quantityField}){
     			
     			// Изчисляваме цената
-    			@$price = round($rec->amount / $rec->{$quantityField}, 10);
+    			if(!empty($rec->{$quantityField})){
+    				$price = round($rec->amount / $rec->{$quantityField}, 10);
+    			} else {
+    				$price = 0;
+    			}
     			
     			// Ако изчислената сума е различна от записаната в журнала
     			if(trim($rec->{$priceField}) != trim($price)){
@@ -1059,7 +1063,11 @@ class acc_BalanceDetails extends core_Detail
     									
     								// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
     								$rec->amount = $defCost * $rec->{$quantityField};
-    								@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    								if(!empty($rec->{$quantityField})){
+    									$price = round($rec->amount / $rec->{$quantityField}, 4);
+    								} else {
+    									$price = 0;
+    								}
     							}
     						}
     					}

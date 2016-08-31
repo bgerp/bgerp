@@ -502,8 +502,8 @@ class price_ListDocs extends core_Master
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
-    		if($rec->$priceFld){
-        		$row->{$priceFld} = $Double->toVerbal($rec->$priceFld);
+    		if($rec->{$priceFld}){
+        		$row->{$priceFld} = $Double->toVerbal($rec->{$priceFld});
         	}
     	}
         

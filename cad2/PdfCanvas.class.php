@@ -340,6 +340,11 @@ class cad2_PdfCanvas extends cad2_Canvas {
 
         // set default monospaced font
         $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+        // set default font subsetting mode
+        $this->pdf->setFontSubsetting(TRUE);
+
+        // set font
+        $this->pdf->SetFont('freeserif', '', 12);
 
         foreach($this->contents as $e) {
             $func = 'do' . $e->tag;
@@ -362,7 +367,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
 
         $res[$e->attr['stroke']] = self::hexToRgb($e->attr['stroke']);
  
-        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => 'butt', 'join' => 'miter', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToRgb($e->attr['stroke'])));
+        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => 'round', 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToRgb($e->attr['stroke'])));
         
         $fillColor = array();
         
@@ -441,7 +446,8 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $attr = $e->attr;
         
         list($font, ) = explode(',', $attr['font-family']);
-        $font = trim('helvetica');
+        
+        $font = trim('dejavusans');
  
         $this->pdf->SetFont($font, $attr['font-weight'] == 'bold' ? 'B' : '', $attr['font-size']/4);
 
