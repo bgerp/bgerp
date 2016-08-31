@@ -26,28 +26,28 @@
         </tr>
         <!--ET_BEGIN amountVatGroup1-->
         <tr>
-            <td> - |група|* "А"</td>
+            <td class='small'> - |група|* "А"</td>
             <td class='aright'>[#amountVatGroup1#]</td>
         </tr>
         <!--ET_END amountVatGroup1-->
         
         <!--ET_BEGIN amountVatGroup2-->
         <tr>
-            <td> - |група|* "Б"</td>
+            <td class='small'> - |група|* "Б"</td>
             <td class='aright'>[#amountVatGroup2#]</td>
         </tr>
         <!--ET_END amountVatGroup2-->
         
         <!--ET_BEGIN amountVatGroup3-->
         <tr>
-            <td> - |група|* "В"</td>
+            <td class='small'> - |група|* "В"</td>
             <td class='aright'>[#amountVatGroup3#]</td>
         </tr>
         <!--ET_END amountVatGroup3-->
         
         <!--ET_BEGIN amountVatGroup4-->
         <tr>
-            <td> - |група|* "Г"</td>
+            <td class='small'> - |група|* "Г"</td>
             <td class='aright'>[#amountVatGroup4#]</td>
         </tr>
         <!--ET_END amountVatGroup4-->
