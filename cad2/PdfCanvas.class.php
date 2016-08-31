@@ -231,7 +231,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
 	}
 
 
-	
+
 
     /**
      * Отваря нова група
@@ -250,10 +250,53 @@ class cad2_PdfCanvas extends cad2_Canvas {
 	public function closeGroup()
     {
         $this->closePath();
-        $e = (object) array('tag' => 'closeGroup', 'attr' => $attr);
+        $e = (object) array('tag' => 'closeGroup');
         $this->contents[] = $e;
 	}
-	
+
+
+    /**
+     * Отваря нова група
+     */
+    public function openTransform($attr = array())
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'openTransform', 'attr' => $attr);
+        $this->contents[] = $e;
+    }
+
+
+    /**
+     * Затваряне на група
+     */
+    public function closeTransform()
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'closeTransform');
+        $this->contents[] = $e;
+    }
+
+
+    /**
+     * Отваря нов слой
+     */
+    public function openLayer($attr = array())
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'openLayer', 'attr' => $attr);
+        $this->contents[] = $e;
+    }
+
+
+    /**
+     * Затваряне на слой
+     */
+    public function closeLayer()
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'closeLayer');
+        $this->contents[] = $e;
+    }
 	
 	/**
 	 * Отваря новa шарка
@@ -418,7 +461,6 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
     function doOpenGroup($e)
     {
-        $this->pdf->startLayer();
         $this->pdf->StartTransform();
     }
     
@@ -429,6 +471,41 @@ class cad2_PdfCanvas extends cad2_Canvas {
     function doCloseGroup($e)
     {   
        $this->pdf->StopTransform();
+    }
+
+
+    /**
+     * Отваря група
+     */
+    function doOpenTransform($e)
+    {
+        $this->pdf->StartTransform();
+    }
+
+
+    /**
+     *
+     */
+    function doCloseTransform($e)
+    {
+        $this->pdf->StopTransform();
+    }
+
+
+    /**
+     * Отваря група
+     */
+    function doOpenLayer($e)
+    {
+        $this->pdf->startLayer();
+    }
+
+
+    /**
+     *
+     */
+    function doCloseLayer($e)
+    {
         $this->pdf->endLayer();
     }
 
