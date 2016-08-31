@@ -442,9 +442,9 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Отваря нов слой
      */
-    public function openLayer($attr = array())
+    public function openLayer($name)
     {
-        return $this->openGroup($attr);
+        return $this->openGroup(array('name' => $name));
     }
 
 

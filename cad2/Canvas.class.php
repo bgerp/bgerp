@@ -101,7 +101,7 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Отваря нов слой
      */
-    abstract public function openLayer($attr = array());
+    abstract public function openLayer($name);
 
 
     /**

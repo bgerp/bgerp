@@ -280,10 +280,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
     /**
      * Отваря нов слой
      */
-    public function openLayer($attr = array())
+    public function openLayer($name)
     {
         $this->closePath();
-        $e = (object) array('tag' => 'openLayer', 'attr' => $attr);
+        $e = (object) array('tag' => 'openLayer', 'name' => $name);
         $this->contents[] = $e;
     }
 
@@ -497,7 +497,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
     function doOpenLayer($e)
     {
-        $this->pdf->startLayer();
+        $this->pdf->startLayer($e->name);
     }
 
 
