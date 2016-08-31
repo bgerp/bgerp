@@ -313,7 +313,7 @@ class hr_WorkingCycles extends core_Master
             $data->TabCaption = tr('График');
             $month = str_pad($month, 2, ' ', STR_PAD_LEFT);
   
-            if(is_array($custom)) {
+            if(is_array($custom)) { 
         
                 foreach($custom as $cRec) {
                      
@@ -328,43 +328,45 @@ class hr_WorkingCycles extends core_Master
                     $cYear = date('Y', $dateTms);
                     $cMonth = date('m', $dateTms);
                     $cDay = date('d', $dateTms);
-        
+                    
+                    $jDate = date('j', $dateTms);
+
                     if ($month == $cMonth) {
-                        if ($d[$cDay]) {
+                        if ($d[$jDate]) {
                             switch ($typeDate) {
                   
                                 case 'working':
                                     $day = hr_WorkingCycleDetails::getWorkingShiftType($cRec->start, $cRec->duration);
                                     $hour = gmdate("H:i", $cRec->start);
                                         
-                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[$day] .  "   " .  $hour . "</span>";
-                                    $d[$cDay]->type =  $day;
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[$day] .  "   " .  $hour . "</span>";
+                                    $d[$jDate]->type =  $day;
                                         
                                     break;
                                         
                                 case 'nonworking':
                                         
-                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[0] . "</span>";
-                                    $d[$cDay]->type = "0";
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[0] . "</span>";
+                                    $d[$jDate]->type = "0";
 
                                     break;
                                         
                                 case 'leave':
                                         
-                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[5] . "</span>";
-                                    $d[$cDay]->type = "5";
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[5] . "</span>";
+                                    $d[$jDate]->type = "5";
                                         
                                     break;
                                 case 'traveling':
                                         
-                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[6] . "</span>";
-                                    $d[$cDay]->type = "6";
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[7] . "</span>";
+                                    $d[$jDate]->type = "7";
                                         
                                     break;
                                 case 'sicDay':
                                         
-                                    $d[$cDay]->html = "<span style='float: left;'>" . self::$shiftMap[7] . "</span>";
-                                    $d[$cDay]->type = "7";
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[6] . "</span>";
+                                    $d[$jDate]->type = "6";
                                         
                                     break;
                             } 
@@ -372,7 +374,7 @@ class hr_WorkingCycles extends core_Master
                     }
                 }
             }
- 
+
             return (object) array('year'=>$year,
                 'month'=>$month,
                 'd'=>$d,
@@ -450,7 +452,7 @@ class hr_WorkingCycles extends core_Master
             $tpl->append($calendar, 'calendar');
         }
         
-        for($j = 0; $j <= 4; $j++){
+        for($j = 0; $j <= 7; $j++){
             for($i = 1; $i <= $prepareRecs->lastDay; $i++){ 
                 if($prepareRecs->d[$i]->type == '0' && '0' == $j){
                     $tpl->append(' rest', "shift{$j}");
@@ -462,6 +464,12 @@ class hr_WorkingCycles extends core_Master
                     $tpl->append(' third', "shift{$j}");
                 } elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
                     $tpl->append(' diurnal', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '5' && '5' == $j){
+                    $tpl->append(' leave', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '6' && '6' == $j){
+                    $tpl->append(' sick', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '7' && '7' == $j){
+                    $tpl->append(' traveling', "shift{$j}");
                 }
             }
         }

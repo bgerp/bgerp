@@ -1026,7 +1026,7 @@ class acc_BalanceDetails extends core_Detail
     		if($rec->{$quantityField}){
     			
     			// Изчисляваме цената
-    			if(!empty($rec->{$quantityField})){
+    			if(!empty(abs($rec->{$quantityField}))){
     				$price = round($rec->amount / $rec->{$quantityField}, 10);
     			} else {
     				$price = 0;

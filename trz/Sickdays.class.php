@@ -266,6 +266,7 @@ class trz_Sickdays extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateSickdaysToCalendar($rec->id);
+    	$mvc->updateSickdaysToCustomSchedules($rec->id);
     }
     
     /**
@@ -279,7 +280,7 @@ class trz_Sickdays extends core_Master
     }
     
     /**
-     * Обновява информацията за задачата в календара
+     * Обновява информацията за болничните в календара
      */
     public static function updateSickdaysToCalendar($id)
     {
@@ -343,6 +344,66 @@ class trz_Sickdays extends core_Master
     	}
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+    }
+    
+    
+    /**
+     * Обновява информацията за болничните в Персонални работни графици
+     */
+    public static function updateSickdaysToCustomSchedules($id)
+    {
+        $rec = static::fetch($id);
+    
+        $events = array();
+    
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+    
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+    
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+    
+        // Префикс на ключовете за записите персонални работни цикли
+        $prefix = "Sick-{$id}";
+    
+        $curDate = $rec->startDate;
+         
+        while($curDate < dt::addDays(1, $rec->toDate)){
+            // Подготвяме запис за началната дата
+            if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
+                 
+                $customRec = new stdClass();
+                 
+                // Ключ на събитието
+                $customRec->key = $prefix . "-{$curDate}";
+                 
+                // Дата на събитието
+                $customRec->date = $curDate;
+
+                // За човек или департамент е
+                $customRec->strukture  = 'personId';
+                
+                // Тип на събитието
+                $customRec->typePerson = 'sicDay';
+    
+                // За кого се отнася
+                $customRec->personId = $rec->personId;
+
+                // Документа
+                $customRec->docId = $rec->id;
+                
+                // Класа ан документа
+                $customRec->docClass = core_Classes::getId("trz_Sickdays");
+
+                $events[] = $customRec;
+            }
+            
+            $curDate = dt::addDays(1, $curDate);
+        }
+    
+        return hr_CustomSchedules::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
     

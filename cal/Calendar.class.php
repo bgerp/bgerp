@@ -453,6 +453,12 @@ class cal_Calendar extends core_Master
                     	$class .= ' third';
                     }elseif($data[$d]->type == '4'){
                     	$class .= ' diurnal';
+                    }elseif($data[$d]->type == '5'){
+                    	$class .= ' leave';
+                    }elseif($data[$d]->type == '6'){
+                    	$class .= ' sick';
+                    }elseif($data[$d]->type == '7'){
+                    	$class .= ' traveling';
                     }
                     
                                         
