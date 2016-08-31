@@ -58,6 +58,12 @@
         	<td class='aright'>[#amountWithoutInvoice#]</td>
         </tr>
         <!--ET_END amountWithoutInvoice-->
+        <!--ET_BEGIN amountKeepBalance-->
+        <tr>
+        	<td>|Други разходи: Салдо за поддържане|*</td>
+        	<td class='aright'>[#amountKeepBalance#]</td>
+        </tr>
+        <!--ET_END amountKeepBalance-->
     </table>
     <!--ET_END VAT_TABLE-->
     
