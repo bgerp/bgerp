@@ -743,11 +743,11 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function beforeInvoiceSave($rec)
     {
-    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	
-    	if(!$firstDoc->isInstanceOf('findeals_AdvanceDeals')){
-    		if (!empty($rec->folderId)) {
+    	if (!empty($rec->folderId)) {
+    		if(empty($rec->contragentClassId)){
     			$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+    		}
+    		if(empty($rec->contragentId)){
     			$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
     		}
     	}

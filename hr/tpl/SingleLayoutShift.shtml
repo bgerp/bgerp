@@ -16,15 +16,31 @@
                 <!--ET_BEGIN shift1-->
                 <td class="[#shift1#]">|I - първа смяна|*</td>
                 <!--ET_END shift1-->
+                
                 <!--ET_BEGIN shift2-->
                 <td class="[#shift2#]">|II - втора смяна|*</td>
                 <!--ET_END shift2-->
+                
                 <!--ET_BEGIN shift3-->
                 <td class="[#shift3#]">|Н - нощна|*</td>
                 <!--ET_END shift3-->
+                
                 <!--ET_BEGIN shift4-->
                 <td class="[#shift4#]">|Д - дневна|*</td>
                 <!--ET_END shift4-->
+                
+                <!--ET_BEGIN shift5-->
+                <td class="[#shift5#]">|О - отпуск|*</td>
+                <!--ET_END shift5-->
+                
+                <!--ET_BEGIN shift6-->
+                <td class="[#shift6#]">|Б - болничен|*</td>
+                <!--ET_END shift6-->
+                
+                <!--ET_BEGIN shift7-->
+                <td class="[#shift7#]">|К - командировка|*</td>
+                <!--ET_END shift7-->
+                
                 <!--ET_BEGIN shift0-->
                 <td class="[#shift0#]">|П - почивка|*</td>
                 <!--ET_END shift0-->
