@@ -63,7 +63,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
         $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('nick', 'Mitko');
         $browser->setValue('pass', '111111');
         // проверка потребител/парола
         //Грешка:Грешна парола или ник!
@@ -1237,7 +1237,6 @@ class unit_MinkPbgERP extends core_Manager {
     
         // активиране на продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
@@ -1249,6 +1248,11 @@ class unit_MinkPbgERP extends core_Manager {
             return "Грешна обща сума - MinkPbgERP/CreateSale";
         }
     
+        // Проформа
+        $browser->press('Проформа');
+        $browser->press('Чернова');
+        $browser->press('Активиране');
+        
         // експедиционно нареждане
         $browser->press('Експедиране');
         $browser->setValue('storeId', 'Склад 1');
