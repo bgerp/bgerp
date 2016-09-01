@@ -406,26 +406,36 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
     function doPath($e)
     {   
-        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => 'round', 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToCmyk($e->attr['stroke'])));
+        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => $e->attr['stroke-linecap'], 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToCmyk($e->attr['stroke'])));
         
         $fillColor = array();
         
         $fill = '';
-
-        if(($e->attr['fill-opacity'] || !isset($e->attr['fill-opacity'])) && ($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none')) {
+ 
+        if($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none') {
+            
             $fill = 'FD';  
  
             if(isset($e->attr['fill'])) {
                 $fillColor = self::hexToCmyk($e->attr['fill']);
             }
             
-            if($e->attr['fill-opacity']) {
-                $this->pdf->SetAlpha($e->attr['fill-opacity']);
-            } else {
-                $this->pdf->SetAlpha(1);
-            }
+        }
+
+        if(isset($e->attr['fill-opacity'])) {
+            $fillOpacity = (float) $e->attr['fill-opacity'];
+        } else {
+            $fillOpacity = 1;
         }
         
+        if(isset($e->attr['stroke-opacity'])) {
+            $strokeOpacity = (float) $e->attr['stroke-opacity'];
+        } else {
+            $strokeOpacity = 1;
+        }
+
+        $this->pdf->SetAlpha($strokeOpacity, 'Normal', $fillOpacity);
+      
         foreach($e->data as &$d) {
             $d[1] += $this->addX;
             $d[2] += $this->addY;
