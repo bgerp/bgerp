@@ -109,17 +109,17 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
-     * Връща драйвера за изчисляване на транспортна себестойност
+     * Връща имплементация на драйвера за изчисляване на транспортната себестойност
      * 
      * @param mixed $id - ид, запис или NULL
-     * @return core_Manager|NULL
+     * @return tcost_CostCalcIntf|NULL
      */
     public static function getCostDriver($id)
     {
     	if($id){
     		$rec = self::fetchRec($id);
     		if(cls::load($rec->costCalc, TRUE)){
-    			return cls::get($rec->costCalc);
+    			return cls::getInterface('tcost_CostCalcIntf', $rec->costCalc);
     		}
     	}
     	
