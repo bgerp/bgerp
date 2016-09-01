@@ -173,25 +173,11 @@ class tcost_FeeZones extends core_Master
     function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
-    	if(empty($singleWeight)) return NULL;
+    	$weightRow = $singleWeight * $quantity;
     	
-    	$feeArr = tcost_Fees::calcFee($toCountry, $toPostalCode, $totalWeight, $singleWeight);
+    	$feeArr = tcost_Fees::calcFee($toCountry, $toPostalCode, $totalWeight, $weightRow);
     	$fee = (isset($feeArr[1])) ? $feeArr[1] : 0;
     	
     	return $fee;
-    }
-    
-    
-    function act_Test()
-    {
-    	$productId = '1150';
-    	$totalWeight = 100;
-    	$toCountry = drdata_Countries::fetchField("#commonName = 'Germany'", 'id');
-    	$toPostalCode = '76479';
-    	$fromCountry = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-    	$fromPostalCode = '5000';
-    	 
-    	$r = self::getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
-    	bp($r);
     }
 }
