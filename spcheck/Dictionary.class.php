@@ -91,8 +91,10 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Масив с шаблони, които ще се заместят и няма да се проверяват
+     * [0] => линкове
+     * [1] => евристика за определяне на имена на хора
      */
-    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu");
+    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu", "/([^\S\x0a\x0d]|\,|\:|\;|\-){1}((\p{Lu}+)|(\p{Lu}+\p{L}+))(\p{L})*/u");
     
     
     /**
@@ -288,7 +290,7 @@ class spcheck_Dictionary extends core_Manager
     {
         static $cnt = 0;
         
-        $rStr = self::$replaceStr . $cnt++;
+        $rStr = ' ' . self::$replaceStr . $cnt++ . ' ';
         
         self::$replacedArr[$rStr] = $matches[0];
         
