@@ -102,6 +102,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('forBuyer', 'text', 'caption=За купувача');
         $this->FLD('transport', 'text', 'caption=Транспорт');
         $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
+        $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         
         $this->setDbUnique('codeName');
     }
