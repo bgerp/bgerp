@@ -116,7 +116,7 @@ class cond_DeliveryTerms extends core_Master
      */
     public static function getCostDriver($id)
     {
-    	if($id){
+    	if(!empty($id)){
     		$rec = self::fetchRec($id);
     		if(cls::load($rec->costCalc, TRUE)){
     			return cls::getInterface('tcost_CostCalcIntf', $rec->costCalc);
