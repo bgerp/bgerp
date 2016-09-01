@@ -91,6 +91,13 @@ defIfNot('DOC_STRING_FOR_REDUCE', 'За,Отн,Относно,回复,转发,SV,V
 
 
 /**
+ * Потребители, които ще се нотифицират за отворени теми в папки на оттеглени потребители
+ * По-подразбиране са всички администратори
+ */
+defIfNot('DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS', '');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -159,6 +166,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
         'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
         'DOC_CACHE_LIFETIME' => array("time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)", "caption=Кеширане на документите->Време"),
+        'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array("userList", "caption=Нотификация за отворени теми в папки на оттеглени потребители->Потребители"),
     );
 
     
