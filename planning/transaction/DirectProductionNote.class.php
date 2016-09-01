@@ -195,6 +195,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						$sign = 1;
 					} else {
 						$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, NULL, $rec->valior);
+						$primeCost *= $dRec1->quantity;
 						$sign = -1;
 					}
 					
