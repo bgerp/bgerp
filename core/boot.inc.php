@@ -457,6 +457,27 @@ function defineIfNot($name, $value)
     return core_App::defineIfNot($name, $value);
 }
 
+
+/**
+ * Деление на две числа, когато има опасност делителя да е 0
+ */
+function sDiv($x, $d)
+{
+    if(empty($d)) {
+        if(!empty($x)) {
+            // Делим на нула, различно от нула число
+            $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
+            $msg = "Делене на нула `{$x}`/`{$d}`: File = " . $debug[0]['file'] . ' line=' . $debug[0]['line'];
+            log_System::add('core_Debug', $msg, NULL, 'err');
+        }
+
+        return 0;
+    }
+
+    return $x/$d;
+}
+
+
 /**
  * Изисква потребителят да има посочената роля
  * Ако я няма - генерира грешка ако е логнат, а
@@ -509,6 +530,7 @@ function getTplFromFile($file)
 {
     return core_ET::getTplFromFile($file);
 }
+
 
 /**
  * Връща валиден ключ за оторизация в Setup-а
