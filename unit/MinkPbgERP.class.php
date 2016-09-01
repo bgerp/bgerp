@@ -1345,8 +1345,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('note', 'MinkPbgErpCreateSaleC');
         //$browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Освободено от ДДС"); //// ДАВА ГРЕШКА!
-        $browser->setValue('chargeVat', "Без начисляване на ДДС");
+        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         // Записване черновата на продажбата
         $browser->press('Чернова');
     
