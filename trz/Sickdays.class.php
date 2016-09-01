@@ -304,7 +304,7 @@ class trz_Sickdays extends core_Master
     	
     	while($curDate < dt::addDays(1, $rec->toDate)){
         // Подготвяме запис за началната дата
-	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft')) {
+	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
 	            
 	            $calRec = new stdClass();
 	                
