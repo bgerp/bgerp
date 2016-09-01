@@ -106,11 +106,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Админ');
         $browser->click('Потребители');
         $browser->press('Нов запис');
-        $browser->setValue('nick', 'bgerp');
+        $browser->setValue('nick', 'test1');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
-        $browser->setValue('names', 'bgerp');
-        $browser->setValue('email', 'u@abv.bg');
+        $browser->setValue('names', 'test1');
+        $browser->setValue('email', 't1@abv.bg');
         //$browser->setValue('rolesInput[71]', '71');
         $browser->setValue('admin', '1');
         $browser->setValue('ceo', '12');
@@ -1148,8 +1148,8 @@ class unit_MinkPbgERP extends core_Manager {
             //$browser->press('Произвеждане'); -разпознава бутона за приключване в заданието
             $browser->press('Добавяне на произведен артикул');
             $browser->setValue('quantity', '1000');
-            //$browser->setValue('employees[3]', '3');
-            $browser->setValue('STD', '4');
+            $browser->setValue('employees[4]', '4');
+            //$browser->setValue('STD', '4');
             $browser->press('Запис');
            
             $browser->press('Влагане');
