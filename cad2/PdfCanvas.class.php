@@ -384,11 +384,13 @@ class cad2_PdfCanvas extends cad2_Canvas {
         // set default monospaced font
         $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
         // set default font subsetting mode
-        $this->pdf->setFontSubsetting(TRUE);
+        $this->pdf->setFontSubsetting(FALSE);
 
         // set font
-        $this->pdf->SetFont('freeserif', '', 12);
- 
+        $this->pdf->AddFont('dejavusans');
+
+        $this->pdf->SetFont('dejavusans', '', 12);
+
         foreach($this->contents as $e) {
             $func = 'do' . $e->tag;
             $this->{$func}($e);
@@ -407,10 +409,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
     function doPath($e)
     {   
         $this->pdf->SetLineStyle(array(
-                'width' => $e->attr['stroke-width'], 
-                'cap' => $e->attr['stroke-linecap'], 
-                'join' => 'bevel', 
-                //'dash' => $e->attr['stroke-dasharray'], 
+                'width' => $e->attr['stroke-width'],
+                'cap' => $e->attr['stroke-linecap'],
+                'join' => 'bevel',
+                //'dash' => $e->attr['stroke-dasharray'],
                 'color' => self::hexToCmyk($e->attr['stroke'])));
         
         $fillColor = NULL;
@@ -461,7 +463,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
                 $start++;
             }
         }
- 
+
         if($e->close && $start == 1) {
             $e->data[] = array('L', $startX, $startY);
         }
@@ -481,7 +483,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
      * Отваря група
      */
     function doOpenGroup($e)
-    { 
+    {
         $this->pdf->StartTransform();
     }
     
@@ -490,7 +492,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
      *
      */
     function doCloseGroup($e)
-    {  
+    {
        $this->pdf->StopTransform();
     }
 
