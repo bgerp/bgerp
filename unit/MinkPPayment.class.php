@@ -48,7 +48,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
         $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('nick', 'Mitko');
         $browser->setValue('pass', '111111');
         // проверка потребител/парола
         //Грешка:Грешна парола или ник!
