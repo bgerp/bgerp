@@ -53,7 +53,7 @@ class unit_MinkPPayment extends core_Manager {
         // проверка потребител/парола
         //Грешка:Грешна парола или ник!
         //$browser->hasText('Известия');
-        //$browser->hasText('Pavlinka');
+        //$browser->hasText('Mitko');
         $browser->press('Вход');
         return $browser;
     }
