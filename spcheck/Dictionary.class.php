@@ -278,6 +278,8 @@ class spcheck_Dictionary extends core_Manager
             $content = str_replace($key, $str, $content);
         }
         
+        self::$replacedArr = array();
+        
         return $content;
     }
     
