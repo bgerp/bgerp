@@ -232,7 +232,7 @@ class spcheck_Dictionary extends core_Manager
             }
             
             // Връщаме маскираните стрингове
-            $content = self::unmaskStrin($content);
+            $content = self::unmaskString($content);
             
             if ($html instanceof core_ET) {
                 $html->setContent($content);
@@ -270,7 +270,7 @@ class spcheck_Dictionary extends core_Manager
      * 
      * @return string
      */
-    protected static function unmaskStrin($content)
+    protected static function unmaskString($content)
     {
         self::$replacedArr = array_reverse(self::$replacedArr);
         
