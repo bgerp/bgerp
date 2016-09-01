@@ -62,7 +62,7 @@ class unit_MinkPbgERP extends core_Manager {
     {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
-//         $browser->start('http://' . $_SERVER['HTTP_HOST']);
+        //$browser->start('http://' . $_SERVER['HTTP_HOST']);
         $browser->click('Вход');
         $browser->setValue('nick', 'Mitko');
         $browser->setValue('pass', '111111');
@@ -119,7 +119,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             return 'Дублиране на потребител.';
         }
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**
@@ -140,7 +140,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('names', 'Потребител 2');
         $browser->setValue('email', 'u2@abv.bg');
         $browser->setValue('officer', '10');
-        $browser->setValue('Дилър', '79');
+        //$browser->setValue('Дилър', '79');
         $browser->setValue('Главен офис', '13');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
