@@ -109,6 +109,40 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Връща драйвера за изчисляване на транспортна себестойност
+     * 
+     * @param mixed $id - ид, запис или NULL
+     * @return core_Manager|NULL
+     */
+    public static function getCostDriver($id)
+    {
+    	if($id){
+    		$rec = self::fetchRec($id);
+    		if(cls::load($rec->costCalc, TRUE)){
+    			return cls::get($rec->costCalc);
+    		}
+    	}
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Дали да се изчислява скрития транспорт
+     * 
+     * @param mixed $id - ид или запис
+     * @return boolean $res - да се начислява ли скрит транспорт или не
+     */
+    public static function canCalcHiddenCost($id)
+    {
+    	expect($rec = self::fetchRec($id));
+    	$res = ($rec->calcCost == 'yes') ? TRUE :FALSE;
+    	
+    	return $res;
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public static function on_AfterSetupMvc($mvc, &$res)
