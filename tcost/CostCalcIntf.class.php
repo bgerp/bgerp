@@ -35,6 +35,7 @@ class tcost_CostCalcIntf
      * Определяне цената за транспорт при посочените параметри
      *
      * @param int $productId         - ид на артикул
+     * @param int $quantity          - количество
      * @param int $totalWeight       - Общо тегло на товара
      * @param int $toCountry         - id на страната на мястото за получаване
      * @param string $toPostalCode   - пощенски код на мястото за получаване
@@ -43,8 +44,8 @@ class tcost_CostCalcIntf
      *
      * @return double                - цена, която ще бъде платена за теглото на артикул
      */
-    function getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
-        return $this->class->getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
+        return $this->class->getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
     }
 }

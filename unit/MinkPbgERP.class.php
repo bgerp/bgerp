@@ -15,8 +15,7 @@
 
 class unit_MinkPbgERP extends core_Manager {
    
-   /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
-    *ДА СЕ ДОБАВЯТ ПОКУПКА И ПРОДАЖБА ВЪВ ВАЛУТА!
+    /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
     */
     //http://localhost/unit_MinkPbgERP/Run/
     public function act_Run()
@@ -163,8 +162,8 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Складове"');
         $browser->setValue('name', 'Склад 1');
         //$ekip='Екип "Главен офис"';
-        //$browser->setValue($ekip, '1');
-        $browser->setValue('Pavlinka', '1');
+        //$browser->setValue(chiefs_13_1, '13_1');
+        $browser->setValue('Pavlinka', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -193,7 +192,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('iban', '#BG11CREX92603114548401');
         //$browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('Pavlinka', '1');
+        $browser->setValue('Pavlinka', '13_1');
         //$browser->setValue('operators_1', '1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -225,7 +224,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('iban', '#BG33UNCR70001519562303');
         $browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('Pavlinka', '1');
+        $browser->setValue('Pavlinka', '13_1');
         //$browser->setValue('operators_1', '1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -253,7 +252,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Фирмени каси"');
         $browser->setValue('name', 'КАСА 1');
-        $browser->setValue('Pavlinka', '1');
+        $browser->setValue('Pavlinka', '13_1');
         //$browser->setValue('cashiers_1', '1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -432,7 +431,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Завод');
         //$ekip='Екип "Главен офис"';
         //$browser->setValue($ekip, '1');
-        $browser->setValue('Pavlinka', '1');
+        $browser->setValue('Pavlinka', '13_1');
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -462,7 +461,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('parentId', 'Завод');
         //$ekip='Екип "Главен офис"';
         //$browser->setValue($ekip, '1');
-        $browser->setValue('Pavlinka', '1');
+        $browser->setValue('Pavlinka', '13_1');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -935,7 +934,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
-        if(strpos($browser->gettext(), '5,92')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 5,92')) {
         } else {
             return "Грешно ДДС - MinkPbgERP/CreatePurchase";
         }
@@ -1017,8 +1016,8 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-        //$browser->setValue('chargeVat', "Освободено от ДДС"); //// ДАВА ГРЕШКА!
-        $browser->setValue('chargeVat', "Без начисляване на ДДС");
+        $browser->setValue('chargeVat', "Освободено от ДДС"); //// Ако контрагентът е от България дава грешка.
+        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         $browser->setValue('template', "Purchase contract");
         //return $browser->getHtml();
         $browser->press('Чернова');
@@ -1046,7 +1045,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
-        if(strpos($browser->gettext(), '1,30')) {
+        if(strpos($browser->gettext(), 'Discount: EUR 1,30')) {
         } else {
             return "Грешна отстъпка - MinkPbgERP/CreatePurchaseC";
         }
@@ -1241,7 +1240,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '7,20')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
         } else {
             return "Грешно ДДС - MinkPbgERP/CreateSale";
         }

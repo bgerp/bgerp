@@ -419,8 +419,44 @@ class cad2_SvgCanvas extends cad2_Canvas {
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/g';
 	}
-	
-	
+
+
+    /**
+     * Отваря нова група
+     */
+    public function openTransform($attr = array())
+    {
+        return $this->openGroup($attr);
+    }
+
+
+    /**
+     * Затваряне на група
+     */
+    public function closeTransform()
+    {
+        return $this->closeGroup();
+    }
+
+
+    /**
+     * Отваря нов слой
+     */
+    public function openLayer($name)
+    {
+        return $this->openGroup(array('name' => $name));
+    }
+
+
+    /**
+     * Затваряне на слой
+     */
+    public function closeLayer()
+    {
+        return $this->closeGroup();
+    }
+
+
 	/**
 	 * Отваря новa шарка
 	 */

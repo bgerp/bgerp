@@ -275,6 +275,14 @@ class acc_ClosePeriods extends core_Master
     	if(acc_Balances::haveRightFor('single', $balanceId)){
     		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
     	}
+    	
+    	foreach (array('amountVatGroup1', 'amountVatGroup2', 'amountVatGroup3', 'amountVatGroup4', 'amountWithoutInvoice', 'amountKeepBalance', 'amountFromInvoices') as $fld){
+    		if($rec->{$fld} == 0){
+    			$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
+    		}
+    	}
+    	
+    	$row->amountKeepBalance .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     }
     
     

@@ -231,7 +231,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
 	}
 
 
-	
+
 
     /**
      * Отваря нова група
@@ -250,10 +250,53 @@ class cad2_PdfCanvas extends cad2_Canvas {
 	public function closeGroup()
     {
         $this->closePath();
-        $e = (object) array('tag' => 'closeGroup', 'attr' => $attr);
+        $e = (object) array('tag' => 'closeGroup');
         $this->contents[] = $e;
 	}
-	
+
+
+    /**
+     * Отваря нова група
+     */
+    public function openTransform($attr = array())
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'openTransform', 'attr' => $attr);
+        $this->contents[] = $e;
+    }
+
+
+    /**
+     * Затваряне на група
+     */
+    public function closeTransform()
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'closeTransform');
+        $this->contents[] = $e;
+    }
+
+
+    /**
+     * Отваря нов слой
+     */
+    public function openLayer($name)
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'openLayer', 'name' => $name);
+        $this->contents[] = $e;
+    }
+
+
+    /**
+     * Затваряне на слой
+     */
+    public function closeLayer()
+    {
+        $this->closePath();
+        $e = (object) array('tag' => 'closeLayer');
+        $this->contents[] = $e;
+    }
 	
 	/**
 	 * Отваря новa шарка
@@ -362,31 +405,37 @@ class cad2_PdfCanvas extends cad2_Canvas {
      * Чертае път в PDF-а, според данните в елемента
      */
     function doPath($e)
-    {  
-        static $res1;
-
-        $res[$e->attr['stroke']] = self::hexToRgb($e->attr['stroke']);
- 
-        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => 'round', 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToRgb($e->attr['stroke'])));
+    {   
+        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => $e->attr['stroke-linecap'], 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToCmyk($e->attr['stroke'])));
         
         $fillColor = array();
         
         $fill = '';
-
-        if(($e->attr['fill-opacity'] || !isset($e->attr['fill-opacity'])) && ($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none')) {
+ 
+        if($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none') {
+            
             $fill = 'FD';  
  
             if(isset($e->attr['fill'])) {
-                $fillColor = self::hexToRgb($e->attr['fill']);
+                $fillColor = self::hexToCmyk($e->attr['fill']);
             }
             
-            if($e->attr['fill-opacity']) {
-                $this->pdf->SetAlpha($e->attr['fill-opacity']);
-            } else {
-                $this->pdf->SetAlpha(1);
-            }
+        }
+
+        if(isset($e->attr['fill-opacity'])) {
+            $fillOpacity = (float) $e->attr['fill-opacity'];
+        } else {
+            $fillOpacity = 1;
         }
         
+        if(isset($e->attr['stroke-opacity'])) {
+            $strokeOpacity = (float) $e->attr['stroke-opacity'];
+        } else {
+            $strokeOpacity = 1;
+        }
+
+        $this->pdf->SetAlpha($strokeOpacity, 'Normal', $fillOpacity);
+      
         foreach($e->data as &$d) {
             $d[1] += $this->addX;
             $d[2] += $this->addY;
@@ -418,7 +467,6 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
     function doOpenGroup($e)
     {
-        $this->pdf->startLayer();
         $this->pdf->StartTransform();
     }
     
@@ -429,6 +477,41 @@ class cad2_PdfCanvas extends cad2_Canvas {
     function doCloseGroup($e)
     {   
        $this->pdf->StopTransform();
+    }
+
+
+    /**
+     * Отваря група
+     */
+    function doOpenTransform($e)
+    {
+        $this->pdf->StartTransform();
+    }
+
+
+    /**
+     *
+     */
+    function doCloseTransform($e)
+    {
+        $this->pdf->StopTransform();
+    }
+
+
+    /**
+     * Отваря група
+     */
+    function doOpenLayer($e)
+    {
+        $this->pdf->startLayer($e->name);
+    }
+
+
+    /**
+     *
+     */
+    function doCloseLayer($e)
+    {
         $this->pdf->endLayer();
     }
 
@@ -450,6 +533,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $font = trim('dejavusans');
  
         $this->pdf->SetFont($font, $attr['font-weight'] == 'bold' ? 'B' : '', $attr['font-size']/4);
+
+        if($color = self::hexToCmyk($attr['text-color'])) {
+            $this->pdf->SetTextColorArray($color);
+        }
 
         $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text);
 
@@ -528,5 +615,32 @@ class cad2_PdfCanvas extends cad2_Canvas {
         
         return TRUE;
     }
+
+
+
+    /**
+     * Преобразува hex цвят към CMYK
+     */
+    function hexToCmyk($hexColor)
+    {
+        $rgb = self::hexToRgb($hexColor);
+
+        if(!is_array($rgb)) return FALSE;
+
+        $r = $rgb[0];
+        $g = $rgb[1];
+        $b = $rgb[2];
+  
+        $cyan    = 255 - $r;
+        $magenta = 255 - $g;
+        $yellow  = 255 - $b;
+        $black   = min($cyan, $magenta, $yellow);
+        $cyan    = sDiv(($cyan - $black), (255 - $black)) * 255;
+        $magenta = sDiv(($magenta - $black), (255 - $black)) * 255;
+        $yellow  = sDiv(($yellow  - $black), (255 - $black)) * 255;
+      
+        return array($cyan/2.55, $magenta/2.55, $yellow/2.55, $black/2.55);
+    }
+
 
 }

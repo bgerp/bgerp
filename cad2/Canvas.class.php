@@ -84,6 +84,30 @@ abstract class cad2_Canvas extends core_BaseClass {
      * Затваряне на група
      */
 	abstract public function closeGroup();
+
+
+    /**
+     * Отваря нова група
+     */
+    abstract public function openTransform($attr = array());
+
+
+    /**
+     * Затваряне на група
+     */
+    abstract public function closeTransform();
+
+
+    /**
+     * Отваря нов слой
+     */
+    abstract public function openLayer($name);
+
+
+    /**
+     * Затваряне на слой
+     */
+    abstract public function closeLayer();
 	
 	
 	/**

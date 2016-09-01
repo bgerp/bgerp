@@ -298,6 +298,9 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	
 	    	if(!is_null($rec->dpAmount)){
 	    		$rec->dpAmount = deals_Helper::getPurePrice($rec->dpAmount, $vat, $rec->rate, $rec->vatRate);
+	    		if($rec->vatRate == 'separate'){
+	    			$rec->dpAmount /= 1 + $vat;
+	    		}
 	    	}
 	    	
 	    	// Обновяваме данните на мастър-записа при редакция

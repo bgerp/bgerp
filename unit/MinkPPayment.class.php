@@ -243,7 +243,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
              
         if(strpos($browser->gettext(), '95,09')) {
@@ -357,7 +356,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '203,63')) {
         } else {
@@ -580,7 +578,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '27,74')) {
         } else {
@@ -671,7 +668,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return $browser->getHtml();
         //$browser->press('Активиране/Контиране');
              
         if(strpos($browser->gettext(), '27,88')) {
@@ -991,7 +987,6 @@ class unit_MinkPPayment extends core_Manager {
     
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
-        //return $browser->getHtml();
         $browser->setValue('productId', 'Други услуги');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 18);
@@ -1122,10 +1117,8 @@ class unit_MinkPPayment extends core_Manager {
         
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
         
-        //if(strpos($browser->gettext(), '887,87')) { 
         if(strpos($browser->gettext(), '887,87')) {
         } else {
             return "Грешно ДДС - MinkPPayment/CreateSale";
@@ -1179,12 +1172,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Контиране');
         
         // Приключване
-        //$browser->selectNode("#Sal89 > td:nth-child(2) > div:nth-child(1) > div:nth-child(1) > input:nth-child(1)");
-        //$browser->click();
         $browser->press('Приключване');
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
-        //return  $browser->getHtml();
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
@@ -1243,12 +1233,10 @@ class unit_MinkPPayment extends core_Manager {
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 107);
         $browser->setValue('packPrice', '0,027');
-        //$browser->setValue('discount', 2);
         // Записваме артикула
         $browser->press('Запис');
         // активираме покупката
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), '138,76')) {
@@ -1272,7 +1260,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Приемане');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->press('Чернова');
-        //return $browser->gethtml();
         $browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Контиране')) {
         //  $browser->press('Контиране');
@@ -1364,7 +1351,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме покупката
         $browser->press('Активиране');
-        //return $browser->getHtml();
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '75,61')) {
         } else {
@@ -1572,7 +1558,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('packPrice', '010+3*0.8');//12.4
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
-        //return  $browser->getHtml();
         // Записваме артикула и добавяме нов
         $browser->setValue('productId', 'Други резервни части');
         $browser->refresh('Запис');
@@ -1605,7 +1590,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме покупката
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), '967,64')) {

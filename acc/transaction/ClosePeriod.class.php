@@ -91,7 +91,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		$result->entries = array_merge($result->entries, $entries4);
     	}
     	
-    	$entries5 = $this->transferCosts($result->totalAmount, $rec);
+    	$entries5 = $this->transferCosts($result->totalAmount, $rec, $incomeRes);
     	if(count($entries5)){
     		$result->entries = array_merge($result->entries, $entries5);
     	}
@@ -100,7 +100,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	if(count($entries1)){
     		$result->entries = array_merge($result->entries, $entries1);
     	}
-    	 
+    	
     	$entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
     	if(count($entries2)){
     		$result->entries = array_merge($result->entries, $entries2);
@@ -510,6 +510,26 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
      * 		Dt: 61102. Други разходи (общо)
      * 		Ct: 60020. Разходи за (нескладируеми) услуги и консумативи
      * 
+     * Разходи за услуги и консумативи (неразпределени), само ако разхода е отнесен към продажба
+     *  
+     * Ако е с Дебитно салдо
+     * 		Dt: 700. Приходи от продажби (по сделки)
+     * 		Ct: 60201. Разходи за (нескладируеми) услуги и консумативи
+     * 
+     * Ако е с Кредитно салдо или 0
+     * 		Dt: 700. Приходи от продажби (по сделки)
+     * 		Ct: 60201. Разходи за (нескладируеми) услуги и консумативи
+     * 
+     * Отчитане на отнесени разходи от друга сделка, само ако разхода не е отнесен към продажба
+     *  
+     * Ако е с Дебитно салдо
+     * 		Dt: 61102. Други разходи (общо)
+     * 		Ct: 60201. Разходи за (нескладируеми) услуги и консумативи
+     * 
+     * Ако е с Кредитно салдо или 0
+     * 		Dt: 61102. Други разходи (общо)
+     * 		Ct: 60201. Разходи за (нескладируеми) услуги и консумативи
+     * 
      * Приключваме разхода като намаление на финансовия резултат за периода
      * 
      * 		Dt: 123. Печалби и загуби от текущата година
@@ -543,10 +563,11 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
      * 		Dt: 123. Печалби и загуби от текущата година
      * 		Ct: 61101. Разходи за Ресурси
      */
-    protected function transferCosts(&$total, $rec)
+    protected function transferCosts(&$total, $rec, &$incomeRes)
     {
     	$bQuery = acc_BalanceDetails::getQuery();
     	$query2 = clone $bQuery;
+    	$query3 = clone $bQuery;
     	
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '601,602,603,60010,60020');
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
@@ -607,14 +628,66 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		$quantity += $dRec->blQuantity;
     	}
     	
-    	$amount601 += $amount60010;
+    	$saleClassId = sales_Sales::getClassId();
+    	acc_BalanceDetails::filterQuery($query3, $this->balanceId, '60201');
+    	$query3->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
     	
-    	// От ще прехвърлим това което сме натрупали до момента в нея + крайното и салдо
     	$amount602 += $amount60020;
     	$amount602 += $amount61102;
     	
+    	// Прехвърляне на разходи
+    	while($dRec = $query3->fetch()){
+    		$entry = array();
+    		$pRec = cat_Products::fetch(acc_Items::fetchField($dRec->ent2Id, 'objectId'), 'canConvert,fixedAsset,canStore');
+    		
+    		// Прехвърлят се само разходите, по артикули, които не са вложими, не са складируеми и не са ДА
+    		if($pRec->canStore == 'yes' || $pRec->fixedAsset == 'yes' || $pRec->canConvert == 'yes') continue;
+    		
+    		// Ако разхода е отнесен към продажба, увеличава се прихода и
+    		if(acc_Items::fetchField($dRec->ent1Id, 'classId') == $saleClassId){
+    			$saleId = acc_Items::fetchField($dRec->ent1Id, 'objectId');
+    			$saleRec = sales_Sales::fetch($saleId, 'contragentId,contragentClassId');
+    			$contragentItemId = acc_Items::fetchItem($saleRec->contragentClassId, $saleRec->contragentId)->id;
+    			
+    			$incomeRes[$contragentItemId][$dRec->ent1Id] += $dRec->blAmount;
+    			
+    			if($dRec->blQuantity > 0){
+    				$entry = array('amount' => $dRec->blAmount,
+    								 'debit' => array('700', $contragentItemId, $dRec->ent1Id),
+    						         'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Разходи за услуги и консумативи (неразпределени)');
+    			} elseif($dRec->blQuantity <= 0) {
+    				$entry = array('amount' => abs($dRec->blAmount),
+    								 'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
+    								 'credit' => array('700', array($saleRec->contragentClassId, $saleRec->contragentId), $dRec->ent1Id), 'reason' => 'Разходи за услуги и консумативи (неразпределени)');
+    			}
+    			
+    		} else {
+    			
+    			// Ако разхода не е към продажба, отива към Общите разходи
+    			if($dRec->blQuantity > 0){
+    				$entry = array('amount' => round($dRec->blAmount, 7),
+    								 'debit' => array('61102'),
+    								 'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
+    			
+    			} elseif($dRec->blQuantity <= 0) {
+    				$entry = array('amount' => round(abs($dRec->blAmount), 7),
+    						'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
+    						'credit' => array('61102'), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
+    			}
+    			
+    			$amount602 += $dRec->blAmount;
+    		}
+    		
+			$total += abs($dRec->blAmount);
+			$entries[] = $entry;
+    	}
+    	
+    	$amount601 += $amount60010;
+    	
+    	// От ще прехвърлим това което сме натрупали до момента в нея + крайното и салдо
     	foreach (array('601', '602', '603') as $sysId){
     		if(${"amount{$sysId}"} == 0) continue;
+    		$var  = ${"amount{$sysId}"};
     		$amount = abs(${"amount{$sysId}"});
     		
     		if($sysId == '602'){
@@ -629,17 +702,33 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     				} else {
     					
     					// Иначе прихвърляме толкова, че да остане минимум зададеното салдо
+    					$oldAmount = $amount;
+    					$oldVar = $var;
     					$amount -= $rec->amountKeepBalance;
+    					$var -= $rec->amountKeepBalance;
+    					
+    					// Не се поддържат отрицателни салда
+    					if($var < 0){
+    						$amount = $oldAmount;
+    						$var = $oldVar;
+    					}
     				}
     			}
     		} else {
     			$creditArr = array('61101', array('cat_Products', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"});
     		}
     		
-    		$entries[] = array('amount'  => $amount,
-    				'debit'  => array('123', $this->date->year),
-    				'credit' => $creditArr,
-    				'reason' => ${"reason{$sysId}"});
+    		if($var > 0){
+    			$entries[] = array('amount' => $amount,
+    							   'debit'  => array('123', $this->date->year),
+    					           'credit' => $creditArr,
+    					           'reason' => ${"reason{$sysId}"});
+    		} else {
+    			$entries[] = array('amount' => $amount,
+    					           'debit'  => $creditArr,
+    					           'credit' => array('123', $this->date->year),
+    					           'reason' => ${"reason{$sysId}"});
+    		}
     		 
     		$total += $amount;
     	}
@@ -655,6 +744,12 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	$rec605 = $bQuery->fetch();
     	
     	$selfValueLabor = planning_ObjectResources::getSelfValue($resource604, 1, $this->periodRec->end);
+    	if(!is_object($rec604)){
+    		$rec604 = new stdClass();
+    	}
+    	if(!is_object($rec605)){
+    		$rec605 = new stdClass();
+    	}
     	
     	if(!empty($selfValueLabor)){
     		$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
