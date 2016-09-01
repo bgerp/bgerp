@@ -80,7 +80,7 @@ class spcheck_Dictionary extends core_Manager
     /**
      * Масив със стрингове, които няма да се проверяват
      */
-    protected static $ignoreStrArr = array('div', 'span', 'src', 'li', 'img', 'href', 'REPLACE_STRING');
+    protected static $ignoreStrArr = array('div', 'span', 'src', 'li', 'img', 'href', 'replace_string', 'nbsp');
     
     
     /**
@@ -91,10 +91,11 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Масив с шаблони, които ще се заместят и няма да се проверяват
-     * [0] => линкове
-     * [1] => евристика за определяне на имена на хора
+     * [0] => думу само с главна буква и цифри
+     * [1] => линкове
+     * [2] => евристика за определяне на имена на хора
      */
-    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu", "/([^\S\x0a\x0d]|\,|\:|\;|\-){1}((\p{Lu}+)|(\p{Lu}+\p{L}+))(\p{L})*/u");
+    protected static $maskPattern = array("/[^\p{L}0-9][\p{Lu}0-9]{2,}([^\p{L}0-9])/u", "/\<a.+?(<\/a>)/iu", "/([^\S\x0a\x0d]|\,|\:|\;|\-){1}((\p{Lu}+)|(\p{Lu}+\p{L}+))(\p{L})*/u");
     
     
     /**
@@ -106,7 +107,7 @@ class spcheck_Dictionary extends core_Manager
     /**
      * Шаблон, който ще се използва за заместване на стрингове
      */
-    protected static $replaceStr = '__#1REPLACE_STRING1#__';
+    protected static $replaceStr = '__#1replace_string1#__';
     
     
 	/**
