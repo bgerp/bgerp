@@ -280,7 +280,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
     /**
      * Отваря нов слой
      */
-    public function openLayer($name)
+    public function openLayer($name = NULL)
     {
         $this->closePath();
         $e = (object) array('tag' => 'openLayer', 'name' => $name);
@@ -388,7 +388,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
 
         // set font
         $this->pdf->SetFont('freeserif', '', 12);
-
+ 
         foreach($this->contents as $e) {
             $func = 'do' . $e->tag;
             $this->{$func}($e);
@@ -406,11 +406,16 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
     function doPath($e)
     {   
-        $this->pdf->SetLineStyle(array('width' => $e->attr['stroke-width'], 'cap' => $e->attr['stroke-linecap'], 'join' => 'bevel', 'dash' => $e->attr['stroke-dasharray'], 'color' => self::hexToCmyk($e->attr['stroke'])));
+        $this->pdf->SetLineStyle(array(
+                'width' => $e->attr['stroke-width'], 
+                'cap' => $e->attr['stroke-linecap'], 
+                'join' => 'bevel', 
+                //'dash' => $e->attr['stroke-dasharray'], 
+                'color' => self::hexToCmyk($e->attr['stroke'])));
         
-        $fillColor = array();
+        $fillColor = NULL;
         
-        $fill = '';
+        $fill = 'S';
  
         if($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none') {
             
@@ -422,13 +427,17 @@ class cad2_PdfCanvas extends cad2_Canvas {
             
         }
 
-        if(isset($e->attr['fill-opacity'])) {
+        if($e->attr['fill'] == 'transparent' || $e->attr['fill'] == 'none') {
+            $fillOpacity = 0;
+        } elseif(isset($e->attr['fill-opacity'])) {
             $fillOpacity = (float) $e->attr['fill-opacity'];
         } else {
             $fillOpacity = 1;
         }
-        
-        if(isset($e->attr['stroke-opacity'])) {
+
+        if($e->attr['stroke'] == 'transparent' || $e->attr['stroke'] == 'none') {
+            $strokeOpacity = 0;
+        } elseif(isset($e->attr['stroke-opacity'])) {
             $strokeOpacity = (float) $e->attr['stroke-opacity'];
         } else {
             $strokeOpacity = 1;
@@ -452,11 +461,17 @@ class cad2_PdfCanvas extends cad2_Canvas {
                 $start++;
             }
         }
-
+ 
         if($e->close && $start == 1) {
-            $e->data[] = array('L', $startX, $startY); 
+            $e->data[] = array('L', $startX, $startY);
         }
  
+        if($e->close) {
+            if($fill == 'FD') {
+                $fill = 'fd';
+            }
+        }
+
         $this->pdf->drawPath($e->data, $fill, array(), $fillColor);
         $this->pdf->SetAlpha(1);
     }
@@ -466,7 +481,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
      * Отваря група
      */
     function doOpenGroup($e)
-    {
+    { 
         $this->pdf->StartTransform();
     }
     
@@ -475,7 +490,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
      *
      */
     function doCloseGroup($e)
-    {   
+    {  
        $this->pdf->StopTransform();
     }
 
@@ -534,7 +549,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
  
         $this->pdf->SetFont($font, $attr['font-weight'] == 'bold' ? 'B' : '', $attr['font-size']/4);
 
-        if($color = self::hexToCmyk($attr['text-color'])) {
+        if($color = self::hexToCmyk($attr['text-color'], array(100,100,100,100))) {
             $this->pdf->SetTextColorArray($color);
         }
 
@@ -621,8 +636,12 @@ class cad2_PdfCanvas extends cad2_Canvas {
     /**
      * Преобразува hex цвят към CMYK
      */
-    function hexToCmyk($hexColor)
+    function hexToCmyk($hexColor, $default = array(0, 0, 0, 0))
     {
+        if($hexColor == 'transparent' || $hexColor == 'none' || $hexColor === NULL || $hexColor === '') {
+            return $default;
+        }
+
         $rgb = self::hexToRgb($hexColor);
 
         if(!is_array($rgb)) return FALSE;
