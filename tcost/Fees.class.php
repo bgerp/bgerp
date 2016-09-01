@@ -203,7 +203,7 @@ class tcost_Fees extends core_Detail
         /*
          * Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
          */
-        $result = $finalPrice / $totalWeight * $singleWeight;
+        $result = round($finalPrice / $totalWeight * $singleWeight, 2);
 
         
         /*
