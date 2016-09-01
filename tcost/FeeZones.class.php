@@ -157,7 +157,7 @@ class tcost_FeeZones extends core_Master
     
     
     /**
-     * Определяне цената за транспорт при посочените параметри
+     * Определяне сумата за транспорт за цялото количество
      *
      * @param int $productId         - ид на артикул
      * @param int $quantity          - количество
@@ -167,7 +167,7 @@ class tcost_FeeZones extends core_Master
      * @param int $fromCountry       - id на страната на мястото за изпращане
      * @param string $fromPostalCode - пощенски код на мястото за изпращане
      *
-     * @return double|NULL           - цена, която ще бъде платена за теглото на артикул, или NULL ако няма
+     * @return double $fee           - сума за транспорта на цялото к-во. Ако не може да се изчисли 0
      */
     public function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
