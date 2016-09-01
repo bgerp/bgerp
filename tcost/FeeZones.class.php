@@ -11,7 +11,6 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title 
  */
 class tcost_FeeZones extends core_Master
 {
@@ -170,7 +169,7 @@ class tcost_FeeZones extends core_Master
      *
      * @return double|NULL           - цена, която ще бъде платена за теглото на артикул, или NULL ако няма
      */
-    function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
     	$weightRow = $singleWeight * $quantity;
