@@ -62,8 +62,6 @@ class spcheck_Setup extends core_ProtoSetup
      */
     function checkConfig()
     {
-        $html = parent::install();
-        
         $modulName = 'pspell';
         
         $activePhpModules = get_loaded_extensions();
