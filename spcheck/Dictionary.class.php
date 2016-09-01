@@ -272,6 +272,8 @@ class spcheck_Dictionary extends core_Manager
      */
     protected static function unmaskStrin($content)
     {
+        self::$replacedArr = array_reverse(self::$replacedArr);
+        
         foreach (self::$replacedArr as $key => $str) {
             $content = str_replace($key, $str, $content);
         }
