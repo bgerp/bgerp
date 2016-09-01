@@ -20,7 +20,7 @@ class tcpdf_Instance extends tcpdf
 			return;
 		}
 
-		if (!(false === strpos($style, 'F')) AND isset($fill_color)) {
+		if (!(FALSE === stripos($style, 'F')) AND isset($fill_color)) {
 			$this->SetFillColorArray($fill_color);
 		}
 		$op = TCPDF_STATIC::getPathPaintOperator($style);
