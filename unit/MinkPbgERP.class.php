@@ -62,13 +62,14 @@ class unit_MinkPbgERP extends core_Manager {
     {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
+//         $browser->start('http://' . $_SERVER['HTTP_HOST']);
         $browser->click('Вход');
         $browser->setValue('nick', 'Mitko');
         $browser->setValue('pass', '111111');
         // проверка потребител/парола
         //Грешка:Грешна парола или ник!
         //$browser->hasText('Известия');
-        //$browser->hasText('Pavlinka');
+        //$browser->hasText('Mitko');
         $browser->press('Вход');
         return $browser;
     }
@@ -88,7 +89,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Деактивиране на пакета');
         //return $browser->getHtml();
         /////////////  не работи
-        //$browser->click('select2-deinstall');
+        $browser->click('select2-deinstall');
         return $browser->getHtml();
     }
     
@@ -100,23 +101,25 @@ class unit_MinkPbgERP extends core_Manager {
     {
         // Логване
         $browser = $this->SetUp();
+        return $browser->getHtml();
         // Създаване на потребител
         $browser->click('Админ');
         $browser->click('Потребители');
         $browser->press('Нов запис');
-        $browser->setValue('nick', 'User1');
+        $browser->setValue('nick', 'bgerp');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
-        $browser->setValue('names', 'Потребител 1');
-        $browser->setValue('email', 'u1@abv.bg');
-        $browser->setValue('rolesInput[71]', '71');
-        //$browser->setValue('Дилър', '79');
+        $browser->setValue('names', 'bgerp');
+        $browser->setValue('email', 'u@abv.bg');
+        //$browser->setValue('rolesInput[71]', '71');
+        $browser->setValue('admin', '1');
+        $browser->setValue('ceo', '12');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             return 'Дублиране на потребител.';
         }
-        //return $browser->getHtml();
+        return $browser->getHtml();
     }
     
     /**
@@ -137,6 +140,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('names', 'Потребител 2');
         $browser->setValue('email', 'u2@abv.bg');
         $browser->setValue('officer', '10');
+        $browser->setValue('Дилър', '79');
         $browser->setValue('Главен офис', '13');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -163,7 +167,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Склад 1');
         //$ekip='Екип "Главен офис"';
         //$browser->setValue(chiefs_13_1, '13_1');
-        $browser->setValue('Pavlinka', '13_1');
+        $browser->setValue('Mitko', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -192,7 +196,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('iban', '#BG11CREX92603114548401');
         //$browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('Pavlinka', '13_1');
+        $browser->setValue('Mitko', '13_1');
         //$browser->setValue('operators_1', '1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -224,7 +228,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('iban', '#BG33UNCR70001519562303');
         $browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('Pavlinka', '13_1');
+        $browser->setValue('Mitko', '13_1');
         //$browser->setValue('operators_1', '1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -252,7 +256,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Фирмени каси"');
         $browser->setValue('name', 'КАСА 1');
-        $browser->setValue('Pavlinka', '13_1');
+        $browser->setValue('Mitko', '13_1');
         //$browser->setValue('cashiers_1', '1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -431,7 +435,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Завод');
         //$ekip='Екип "Главен офис"';
         //$browser->setValue($ekip, '1');
-        $browser->setValue('Pavlinka', '13_1');
+        $browser->setValue('Mitko', '13_1');
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -461,7 +465,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('parentId', 'Завод');
         //$ekip='Екип "Главен офис"';
         //$browser->setValue($ekip, '1');
-        $browser->setValue('Pavlinka', '13_1');
+        $browser->setValue('Mitko', '13_1');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -1016,7 +1020,8 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-        $browser->setValue('chargeVat', "Освободено от ДДС"); //// Ако контрагентът е от България дава грешка.
+        //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
+        $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         $browser->setValue('template', "Purchase contract");
         //return $browser->getHtml();
