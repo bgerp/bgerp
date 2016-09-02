@@ -96,7 +96,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Филтрирай');
         $browser->click('Деактивиране на пакета');
         //return $browser->getHtml();
-        /////////////  не работи
+        ////////////// не работи
         $browser->click('select2-deinstall');
         return $browser->getHtml();
     }
