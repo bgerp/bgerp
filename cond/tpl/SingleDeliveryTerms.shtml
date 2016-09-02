@@ -5,6 +5,9 @@
     <!--ET_BEGIN costCalc-->
     <p><b>|Калкулатор|*:</b> [#costCalc#]</p>
     <!--ET_END costCalc-->
+    <!--ET_BEGIN calcCost-->
+    <p><b>|Скрито начисляване|*:</b> [#calcCost#]</p>
+    <!--ET_END calcCost-->
     <!--ET_BEGIN transport-->
     <p><b>|Транспорт|*:</b> [#transport#]</p>
     <!--ET_END transport-->

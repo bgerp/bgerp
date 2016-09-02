@@ -22,6 +22,8 @@ class tcost_Wrapper extends plg_ProtoWrapper
     function description()
     {
        $this->TAB('tcost_FeeZones', 'Навла', 'ceo, tcost');
+       $this->TAB('tcost_Calcs', 'Изчисления', 'debug');
+      
        $this->title = 'Навла';
     }
 }

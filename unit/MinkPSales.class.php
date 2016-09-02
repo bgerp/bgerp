@@ -143,12 +143,12 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Запис');
         if(strpos($browser->gettext(), 'Некоректна стойност на полето \'Количество\'!')) {
         } else {
-            return "Грешка - не дава грешка при отрицателно количество";
+            return "Грешка - не дава грешка при нулево количество";
         }
     
         if(strpos($browser->gettext(), 'Не е над - \'0,0000\'')) {
         } else {
-            return "Грешка 1 - не дава грешка при отрицателно количество";
+            return "Грешка 1 - не дава грешка при нулево количество";
         }
         //return $browser->getHtml();
     
@@ -558,7 +558,8 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatFree');
         $browser->setValue('paymentMethodId', "100% авансово");
-        $browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         // Записване черновата на продажбата
         $browser->press('Чернова');

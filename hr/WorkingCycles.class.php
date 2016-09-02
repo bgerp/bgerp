@@ -198,7 +198,7 @@ class hr_WorkingCycles extends core_Master
     /**
      * Подготвя локациите на контрагента
      */
-    function prepareGrafic($data)
+    function prepareGrafic($data, $start = NULL)
     {
         
         expect($data->masterId); 
@@ -232,9 +232,17 @@ class hr_WorkingCycles extends core_Master
             $state->where("#id='{$shift}'");
             $cycleDetails = $state->fetch();
             
-            $month = Request::get('cal_month', 'int');
-            $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-            $year  = Request::get('cal_year', 'int');
+            if ($start) {
+                 $startTms = dt::mysql2timestamp($start);
+                     
+                    $year = date('Y', $startTms);
+                    $month = date('m', $startTms);
+     
+            } else {
+                $month = Request::get('cal_month', 'int');
+                $month = str_pad($month, 2, 0, STR_PAD_LEFT);
+                $year  = Request::get('cal_year', 'int');
+            }
             
             if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
                 $year = date('Y');
@@ -502,7 +510,7 @@ class hr_WorkingCycles extends core_Master
      */
     static public function getShiftDay($recShift, $date, $startOn)
     {
-   
+ 
         // По кой цикъл работи смяната
         // Кога започва графика на смяната
         $cycle = $recShift->id;
@@ -572,6 +580,66 @@ class hr_WorkingCycles extends core_Master
         }
         
         return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
+    }
+
+
+    /**
+     * Изчислява изработените часове по график
+     * 
+     * @param int $schedule - работен цикъл
+     * @param string $from - от дата
+     * @param string $to - до дата
+     * @param string $startingOn - начало на работния график
+     * 
+     * @return StdClass array(workingSecs=>изработените часове по графика в секунди,
+     *                        rest=>почивните дни по графика в часове, 
+     *                        secsPeriod=>периода в секунди)
+     */
+    static public function calcWorkingHoursBySchedule($schedule, $from, $to, $startingOn)
+    {
+        $workingSecs = $rest = $secsPeriod = $allDays =  0;
+
+        $cycleDetails = self::fetch($schedule);
+
+        $curDate = $from;
+        
+        // От началната дата до крайната, проверяваме всеки ден
+        // каква е работната му продължителност
+        while($curDate < dt::addDays(1, $to)){
+            
+            // В кой ден от цикъла сме
+            $dayIs = (dt::daysBetween($curDate, $startingOn) + 1) % $cycleDetails->cycleDuration;
+            
+            // Извличане на данните за циклите
+            $scheduleDetails = hr_WorkingCycleDetails::getQuery();
+            
+            // Подробности за конкретния цикъл
+            $scheduleDetails->where("#cycleId='{$schedule}' AND #day='{$dayIs}'");
+            
+            // Взимаме записа на точно този избран ден от цикъла
+            // Кога за почва режима и с каква продължителност е
+            $details = $scheduleDetails->fetch();
+            $dayStart = $details->start;
+            $dayDuration = $details->duration;
+            $dayBreak = $details->break;
+            
+            // Какъв е типа на деня
+            $dateType = static::getShiftDay($cycleDetails, $curDate, $startingOn);
+            
+            if($dateType == 0) {
+                $rest += 24*60*60;
+            } else {
+                $workingSecs += $dayDuration - $dayBreak;
+            }
+
+            $curDate = dt::addDays(1, $curDate);
+            
+            $allDays++;
+        }
+
+        $secsPeriod = $allDays * (24*60*60);
+        
+        return (object) array('workingSecs'=>$workingSecs, 'rest'=>$rest, 'secsPeriod'=>$secsPeriod);
     }
     
     

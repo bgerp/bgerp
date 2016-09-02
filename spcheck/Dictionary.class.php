@@ -80,7 +80,7 @@ class spcheck_Dictionary extends core_Manager
     /**
      * Масив със стрингове, които няма да се проверяват
      */
-    protected static $ignoreStrArr = array('div', 'span', 'src', 'li', 'img', 'href', 'REPLACE_STRING');
+    protected static $ignoreStrArr = array('div', 'span', 'src', 'li', 'img', 'href', 'replace_string', 'nbsp');
     
     
     /**
@@ -91,8 +91,11 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Масив с шаблони, които ще се заместят и няма да се проверяват
+     * [0] => линкове
+     * [1] => думи само с главни букви и цифри
+     * [2] => евристика за определяне на имена
      */
-    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu");
+    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu", "/[^\p{L}0-9][\p{Lu}0-9]{2,}([^\p{L}0-9])/u", "/([^\S\x0a\x0d]|\,|\:|\;|\-){1}((\p{Lu}+)|(\p{Lu}+\p{L}+))(\p{L})*/u");
     
     
     /**
@@ -104,7 +107,7 @@ class spcheck_Dictionary extends core_Manager
     /**
      * Шаблон, който ще се използва за заместване на стрингове
      */
-    protected static $replaceStr = '__#1REPLACE_STRING1#__';
+    protected static $replaceStr = '__#1replace_string1#__';
     
     
 	/**
@@ -225,11 +228,11 @@ class spcheck_Dictionary extends core_Manager
             
             // Заместваме вскички маркирани думи със специален стринг
             foreach ($errWordArr as $errW) {
-                $content = preg_replace("/([^\p{L}0-9]+)(" . preg_quote($errW, '/') . "){1}([^\p{L}0-9]+)/iu", "$1<span style='color: red;' class='err-word'>[$2]</span>$3", $content);
+                $content = preg_replace("/(?<=([^\p{L}0-9]))(" . preg_quote($errW, '/') . "){1}(?=([^\p{L}0-9]))/iu", "<span style='color: red;' class='err-word'>$2</span>", $content);
             }
             
             // Връщаме маскираните стрингове
-            $content = self::unmaskStrin($content);
+            $content = self::unmaskString($content);
             
             if ($html instanceof core_ET) {
                 $html->setContent($content);
@@ -267,11 +270,15 @@ class spcheck_Dictionary extends core_Manager
      * 
      * @return string
      */
-    protected static function unmaskStrin($content)
+    protected static function unmaskString($content)
     {
+        self::$replacedArr = array_reverse(self::$replacedArr);
+        
         foreach (self::$replacedArr as $key => $str) {
             $content = str_replace($key, $str, $content);
         }
+        
+        self::$replacedArr = array();
         
         return $content;
     }
@@ -288,7 +295,7 @@ class spcheck_Dictionary extends core_Manager
     {
         static $cnt = 0;
         
-        $rStr = self::$replaceStr . $cnt++;
+        $rStr = ' ' . self::$replaceStr . $cnt++ . ' ';
         
         self::$replacedArr[$rStr] = $matches[0];
         

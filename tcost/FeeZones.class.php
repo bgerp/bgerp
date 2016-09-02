@@ -11,7 +11,6 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title 
  */
 class tcost_FeeZones extends core_Master
 {
@@ -158,7 +157,7 @@ class tcost_FeeZones extends core_Master
     
     
     /**
-     * Определяне цената за транспорт при посочените параметри
+     * Определяне сумата за транспорт за цялото количество
      *
      * @param int $productId         - ид на артикул
      * @param int $quantity          - количество
@@ -168,30 +167,16 @@ class tcost_FeeZones extends core_Master
      * @param int $fromCountry       - id на страната на мястото за изпращане
      * @param string $fromPostalCode - пощенски код на мястото за изпращане
      *
-     * @return double|NULL           - цена, която ще бъде платена за теглото на артикул, или NULL ако няма
+     * @return double $fee           - сума за транспорта на цялото к-во. Ако не може да се изчисли 0
      */
-    function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
-    	if(empty($singleWeight)) return NULL;
+    	$weightRow = $singleWeight * $quantity;
     	
-    	$feeArr = tcost_Fees::calcFee($toCountry, $toPostalCode, $totalWeight, $singleWeight);
+    	$feeArr = tcost_Fees::calcFee($toCountry, $toPostalCode, $totalWeight, $weightRow);
     	$fee = (isset($feeArr[1])) ? $feeArr[1] : 0;
     	
     	return $fee;
-    }
-    
-    
-    function act_Test()
-    {
-    	$productId = '1150';
-    	$totalWeight = 100;
-    	$toCountry = drdata_Countries::fetchField("#commonName = 'Germany'", 'id');
-    	$toPostalCode = '76479';
-    	$fromCountry = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-    	$fromPostalCode = '5000';
-    	 
-    	$r = self::getTransportFee($productId, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
-    	bp($r);
     }
 }

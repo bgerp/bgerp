@@ -102,8 +102,43 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('forBuyer', 'text', 'caption=За купувача');
         $this->FLD('transport', 'text', 'caption=Транспорт');
         $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
+        $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         
         $this->setDbUnique('codeName');
+    }
+    
+    
+    /**
+     * Връща имплементация на драйвера за изчисляване на транспортната себестойност
+     * 
+     * @param mixed $id - ид, запис или NULL
+     * @return tcost_CostCalcIntf|NULL
+     */
+    public static function getCostDriver($id)
+    {
+    	if(!empty($id)){
+    		$rec = self::fetchRec($id);
+    		if(cls::load($rec->costCalc, TRUE)){
+    			return cls::getInterface('tcost_CostCalcIntf', $rec->costCalc);
+    		}
+    	}
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Дали да се изчислява скрития транспорт
+     * 
+     * @param mixed $id - ид или запис
+     * @return boolean $res - да се начислява ли скрит транспорт или не
+     */
+    public static function canCalcHiddenCost($id)
+    {
+    	expect($rec = self::fetchRec($id));
+    	$res = ($rec->calcCost == 'yes') ? TRUE :FALSE;
+    	
+    	return $res;
     }
     
     

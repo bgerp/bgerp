@@ -116,6 +116,8 @@ class cond_ConditionsToCustomers extends core_Manager
         	} else {
         		$form->setError('conditionId', 'Има проблем при зареждането на типа');
         	}
+        } else {
+        	$form->setField('value', 'input=none');
         }
     }
     
