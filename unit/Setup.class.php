@@ -1,6 +1,6 @@
 <?php
 /**
- * Роля за основен екип
+ * Потребител по подразбиране
  */
 defIfNot('UNIT_DEFAULT_USER', 'bgerp');
 defIfNot('UNIT_DEFAULT_USER_PASS', '111111');
