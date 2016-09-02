@@ -239,4 +239,30 @@ class tcost_Calcs extends core_Manager
     	// Връщане на резултата
     	return $res;
     }
+    
+    
+    /**
+     * Колко е начисления скрит танспорт за документа
+     * 
+     * @param mixed $docClass - клас на документа
+     * @param int $docId      - ид на документа
+     * @return double $count  - общо начислени разходи
+     */
+    public static function calcInDocument($docClass, $docId)
+    {
+    	$count = 0;
+    	$classId = cls::get($docClass)->getClassId();
+    	$feeErr = tcost_CostCalcIntf::CALC_ERROR;
+    	
+    	$query = self::getQuery();
+    	$query->where("#docClassId = {$classId} AND #docId = {$docId}");
+    	$query->XPR('sum', 'double', 'sum(#fee, 2)');
+    	$query->where("#fee != {$feeErr}");
+    	
+    	if($rec = $query->fetch()){
+    		$count = $rec->sum;
+    	}
+    	
+    	return $count;
+    }
 }
