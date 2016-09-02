@@ -425,7 +425,7 @@ class core_Debug
             $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
             $style = '';
             if($i+1 == $line) {
-                $style = " style='background-color:#ff9;'";
+                $style = " class='debugErrLine'; style='background-color:#ff9;'";
             }
             $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". 
                 str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
@@ -661,6 +661,23 @@ class core_Debug
             } catch (Exception $e) {
                 // Не се прави нищо
             }
+            
+            $contex['EF_APP_NAME'] = EF_APP_NAME;
+            
+            // Пътища, които се използват
+            $contex['EF_ROOT_PATH'] = EF_ROOT_PATH;
+            $contex['EF_INDEX_PATH'] = EF_INDEX_PATH;
+            $contex['EF_SBF_PATH'] = EF_SBF_PATH;
+            $contex['EF_TEMP_PATH'] = EF_TEMP_PATH;
+            $contex['EF_CONF_PATH'] = EF_CONF_PATH;
+            $contex['EF_UPLOADS_BASE_PATH'] = EF_UPLOADS_BASE_PATH;
+            $contex['EF_UPLOADS_PATH'] = EF_UPLOADS_PATH;
+            $contex['FILEMAN_UPLOADS_PATH'] = FILEMAN_UPLOADS_PATH;
+            $contex['EF_DOWNLOAD_DIR'] = EF_DOWNLOAD_DIR;
+            $contex['FILEMAN_TEMP_PATH'] = FILEMAN_TEMP_PATH;
+            $contex['THUMB_IMG_PATH'] = THUMB_IMG_PATH;
+            
+            $contex['EF_TIMEZONE'] = EF_TIMEZONE;
             
             $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
             $contex['BGERP_LAST_STABLE_VERSION'] = '16.24-Ком';
