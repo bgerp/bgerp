@@ -256,7 +256,7 @@ class tcost_Calcs extends core_Manager
     	
     	$query = self::getQuery();
     	$query->where("#docClassId = {$classId} AND #docId = {$docId}");
-    	$query->XPR('sum', 'double', 'sum(#fee, 2)');
+    	$query->XPR('sum', 'double', 'sum(#fee)');
     	$query->where("#fee != {$feeErr}");
     	
     	if($rec = $query->fetch()){
