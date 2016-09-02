@@ -165,7 +165,7 @@ class sales_Quotations extends core_Master
         'email' 		  => 'lastDocUser|lastDoc|clientData',
     	'tel' 			  => 'lastDocUser|lastDoc|clientData',
         'fax' 			  => 'lastDocUser|lastDoc|clientData',
-        'country'		  => 'lastDocUser|lastDoc|clientData',
+        'contragentCountryId'		  => 'lastDocUser|lastDoc|clientData',
         'pCode' 		  => 'lastDocUser|lastDoc|clientData',
     	'place' 		  => 'lastDocUser|lastDoc|clientData',
     	'address' 		  => 'lastDocUser|lastDoc|clientData',
@@ -221,7 +221,7 @@ class sales_Quotations extends core_Master
         $this->FLD('email', 'varchar', 'caption=Получател->Имейл, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Получател->Тел., changable, class=contactData');
         $this->FLD('fax', 'varchar', 'caption=Получател->Факс, changable, class=contactData');
-        $this->FLD('country', 'varchar', 'caption=Получател->Държава, changable, class=contactData');
+        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId');
         $this->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
@@ -469,9 +469,6 @@ class sales_Quotations extends core_Master
     		$cData = $contragent->getContragentData();
     			
     		$fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
-    		if($cData->countryId){
-    			$row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
-    		}
     		$row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
     		
     		foreach (array('pCode', 'place', 'address') as $fld){
@@ -669,7 +666,7 @@ class sales_Quotations extends core_Master
 		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
 		    	$newLocation = (object)array(
 		    						'title'         => $rec->deliveryPlaceId,
-		    						'countryId'     => drdata_Countries::fetchField("#commonNameBg = '{$rec->country}' || #commonName = '{$rec->country}'", 'id'),
+		    						'countryId'     => $rec->contragentCountryId,
 		    						'pCode'         => $rec->pcode,
 		    						'place'         => $rec->place,
 		    						'contragentCls' => $rec->contragentClassId,
