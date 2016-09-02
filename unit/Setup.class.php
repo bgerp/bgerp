@@ -1,4 +1,9 @@
 <?php
+/**
+ * Роля за основен екип
+ */
+defIfNot('UNIT_DEFAULT_USER', 'bgerp');
+defIfNot('UNIT_DEFAULT_USER_PASS', '111111');
 
 
 /**
@@ -35,6 +40,14 @@ class unit_Setup extends core_ProtoSetup
 	 * Пакет без инсталация
 	 */
 	public $noInstall = TRUE;
+	
+	/**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+	  'UNIT_DEFAULT_USER' => array("varchar", "caption=Потребител по подразбиране->Име"),
+	  'UNIT_DEFAULT_USER_PASS' => array("varchar", "caption=Потребител по подразбиране->Парола"),
+	);
 	
 }
 
