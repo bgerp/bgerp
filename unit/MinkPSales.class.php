@@ -40,9 +40,11 @@ class unit_MinkPSales extends core_Manager {
     {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
+        
+        //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
-        $browser->setValue('nick', 'Mitko');
-        $browser->setValue('pass', '111111');
+        $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
+        $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
         return $browser;
     }
