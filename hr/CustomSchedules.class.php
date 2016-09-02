@@ -296,5 +296,112 @@ class hr_CustomSchedules extends core_Master
     
         return $res;
     }
+    
+    
+    /**
+     * По зададени  отдел/служител и начална и крайна дата изчислява
+     * работни,неработните дни м/у двете дати според работния график
+     * изчислява още тези дни и в секунди
+     *
+     * @param int $departmentId - отдел
+     * @param int $personId - служител
+     * @param datetime $leaveFrom - от дата
+     * @param datetime $leaveTo - да дата
+     *
+     * @return StdClass array('nonWorking'=>неработни дни,  'leaveDay'=>дни отпуска, 'sicDay'=>дни болнични, 'tripDay'=>дни командировка, 
+     *                        'workDays'=>работни дни, 'allDays'=>всичкидни в периода,'workingSecs'=>работни дни в секунди, 
+     *                        'rest'=>почивни дни в секунди, 
+     *                        'secsPeriod'=>целия период в секунди)
+     */
+    static public function calcLeaveDaysByCustomSchedule($departmentId = NULL,$personId = NULL,$leaveFrom, $leaveTo)
+    {
+        $nonWorking = $leaveDay = $sicDay = $tripDay = $workDays = $allDays = 0;
+        
+        $workingSecs = $rest = $secsPeriod =  0;
+    
+        // Взимаме конкретния работен график
+        if($departmentId) {
+            $workingCycles = hr_Departments::fetchField($departmentId, 'schedule');
+            $masterId = $departmentId;
+        }
+        
+        if($personId) {
+            $data = new stdClass();
+            $data->masterData = new stdClass();
+            $data->masterMvc = cls::get('crm_Persons');
+            $data->masterId = (string) $personId;
 
+            $personsDetails = cls::get('crm_PersonsDetails');
+            $personsDetails->preparePersonsDetails($data);
+            
+            $workingCycles = hr_Departments::fetchField($data->Cycles->masterId, 'schedule');
+            $masterId = $data->Cycles->masterId;
+           
+        }
+        
+        $state = hr_WorkingCycles::getQuery();
+        $state->where("#id='{$workingCycles}'");
+        $cycleDetails = $state->fetch();
+
+        // Намираме кога започва графика
+        $startingOn = hr_Departments::fetchField($workingCycles,'startingOn');
+     
+        // Работен цикъл
+        $workingCyclesCls = cls::get('hr_WorkingCycles');
+        
+        $data = new stdClass();
+        $data->Cycles = new stdClass();
+        $data->masterId = $masterId;
+        $data->Cycles->masterId = $masterId;
+        
+        if($personId) {
+            $data->Cycles->personId = $personId;
+        }
+
+        $days = $workingCyclesCls->prepareGrafic($data, $curDate)->d;
+            
+        // Проверяваме всеки ден
+        // дали е работен или не
+        foreach($days as $day) { 
+            $curDate = substr(strstr($day->url, "="), 1);
+            // В кой ден от цикъла сме
+            $dayIs = (dt::daysBetween($curDate, $startingOn) + 1) % $cycleDetails->cycleDuration;
+            
+            // Извличане на данните за циклите
+            $scheduleDetails = hr_WorkingCycleDetails::getQuery();
+            
+            // Подробности за конкретния цикъл
+            $scheduleDetails->where("#cycleId='{$workingCycles}' AND #day='{$dayIs}'");
+            
+            // Взимаме записа на точно този избран ден от цикъла
+            // Кога за почва режима и с каква продължителност е
+            $details = $scheduleDetails->fetch();
+            $dayStart = $details->start;
+            $dayDuration = $details->duration;
+            $dayBreak = $details->break;
+            
+            if($day->type == 0) {
+                $nonWorking++;
+                $rest += 24*60*60;
+            } elseif($day->type == 5) {
+                $leaveDay++;
+                $rest += 24*60*60;
+            } elseif($day->type == 6) {
+                $sicDay++;
+                $rest += 24*60*60;
+            } elseif($day->type == 7) {
+                $tripDay++;
+                $workingSecs += $dayDuration - $dayBreak;
+            } else {
+                $workingSecs += $dayDuration - $dayBreak;
+                $workDays++;
+            }
+
+            $allDays++;
+        }
+        
+        $secsPeriod = $allDays * (24*60*60);
+    
+        return (object) array('nonWorking'=>$nonWorking,  'leaveDay'=>$leaveDay, 'sicDay'=>$sicDay, 'tripDay'=>$tripDay, 'workDays'=>$workDays, 'allDays'=>$allDays,'workingSecs'=>$workingSecs, 'rest'=>$rest, 'secsPeriod'=>$secsPeriod);
+    }
 }
