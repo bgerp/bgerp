@@ -508,7 +508,7 @@ class unit_MinkP extends core_Manager
     /**
      * 16. Създаване на склад
      */
-    //http://localhost/unit_MinkPbgERP/CreateStore/
+    //http://localhost/unit_MinkP/CreateStore/
     function act_CreateStore()
     {
         // Логване
@@ -522,7 +522,7 @@ class unit_MinkP extends core_Manager
         $browser->setValue('name', 'Склад 2');
         //$ekip='Екип "Главен офис"';
         //$browser->setValue($ekip, '1');
-        $browser->setValue('Pavlinka', '1');
+        $browser->setValue('Mitko', '13_1');
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
