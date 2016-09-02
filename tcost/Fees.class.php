@@ -55,31 +55,31 @@ class tcost_Fees extends core_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,admin,trans';
+    public $canEdit = 'ceo,tcost';
 
 
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,admin,trans';
+    public $canAdd = 'ceo,tcost';
 
 
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,admin,trans';
+    public $canList = 'ceo,tcost';
 
 
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,admin,trans';
+    public $canDelete = 'ceo,tcost';
 
 
     /**
      * Полета, които се виждат
      */
-     public $listFields  = "id, weight, price, createdOn, createdBy";
+     public $listFields  = "weight, price, createdOn, createdBy";
 
 
     /**
@@ -96,6 +96,7 @@ class tcost_Fees extends core_Detail
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
      * 
+     * @param int $deliveryTermId - ид на условието на доставка
      * @param int $countryId - id на съотверната държава
      * @param string $pCode - пощенски код
      * @param double $totalWeight - Посоченото тегло
@@ -106,18 +107,17 @@ class tcost_Fees extends core_Detail
      * [1] - Резултат за подадената единица $singleWeight
      * [2] - Id на зоната
      */
-    public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
+    public static function calcFee($deliveryTermId, $countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
     	// Общото тегло не трябва да е по-малко от еденичното
     	$totalWeight = max($totalWeight, $singleWeight);
     	expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
-        
-        // Определяне на зоната на транспорт
-        $zone = tcost_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
-
+    	
+        // Определяне на зоната на транспорт, за зададеното условие на доставка
+        $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
+		
         // Ако не се намери зона се връща 0
-        if(is_null($zone)) return 0;
-        expect($zone['zoneId'] > 0);
+        if(is_null($zone)) return tcost_CostCalcIntf::CALC_ERROR;
 
         // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
@@ -199,16 +199,10 @@ class tcost_Fees extends core_Detail
             $finalPrice = $a * $totalWeight + $b;
         }
 
-
-        /*
-         * Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
-         */
+        // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $result = round($finalPrice / $totalWeight * $singleWeight, 2);
 
-        
-        /*
-         * Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
-         */
+        // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
         return array($finalPrice, $result, $zone['zoneId']);
     }
 }

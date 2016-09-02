@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'sales_Sales'
  *
@@ -351,17 +354,18 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = $form->rec;
         
         // При клониране
         if($data->action == 'clone'){
         	
         	// Ако няма reff взимаме хендлъра на оригиналния документ
-        	if(empty($form->rec->reff)){
-        		$form->rec->reff = $mvc->getHandle($form->rec->id);
+        	if(empty($rec->reff)){
+        		$rec->reff = $mvc->getHandle($rec->id);
         	}
         	
         	// Инкрементираме reff-а на оригинална
-        	$form->rec->reff = str::addIncrementSuffix($form->rec->reff, 'v', 2);
+        	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
         }
         
         $myCompany = crm_Companies::fetchOwnCompany();
@@ -380,24 +384,30 @@ class sales_Sales extends deals_DealMaster
         	$accountRec = bank_Accounts::fetch($bankAccountId);
         	$bankCurrencyCode = currency_Currencies::getCodeById($accountRec->currencyId);
         	
-        	if($form->rec->currencyId == $bankCurrencyCode){
+        	if($rec->currencyId == $bankCurrencyCode){
         		$form->setDefault('bankAccountId', $bankAccountId);
         	}
         }
        
-        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
-        $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
+        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
+        $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
         }
         
-        if(empty($form->rec->id)){
+        if(empty($rec->id)){
         	$form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
+        } else {
+        	
+        	// Ако има поне един детайл, условието ан доставка не мжое да се сменя
+        	if(sales_SalesDetails::fetchField("#saleId = {$rec->id}")){
+        		$form->setReadOnly('deliveryTermIdExtended');
+        	}
         }
         
-        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($form->rec->contragentClassId, $form->rec->contragentId));
+        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
     }
     
     
@@ -1071,17 +1081,4 @@ class sales_Sales extends deals_DealMaster
     		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
     }
-
-
-    /**
-     * В кои корици може да се вкарва документа
-     * 
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-        
-    	return array('crm_ContragentAccRegIntf');
-    }
-
 }

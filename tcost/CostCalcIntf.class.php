@@ -17,6 +17,12 @@ class tcost_CostCalcIntf
 {
 	
 	
+	/**
+	 * Стойността, която ще се върне ако е имало грешка в изчислението
+	 */
+	const CALC_ERROR = '-1';
+	
+	
     /**
      * Определяне на обемното тегло, на база на обема на товара
      * 
@@ -34,6 +40,7 @@ class tcost_CostCalcIntf
     /**
      * Определяне цената за транспорт при посочените параметри
      *
+     * @param int $deliveryTermId    -условие на доставка
      * @param int $productId         - ид на артикул
      * @param int $quantity          - количество
      * @param int $totalWeight       - Общо тегло на товара
@@ -42,10 +49,11 @@ class tcost_CostCalcIntf
      * @param int $fromCountry       - id на страната на мястото за изпращане
      * @param string $fromPostalCode - пощенски код на мястото за изпращане
      *
-     * @return double                - цена, която ще бъде платена за теглото на артикул
+     * @return double                - цена, която ще бъде платена за теглото на артикул,
+     * 								   ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
      */
-    function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    function getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
-        return $this->class->getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
+        return $this->class->getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
     }
 }
