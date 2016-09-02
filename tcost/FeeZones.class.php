@@ -55,37 +55,37 @@ class tcost_FeeZones extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,admin,tcost';
+    public $canRead = 'ceo,tcost';
 
 
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,admin,tcost';
+    public $canEdit = 'ceo,tcost';
 
 
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,admin,tcost';
+    public $canAdd = 'ceo,tcost';
 
 
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,admin,tcost';
+    public $canList = 'ceo,tcost';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,admin,tcost';
+    public $canSingle = 'ceo,tcost';
 
 
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,admin,tcost';
+    public $canDelete = 'ceo,tcost';
 
 
     /**
@@ -159,6 +159,7 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне сумата за транспорт за цялото количество
      *
+     * @paran int $deliveryTermId    - ид на условието на доставка
      * @param int $productId         - ид на артикул
      * @param int $quantity          - количество
      * @param int $totalWeight       - Общо тегло на товара
@@ -169,14 +170,66 @@ class tcost_FeeZones extends core_Master
      *
      * @return double $fee           - сума за транспорта на цялото к-во. Ако не може да се изчисли 0
      */
-    public function getTransportFee($productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
     	$weightRow = $singleWeight * $quantity;
     	
-    	$feeArr = tcost_Fees::calcFee($toCountry, $toPostalCode, $totalWeight, $weightRow);
+    	$feeArr = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $weightRow);
     	$fee = (isset($feeArr[1])) ? $feeArr[1] : 0;
     	
     	return $fee;
+    }
+    
+    
+    /**
+     * Добавяне на бутон за изчисление
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+    	if (haveRole('admin, ceo, tcost')) {
+    		$data->toolbar->addBtn("Изчисление", array($mvc, "calcFee"), "ef_icon=img/16/arrow_out.png, title=Изчисляване на разходи по транспортна зона");
+    	}
+    }
+    
+    
+    /**
+     * Изчисление на транспортни разходи
+     */
+    public function act_calcFee()
+    {
+    	//Дос на потребителите
+    	requireRole('admin, ceo, tcost');
+    
+    	// Вземаме съответстващата форма на този модел
+    	$form = cls::get('core_Form');
+    	$form->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
+    	$form->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2,allowEmpty)', 'caption=Държава, mandatory,smartCenter');
+    	$form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
+    	$form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');
+    	$form->FLD('singleWeight', 'double(Min=0)', 'caption=Кг. за връщане');
+    
+    	// Въвеждаме формата от Request (тази важна стъпка я бяхме пропуснали)
+    	$form->input();
+    	$form->setDefault('singleWeight', 1);
+    	
+    	if ($form->isSubmitted()) {
+    		$rec = $form->rec;
+    		try {
+    			$result = tcost_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
+    			
+    			$zoneName = tcost_FeeZones::getVerbal($result[2], 'name');
+    			$form->info = "Цената за|* <b>" . $rec->singleWeight . "</b> |на|* <b>" . $rec->totalWeight . "</b> |кг. от този пакет ще струва|* <b>". round($result[1], 4).
+    			"</b>, |a всички|* <b>".  $rec->totalWeight . "</b> |ще струват|* <b>" . round($result[0], 4) . "</b>. |Пратката попада в|* <b>" . $zoneName . "</b>";
+    			$form->info = tr($form->info);
+    		} catch(core_exception_Expect $e) {
+    			$form->setError("zoneId, countryId", "Не може да се изчисли по зададените данни, вашата пратка не попада в никоя зона");
+    		}
+    	}
+    
+    	$form->title = 'Пресмятане на налва';
+    	$form->toolbar->addSbBtn('Изчисли', 'save', 'ef_icon=img/16/arrow_refresh.png');
+    
+    	return $this->renderWrapping($form->renderHTML());
     }
 }
