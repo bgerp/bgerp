@@ -136,6 +136,8 @@ class cond_DeliveryTerms extends core_Master
      */
     public static function canCalcHiddenCost($id, $productId)
     {
+    	if(!$id) return FALSE;
+    	
     	expect($rec = self::fetchRec($id));
     	if($rec->calcCost == 'yes'){
     		
