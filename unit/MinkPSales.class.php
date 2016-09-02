@@ -27,8 +27,9 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  7.".$this->act_CreateSaleEURVatFree();
         $res .= "  8.".$this->act_CreateSaleEURVatFreeAdv();
         $res .= "  9.".$this->act_CreateCreditDebitInvoice();
-        $res .= "  10.".$this->act_CreateSaleAdvPaymentInclVAT();
-        $res .= "  11.".$this->act_CreateSaleAdvPayment();
+        $res .= "  10.".$this->act_CreateCreditDebitInvoiceVATFree();
+        $res .= "  11.".$this->act_CreateSaleAdvPaymentInclVAT();
+        $res .= "  12.".$this->act_CreateSaleAdvPaymentSep();
         return $res;
     }
        
@@ -63,7 +64,7 @@ class unit_MinkPSales extends core_Manager {
     /**
      * Избор на чуждестранна фирма
      */
-    public function SetFirmC()
+    public function SetFirmEUR()
     {
         $browser = $this->SetUp();
         $browser->click('Визитник');
@@ -442,7 +443,7 @@ class unit_MinkPSales extends core_Manager {
         $browser = $this->SetUp();
         
         //Отваряме папката на фирмата
-        $browser = $this->SetFirm();
+        $browser = $this->SetFirmEUR();
         
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -458,7 +459,6 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
-        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         // Записване черновата на продажбата
         $browser->press('Чернова');
         
@@ -554,11 +554,9 @@ class unit_MinkPSales extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        //Избор на фирмата и отваряне на папката
-        $browser->click('Визитник');
-        $Company = "NEW INTERNATIONAL GMBH";
-        $browser->click($Company);
-        $browser->press('Папка');
+        //Отваряме папката на фирмата
+        $browser = $this->SetFirmEUR();
+        
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -573,7 +571,6 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('paymentMethodId', "100% авансово");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         $browser->setValue('chargeVat', 'exempt');
-        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         // Записване черновата на продажбата
         $browser->press('Чернова');
     
@@ -789,15 +786,15 @@ class unit_MinkPSales extends core_Manager {
      * Продажба - Кредитно и дебитно известие без ДДС (валута)
      */ 
      
-    //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceC/
-    function act_CreateCreditDebitInvoiceC()
+    //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceVATFree/
+    function act_CreateCreditDebitInvoiceVATFree()
     {
     
         // Логване
         $browser = $this->SetUp();
     
         //Отваряне папката на фирмата
-        $browser = $this->SetFirmC();
+        $browser = $this->SetFirmEUR();
     
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
