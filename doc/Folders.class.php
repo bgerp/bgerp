@@ -509,7 +509,24 @@ class doc_Folders extends core_Master
                         // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
                         $isRejected = core_Users::checkUsersIsRejected($notifyArr);
                         if ($isRejected) {
-                            $notifyArr += core_Users::getByRole('admin');
+                            
+                            $otherNotifyArr = array();
+                            if ($defNotify = doc_Setup::get('NOTIFY_FOR_OPEN_IN_REJECTED_USERS')) {
+                                $otherNotifyArr = type_Keylist::toArray($defNotify);
+                            }
+                            
+                            // Ако има избрани потребители в настройките, проверяваме да не са оттеглени
+                            if (!empty($otherNotifyArr)) {
+                                if (core_Users::checkUsersIsRejected($otherNotifyArr)) {
+                                    $otherNotifyArr = array();
+                                }
+                            }
+                            
+                            if (empty($otherNotifyArr)) {
+                                $otherNotifyArr = core_Users::getByRole('admin');
+                            }
+                            
+                            $notifyArr += $otherNotifyArr;
                         }
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката

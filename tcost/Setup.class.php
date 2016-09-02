@@ -46,7 +46,8 @@ class tcost_Setup extends core_ProtoSetup
     var $managers = array(
             'tcost_FeeZones',
             'tcost_Zones',
-            'tcost_Fees'
+            'tcost_Fees',
+    		'tcost_Calcs',
         );
 
         

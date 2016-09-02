@@ -81,11 +81,15 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	 * 
 	 * Вкарване на отпадък
 	 * 
-	 * Dt: 61101 - Незавършено производство                (Артикули)
+	 * Dt: с/ка 61101 - Незавършено производство
+	 * Ct: с/ка 484 - Операции захранващи стратегии двустранно
+	 * с количеството на ОТПАДЪКА и сума - според зададената му себестойност - по този начин заприхождаваме ОТПАДЪКА в незавършеното производство
 	 * 
-     * Ct: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
-     * или ако артикула е услуга Ct: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
-     * 
+	 * Dt: с/ка 321 - Суровини, материали, продукция, стоки
+	 * 		или 60201 - Разходи за (нескладируеми) услуги и консумативи  по перо 'Неразпределени разходи'
+	 * Ct: с/ка 484 - Операции захранващи стратегии двустранно
+	 * с количество 0 за ПРОИЗВЕДЕНИЯ артикул и сума = себестойността на ОТПАДЪКА но с ОТРИЦАТЕЛЕН ЗНАК, с цел - да намалим себестойността на ПРОИЗВЕДЕНИЯ артикул със стойността на генерирания ОТПАДЪК 
+	 * 
      * 3. Етап: Ако има режийни разходи за разпределение
      * 
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
@@ -191,6 +195,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						$sign = 1;
 					} else {
 						$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, NULL, $rec->valior);
+						$primeCost *= $dRec1->quantity;
 						$sign = -1;
 					}
 					
@@ -213,19 +218,24 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						$entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
 								'quantity' => $dRec1->quantity);
 						$entry['reason'] = $reason;
+						
+						$entries[] = $entry;
 					} else {
-						$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId),
-								'quantity' => $dRec1->quantity);
-						
-						$array['quantity'] = $quantity;
-						$entry['credit'] = $array;
-						
 						$entry['amount'] = $primeCost;
-						$entry['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
-						//$total -= $amount;
+						$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId), 'quantity' => $dRec1->quantity);
+						$entry['credit'] = array('484');
+						$entry['reason'] = 'Заприхождаване на отпадък в незавършеното производство ';
+						$entries[] = $entry;
+						
+						$entry2 = array();
+						$entry2['amount'] = -1 * $primeCost;
+						$entry2['debit'] = $array;
+						$entry2['credit'] = array('484');
+						$entry2['debit']['quantity'] = 0;
+						$entry2['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
+						$entries[] = $entry2;
 					}
 				
-					$entries[] = $entry;
 					$index++;
 				}
 			}

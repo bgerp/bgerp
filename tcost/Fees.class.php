@@ -102,16 +102,15 @@ class tcost_Fees extends core_Detail
      * @param int $singleWeight
      * 
      * @return int|array - Ако не може да бъде намерена зона, в която принадлежи пакета
-     * [0] - Обработената цена
+     * [0] - Обработената цена, за доставката на цялото количество
      * [1] - Резултат за подадената единица $singleWeight
      * [2] - Id на зоната
      */
     public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
-        expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
-        
-        // Общото тегло не трябва да е по-малко от еденичното
-        $totalWeight = max($totalWeight, $singleWeight);
+    	// Общото тегло не трябва да е по-малко от еденичното
+    	$totalWeight = max($totalWeight, $singleWeight);
+    	expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
         
         // Определяне на зоната на транспорт
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
@@ -204,7 +203,7 @@ class tcost_Fees extends core_Detail
         /*
          * Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
          */
-        $result = $finalPrice / $totalWeight * $singleWeight;
+        $result = round($finalPrice / $totalWeight * $singleWeight, 2);
 
         
         /*
