@@ -101,16 +101,15 @@ class unit_MinkPbgERP extends core_Manager {
     {
         // Логване
         $browser = $this->SetUp();
-        return $browser->getHtml();
         // Създаване на потребител
         $browser->click('Админ');
         $browser->click('Потребители');
         $browser->press('Нов запис');
-        $browser->setValue('nick', 'test1');
-        $browser->setValue('passNew', '123456');
-        $browser->setValue('passRe', '123456');
-        $browser->setValue('names', 'test1');
-        $browser->setValue('email', 't1@abv.bg');
+        $browser->setValue('nick', 'bgerp');
+        $browser->setValue('passNew', '111111');
+        $browser->setValue('passRe', '111111');
+        $browser->setValue('names', 'bgerp');
+        $browser->setValue('email', 'bgerp@experta.bg');
         //$browser->setValue('rolesInput[71]', '71');
         $browser->setValue('admin', '1');
         $browser->setValue('ceo', '12');
