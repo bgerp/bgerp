@@ -63,13 +63,21 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
         //$browser->start('http://' . $_SERVER['HTTP_HOST']);
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Mitko');
-        $browser->setValue('pass', '111111');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-        //$browser->hasText('Известия');
-        //$browser->hasText('Mitko');
+        
+        if(strpos($browser->gettext(), 'Първоначална регистрация на администратор')) {
+        //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp  
+            $browser->setValue('nick', 'bgerp');
+            $browser->setValue('passNew', '111111');
+            $browser->setValue('passRe', '111111');
+            $browser->setValue('names', 'bgerp');
+            $browser->setValue('email', 'bgerp@experta.bg');
+            $browser->press('Запис');
+        }     
+        //Вход с потребител DEFAULT_USER (bgerp)
+            $browser->click('Вход');
+            $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
+            $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
+        
         $browser->press('Вход');
         return $browser;
     }
@@ -94,7 +102,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 1. Създаване на потребител
+     * 1. Създаване на потребител от Админ
      */
     //http://localhost/unit_MinkPbgERP/CreateUser1/
     function act_CreateUser1()
@@ -105,11 +113,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Админ');
         $browser->click('Потребители');
         $browser->press('Нов запис');
-        $browser->setValue('nick', 'bgerp');
-        $browser->setValue('passNew', '111111');
-        $browser->setValue('passRe', '111111');
-        $browser->setValue('names', 'bgerp');
-        $browser->setValue('email', 'bgerp@experta.bg');
+        $browser->setValue('nick', 'User1');
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
+        $browser->setValue('names', 'User1');
+        $browser->setValue('email', 'u1@abv.bg');
         //$browser->setValue('rolesInput[71]', '71');
         $browser->setValue('admin', '1');
         $browser->setValue('ceo', '12');
@@ -165,8 +173,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Складове"');
         $browser->setValue('name', 'Склад 1');
         //$ekip='Екип "Главен офис"';
-        //$browser->setValue(chiefs_13_1, '13_1');
-        $browser->setValue('Mitko', '13_1');
+        $browser->setValue('chiefs_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -193,10 +200,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
         $browser->setValue('iban', '#BG11CREX92603114548401');
-        //$browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('Mitko', '13_1');
-        //$browser->setValue('operators_1', '1');
+        $browser->setValue('operators_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -227,8 +232,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('iban', '#BG33UNCR70001519562303');
         $browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('Mitko', '13_1');
-        //$browser->setValue('operators_1', '1');
+        $browser->setValue('operators_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -255,8 +259,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Фирмени каси"');
         $browser->setValue('name', 'КАСА 1');
-        $browser->setValue('Mitko', '13_1');
-        //$browser->setValue('cashiers_1', '1');
+        $browser->setValue('cashiers_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -432,9 +435,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Завод');
-        //$ekip='Екип "Главен офис"';
-        //$browser->setValue($ekip, '1');
-        $browser->setValue('Mitko', '13_1');
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -462,9 +462,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Производство');
         $browser->setValue('parentId', 'Завод');
-        //$ekip='Екип "Главен офис"';
-        //$browser->setValue($ekip, '1');
-        $browser->setValue('Mitko', '13_1');
+        $browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -1446,7 +1444,6 @@ class unit_MinkPbgERP extends core_Manager {
     {
         // Логване
         $browser = $this->SetUp();
-    
         // Създаване на задача
         $browser->click('Добавяне на нова Задача');
         $browser->setValue('title', 'Инвентаризация');
