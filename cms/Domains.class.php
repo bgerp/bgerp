@@ -258,11 +258,7 @@ class cms_Domains extends core_Embedder
         }
         
         if (!$domainRec || ($part == 'id' && !$domainRec->{$part})) {
-            try {
-                expect(FALSE, $domainRec);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-            } 
+            wp($domainRec);
         }
               
         if($part) {
