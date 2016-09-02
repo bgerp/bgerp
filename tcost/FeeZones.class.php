@@ -105,7 +105,7 @@ class tcost_FeeZones extends core_Master
      * 
      * @var double
      */
-    const V2C = 0.5;
+    const V2C = 1;
     
     
     /**
