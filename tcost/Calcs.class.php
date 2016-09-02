@@ -265,4 +265,31 @@ class tcost_Calcs extends core_Manager
     	
     	return $count;
     }
+    
+    
+    /**
+     * Показване на хинт при изчисление на цена
+     * 
+     * @param varchar $amountRow   - вербалната сума на реда
+     * @param double $amountFee    - вербалната транспортна такса
+     * @param double $vat          - процент ДДС
+     * @param double $currencyRate - валутен курс
+     * @param varchar $chargeVat   - режим на ДДС
+     * @return core_ET             - сумата на реда с хинт
+     */
+    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
+    {
+    	if($amountFee == tcost_CostCalcIntf::CALC_ERROR){
+    		
+    		return ht::createHint($amountRow, 'Скритият транспорт, не може да бъде изчислен', 'warning', FALSE);
+    	} elseif(isset($amountFee)){
+    		$amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
+    		$amountFee = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($amountFee);
+    		$hint = tr("Транспорт|*: {$amountFee}");
+    		
+    		return ht::createHint($amountRow, $hint, 'notice', FALSE, 'width=14px,height=14px');
+    	}
+    	
+    	return $amountRow;
+    }
 }
