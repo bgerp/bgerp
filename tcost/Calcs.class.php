@@ -199,4 +199,44 @@ class tcost_Calcs extends core_Manager
     
     	return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
     }
+    
+    
+    /**
+     * Помощна ф-я връщаща п. кода и държава от подадени данни
+     * 
+     * @param mixed $contragentClassId - клас на контрагента
+     * @param int $contragentId        - ид на контрагента
+     * @param string|NULL $pCode       - пощенски код
+     * @param int|NULL $countryId      - ид на държава
+     * @param int|NULL $locationId     - ид на локация
+     * @return array $res
+     * 				['pCode']     - пощенски код
+     * 				['countryId'] - ид на държава
+     */
+    public static function getCodeAndCountryId($contragentClassId, $contragentId, $pCode = NULL, $countryId = NULL, $locationId = NULL)
+    {
+    	// Адреса и ид-то на държавата са с приоритет тези, които се подават
+    	$res = array('pCode' => $pCode, 'countryId' => $countryId);
+    	
+    	// Ако няма
+    	if(empty($res['pCode']) || empty($res['pCode'])){
+    		
+    		// И има локация, попълва се липсващото поле от локацията
+    		if(isset($locationId)){
+    			$locationRec = crm_Locations::fetch($locationId);
+    			$res['pCode'] = isset($res['pCode']) ? $res['pCode'] : $locationRec->pCode;
+    			$res['countryId'] = isset($res['countryId']) ? $res['countryId'] : $locationRec->countryId;
+    		}
+    		
+    		// Ако отново липсва поле, взимат се от визитката на контрагента
+    		if(empty($res['pCode']) || empty($res['pCode'])){
+    			$cData = cls::get($contragentClassId)->getContragentData($contragentId);
+    			$res['pCode'] = (!empty($res['pCode'])) ? $res['pCode'] : $cData->pCode;
+    			$res['countryId'] = (!empty($res['countryId'])) ? $res['countryId'] : $cData->countryId;
+    		}
+    	}
+    	
+    	// Връщане на резултата
+    	return $res;
+    }
 }
