@@ -425,7 +425,7 @@ class core_Debug
             $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
             $style = '';
             if($i+1 == $line) {
-                $style = " style='background-color:#ff9;'";
+                $style = " class='debugErrLine'; style='background-color:#ff9;'";
             }
             $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". 
                 str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
