@@ -165,7 +165,8 @@ class plg_Search extends core_Plugin
                 
                 $wordBegin = ' ';
                 $wordEnd = '';
-                if($strict) {
+                
+                if($strict === TRUE ||(is_numeric($strict) && $strict > strlen($w))) {
                     $wordEnd = ' ';
                 }
 
