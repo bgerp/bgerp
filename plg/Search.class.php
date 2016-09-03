@@ -198,7 +198,7 @@ class plg_Search extends core_Plugin
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if($limit > 0) {
+                    if($limit > 0 && $like == 'LIKE') {
                         $field1 =  "LEFT(#{$field}, {$limit})";
                     } else {
                         $field1 =  "#{$field}";
