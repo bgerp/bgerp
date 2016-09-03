@@ -199,7 +199,7 @@ class plg_Search extends core_Plugin
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
                     if($limit > 0) {
-                        $field =  "LEFT(#{$field}, 5)";
+                        $field =  "LEFT(#{$field}, {$limit})";
                     } else {
                         $field =  "#{$field}";
                     }
