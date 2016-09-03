@@ -127,7 +127,7 @@ class crm_Locations extends core_Master {
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
         $this->FLD('title', 'varchar', 'caption=Наименование');
         $this->FLD('type', 'varchar(32)', 'caption=Тип,mandatory');
-        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData');
+        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData,mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');

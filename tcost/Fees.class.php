@@ -200,9 +200,20 @@ class tcost_Fees extends core_Detail
         }
 
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
+        $finalPrice = round($finalPrice, 2);
         $result = round($finalPrice / $totalWeight * $singleWeight, 2);
 
         // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
         return array($finalPrice, $result, $zone['zoneId']);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+    	$data->listFields['price'] .= "|* (<small>{$baseCurrencyCode}</small>) |без ДДС|*";
     }
 }

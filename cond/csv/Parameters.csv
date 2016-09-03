@@ -9,4 +9,4 @@
 Общи условия за продажба (английски),cond_type_Text,commonConditionSaleEng
 Общи условия за покупка (английски),cond_type_Text,commonConditionPurEng
 Други условия към фактура,cond_type_Text,invoiceText
-Минимално тегло за доставка,cond_type_Double,calcShippingWeight,0
+Очаквано тегло на доставка,cond_type_Double,calcShippingWeight,0

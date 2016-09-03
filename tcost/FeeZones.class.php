@@ -105,7 +105,7 @@ class tcost_FeeZones extends core_Master
      * 
      * @var double
      */
-    const V2C = 0.5;
+    const V2C = 1;
     
     
     /**
@@ -175,6 +175,8 @@ class tcost_FeeZones extends core_Master
     {
     	// Колко е еденичното транспортно тегло на артикула
     	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
+    	$singleVolume = cat_Products::getParams($productId, 'transportVolume');
+    	$singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume);
     	
     	// Ако няма, цената няма да може да се изчисли
     	if(empty($singleWeight)) return tcost_CostCalcIntf::CALC_ERROR;
