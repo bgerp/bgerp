@@ -18,14 +18,6 @@ class cad2_SvgCanvas extends cad2_Canvas {
      */
 	var $contents = array();
     
-    
-    /**
-     * Текущи атрибути на лементите
-     */
-    var $attr = array();
-    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'fill', 'fill-opacity', 'fill-rule', 'font-size', 'font-weight', 'font-family', 'text-color');
-
-
     //
     public $addX = 10;
     public $addY = 10;
@@ -442,7 +434,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Отваря нов слой
      */
-    public function openLayer($name)
+    public function openLayer($name = NULL)
     {
         return $this->openGroup(array('name' => $name));
     }

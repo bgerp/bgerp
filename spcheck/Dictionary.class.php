@@ -228,7 +228,7 @@ class spcheck_Dictionary extends core_Manager
             
             // Заместваме вскички маркирани думи със специален стринг
             foreach ($errWordArr as $errW) {
-                $content = preg_replace("/(?<=([^\p{L}0-9]))(" . preg_quote($errW, '/') . "){1}(?=([^\p{L}0-9]))/iu", "<span style='color: red;' class='err-word'>$2</span>", $content);
+                $content = preg_replace("/(?<=([^\p{L}0-9]))(" . preg_quote($errW, '/') . "){1}(?=([^\p{L}0-9]))/iu", "<span class='err-word'>$2</span>", $content);
             }
             
             // Връщаме маскираните стрингове

@@ -1066,6 +1066,10 @@ th .rowtools .l {
   border-bottom: solid 1px #cccccc;
   padding: 2px; }
 
+.err-word {
+  border-bottom: 1px dashed #ff6566;
+  display: inline-block; }
+
 /*
  * край на общи стилове за линковете
  */

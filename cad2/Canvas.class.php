@@ -7,6 +7,20 @@ defIfNot('CAD2_MAX_CANVAS_SIZE', 1000);
  */
 abstract class cad2_Canvas extends core_BaseClass {
     
+
+    /**
+     * Текущи атрибути на лементите
+     */
+    public $attr = array();
+
+
+    /**
+     * Допустими имена на атрибути
+     */
+    protected $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 
+        'fill', 'fill-opacity', 'fill-rule', 'font-size', 'font-weight', 'font-family', 'text-color', 'stroke-color-name', 'fill-color-name', 'text-color-name');
+
+
     /**
      * Масив със 'режещи' отсечки
      */
@@ -101,7 +115,7 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Отваря нов слой
      */
-    abstract public function openLayer($name);
+    abstract public function openLayer($name = NULL);
 
 
     /**
