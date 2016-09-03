@@ -1077,7 +1077,7 @@ class blogm_Articles extends core_Master {
     /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
      */
-    static function getSearchResults($menuId, $q, $maxResults = 10)
+    static function getSearchResults($menuId, $q, $maxResults = 15)
     { 
         $res = array();
 
@@ -1096,7 +1096,7 @@ class blogm_Articles extends core_Master {
         $queryM->orderBy('modifiedOn=DESC');
 
         $query = clone($queryM);
-        plg_Search::applySearch($q, $query, NULL, TRUE, 64);
+        plg_Search::applySearch($q, $query, NULL, 5, 64);
 
         while($r = $query->fetch()) {
             $title = $r->title;
@@ -1108,7 +1108,7 @@ class blogm_Articles extends core_Master {
         
         if(count($res) < $maxResults) {
             $query = clone($queryM);
-            plg_Search::applySearch($q, $query, NULL, TRUE);
+            plg_Search::applySearch($q, $query, NULL, 9);
             while($r = $query->fetch()) {
                 $title = $r->title;
                 $url = self::getUrl($r);
@@ -1120,7 +1120,7 @@ class blogm_Articles extends core_Master {
 
         if(count($res) < $maxResults) {
             $query = clone($queryM);
-            plg_Search::applySearch($q, $query);
+            plg_Search::applySearch($q, $query, NULL, 3);
             while($r = $query->fetch()) {
                 $title = $r->title;
                 $url = self::getUrl($r);
