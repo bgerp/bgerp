@@ -632,12 +632,14 @@ class cms_Articles extends core_Master
      */
     static function getSearchResults($menuId, $q, $maxResults = 10)
     {
-        $query = self::getQuery();
-        $query->where("#menuId = {$menuId} AND #state = 'active'");
-        plg_Search::applySearch($q, $query, NULL, TRUE);
-        $query->limit($maxResults);
-        $query->orderBy('modifiedOn=DESC');
+        $queryM = self::getQuery();
+        $queryM->where("#menuId = {$menuId} AND #state = 'active'");
+        $queryM->limit($maxResults);
+        $queryM->orderBy('modifiedOn=DESC');
         $res = array();
+        
+        $query = clone($queryM);
+        plg_Search::applySearch($q, $query, NULL, TRUE, 64);
 
         while($r = $query->fetch()) {
             $title = str::cut($r->body, '[h1]', '[/h1]');
@@ -652,13 +654,9 @@ class cms_Articles extends core_Master
         }
 
         if(count($res) < $maxResults) {
-            $query = self::getQuery();
-            $query->where("#menuId = {$menuId} AND #state = 'active'");
-            plg_Search::applySearch($q, $query);
-            $query->limit($maxResults);
-            $query->orderBy('modifiedOn=DESC');
-            $res = array();
-
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query, NULL, TRUE);
+  
             while($r = $query->fetch()) {
                 $title = str::cut($r->body, '[h1]', '[/h1]');
                 if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
@@ -670,7 +668,24 @@ class cms_Articles extends core_Master
 
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
             }
+        }
 
+
+        if(count($res) < $maxResults) {
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query);
+  
+            while($r = $query->fetch()) {
+                $title = str::cut($r->body, '[h1]', '[/h1]');
+                if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
+                    $title = $r->title;
+                }
+
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
         }
  
         return $res; 

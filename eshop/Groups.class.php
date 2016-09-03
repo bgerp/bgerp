@@ -627,7 +627,7 @@ class eshop_Groups extends core_Master
     /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
      */
-    static function getSearchResults($menuId, $q, $maxResults = 10)
+    static function getSearchResults($menuId, $q, $maxResults = 15)
     { 
         $res = array();
         $query = self::getQuery();
@@ -639,26 +639,36 @@ class eshop_Groups extends core_Master
  
         if(!empty($groups)) {
        
-            $pQuery = eshop_Products::getQuery();
-            $pQuery->where("#groupId IN (" . implode(',', $groups) . ")");
+            $queryM = eshop_Products::getQuery();
+            $queryM->where("#groupId IN (" . implode(',', $groups) . ")");
+            $queryM->limit($maxResults);
 
-            plg_Search::applySearch($q, $pQuery, NULL, TRUE);
-            $pQuery->limit($maxResults);
-            while($r = $pQuery->fetch()) {
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query, NULL, TRUE, 64);
+            while($r = $query->fetch()) {
                 $title = $r->name;
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
 
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
             }
+            
+            if(count($res) < $maxResults) {
+                $query = clone($queryM);
+                plg_Search::applySearch($q, $query, NULL, TRUE);
+                while($r = $query->fetch()) {
+                    $title = $r->name;
+                    $url = eshop_Products::getUrl($r);
+                    $url['q'] = $q;
+
+                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+                }
+            }
 
             if(count($res) < $maxResults) {
-                $pQuery = eshop_Products::getQuery();
-                $pQuery->where("#groupId IN (" . implode(',', $groups) . ")");
-
-                plg_Search::applySearch($q, $pQuery);
-                $pQuery->limit($maxResults);
-                while($r = $pQuery->fetch()) {
+                $query = clone($queryM);
+                plg_Search::applySearch($q, $query);
+                while($r = $query->fetch()) {
                     $title = $r->name;
                     $url = eshop_Products::getUrl($r);
                     $url['q'] = $q;

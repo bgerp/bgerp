@@ -410,6 +410,9 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
     function doPath($e)
     {   
+        $this->pdf->StartTransform();
+        $this->pdf->Rotate(0, 0, 0);
+
         $this->pdf->SetLineStyle(array(
                 'width' => $e->attr['stroke-width'],
                 'cap' => $e->attr['stroke-linecap'],
@@ -458,6 +461,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
                 $d[4] += $this->addY;
                 $d[5] += $this->addX;
                 $d[6] += $this->addY;
+                
             }
 
             if($d[0] == 'M') {
@@ -477,6 +481,8 @@ class cad2_PdfCanvas extends cad2_Canvas {
         }
 
         $this->pdf->drawPath($e->data, $fill, array(), $fillColor);
+
+        $this->pdf->StopTransform();
     }
 
 
@@ -538,9 +544,11 @@ class cad2_PdfCanvas extends cad2_Canvas {
      * Показва текста в PDF-а, както е указан в елемента
      */
     function doText($e)
-    {
+    { 
+        $this->pdf->StartTransform();
+        $this->pdf->Rotate(0, 0, 0);
+
         if($e->rotation) {
-            $this->pdf->StartTransform();
             $this->pdf->Rotate($e->rotation, $e->x + $this->addX, $e->y + $this->addY);
         }
         
@@ -564,9 +572,8 @@ class cad2_PdfCanvas extends cad2_Canvas {
 
         $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text);
 
-        if($e->rotation) {
-            $this->pdf->StopTransform();
-        }
+        $this->pdf->StopTransform();
+       
     }
 
 

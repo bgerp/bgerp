@@ -35,6 +35,11 @@ class cad2_SvgCanvas extends cad2_Canvas {
     public $paddingLeft;
 
     /**
+     * Брояч на слоевете
+     */
+    private $layersCnt;
+
+    /**
      * Текущи параметри на молива, запълването и шрифта
      * stroke, stroke-width, stroke-linecap, stroke-dasharray
      * fill-color, fill-opacity
@@ -141,20 +146,6 @@ class cad2_SvgCanvas extends cad2_Canvas {
 
 
     /**
-     * Връща тага на текущия път
-     * Очаква той да е последния добавен в съдържанието
-     */
-    protected function getCurrentPath()
-    {
-        $path = $this->content[count($this->content)-1];
-
-        expect($path->name == 'path');
-        
-        return $path;
-    }
-
-
-    /**
      * Задава текуща стойност на посочения атрибит
      */
     public function setAttr($name, $value)
@@ -181,7 +172,9 @@ class cad2_SvgCanvas extends cad2_Canvas {
      * Започва нов път (поредица от линии и премествания)
      */
 	public function startPath($attr = array())
-    {
+    {   
+        $this->closePath(FALSE);
+
         $path = $this->content[] = new stdClass();
         $path->name = 'path';
         
@@ -195,10 +188,46 @@ class cad2_SvgCanvas extends cad2_Canvas {
         setIfNot($attr['fill'], $this->getAttr('fill'));
         setIfNot($attr['fill-opacity'], $this->getAttr('fill-opacity'));
 
-
         $path->attr = $attr;
+        
+        if($path->attr['fill'] == 'none' || $path->attr['fill'] == 'transparent') {
+            $path->attr['fill-opacity'] = 0;
+        }
 
         return $path;
+	}
+
+
+    /**
+     * Връща тага на текущия път
+     * Очаква той да е последния добавен в съдържанието
+     */
+    protected function getCurrentPath()
+    {
+        $path = $this->content[count($this->content)-1];
+
+        if($path->name == 'path') {
+            
+            return $path;
+        }
+    }
+
+
+
+    /**
+     * Затваря текущия път или под-път
+     */
+	public function closePath($close = TRUE)
+    {
+        $path = $this->getCurrentPath();
+        
+        if($path) {
+            if($close || (isset($path->attr['fill']) && $path->attr['fill'] != 'none' && $path->attr['fill'] != 'transparent' && ($path->attr['fill-opacity'] >0 || !isset($path->attr['fill-opacity'])))) {
+                $path->data[] = array('z');
+            } else {
+                $path->attr['fill-opacity'] = 0;
+            }
+        }
 	}
 
 
@@ -315,7 +344,8 @@ class cad2_SvgCanvas extends cad2_Canvas {
      */
     public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
     {
-        
+        $this->closePath(FALSE);
+
         if(!$absolute) {
             list($x0, $y0) = $this->getCP();
             $x = $x + $x0;
@@ -374,21 +404,6 @@ class cad2_SvgCanvas extends cad2_Canvas {
 			$gr->transform = array($width, $height, $rotation, $x, $y);
 		}
 	}
-
-
-
-    /**
-     * Затваря текущия път или под-път
-     */
-	public function closePath($close = TRUE)
-    {
-        $path = $this->getCurrentPath();
-        
-        if($close) {
-            // $path->attr['d'] .= ' z';
-            $path->data[] = array('z');
-        }
-	}
 	
 
     /**
@@ -436,7 +451,11 @@ class cad2_SvgCanvas extends cad2_Canvas {
      */
     public function openLayer($name = NULL)
     {
-        return $this->openGroup(array('name' => $name));
+        $this->layersCnt++;
+
+        $attr = array('inkscape:groupmode' => 'layer', 'id' => "layer" . $this->layersCnt, 'inkscape:label' => $name);
+
+        return $this->openGroup($attr);
     }
 
 
@@ -550,7 +569,8 @@ class cad2_SvgCanvas extends cad2_Canvas {
         $heightMm = $height / $this->pixPerMm;
 
  		$res .= "<svg width=\"{$widthMm}mm\" height=\"{$heightMm}mm\" viewBox=\"{$left} {$top} {$width} {$height}\"" .
-                "\n        version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
+                "\n xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"" .
+                "\n version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
 
         // Генериране на съдържанието
         foreach($this->content as $tag) {

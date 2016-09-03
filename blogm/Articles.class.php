@@ -1089,12 +1089,14 @@ class blogm_Articles extends core_Master {
             $groupsArr[$gRec->id] = $gRec;
         }
 
-        $query = self::getQuery();
-        $query->where("#state = 'active'");
-        $query->likeKeylist('categories', keylist::fromArray($groupsArr));
-        plg_Search::applySearch($q, $query, NULL, TRUE);
-        $query->limit($maxResults);
-        $query->orderBy('modifiedOn=DESC');
+        $queryM = self::getQuery();
+        $queryM->where("#state = 'active'");
+        $queryM->likeKeylist('categories', keylist::fromArray($groupsArr));
+        $queryM->limit($maxResults);
+        $queryM->orderBy('modifiedOn=DESC');
+
+        $query = clone($queryM);
+        plg_Search::applySearch($q, $query, NULL, TRUE, 64);
 
         while($r = $query->fetch()) {
             $title = $r->title;
@@ -1103,15 +1105,22 @@ class blogm_Articles extends core_Master {
 
             $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
         }
+        
+        if(count($res) < $maxResults) {
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query, NULL, TRUE);
+            while($r = $query->fetch()) {
+                $title = $r->title;
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
+        }
 
         if(count($res) < $maxResults) {
-            $query = self::getQuery();
-            $query->where("#state = 'active'");
-            $query->likeKeylist('categories', keylist::fromArray($groupsArr));
+            $query = clone($queryM);
             plg_Search::applySearch($q, $query);
-            $query->limit($maxResults);
-            $query->orderBy('modifiedOn=DESC');
-
             while($r = $query->fetch()) {
                 $title = $r->title;
                 $url = self::getUrl($r);
