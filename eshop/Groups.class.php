@@ -644,7 +644,7 @@ class eshop_Groups extends core_Master
             $queryM->limit($maxResults);
 
             $query = clone($queryM);
-            plg_Search::applySearch($q, $query, NULL, TRUE, 64);
+            plg_Search::applySearch($q, $query, NULL, 5, 64);
             while($r = $query->fetch()) {
                 $title = $r->name;
                 $url = eshop_Products::getUrl($r);
@@ -655,7 +655,7 @@ class eshop_Groups extends core_Master
             
             if(count($res) < $maxResults) {
                 $query = clone($queryM);
-                plg_Search::applySearch($q, $query, NULL, TRUE);
+                plg_Search::applySearch($q, $query, NULL, 9);
                 while($r = $query->fetch()) {
                     $title = $r->name;
                     $url = eshop_Products::getUrl($r);
@@ -667,7 +667,7 @@ class eshop_Groups extends core_Master
 
             if(count($res) < $maxResults) {
                 $query = clone($queryM);
-                plg_Search::applySearch($q, $query);
+                plg_Search::applySearch($q, $query, NULL, 3);
                 while($r = $query->fetch()) {
                     $title = $r->name;
                     $url = eshop_Products::getUrl($r);

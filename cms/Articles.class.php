@@ -630,7 +630,7 @@ class cms_Articles extends core_Master
     /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
      */
-    static function getSearchResults($menuId, $q, $maxResults = 10)
+    static function getSearchResults($menuId, $q, $maxResults = 15)
     {
         $queryM = self::getQuery();
         $queryM->where("#menuId = {$menuId} AND #state = 'active'");
@@ -639,7 +639,7 @@ class cms_Articles extends core_Master
         $res = array();
         
         $query = clone($queryM);
-        plg_Search::applySearch($q, $query, NULL, TRUE, 64);
+        plg_Search::applySearch($q, $query, NULL, 5, 64);
 
         while($r = $query->fetch()) {
             $title = str::cut($r->body, '[h1]', '[/h1]');
@@ -655,7 +655,7 @@ class cms_Articles extends core_Master
 
         if(count($res) < $maxResults) {
             $query = clone($queryM);
-            plg_Search::applySearch($q, $query, NULL, TRUE);
+            plg_Search::applySearch($q, $query, NULL, 9);
   
             while($r = $query->fetch()) {
                 $title = str::cut($r->body, '[h1]', '[/h1]');
@@ -673,7 +673,7 @@ class cms_Articles extends core_Master
 
         if(count($res) < $maxResults) {
             $query = clone($queryM);
-            plg_Search::applySearch($q, $query);
+            plg_Search::applySearch($q, $query, NULL, 3);
   
             while($r = $query->fetch()) {
                 $title = str::cut($r->body, '[h1]', '[/h1]');
