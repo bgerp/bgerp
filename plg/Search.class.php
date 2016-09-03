@@ -185,6 +185,7 @@ class plg_Search extends core_Plugin
                     $w = substr($w, 1);
                     
                     if(!$w) continue;
+                    $wordEnd = ' ';
                     $like = "NOT LIKE";
                     $equalTo = " = 0";
                 } else {
