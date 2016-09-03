@@ -763,7 +763,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-    	//Ако потребителя не е в група доставчици го включваме
+    	// Ако потребителя не е в група доставчици го включваме
     	$rec = $mvc->fetchRec($rec);
     	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $mvc->crmDefGroup);
     }
@@ -1569,7 +1569,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-		// не може да се клонира ако потребителя няма достъп до папката
+		// Не може да се клонира ако потребителя няма достъп до папката
     	if($action == 'clonerec' && isset($rec)){
     		if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
     			$res = 'no_one';

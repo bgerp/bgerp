@@ -141,7 +141,7 @@ class cad2_MeasureLine  extends cad2_Shape {
         $svg->moveTo($B1->x, $B1->y, TRUE);
         $svg->lineTo($Ar2->x, $Ar2->y, TRUE);
         
-        $svg->moveTo(80, 80, TRUE);
+        //$svg->moveTo(80, 80, TRUE);
 
 
         $svg->closeGroup();

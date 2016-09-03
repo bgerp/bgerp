@@ -366,7 +366,7 @@ class trz_Trips extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $rec->title;
+        $row->recTitle = $this->getRecTitle($rec, FALSE);
         
         return $row;
     }
@@ -440,5 +440,18 @@ class trz_Trips extends core_Master
         } else {
             $query->where("#coverId = -2");
         }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+         
+        $title = tr('Командировъчен лист  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
+         
+        return $title;
     }
 }

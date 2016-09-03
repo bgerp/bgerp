@@ -97,9 +97,9 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
     	$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
-    	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
-        $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
-    	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
+    	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Допълнително->Толеранс,input=none');
+        $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
+    	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Допълнително->Забележки');
     }
     
     
@@ -154,25 +154,26 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $rec       = &$data->form->rec;
+        $form = &$data->form;
+    	$rec = &$form->rec;
         $masterRec = $data->masterRec;
        	
-       	$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
-        $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
+       	$form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
+        $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
        
         $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
         expect(count($products));
         
-        $data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
+        $form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
         
         if (empty($rec->id)) {
-        	$data->form->setOptions('productId', array('' => ' ') + $products);
+        	$form->setOptions('productId', array('' => ' ') + $products);
         	
         } else {
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
             // напълно определен продукт (клас и ид), който да не може да се променя във формата
             // и полето цена да стане задължително
-            $data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+            $form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
         }
         
         if (!empty($rec->packPrice)) {
@@ -180,16 +181,15 @@ abstract class deals_DealDetail extends doc_Detail
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
         
-        if($rec->productId){
-        	
+        if(isset($rec->productId)){
         	$tolerance = cat_Products::getParams($rec->productId, 'tolerance');
         	if(!empty($tolerance)){
         		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
-        		$data->form->setField('tolerance', 'input');
+        		$form->setField('tolerance', 'input');
         		if(empty($rec->id)){
-        			$data->form->setDefault('tolerance', $tolerance);
+        			$form->setDefault('tolerance', $tolerance);
         		}
-        		$data->form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
+        		$form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
         	}
         }
     }
@@ -276,6 +276,9 @@ abstract class deals_DealDetail extends doc_Detail
     				if($policyInfo->discount && !isset($rec->discount)){
     					$rec->discount = $policyInfo->discount;
     				}
+    				
+    				// Нотифициране на мениджъра, че цената е взета автоматично по политика
+    				$mvc->invoke('AfterGetPriceFromPolicy', array(&$price, &$rec, $masterRec));
     			}
     		} else {
     			$price = $rec->packPrice / $rec->quantityInPack;
@@ -389,7 +392,8 @@ abstract class deals_DealDetail extends doc_Detail
     
     
     /**
-	 * Инпортиране на артикул генериран от ред на csv файл 
+	 * Инпортиране на артикул генериран от ред на csv файл
+	 *  
 	 * @param int $masterId - ид на мастъра на детайла
 	 * @param array $row - Обект представляващ артикула за импортиране
 	 * 					->code - код/баркод на артикула

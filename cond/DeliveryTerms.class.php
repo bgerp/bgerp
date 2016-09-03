@@ -128,17 +128,26 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
-     * Дали да се изчислява скрития транспорт
+     * Дали да се изчислява скрития транспорт, за дадения артикул
      * 
-     * @param mixed $id - ид или запис
-     * @return boolean $res - да се начислява ли скрит транспорт или не
+     * @param mixed $id      - ид или запис
+     * @param int $productId - ид на артикул
+     * @return boolean $res  - да се начислява ли скрит транспорт или не
      */
-    public static function canCalcHiddenCost($id)
+    public static function canCalcHiddenCost($id, $productId)
     {
-    	expect($rec = self::fetchRec($id));
-    	$res = ($rec->calcCost == 'yes') ? TRUE :FALSE;
+    	if(!$id) return FALSE;
     	
-    	return $res;
+    	expect($rec = self::fetchRec($id));
+    	if($rec->calcCost == 'yes'){
+    		
+    		// Може да се начислява скрит транспорт само за складируем артикул, ако в условието на доставка е разрешено
+    		if(cat_Products::fetchField($productId, 'canStore') == 'yes'){
+    			return TRUE;
+    		}
+    	}
+    	
+    	return FALSE;
     }
     
     

@@ -21,14 +21,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
 	var $contents = array();
     
-    
-    /**
-     * Текущи атрибути на лементите
-     */
-    var $attr = array();
-    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'fill', 'fill-opacity', 'fill-rule', 'font-size', 'font-weight', 'font-family', 'text-color');
-
-
+   
     //
     public $addX = 10;
     public $addY = 10;
@@ -44,6 +37,12 @@ class cad2_PdfCanvas extends cad2_Canvas {
     public $paddingRight;
     public $paddingBottom;
     public $paddingLeft;
+
+
+    // именовани цветове
+    public $colorNames = array(
+        '#0000fe' => 'MeasureLine',
+        );
 
     /**
      * Текущи параметри на молива, запълването и шрифта
@@ -366,6 +365,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $this->addX = $this->paddingLeft - $this->minX;
         $this->addY = $this->paddingTop  - $this->minY;
  
+        //defIfNot('PDF_FONT_NAME_MAIN', 'dejavusans');
  
         // create new PDF document
         $this->pdf = new tcpdf_Instance('', 'mm', array($width, $height), true, 'UTF-8', false);
@@ -375,21 +375,22 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $this->pdf->SetAuthor(core_Users::getCurrent('names'));
         $this->pdf->SetTitle('CadProduct');
         $this->pdf->SetSubject('TCPDF Tutorial');
-        $this->pdf->SetKeywords('TCPDF, PDF, example, test, guide');
-        $this->pdf->setPrintHeader(false);
-        $this->pdf->setPrintFooter(false);
-        $this->pdf->AddPage();
+        $this->pdf->SetKeywords('Layout');
+        $this->pdf->setPrintHeader(FALSE);
+        $this->pdf->setPrintFooter(FALSE);
         $this->pdf->SetAutoPageBreak(FALSE);
-
-        // set default monospaced font
-        $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+        
         // set default font subsetting mode
         $this->pdf->setFontSubsetting(FALSE);
 
         // set font
         $this->pdf->AddFont('dejavusans');
+        //$this->pdf->AddFont('helvetica');
 
-        $this->pdf->SetFont('dejavusans', '', 12);
+        //$this->pdf->SetFont('helvetica', '', 12);
+
+        $this->pdf->StartPage();
+
 
         foreach($this->contents as $e) {
             $func = 'do' . $e->tag;
@@ -397,6 +398,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
         }
 
         $res = $this->pdf->getPDFData();
+        $this->pdf->endPage();
 
         return $res;
     }
@@ -412,9 +414,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
                 'width' => $e->attr['stroke-width'],
                 'cap' => $e->attr['stroke-linecap'],
                 'join' => 'bevel',
-                //'dash' => $e->attr['stroke-dasharray'],
-                'color' => self::hexToCmyk($e->attr['stroke'])));
-        
+                'dash' => $e->attr['stroke-dasharray'],
+                'color' => self::hexToCmyk($e->attr['stroke'], array(0, 0, 0, 100))));
+     
+
         $fillColor = NULL;
         
         $fill = 'S';
@@ -460,22 +463,20 @@ class cad2_PdfCanvas extends cad2_Canvas {
             if($d[0] == 'M') {
                 $startX = $d[1];
                 $startY = $d[2];
-                $start++;
             }
-        }
-
-        if($e->close && $start == 1) {
-            $e->data[] = array('L', $startX, $startY);
         }
  
         if($e->close) {
             if($fill == 'FD') {
                 $fill = 'fd';
             }
+            if($fill == 'S') {
+                $fill = 's';
+            }
+
         }
 
         $this->pdf->drawPath($e->data, $fill, array(), $fillColor);
-        $this->pdf->SetAlpha(1);
     }
 
 
@@ -550,8 +551,14 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $font = trim('dejavusans');
  
         $this->pdf->SetFont($font, $attr['font-weight'] == 'bold' ? 'B' : '', $attr['font-size']/4);
+        
+        $opacity = $attr['text-opacity'];
+        if(!$opacity) {
+            $opacity = 1;
+        }
+        $this->pdf->SetAlpha($opacity);
 
-        if($color = self::hexToCmyk($attr['text-color'], array(100,100,100,100))) {
+        if($color = self::hexToCmyk($attr['text-color'], array(0, 0, 0, 100))) {
             $this->pdf->SetTextColorArray($color);
         }
 
@@ -643,7 +650,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
         if($hexColor == 'transparent' || $hexColor == 'none' || $hexColor === NULL || $hexColor === '') {
             return $default;
         }
-
+ 
         $rgb = self::hexToRgb($hexColor);
 
         if(!is_array($rgb)) return FALSE;
@@ -660,7 +667,13 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $magenta = sDiv(($magenta - $black), (255 - $black)) * 255;
         $yellow  = sDiv(($yellow  - $black), (255 - $black)) * 255;
       
-        return array($cyan/2.55, $magenta/2.55, $yellow/2.55, $black/2.55);
+        $res = array($cyan/2.55, $magenta/2.55, $yellow/2.55, $black/2.55);
+
+        if($name = $this->colorNames[$hexColor]) {
+            $res[4] = $name;
+        }
+
+        return $res;
     }
 
 

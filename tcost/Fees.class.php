@@ -112,14 +112,12 @@ class tcost_Fees extends core_Detail
     	// Общото тегло не трябва да е по-малко от еденичното
     	$totalWeight = max($totalWeight, $singleWeight);
     	expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
-       
+    	
         // Определяне на зоната на транспорт, за зададеното условие на доставка
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
 		
         // Ако не се намери зона се връща 0
-        if(is_null($zone)) return 0;
-        
-        expect($zone['zoneId'] > 0);
+        if(is_null($zone)) return tcost_CostCalcIntf::CALC_ERROR;
 
         // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
@@ -202,10 +200,20 @@ class tcost_Fees extends core_Detail
         }
 
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
+        $finalPrice = round($finalPrice, 2);
         $result = round($finalPrice / $totalWeight * $singleWeight, 2);
 
-        
         // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
         return array($finalPrice, $result, $zone['zoneId']);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+    	$data->listFields['price'] .= "|* (<small>{$baseCurrencyCode}</small>) |без ДДС|*";
     }
 }

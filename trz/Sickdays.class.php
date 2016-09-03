@@ -459,7 +459,7 @@ class trz_Sickdays extends core_Master
         
         //Заглавие
         $row->title = "Болничен лист №{$rec->fitNoteNum}";
-        
+
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
         
@@ -469,7 +469,7 @@ class trz_Sickdays extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $rec->title;
+        $row->recTitle = $this->getRecTitle($rec, FALSE);
         
         return $row;
     }
@@ -510,5 +510,18 @@ class trz_Sickdays extends core_Master
         } else {
             $query->where("#coverId = -2");
         }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+         
+        $title = tr('Болничен лист №|*'. $rec->fitNoteNum . ' на|* ') . $me->getVerbal($rec, 'personId');
+         
+        return $title;
     }
 }
