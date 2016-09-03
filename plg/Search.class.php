@@ -149,11 +149,12 @@ class plg_Search extends core_Plugin
      * @param core_Query $query
      * @param string $field
      */
-    public static function applySearch($search, $query, $field = NULL, $strict = FALSE)
+    public static function applySearch($search, $query, $field = NULL, $strict = FALSE, $limit = NULL)
     {
         if(!$field) {
             $field = 'searchKeywords';
         }
+
 
         if ($words = static::parseQuery($search)) {
             foreach($words as $w) {
@@ -197,7 +198,13 @@ class plg_Search extends core_Plugin
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', #{$field}){$equalTo}");
+                    if($limit > 0) {
+                        $field =  "LEFT(#{$field}, 5)";
+                    } else {
+                        $field =  "#{$field}";
+                    }
+
+                    $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field}){$equalTo}");
                 }
             }
         }
