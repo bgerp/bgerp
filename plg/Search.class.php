@@ -185,6 +185,7 @@ class plg_Search extends core_Plugin
                     $w = substr($w, 1);
                     
                     if(!$w) continue;
+                    $wordEnd = ' ';
                     $like = "NOT LIKE";
                     $equalTo = " = 0";
                 } else {
@@ -198,13 +199,13 @@ class plg_Search extends core_Plugin
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if($limit > 0) {
-                        $field =  "LEFT(#{$field}, {$limit})";
+                    if($limit > 0 && $like == 'LIKE') {
+                        $field1 =  "LEFT(#{$field}, {$limit})";
                     } else {
-                        $field =  "#{$field}";
+                        $field1 =  "#{$field}";
                     }
 
-                    $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field}){$equalTo}");
+                    $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
                 }
             }
         }
