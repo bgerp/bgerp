@@ -213,13 +213,6 @@ class cad2_PdfCanvas extends cad2_Canvas {
      */
     public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
     {   
-        $y -= 3.5;
-        $x -= 1;
-        $rotation = -$rotation;
-        if($rotation) {
-            $x -= 2;
-            $y += 3;
-        }
         $this->toAbs($x, $y, $absolute);
         $e = (object) array('tag' => 'text', 'x' => $x, 'y' => $y, 'rotation' => $rotation, 'text' => $text, 'attr' => $this->attr);
 
@@ -257,9 +250,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
     /**
      * Отваря нова група
      */
-    public function openTransform($attr = array())
+    public function openTransform($trans = array(), $attr = array())
     {
         $this->closePath();
+        $attr['_transform'] = $trans;
         $e = (object) array('tag' => 'openTransform', 'attr' => $attr);
         $this->contents[] = $e;
     }
@@ -365,10 +359,13 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $this->addX = $this->paddingLeft - $this->minX;
         $this->addY = $this->paddingTop  - $this->minY;
  
-        //defIfNot('PDF_FONT_NAME_MAIN', 'dejavusans');
+        defIfNot('PDF_FONT_NAME_MAIN', 'dejavuserifcondensed');
+
+        defIfNot('PDF_FONT_NAME_DATA', 'dejavuserifcondensed');
+
  
         // create new PDF document
-        $this->pdf = new tcpdf_Instance('', 'mm', array($width, $height), true, 'UTF-8', false);
+        $this->pdf = new tcpdf_Instance('', 'mm', array($width, $height), TRUE, 'UTF-8', FALSE);
 
         // set document information
         $this->pdf->SetCreator('bgERP');
@@ -382,15 +379,14 @@ class cad2_PdfCanvas extends cad2_Canvas {
         
         // set default font subsetting mode
         $this->pdf->setFontSubsetting(FALSE);
+        
 
         // set font
-        $this->pdf->AddFont('dejavusans');
-        //$this->pdf->AddFont('helvetica');
-
-        //$this->pdf->SetFont('helvetica', '', 12);
+        $this->pdf->AddFont('dejavuserifcondensed');
+        $this->pdf->SetFont('dejavuserifcondensed');
+ 
 
         $this->pdf->StartPage();
-
 
         foreach($this->contents as $e) {
             $func = 'do' . $e->tag;
@@ -464,7 +460,8 @@ class cad2_PdfCanvas extends cad2_Canvas {
                 
             }
 
-            if($d[0] == 'M') {
+            if($d[0] == 'M' && !$start) {
+                $start = TRUE;
                 $startX = $d[1];
                 $startY = $d[2];
             }
@@ -477,7 +474,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
             if($fill == 'S') {
                 $fill = 's';
             }
-
+        } else {
+            if($start) {
+                $e->data[] = array('M', $startX, $startY);
+            }
         }
 
         $this->pdf->drawPath($e->data, $fill, array(), $fillColor);
@@ -510,6 +510,32 @@ class cad2_PdfCanvas extends cad2_Canvas {
     function doOpenTransform($e)
     {
         $this->pdf->StartTransform();
+        if(is_array($e->attr['_transform'])) {
+            foreach($e->attr['_transform'] as $tArr) {
+                switch($tArr[0]) {
+                    case 'scale':
+                        if(!isset($tArr[2])) {
+                            $tArr[2] = $tArr[1];
+                        }
+                        $this->pdf->scale($tArr[1]*100, $tArr[1]*100, 0, 0); 
+                        break;
+                    case 'translate': 
+                        $this->pdf->translate($tArr[1], $tArr[2]); 
+                        break;
+
+                    case 'rotate':
+                        if(!isset($tArr[2])) {
+                            $tArr[3] = $tArr[2] = 0;
+                        }
+                        $this->pdf->rotate(-$tArr[1], $tArr[2], $tArr[3]); 
+                        break;
+                    default:
+                        // Неподдържана трансформация
+                        expect(FALSE, $tArr[0]);
+                }
+            }
+            unset($e->attr['_transform']);
+        }
     }
 
 
@@ -544,7 +570,16 @@ class cad2_PdfCanvas extends cad2_Canvas {
      * Показва текста в PDF-а, както е указан в елемента
      */
     function doText($e)
-    { 
+    {   
+        $attr = $e->attr;
+
+        $e->rotation = -$e->rotation;
+        
+        if($e->rotation) {
+          //  $e->x -= 2;
+          //  $e->y += 3;
+        }
+
         $this->pdf->StartTransform();
         $this->pdf->Rotate(0, 0, 0);
 
@@ -552,13 +587,24 @@ class cad2_PdfCanvas extends cad2_Canvas {
             $this->pdf->Rotate($e->rotation, $e->x + $this->addX, $e->y + $this->addY);
         }
         
-        $attr = $e->attr;
-        
+        $size = $attr['font-size']/3.75;
+ 
+
+        $e->y -= 0.35 * $size;
+
         list($font, ) = explode(',', $attr['font-family']);
         
         $font = trim('dejavusans');
- 
-        $this->pdf->SetFont($font, $attr['font-weight'] == 'bold' ? 'B' : '', $attr['font-size']/4);
+
+        $style = '';
+        if($attr['font-weight'] == 'bold') {
+            $style = 'B';
+        }
+         if($attr['font-weight'] == 'italic') {
+            $style = 'I';
+        }
+
+        $this->pdf->SetFont($font, $style,  $attr['font-size']/3.5, '', FALSE);
         
         $opacity = $attr['text-opacity'];
         if(!$opacity) {
@@ -573,7 +619,6 @@ class cad2_PdfCanvas extends cad2_Canvas {
         $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text);
 
         $this->pdf->StopTransform();
-       
     }
 
 
@@ -611,41 +656,6 @@ class cad2_PdfCanvas extends cad2_Canvas {
     }
     
 
-    /**
-     * Преобразува hex цвят към RGB
-     */
-    function hexToRgb($hexColor)
-    {
-
-        if($color = color_Object::getNamedColor($hexColor)) {
-            $hexColor = $color;
-        }
-
-        if($hexColor{0} == '#') $hexColor = substr($hexColor, 1);
-        
-        if(preg_match("/[0-9a-f]{3}([0-9a-f]{3})/i", $hexColor) || preg_match("/[0-9a-f]{3}/i", $hexColor)) {
-            if(strlen($hexColor) == 3) {
-                $r = hexdec($hexColor{0} . $hexColor{0});
-                $g = hexdec($hexColor{1} . $hexColor{1});
-                $b = hexdec($hexColor{2} . $hexColor{2});
-
-                return array($r, $g, $b);
-
-            } elseif(strlen($hexColor) == 6) {
-                $r = hexdec($hexColor{0} . $hexColor{1});
-                $g = hexdec($hexColor{2} . $hexColor{3});
-                $b = hexdec($hexColor{4} . $hexColor{5});
-
-                return array($r, $g, $b);
-            } else {
-                return FALSE;
-            }
-        } else {
-            return FALSE;
-        }
-        
-        return TRUE;
-    }
 
 
 
@@ -658,7 +668,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
             return $default;
         }
  
-        $rgb = self::hexToRgb($hexColor);
+        $rgb = color_Object::hexToRgbArr($hexColor);
 
         if(!is_array($rgb)) return FALSE;
 
