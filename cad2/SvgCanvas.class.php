@@ -48,7 +48,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
 	function __construct()
     {   
         // Отношение между милиметри и svg пиксели
-        $this->pixPerMm = 10;
+        $this->pixPerMm = 2.5;
         
         // Кодиране
 		$this->encoding = "UTF-8";
@@ -110,7 +110,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
         $args = func_get_args();
 
         foreach($args as $val) {
-            $res[] = round($this->pixPerMm * (double)$val);
+            $res[] = round($this->pixPerMm * (double)$val, 1);
         }
 
         return $res;
@@ -193,6 +193,11 @@ class cad2_SvgCanvas extends cad2_Canvas {
         if($path->attr['fill'] == 'none' || $path->attr['fill'] == 'transparent') {
             $path->attr['fill-opacity'] = 0;
         }
+        
+        if($path->attr['stroke'] == 'transparent' || $path->attr['stroke'] == 'none') {
+            $path->attr['stroke-width'] = 0;
+            $path->attr['stroke'] = 'transparent';
+        }
 
         return $path;
 	}
@@ -221,12 +226,13 @@ class cad2_SvgCanvas extends cad2_Canvas {
     {
         $path = $this->getCurrentPath();
         
-        if($path) {
-            if($close || (isset($path->attr['fill']) && $path->attr['fill'] != 'none' && $path->attr['fill'] != 'transparent' && ($path->attr['fill-opacity'] >0 || !isset($path->attr['fill-opacity'])))) {
+        if($path && (!$path->closed)) {
+            
+            if($close) {
                 $path->data[] = array('z');
-            } else {
-                $path->attr['fill-opacity'] = 0;
             }
+            
+            $path->closed = TRUE;
         }
 	}
 
@@ -386,6 +392,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
 		}
 
         if( $size = $this->getAttr('font-size') ) {
+            $size = ($size / 10) * $this->pixPerMm;
 			$tx->attr['font-size'] = $size;
 		}
         
@@ -431,8 +438,10 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Отваря нова група
      */
-    public function openTransform($attr = array())
-    {
+    public function openTransform($transform = array(), $attr = array())
+    {   
+        $attr['_transform'] = $transform;
+
         return $this->openGroup($attr);
     }
 
@@ -455,7 +464,12 @@ class cad2_SvgCanvas extends cad2_Canvas {
 
         $attr = array('inkscape:groupmode' => 'layer', 'id' => "layer" . $this->layersCnt, 'inkscape:label' => $name);
 
-        return $this->openGroup($attr);
+        $this->openGroup($attr);
+
+        $tag = $this->content[] = new stdClass();
+        $tag->name = 'title';
+        $tag->attr = array();
+        $tag->body = $name;
     }
 
 
@@ -630,6 +644,38 @@ class cad2_SvgCanvas extends cad2_Canvas {
             }
 
             if($tag->name == 'g') {
+
+                if(is_array($tag->attr['_transform'])) {
+                    foreach($tag->attr['_transform'] as $tArr) {
+                        switch($tArr[0]) {
+                            case 'scale':
+                                if(!isset($tArr[2])) {
+                                    $tArr[2] = $tArr[1];
+                                }
+                                list($tX, $tY) = array($tArr[1], $tArr[2]);
+                                $tag->attr['transform'] .= "scale($tX, $tY) ";
+                                break;
+                            case 'translate':
+                                list($tX, $tY) = self::toPix($tArr[1], $tArr[2]);
+                                $tag->attr['transform'] .= "translate($tX, $tY) ";
+                                break;
+
+                            case 'rotate':
+                                if(!isset($tArr[2])) {
+                                    $tArr[3] = $tArr[2] = 0;
+                                }
+                                list($tX, $tY) = self::toPix($tArr[2], $tArr[3]);
+                                $tag->attr['transform'] .= "rotate($tArr[1], $tX, $tY) ";
+                                break;
+                            default:
+                                // Неподдържана трансформация
+                                expect(FALSE, $tArr[0]);
+                        }
+                    }
+
+                    unset($tag->attr['_transform']);
+                }
+
                 if(is_array($tag->transform)) {
                     
                     list($width, $height, $rotation, $x, $y) = $tag->transform;
@@ -664,6 +710,8 @@ class cad2_SvgCanvas extends cad2_Canvas {
             if ($tag->attr && count($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
                   
+                  //if(is_array($val)) bp($tag);
+
                     if(strlen($val) == 0) continue;
 
                     if (is_string($val)) {
@@ -683,7 +731,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
 	                            $val  = implode(',', $vals);
                         	}
                             break;
-                    }
+                     }
 
                     $attrStr .= " " . $name . "=\"" . $val . "\"";
                 }
@@ -706,5 +754,48 @@ class cad2_SvgCanvas extends cad2_Canvas {
 
         return $element;
     }
+
+
+    /**
+     * Преобразува именован цвят цвят към hex
+     */
+    function getHex($name)
+    {
+
+        if($color = color_Object::getNamedColor($hexColor)) {
+            $name = $color;
+        }
+
+        return $name;
+    }
+
+
+    /**
+     * Преобразува hex цвят към CMYK
+     */
+    function getCmyk($hexColor)
+    {
+
+        $rgb = color_Object::hexToRgbArr($hexColor);
+
+        if(!is_array($rgb)) return FALSE;
+
+        $r = $rgb[0];
+        $g = $rgb[1];
+        $b = $rgb[2];
+  
+        $cyan    = 255 - $r;
+        $magenta = 255 - $g;
+        $yellow  = 255 - $b;
+        $black   = min($cyan, $magenta, $yellow);
+        $cyan    = sDiv(($cyan - $black), (255 - $black)) * 255;
+        $magenta = sDiv(($magenta - $black), (255 - $black)) * 255;
+        $yellow  = sDiv(($yellow  - $black), (255 - $black)) * 255;
+      
+        $res = array($cyan/255, $magenta/255, $yellow/255, $black/255);
+
+        return implode(',', $res);
+    }
+
     
 }

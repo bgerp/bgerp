@@ -45,4 +45,12 @@ class tcpdf_Instance extends tcpdf
 
 		$this->_out($op);
 	}
+
+
+    public function addTTFfont($fontfile, $fonttype='', $enc='', $flags=32, $outpath='', $platid=3, $encid=1, $addcbbox=false, $link=false)
+    {
+        include_once(dirname(__FILE__) . '/' . 'include/tcpdf_fonts.php');
+
+        return TCPDF_FONTS::addTTFfont($fontfile, $fonttype, $enc, $flags, $outpath, $platid, $encid, $addcbbox, $link);
+    }
 }
