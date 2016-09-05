@@ -578,7 +578,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
 		$width  = $right - $left ;
 		$height = $bottom - $top ;
  
-        if(Mode::is('text', 'plain')) {
+        if(!Mode::is('svgScale')) {
             // Размерите в mm
             $widthSvg  = ($width  / $this->pixPerMm) . 'mm';
             $heightSvg = ($height / $this->pixPerMm) . 'mm';
