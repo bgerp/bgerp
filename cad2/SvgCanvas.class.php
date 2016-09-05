@@ -578,12 +578,17 @@ class cad2_SvgCanvas extends cad2_Canvas {
 		$width  = $right - $left ;
 		$height = $bottom - $top ;
  
-        // Размерите в mm
-        $widthMm  = $width  / $this->pixPerMm;
-        $heightMm = $height / $this->pixPerMm;
+        if(Mode::is('text', 'plain')) {
+            // Размерите в mm
+            $widthSvg  = ($width  / $this->pixPerMm) . 'mm';
+            $heightSvg = ($height / $this->pixPerMm) . 'mm';
+            $add = " width=\"{$widthSvg}\" height=\"{$heightSvg}\" ";
+        } else {
+           $add = "style=\"width:100%; height:100%; position: absolute;\"";
+        }
 
- 		$res .= "<svg width=\"{$widthMm}mm\" height=\"{$heightMm}mm\" viewBox=\"{$left} {$top} {$width} {$height}\"" .
-                "\n xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"" .
+ 		$res .= "<svg {$add} viewBox=\"{$left} {$top} {$width} {$height}\"" .
+                "\n xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"  " .
                 "\n version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
 
         // Генериране на съдържанието
