@@ -97,7 +97,7 @@ class blogm_Comments extends core_Detail {
 		$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory, width=65%,placeholder=Името ви (задължително)');
 		$this->FLD('email', 'email(64)', 'caption=Имейл, mandatory, width=65%,placeholder=Имейлът ви (задължително)');
    		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
-		$this->FLD('comment', 'richtext(bucket=Notes)', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
+		$this->FLD('comment', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
   		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,mandatory');
   		$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none, oldFieldName=browserId');
         $this->FLD('ip', 'ip', 'caption=IP,input=none');

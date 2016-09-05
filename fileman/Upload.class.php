@@ -57,7 +57,7 @@ class fileman_Upload extends core_Manager
         
         // Вземаме id' то на кофата
         $bucketId = Request::get('bucketId', 'int');
-        expect(fileman_Buckets::canAddFileToBucket($bucketId));
+        expect(fileman_Buckets::canAddFileToBucket($bucketId), $bucketId);
         
         // Шаблона с качените файлове и грешките
         $add = new ET('<div id="add-file-info"><div id="add-error-info">[#ERR#]</div><div id="add-success-info">[#ADD#]</div></div>');

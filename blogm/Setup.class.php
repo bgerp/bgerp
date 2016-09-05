@@ -141,7 +141,7 @@ class blogm_Setup extends core_ProtoSetup
         }
         
         $Bucket = cls::get('fileman_Buckets');
-        $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
+        $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'every_one', 'every_one');
 
 		// Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('blogm_DefaultTheme');
