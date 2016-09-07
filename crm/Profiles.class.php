@@ -271,16 +271,18 @@ class crm_Profiles extends core_Master
         
         // Ако потребителя е контрактор и текущия е супер потребите
         // Показваме папките, в които е споделен
-        if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
-            $data->ColabFolders = new stdClass();
-            $data->ColabFolders->rowsArr = array();
-            $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
-            
-            $params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
-            foreach ($sharedFolders as $folderId) {
-                $params['folderId'] = $folderId;
-                $data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getVerbalLink($params)));
-            }
+        if(core_Packs::isInstalled('colab')){
+        	if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
+        		$data->ColabFolders = new stdClass();
+        		$data->ColabFolders->rowsArr = array();
+        		$sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+        	
+        		$params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
+        		foreach ($sharedFolders as $folderId) {
+        			$params['folderId'] = $folderId;
+        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getVerbalLink($params)));
+        		}
+        	}
         }
         
         // Ако има userId
