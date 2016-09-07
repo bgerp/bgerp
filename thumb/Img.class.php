@@ -364,8 +364,12 @@ class thumb_Img
                     }
 
                     expect($uri);
-                    $fimg = new thumb_FastImageSize($uri);
-                    list($this->width, $this->height) = $fimg->getSize();
+                    if (is_readable($uri)) {
+                        $fimg = new thumb_FastImageSize($uri);
+                        list($this->width, $this->height) = $fimg->getSize();
+                    } else {
+                        log_Data::logWarning("Няма достъп до файла: " . $uri);
+                    }
                 }
             }
         }
