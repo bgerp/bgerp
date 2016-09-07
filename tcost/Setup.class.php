@@ -129,10 +129,12 @@ class tcost_Setup extends core_ProtoSetup
     	$config = core_Packs::getConfig('tcost');
     	if(strlen($config->TCOST_TRANSPORT_PRODUCTS_ID) === 0){
     		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-    		$products = array($transportId => $transportId);
-    		
-    		core_Packs::setConfig('tcost', array('TCOST_TRANSPORT_PRODUCTS_ID' => keylist::fromArray($products)));
-    		$res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
+    		if($transportId){
+    			$products = array($transportId => $transportId);
+    			
+    			core_Packs::setConfig('tcost', array('TCOST_TRANSPORT_PRODUCTS_ID' => keylist::fromArray($products)));
+    			$res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
+    		}
     	}
     
     	return $res;
