@@ -783,6 +783,10 @@ a.button, input[type="button"], input[type="submit"], button {
     -webkit-appearance: none;	  
 }
 
+a.button {
+	box-sizing: border-box;
+}
+
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button { 
 	padding: 0.3em 0.4em;
     font-family: Tahoma, Arial, sans-serif;

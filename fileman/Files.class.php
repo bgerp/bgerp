@@ -1545,14 +1545,14 @@ class fileman_Files extends core_Master
     	$urlPreview['#'] = 'fileDetail';
     
     	$tpl = new core_ET();
-    	$preview = ht::createBtn('Преглед', $urlPreview, NULL, NULL,  array('ef_icon' => $icon, 'title' => 'Преглед на файла'));
+    	$preview = ht::createLink(tr('Преглед'), $urlPreview, NULL, array('ef_icon' => $icon, 'title' => 'Преглед на файла', "class" => "button"));
     	$tpl->append($preview);
-    
+        
     	// Вземаме линка към сингъла на файла таб информация
     	$url = array('fileman_Files', 'single', $fh);
     	$url['currentTab'] = 'info';
     	$url['#'] = 'fileDetail';
-    	$infoBtn = ht::createBtn('Информация', $url, NULL, NULL,  array('ef_icon' => 'img/16/info-16.png', 'title' => 'Информация за файла'));
+    	$infoBtn = ht::createLink(tr('Информация'), $url, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Информация за файла', "class" => "button"));
     	$tpl->append($infoBtn);
         
     	$fileLen = '';
@@ -1563,13 +1563,13 @@ class fileman_Files extends core_Master
     	    Mode::pop('text');
     	}
     	
-    	$linkBtn = ht::createBtn('Линк', array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => TRUE), NULL, NULL, array('ef_icon' => 'img/16/link.png', 'title'=> 'Генериране на линк за сваляне'));
+    	$linkBtn = ht::createLink(tr('Линк'), array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/link.png', 'title'=> 'Генериране на линк за сваляне', "class" => "button"));
     	$tpl->append($linkBtn);
         
     	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
-    	$download  =  ht::createBtn('Сваляне|*' . $fileLen, $downloadUrl, NULL, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла'));
+    	$download  =  ht::createLink(tr('Сваляне') . " " . $fileLen, $downloadUrl, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла', "class" => "button"));
     	$tpl->append($download);
-    
+
     	// Ако сме в AJAX режим
     	if(Request::get('ajax_mode')) {
     		$resObj = new stdClass();
