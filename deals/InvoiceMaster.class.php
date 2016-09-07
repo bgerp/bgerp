@@ -1027,7 +1027,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			$count++;
     			
     			$vat = 0;
-    			if($vatRate != 'no'){
+    			if($vatRate != 'no' && $vatRate != 'exempt'){
     				$v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
     			}
     			$vats[$v] = $v;
