@@ -28,8 +28,9 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  8.".$this->act_CreateSaleEURVatFreeAdv();
         $res .= "  9.".$this->act_CreateCreditDebitInvoice();
         $res .= "  10.".$this->act_CreateCreditDebitInvoiceVATFree();
-        $res .= "  11.".$this->act_CreateSaleAdvPaymentInclVAT();
-        $res .= "  12.".$this->act_CreateSaleAdvPaymentSep();
+        $res .= "  11.".$this->act_CreateCreditDebitInvoiceVATNo();
+        $res .= "  12.".$this->act_CreateSaleAdvPaymentInclVAT();
+        $res .= "  13.".$this->act_CreateSaleAdvPaymentSep();
         return $res;
     }
        
@@ -785,7 +786,7 @@ class unit_MinkPSales extends core_Manager {
         //return $browser->getHtml();
     }  
     /**
-     * Продажба - Кредитно и дебитно известие без ДДС (валута)
+     * Продажба - Кредитно и дебитно известие - освободено от ДДС (валута)
      */ 
      
     //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceVATFree/
@@ -809,7 +810,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPSaleCIDIC');
+        $browser->setValue('note', 'MinkPSaleCIDICVATFree');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");
         $browser->setValue('chargeVat', 'exempt');
@@ -923,7 +924,145 @@ class unit_MinkPSales extends core_Manager {
     
         //return $browser->getHtml();
     }
+    /**
+     * Продажба - Кредитно и дебитно известие без ДДС (валута)
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceVATNo/
+    function act_CreateCreditDebitInvoiceVATNo()
+    {
     
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirmEUR();
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+         
+        //$browser->hasText('Създаване на продажба');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleCIDICVATNo');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
+        $browser->setValue('chargeVat', 'no');
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '40');
+        $browser->setValue('packPrice', '2,6');
+        $browser->setValue('discount', 10);
+    
+        // Записване на артикула
+        $browser->press('Запис');
+    
+        // активиране на продажбата
+        $browser->press('Активиране');
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Discount: EUR 10,40')) {
+        } else {
+            return "Грешна отстъпка";
+        }
+        if(strpos($browser->gettext(), 'Ninety-three EUR and 0,60')) {
+        } else {
+            return "Грешна обща сума";
+        }
+    
+        // експедиционно нареждане
+        $browser->press('Експедиране');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Експедиционно нареждане с цени');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+         
+        // Фактура
+        $browser->press('Фактура');
+        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // Кредитно известие - сума -!!!
+        $browser->press('Известие');
+        $browser->setValue('changeAmount', '-22.36');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Minus twenty-two EUR and 0,36 ')) {
+        } else {
+            return "Грешна сума в КИ - сума";
+        }
+    
+        // Кредитно известие - количество
+        $browser->press('Известие');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('quantity', '20');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Minus forty-six EUR and 0,80')) {
+        } else {
+            return "Грешна сума в КИ - количество";
+        }
+    
+        // Кредитно известие - цена
+        $browser->press('Известие');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('packPrice', '1.3');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Minus forty-one EUR and 0,60')) {
+        } else {
+            return "Грешна сума в КИ - цена";
+        }
+    
+        // Дебитно известие - сума !!!
+        $browser->press('Известие');
+        $browser->setValue('changeAmount', '22.20');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Twenty-two EUR and 0,20')) {
+        } else {
+            return "Грешна сума в ДИ - сума";
+        }
+    
+        // Дебитно известие - количество
+        $browser->press('Известие');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('quantity', '50');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Twenty-three EUR and 0,40')) {
+        } else {
+            return "Грешна сума в ДИ - количество";
+        }
+    
+        // Дебитно известие - цена
+        $browser->press('Известие');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('packPrice', '2.4');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Two EUR and 0,40')) {
+        } else {
+            return "Грешна сума в ДИ - цена";
+        }
+    
+        //return $browser->getHtml();
+    }
     /**
      * Продажба - схема с авансово плащане, Включено ДДС в цените
      * Проверка състояние чакащо плащане - не (платено)
