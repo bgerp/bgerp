@@ -1018,6 +1018,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$cache = $vats = array();
     		$Detail = $this->mainDetail;
     		$query = $Detail::getQuery();
+    		$vatRate = $document->fetchField('vatRate');
     		
     		$count = 0;
     		$query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
@@ -1025,9 +1026,13 @@ abstract class deals_InvoiceMaster extends core_Master
     			$cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
     			$count++;
     			
-    			$v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
+    			$vat = 0;
+    			if($vatRate != 'no'){
+    				$v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
+    			}
     			$vats[$v] = $v;
     		}
+    		
     		$this->cache[$containerId] = (object)array('recs' => $cache, 'vats' => $vats);
     	}
     	
