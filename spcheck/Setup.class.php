@@ -60,7 +60,7 @@ class spcheck_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function checkConfig()
+    public function checkConfig()
     {
         $modulName = 'pspell';
         

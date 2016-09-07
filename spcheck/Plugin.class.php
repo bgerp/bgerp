@@ -39,6 +39,15 @@ class spcheck_Plugin extends core_Plugin
         
         if (!cls::haveInterface('doc_DocumentIntf', $mvc)) return ;
         
+        $Setup = cls::get('spcheck_Setup');
+        $confRes = $Setup->checkConfig();
+        if (isset($confRes)) {
+            
+            $mvc->logDebug($confRes);
+            
+            return ;
+        }
+        
         foreach ((array)$mvc->fields as $fName => $field) {
             if ($field->spellcheck == 'no') continue;
             
