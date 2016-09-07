@@ -28,6 +28,8 @@ class fancybox_Fancybox extends core_Manager {
         // Ако е текстов режим, да не сработва
         if (Mode::is('text', 'plain')) return '';
         
+        if (!$fh) return ;
+        
         // Ако е зададено да е абсолютен линк
         $isAbsolute = $imgAttr['isAbsolute'];
         
