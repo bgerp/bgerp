@@ -121,7 +121,7 @@ class cad2_Drawings extends embed_Manager {
 		if(count($exp) == 2){
 			$row->driverClass = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
 		} else {
-			$row->driverClass = tr($data->row->driverClass);
+			$row->driverClass = tr($row->driverClass);
 		}
 		
 		if(isset($fields['-list'])){
