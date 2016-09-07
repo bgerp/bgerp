@@ -213,29 +213,33 @@ class tcost_Calcs extends core_Manager
      */
     public static function getCodeAndCountryId($contragentClassId, $contragentId, $pCode = NULL, $countryId = NULL, $locationId = NULL)
     {
-    	// Адреса и ид-то на държавата са с приоритет тези, които се подават
-    	$res = array('pCode' => $pCode, 'countryId' => $countryId);
+    	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	
-    	// Ако няма
-    	if(empty($res['pCode']) || empty($res['pCode'])){
-    		
-    		// И има локация, попълва се липсващото поле от локацията
-    		if(isset($locationId)){
-    			$locationRec = crm_Locations::fetch($locationId);
-    			$res['pCode'] = isset($res['pCode']) ? $res['pCode'] : $locationRec->pCode;
-    			$res['countryId'] = isset($res['countryId']) ? $res['countryId'] : $locationRec->countryId;
+    	// Ако има локация, адресните данни са приоритетни от там
+    	if(isset($locationId)){
+    		$locationRec = crm_Locations::fetch($locationId);
+    		$locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
+    		if(isset($locationCountryId) && !empty($locationRec->pCode)){
+    			return array('pCode' => $locationRec->pCode, 'countryId' => $locationCountryId);
     		}
     		
-    		// Ако отново липсва поле, взимат се от визитката на контрагента
-    		if(empty($res['pCode']) || empty($res['pCode'])){
-    			$cData = cls::get($contragentClassId)->getContragentData($contragentId);
-    			$res['pCode'] = (!empty($res['pCode'])) ? $res['pCode'] : $cData->pCode;
-    			$res['countryId'] = (!empty($res['countryId'])) ? $res['countryId'] : $cData->countryId;
+    		if(isset($locationRec->countryId)) {
+    			return array('pCode' => NULL, 'countryId' => $locationRec->countryId);
     		}
     	}
     	
-    	// Връщане на резултата
-    	return $res;
+    	// Ако има от документа данни, взимат се тях
+    	$cId = isset($countryId) ? $countryId : $cData->countryId;
+    	if(isset($cId) && !empty($pCode)){
+    		return array('pCode' => $pCode, 'countryId' => $cId);
+    	}
+    	
+    	if(isset($countryId)){
+    		return array('pCode' => NULL, 'countryId' => $countryId);
+    	}
+    	
+    	// В краен случай се връщат адресните данни на визитката
+    	return array('pCode' => $cData->pCode, 'countryId' => $cData->countryId);
     }
     
     
