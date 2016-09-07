@@ -348,7 +348,7 @@ class thumb_Img
                 $this->width  = imagesx($gdRes);
                 $this->height = imagesy($gdRes);
 
-                core_Cache::set('imgSizes', $handler, array($this->width, $this->height), 100000);
+                core_Cache::set('imgSizes', $handler, array($this->width, $this->height), 10000);
              }
         }
     }
