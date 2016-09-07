@@ -103,7 +103,8 @@ class tcost_Calcs extends core_Manager
     	
     	$ourCompany = crm_Companies::fetchOurCompany();	 
     	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
-    			
+    	if($totalFee == tcost_CostCalcIntf::CALC_ERROR) return FALSE; 	
+    	
     	$res = array('totalFee' => $totalFee, 
     			     'singleFee' => round($totalFee / $quantity, 2));
     	
@@ -148,7 +149,6 @@ class tcost_Calcs extends core_Manager
     	// Ако подадената сума е NULL, и има съществуващ запис - трие се
     	if(is_null($fee) && is_object($exRec)){
     		self::delete($exRec->id);
-    		core_Statuses::newStatus("DELETE {$recId}", 'warning');
     	}
     	
     	// Ако има сума
@@ -158,13 +158,11 @@ class tcost_Calcs extends core_Manager
     		// И няма съществуващ запис, ще се добавя нов
     		if(!$exRec){
     			$exRec = (object)array('docClassId' => $classId, 'docId' => $docId, 'recId' => $recId);
-    			core_Statuses::newStatus("ADD {$recId}", 'warning');
     		} else {
     			$fields = 'fee';
-    			core_Statuses::newStatus("UPDATE {$recId}", 'warning');
     		}
     		 
-    		// Ъпдейт/Добавяне на записа
+    		// Ъпдейт / Добавяне на записа
     		$exRec->fee = $fee;
     		self::save($exRec);
     	}
@@ -291,5 +289,57 @@ class tcost_Calcs extends core_Manager
     	}
     	
     	return $amountRow;
+    }
+    
+    
+    /**
+     * Сумата на видимия транспорт в документа
+     * 
+     * @param core_Query $query - заявка
+     * @param string $productFld - име на полето на артикула
+     * @param string $amountFld - име на полето на сумата
+     * @return double $amount - сума на видимия транспорт в основна валута без ДДС
+     */
+    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount')
+    {
+    	$amount = 0;
+    	
+    	$transportArr = keylist::toArray(tcost_Setup::get('TRANSPORT_PRODUCTS_ID'));
+    	$query->in($productFld, $transportArr);
+    	
+    	while($dRec = $query->fetch()){
+    		$amount += $dRec->{$amountFld};
+    	}
+    	
+    	return $amount;
+    }
+    
+    
+    /**
+     * Връща общото тегло на масив с артикули
+     * 
+     * @param array $products - масив с артикули
+     * @param tcost_CostCalcIntf $TransportCalc - интерфейс за изчисляване на транспортна цена
+     * @param string $productFld - поле съдържащо ид-то на артикул
+     * @param string $quantityFld - поле съдържащо количеството на артикул
+     * @return double$totalWeight - общото тегло
+     */
+    public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity')
+    {
+    	$totalWeight = 0;
+    	if(!is_array($products)) return $totalWeight;
+    	
+    	// За всеки артикул в масива
+    	foreach ($products as $p1){
+    		
+    		// Намира се обемното му тегло и се съжура
+    		$singleWeight = cat_Products::getParams($p1->{$productFld}, 'transportWeight');
+    		$singleVolume = cat_Products::getParams($p1->{$productFld}, 'transportVolume');
+    		$singleWeight = $TransportCalc->getVolumicWeight($singleWeight, $singleVolume);
+    		$totalWeight += $singleWeight * $p1->{$quantityFld};
+    	}
+    	
+    	// Връщане на общото тегло
+    	return $totalWeight;
     }
 }
