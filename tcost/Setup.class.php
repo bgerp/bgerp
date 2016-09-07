@@ -108,6 +108,8 @@ class tcost_Setup extends core_ProtoSetup
     	$suggestions = array();
     	$pQuery = cat_Products::getQuery();
     	$pQuery->where("#canStore = 'no'");
+    	$pQuery->show('name');
+    	
     	while($pRec = $pQuery->fetch()){
     		$suggestions[$pRec->id] = $pRec->name;
     	}
