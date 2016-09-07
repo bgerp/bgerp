@@ -236,18 +236,22 @@ class core_Pager extends core_BaseClass
                 $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
                 $q->startFrom($this->rangeStart); 
                 $q->select();
-                while($rec = $q->fetch()) {
-                    $ids[] = $rec->id;
-                }
+                $idsCnt = $q->numRec();
             }
             
-            if(count($ids)) {
+            if($idsCnt) {
                 $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
                 $cntArr = $q->mvc->db->fetchArray($dbRes);
                 $this->itemsCount  = array_shift($cntArr);
                 $this->calc();
+                $c=0;
+                while($rec = $q->fetch()) {
+                    $c++;
+                    if($c > $this->rangeEnd - $this->rangeStart) break;
+                    $ids[] = $rec->id;
+                }
 
-                $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
+                //$ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
 
                 $ids = implode(',', $ids);
 
