@@ -43,7 +43,7 @@ class spcheck_Plugin extends core_Plugin
         $confRes = $Setup->checkConfig();
         if (isset($confRes)) {
             
-            $mvc->logDebug($confRes);
+            $mvc->logWarning($confRes);
             
             return ;
         }
