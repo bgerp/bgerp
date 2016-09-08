@@ -770,6 +770,9 @@ button {
   border-radius: 3px;
   -webkit-appearance: none; }
 
+a.button {
+  box-sizing: border-box; }
+
 .narrow a.button,
 .narrow input[type=button],
 .narrow input[type=submit],
