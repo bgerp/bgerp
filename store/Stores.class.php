@@ -133,7 +133,7 @@ class store_Stores extends core_Master
    /**
 	* Кой може да активира?
 	*/
-	public $canActivate = 'ceo, bank';
+	public $canActivate = 'ceo, store';
     
     
     /**

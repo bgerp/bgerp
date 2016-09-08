@@ -73,11 +73,10 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('email', 'bgerp@experta.bg');
             $browser->press('Запис');
         }     
-        //Вход с потребител DEFAULT_USER (bgerp)
-            $browser->click('Вход');
-            $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
-            $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
-        
+        //Потребител DEFAULT_USER (bgerp)
+        $browser->click('Вход');
+        $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
+        $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
         return $browser;
     }
@@ -94,10 +93,15 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Админ');
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
-        $browser->click('Деактивиране на пакета');
-        //return $browser->getHtml();
+        //$browser->click("Деактивиране на пакета");
         ////////////// не работи
         $browser->click('select2-deinstall');
+        if (strpos($browser->getText(),"Наистина ли искате да деактивирате пакета?")){
+            $browser->press('OK');
+            return 'Деактивиране.';
+        } else {
+            return 'Грешка';
+        }
         return $browser->getHtml();
     }
     
@@ -172,7 +176,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Складове"');
         $browser->setValue('name', 'Склад 1');
-        //$ekip='Екип "Главен офис"';
         $browser->setValue('chiefs_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -586,7 +589,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->refresh('Запис');
         // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
         $browser->press('Запис и Нов');
-        $browser->setValue('resourceId', 'Други консумативи');
+        //$browser->setValue('resourceId', 'Други консумативи');
+        $browser->setValue('resourceId', 'Други заготовки');
         $browser->setValue('propQuantity', '1,2634');
         $browser->refresh('Запис');
         // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
@@ -1153,7 +1157,8 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('taskProductId', 'Други суровини и материали');
             $browser->setValue('quantity', '1600');
             $browser->press('Запис и Нов');
-            $browser->setValue('taskProductId', 'Други консумативи');
+            //$browser->setValue('taskProductId', 'Други консумативи');
+            $browser->setValue('taskProductId', 'Други заготовки');
             $browser->setValue('quantity', '1263,4');
             $browser->press('Запис и Нов');
             $browser->setValue('taskProductId', 'Друг труд');

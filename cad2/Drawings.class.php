@@ -38,19 +38,13 @@ class cad2_Drawings extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,params=Параметри,createdOn,createdBy';
+    public $listFields = 'id,driverClass,params=Параметри,createdOn,createdBy';
     
     
     /**
      * Кой може да го отхвърли?
      */
     public $searchFields = 'name';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'name';
     
     
     /**
@@ -113,18 +107,27 @@ class cad2_Drawings extends embed_Manager {
 	}
 
     
-    /**
-     * След подготовка на сингъла
-     */
-    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
-    {
-    	$exp = explode('»', $data->row->driverClass);
-    	if(count($exp) == 2){
-    		$data->row->driverClass = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
-    	} else {
-    		$data->row->driverClass = tr($data->row->driverClass);
-    	}
-    }
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$exp = explode('»', $row->driverClass);
+		
+		if(count($exp) == 2){
+			$row->driverClass = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
+		} else {
+			$row->driverClass = tr($row->driverClass);
+		}
+		
+		if(isset($fields['-list'])){
+			$row->driverClass = ht::createLink($row->driverClass, self::getSingleUrlArray($rec->id));
+		}
+	}
     
     
     /**

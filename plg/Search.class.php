@@ -140,7 +140,13 @@ class plg_Search extends core_Plugin
             }
         }
     }
-       
+    
+    
+    static function sortLength($a,$b)
+    {
+        return strlen($b)-strlen($a);
+    }
+   
     
     /**
      * Прилага търсене по ключови думи
@@ -149,14 +155,18 @@ class plg_Search extends core_Plugin
      * @param core_Query $query
      * @param string $field
      */
-    public static function applySearch($search, $query, $field = NULL, $strict = FALSE, $limit = NULL)
+    public static function applySearch($search, $query, $field = NULL, $strict = 4, $limit = NULL)
     {
         if(!$field) {
             $field = 'searchKeywords';
         }
 
 
+
         if ($words = static::parseQuery($search)) {
+            
+            usort($words, 'plg_Search::sortLength');
+ 
             foreach($words as $w) {
                 
                 $w = trim($w);

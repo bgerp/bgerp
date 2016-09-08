@@ -94,7 +94,7 @@ class fileman_Buckets extends core_Manager {
         expect($bRec);
         
         if (!$bRec->rolesForAdding) return TRUE;
-    
+        
         if (haveRole($bRec->rolesForAdding)) return TRUE;
         
         return FALSE;
