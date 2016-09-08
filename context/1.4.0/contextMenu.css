@@ -95,6 +95,7 @@
   float: none !important;
   margin: 2px 0 !important;
   text-align: left !important;
+  line-height: normal;
 }
 
 input.button.more-btn {
