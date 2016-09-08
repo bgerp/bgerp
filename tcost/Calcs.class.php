@@ -426,6 +426,7 @@ class tcost_Calcs extends core_Manager
      * @param core_Form $form     - форма
      * @param stdClass $masterRec - мастър запис
      * @param array $map          - масив за мапване на полетата
+     * @return void
      */
     public static function prepareFee(&$rec, &$form, $masterRec, $map = array())
     {
