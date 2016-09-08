@@ -123,7 +123,7 @@ class tcost_Calcs extends core_Manager
     	
     	$ourCompany = crm_Companies::fetchOurCompany();	 
     	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
-    	 
+    	
     	$res = array('totalFee' => $totalFee);
     	
     	if($totalFee != tcost_CostCalcIntf::CALC_ERROR){
@@ -327,19 +327,27 @@ class tcost_Calcs extends core_Manager
      * @param core_Query $query - заявка
      * @param string $productFld - име на полето на артикула
      * @param string $amountFld - име на полето на сумата
+     * @param string $packPriceFld - име на полето на цената на опаковката
+     * @param string $packQuantityFld - име на полето на количеството на опаковката
      * @return double $amount - сума на видимия транспорт в основна валута без ДДС
      */
-    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount')
+    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount', $packPriceFld = 'packPrice', $packQuantityFld = 'packQuantity')
     {
     	$amount = 0;
     	
+    	// Ще се гледат само отбелязаните артикули, като транспорт
     	$transportArr = keylist::toArray(tcost_Setup::get('TRANSPORT_PRODUCTS_ID'));
     	$query->in($productFld, $transportArr);
     	
+    	// За всеки намерен, сумата му се събира
     	while($dRec = $query->fetch()){
-    		$amount += $dRec->{$amountFld};
+    		
+    		// Ако няма поле за сума, тя се взима от к-то по цената
+    		$amountRec = isset($dRec->{$amountFld}) ? $dRec->{$amountFld} : $dRec->{$packPriceFld} * $dRec->{$packQuantityFld};
+    		$amount += $amountRec;
     	}
     	
+    	// Връщане на намерената сума
     	return $amount;
     }
     
@@ -418,6 +426,13 @@ class tcost_Calcs extends core_Manager
     			$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
     		}
     	}
+    	
+    	$leftTransportCost = $expectedTransportCost - $hiddenTransportCost - $visibleTransportCost;
+    	$row->leftTransportCost = $Double->toVerbal($leftTransportCost);
+    	$leftTransportCost = round($leftTransportCost, 2);
+    	$class = ($leftTransportCost > 0) ? 'green' : (($leftTransportCost < 0) ? 'red' : 'quiet');
+    	
+    	$row->leftTransportCost = "<span class='{$class}'>{$row->leftTransportCost}</span>";
     }
     
     
