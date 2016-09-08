@@ -24,6 +24,7 @@
  * @method getClassId()
  * @method getLink(boolean $maxLength, array $attr)
  * @method getTitleById(boolean $escaped)
+ * @method getAggregateDealInfo(int $id)
  */
 class core_ObjectReference
 {

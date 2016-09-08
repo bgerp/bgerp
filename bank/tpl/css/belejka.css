@@ -51,9 +51,7 @@
 
 .belejka_container .pos_abs {
   position: absolute; }
-.belejka_container .abs_right {
-  right: 5px;
-  top: 3px !important;  }
+
 .belejka_container .bg_white {
   background: white; }
 
@@ -74,9 +72,6 @@
 
 .belejka_container .border_r {
   border-right: solid 1px #cccccc; }
-
-.belejka_container .border_l {
-  border-left: solid 1px #cccccc; }
 
 .belejka_container .border_b {
   border-bottom: solid 1px #cccccc; }
@@ -150,7 +145,6 @@
   line-height: 40px;
   width: 845px;
   padding: 0px;
-  min-height:41px;
   border-bottom: solid 1px #cccccc; }
 
 .belejka_container .belejka div.line div.text {
@@ -160,7 +154,6 @@
   line-height: 15px;
   position: relative;
   letter-spacing: 8px;
-  min-height: 31px;
   text-transform: uppercase; }
 
 .belejka_container .belejka div.line div.text span {

@@ -15,7 +15,8 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassWhileNode extends SassNode {
+class SassWhileNode extends SassNode
+{
   const MATCH = '/^@(do|while)\s+(.+)$/i';
   const LOOP = 1;
   const EXPRESSION = 2;
@@ -32,10 +33,11 @@ class SassWhileNode extends SassNode {
 
   /**
    * SassWhileNode constructor.
-   * @param object source token
+   * @param object $token source token
    * @return SassWhileNode
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token);
     preg_match(self::MATCH, $token->source, $matches);
     $this->expression = $matches[self::EXPRESSION];
@@ -44,21 +46,22 @@ class SassWhileNode extends SassNode {
 
   /**
    * Parse this node.
-   * @param SassContext the context in which this node is parsed
+   * @param SassContext $context the context in which this node is parsed
    * @return array the parsed child nodes
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     $children = array();
     if ($this->isDo) {
       do {
         $children = array_merge($children, $this->parseChildren($context));
       } while ($this->evaluate($this->expression, $context)->toBoolean());
-    }
-    else {
+    } else {
       while ($this->evaluate($this->expression, $context)->toBoolean()) {
         $children = array_merge($children, $this->parseChildren($context));
       }
     }
+
     return $children;
   }
 }

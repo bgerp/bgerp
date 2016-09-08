@@ -9,7 +9,7 @@
  * @subpackage  Sass.script.literals
  */
 
-require_once('SassLiteral.php');
+require_once 'SassLiteral.php';
 
 /**
  * SassColour class.
@@ -35,7 +35,8 @@ require_once('SassLiteral.php');
  * @package      PHamlP
  * @subpackage  Sass.script.literals
  */
-class SassColour extends SassLiteral {
+class SassColour extends SassLiteral
+{
   /**@#+
    * Regexes for matching and extracting colours
    */
@@ -46,7 +47,7 @@ class SassColour extends SassLiteral {
   /**@#-*/
 
   /**@#-*/
-  static public $svgColours = array(
+  public static $svgColours = array(
     'aliceblue'              => '#f0f8ff',
     'antiquewhite'          => '#faebd7',
     'aqua'                  => '#00ffff',
@@ -164,6 +165,7 @@ class SassColour extends SassLiteral {
     'plum'                  => '#dda0dd',
     'powderblue'            => '#b0e0e6',
     'purple'                => '#800080',
+    'rebeccapurple'         => '#663399',
     'red'                    => '#ff0000',
     'rosybrown'              => '#bc8f8f',
     'royalblue'              => '#4169e1',
@@ -197,12 +199,12 @@ class SassColour extends SassLiteral {
   /**
    * @var array reverse array (value => name) of named SVG1.0 colours
    */
-  static public $_svgColours;
+  public static $_svgColours;
 
   /**
   * @var array reverse array (value => name) of named HTML4 colours
   */
-  static public $_html4Colours = array(
+  public static $_html4Colours = array(
     '#000000' => 'black',
     '#000080' => 'navy',
     '#0000ff' => 'blue',
@@ -221,7 +223,7 @@ class SassColour extends SassLiteral {
     '#ffffff' => 'white',
   );
 
-  static public $regex;
+  public static $regex;
 
   /**@#+
    * RGB colour components
@@ -229,7 +231,7 @@ class SassColour extends SassLiteral {
   /**
    * @var array RGB colour components. Used to check for RGB attributes.
    */
-  static public $rgb = array('red', 'green', 'blue');
+  public static $rgb = array('red', 'green', 'blue');
   /**
    * @var integer red component. 0 - 255
    */
@@ -249,7 +251,7 @@ class SassColour extends SassLiteral {
   /**
    * @var array HSL colour components. Used to check for HSL attributes.
    */
-  static public $hsl = array('hue', 'saturation', 'lightness');
+  public static $hsl = array('hue', 'saturation', 'lightness');
   /**
    * @var float hue component. 0 - 360
    */
@@ -279,10 +281,12 @@ class SassColour extends SassLiteral {
    *  + an array with 'hue', 'saturation', and 'lightness' keys, and optionally
    * an alpha key.
    * + an array of red, green, and blue values, and optionally an alpha value.
-   * @param mixed the colour
+   * @param mixed $colour the colour
+   * @throws SassColourException
    * @return SassColour
    */
-  public function __construct($colour) {
+  public function __construct($colour)
+  {
     if (is_string($colour)) {
       $colour = strtolower($colour);
       if ($colour === self::TRANSPARENT) {
@@ -290,8 +294,7 @@ class SassColour extends SassLiteral {
         $this->green = 0;
         $this->blue = 0;
         $this->alpha = 0;
-      }
-      else {
+      } else {
         if (array_key_exists($colour, self::$svgColours)) {
           $colour = self::$svgColours[$colour];
         }
@@ -299,8 +302,7 @@ class SassColour extends SassLiteral {
           for ($i = 1; $i < 4; $i++) {
             $matches[$i] = str_repeat($matches[$i], 2);
           }
-        }
-        else {
+        } else {
           preg_match(self::EXTRACT_6, $colour, $matches);
         }
 
@@ -312,29 +314,25 @@ class SassColour extends SassLiteral {
         $this->blue  = intval($matches[3], 16);
         $this->alpha = 1;
       }
-    }
-    elseif (is_array($colour)) {
+    } elseif (is_array($colour)) {
       $scheme = $this->assertValid($colour);
       if ($scheme == 'rgb') {
         $this->red   = $colour['red'];
         $this->green = $colour['green'];
         $this->blue  = $colour['blue'];
         $this->alpha = (isset($colour['alpha']) ? $colour['alpha'] : 1);
-      }
-      elseif ($scheme == 'hsl') {
+      } elseif ($scheme == 'hsl') {
         $this->hue        = $colour['hue'];
         $this->saturation = $colour['saturation'];
         $this->lightness  = $colour['lightness'];
         $this->alpha      = (isset($colour['alpha']) ? $colour['alpha'] : 1);
-      }
-      else {
+      } else {
         $this->red   = $colour[0];
         $this->green = $colour[1];
         $this->blue  = $colour[2];
         $this->alpha = (isset($colour[3]) ? $colour[3] : 1);
       }
-    }
-    else {
+    } else {
       throw new SassColourException('Colour must be a array', SassScriptParser::$context->node);
     }
   }
@@ -344,7 +342,8 @@ class SassColour extends SassLiteral {
    * @param mixed SassColour|SassNumber value to add
    * @return sassColour the colour result
    */
-  public function op_plus($other) {
+  public function op_plus($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         return new SassString($this->toString() . $other->value);
@@ -353,25 +352,26 @@ class SassColour extends SassLiteral {
       $this->red   = $this->getRed()   + $other->value;
       $this->green = $this->getGreen() + $other->value;
       $this->blue  = $this->getBlue()  + $other->value;
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       return new SassString($this->toString() . $other->value);
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = $this->getRed()   + $other->getRed();
       $this->green = $this->getGreen() + $other->getGreen();
       $this->blue  = $this->getBlue()  + $other->getBlue();
     }
+
     return $this;
   }
 
   /**
    * Colour subraction
-   * @param mixed value (SassColour or SassNumber) to subtract
+   * @param mixed $other value (SassColour or SassNumber) to subtract
+   * @throws SassColourException
    * @return sassColour the colour result
    */
-  public function op_minus($other) {
+  public function op_minus($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
@@ -379,24 +379,25 @@ class SassColour extends SassLiteral {
       $this->red   = $this->getRed()   - $other->value;
       $this->green = $this->getGreen() - $other->value;
       $this->blue  = $this->getBlue()  - $other->value;
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = $this->getRed()   - $other->getRed();
       $this->green = $this->getGreen() - $other->getGreen();
       $this->blue  = $this->getBlue()  - $other->getBlue();
     }
+
     return $this;
   }
 
   /**
    * Colour multiplication
    * @param mixed SassColour|SassNumber value to multiply by
+   * @throws SassColourException
    * @return sassColour the colour result
    */
-  public function op_times($other) {
+  public function op_times($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
@@ -404,24 +405,25 @@ class SassColour extends SassLiteral {
       $this->red   = $this->getRed()   * $other->value;
       $this->green = $this->getGreen() * $other->value;
       $this->blue  = $this->getBlue()  * $other->value;
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = $this->getRed()   * $other->getRed();
       $this->green = $this->getGreen() * $other->getGreen();
       $this->blue  = $this->getBlue()  * $other->getBlue();
     }
+
     return $this;
   }
 
   /**
    * Colour division
-   * @param mixed value (SassColour or SassNumber) to divide by
+   * @param mixed $other value (SassColour or SassNumber) to divide by
+   * @throws SassColourException
    * @return sassColour the colour result
    */
-  public function op_div($other) {
+  public function op_div($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
@@ -429,24 +431,25 @@ class SassColour extends SassLiteral {
       $this->red   = $this->getRed()   / $other->value;
       $this->green = $this->getGreen() / $other->value;
       $this->blue  = $this->getBlue()  / $other->value;
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = $this->getRed()   / $other->getRed();
       $this->green = $this->getGreen() / $other->getGreen();
       $this->blue  = $this->getBlue()  / $other->getBlue();
     }
+
     return $this;
   }
 
   /**
    * Colour modulus
-   * @param mixed value (SassColour or SassNumber) to divide by
+   * @param mixed $other value (SassColour or SassNumber) to divide by
+   * @throws SassColourException
    * @return sassColour the colour result
    */
-  public function op_modulo($other) {
+  public function op_modulo($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
@@ -454,24 +457,24 @@ class SassColour extends SassLiteral {
       $this->red   = fmod($this->getRed(), $other->value);
       $this->green = fmod($this->getGreen(), $other->value);
       $this->blue  = fmod($this->getBlue(), $other->value);
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = fmod($this->getRed(), $other->getRed());
       $this->green = fmod($this->getGreen(), $other->getGreen());
       $this->blue  = fmod($this->getBlue(), $other->getBlue());
     }
+
     return $this;
   }
 
   /**
    * Colour bitwise AND
-   * @param mixed value (SassColour or SassNumber) to bitwise AND with
+   * @param mixed $other value (SassColour or SassNumber) to bitwise AND with
    * @return sassColour the colour result
    */
-  public function op_bw_and($other) {
+  public function op_bw_and($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
@@ -479,24 +482,24 @@ class SassColour extends SassLiteral {
       $this->red   = $this->getRed()   & $other->value;
       $this->green = $this->getGreen() & $other->value;
       $this->blue  = $this->getBlue()  & $other->value;
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = $this->getRed()   & $other->getRed();
       $this->green = $this->getGreen() & $other->getGreen();
       $this->blue  = $this->getBlue()  & $other->getBlue();
     }
+
     return $this;
   }
 
   /**
    * Colour bitwise OR
-   * @param mixed value (SassColour or SassNumber) to bitwise OR with
+   * @param mixed $other value (SassColour or SassNumber) to bitwise OR with
    * @return sassColour the colour result
    */
-  public function op_bw_or($other) {
+  public function op_bw_or($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
@@ -504,24 +507,24 @@ class SassColour extends SassLiteral {
       $this->red   = $this->getRed()   | $other->value;
       $this->green = $this->getGreen() | $other->value;
       $this->blue  = $this->getBlue()  | $other->value;
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = $this->getRed()   | $other->getRed();
       $this->green = $this->getGreen() | $other->getGreen();
       $this->blue  = $this->getBlue()  | $other->getBlue();
     }
+
     return $this;
   }
 
   /**
    * Colour bitwise XOR
-   * @param mixed value (SassColour or SassNumber) to bitwise XOR with
+   * @param mixed $other value (SassColour or SassNumber) to bitwise XOR with
    * @return sassColour the colour result
    */
-  public function op_bw_xor($other) {
+  public function op_bw_xor($other)
+  {
     if ($other instanceof SassNumber) {
       if (!$other->isUnitless()) {
         throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
@@ -529,15 +532,14 @@ class SassColour extends SassLiteral {
       $this->red   = $this->getRed()   ^ $other->value;
       $this->green = $this->getGreen() ^ $other->value;
       $this->blue  = $this->getBlue()  ^ $other->value;
-    }
-    elseif (!$other instanceof SassColour) {
+    } elseif (!$other instanceof SassColour) {
       throw new SassColourException('Argument must be a SassColour or SassNumber', SassScriptParser::$context->node);
-    }
-    else {
+    } else {
       $this->red   = $this->getRed()   ^ $other->getRed();
       $this->green = $this->getGreen() ^ $other->getGreen();
       $this->blue  = $this->getBlue()  ^ $other->getBlue();
     }
+
     return $this;
   }
 
@@ -545,49 +547,56 @@ class SassColour extends SassLiteral {
    * Colour bitwise NOT
    * @return sassColour the colour result
    */
-  public function op_not() {
+  public function op_not()
+  {
       $this->red   = ~$this->getRed();
       $this->green = ~$this->getGreen();
       $this->blue  = ~$this->getBlue();
+
     return $this;
   }
 
   /**
    * Colour bitwise Shift Left
-   * @param sassNumber amount to shift left by
+   * @param sassNumber $other amount to shift left by
    * @return sassColour the colour result
    */
-  public function op_shiftl($other) {
+  public function op_shiftl($other)
+  {
     if (!$other instanceof SassNumber ||!$other->isUnitless()) {
       throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
     }
     $this->red   = $this->getRed()   << $other->value;
     $this->green = $this->getGreen() << $other->value;
     $this->blue  = $this->getBlue()  << $other->value;
+
     return $this;
   }
 
   /**
    * Colour bitwise Shift Right
-   * @param sassNumber amount to shift right by
+   * @param sassNumber $other amount to shift right by
    * @return sassColour the colour result
    */
-  public function op_shiftr($other) {
+  public function op_shiftr($other)
+  {
     if (!$other instanceof SassNumber || !$other->isUnitless()) {
       throw new SassColourException('Number must be a unitless number', SassScriptParser::$context->node);
     }
     $this->red   = $this->getRed()   >> $other->value;
     $this->green = $this->getGreen() >> $other->value;
     $this->blue  = $this->getBlue()  >> $other->value;
+
     return $this;
   }
 
   /**
   * Returns a copy of this colour with one or more channels changed.
   * RGB or HSL attributes may be changed, but not both at once.
-  * @param array attributes to change
+  * @param array $attributes attributes to change
   */
-  public function with($attributes) {
+  public function with($attributes)
+  {
     if ($this->assertValid($attributes, false) === 'hsl') {
       $colour = array_merge(array(
         'hue'        => $this->getHue(),
@@ -595,8 +604,7 @@ class SassColour extends SassLiteral {
         'lightness'  => $this->getLightness(),
         'alpha'      => $this->alpha
       ), $attributes);
-    }
-    else {
+    } else {
       $colour = array_merge(array(
         'red'   => $this->getRed(),
         'green' => $this->getGreen(),
@@ -605,104 +613,125 @@ class SassColour extends SassLiteral {
         ), $attributes);
     }
 
-
     $colour = new SassColour($colour);
     $colour->getRed(); # will get RGB and HSL
+
     return $colour;
   }
 
   /**
    * Returns the alpha component (opacity) of this colour.
+   * @param boolean $value
    * @return float the alpha component (opacity) of this colour.
    */
-  public function getAlpha($value = false) {
+  public function getAlpha($value = false)
+  {
     if ($value && isset($this->alpha->$value)) {
       return $this->alpha->value;
     }
+
     return $this->alpha;
   }
 
   /**
    * Returns the hue of this colour.
+   * @param boolean $value
    * @return float the hue of this colour.
    */
-  public function getHue($value = false) {
-    if (is_null($this->hue)) {
+  public function getHue($value = false)
+  {
+    if ($this->hue === null) {
       $this->rgb2hsl();
     }
     if ($value && isset($this->hue->value)) {
       return $this->hue->value;
     }
+
     return $this->hue;
   }
 
   /**
    * Returns the saturation of this colour.
+   * @param boolean $value
    * @return float the saturation of this colour.
    */
-  public function getSaturation($value = false) {
-    if (is_null($this->saturation)) {
+  public function getSaturation($value = false)
+  {
+    if ($this->saturation === null) {
       $this->rgb2hsl();
     }
     if ($value && isset($this->saturation->value)) {
       return $this->saturation->value;
     }
+
     return $this->saturation;
   }
 
   /**
    * Returns the lightness of this colour.
+   * @param boolean $value
    * @return float the lightness of this colour.
    */
-  public function getLightness($value = false) {
-    if (is_null($this->lightness)) {
+  public function getLightness($value = false)
+  {
+    if ($this->lightness === null) {
       $this->rgb2hsl();
     }
     if ($value && isset($this->lightness->value)) {
       return $this->lightness->value;
     }
+
     return $this->lightness;
   }
 
   /**
    * Returns the blue component of this colour.
+   * @param boolean $value
    * @return integer the blue component of this colour.
    */
-  public function getBlue($value = false) {
-    if (is_null($this->blue)) {
+  public function getBlue($value = false)
+  {
+    if ($this->blue === null) {
       $this->hsl2rgb();
     }
     if ($value && isset($this->blue->value)) {
       return $this->blue->value;
     }
+
     return max(0, min(255, str_replace(',','.',round($this->blue))));
   }
 
   /**
    * Returns the green component of this colour.
+   * @param boolean $value
    * @return integer the green component of this colour.
    */
-  public function getGreen($value = false) {
-    if (is_null($this->green)) {
+  public function getGreen($value = false)
+  {
+    if ($this->green === null) {
       $this->hsl2rgb();
     }
     if ($value && isset($this->green->value)) {
       return $this->green->value;
     }
+
     return max(0, min(255, str_replace(',','.',round($this->green))));
   }
 
   /**
    * Returns the red component of this colour.
+   * @param boolean $value
    * @return integer the red component of this colour.
    */
-  public function getRed($value = false) {
-    if (is_null($this->red)) {
+  public function getRed($value = false)
+  {
+    if ($this->red === null) {
       $this->hsl2rgb();
     }
     if ($value && isset($this->red->value)) {
       return $this->red->value;
     }
+
     return max(0, min(255, str_replace(',','.',round($this->red))));
   }
 
@@ -710,7 +739,8 @@ class SassColour extends SassLiteral {
    * Returns an array with the RGB components of this colour.
    * @return array the RGB components of this colour
    */
-  public function getRgb() {
+  public function getRgb()
+  {
     return array($this->red, $this->green, $this->blue);
   }
 
@@ -718,7 +748,8 @@ class SassColour extends SassLiteral {
    * Returns an array with the RGB and alpha components of this colour.
    * @return array the RGB and alpha components of this colour
    */
-  public function getRgba() {
+  public function getRgba()
+  {
     return array($this->getRed(), $this->getGreen(), $this->getBlue(), $this->alpha);
   }
 
@@ -726,7 +757,8 @@ class SassColour extends SassLiteral {
    * Returns an array with the HSL components of this colour.
    * @return array the HSL components of this colour
    */
-  public function getHsl() {
+  public function getHsl()
+  {
     return array($this->getHue(), $this->getSaturation(), $this->getLightness());
   }
 
@@ -734,7 +766,8 @@ class SassColour extends SassLiteral {
    * Returns an array with the HSL and alpha components of this colour.
    * @return array the HSL and alpha components of this colour
    */
-  public function getHsla() {
+  public function getHsla()
+  {
     return array($this->getHue(), $this->getSaturation(), $this->getLightness(), $this->alpha);
   }
 
@@ -743,7 +776,8 @@ class SassColour extends SassLiteral {
    * @return array the colour
    * @deprecated
    */
-  public function getValue() {
+  public function getValue()
+  {
     return $this->rgb;
   }
 
@@ -751,16 +785,18 @@ class SassColour extends SassLiteral {
    * Returns whether this colour object is translucent; that is, whether the alpha channel is non-1.
    * @return boolean true if this colour is translucent, false if not
    */
-  public function isTranslucent() {
+  public function isTranslucent()
+  {
     return $this->alpha < 1;
   }
 
   /**
    * Converts the colour to a string.
-   * @param boolean whether to use CSS3 SVG1.0 colour names
+   * @param boolean $css3 whether to use CSS3 SVG1.0 colour names
     * @return string the colour as a named colour, rgba(r,g,g,a) or #rrggbb
    */
-  public function toString($css3 = true) {
+  public function toString($css3 = true)
+  {
     $rgba = $this->getRgba();
 
     foreach ($rgba as $k => $v) {
@@ -769,14 +805,11 @@ class SassColour extends SassLiteral {
       }
     }
 
-    if ($rgba[3] == 0) {
-      return 'transparent';
-    }
-    elseif ($rgba[3] < 1) {
+    if ($rgba[3] < 1) {
       $rgba[3] = str_replace(',','.',round($rgba[3], 2));
+
       return sprintf('rgba(%d, %d, %d, %s)', $rgba[0], $rgba[1], $rgba[2], $rgba[3]);
-    }
-    else {
+    } else {
       $colour = sprintf('#%02x%02x%02x', str_replace(',','.',round($rgba[0])), str_replace(',','.',round($rgba[1])), str_replace(',','.',round($rgba[2])));
     }
 
@@ -784,15 +817,15 @@ class SassColour extends SassLiteral {
       if (empty(self::$_svgColours)) {
         self::$_svgColours = array_flip(self::$svgColours);
       }
+
       return (array_key_exists($colour, self::$_svgColours) ? self::$_svgColours[$colour] : $colour);
-    }
-    else {
+    } else {
       return (array_key_exists($colour, self::$_html4Colours) ? self::$_html4Colours[$colour] : $colour);
     }
   }
 
-
-  public function asHex($inc_hash = TRUE) {
+  public function asHex($inc_hash = TRUE)
+  {
     return sprintf(($inc_hash ? '#' : '') . '%02x%02x%02x', str_replace(',','.',round($this->red)), str_replace(',','.',round($this->green)), str_replace(',','.',round($this->blue)));
   }
 
@@ -801,7 +834,8 @@ class SassColour extends SassLiteral {
    * Algorithm from the CSS3 spec: {@link http://www.w3.org/TR/css3-color/#hsl-color}
    * @uses hue2rgb()
    */
-  public function hsl2rgb() {
+  public function hsl2rgb()
+  {
     $h = $this->getHue(true) / 360;
     $s = $this->getSaturation(true) / 100;
     $l = $this->getLightness(true) / 100;
@@ -818,7 +852,8 @@ class SassColour extends SassLiteral {
   /**
    * Converts from hue to RGB colourspace
    */
-  public function hue2rgb($p, $q, $t) {
+  public function hue2rgb($p, $q, $t)
+  {
     if ($t < 0)
       $t += 1;
     if ($t > 1)
@@ -838,7 +873,8 @@ class SassColour extends SassLiteral {
    * Converts from RGB to HSL colourspace
    * Algorithm adapted from {@link http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript}
    */
-  public function rgb2hsl() {
+  public function rgb2hsl()
+  {
     list($r, $g, $b) = array($this->red / 255, $this->green / 255, $this->blue / 255);
 
     $max = max($r, $g, $b);
@@ -848,8 +884,7 @@ class SassColour extends SassLiteral {
     if ($max == $min) {
       $h = 0;
       $s = 0;
-    }
-    else if ($max == $r)
+    } elseif ($max == $r)
       $h = 60 * ($g - $b) / $d;
     else if ($max == $g)
       $h = 60 * ($b - $r) / $d + 120;
@@ -875,13 +910,14 @@ class SassColour extends SassLiteral {
   * Asserts that the colour space is valid.
   * Returns the name of the colour space: 'rgb' if red, green, or blue keys given;
   * 'hsl' if hue, saturation or lightness keys given; null if a non-associative array
-  * @param array the colour to test
-  * @param boolean whether all colour space keys must be given
+  * @param array $colour the colour to test
+  * @param boolean $all whether all colour space keys must be given
   * @return string name of the colour space
   * @throws SassColourException if mixed colour space keys given or not all
   * keys for a colour space are required but not given (contructor)
   */
-  public function assertValid($colour, $all = true) {
+  public function assertValid($colour, $all = true)
+  {
     if (array_key_exists('red', $colour) || array_key_exists('green', $colour) || array_key_exists('blue', $colour)) {
       if (array_key_exists('hue', $colour) || array_key_exists('saturation', $colour) || array_key_exists('lightness', $colour)) {
         throw new SassColourException('SassColour can not have HSL and RGB keys specified', SassScriptParser::$context->node);
@@ -889,15 +925,15 @@ class SassColour extends SassLiteral {
       if ($all && (!array_key_exists('red', $colour) || !array_key_exists('green', $colour) || !array_key_exists('blue', $colour))) {
         throw new SassColourException('SassColour must have all RGB keys specified', SassScriptParser::$context->node);
       }
+
       return 'rgb';
-    }
-    elseif (array_key_exists('hue', $colour) || array_key_exists('saturation', $colour) || array_key_exists('lightness', $colour)) {
+    } elseif (array_key_exists('hue', $colour) || array_key_exists('saturation', $colour) || array_key_exists('lightness', $colour)) {
       if ($all && (!array_key_exists('hue', $colour) || !array_key_exists('saturation', $colour) || !array_key_exists('lightness', $colour))) {
         throw new SassColourException('SassColour must have all HSL keys specified', SassScriptParser::$context->node);
       }
+
       return 'hsl';
-    }
-    elseif ($all && sizeof($colour) < 3) {
+    } elseif ($all && sizeof($colour) < 3) {
         throw new SassColourException('SassColour array must have at least 3 elements', SassScriptParser::$context->node);
     }
   }
@@ -905,14 +941,27 @@ class SassColour extends SassLiteral {
   /**
    * Returns a value indicating if a token of this type can be matched at
    * the start of the subject string.
-   * @param string the subject string
+   * @param string $subject the subject string
    * @return mixed match at the start of the string or false if no match
    */
-  static public function isa($subject) {
+  public static function isa($subject)
+  {
     if (empty(self::$regex)) {
       self::$regex = str_replace('{CSS_COLOURS}', join('|', array_reverse(array_keys(self::$svgColours))), self::MATCH);
     }
+
     return (preg_match(self::$regex, strtolower($subject), $matches) ?
       $matches[0] : false);
+  }
+
+  public function nth($i)
+  {
+    if ($i == 1) return clone $this;
+    return new SassBoolean(false);
+  }
+
+  public function length()
+  {
+    return 1;
   }
 }
