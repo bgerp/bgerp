@@ -123,10 +123,12 @@ class tcost_Calcs extends core_Manager
     	
     	$ourCompany = crm_Companies::fetchOurCompany();	 
     	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
-    	if($totalFee == tcost_CostCalcIntf::CALC_ERROR) return FALSE; 	
+    	 
+    	$res = array('totalFee' => $totalFee);
     	
-    	$res = array('totalFee' => $totalFee, 
-    			     'singleFee' => round($totalFee / $quantity, 2));
+    	if($totalFee != tcost_CostCalcIntf::CALC_ERROR){
+    		$res['singleFee'] = round($totalFee / $quantity, 2);
+    	}
     	
     	return $res;
     }
@@ -441,7 +443,9 @@ class tcost_Calcs extends core_Manager
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
     		if($rec->autoPrice === TRUE){
-    			$rec->{$map['price']} += $feeArr['singleFee'];
+    			if(isset($res['singleFee'])){
+    				$rec->{$map['price']} += $feeArr['singleFee'];
+    			}
     		}
     		$rec->fee = $feeArr['totalFee'];
     	}
@@ -451,7 +455,7 @@ class tcost_Calcs extends core_Manager
     	
     	if($amount <= round($rec->fee, 2)){
     		$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
-    		$form->setError('fee', "Сумата на артикула е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
+    		$form->setError('fee', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
     		$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
     		$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
     	}
