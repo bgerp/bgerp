@@ -64,10 +64,6 @@
   text-align: right;
   font-size: 0.9em; }
 
-.total-quote-td,
-.total-td-label {
-  background-color: transparent; }
-
 .quotation-detail-add-btn {
   margin: 10px 0 20px; }
 
@@ -166,7 +162,7 @@
   border: 1px solid #cccccc !important; }
 
 .quote-header td b {
-  background: transparent !important; }
+  background: rgba(0, 0, 0, 0) !important; }
 
 .business-doc-summary-table td {
   padding: 1px;
