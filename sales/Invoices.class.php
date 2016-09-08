@@ -348,7 +348,7 @@ class sales_Invoices extends deals_InvoiceMaster
     			Mode::push('text', 'plain');
     			$valior = $firstDoc->getVerbal('valior');
     			Mode::pop('text');
-    			$defInfo .= tr("Съгласно сделка") . " :#{$handle}/{$valior}";
+    			$defInfo .= tr("Съгласно сделка") . ": #{$handle}/{$valior}";
     			
     			// Ако продажбата има референтен номер, попълваме го в забележката
     			if($firstRec->reff){
