@@ -357,6 +357,9 @@ class core_App
         
         if (!isDebug() && $sendOutput) {
             self::flushAndClose();
+        } else {
+            ob_flush();
+            flush();
         }
 
 
