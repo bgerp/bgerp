@@ -156,7 +156,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
         jquery_Jquery::runAfterAjax($tpl, 'sumOfChildrenWidth');
         jquery_Jquery::runAfterAjax($tpl, 'editCopiedTextBeforePaste');
         jquery_Jquery::runAfterAjax($tpl, 'removeNarrowScroll');
-        
+        jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
+
         // Стойности на плейсхолдера
         $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
         

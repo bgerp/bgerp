@@ -3398,6 +3398,15 @@ function render_prepareContextMenu() {
 
 
 /**
+ * Функция, която извиква подготвянето на контекстното меню по ajax
+ * Може да се комбинира с efae
+ */
+function render_getContextMenuFromAjax() {
+    getContextMenuFromAjax();
+}
+
+
+/**
 * Функция, която извиква подготвянето на smartCenter
 * Може да се комбинира с efae
 */
