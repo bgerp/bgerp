@@ -202,7 +202,34 @@ class core_Pager extends core_BaseClass
         $this->itemsCount = PHP_INT_MAX;
         $this->calc();
 
-        if(TRUE || (!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
+        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
+            $qCnt = clone ($query);
+            $qCnt->orderBy = array();
+
+            $qCnt->show('id');
+            $this->itemsCount = $qCnt->count();
+            $this->calc();
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit($this->rangeEnd - $this->rangeStart);
+                $q->startFrom($this->rangeStart);
+                $q->show('id');
+                $q->select();
+                while($rec = $q->fetch()) {
+                    $ids[] = $rec->id;
+                }
+            }
+
+            if(count($ids)) {
+
+                $ids = implode(',', $ids);
+
+                $query->where("#id IN ($ids)");
+            } else {
+                $this->itemsCount = 0;
+                $this->calc();
+                $query->limit(0);
+            } 
+        } elseif((!Request::get('V')) || Request::get('V') == 2) {
             $qCnt = clone ($query);
             
             setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
@@ -255,40 +282,7 @@ class core_Pager extends core_BaseClass
             }
 
 
-       } elseif((!Request::get('V')) || Request::get('V') == 2) {
-            $q->show('id');
-            $q->addOption('SQL_CALC_FOUND_ROWS');
-
-            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
-                $q->startFrom($this->rangeStart); 
-                $q->select();
-                $idsCnt = $q->numRec();
-            }
-            
-            if($idsCnt) {
-                $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
-                $cntArr = $q->mvc->db->fetchArray($dbRes);
-                $this->itemsCount  = array_shift($cntArr);
-                $this->calc();
-                $c=0;
-                while($rec = $q->fetch()) {
-                    $c++;
-                    if($c > $this->rangeEnd - $this->rangeStart) break;
-                    $ids[] = $rec->id;
-                }
-
-                //$ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
-
-                $ids = implode(',', $ids);
-
-                $query->where("#id IN ($ids)");
-            } else {
-                $this->itemsCount = 0;
-                $this->calc();
-                $query->limit(0);
-            }
-        } elseif(Request::get('V') == 3) {
+       } elseif(Request::get('V') == 3) {
             $q = clone ($query);
 
             $this->itemsCount = 100000000;
@@ -385,7 +379,6 @@ class core_Pager extends core_BaseClass
                 $html .= "<a href=\"" . htmlspecialchars(Url::change($link, array($this->pageVar => $start)), ENT_QUOTES, "UTF-8") . "\"  $sel title='{$pn}{$start}'>{$start}</a> ";
             } while ($start++ < $end);
             
-            
             //Ако имаме страници, които не се показват в посока към края, показваме >
             if ($this->getPage() < $this->getPagesCount()) {
                 if ($end < $this->getPagesCount()) {
@@ -398,11 +391,7 @@ class core_Pager extends core_BaseClass
                 }
             }
         }
-
-        if($this->autoCnt) {
-            $html .= ' <a class=\"pager\">...</a>';
-        }
-
+        
         $tpl = new ET($html ? "<div class='pages'>$html</div>" : "");
         
         return $tpl;
