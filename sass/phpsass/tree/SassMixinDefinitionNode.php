@@ -15,7 +15,8 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassMixinDefinitionNode extends SassNode {
+class SassMixinDefinitionNode extends SassNode
+{
   const NODE_IDENTIFIER = '=';
   const MATCH = '/^(=|@mixin\s+)([-\w]+)\s*(?:\((.*?)\))?\s*$/im';
   const IDENTIFIER = 1;
@@ -32,12 +33,16 @@ class SassMixinDefinitionNode extends SassNode {
    */
   private $args = array();
 
-  /**
-   * SassMixinDefinitionNode constructor.
-   * @param object source token
-   * @return SassMixinDefinitionNode
-   */
-  public function __construct($token) {
+	/**
+	 * SassMixinDefinitionNode constructor.
+	 *
+	 * @param object $token source token
+	 *
+	 * @throws SassMixinDefinitionNodeException
+	 * @return SassMixinDefinitionNode
+	 */
+  public function __construct($token)
+  {
     preg_match(self::MATCH, $token->source, $matches);
     parent::__construct($token);
     if (empty($matches)) {
@@ -52,11 +57,13 @@ class SassMixinDefinitionNode extends SassNode {
   /**
    * Parse this node.
    * Add this mixin to  the current context.
-   * @param SassContext the context in which this node is parsed
+   * @param SassContext $context the context in which this node is parsed
    * @return array the parsed node - an empty array
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     $context->addMixin($this->name, $this);
+
     return array();
   }
 
@@ -64,16 +71,18 @@ class SassMixinDefinitionNode extends SassNode {
    * Returns the arguments with default values for this mixin
    * @return array the arguments with default values for this mixin
    */
-  public function getArgs() {
+  public function getArgs()
+  {
     return $this->args;
   }
 
   /**
    * Returns a value indicating if the token represents this type of node.
-   * @param object token
+   * @param object $token token
    * @return boolean true if the token represents this type of node, false if not
    */
-  public static function isa($token) {
+  public static function isa($token)
+  {
     return $token->source[0] === self::NODE_IDENTIFIER;
   }
 }

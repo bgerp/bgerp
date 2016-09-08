@@ -9,70 +9,77 @@
  * @subpackage  Sass.script.literals
  */
 
-require_once('SassLiteral.php');
+require_once 'SassLiteral.php';
 
 /**
  * SassBoolean class.
  * @package      PHamlP
  * @subpackage  Sass.script.literals
  */
-class SassList extends SassLiteral {
-
-  var $separator = ' ';
+class SassList extends SassLiteral
+{
+  public $separator = ' ';
 
   /**
    * SassBoolean constructor
-   * @param string value of the boolean type
+   * @param string $value value of the boolean type
+   * @param string $separator
    * @return SassBoolean
    */
-  public function __construct($value, $separator = 'auto') {
+  public function __construct($value, $separator = 'auto')
+  {
     if (is_array($value)) {
       $this->value = $value;
       $this->separator = ($separator == 'auto' ? ', ' : $separator);
-    }
-    else if (list($list, $separator) = $this->_parse_list($value, $separator, true, SassScriptParser::$context)) {
+    } elseif ($value == '()') {
+      $this->value = array();
+      $this->separator = ($separator == 'auto' ? ', ' : $separator);
+    } elseif (list($list, $separator) = $this->_parse_list($value, $separator, true, SassScriptParser::$context)) {
       $this->value = $list;
       $this->separator = ($separator == ',' ? ', ' : ' ');
-    }
-    else {
+    } else {
       throw new SassListException('Invalid SassList', SassScriptParser::$context->node);
     }
   }
 
-  function nth($i) {
+  public function nth($i)
+  {
     $i = $i - 1; # SASS uses 1-offset arrays
     if (isset($this->value[$i])) {
       return $this->value[$i];
     }
+
     return new SassBoolean(false);
   }
 
-  function length() {
+  public function length()
+  {
     return count($this->value);
   }
 
-  function append($other, $separator = null) {
+  public function append($other, $separator = null)
+  {
     if ($separator) {
       $this->separator = $separator;
     }
     if ($other instanceof SassList) {
       $this->value = array_merge($this->value, $other->value);
-    }
-    else if ($other instanceof SassLiteral) {
+    } elseif ($other instanceof SassLiteral) {
       $this->value[] = $other;
-    }
-    else {
+    } else {
       throw new SassListException('Appendation can only occur with literals', SassScriptParser::$context->node);
     }
   }
 
   // New function index returns the list index of a value within a list. For example: index(1px solid red, solid) returns 2. When the value is not found false is returned.
-  function index($value) {
+  public function index($value)
+  {
     for ($i = 0; $i < count($this->value); $i++) {
       if (trim((string) $value) == trim((string) $this->value[$i])) {
         return new SassNumber($i);
       }
     }
+
     return new SassBoolean(false);
   }
 
@@ -80,7 +87,8 @@ class SassList extends SassLiteral {
    * Returns the value of this boolean.
    * @return boolean the value of this boolean
    */
-  public function getValue() {
+  public function getValue()
+  {
     $result = array();
     foreach ($this->value as $k => $v) {
       if ($v instanceOf SassString) {
@@ -99,6 +107,7 @@ class SassList extends SassLiteral {
       }
     }
     $this->value = $result;
+
     return $this->value;
   }
 
@@ -106,7 +115,8 @@ class SassList extends SassLiteral {
    * Returns a string representation of the value.
    * @return string string representation of the value.
    */
-  public function toString() {
+  public function toString()
+  {
     $aliases = array(
       'comma' => ',',
       'space' => '',
@@ -115,21 +125,30 @@ class SassList extends SassLiteral {
     if (isset($aliases[$this->separator])) {
       $this->separator = $aliases[$this->separator];
     }
+
     return implode($this->separator . ' ', $this->getValue());
   }
 
   /**
    * Returns a value indicating if a token of this type can be matched at
    * the start of the subject string.
-   * @param string the subject string
+   * @param string $subject the subject string
    * @return mixed match at the start of the string or false if no match
    */
-  public static function isa($subject) {
+  public static function isa($subject)
+  {
     list($list, $separator) = self::_parse_list($subject, 'auto', false);
+
     return count($list) > 1 ? $subject : FALSE;
   }
 
-  public static function _parse_list($list, $separator = 'auto', $lex = true, $context = null) {
+  public static function _parse_list($list, $separator = 'auto', $lex = true, $context = null)
+  {
+    if ($lex) {
+      $context = new SassContext($context);
+      $list = SassScriptParser::$instance->evaluate($list, $context);
+      $list = $list->toString();
+    }
     if ($separator == 'auto') {
       $separator = ',';
       $list = $list = self::_build_list($list, ',');
@@ -137,8 +156,7 @@ class SassList extends SassLiteral {
         $separator = ' ';
         $list = self::_build_list($list, ' ');
       }
-    }
-    else {
+    } else {
       $list = self::_build_list($list, $separator);
     }
 
@@ -148,10 +166,12 @@ class SassList extends SassLiteral {
         $list[$k] = SassScriptParser::$instance->evaluate($v, $context);
       }
     }
+
     return array($list, $separator);
   }
 
-  public static function _build_list($list, $separator = ',') {
+  public static function _build_list($list, $separator = ',')
+  {
     if (is_object($list)) {
       $list = $list->value;
     }
@@ -169,15 +189,15 @@ class SassList extends SassLiteral {
     $braces = 0;
     $quotes = false;
     $stack = '';
-    for($i = 0; $i < strlen($list); $i++) {
+	$listCount = strlen($list);
+    for ($i = 0; $i < $listCount; $i++) {
       $char = substr($list, $i, 1);
       switch ($char) {
         case '"':
         case "'":
           if (!$quotes) {
             $quotes = $char;
-          }
-          else if ($quotes && $quotes == $char) {
+          } elseif ($quotes && $quotes == $char) {
             $quotes = false;
           }
           $stack .= $char;
@@ -210,8 +230,7 @@ class SassList extends SassLiteral {
     }
 
     foreach ($out as $k => $v) {
-      $v = trim($v, ', ');
-      $out[$k] = $v;
+      $out[$k] = trim($v, ', ');
     }
 
     return $out;

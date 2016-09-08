@@ -15,7 +15,8 @@
  * @package      PHamlP
  * @subpackage  Sass.script
  */
-class SassScriptOperation {
+class SassScriptOperation
+{
   const MATCH = '/^(\(|\)|\+|-|\*|\/|%|<=|>=|<|>|==|!=|=|#{|}|,|and\b|or\b|xor\b|not\b)/';
 
   /**
@@ -52,7 +53,7 @@ class SassScriptOperation {
    * @var array operators with meaning in uquoted strings;
    * selectors, property names and values
    */
-  public static $inStrOperators = array(',', '#{');
+  public static $inStrOperators = array(',', '#{', ')', '(');
 
   /**
    * @var array default operator token.
@@ -82,7 +83,8 @@ class SassScriptOperation {
    * @param mixed string: operator symbol; array: operator token
    * @return SassScriptOperation
    */
-  public function __construct($operation) {
+  public function __construct($operation)
+  {
     if (is_string($operation)) {
       $operation = self::$operators[$operation];
     }
@@ -96,27 +98,28 @@ class SassScriptOperation {
 
   /**
    * Getter function for properties
-   * @param string name of property
+   * @param string $name name of property
    * @return mixed value of the property
    * @throws SassScriptOperationException if the property does not exist
    */
-  public function __get($name) {
+  public function __get($name)
+  {
     if (property_exists($this, $name)) {
       return $this->$name;
-    }
-    else {
+    } else {
       throw new SassScriptOperationException('Unknown property: ' . $name, SassScriptParser::$context->node);
     }
   }
 
   /**
    * Performs this operation.
-   * @param array operands for the operation. The operands are SassLiterals
+   * @param array $operands operands for the operation. The operands are SassLiterals
    * @return SassLiteral the result of the operation
    * @throws SassScriptOperationException if the oprand count is incorrect or
    * the operation is undefined
    */
-  public function perform($operands) {
+  public function perform($operands)
+  {
     if (count($operands) !== $this->operandCount) {
       throw new SassScriptOperationException('Incorrect operand count for ' . get_class($operands[0]) . '; expected ' . $this->operandCount . ', received ' . count($operands), SassScriptParser::$context->node);
     }
@@ -134,10 +137,9 @@ class SassScriptOperation {
     }
     $operands = array_values($operands);
 
-    if (count($operands) > 1 && is_null($operands[1])) {
+    if (count($operands) > 1 && $operands[1] === null) {
       $operation = 'op_unary_' . $this->operator;
-    }
-    else {
+    } else {
       $operation = 'op_' . $this->operator;
       if ($this->associativity == 'l') {
         $operands = array_reverse($operands);
@@ -146,13 +148,14 @@ class SassScriptOperation {
 
     if (method_exists($operands[0], $operation)) {
         $op = clone $operands[0];
+
         return $op->$operation(!empty($operands[1]) ? $operands[1] : null);
     }
 
     # avoid failures in case of null operands
     $count = count($operands);
     foreach ($operands as $i => $op) {
-      if (is_null($op)) {
+      if ($op === null) {
         $count--;
       }
     }
@@ -165,22 +168,25 @@ class SassScriptOperation {
   /**
    * Returns a value indicating if a token of this type can be matched at
    * the start of the subject string.
-   * @param string the subject string
+   * @param string $subject the subject string
    * @return mixed match at the start of the string or false if no match
    */
-  public static function isa($subject) {
+  public static function isa($subject)
+  {
     # begins with a "/x", almost always a path without quotes.
     if (preg_match('/^\/[^0-9\.\-\s]+/', $subject)) {
       return FALSE;
     }
+
     return (preg_match(self::MATCH, $subject, $matches) ? trim($matches[1]) : false);
   }
 
   /**
    * Converts the operation back into it's SASS representation
    */
-  public function __toString() {
-    foreach(SassScriptOperation::$operators as $char => $operator) {
+  public function __toString()
+  {
+    foreach (SassScriptOperation::$operators as $char => $operator) {
       if ($operator[0] == trim($this->operator)) {
         return $char;
       }
