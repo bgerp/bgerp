@@ -1039,24 +1039,20 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Задава пълнотекстово търсене по посочения параметър
+     * Връща хеш на заявката за търсене
+     * Ако $excludeStartAndLimit = TRUE, не се вземат в предвид
      */
-    function fullTextSearch($filter, $rateName = 'searchRate', $searchTName = 'searcht', $searchDName = 'searchD')
+    function getHash($excludeStartAndLimit = FALSE)
     {
-        $filter = str::utf2ascii(mb_strtolower(trim($filter)));
-        
-        if ($filter) {
-            $queryBulder = cls::get('core_SearchMysql', array(
-                    'filter' => $filter,
-                    'searcht' => $searchTName,
-                    'searchD' => $searchDName
-                ));
-            $s = $queryBulder->prepareSql($this->mvc->dbTableName);
-            $this->XPR($rateName, 'double', $s[0]);
-            $this->orderBy("#{$rateName}=DESC");
-            $this->where("#{$rateName} > 0");
-            $this->where($s[1]);
+        $q = clone($this);
+        if($excludeStartAndLimit) {
+            $q->startFrom(NULL);
+            $q->limit(NULL);
         }
+
+        $res = md5($q->buildQuery());
+
+        return $res;
     }
     
     
