@@ -106,11 +106,12 @@ class tcost_Calcs extends core_Manager
     /**
      * Връща информация за цената на транспорта, към клиент
      * 
-     * @param int $productId            - ид на артикул
-     * @param double $quantity          - к-во
-     * @param int|NULL $deliveryTermId  - условие на доставка, NULL ако няма
-     * @param mixed $contragentClassId  - клас на контрагента
-     * @param int $contragentId         - ид на контрагента
+     * @param int $deliveryTermId  - условие на доставка
+     * @param int $productId       - ид на артикул
+     * @param double $quantity     - к-во
+     * @param double $totalWeight  - общо тегло   
+     * @param int $toCountryId     - ид на държава
+     * @param varchar $toPcodeId   - пощенски код
      * @return FALSE|array $res         - информация за цената на транспорта или NULL, ако няма
      * 					['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
      * 					['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
@@ -297,12 +298,12 @@ class tcost_Calcs extends core_Manager
     /**
      * Показване на хинт при изчисление на цена
      * 
-     * @param varchar $amountRow   - вербалната сума на реда
-     * @param double $amountFee    - вербалната транспортна такса
-     * @param double $vat          - процент ДДС
-     * @param double $currencyRate - валутен курс
-     * @param varchar $chargeVat   - режим на ДДС
-     * @return core_ET             - сумата на реда с хинт
+     * @param varchar $amountRow           - вербалната сума на реда
+     * @param double $amountFee            - вербалната транспортна такса
+     * @param double $vat                  - процент ДДС
+     * @param double $currencyRate         - валутен курс
+     * @param varchar $chargeVat           - режим на ДДС
+     * @return core_ET|varchar $amountRow  - сумата на реда с хинт
      */
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
     {
@@ -359,7 +360,7 @@ class tcost_Calcs extends core_Manager
      * @param tcost_CostCalcIntf $TransportCalc - интерфейс за изчисляване на транспортна цена
      * @param string $productFld - поле съдържащо ид-то на артикул
      * @param string $quantityFld - поле съдържащо количеството на артикул
-     * @return double$totalWeight - общото тегло
+     * @return double $totalWeight - общото тегло
      */
     public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity')
     {
