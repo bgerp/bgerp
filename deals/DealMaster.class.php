@@ -223,9 +223,11 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
 		$form->setDefault('makeInvoice', 'yes');
 		
-		// Поле за избор на локация - само локациите на контрагента по покупката
-		$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
-		$form->setOptions('deliveryLocationId', $locations);
+		// Поле за избор на локация - само локациите на контрагента по сделката
+		if(!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')){
+			$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+			$form->setOptions('deliveryLocationId', $locations);
+		}
 		
 		if ($form->rec->id){
         	
