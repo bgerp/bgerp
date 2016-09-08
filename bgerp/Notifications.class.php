@@ -21,7 +21,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
+    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Sorting, plg_Search, bgerp_RefreshRowsPlg';
     
     
     /**

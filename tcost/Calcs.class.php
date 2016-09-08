@@ -103,7 +103,8 @@ class tcost_Calcs extends core_Manager
     	
     	$ourCompany = crm_Companies::fetchOurCompany();	 
     	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
-    			
+    	if($totalFee == tcost_CostCalcIntf::CALC_ERROR) return FALSE; 	
+    	
     	$res = array('totalFee' => $totalFee, 
     			     'singleFee' => round($totalFee / $quantity, 2));
     	
@@ -148,7 +149,6 @@ class tcost_Calcs extends core_Manager
     	// Ако подадената сума е NULL, и има съществуващ запис - трие се
     	if(is_null($fee) && is_object($exRec)){
     		self::delete($exRec->id);
-    		core_Statuses::newStatus("DELETE {$recId}", 'warning');
     	}
     	
     	// Ако има сума
@@ -158,13 +158,11 @@ class tcost_Calcs extends core_Manager
     		// И няма съществуващ запис, ще се добавя нов
     		if(!$exRec){
     			$exRec = (object)array('docClassId' => $classId, 'docId' => $docId, 'recId' => $recId);
-    			core_Statuses::newStatus("ADD {$recId}", 'warning');
     		} else {
     			$fields = 'fee';
-    			core_Statuses::newStatus("UPDATE {$recId}", 'warning');
     		}
     		 
-    		// Ъпдейт/Добавяне на записа
+    		// Ъпдейт / Добавяне на записа
     		$exRec->fee = $fee;
     		self::save($exRec);
     	}
@@ -215,29 +213,33 @@ class tcost_Calcs extends core_Manager
      */
     public static function getCodeAndCountryId($contragentClassId, $contragentId, $pCode = NULL, $countryId = NULL, $locationId = NULL)
     {
-    	// Адреса и ид-то на държавата са с приоритет тези, които се подават
-    	$res = array('pCode' => $pCode, 'countryId' => $countryId);
+    	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	
-    	// Ако няма
-    	if(empty($res['pCode']) || empty($res['pCode'])){
-    		
-    		// И има локация, попълва се липсващото поле от локацията
-    		if(isset($locationId)){
-    			$locationRec = crm_Locations::fetch($locationId);
-    			$res['pCode'] = isset($res['pCode']) ? $res['pCode'] : $locationRec->pCode;
-    			$res['countryId'] = isset($res['countryId']) ? $res['countryId'] : $locationRec->countryId;
+    	// Ако има локация, адресните данни са приоритетни от там
+    	if(isset($locationId)){
+    		$locationRec = crm_Locations::fetch($locationId);
+    		$locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
+    		if(isset($locationCountryId) && !empty($locationRec->pCode)){
+    			return array('pCode' => $locationRec->pCode, 'countryId' => $locationCountryId);
     		}
     		
-    		// Ако отново липсва поле, взимат се от визитката на контрагента
-    		if(empty($res['pCode']) || empty($res['pCode'])){
-    			$cData = cls::get($contragentClassId)->getContragentData($contragentId);
-    			$res['pCode'] = (!empty($res['pCode'])) ? $res['pCode'] : $cData->pCode;
-    			$res['countryId'] = (!empty($res['countryId'])) ? $res['countryId'] : $cData->countryId;
+    		if(isset($locationRec->countryId)) {
+    			return array('pCode' => NULL, 'countryId' => $locationRec->countryId);
     		}
     	}
     	
-    	// Връщане на резултата
-    	return $res;
+    	// Ако има от документа данни, взимат се тях
+    	$cId = isset($countryId) ? $countryId : $cData->countryId;
+    	if(isset($cId) && !empty($pCode)){
+    		return array('pCode' => $pCode, 'countryId' => $cId);
+    	}
+    	
+    	if(isset($countryId)){
+    		return array('pCode' => NULL, 'countryId' => $countryId);
+    	}
+    	
+    	// В краен случай се връщат адресните данни на визитката
+    	return array('pCode' => $cData->pCode, 'countryId' => $cData->countryId);
     }
     
     
@@ -291,5 +293,57 @@ class tcost_Calcs extends core_Manager
     	}
     	
     	return $amountRow;
+    }
+    
+    
+    /**
+     * Сумата на видимия транспорт в документа
+     * 
+     * @param core_Query $query - заявка
+     * @param string $productFld - име на полето на артикула
+     * @param string $amountFld - име на полето на сумата
+     * @return double $amount - сума на видимия транспорт в основна валута без ДДС
+     */
+    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount')
+    {
+    	$amount = 0;
+    	
+    	$transportArr = keylist::toArray(tcost_Setup::get('TRANSPORT_PRODUCTS_ID'));
+    	$query->in($productFld, $transportArr);
+    	
+    	while($dRec = $query->fetch()){
+    		$amount += $dRec->{$amountFld};
+    	}
+    	
+    	return $amount;
+    }
+    
+    
+    /**
+     * Връща общото тегло на масив с артикули
+     * 
+     * @param array $products - масив с артикули
+     * @param tcost_CostCalcIntf $TransportCalc - интерфейс за изчисляване на транспортна цена
+     * @param string $productFld - поле съдържащо ид-то на артикул
+     * @param string $quantityFld - поле съдържащо количеството на артикул
+     * @return double$totalWeight - общото тегло
+     */
+    public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity')
+    {
+    	$totalWeight = 0;
+    	if(!is_array($products)) return $totalWeight;
+    	
+    	// За всеки артикул в масива
+    	foreach ($products as $p1){
+    		
+    		// Намира се обемното му тегло и се съжура
+    		$singleWeight = cat_Products::getParams($p1->{$productFld}, 'transportWeight');
+    		$singleVolume = cat_Products::getParams($p1->{$productFld}, 'transportVolume');
+    		$singleWeight = $TransportCalc->getVolumicWeight($singleWeight, $singleVolume);
+    		$totalWeight += $singleWeight * $p1->{$quantityFld};
+    	}
+    	
+    	// Връщане на общото тегло
+    	return $totalWeight;
     }
 }

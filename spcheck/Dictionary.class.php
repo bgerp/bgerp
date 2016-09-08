@@ -93,9 +93,11 @@ class spcheck_Dictionary extends core_Manager
      * Масив с шаблони, които ще се заместят и няма да се проверяват
      * [0] => линкове
      * [1] => думи само с главни букви и цифри
-     * [2] => евристика за определяне на имена
+     * [2] => думи, които започват с малка буква или цифра и имат главни букви
+     * [3] => думи между &...;
+     * [4] => евристика за определяне на имена
      */
-    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu", "/[^\p{L}0-9][\p{Lu}0-9]{2,}([^\p{L}0-9])/u", "/([^\S\x0a\x0d]|\,|\:|\;|\-){1}((\p{Lu}+)|(\p{Lu}+\p{L}+))(\p{L})*/u");
+    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu", "/[^\p{L}0-9][\p{Lu}0-9]{2,}([^\p{L}0-9])/u", "/(?<=[^\p{L}0-9])[\p{Ll}0-9]{1,}[\p{Lu}]+[\p{L}0-9]*/u", "/\&[\p{L}]+\;/u", "/([^\S\x0a\x0d]|\,|\:|\;|\-){1}((\p{Lu}+)|(\p{Lu}+\p{L}+))(\p{L})*/u");
     
     
     /**
@@ -152,7 +154,14 @@ class spcheck_Dictionary extends core_Manager
                 $wArr[$key] = TRUE;
             }
         } else {
-            $pspellLink = pspell_new($lg);
+            $pspellLink = @pspell_new($lg);
+            
+            if (!$pspellLink) {
+                self::logWarning('Не е инсталиран речник за езика - ' . $lg);
+                
+                return TRUE;
+            }
+            
             if (pspell_check($pspellLink, $word)) {
                 $wArr[$key] = TRUE;
             } else {

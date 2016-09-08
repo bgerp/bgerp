@@ -105,8 +105,9 @@ class core_Pager extends core_BaseClass
         $this->rangeEnd = NULL;
         $this->pagesCount = NULL;
         
-        if (!($this->itemsCount >= 0))
-        $this->itemsPerPage = 0;
+        if (!($this->itemsCount >= 0)) {
+            $this->itemsPerPage = 0;
+        }
         
         $maxPages = max(1, round($this->itemsCount / $this->itemsPerPage));
         
@@ -201,13 +202,23 @@ class core_Pager extends core_BaseClass
         $this->itemsCount = PHP_INT_MAX;
         $this->calc();
 
-        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
+        if(TRUE || (!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
             $qCnt = clone ($query);
-            $qCnt->orderBy = array();
+            
+            setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
+    
+            // Опитваме да извлечем резултатите от кеша
+            $cntAll = core_QueryCnts::getFromChache($qCnt);
+            if($cntAll === FALSE) {
+                $cntAll = $this->itemsPerPage*($this->page+9);
+                $autoCnt = TRUE;
+            } elseif($cntAll === 0) {
+                $cntAll = $this->itemsPerPage;
+                $autoCnt = FALSE;
+            }
 
-            $qCnt->show('id');
-            $this->itemsCount = $qCnt->count();
-            $this->calc();
+            $this->itemsCount = $cntAll;
+            $this->calc(); 
             if (isset($this->rangeStart) && isset($this->rangeEnd)) {
                 $q->limit($this->rangeEnd - $this->rangeStart);
                 $q->startFrom($this->rangeStart);
@@ -218,17 +229,33 @@ class core_Pager extends core_BaseClass
                 }
             }
 
-            if(count($ids)) {
-
+            if($cntIds = count($ids)) {
                 $ids = implode(',', $ids);
-
                 $query->where("#id IN ($ids)");
             } else {
                 $this->itemsCount = 0;
                 $this->calc();
                 $query->limit(0);
-            } 
-        } elseif((!Request::get('V')) || Request::get('V') == 2) {
+            }
+            
+            // Точно сме определили колко резултата имаме
+            if(($cntIds > 0 && $cntIds < $this->rangeEnd - $this->rangeStart) || ($cntIds == 0 && $this->rangeStart == 0)) {
+                $cntAll = $this->rangeStart + $cntIds;
+                $this->itemsCount = $cntAll;
+                $this->calc(); 
+                core_QueryCnts::set($qCnt, $cntAll);
+            } else {
+                // Залагаме да броим резултатите
+                $Cache = cls::get('core_Cache');
+                core_QueryCnts::delayCount($qCnt);
+
+                if($autoCnt && $cntIds > 0 && $cntIds == $this->rangeEnd - $this->rangeStart) {
+                    $this->autoCnt = TRUE;
+                }
+            }
+
+
+       } elseif((!Request::get('V')) || Request::get('V') == 2) {
             $q->show('id');
             $q->addOption('SQL_CALC_FOUND_ROWS');
 
@@ -236,18 +263,22 @@ class core_Pager extends core_BaseClass
                 $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
                 $q->startFrom($this->rangeStart); 
                 $q->select();
-                while($rec = $q->fetch()) {
-                    $ids[] = $rec->id;
-                }
+                $idsCnt = $q->numRec();
             }
             
-            if(count($ids)) {
+            if($idsCnt) {
                 $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
                 $cntArr = $q->mvc->db->fetchArray($dbRes);
                 $this->itemsCount  = array_shift($cntArr);
                 $this->calc();
+                $c=0;
+                while($rec = $q->fetch()) {
+                    $c++;
+                    if($c > $this->rangeEnd - $this->rangeStart) break;
+                    $ids[] = $rec->id;
+                }
 
-                $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
+                //$ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
 
                 $ids = implode(',', $ids);
 
@@ -354,6 +385,7 @@ class core_Pager extends core_BaseClass
                 $html .= "<a href=\"" . htmlspecialchars(Url::change($link, array($this->pageVar => $start)), ENT_QUOTES, "UTF-8") . "\"  $sel title='{$pn}{$start}'>{$start}</a> ";
             } while ($start++ < $end);
             
+            
             //Ако имаме страници, които не се показват в посока към края, показваме >
             if ($this->getPage() < $this->getPagesCount()) {
                 if ($end < $this->getPagesCount()) {
@@ -366,7 +398,11 @@ class core_Pager extends core_BaseClass
                 }
             }
         }
-        
+
+        if($this->autoCnt) {
+            $html .= ' <a class=\"pager\">...</a>';
+        }
+
         $tpl = new ET($html ? "<div class='pages'>$html</div>" : "");
         
         return $tpl;

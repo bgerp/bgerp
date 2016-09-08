@@ -337,19 +337,41 @@ class thumb_Img
     {
         // Ако не са зададени
         if(!$this->width || !$this->height) {
-            
-            $handler = $this->getHash();
-            
-            // Опитваме се да вземем размерите от кеша, ако не - от изображението
-            if($sArr = core_Cache::get('imgSizes', $handler)) {  
-                $this->width  = $sArr[0];
-                $this->height = $sArr[1];
-            } elseif($gdRes = $this->getGdRes()) {
-                $this->width  = imagesx($gdRes);
-                $this->height = imagesy($gdRes);
+            if(!$this->imgAsString) {
 
-                core_Cache::set('imgSizes', $handler, array($this->width, $this->height), 100000);
-             }
+                if(!$this->gdRes) {
+                    if($this->sourceType == 'string') {
+                        $this->gdRes = imagecreatefromstring($this->source);
+                    } elseif($this->sourceType == 'gdRes') {
+                        $this->gdRes = $this->source;
+                    }
+                }
+
+                if($this->gdRes) {
+                    $this->width  = imagesx($gdRes);
+                    $this->height = imagesy($gdRes);
+                } else {
+                    switch($this->sourceType) {
+                        case 'url':
+                        case 'path':  
+                            $uri = $this->source;
+                            break;
+                        case 'fileman':
+                            $uri = fileman_Files::fetchByFh($this->source, 'path');
+                            break;
+                        default:
+                            expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
+                    }
+
+                    expect($uri);
+                    if (is_readable($uri)) {
+                        $fimg = new thumb_FastImageSize($uri);
+                        list($this->width, $this->height) = $fimg->getSize();
+                    } else {
+                        log_Data::logWarning("Няма достъп до файла: " . $uri);
+                    }
+                }
+            }
         }
     }
     

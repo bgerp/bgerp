@@ -110,6 +110,7 @@ class unit_MinkP extends core_Manager
         $browser->setValue('measureId', 'киловатчас');
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
+        $browser->setValue('meta[canConvert]', 'canConvert');//вложим
         $browser->press('Запис');
        
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -141,7 +142,7 @@ class unit_MinkP extends core_Manager
         $browser->setValue('name', 'Опаковка');
         $browser->setValue('code', 'package');
         $browser->setValue('measureId', 'брой');
-        $browser->setValue('meta[canConvert]', 'canConvert');
+        $browser->setValue('meta[canConvert]', 'canConvert');//вложим
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
