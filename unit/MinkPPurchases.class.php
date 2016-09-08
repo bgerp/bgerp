@@ -403,13 +403,9 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '1');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN 64,91')) {
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 27,66')) {
         } else {
             return "Грешна данъчна основа във фактурата";
-        }
-        if(strpos($browser->gettext(), '*********Двадесет и три BGN и 0,18')) {
-        } else {
-            return "Грешна сума във фактура";
         }
         //return $browser->getHtml();
     }
