@@ -75,7 +75,7 @@ abstract class tasks_BaseDriver extends core_BaseClass
     /**
      * Обновяване на данните на мастъра
      *
-     * @param int $id - ид
+     * @param stdclass $rec - запис
      * @return void
      */
     public function updateEmbedder(&$rec)
