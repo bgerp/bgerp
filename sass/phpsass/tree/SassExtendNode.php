@@ -15,7 +15,8 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassExtendNode extends SassNode {
+class SassExtendNode extends SassNode
+{
   const IDENTIFIER = '@';
   const MATCH = '/^@extend\s+(.+)/i';
   const VALUE = 1;
@@ -27,10 +28,11 @@ class SassExtendNode extends SassNode {
 
   /**
    * SassExtendNode.
-   * @param object source token
+   * @param object $token source token
    * @return SassExtendNode
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token);
     preg_match(self::MATCH, $token->source, $matches);
     $this->value = $matches[self::VALUE];
@@ -40,10 +42,12 @@ class SassExtendNode extends SassNode {
    * Parse this node.
    * @return array An empty array
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     # resolve selectors in relation to variables
     # allows extend inside nested loops.
     $this->root->extend($this->value, $this->parent->resolveSelectors($context));
+
     return array();
   }
 }

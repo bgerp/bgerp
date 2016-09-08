@@ -9,8 +9,8 @@
  * @subpackage  Sass.script
  */
 
-require_once('SassScriptLexer.php');
-require_once('SassScriptParserExceptions.php');
+require_once 'SassScriptLexer.php';
+require_once 'SassScriptParserExceptions.php';
 
 /**
  * SassScriptParser class.
@@ -19,7 +19,8 @@ require_once('SassScriptParserExceptions.php');
  * @package      PHamlP
  * @subpackage  Sass.script
  */
-class SassScriptParser {
+class SassScriptParser
+{
   const MATCH_INTERPOLATION = '/(?<!\\\\)#\{(.*?)\}/';
   const DEFAULT_ENV = 0;
   const CSS_RULE = 1;
@@ -44,18 +45,20 @@ class SassScriptParser {
   * SassScriptParser constructor.
   * @return SassScriptParser
   */
-  public function __construct() {
+  public function __construct()
+  {
     $this->lexer = new SassScriptLexer($this);
     self::$instance = $this;
   }
 
   /**
    * Replace interpolated SassScript contained in '#{}' with the parsed value.
-   * @param string the text to interpolate
-   * @param SassContext the context in which the string is interpolated
+   * @param string $string the text to interpolate
+   * @param SassContext $context the context in which the string is interpolated
    * @return string the interpolated text
    */
-  public function interpolate($string, $context) {
+  public function interpolate($string, $context)
+  {
     for ($i = 0, $n = preg_match_all(self::MATCH_INTERPOLATION, $string, $matches); $i < $n; $i++) {
       $var = $this->evaluate($matches[1][$i], $context);
 
@@ -65,31 +68,30 @@ class SassScriptParser {
         $var = $var->toString();
       }
 
-      if(preg_match('/^unquote\((["\'])(.*)\1\)$/', $var, $match)){
+      if (preg_match('/^unquote\((["\'])(.*)\1\)$/', $var, $match)) {
           $val = $match[2];
-      }
-      else if($var == '""'){
+      } elseif ($var == '""') {
           $val = "";
-      }
-      else if(preg_match('/^(["\'])(.*)\1$/', $var, $match)){
+      } elseif (preg_match('/^(["\'])(.*)\1$/', $var, $match)) {
           $val = $match[2];
-      }
-      else {
+      } else {
           $val = $var;
       }
       $matches[1][$i] = $val;
     }
+
     return str_replace($matches[0], $matches[1], $string);
   }
 
   /**
    * Evaluate a SassScript.
-   * @param string expression to parse
-   * @param SassContext the context in which the expression is evaluated
-   * @param  integer the environment in which the expression is evaluated
+   * @param string $expression expression to parse
+   * @param SassContext $context the context in which the expression is evaluated
+   * @param  integer $environment the environment in which the expression is evaluated
    * @return SassLiteral parsed value
    */
-  public function evaluate($expression, $context, $environment = self::DEFAULT_ENV) {
+  public function evaluate($expression, $context, $environment = self::DEFAULT_ENV)
+  {
     self::$context = $context;
     $operands = array();
 
@@ -100,14 +102,12 @@ class SassScriptParser {
       if ($token instanceof SassScriptFunction) {
         $perform = $token->perform();
         array_push($operands, $perform);
-      }
-      elseif ($token instanceof SassLiteral) {
+      } elseif ($token instanceof SassLiteral) {
         if ($token instanceof SassString) {
           $token = new SassString($this->interpolate($token->toString(), self::$context));
         }
         array_push($operands, $token);
-      }
-      else {
+      } else {
         $args = array();
         for ($i = 0, $c = $token->operandCount; $i < $c; $i++) {
           $args[] = array_pop($operands);
@@ -122,32 +122,31 @@ class SassScriptParser {
   /**
    * Parse SassScript to a set of tokens in RPN
    * using the Shunting Yard Algorithm.
-   * @param string expression to parse
-   * @param SassContext the context in which the expression is parsed
-   * @param  integer the environment in which the expression is parsed
+   * @param string $expression expression to parse
+   * @param SassContext $context the context in which the expression is parsed
+   * @param  integer $environment the environment in which the expression is parsed
    * @return array tokens in RPN
    */
-  public function parse($expression, $context, $environment=self::DEFAULT_ENV) {
+  public function parse($expression, $context, $environment=self::DEFAULT_ENV)
+  {
     $outputQueue = array();
     $operatorStack = array();
     $parenthesis = 0;
 
     $tokens = $this->lexer->lex($expression, $context);
 
-    foreach($tokens as $i=>$token) {
+    foreach ($tokens as $i=>$token) {
       // If two literals/expessions are seperated by whitespace use the concat operator
       if (empty($token)) {
         if (isset($tokens[$i+1])) {
           if ($i > 0 && (!$tokens[$i-1] instanceof SassScriptOperation || $tokens[$i-1]->operator === SassScriptOperation::$operators[')'][0]) &&
               (!$tokens[$i+1] instanceof SassScriptOperation || $tokens[$i+1]->operator === SassScriptOperation::$operators['('][0])) {
             $token = new SassScriptOperation(SassScriptOperation::$defaultOperator, $context);
-          }
-          else {
+          } else {
             continue;
           }
         }
-      }
-      elseif ($token instanceof SassScriptVariable) {
+      } elseif ($token instanceof SassScriptVariable) {
         $token = $token->evaluate($context);
         $environment = self::DEFAULT_ENV;
       }
@@ -184,7 +183,6 @@ class SassScriptParser {
           if ($c <= 0) {
             array_push($outputQueue, new SassString(')'));
             break;
-            throw new SassScriptParserException('Unmatched parentheses', $context->node);
           }
         }
         // the token is an operator, o1, so:
@@ -213,8 +211,7 @@ class SassScriptParser {
     while ($c = count($operatorStack)) { // While there are operators on the stack:
       if ($operatorStack[$c - 1]->operator !== SassScriptOperation::$operators['('][0]) {
         array_push($outputQueue, array_pop($operatorStack));
-      }
-      else {
+      } else {
         throw new SassScriptParserException('Unmatched parentheses', $context->node);
       }
     }
@@ -225,7 +222,8 @@ class SassScriptParser {
   /**
    * Reduces a set down to a singular form
    */
-  public static function makeSingular($operands) {
+  public static function makeSingular($operands)
+  {
     if (count($operands) == 1) {
       return $operands[0];
     }
@@ -239,12 +237,10 @@ class SassScriptParser {
         }
         if ($result instanceOf SassString) {
           $result = $result->op_concat($operand);
-        }
-        else {
+        } else {
           $result = $result->op_plus($operand);
         }
-      }
-      else {
+      } else {
         $string = new SassString(' ');
         if (!$result) {
           $result = $string;

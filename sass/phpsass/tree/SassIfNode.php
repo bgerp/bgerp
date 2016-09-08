@@ -16,9 +16,10 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassIfNode extends SassNode {
-  const MATCH_IF = '/^@if\s+(.+)$/i';
-  const MATCH_ELSE = '/@else(\s+if\s+(.+))?/i';
+class SassIfNode extends SassNode
+{
+  const MATCH_IF = '/^@if\s*(.+)$/i';
+  const MATCH_ELSE = '/@else(\s*if\s*(.+))?/i';
   const IF_EXPRESSION = 1;
   const ELSE_IF = 1;
   const ELSE_EXPRESSION = 2;
@@ -33,17 +34,17 @@ class SassIfNode extends SassNode {
 
   /**
    * SassIfNode constructor.
-   * @param object source token
-   * @param boolean true for an "if" node, false for an "else if | else" node
+   * @param object $token source token
+   * @param boolean $if true for an "if" node, false for an "else if | else" node
    * @return SassIfNode
    */
-  public function __construct($token, $if=true) {
+  public function __construct($token, $if=true)
+  {
     parent::__construct($token);
     if ($if) {
       preg_match(self::MATCH_IF, $token->source, $matches);
       $this->expression = $matches[SassIfNode::IF_EXPRESSION];
-    }
-    else {
+    } else {
       preg_match(self::MATCH_ELSE, $token->source, $matches);
       $this->expression = (sizeof($matches)==1 ? null : $matches[SassIfNode::ELSE_EXPRESSION]);
     }
@@ -54,33 +55,34 @@ class SassIfNode extends SassNode {
    * @param SassIfNode "else" statement node to add
    * @return SassIfNode this node
    */
-  public function addElse($node) {
-    if (is_null($this->else)) {
+  public function addElse($node)
+  {
+    if ($this->else === null) {
       $node->parent  = $this;
       $node->root    = $this->root;
       $this->else    = $node;
-    }
-    else {
+    } else {
       $this->else->addElse($node);
     }
+
     return $this;
   }
 
   /**
    * Parse this node.
-   * @param SassContext the context in which this node is parsed
+   * @param SassContext $context the context in which this node is parsed
    * @return array parsed child nodes
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     if ($this->isElse() || $this->evaluate($this->expression, $context)->toBoolean()) {
       $children = $this->parseChildren($context);
-    }
-    elseif (!empty($this->else)) {
+    } elseif (!empty($this->else)) {
       $children = $this->else->parse($context);
-    }
-    else {
+    } else {
       $children = array();
     }
+
     return $children;
   }
 
@@ -89,7 +91,8 @@ class SassIfNode extends SassNode {
    * @return true if this node is an "else" node, false if this node is an "if"
    * or "else if" node
    */
-  private function isElse() {
+  private function isElse()
+  {
     return ($this->expression=='');
   }
 }

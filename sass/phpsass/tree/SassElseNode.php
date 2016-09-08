@@ -16,13 +16,15 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassElseNode extends SassIfNode {
+class SassElseNode extends SassIfNode
+{
   /**
    * SassElseNode constructor.
-   * @param object source token
+   * @param object $token source token
    * @return SassElseNode
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token, false);
   }
 }
