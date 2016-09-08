@@ -22,7 +22,8 @@
  * @package  PHamlP
  * @subpackage  Sass.tree
  */
-class SassEachNode extends SassNode {
+class SassEachNode extends SassNode
+{
   const MATCH = '/@each\s+[!\$](.+?)in\s+(.+)$/i';
 
   const VARIABLE = 1;
@@ -39,15 +40,15 @@ class SassEachNode extends SassNode {
 
   /**
    * SassEachNode constructor.
-   * @param object source token
+   * @param object $token source token
    * @return SassEachNode
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token);
     if (!preg_match(self::MATCH, $token->source, $matches)) {
       throw new SassEachNodeException('Invalid @each directive', $this);
-    }
-    else {
+    } else {
       $this->variable = trim($matches[self::VARIABLE]);
       $this->in = $matches[self::IN];
     }
@@ -55,10 +56,11 @@ class SassEachNode extends SassNode {
 
   /**
    * Parse this node.
-   * @param SassContext the context in which this node is parsed
+   * @param SassContext $context the context in which this node is parsed
    * @return array parsed child nodes
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     $children = array();
 
     if ($this->variable && $this->in) {
@@ -71,6 +73,7 @@ class SassEachNode extends SassNode {
       }
     }
     $context->merge();
+
     return $children;
   }
 }

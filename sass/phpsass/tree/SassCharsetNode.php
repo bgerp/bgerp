@@ -1,8 +1,8 @@
 <?php
 /* SVN FILE: $Id$ */
 /**
- * SassReturnNode class file.
- * @author      Chris Yates <chris.l.yates@gmail.com>
+ * SassCharsetNode class file.
+ * @author      Richard Lyon
  * @copyright   Copyright (c) 2010 PBM Web Development
  * @license      http://phamlp.googlecode.com/files/license.txt
  * @package      PHamlP
@@ -10,17 +10,15 @@
  */
 
 /**
- * SassReturnNode class.
- * Represents a Return.
+ * SassCharsetNode class.
+ * Represents a Content.
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassReturnNode extends SassNode
+class SassCharsetNode extends SassNode
 {
-  const NODE_IDENTIFIER = '+';
-  const MATCH = '/^(@return\s+)(.*)$/i';
+  const MATCH = '/^@charset(.*?);?$/i';
   const IDENTIFIER = 1;
-  const STATEMENT = 2;
 
   /**
    * @var mixed statement to execute and return
@@ -28,9 +26,9 @@ class SassReturnNode extends SassNode
   private $statement;
 
   /**
-   * SassReturnNode constructor.
+   * SassCharsetNode constructor.
    * @param object $token source token
-   * @return SassReturnNode
+   * @return SassCharsetNode
    */
   public function __construct($token)
   {
@@ -40,8 +38,6 @@ class SassReturnNode extends SassNode
     if (empty($matches)) {
       return new SassBoolean('false');
     }
-
-    $this->statement = $matches[self::STATEMENT];
   }
 
   /**
@@ -49,39 +45,27 @@ class SassReturnNode extends SassNode
    * Set passed arguments and any optional arguments not passed to their
    * defaults, then render the children of the return definition.
    * @param SassContext $pcontext the context in which this node is parsed
-   * @throws SassReturn
    * @return array the parsed node
    */
   public function parse($pcontext)
   {
-    $return = $this;
-    $context = new SassContext($pcontext);
-    $statement = $this->statement;
+    return array($this);
+  }
 
-    $parent = $this->parent->parent->parser;
-    $script = $this->parent->parent->script;
-    $lexer = $script->lexer;
-
-    $result = $script->evaluate($statement, $context);
-
-    throw new SassReturn($result);
+  public function render() {
+    // print the original with a semi-colon if needed
+    return $this->token->source 
+      . (substr($this->token->source, -1, 1) == ';' ? '' : ';')
+      . "\n";
   }
 
   /**
-   * Returns a value indicating if the token represents this type of node.
+   * Contents a value indicating if the token represents this type of node.
    * @param object $token token
    * @return boolean true if the token represents this type of node, false if not
    */
   public static function isa($token)
   {
-    return $token->source[0] === self::NODE_IDENTIFIER;
-  }
-}
-
-class SassReturn extends Exception
-{
-  public function __construct($value)
-  {
-    $this->value = $value;
+    return $token->source[0] === self::IDENTIFIER;
   }
 }

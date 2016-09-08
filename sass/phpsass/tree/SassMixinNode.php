@@ -15,7 +15,8 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassMixinNode extends SassNode {
+class SassMixinNode extends SassNode
+{
   const NODE_IDENTIFIER = '+';
   const MATCH = '/^(\+|@include\s+)([a-z0-9_-]+)\s*(?:\((.*?)\))?\s*$/i';
   const IDENTIFIER = 1;
@@ -33,10 +34,11 @@ class SassMixinNode extends SassNode {
 
   /**
    * SassMixinDefinitionNode constructor.
-   * @param object source token
+   * @param object $token source token
    * @return SassMixinNode
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token);
     preg_match(self::MATCH, $token->source, $matches);
 
@@ -53,10 +55,11 @@ class SassMixinNode extends SassNode {
    * Parse this node.
    * Set passed arguments and any optional arguments not passed to their
    * defaults, then render the children of the mixin definition.
-   * @param SassContext the context in which this node is parsed
+   * @param SassContext $pcontext the context in which this node is parsed
    * @return array the parsed node
    */
-  public function parse($pcontext) {
+  public function parse($pcontext)
+  {
     $mixin = $pcontext->getMixin($this->name);
     $context = new SassContext($pcontext);
     $context->content = $this->children;
@@ -70,6 +73,7 @@ class SassMixinNode extends SassNode {
 
     $children = array();
     foreach ($mixin->children as $child) {
+	  /** @var $child SassNode */
       $child->parent = $this;
       $children = array_merge($children, $child->parse($context));
     }
@@ -80,10 +84,22 @@ class SassMixinNode extends SassNode {
 
   /**
    * Returns a value indicating if the token represents this type of node.
-   * @param object token
+   * @param object $token token
    * @return boolean true if the token represents this type of node, false if not
    */
-  public static function isa($token) {
+  public static function isa($token)
+  {
     return $token->source[0] === self::NODE_IDENTIFIER;
+  }
+  
+  /**
+   * Resolves selectors.
+   * Interpolates SassScript in selectors and resolves any parent references or
+   * appends the parent selectors.
+   * @param SassContext $context the context in which this node is parsed
+   * @return array
+   */
+  public function resolveSelectors($context){
+    return $this->parent->resolveSelectors($context);
   }
 }

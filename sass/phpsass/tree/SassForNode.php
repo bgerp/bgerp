@@ -25,7 +25,8 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassForNode extends SassNode {
+class SassForNode extends SassNode
+{
   const MATCH = '/@for\s+[!\$](\w+)\s+from\s+(.+?)\s+(through|to)\s+(.+?)(?:\s+step\s+(.+))?$/i';
 
   const VARIABLE = 1;
@@ -59,10 +60,11 @@ class SassForNode extends SassNode {
 
   /**
    * SassForNode constructor.
-   * @param object source token
+   * @param object $token source token
    * @return SassForNode
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token);
     if (!preg_match(self::MATCH, $token->source, $matches)) {
       throw new SassForNodeException('Invalid @for directive', $this);
@@ -76,14 +78,15 @@ class SassForNode extends SassNode {
 
   /**
    * Parse this node.
-   * @param SassContext the context in which this node is parsed
+   * @param SassContext $context the context in which this node is parsed
    * @return array parsed child nodes
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     $children = array();
-    $from = (float)$this->evaluate($this->from, $context)->value;
-    $to    = (float)$this->evaluate($this->to,    $context)->value;
-    $step = (float)$this->evaluate($this->step, $context)->value * ($to > $from ? 1 : -1);
+    $from = (float) $this->evaluate($this->from, $context)->value;
+    $to    = (float) $this->evaluate($this->to,    $context)->value;
+    $step = (float) $this->evaluate($this->step, $context)->value * ($to > $from ? 1 : -1);
 
     if ($this->inclusive) {
       $to += ($from < $to ? 1 : -1);
@@ -94,6 +97,7 @@ class SassForNode extends SassNode {
       $context->setVariable($this->variable, new SassNumber($i));
       $children = array_merge($children, $this->parseChildren($context));
     }
+
     return $children;
   }
 }
