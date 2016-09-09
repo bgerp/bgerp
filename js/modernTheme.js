@@ -6,7 +6,6 @@ function slidebars(){
 	openSubmenus();
 	changePinIcon();
 	userMenuActions();
-	setMaxWidth();
 	sidebarAccordeonActions();
 	if($('body').hasClass('wide')) {
 		setMaxWidth();
