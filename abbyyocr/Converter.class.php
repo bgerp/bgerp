@@ -208,7 +208,7 @@ class abbyyocr_Converter extends core_Manager
         $params['fh'] = $fileHnd;
         $Script->params = $params;
         
-        $Script->setChechProgramsArr('abbyyocr9');
+        $Script->setCheckProgramsArr('abbyyocr9');
         // Стартираме скрипта Aсинхронно
         if ($Script->run($params['asynch']) === FALSE) {
             fileman_Indexes::createError($params);

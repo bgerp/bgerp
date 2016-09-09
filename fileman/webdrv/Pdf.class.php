@@ -208,7 +208,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fileHnd;
         
-        $Script->setChechProgramsArr('pdftotext');
+        $Script->setCheckProgramsArr('pdftotext');
         // Стартираме скрипта синхронно
         if ($Script->run($params['asynch']) === FALSE) {
             fileman_Indexes::createError($params);

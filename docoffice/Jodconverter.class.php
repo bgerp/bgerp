@@ -102,7 +102,7 @@ class docoffice_Jodconverter extends core_Manager
         docoffice_Office::increaseConvertCount();
 
         // Стартираме скрипта синхронно
-        $Script->setChechProgramsArr('java');
+        $Script->setCheckProgramsArr('java');
         // Стартираме скрипта Aсинхронно
         if ($Script->run($params['asynch']) === FALSE) {
             $params['type'] = 'jpg';
