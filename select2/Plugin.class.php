@@ -271,7 +271,7 @@ class select2_Plugin extends core_Plugin
     {
         if (isset($invoker->handler)) return ;
         
-        $invoker->handler = md5(serialize($invoker->suggestions) . '|' . serialize($val));
+        $invoker->handler = md5(serialize($invoker->suggestions) . '|' . serialize($val) . '|' . core_Lg::getCurrent());
     }
     
     
