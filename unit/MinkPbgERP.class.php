@@ -49,7 +49,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  25.".$this->act_CreateQuotation();
         $res .= "  26.".$this->act_CreatePurchase();
         $res .= "  27.".$this->act_CreatePurchaseC();
-        $res .= "  27.".$this->act_CreatePlanningJob();
+        $res .= "  28.".$this->act_CreatePlanningJob();
         $res .= "  29.".$this->act_CreateSale();
         $res .= "  30.".$this->act_CreateTask();
         
@@ -911,6 +911,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
+        $browser->setValue('deliveryTermIdExtended2', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -950,23 +951,33 @@ class unit_MinkPbgERP extends core_Manager {
     
         // Складова разписка
         $browser->press('Засклаждане');
+        $browser->setValue('template', 'Складова разписка с цени');
         $browser->setValue('storeId', 'Склад 1');
         $browser->press('Чернова');
         $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Двадесет и осем BGN и 0,68')) {
+        } else {
+            return "Грешна сума в складова разписка";
+        }
     
         // протокол
         $browser->press('Приемане');
+        $browser->setValue('template', 'Приемателен протокол за услуги с цени');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Контиране')) {
-        //  $browser->press('Контиране');
-        //}
-    
+        if(strpos($browser->gettext(), 'Шест BGN и 0,84')) {
+        } else {
+            return "Грешна сума в протокол за услуги";
+        }
         // Фактура
         $browser->press('Вх. фактура');
         $browser->setValue('number', '1176');
         $browser->press('Чернова');
         $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 29,60')) {
+        } else {
+            return "Грешна данъчна основа";
+        }
     
         // РКО
         $browser->press('РКО');
@@ -1019,6 +1030,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
+        $browser->setValue('deliveryTermIdExtended2', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
@@ -1063,16 +1075,23 @@ class unit_MinkPbgERP extends core_Manager {
         // Складова разписка
         $browser->press('Засклаждане');
         $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Складова разписка с цени');
         $browser->press('Чернова');
         $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Двадесет и три EUR и 0,90')) {
+        } else {
+            return "Грешна сума в складова разписка";
+        }
     
         // протокол
         $browser->press('Приемане');
+        $browser->setValue('template', 'Приемателен протокол за услуги с цени');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Контиране')) {
-        //  $browser->press('Контиране');
-        //}
+        if(strpos($browser->gettext(), 'Пет EUR и 0,70')) {
+        } else {
+            return "Грешна сума в протокол за услуги";
+        }
     
         // Фактура
         $browser->press('Вх. фактура');
@@ -1080,7 +1099,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->press('Чернова');
         $browser->press('Контиране');
-    
+        if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN	57,89')) {
+        } else {
+            return "Грешна данъчна основа";
+        }
+        
         // РКО
         $browser->press('РКО');
         $browser->setValue('beneficiary', 'Tom Frank');

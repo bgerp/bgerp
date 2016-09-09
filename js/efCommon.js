@@ -1,10 +1,17 @@
 var shortURL;
 
-window.onerror = function (errorMsg, url, lineNumber) {
-	$.ajax({
-		url: "/A/wp/",
-		data: {Error: errorMsg, Script: url, Line: lineNumber}
-	})
+
+/**
+ * Опитваме се да репортнем JS грешките
+ */
+window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
+	
+	if (typeof $.ajax != 'undefined') {
+		$.ajax({
+			url: "/A/wp/",
+			data: {errType: 'JS error', currUrl: window.location.href, error: errorMsg, script: url, line: lineNumber, column: columnNum}
+		})
+	}
 }
 
 function runOnLoad(functionName) {
@@ -23,6 +30,7 @@ function runOnLoad(functionName) {
         }
     }
 }
+
 
 /**
  * Сменя изображенията с fade ефект
@@ -4444,7 +4452,7 @@ function addBugReportInput(form, nameInput, value)
  */
 function detectScrollAndWp() {
     if($('#packWrapper').outerWidth() > $(window).width() ) {
-    	getEfae().process({url: wpUrl}, {currUrl: window.location.href});
+    	getEfae().process({url: wpUrl}, {errType: 'Scroll Detected', currUrl: window.location.href});
     }
 }
 
