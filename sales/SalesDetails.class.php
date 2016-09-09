@@ -283,6 +283,20 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	// Преди клониране клонира се и сумата на цената на транспорта
+    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id)->fee;
+    	if(isset($fee)){
+    		$rec->fee = $fee;
+    		$rec->syncFee = TRUE;
+    	}
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)

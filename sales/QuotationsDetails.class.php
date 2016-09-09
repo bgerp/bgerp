@@ -973,4 +973,18 @@ class sales_QuotationsDetails extends doc_Detail {
     		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, NULL);
     	}
     }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	// Преди клониране клонира се и сумата на цената на транспорта
+    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->quotationId, $oldRec->id)->fee;
+    	if(isset($fee)){
+    		$rec->fee = $fee;
+    		$rec->syncFee = TRUE;
+    	}
+    }
 }
