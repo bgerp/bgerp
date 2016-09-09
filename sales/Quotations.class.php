@@ -931,7 +931,13 @@ class sales_Quotations extends core_Master
     	
     	// За всеки детайл на офертата подаваме го като детайл на продажбата
     	foreach ($items as $item){
-    		sales_Sales::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
+    		$addedRecId = sales_Sales::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
+    		
+    		// Копира се и транспорта, ако има
+    		$fee = tcost_Calcs::get($this, $item->quotationId, $item->id)->fee;
+    		if(isset($fee)){
+    			tcost_Calcs::sync('sales_Sales', $sId, $addedRecId, $fee);
+    		}
     	}
     	
     	// Записваме, че потребителя е разглеждал този списък
@@ -990,7 +996,13 @@ class sales_Quotations extends core_Master
     			}
     			
     			// Добавяме детайла към офертата
-    			sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+    			$addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+    			
+    			// Копира се и транспорта, ако има
+    			$fee = tcost_Calcs::get($this, $id, $dRec->id)->fee;
+    			if(isset($fee)){
+    				tcost_Calcs::sync('sales_Sales', $sId, $addedRecId, $fee);
+    			}
     		}
     		 
     		// Редирект към сингъла на новосъздадената продажба
