@@ -37,7 +37,7 @@ class tcost_FeeZones extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Имена на зони";
+    public $title = "Навла";
 
 
     /**
