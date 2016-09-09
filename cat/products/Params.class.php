@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Клас 'cat_products_Params' - продуктови параметри
  *
@@ -7,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -51,12 +53,6 @@ class cat_products_Params extends doc_Detail
      * Кои ключове да се тракват, кога за последно са използвани
      */
     public $lastUsedKeys = 'paramId';
-    
-    
-    /**
-     * Поле за пулт-а
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -138,6 +134,8 @@ class cat_products_Params extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$paramRec = cat_Params::fetch($rec->paramId);
+    	$paramRec->name = tr($paramRec->name);
+    	$row->paramId = cat_Params::getVerbal($paramRec, 'name');
     	
     	if($ParamType = cat_Params::getTypeInstance($paramRec)){
     		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
@@ -159,7 +157,7 @@ class cat_products_Params extends doc_Detail
     	if(!$form->rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	$options = self::getRemainingOptions($form->rec->classId, $form->rec->productId, $form->rec->id);
-			
+			//bp($options);
 	        $form->setOptions('paramId', array('' => '') + $options);
     	} else {
     		$form->setReadOnly('paramId');

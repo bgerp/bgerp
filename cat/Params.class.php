@@ -133,7 +133,7 @@ class cat_Params extends embed_Manager
      */
     protected static function on_CalcTypeExt($mvc, $rec)
     {
-        $rec->typeExt = $rec->name;
+        $rec->typeExt = tr($rec->name);
         
         if (!empty($rec->suffix)) {
             $rec->typeExt .= ' [' . $rec->suffix . ']';
@@ -190,18 +190,13 @@ class cat_Params extends embed_Manager
     public static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
     {
     	$query = static::getQuery();
-    	$query->show('name,suffix');
     	if(strlen($where)){
     		$query->where = $where;
     	}
     	
     	$options = array();
     	while($rec = $query->fetch()){
-    		$title = $rec->name;
-    		if($rec->suffix){
-    			$title .= " ({$rec->suffix})";
-    		}
-    		$options[$rec->{$index}] = $title;
+    		$options[$rec->{$index}] = $rec->typeExt;
     	}
     	
     	return $options;
