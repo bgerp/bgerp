@@ -523,7 +523,7 @@ class sales_Quotations extends core_Master
     			$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
     			$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
     			
-    			tcost_Calcs::getVerbalTransportCos($row, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    			tcost_Calcs::getVerbalTransportCost($row, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     		}
     	}
     	
@@ -565,7 +565,7 @@ class sales_Quotations extends core_Master
     	 
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
-    		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     
     		// Сумира се, ако е изчислен
     		if(is_array($fee) && $fee['totalFee'] != tcost_CostCalcIntf::CALC_ERROR){

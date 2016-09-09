@@ -161,6 +161,7 @@ class tcost_FeeZones extends core_Master
      *
      * @param int $deliveryTermId    -условие на доставка
      * @param int $productId         - ид на артикул
+     * @param int $packagingId       - ид на опаковка/мярка
      * @param int $quantity          - количество
      * @param int $totalWeight       - Общо тегло на товара
      * @param int $toCountry         - id на страната на мястото за получаване
@@ -171,7 +172,7 @@ class tcost_FeeZones extends core_Master
      * @return double                - цена, която ще бъде платена за теглото на артикул,
      * 								   ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
      */
-    public function getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	// Колко е еденичното транспортно тегло на артикула
     	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
