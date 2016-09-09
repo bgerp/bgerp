@@ -284,6 +284,19 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
+	 *
+	 * @return array
+	 */
+	public function getLabelPlaceholders($id)
+	{
+		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY');
+		
+		return $fields;
+	}
+	
+	
+	/**
 	 * Връща данни за етикети
 	 * 
 	 * @param int $id - ид на задача
