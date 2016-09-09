@@ -93,7 +93,8 @@ function setMaxWidth() {
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
 	if(contentWidth < $('.listTable').first().width()){
         $('#packWrapper, .listBlock').width(contentWidth);
-        $('.document').css('width', contentWidth);
+        $('.document').css('width', contentWidth - 3);
+		$('.document').css('min-width', contentWidth - 3);
         $('.document .scrolling-holder').addClass('overflow-scroll');
     }
 }
