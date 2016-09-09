@@ -91,6 +91,9 @@ class csv_Lib
                 // Ако нямаме запис с посочените уникални стойности, вкарваме новия
                 $mvc->save($rec);
                 
+                // Генериране на събитие след импортиране на запис
+                $mvc->invoke('AfterImportRec', array(&$rec));
+                
                 if($flagUpdate) {
                     $res->skipped++;
                     $rec = $mvc->fetch($rec->id);
