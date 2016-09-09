@@ -1095,7 +1095,7 @@ class sales_Sales extends deals_DealMaster
     		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
     		$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
     		
-    		tcost_Calcs::getVerbalTransportCost($row, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     	}
     }
     
