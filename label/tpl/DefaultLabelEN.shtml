@@ -94,7 +94,7 @@
             <td width="40%" class="description">
                 <div class="details-label">
                     <span class="small top left">quantity</span>
-                    <span class="small top right">pcs</span>
+                    <span class="small top right">[#PACKAGING_ID#]</span>
                     <div class="clearfix21"></div>
                 </div>
                 [#QUANTITY#]
