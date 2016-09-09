@@ -59,7 +59,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,doc_plg_BusinessDoc';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
     
     /**
@@ -404,6 +404,7 @@ class sales_Sales extends deals_DealMaster
         	// Ако има поне един детайл, условието ан доставка не мжое да се сменя
         	if(sales_SalesDetails::fetchField("#saleId = {$rec->id}")){
         		$form->setReadOnly('deliveryTermIdExtended');
+        		$form->setReadOnly('deliveryLocationId');
         	}
         }
         
@@ -803,13 +804,20 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
+    	$rec = $data->rec;
+    	
     	// Изкарваме езика на шаблона от сесията за да се рендира статистиката с езика на интерфейса
     	core_Lg::pop();
     	$statisticTpl = getTplFromFile('sales/tpl/SaleStatisticLayout.shtml');
     	$tpl->replace($statisticTpl, 'STATISTIC_BAR');
     	
     	// Отново вкарваме езика на шаблона в сесията
-    	core_Lg::push($data->rec->tplLang);
+    	core_Lg::push($rec->tplLang);
+    	
+    	$hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
+    	if(Mode::isReadOnly() || $hasTransport === FALSE){
+    		$tpl->removeBlock('TRANSPORT_BAR');
+    	}
     }
     
     
@@ -1080,5 +1088,70 @@ class sales_Sales extends deals_DealMaster
     	if(isset($rec->priceListId)){
     		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
+    	
+    	if(isset($fields['-single'])){
+    		$row->transportCurrencyId = $row->currencyId;
+    		$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
+    		$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		
+    		tcost_Calcs::getVerbalTransportCos($row, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    	}
+    }
+    
+    
+    /**
+     * Колко е видимия транспорт начислен в сделката
+     * 
+     * @param stdClass $rec - запис на ред
+     * @return double - сумата на видимия транспорт в основна валута без ДДС
+     */
+    private function getVisibleTransportCost($rec)
+    {
+    	// Извличат се всички детайли и се изчислява сумата на транспорта, ако има
+    	$query = sales_SalesDetails::getQuery();
+    	$query->where("#saleId = {$rec->id}");
+    	
+    	return tcost_Calcs::getVisibleTransportCost($query);
+    }
+    
+    
+    /**
+     * Колко е сумата на очаквания транспорт
+     * 
+     * @param stdClass $rec - запис на ред
+     * @return double $expectedTransport - очаквания транспорт без ддс в основна валута
+     */
+    private function getExpectedTransportCost($rec)
+    {
+    	$expectedTransport = 0;
+    	
+    	// Ако няма калкулатор в условието на доставка, не се изчислява нищо
+    	$TransportCalc = cond_DeliveryTerms::getCostDriver($rec->deliveryTermId);
+    	if(!is_object($TransportCalc)) return $expectedTransport;
+    	
+    	// Подготовка на заявката, взимат се само складируеми артикули
+    	$query = sales_SalesDetails::getQuery();
+    	$query->where("#saleId = {$rec->id}");
+    	$query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+    	$query->where("#canStore = 'yes'");
+    	$products = $query->fetchAll();
+    	
+    	// Изчисляване на общото тегло на офертата
+    	$totalWeight = tcost_Calcs::getTotalWeight($products, $TransportCalc);
+    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId);
+    	
+    	// За всеки артикул се изчислява очаквания му транспорт
+    	foreach ($products as $p2){
+    		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		
+    		// Сумира се, ако е изчислен
+    		if(is_array($fee) && $fee['totalFee'] != tcost_CostCalcIntf::CALC_ERROR){
+    			$expectedTransport += $fee['totalFee'];
+    		}
+    	}
+    	
+    	// Връщане на очаквания транспорт
+    	return $expectedTransport;
     }
 }
