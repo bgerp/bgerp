@@ -222,9 +222,9 @@ class tcost_FeeZones extends core_Master
     	$form->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
     	$form->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2,allowEmpty)', 'caption=Държава, mandatory,smartCenter');
     	$form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
+    	$form->FLD('singleWeight', 'double(Min=0)', 'caption=Еденично тегло,mandatory');
     	$form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');
-    	$form->FLD('singleWeight', 'double(Min=0)', 'caption=Кг. за връщане');
-    
+    	
     	// Въвеждаме формата от Request (тази важна стъпка я бяхме пропуснали)
     	$form->input();
     	$form->setDefault('singleWeight', 1);
