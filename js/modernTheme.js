@@ -6,6 +6,7 @@ function slidebars(){
 	openSubmenus();
 	changePinIcon();
 	userMenuActions();
+	setMaxWidth();
 	sidebarAccordeonActions();
 	if($('body').hasClass('wide')) {
 		setMaxWidth();
@@ -92,14 +93,10 @@ function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
 	if(contentWidth < $('.listTable').first().width()){
-		
-		if(contentWidth < $('.listTable').first().width()) {
-			$('#packWrapper, .listBlock').width(contentWidth);
-			$('.document').width(contentWidth-140);
-			$('.document').css('min-width', '40em');
-			$('.document .scrolling-holder').addClass('overflow-scroll');
-		}
-	}
+        $('#packWrapper, .listBlock').width(contentWidth);
+        $('.document').css('width', contentWidth);
+        $('.document .scrolling-holder').addClass('overflow-scroll');
+    }
 }
 
 
