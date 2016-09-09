@@ -414,11 +414,12 @@ class tcost_Calcs extends core_Manager
      * Връща вербалното показване на транспортните цени
      * 
      * @param stdClass $row                 - вербалното представяне на реда
+     * @param double $leftTransportCost     - остатъка за транспорт
      * @param double $hiddenTransportCost   - скрития транспорт
      * @param double $expectedTransportCost - очаквания транспорт
      * @param double $visibleTransportCost  - явния транспорт
      */
-    public static function getVerbalTransportCost(&$row, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost)
+    public static function getVerbalTransportCost(&$row, &$leftTransportCost, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost)
     {
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	foreach (array('hiddenTransportCost', 'expectedTransportCost', 'visibleTransportCost')  as $fld){
