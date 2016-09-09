@@ -54,7 +54,7 @@ class docoffice_Pdf
         
         fileman_Indexes::haveErrors($outFilePath, $params);
         
-        $Script->setChechProgramsArr('pdftotext');
+        $Script->setCheckProgramsArr('pdftotext');
         // Стартираме скрипта синхронно
         if ($Script->run($params['asynch']) === FALSE) {
             fileman_Indexes::createError($params);
@@ -103,7 +103,7 @@ class docoffice_Pdf
         $params['errFilePath'] = $errFilePath;
         fileman_Indexes::haveErrors($outFilePath, $params);
         
-        $Script->setChechProgramsArr('convert');
+        $Script->setCheckProgramsArr('convert');
         // Стартираме скрипта синхронно
         if ($Script->run($params['asynch']) === FALSE) {
             fileman_Indexes::createError($params);
