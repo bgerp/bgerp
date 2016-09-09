@@ -174,7 +174,6 @@ class tcost_Calcs extends core_Manager
     	// Ако подадената сума е NULL, и има съществуващ запис - трие се
     	if(is_null($fee) && is_object($exRec)){
     		self::delete($exRec->id);
-    		core_Statuses::newStatus("DELETE {$exRec->id}", 'warning');
     	}
     	
     	// Ако има сума
@@ -184,10 +183,8 @@ class tcost_Calcs extends core_Manager
     		// И няма съществуващ запис, ще се добавя нов
     		if(!$exRec){
     			$exRec = (object)array('docClassId' => $classId, 'docId' => $docId, 'recId' => $recId);
-    			core_Statuses::newStatus("ADD {$fee}", 'warning');
     		} else {
     			$fields = 'fee';
-    			core_Statuses::newStatus("EDIT {$fee}", 'warning');
     		}
     		 
     		// Ъпдейт / Добавяне на записа
