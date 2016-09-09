@@ -331,7 +331,7 @@ class type_Key extends type_Int
             $this->handler = md5(implode(',', array_keys($this->options)));
         }
         
-        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20)) {
+        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20, array($this->params['mvc']))) {
             $cacheOpt = unserialize($optSz);
             $options = array();
             foreach($cacheOpt as $id => $obj) {
