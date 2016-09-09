@@ -1,5 +1,11 @@
 var shortURL;
 
+window.onerror = function (errorMsg, url, lineNumber) {
+	$.ajax({
+		url: "/A/wp/",
+		data: {Error: errorMsg, Script: url, Line: lineNumber}
+	})
+}
 
 function runOnLoad(functionName) {
     if (window.attachEvent) {
@@ -4436,11 +4442,9 @@ function addBugReportInput(form, nameInput, value)
 /**
  * При хоризонтален скрол на страницата, да създадем watch point
  */
-function detectScrollAndWp(url){
+function detectScrollAndWp() {
     if($('#packWrapper').outerWidth() > $(window).width() ) {
-        resObj = new Object();
-        resObj['url'] = url;
-        getEfae().process(resObj);
+    	getEfae().process({url: wpUrl}, {currUrl: window.location.href});
     }
 }
 
