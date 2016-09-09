@@ -57,10 +57,7 @@ class bgerp_A extends core_Mvc
      */
     function act_wp()
     {
-        $url = Request::get('pUrl');
-
-        // Хоризонтално скролиране
-        wp($url);
+        wp(Request::$vars);
 
         return array();
     }
