@@ -324,14 +324,15 @@ class tcost_Calcs extends core_Manager
     /**
      * Сумата на видимия транспорт в документа
      * 
-     * @param core_Query $query - заявка
-     * @param string $productFld - име на полето на артикула
-     * @param string $amountFld - име на полето на сумата
-     * @param string $packPriceFld - име на полето на цената на опаковката
+     * @param core_Query $query       - заявка
+     * @param string $productFld      - име на полето на артикула
+     * @param string $amountFld       - име на полето на сумата
+     * @param string $packPriceFld    - име на полето на цената на опаковката
      * @param string $packQuantityFld - име на полето на количеството на опаковката
-     * @return double $amount - сума на видимия транспорт в основна валута без ДДС
+     * @param string $discountFld     - име на полето за отстъпката
+     * @return double $amount         - сума на видимия транспорт в основна валута без ДДС
      */
-    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount', $packPriceFld = 'packPrice', $packQuantityFld = 'packQuantity')
+    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount', $packPriceFld = 'packPrice', $packQuantityFld = 'packQuantity', $discountFld = 'discount')
     {
     	$amount = 0;
     	
@@ -344,6 +345,10 @@ class tcost_Calcs extends core_Manager
     		
     		// Ако няма поле за сума, тя се взима от к-то по цената
     		$amountRec = isset($dRec->{$amountFld}) ? $dRec->{$amountFld} : $dRec->{$packPriceFld} * $dRec->{$packQuantityFld};
+    		if(isset($dRec->{$discountFld})){
+    			$amountRec = $amountRec * (1 - $dRec->{$discountFld});
+    		}
+    		
     		$amount += $amountRec;
     	}
     	
