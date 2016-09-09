@@ -4,11 +4,14 @@ var shortURL;
 /**
  * Опитваме се да репортнем JS грешките
  */
-window.onerror = function (errorMsg, url, lineNumber) {
-	$.ajax({
-		url: "/A/wp/",
-		data: {errType: 'JS error', currUrl: window.location.href, error: errorMsg, script: url, line: lineNumber}
-	})
+window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
+	
+	if (typeof $.ajax != 'undefined') {
+		$.ajax({
+			url: "/A/wp/",
+			data: {errType: 'JS error', currUrl: window.location.href, error: errorMsg, script: url, line: lineNumber, column: columnNum}
+		})
+	}
 }
 
 function runOnLoad(functionName) {
