@@ -229,6 +229,8 @@ class cat_products_VatGroups extends core_Detail
     			$requiredRoles = 'no_one';
     		}  elseif(!cat_Products::haveRightFor('single', $rec->productId)) {
     			$requiredRoles = 'no_one';
+    		} elseif(cat_Products::fetchField($rec->productId, 'createdBy') == core_Users::SYSTEM_USER) {
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
