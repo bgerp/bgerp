@@ -299,62 +299,17 @@ class planning_Tasks extends tasks_Tasks
 		expect($rec = planning_Tasks::fetchRec($id));
 		expect($origin = doc_Containers::getDocument($rec->originId));
 		$jobRec = $origin->fetch();
-	    
+	   
 		$res['JOB'] = "#" . $origin->getHandle();
 		$res['NAME'] = cat_Products::getTitleById($rec->productId);
 		
 		$serial = planning_TaskSerials::force($id, $labelNo, $rec->productId);
 		$res['BARCODE'] = self::getBarcodeImg($serial)->getContent();
 		
-		return $res;
+		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+		$res['MEASURE_ID'] = cat_UoM::getShortName($measureId);
+		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantityInPack);
 		
-		
-		// Форсираме сериен номер
-		//$res['SERIAL'] = 
-	
-		// Хендлъра на заданието
-		$res['JOB'] = "#" . $origin->getHandle();
-	
-		// Заглавие на заданието
-		$res['JOB_NAME'] = $origin->getTitleById();
-	
-		// Хендлър на задачата за производство
-		$res['TASK'] = "#" . planning_Tasks::getHandle($rec->id);
-	
-		// Данни от сделката към която е заданието (ако е към сделка)
-		if(isset($jobRec->saleId)){
-			$saleRec = sales_Sales::fetch($jobRec->saleId);
-				
-			// Хендлър на сделката
-			$res['ORDER'] = "#" . sales_Sales::getHandle($saleRec->id);
-				
-			// Дата на сделката
-			$res['ODDER_DATE'] = $saleRec->valior;
-				
-			$Contragent = cls::get($saleRec->contragentClassId);
-			$countryName = $Contragent->getContragentData($saleRec->contragentClassId)->country;
-			if(!empty($countryName)){
-	
-				// Държавата на контрагента от сделката
-				$res['DES_COUNTRY'] = $countryName;
-			}
-				
-			// Името на контрагента
-			$res['COMPANY'] = $Contragent->getTitleById($saleRec->contragentId);
-		}
-	
-		// Информация за производимия артикул
-		if(isset($rec->productId)){
-				
-			// Кода на произведения артикул
-			$res['ARTICLE_TITLE'] = cat_Products::getTitleById($rec->productId);
-			$productCode = cat_Products::fetchField($rec->productId, 'code');
-				
-			// Кода на произведения артикул, ако няма код това е хендлъра му
-			$res['ARTICLE'] = !empty($productCode) ? $productCode : "#" . cat_Products::getHandle($rec->productId);
-		}
-	
-		// Връщаме данните за етикета от задачата
 		return $res;
 	}
     
