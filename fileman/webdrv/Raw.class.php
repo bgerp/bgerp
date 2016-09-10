@@ -74,8 +74,8 @@ class fileman_webdrv_Raw extends fileman_webdrv_ImageT
         $Script->setFile('OUTPUTF', $outFilePath);
         $wAndH = self::getPreviewWidthAndHeight();
         
-        $width = $wAndH['width'];
-        $height = $wAndH['height'];
+        $width = escapeshellarg($wAndH['width']);
+        $height = escapeshellarg($wAndH['height']);
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
     
