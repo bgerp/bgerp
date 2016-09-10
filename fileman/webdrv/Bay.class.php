@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за работа с .orf файлове.
+ * Драйвер за работа с .bay файлове.
  * 
  * @category  vendors
  * @package   fileman
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Orf extends fileman_webdrv_Raw
+class fileman_webdrv_Bay extends fileman_webdrv_Raw
 {
     
 }
