@@ -45,7 +45,7 @@ class cat_Params extends embed_Manager
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, type, suffix,  sysId';
+    public $searchFields = 'name, suffix,  sysId';
     
     
     /**
