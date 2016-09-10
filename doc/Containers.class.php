@@ -123,6 +123,7 @@ class doc_Containers extends core_Manager
         $this->setDbIndex('createdOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbUnique('docClass, docId');
+        $this->setDbIndex('searchKeywords', NULL, 'FULLTEXT');
     }
     
     
