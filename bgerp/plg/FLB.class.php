@@ -200,11 +200,12 @@ class bgerp_plg_FLB extends core_Plugin
 	private static function addUserFilterToQuery($mvc, core_Query &$query, $userId = NULL)
 	{
 		$userId = ($userId) ? $userId : core_Users::getCurrent();
+		$userRoles = core_Users::fetchField($userId, 'roles');
 		
 		$query->likeKeylist($mvc->canActivateUserFld, $userId);
-		$query->orLikeKeylist($mvc->canActivateRoleFld, $userId);
+		$query->orLikeKeylist($mvc->canActivateRoleFld, $userRoles);
 		$query->orLikeKeylist($mvc->canSelectUserFld, $userId);
-		$query->orLikeKeylist($mvc->canSelectRoleFld, $userId);
+		$query->orLikeKeylist($mvc->canSelectRoleFld, $userRoles);
 		$query->orWhere("#inCharge = {$userId}");
 	}
 	

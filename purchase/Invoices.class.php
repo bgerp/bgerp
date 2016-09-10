@@ -443,26 +443,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
 	/**
-     * Намира ориджина на фактурата (ако има)
-     */
-    public static function getOrigin($rec)
-    {
-    	$origin = NULL;
-    	$rec = static::fetchRec($rec);
-    	
-    	if($rec->originId) {
-    		return doc_Containers::getDocument($rec->originId);
-    	}
-    	
-    	if($rec->threadId){
-    		return doc_Threads::getFirstDocument($rec->threadId);
-	    }
-    	
-    	return $origin;
-    }
-    
-    
-	/**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)

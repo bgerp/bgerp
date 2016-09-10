@@ -1366,12 +1366,15 @@ class cat_Products extends embed_Manager {
     public static function getWeight($productId, $packagingId = NULL)
     {
     	$weight = 0;
-    	if(cat_products_Packagings::getPack($productId, $packagingId)){
-    		$weight = $pack->netWeight + $pack->tareWeight;
-    	}
     	
+    	// Транспортното тегло
+    	$weight = static::getParams($productId, 'transportWeight');
+    	
+    	// Ако няма прави се опит да се изчисли от опаковката
     	if(!$weight){
-    		$weight = static::getParams($productId, 'transportWeight');
+    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    			$weight = $pack->netWeight + $pack->tareWeight;
+    		}
     	}
     	
     	return $weight;
@@ -1388,12 +1391,15 @@ class cat_Products extends embed_Manager {
     public static function getVolume($productId, $packagingId = NULL)
     {
     	$volume = 0;
-    	if(cat_products_Packagings::getPack($productId, $packagingId)){
-    		$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
-    	}
     	
+    	// Транспортният обем
+    	$volume = static::getParams($productId, 'transportVolume');
+    	
+    	// Ако няма и има опаковка, се прави опит да се сметне обема от опаковката
     	if(!$volume){
-    		$volume = static::getParams($productId, 'transportVolume');
+    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    			$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
+    		}
     	}
     	
     	return $volume;

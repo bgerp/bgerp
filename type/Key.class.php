@@ -288,7 +288,7 @@ class type_Key extends type_Int
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
-                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex);  
+                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex . '|' . core_Lg::getCurrent());  
                 } else {
                     foreach($this->options as $id => $v) {
                         $options[$id] = $v;
@@ -328,10 +328,10 @@ class type_Key extends type_Int
         }
         
         if(!$this->handler) {
-            $this->handler = md5(implode(',', array_keys($this->options)));
+            $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
         }
         
-        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20)) {
+        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20, array($this->params['mvc']))) {
             $cacheOpt = unserialize($optSz);
             $options = array();
             foreach($cacheOpt as $id => $obj) {

@@ -31,6 +31,10 @@
             <p class='title-info'>|Факс|*: [#fax#]</p>
             <!--ET_END fax-->
         </div>
+        
+        <!--ET_BEGIN TRANSPORT_BAR-->
+            [#sales/tpl/TransportStatistic.shtml#]
+        <!--ET_END TRANSPORT_BAR-->
     </div>
     <div class="clearfix21"></div>
     <!--ET_BEGIN MANDATORY-->

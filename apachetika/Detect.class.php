@@ -96,7 +96,7 @@ class apachetika_Detect
         $Script->params = serialize($params);
         $Script->fh = $fileHnd;
         
-        $Script->setChechProgramsArr('java');
+        $Script->setCheckProgramsArr('java');
         // Стартираме скрипта Aсинхронно
         if ($Script->run($params['asynch']) === FALSE) {
             

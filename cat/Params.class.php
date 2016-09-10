@@ -39,7 +39,13 @@ class cat_Params extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, suffix,  sysId';
     
     
     /**
@@ -58,12 +64,6 @@ class cat_Params extends embed_Manager
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'typeExt';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'powerUser';
     
     
     /**
@@ -133,10 +133,10 @@ class cat_Params extends embed_Manager
      */
     protected static function on_CalcTypeExt($mvc, $rec)
     {
-        $rec->typeExt = $rec->name;
+        $rec->typeExt = tr($rec->name);
         
         if (!empty($rec->suffix)) {
-            $rec->typeExt .= ' [' . $rec->suffix . ']';
+            $rec->typeExt .= ' [' . trim($rec->suffix) . ']';
         }
     }
     
@@ -147,14 +147,14 @@ class cat_Params extends embed_Manager
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('showInPublicDocuments', 'yes');
     	$data->form->setField('driverClass', 'caption=Тип');
     	
     	if($data->form->rec->sysId){
     		$data->form->setReadOnly('name');
-    		$data->form->setReadOnly('type');
+    		$data->form->setReadOnly('suffix');
     	}
     }
     
@@ -162,7 +162,7 @@ class cat_Params extends embed_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'delete' && $rec->id) {
            if($rec->sysId || $rec->lastUsedOn) {
@@ -190,18 +190,13 @@ class cat_Params extends embed_Manager
     public static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
     {
     	$query = static::getQuery();
-    	$query->show('name,suffix');
     	if(strlen($where)){
     		$query->where = $where;
     	}
     	
     	$options = array();
     	while($rec = $query->fetch()){
-    		$title = $rec->name;
-    		if($rec->suffix){
-    			$title .= " ({$rec->suffix})";
-    		}
-    		$options[$rec->{$index}] = $title;
+    		$options[$rec->{$index}] = $rec->typeExt;
     	}
     	
     	return $options;
@@ -283,5 +278,16 @@ class cat_Params extends embed_Manager
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->view = 'horizontal';
     }
 }

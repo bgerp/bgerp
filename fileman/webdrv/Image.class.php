@@ -223,7 +223,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
 
-        $Script->setChechProgramsArr('convert');
+        $Script->setCheckProgramsArr('convert');
         // Стартираме скрипта Aсинхронно
         if ($Script->run() === FALSE) {
             fileman_Indexes::createError($params);

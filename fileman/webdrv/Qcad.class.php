@@ -104,7 +104,7 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
         
-        $Script->setChechProgramsArr('dwg2' . self::$fileType);
+        $Script->setCheckProgramsArr('dwg2' . self::$fileType);
         
         // Стартираме скрипта синхронно
         if ($Script->run() === FALSE) {

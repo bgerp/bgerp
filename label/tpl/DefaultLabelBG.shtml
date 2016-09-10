@@ -104,7 +104,7 @@
             <td width="50%" class="description">
                 <div class="details-label">
                     <span class="small top left">количество</span>
-                    <span class="small top right">брой</span>
+                    <span class="small top right">[#MEASURE_ID#]</span>
                     <div class="clearfix21"></div>
                 </div>
                 <span class="bold"> [#QUANTITY#]</span>

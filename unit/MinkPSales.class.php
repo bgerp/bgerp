@@ -343,9 +343,6 @@ class unit_MinkPSales extends core_Manager {
         }
          
         //$browser->hasText('Създаване на продажба');
-        $enddate=strtotime("+2 Days");
-        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-        $browser->setValue('deliveryTime[t]', '10:30');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatInclude');
@@ -403,34 +400,21 @@ class unit_MinkPSales extends core_Manager {
          
         // протокол
         $browser->press('Пр. услуги');
+        $browser->setValue('template', 'Протокол за извършени услуги с цени');
         $browser->press('Чернова');
         $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
+        } else {
+            return "Грешна сума в Протокол за услуга";
+        }
+        
         // Фактура
         $browser->press('Фактура');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        
-        // ПКО
-        $browser->press('ПКО');
-        $browser->setValue('depositor', 'Иван Петров');
-        $browser->setValue('amountDeal', '10');
-        $browser->setValue('peroCase', 'КАСА 1');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        // ПБД
-        $browser->press('ПБД');
-        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        
-        // Приключване
-        $browser->press('Приключване');
-        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 27,66')) {
         } else {
-            return "Грешно чакащо плащане";
+            return "Грешна сума във фактура";
         }
         //return $browser->getHtml();
     }
@@ -439,8 +423,8 @@ class unit_MinkPSales extends core_Manager {
     * Продажба EUR - освободена от ДДС
     */
          
-    //http://localhost/unit_MinkPSales/CreateSaleEURVatFree/
-    function act_CreateSaleEURVatFree()
+    //http://localhost/unit_MinkPSales/CreateSaleEURVatFree3/
+    function act_CreateSaleEURVatFree3()
     {
         // Логване
         $browser = $this->SetUp();
@@ -458,7 +442,7 @@ class unit_MinkPSales extends core_Manager {
         $enddate=strtotime("+2 Days");
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPSaleEURVatFree');
+        $browser->setValue('note', 'MinkPSaleEURVatFree3');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
@@ -520,30 +504,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна данъчна основа във фактурата";
         }
-        
-        // ПКО
-        $browser->press('ПКО');
-        $browser->setValue('depositor', 'Иван Петров');
-        $browser->setValue('amountDeal', '10');
-        $browser->setValue('peroCase', 'КАСА 1');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        
-        // ПБД
-        $browser->press('ПБД');
-        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        
-        // Приключване
-        $browser->press('Приключване');
-        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
-        } else {
-            return "Грешно чакащо плащане";
-        }
+       
         //return $browser->getHtml();
     }
     
@@ -567,7 +528,6 @@ class unit_MinkPSales extends core_Manager {
             $browser->press('Нов...');
             $browser->press('Продажба');
         }
-        $enddate=strtotime("+2 Days");
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatFree');
@@ -599,6 +559,24 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна обща сума";
         }
+        
+        // Фактура
+        $browser->press('Фактура');
+        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        $browser->setValue('amountAccrued', '3.3');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа: 6,45 BGN')) {
+        } else {
+            return "Грешна данъчна основа във фактурата";
+        }
+        // ПБД
+        $browser->press('ПБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->setValue('amountDeal', '3,3');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        
         // експедиционно нареждане
         $browser->press('Експедиране');
         $browser->setValue('storeId', 'Склад 1');
@@ -613,6 +591,7 @@ class unit_MinkPSales extends core_Manager {
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        $browser->setValue('amountDeducted', '3.3');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа: 6,45 BGN')) {
@@ -620,21 +599,7 @@ class unit_MinkPSales extends core_Manager {
             return "Грешна данъчна основа във фактурата";
         }
     
-        // ПКО
-        $browser->press('ПКО');
-        $browser->setValue('depositor', 'Иван Петров');
-        $browser->setValue('amountDeal', '10');
-        $browser->setValue('peroCase', 'КАСА 1');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-    
-        // ПБД
-        $browser->press('ПБД');
-        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-    
-        // Приключване
+       // Приключване
         $browser->press('Приключване');
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
