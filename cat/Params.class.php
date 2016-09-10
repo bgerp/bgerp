@@ -39,7 +39,13 @@ class cat_Params extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, type, suffix,  sysId';
     
     
     /**
@@ -58,12 +64,6 @@ class cat_Params extends embed_Manager
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'typeExt';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'powerUser';
     
     
     /**
@@ -147,7 +147,7 @@ class cat_Params extends embed_Manager
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('showInPublicDocuments', 'yes');
     	$data->form->setField('driverClass', 'caption=Тип');
@@ -162,7 +162,7 @@ class cat_Params extends embed_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'delete' && $rec->id) {
            if($rec->sysId || $rec->lastUsedOn) {
@@ -278,5 +278,16 @@ class cat_Params extends embed_Manager
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->view = 'horizontal';
     }
 }
