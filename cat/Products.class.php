@@ -1373,7 +1373,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма прави се опит да се изчисли от опаковката
     	if(!$weight){
-    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
     			$weight = $pack->netWeight + $pack->tareWeight;
     		}
     	}
@@ -1398,7 +1398,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма и има опаковка, се прави опит да се сметне обема от опаковката
     	if(!$volume){
-    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
     			$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
     		}
     	}
