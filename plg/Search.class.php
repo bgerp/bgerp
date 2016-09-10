@@ -33,7 +33,10 @@ class plg_Search extends core_Plugin
         }
 
         $mvc->setField('searchKeywords', "collation=ascii_bin");
-        $mvc->setDbIndex('searchKeywords', NULL, 'FULLTEXT');
+
+        if(empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
+            $mvc->setDbIndex('searchKeywords', NULL, 'FULLTEXT');
+        }
 
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
         setIfNot($mvc->searchInputField, 'search');
@@ -219,7 +222,7 @@ class plg_Search extends core_Plugin
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
 
-                    if(strlen($w) < $query->mvc->db->getVariable('ft_min_word_len')) {
+                    if(strlen($w) < $query->mvc->db->getVariable('ft_min_word_len') || !empty($query->mvc->dbEngine)) {
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {

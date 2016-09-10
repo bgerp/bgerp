@@ -675,6 +675,8 @@ class core_Db extends core_BaseClass
                 
                 if ($name == 'PRIMARY') {
                     $type = 'PRIMARY';
+                } elseif($rec->Index_type == 'FULLTEXT') {
+                    $type = 'FULLTEXT';
                 } elseif ($rec->Non_unique) {
                     $type = 'INDEX';
                 } else {
@@ -684,7 +686,7 @@ class core_Db extends core_BaseClass
                 $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = TRUE;
             }
         }
-        
+  
         return $indexes;
     }
     
