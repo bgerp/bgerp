@@ -144,8 +144,13 @@ class core_Db extends core_BaseClass
     {
        
         if(!($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
-
-            $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
+            
+            if(strpos($this->dbHost, ':')) {
+                list($host, $port) = explode(':', $this->dbHost);
+                $link = new mysqli($host, $this->dbUser, $this->dbPass, '', $port);
+            } else {
+                $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
+            }
 
             self::$links[$this->dbHost][$this->dbUser][$this->dbName] = $link;
 
