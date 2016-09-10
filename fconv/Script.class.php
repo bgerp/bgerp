@@ -109,7 +109,7 @@ class fconv_Script
     /**
      * Програми, които трябва да се проверят, преди да се изпълни
      */
-    protected $chechProgramsArr = array();
+    protected $checkProgramsArr = array();
     
     
     /**
@@ -382,7 +382,7 @@ class fconv_Script
                 'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
         
         $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
-        $this->setChechProgramsArr('wget');
+        $this->setCheckProgramsArr('wget');
         
         $this->lineExec($cmdLine, array('skipOnRemote' => TRUE));
     }
@@ -391,20 +391,20 @@ class fconv_Script
     /**
      * Задаваме програми, които ще се проверяват преди да се пусни обработка
      */
-    public function setChechProgramsArr($programs)
+    public function setCheckProgramsArr($programs)
     {
         $programs = arr::make($programs, TRUE);
-        $this->chechProgramsArr += $programs;
+        $this->checkProgramsArr += $programs;
     }
     
     
     /**
      * Програми, които ще се проверяват преди да се пусни обработка
      */
-    public function getChechProgramsArr()
+    public function getCheckProgramsArr()
     {
         
-        return $this->chechProgramsArr;
+        return $this->checkProgramsArr;
     }
     
     
@@ -446,7 +446,7 @@ class fconv_Script
             }
         }
         
-        $checkProgramsArr = $this->getChechProgramsArr();
+        $checkProgramsArr = $this->getCheckProgramsArr();
         // Ако са зададени програми, които да се проверят преди обработка.
         if (!empty($checkProgramsArr)) {
             foreach ($checkProgramsArr as $program) {

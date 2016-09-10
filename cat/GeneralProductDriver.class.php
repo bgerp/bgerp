@@ -225,11 +225,19 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$pQuery->where("#classId = {$Products->getClassId()}");
 		$pQuery->EXT('name', 'cat_Params', 'externalName=name,externalKey=paramId');
 		$pQuery->EXT('suffix', 'cat_Params', 'externalName=suffix,externalKey=paramId');
+		
 		while($pRec = $pQuery->fetch()){
-			if($pRec->suffix){
-				$pRec->name .= "({$pRec->suffix})";
+			$split = explode('||', $pRec->name);
+			if(count($split) == 2){
+				$split[0] .= isset($pRec->suffix) ? "(" . $pRec->suffix . ")" : '';
+				$split[1] .= isset($pRec->suffix) ? "(" . $pRec->suffix . ")" : '';
+				
+				$foundParams[mb_strtolower($split[0])] = $pRec->paramValue;
+				$foundParams[mb_strtolower($split[1])] = $pRec->paramValue;
+			} else {
+				$split[0] .= isset($pRec->suffix) ? "(" . $pRec->suffix . ")" : '';
+				$foundParams[mb_strtolower($split[0])] = $pRec->paramValue;
 			}
-			$foundParams[$pRec->name] = $pRec->paramValue;
 		}
 		
 		return $foundParams;

@@ -37,7 +37,7 @@ class tcost_FeeZones extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Имена на зони";
+    public $title = "Навла";
 
 
     /**
@@ -161,6 +161,7 @@ class tcost_FeeZones extends core_Master
      *
      * @param int $deliveryTermId    -условие на доставка
      * @param int $productId         - ид на артикул
+     * @param int $packagingId       - ид на опаковка/мярка
      * @param int $quantity          - количество
      * @param int $totalWeight       - Общо тегло на товара
      * @param int $toCountry         - id на страната на мястото за получаване
@@ -171,11 +172,11 @@ class tcost_FeeZones extends core_Master
      * @return double                - цена, която ще бъде платена за теглото на артикул,
      * 								   ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
      */
-    public function getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	// Колко е еденичното транспортно тегло на артикула
-    	$singleWeight = cat_Products::getParams($productId, 'transportWeight');
-    	$singleVolume = cat_Products::getParams($productId, 'transportVolume');
+    	$singleWeight = cat_Products::getWeight($productId, $packagingId);
+    	$singleVolume = cat_Products::getVolume($productId, $packagingId);
     	$singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume);
     	
     	// Ако няма, цената няма да може да се изчисли
@@ -221,9 +222,9 @@ class tcost_FeeZones extends core_Master
     	$form->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
     	$form->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2,allowEmpty)', 'caption=Държава, mandatory,smartCenter');
     	$form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
+    	$form->FLD('singleWeight', 'double(Min=0)', 'caption=Еденично тегло,mandatory');
     	$form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');
-    	$form->FLD('singleWeight', 'double(Min=0)', 'caption=Кг. за връщане');
-    
+    	
     	// Въвеждаме формата от Request (тази важна стъпка я бяхме пропуснали)
     	$form->input();
     	$form->setDefault('singleWeight', 1);

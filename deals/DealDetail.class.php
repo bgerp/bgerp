@@ -276,9 +276,7 @@ abstract class deals_DealDetail extends doc_Detail
     				if($policyInfo->discount && !isset($rec->discount)){
     					$rec->discount = $policyInfo->discount;
     				}
-    				
-    				// Нотифициране на мениджъра, че цената е взета автоматично по политика
-    				$mvc->invoke('AfterGetPriceFromPolicy', array(&$price, &$rec, $masterRec));
+    				$rec->autoPrice = TRUE;
     			}
     		} else {
     			$price = $rec->packPrice / $rec->quantityInPack;

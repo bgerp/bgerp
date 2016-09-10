@@ -26,6 +26,7 @@ class tcost_Calcs extends core_Manager
 			'contragentClassId'  => 'contragentClassId',
 			'contragentId'       => 'contragentId',
 			'productId' 	     => 'productId',
+			'packagingId' 	     => 'packagingId',
 			'deliveryLocationId' => 'deliveryLocationId',
 			'valior'             => 'valior',
 			'quantity'           => 'quantity',
@@ -106,23 +107,25 @@ class tcost_Calcs extends core_Manager
     /**
      * Връща информация за цената на транспорта, към клиент
      * 
-     * @param int $productId            - ид на артикул
-     * @param double $quantity          - к-во
-     * @param int|NULL $deliveryTermId  - условие на доставка, NULL ако няма
-     * @param mixed $contragentClassId  - клас на контрагента
-     * @param int $contragentId         - ид на контрагента
+     * @param int $deliveryTermId  - условие на доставка
+     * @param int $productId       - ид на артикул
+     * @param int $packagingId     - ид на опаковка
+     * @param double $quantity     - к-во
+     * @param double $totalWeight  - общо тегло   
+     * @param int $toCountryId     - ид на държава
+     * @param varchar $toPcodeId   - пощенски код
      * @return FALSE|array $res         - информация за цената на транспорта или NULL, ако няма
      * 					['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
      * 					['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
      */
-    public static function getTransportCost($deliveryTermId, $productId, $quantity, $totalWeight, $toCountryId, $toPcodeId)
+    public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountryId, $toPcodeId)
     {
     	// Имали в условието на доставка, драйвер за изчисляване на цени?
     	$TransportCostDriver = cond_DeliveryTerms::getCostDriver($deliveryTermId);
     	if(!is_object($TransportCostDriver)) return FALSE;
     	
     	$ourCompany = crm_Companies::fetchOurCompany();	 
-    	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
     	
     	$res = array('totalFee' => $totalFee);
     	
@@ -171,7 +174,6 @@ class tcost_Calcs extends core_Manager
     	// Ако подадената сума е NULL, и има съществуващ запис - трие се
     	if(is_null($fee) && is_object($exRec)){
     		self::delete($exRec->id);
-    		core_Statuses::newStatus("DELETE {$exRec->id}", 'warning');
     	}
     	
     	// Ако има сума
@@ -181,10 +183,8 @@ class tcost_Calcs extends core_Manager
     		// И няма съществуващ запис, ще се добавя нов
     		if(!$exRec){
     			$exRec = (object)array('docClassId' => $classId, 'docId' => $docId, 'recId' => $recId);
-    			core_Statuses::newStatus("ADD {$fee}", 'warning');
     		} else {
     			$fields = 'fee';
-    			core_Statuses::newStatus("EDIT {$fee}", 'warning');
     		}
     		 
     		// Ъпдейт / Добавяне на записа
@@ -297,12 +297,12 @@ class tcost_Calcs extends core_Manager
     /**
      * Показване на хинт при изчисление на цена
      * 
-     * @param varchar $amountRow   - вербалната сума на реда
-     * @param double $amountFee    - вербалната транспортна такса
-     * @param double $vat          - процент ДДС
-     * @param double $currencyRate - валутен курс
-     * @param varchar $chargeVat   - режим на ДДС
-     * @return core_ET             - сумата на реда с хинт
+     * @param varchar $amountRow           - вербалната сума на реда
+     * @param double $amountFee            - вербалната транспортна такса
+     * @param double $vat                  - процент ДДС
+     * @param double $currencyRate         - валутен курс
+     * @param varchar $chargeVat           - режим на ДДС
+     * @return core_ET|varchar $amountRow  - сумата на реда с хинт
      */
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
     {
@@ -324,14 +324,15 @@ class tcost_Calcs extends core_Manager
     /**
      * Сумата на видимия транспорт в документа
      * 
-     * @param core_Query $query - заявка
-     * @param string $productFld - име на полето на артикула
-     * @param string $amountFld - име на полето на сумата
-     * @param string $packPriceFld - име на полето на цената на опаковката
+     * @param core_Query $query       - заявка
+     * @param string $productFld      - име на полето на артикула
+     * @param string $amountFld       - име на полето на сумата
+     * @param string $packPriceFld    - име на полето на цената на опаковката
      * @param string $packQuantityFld - име на полето на количеството на опаковката
-     * @return double $amount - сума на видимия транспорт в основна валута без ДДС
+     * @param string $discountFld     - име на полето за отстъпката
+     * @return double $amount         - сума на видимия транспорт в основна валута без ДДС
      */
-    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount', $packPriceFld = 'packPrice', $packQuantityFld = 'packQuantity')
+    public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount', $packPriceFld = 'packPrice', $packQuantityFld = 'packQuantity', $discountFld = 'discount')
     {
     	$amount = 0;
     	
@@ -344,6 +345,10 @@ class tcost_Calcs extends core_Manager
     		
     		// Ако няма поле за сума, тя се взима от к-то по цената
     		$amountRec = isset($dRec->{$amountFld}) ? $dRec->{$amountFld} : $dRec->{$packPriceFld} * $dRec->{$packQuantityFld};
+    		if(isset($dRec->{$discountFld})){
+    			$amountRec = $amountRec * (1 - $dRec->{$discountFld});
+    		}
+    		
     		$amount += $amountRec;
     	}
     	
@@ -359,7 +364,7 @@ class tcost_Calcs extends core_Manager
      * @param tcost_CostCalcIntf $TransportCalc - интерфейс за изчисляване на транспортна цена
      * @param string $productFld - поле съдържащо ид-то на артикул
      * @param string $quantityFld - поле съдържащо количеството на артикул
-     * @return double$totalWeight - общото тегло
+     * @return double $totalWeight - общото тегло
      */
     public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity')
     {
@@ -389,21 +394,22 @@ class tcost_Calcs extends core_Manager
      * @param mixed $contragentClassId     - клас на контрагента
      * @param int $contragentId            - ид на контрагента
      * @param int $productId               - ид на артикула
+     * @param int $packagingId             - ид на опаковка
      * @param double $quantity             - количество
      * @param int|NULL $deliveryLocationId - ид на локация
      * @return NULL|array $feeArray        - сумата на транспорта
      */
-    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $quantity, $deliveryLocationId)
+    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId)
     {
     	// Ако може да се изчислява скрит транспорт
     	if(!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) return NULL;
-    	 
+    	
     	// Пощенския код и ид-то на държавата
     	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($contragentClassId, $contragentId, NULL, NULL, $deliveryLocationId);
     	 
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
-    	$feeArr = tcost_Calcs::getTransportCost($deliveryTermId, $productId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    	$feeArr = tcost_Calcs::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     
     	return $feeArr;
     }
@@ -413,11 +419,12 @@ class tcost_Calcs extends core_Manager
      * Връща вербалното показване на транспортните цени
      * 
      * @param stdClass $row                 - вербалното представяне на реда
+     * @param double $leftTransportCost     - остатъка за транспорт
      * @param double $hiddenTransportCost   - скрития транспорт
      * @param double $expectedTransportCost - очаквания транспорт
      * @param double $visibleTransportCost  - явния транспорт
      */
-    public static function getVerbalTransportCos(&$row, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost)
+    public static function getVerbalTransportCost(&$row, &$leftTransportCost, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost)
     {
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	foreach (array('hiddenTransportCost', 'expectedTransportCost', 'visibleTransportCost')  as $fld){
@@ -453,26 +460,28 @@ class tcost_Calcs extends core_Manager
     	$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
     	
     	// Колко е очаквания транспорт
-    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']});
+    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']});
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
     		if($rec->autoPrice === TRUE){
-    			if(isset($res['singleFee'])){
+    			if(isset($feeArr['singleFee'])){
     				$rec->{$map['price']} += $feeArr['singleFee'];
     			}
     		}
     		$rec->fee = $feeArr['totalFee'];
     	}
     	
-    	// Проверка дали цената е допустима спрямо сумата на транспорта
-    	$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
-    	
-    	if($amount <= round($rec->fee, 2)){
-    		$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
-    		$form->setError('fee', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
-    		$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
-    		$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
+    	if($rec->autoPrice !== TRUE){
+    		// Проверка дали цената е допустима спрямо сумата на транспорта
+    		$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
+    		 
+    		if($amount <= round($rec->fee, 2)){
+    			$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
+    			$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
+    			$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
+    			$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
+    		}
     	}
     	
     	// Ако има сума ще се синхронизира

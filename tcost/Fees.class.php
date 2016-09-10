@@ -88,7 +88,7 @@ class tcost_Fees extends core_Detail
     public function description()
     {
         $this->FLD('feeId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
-        $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->Тегло, mandatory');
+        $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->|Тегло|* (|кг|*), mandatory');
         $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Цена, mandatory');
     }
 
