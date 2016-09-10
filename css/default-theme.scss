@@ -73,11 +73,12 @@ form[method="post"] input[type="submit"] {
     background-color: #9999ff;
     color: white;
 }
-
-form[method=post]  input[type=button], form[method=post]  a.button { 
+.toolbar {
+  form[method=post]  input[type=button], form[method=post]  a.button {
     border: solid 1px #888;
     background-color: #888;
     color: white;
+  }
 }
 
 //форми
