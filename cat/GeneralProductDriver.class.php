@@ -263,6 +263,30 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $rec - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	{
+		$preview = NULL;
+		$previewHandler = cat_Products::getParams($rec->id, 'preview');
+		$handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
+	
+		if(isset($handler)){
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$preview = $Fancybox->getImage($handler, $size, $maxSize);
+			$preview = $preview->getContent();
+		}
+	
+		return $preview;
+	}
+	
+	
+	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
 	 * @param stdClass $data

@@ -220,4 +220,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getDefaultBatchDef($id);
 	}
+	
+	
+	/**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $id - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+	public static function getPreview($id, $size = array('280', '150'), $maxSize = array('550', '550'))
+	{
+		return $this->class->getPreview($id, $size, $maxSize);
+	}
 }

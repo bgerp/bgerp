@@ -1358,6 +1358,28 @@ class cat_Products extends embed_Manager {
     
     
     /**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $id - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+    public static function getPreview($id, $size = array('280', '150'), $maxSize = array('550', '550'))
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		$rec = self::fetchRec($id);
+    		
+    		return $Driver->getPreview($rec, $size, $maxSize);
+    	}
+    
+    	// Ако няма връщаме FALSE
+    	return NULL;
+    }
+    
+    
+    /**
      * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
      * 
      * @param int $productId - ид на продукт
