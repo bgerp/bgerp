@@ -33,7 +33,11 @@ class plg_Search extends core_Plugin
         }
 
         $mvc->setField('searchKeywords', "collation=ascii_bin");
- 
+
+        if(empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
+            $mvc->setDbIndex('searchKeywords', NULL, 'FULLTEXT');
+        }
+
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
         setIfNot($mvc->searchInputField, 'search');
     }
@@ -141,10 +145,13 @@ class plg_Search extends core_Plugin
         }
     }
     
-    
-    static function sortLength($a,$b)
+
+    /**
+     * Помощна функция за сортиране по дължина на думите
+     */
+    static function sortLength($a, $b)
     {
-        return strlen($b)-strlen($a);
+        return strlen($a)-strlen($b);
     }
    
     
@@ -160,8 +167,6 @@ class plg_Search extends core_Plugin
         if(!$field) {
             $field = 'searchKeywords';
         }
-
-
 
         if ($words = static::parseQuery($search)) {
             
@@ -180,7 +185,10 @@ class plg_Search extends core_Plugin
                     $wordEnd = ' ';
                 }
 
+                $mode = '+';
+
                 if($w{0} == '"') {
+                    $mode = '"';
                     $w = substr($w, 1);
                     if(!$w) continue;
                     $wordEnd = ' ';
@@ -194,12 +202,15 @@ class plg_Search extends core_Plugin
                 
                 if($w{0} == '-') {
                     $w = substr($w, 1);
-                    
+                    $mode = '-';
+
+
                     if(!$w) continue;
                     $wordEnd = ' ';
                     $like = "NOT LIKE";
                     $equalTo = " = 0";
                 } else {
+
                     $like = "LIKE";
                     $equalTo = "";
                 }
@@ -210,14 +221,32 @@ class plg_Search extends core_Plugin
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if($limit > 0 && $like == 'LIKE') {
-                        $field1 =  "LEFT(#{$field}, {$limit})";
-                    } else {
-                        $field1 =  "#{$field}";
-                    }
 
-                    $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
+                    if(strlen($w) < $query->mvc->db->getVariable('ft_min_word_len') || !empty($query->mvc->dbEngine)) {
+                        if($limit > 0 && $like == 'LIKE') {
+                            $field1 =  "LEFT(#{$field}, {$limit})";
+                        } else {
+                            $field1 =  "#{$field}";
+                        }
+                        $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
+                    } else {
+                        if($mode == '+') {
+                            $q .= " +{$w}*";
+                        }
+                        if($mode == '"') {
+                            $q .= " \"{$w}\"";
+                        }
+                        if($mode == '-') {
+                            $q .= " -{$w}";
+                        }
+                    }
                 }
+            }
+            
+            $q = trim($q);
+            
+            if($q) {
+                $query->where("match(#searchKeywords) AGAINST('$q' IN BOOLEAN MODE)");
             }
         }
     }

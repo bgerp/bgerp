@@ -64,7 +64,13 @@ class core_Mvc extends core_FieldSet
      */
     var $protectId = TRUE;
 
-    
+
+    /**
+     * Инстанция на връзката с базата данни
+     */
+    public $db;
+
+
     /**
      * Име на съответстващата таблица в базата данни
      */
@@ -86,7 +92,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Енджина за таблицата в DB
      */
-    protected $dbEngine;
+    public $dbEngine;
     
 
     /**
@@ -1064,7 +1070,7 @@ class core_Mvc extends core_FieldSet
  
             // Добавяме индексите
             if (is_array($this->dbIndexes)) {
-                foreach ($this->dbIndexes as $name => $indRec) {
+                foreach ($this->dbIndexes as $name => $indRec) {  
                     if($indexes[$name]) {
                         $exFields = $indexes[$name][$indRec->type];
                         $exFieldsList = '';
