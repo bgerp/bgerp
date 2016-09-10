@@ -136,7 +136,7 @@ class cat_Params extends embed_Manager
         $rec->typeExt = tr($rec->name);
         
         if (!empty($rec->suffix)) {
-            $rec->typeExt .= ' [' . trim($rec->suffix) . ']';
+            $rec->typeExt .= ' [' . tr($rec->suffix) . ']';
         }
     }
     
@@ -289,5 +289,20 @@ class cat_Params extends embed_Manager
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->view = 'horizontal';
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	if(!empty($rec->suffix)){
+    		$row->suffix = $mvc->getFieldType('suffix')->toVerbal(tr($rec->suffix));
+    	}
     }
 }

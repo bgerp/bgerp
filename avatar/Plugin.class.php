@@ -53,7 +53,7 @@ class avatar_Plugin extends core_Plugin
     /**
      * Връща html <img> елемент, отговарящ на аватара на потребителя
      */
-    static function getImg($userId, $email = NULL, $width = NULL, $height = NULL)
+    static function getImg($userId, $email = NULL, $width = NULL, $minHeight = NULL)
     {
         if (!$width) {
             $width = Mode::is('screenMode', 'narrow') ? 60 : 100;
@@ -63,10 +63,10 @@ class avatar_Plugin extends core_Plugin
         
         $attr['width'] = $width;
 
-        if (!$height) {
-            $height = $width;
+        if (!$minHeight) {
+            $minHeight = $width . 'px';
         }
-        $attr['height'] = $height;
+        $attr['style'] = "min-height: {$minHeight}";
         
         $url = self::getUrl($userId, $email, $width);
         $attr['src']   = $url;
