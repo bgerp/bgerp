@@ -142,7 +142,8 @@ class cat_products_Params extends doc_Detail
     	}
     	
     	if(!empty($paramRec->suffix)){
-    		$row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
+    		$suffix = cat_Params::getVerbal($paramRec, 'suffix');
+    		$row->paramValue .=  ' ' . tr($suffix);
     	}
     }
     
