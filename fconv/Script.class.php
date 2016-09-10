@@ -463,7 +463,16 @@ class fconv_Script
                         exec($path . ' -h', $output, $code);
                         
                         if ($code === 0) continue ;
+                        
+                        if ($code == 1) {
+                            
+                            exec("which {$path}", $output, $code);
+                            
+                            if ($code === 0) continue ;
+                        }
                     }
+                    
+                    log_System::add('fconv_Remote', "Липсва програма: " . $path, $rRec->id, 'warning');
                     
                     return FALSE;
                 }
