@@ -136,7 +136,7 @@ class cat_Params extends embed_Manager
         $rec->typeExt = tr($rec->name);
         
         if (!empty($rec->suffix)) {
-            $rec->typeExt .= ' [' . $rec->suffix . ']';
+            $rec->typeExt .= ' [' . trim($rec->suffix) . ']';
         }
     }
     
