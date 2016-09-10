@@ -235,7 +235,6 @@ class cat_products_Params extends doc_Detail
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
      		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
-     		$paramValue = 1000.10;
      		
      		// Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
      		$paramValue = ($paramValue) ? $paramValue : cat_Params::getDefault($paramId);
