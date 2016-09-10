@@ -1339,20 +1339,43 @@ class cat_Products extends embed_Manager {
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
-	 * @param string $id   - ид на записа
+	 * @param string $id     - ид на записа
+	 * @param string $name   - име на параметъра, или NULL ако искаме всички
+	 * @param boolean $verbal - дали да са вербални стойностите
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-    public static function getParams($id, $name = NULL)
+    public static function getParams($id, $name = NULL, $verbal = FALSE)
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
     	
-    		return $Driver->getParams(cat_Products::getClassId(), $id, $name);
+    		return $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
     	}
     	 
     	// Ако няма връщаме FALSE
     	return FALSE;
+    }
+    
+    
+    /**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $id - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+    public static function getPreview($id, $size = array('280', '150'), $maxSize = array('550', '550'))
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		$rec = self::fetchRec($id);
+    		
+    		return $Driver->getPreview($rec, $size, $maxSize);
+    	}
+    
+    	// Ако няма връщаме FALSE
+    	return NULL;
     }
     
     
@@ -1372,7 +1395,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма прави се опит да се изчисли от опаковката
     	if(!$weight){
-    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
     			$weight = $pack->netWeight + $pack->tareWeight;
     		}
     	}
@@ -1397,7 +1420,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма и има опаковка, се прави опит да се сметне обема от опаковката
     	if(!$volume){
-    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
     			$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
     		}
     	}

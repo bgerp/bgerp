@@ -152,12 +152,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $classId - ид на ембедъра
-	 * @param string $id   - ид на записа
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $id     - ид на записа
+	 * @param string $name   - име на параметъра, или NULL ако искаме всички
+	 * @param boolean $verbal - дали да са вербални стойностите
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams($classId, $id, $name = NULL)
+	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
 		return FALSE;
 	}
@@ -396,6 +396,20 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @return NULL|core_BaseClass - клас за дефиниция на партида
 	 */
 	public function getDefaultBatchDef($id)
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $rec - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
 	{
 		return NULL;
 	}
