@@ -90,8 +90,8 @@ class tcost_Calcs extends core_Manager
     	$this->FLD('recId', 'int', 'mandatory,caption=Ид на реда');
     	$this->FLD('fee', 'double', 'mandatory,caption=Сума на транспорта');
     	
-    	$this->setDbUnique('docClasId,docId,recId');
-    	$this->setDbIndex('docClasId,docId');
+    	$this->setDbUnique('docClassId,docId,recId');
+    	$this->setDbIndex('docClassId,docId');
     }
     
     
