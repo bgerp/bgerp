@@ -12,3 +12,4 @@
 Срок,cond_type_Time,,term,,,no
 Широчина,cond_type_Double,см,width,,,yes
 Режийни разходи,cond_type_Percent,,expenses,,,no
+Изглед||Preview,cond_type_Image,,preview,,,no
