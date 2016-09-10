@@ -694,6 +694,19 @@ class core_Db extends core_BaseClass
   
         return $indexes;
     }
+
+
+    /**
+     * Преброява редовете в една MySQL таблица
+     */
+    function countRows($table)
+    {
+        $dbRes = $this->query("SELECT COUNT(*) AS cnt FROM `{$table}`");
+        $res   = $this->fetchObject($dbRes);
+        $count = $res->cnt;
+
+        return $count;
+    }
     
     
     /**

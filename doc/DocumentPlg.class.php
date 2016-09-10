@@ -707,7 +707,7 @@ class doc_DocumentPlg extends core_Plugin
         	
             expect($id = Request::get('id', 'int'));
             
-            expect($rec = $mvc->fetch($id));
+            expect($rec = $mvc->fetch($id), $id);
             
             // Изтриваме нотификацията, ако има такава, свързани с този документ
             $url = array($mvc, 'single', 'id' => $id);
