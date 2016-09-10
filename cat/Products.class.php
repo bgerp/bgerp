@@ -1339,16 +1339,17 @@ class cat_Products extends embed_Manager {
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
-	 * @param string $id   - ид на записа
+	 * @param string $id     - ид на записа
+	 * @param string $name   - име на параметъра, или NULL ако искаме всички
+	 * @param boolean $verbal - дали да са вербални стойностите
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-    public static function getParams($id, $name = NULL)
+    public static function getParams($id, $name = NULL, $verbal = FALSE)
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
     	
-    		return $Driver->getParams(cat_Products::getClassId(), $id, $name);
+    		return $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
     	}
     	 
     	// Ако няма връщаме FALSE

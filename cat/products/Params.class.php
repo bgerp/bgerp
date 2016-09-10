@@ -228,18 +228,23 @@ class cat_products_Params extends doc_Detail
      * @param string $classId - ид на ембедъра
      * @param int $productId - ид на продукт
      * @param int $sysId - sysId на параметъра
+     * @param boolean $verbal - вербално представяне
      * @return varchar $value - стойността на параметъра
      */
-    public static function fetchParamValue($classId, $productId, $sysId)
+    public static function fetchParamValue($classId, $productId, $sysId, $verbal = FALSE)
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
      		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
+     		$paramValue = 1000.10;
      		
-     		// Ако има записана конкретна стойност за този продукт връщаме я
-     		if($paramValue) return $paramValue;
+     		// Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
+     		$paramValue = ($paramValue) ? $paramValue : cat_Params::getDefault($paramId);
+     		if($verbal === TRUE){
+     			$ParamType = cat_Params::getTypeInstance($paramId);
+     			$paramValue = $ParamType->toVerbal(trim($paramValue));
+     		}
      		
-     		// Връщаме дефолт стойността за параметъра
-     		return cat_Params::getDefault($paramId);
+     		return $paramValue;
      	}
      	
      	return FALSE;

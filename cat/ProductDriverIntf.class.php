@@ -72,14 +72,14 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $classId - ид на ембедъра
-	 * @param string $id   - ид на записа
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $id     - ид на записа
+	 * @param string $name   - име на параметъра, или NULL ако искаме всички
+	 * @param boolean $verbal - дали да са вербални стойностите
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams($classId, $id, $name = NULL)
+	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
-		return $this->class->getParams($classId, $id, $name);
+		return $this->class->getParams($classId, $id, $name, $verbal);
 	}
 	
 	
