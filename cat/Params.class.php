@@ -154,7 +154,7 @@ class cat_Params extends embed_Manager
     	
     	if($data->form->rec->sysId){
     		$data->form->setReadOnly('name');
-    		$data->form->setReadOnly('type');
+    		$data->form->setReadOnly('suffix');
     	}
     }
     
