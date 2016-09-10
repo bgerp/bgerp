@@ -64,7 +64,13 @@ class core_Mvc extends core_FieldSet
      */
     var $protectId = TRUE;
 
-    
+
+    /**
+     * Инстанция на връзката с базата данни
+     */
+    public $db;
+
+
     /**
      * Име на съответстващата таблица в базата данни
      */

@@ -429,6 +429,23 @@ class core_Db extends core_BaseClass
         return TRUE;
     }
     
+
+    function getVariable($name)
+    {
+        $query = "SHOW VARIABLES LIKE '{$name}'";
+        
+        $dbRes = $this->query($query);
+        
+        if(!$dbRes) {
+            
+            return FALSE;
+        }
+        
+        // Извличаме резултата
+        $res = $this->fetchObject($dbRes);
+
+        return $res->Value;
+    }
     
     /**
      * Връща атрибутите на посоченото поле от таблицата

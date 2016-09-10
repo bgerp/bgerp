@@ -177,9 +177,9 @@ class type_Richtext extends type_Blob
         if (!strlen($value)) return NULL;
         
         if (Mode::is('text', 'plain')) {
-            $res = $this->toHtml($value);  ;
-            $res = self::stripTags($res); 
+            $res = $this->toHtml($value);
             $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
+            $res = self::stripTags($res);
         } else {
             $res = $this->toHtml($value);
         }
@@ -638,7 +638,9 @@ class type_Richtext extends type_Blob
     {  
         if(Mode::is('text', 'plain')) {
             if(Mode::is('htmlEntity', 'none')) {
-                $res = self::stripTags($match[1]);
+                $res = $match[1];  
+                //$res = self::stripTags($match[1]);
+                $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
             } else {
                 $res = html2text_Converter::toRichText($match[1]);
             }
