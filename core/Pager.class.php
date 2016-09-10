@@ -258,6 +258,7 @@ class core_Pager extends core_BaseClass
 
             if($cntIds = count($ids)) {
                 $ids = implode(',', $ids);
+                $query = $query->mvc->getQuery();
                 $query->where("#id IN ($ids)");
             } else {
                 $this->itemsCount = 0;
