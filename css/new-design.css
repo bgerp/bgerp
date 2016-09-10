@@ -847,14 +847,14 @@ form[method="post"] input[type="submit"] {
     form[method="post"] input[type="submit"]:hover.btn-disabled {
       background-color: #888888; }
 
-form[method=post] input[type=button],
-form[method=post] a.button {
-  background-color: #aaaaaa;
-  border: 1px solid #999999 !important;
-  text-shadow: none; }
-  form[method=post] input[type=button]:hover,
-  form[method=post] a.button:hover {
-    background-color: #b1b1b1; }
+  .toolbar form[method=post] input[type=button],
+  .toolbar form[method=post] a.button {
+    background-color: #aaaaaa;
+    border: 1px solid #999999 !important;
+    text-shadow: none; }
+    .toolbar form[method=post] input[type=button]:hover,
+    .toolbar form[method=post] a.button:hover {
+      background-color: #b1b1b1; }
 
 .btn-disabled {
   color: #bbbbbb !important; }

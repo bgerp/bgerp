@@ -68,11 +68,11 @@ form[method="post"] input[type="submit"] {
   background-color: #9999ff;
   color: white; }
 
-form[method=post]  input[type=button],
-form[method=post]  a.button {
-  border: solid 1px #888888;
-  background-color: #888888;
-  color: white; }
+  .toolbar form[method=post]  input[type=button],
+  .toolbar form[method=post]  a.button {
+    border: solid 1px #888888;
+    background-color: #888888;
+    color: white; }
 
 .vertical .formTitle {
   color: white;
