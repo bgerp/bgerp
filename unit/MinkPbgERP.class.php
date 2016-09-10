@@ -93,9 +93,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Админ');
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
+        
         //$browser->click("Деактивиране на пакета");
         ////////////// не работи
         $browser->click('select2-deinstall');
+        return $browser->getHtml();
         if (strpos($browser->getText(),"Наистина ли искате да деактивирате пакета?")){
             $browser->press('OK');
             return 'Деактивиране.';
@@ -1099,7 +1101,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN	57,89')) {
+        if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN 57,89')) {
         } else {
             return "Грешна данъчна основа";
         }
