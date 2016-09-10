@@ -212,10 +212,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getParams($classId, $id, $name = NULL)
 	{
-		if(isset($name)){
-			
-			return cat_products_Params::fetchParamValue($classId, $id, $name);
-		}
+		// Ако има посочено име се посочва директно стойноста му
+		if(isset($name)) return cat_products_Params::fetchParamValue($classId, $id, $name);
 		
 		// Ако не искаме точен параметър връщаме всичките параметри за артикула
 		$Products = cls::get('cat_Products');
@@ -227,20 +225,34 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$pQuery->EXT('suffix', 'cat_Params', 'externalName=suffix,externalKey=paramId');
 		
 		while($pRec = $pQuery->fetch()){
-			$split = explode('||', $pRec->name);
-			if(count($split) == 2){
-				$split[0] .= isset($pRec->suffix) ? "(" . $pRec->suffix . ")" : '';
-				$split[1] .= isset($pRec->suffix) ? "(" . $pRec->suffix . ")" : '';
-				
-				$foundParams[mb_strtolower($split[0])] = $pRec->paramValue;
-				$foundParams[mb_strtolower($split[1])] = $pRec->paramValue;
-			} else {
-				$split[0] .= isset($pRec->suffix) ? "(" . $pRec->suffix . ")" : '';
-				$foundParams[mb_strtolower($split[0])] = $pRec->paramValue;
-			}
+			
+			core_Lg::push('bg');
+			$key1 = tr($pRec->name) . ((!empty($pRec->suffix)) ? "(" . tr($pRec->suffix) . ")": '');
+			$foundParams[self::normalizeName($key1)] = $pRec->paramValue;
+			core_Lg::pop('bg');
+			
+			core_Lg::push('en');
+			$key2 = tr($pRec->name) . ((!empty($pRec->suffix)) ? "(" . tr($pRec->suffix) . ")" : '');
+			$foundParams[self::normalizeName($key2)] = $pRec->paramValue;
+			core_Lg::pop('en');
 		}
 		
 		return $foundParams;
+	}
+	
+	
+	/**
+	 * Нормализиране на името на параметъра
+	 * 
+	 * @param string $name
+	 * @return string
+	 */
+	public static function normalizeName($name)
+	{
+		$name = preg_replace('/\s+/', '_', $name);
+		$name = mb_strtolower($name);
+		
+		return $name;
 	}
 	
 	
