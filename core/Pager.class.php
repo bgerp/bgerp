@@ -195,12 +195,107 @@ class core_Pager extends core_BaseClass
      */
     function setLimit(&$query)
     {
+        // Дали да използва кеширане
+        $useCache = $query->useCacheForPager;
+
         $q = clone ($query);
-        
-        $wh = $q->getWhereAndHaving();
-        $wh = $wh->w . ' ' . $wh->h;
+        $qCnt = clone ($query);
+
+        // Извличаме резултатите за посочената страница
+        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
+                    
+        // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
+        
+        if(!$useCache) {
+            $query->addOption('SQL_CALC_FOUND_ROWS');
+        } else {
+            $resCntCache = core_QueryCnts::getFromChache($qCnt);
+            if($resCntCache !== FALSE) {
+                $this->itemsCount = $resCntCache;
+            }
+        }
+
         $this->calc();
+
+        // Подготовка на заявката за извличане на id
+        $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);  
+        $query->limit($limit);
+        $query->startFrom($this->rangeStart);
+        $query->show('id');
+
+        while($rec = $query->fetch()) {
+            $ids[] = $rec->id;
+        }
+  
+        $idCnt = count($ids);
+
+        if($useCache) {
+        
+            $resCnt = NULL;
+            
+            if($idCnt == 0) {
+                if($this->rangeStart == 0) {
+                    $resCnt = 0;
+                } else {
+                    // Тази страница е след страниците с резултати
+                    // Налага се да преброим резултатите и отново да извлечем последната страница
+                    $resCnt = $qCnt->count();
+                    core_QueryCnts::set($q, $resCnt);
+                    $this->itemsCount = $resCnt;
+                    $this->calc();
+                    $q->startFrom($this->rangeStart);
+                    $q->limit($this->rangeEnd - $this->rangeStart);
+                    $q->show('id');
+                    while($rec = $q->fetch()) {
+                        $ids[] = $rec->id;
+                    }
+                    $idCnt = count($ids);
+                }
+            } elseif($idCnt < $limit) {
+                // Края на резултатите попада в търсената страница
+                $resCnt = $this->rangeStart + $idCnt;
+                core_QueryCnts::set($q, $resCnt);
+            } else {
+                // Края на резултатите е след търсената страница
+                
+                // Ако не сме имали резултати от кеша
+                if($resCntCache === NULL || $resCntCache === FALSE) {
+                    $totalRows = $query->mvc->db->countRows($query->mvc->dbTableName);
+                    $resCnt = min($this->rangeEnd+180, $totalRows);
+                    $this->approx = TRUE;
+                } else {
+                    $resCnt = $resCntCache;
+                }
+                core_QueryCnts::delayCount($qCnt);
+            }
+        } else {
+            $dbRes = $qCnt->mvc->db->query("SELECT FOUND_ROWS()");
+            $cntArr = $qCnt->mvc->db->fetchArray($dbRes);
+            $resCnt  = array_shift($cntArr);
+        }
+        
+        // До тук задължително трябва да сме изчислили колко резултата имаме
+        expect(isset($resCnt));
+
+        $this->itemsCount = $resCnt;
+ 
+        $query = $query->mvc->getQuery();
+        $this->calc();
+        if($idCnt) {
+            $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
+            $ids = implode(',', $ids);
+            $query->where("#id IN ($ids)");
+        } else {
+            $this->itemsCount = 0;
+            $this->calc();
+            $query->limit(0);
+        }
+
+        return;
+
+
+        // Вземаме резултатите за станица и половина
  
         if($query->mvc->db->countRows($query->mvc->dbTableName) < 50000) {
             
@@ -386,6 +481,9 @@ class core_Pager extends core_BaseClass
                     $mid = round($mid / 2) + $end;
                     $html .= "<a href=\"" . htmlspecialchars(Url::change($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\" title='{$pn}{$mid}'>...</a>";
                     $last = $this->getPagesCount();
+                    if($this->approx) {
+                        $last = $last . '?';
+                    }
                     $html .= "<a href=\"" . htmlspecialchars(Url::change($link, array($this->pageVar => $this->getPagesCount())), ENT_QUOTES, "UTF-8") .
                     "\" class=\"pager\" title='{$pn}{$last}'>{$last}</a>";
                 }
