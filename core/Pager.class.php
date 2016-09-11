@@ -201,8 +201,9 @@ class core_Pager extends core_BaseClass
         $wh = $wh->w . ' ' . $wh->h;
         $this->itemsCount = PHP_INT_MAX;
         $this->calc();
-
-        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
+ 
+        if($query->mvc->db->countRows($query->mvc->dbTableName) < 50000) {
+            
             $qCnt = clone ($query);
             $qCnt->orderBy = array();
 
