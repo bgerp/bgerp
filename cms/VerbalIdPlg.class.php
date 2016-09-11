@@ -65,18 +65,28 @@ class cms_VerbalIdPlg extends core_Plugin
      */
     function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = NULL)
     {
+
         $fieldName = $this->fieldName;
+
+        if($fields) {
+            $fArr = arr::make($fields, TRUE);
+
+            // Ако полето не участва - не правим нищо
+            if(!$fArr[$fieldName]) return;
+        }
 
         $recVid = &$rec->{$fieldName};
 
         setIfNot($this->mvc, $mvc);
 
+        $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
+
         if(!$recVid) {
             $recVid = $mvc->getRecTitle($rec);
             $recVid = str::canonize($recVid);
-        } else {
-            $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
         }
+        
+        expect(strlen($recVid), $recVid);
 
         $cond = "#{$this->fieldName} LIKE '[#1#]'";
 
