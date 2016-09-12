@@ -642,15 +642,15 @@ class unit_MinkP extends core_Manager
         $browser->refresh('Запис');
         $browser->press('Запис и Нов');
         $browser->setValue('resourceId', 'Материал 1');
-        $browser->setValue('propQuantity', '0.05*$тегло(кг) + $Начално= 1');
+        $browser->setValue('propQuantity', '0.05*$тегло_(кг) + $Начално= 1');
         $browser->refresh('Запис');
         $browser->press('Запис и Нов');
         $browser->setValue('resourceId', 'Материал 2');
-        $browser->setValue('propQuantity', '0.99*$тегло(кг) + $Начално= 20');
+        $browser->setValue('propQuantity', '0.99*$тегло_(кг) + $Начално= 20');
         $browser->refresh('Запис');
         $browser->press('Запис и Нов');
         $browser->setValue('resourceId', 'Отпадък 1');
-        $browser->setValue('propQuantity', '0.04*$тегло(кг) + $Начално= 21');
+        $browser->setValue('propQuantity', '0.04*$тегло_(кг) + $Начално= 21');
         $browser->refresh('Запис');
         $browser->press('Запис');
         //return $browser->gethtml();
@@ -748,7 +748,7 @@ class unit_MinkP extends core_Manager
         $browser->press('Запис');
         $browser->press('Активиране');
         
-        if(strpos($browser->gettext(), '0,62 BGN')) {
+        if(strpos($browser->gettext(), 'Себестойност: 0,62 BGN')) {
         } else {
             return "Грешна себестойност";
         }

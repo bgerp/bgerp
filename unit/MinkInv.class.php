@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @link
  */
-class unit_Mink extends core_Manager {
+class unit_MinkInv extends core_Manager {
 
     
     /**
@@ -23,13 +23,10 @@ class unit_Mink extends core_Manager {
     {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
+        //потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pavlinka');
+        $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
+        $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
         return $browser;
     }
@@ -78,7 +75,7 @@ class unit_Mink extends core_Manager {
     /**
      *  Създаване на параметър - текст.
      */
-    //http://localhost/unit_Mink/CreateParam/
+    //http://localhost/unit_MinkInv/CreateParam/
     function act_CreateParam()
     {
          
@@ -91,6 +88,7 @@ class unit_Mink extends core_Manager {
         $browser->setValue('driverClass', 'Текст');
         $browser->refresh('Запис');
         $browser->setValue('name', '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
+        
         $browser->setValue('suffix', 'text');
         $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]');
         $browser->setValue('rows', '2');
@@ -115,7 +113,7 @@ class unit_Mink extends core_Manager {
     * Създаване на фирма и папка към нея, допуска дублиране - ОК
     * Select2 трябва да е деинсталиран
     */
-    //http://localhost/unit_Mink/CompanyName/
+    //http://localhost/unit_MinkInv/CompanyName/
     function act_CompanyName()
     {
         // Логване
@@ -155,7 +153,7 @@ class unit_Mink extends core_Manager {
     /**
     * Създаване на параметър - избор.
     */
-    //http://localhost/unit_Mink/CreateParamChoise/
+    //http://localhost/unit_MinkInv/CreateParamChoise/
     function act_CreateParamChoise()
     {
          
@@ -192,7 +190,7 @@ class unit_Mink extends core_Manager {
      */
     //if(strpos($browser->gettext(), $Company)  && 0) {  - не намира съществуваща фирма
     //if(strpos($browser->gettext(), $Company)) {намира фирмата, но дава грешка при търсене на несъществуваща,  заради търсенето
-    //http://localhost/unit_MinkPbgERP/TestFirm/
+    //http://localhost/unit_MinkInvPbgERP/TestFirm/
     function act_TestFirm()
     {
     
@@ -236,54 +234,5 @@ class unit_Mink extends core_Manager {
         $browser->press('Папка');
     } 
     
-    function act_Test()
-    {
-        // Отваряме bgERP-а
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/root/bgerp/');
-        
-        // Логваме се
-        $browser->click('Enter');
-        $browser->setValue('nick', 'milen');
-        $browser->setValue('pass', 'parola');
-        $browser->press('Вход');
-        
-        // Отваряме папката на фирма Експерта
-        $browser->click('Всички');
-        $browser->hasText('Експерта ООД - В. Търново');
-        $browser->click('Експерта ООД - В. Търново');
-        
-        // Правим нова продажба
-        $browser->press('Нов...');
-        $browser->press('Продажба');
-        
-        // Попълваме някои полета
-        $browser->setValue('deliveryTime[d]', date('d-m-Y'));
-        $browser->setValue('deliveryTime[t]', '08:30');
-        $browser->setValue('shipmentStoreId', 'Основен');
-        
-        // Записваме дотук черновата на продажбата
-        $browser->press('Чернова');
-        
-        // Пак я редактираме
-        $browser->press('Редакция');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-        $browser->press('Чернова');
-        
-        // Добавяме нов артикул
-        $browser->press('Артикул');
-        $browser->setValue('productId', 'ЕП 22 (13)');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 10);
-        $browser->setValue('packPrice', 2);
-        
-        // Запосваме артикула
-        $browser->press('Запис');
-        
-        // Игнорираме предупреждението за липсваща стока
-        $browser->setValue('Ignore', 1);
-        $browser->press('Запис');
-        return $browser->getText();
-     }
-     
+      
 }
