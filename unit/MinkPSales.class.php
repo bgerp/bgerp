@@ -31,6 +31,7 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  11.".$this->act_CreateCreditDebitInvoiceVATNo();
         $res .= "  12.".$this->act_CreateSaleAdvPaymentInclVAT();
         $res .= "  13.".$this->act_CreateSaleAdvPaymentSep();
+        $res .= "  14.".$this->act_CreateSaleInvalydData();
         return $res;
     }
        
@@ -1292,6 +1293,71 @@ class unit_MinkPSales extends core_Manager {
         if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return "Грешно чакащо плащане";
+        }
+        //return $browser->getHtml();
+    }
+    
+    /**
+     * Проверка за некоректни данни в цена/количество - ,,100-3   200;-4    *.100-5  12.,5
+     */
+    //http://localhost/unit_MinkPSales/SaleInvalydData/
+    function act_SaleInvalydData()
+    {
+    
+        // Логваме се
+        $browser = $this->SetUp();
+        //Отваряме папката на фирмата
+        $browser = $this->SetFirm();
+         
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+    
+        $browser->setValue('reff', 'InvalydData');
+        $browser->setValue('note', 'MinkPSaleInvalydData');
+        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        // Записваме черновата на продажбата
+        $browser->press('Чернова');
+        // Добавяме артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други продукти');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', ',,100-3');
+        $browser->setValue('packPrice', '200;-4');
+        $browser->setValue('discount', '*.100-5');
+        // Записваме артикула
+        $browser->press('Запис');
+        //return $browser->getHtml();
+        if(strpos($browser->gettext(), 'Некоректна стойност на полето \'Количество\'!')) {
+        } else {
+            return "Грешка - не дава грешка при некоректна стойност на полето 'количество'";
+        }
+        if(strpos($browser->gettext(), 'Некоректна стойност на полето \'Цена\'!')) {
+        } else {
+            return "Грешка - не дава грешка при некоректна стойност на полето 'Цена'";
+        }
+        if(strpos($browser->gettext(), 'Некоректна стойност на полето \'Отстъпка\'!')) {
+        } else {
+            return "Грешка - не дава грешка при некоректна стойност на полето 'Отстъпка'";
+        }
+        if(strpos($browser->gettext(), 'Грешка при превръщане на \',,100-3\' в число')) {
+        } else {
+            return "Грешка 1 - не дава грешка при превръщане на \',,100-3\' в число";
+        }
+        if(strpos($browser->gettext(), 'Недопустими символи в число/израз')) {
+        } else {
+            return "Грешка 1 - не дава грешка при недопустими символи в число/израз";
+        
+        }
+        if(strpos($browser->gettext(), 'Грешка при превръщане на \'*.100-5\' в число')) {
+        } else {
+            return "Грешка 1 - не дава грешка при превръщане на \'*.100-5\' в число";
+        
         }
         //return $browser->getHtml();
     }

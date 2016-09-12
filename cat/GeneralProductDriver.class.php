@@ -208,7 +208,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param string $id     - ид на записа
 	 * @param string $name   - име на параметъра, или NULL ако искаме всички
 	 * @param boolean $verbal - дали да са вербални стойностите
-	 * @return mixed - стойност или FALSE ако няма
+	 * @return mixed  $params - стойност или FALSE ако няма
 	 */
 	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
@@ -216,49 +216,21 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		if(isset($name)) return cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
 		
 		// Ако не искаме точен параметър връщаме всичките параметри за артикула
-		$Products = cls::get('cat_Products');
-		$foundParams = array();
+		$params = array();
+		$classId = cat_Products::getClassId();
 		$pQuery = cat_products_Params::getQuery();
 		$pQuery->where("#productId = {$id}");
-		$pQuery->where("#classId = {$Products->getClassId()}");
-		$pQuery->EXT('name', 'cat_Params', 'externalName=name,externalKey=paramId');
-		$pQuery->EXT('suffix', 'cat_Params', 'externalName=suffix,externalKey=paramId');
+		$pQuery->where("#classId = {$classId}");
+		$pQuery->show('paramId,paramValue');
 		
 		while($pRec = $pQuery->fetch()){
-			$paramValue = $pRec->paramValue;
-			
 			if($verbal === TRUE){
-				$ParamType = cat_Params::getTypeInstance($pRec->paramId);
-				$paramValue = $ParamType->toVerbal(trim($paramValue));
+				$pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $pRec->paramValue);
 			}
-			
-			core_Lg::push('bg');
-			$key1 = tr($pRec->name) . ((!empty($pRec->suffix)) ? "(" . tr($pRec->suffix) . ")": '');
-			$foundParams[self::normalizeName($key1)] = $paramValue;
-			core_Lg::pop('bg');
-			
-			core_Lg::push('en');
-			$key2 = tr($pRec->name) . ((!empty($pRec->suffix)) ? "(" . tr($pRec->suffix) . ")" : '');
-			$foundParams[self::normalizeName($key2)] = $paramValue;
-			core_Lg::pop('en');
+			$params[$pRec->paramId] = $pRec->paramValue;
 		}
 		
-		return $foundParams;
-	}
-	
-	
-	/**
-	 * Нормализиране на името на параметъра
-	 * 
-	 * @param string $name
-	 * @return string
-	 */
-	public static function normalizeName($name)
-	{
-		$name = preg_replace('/\s+/', '_', $name);
-		$name = mb_strtolower($name);
-		
-		return $name;
+		return $params;
 	}
 	
 	
@@ -276,7 +248,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$previewHandler = cat_Products::getParams($rec->id, 'preview');
 		$handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
 	
-		if(isset($handler)){
+		if(!empty($handler)){
 			$Fancybox = cls::get('fancybox_Fancybox');
 			$preview = $Fancybox->getImage($handler, $size, $maxSize);
 			$preview = $preview->getContent();
