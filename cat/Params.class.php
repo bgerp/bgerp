@@ -299,7 +299,7 @@ class cat_Params extends embed_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(!empty($rec->suffix)){
     		$row->suffix = $mvc->getFieldType('suffix')->toVerbal(tr($rec->suffix));
@@ -371,5 +371,45 @@ class cat_Params extends embed_Manager
     	}
     	
     	return $arr;
+    }
+    
+    
+    /**
+     * Форсира параметър
+     * 
+     * @param string $sysId       - систем ид на параметър
+     * @param string $name        - име на параметъра
+     * @param string $type        - тип на параметъра
+     * @param NULL|text $options  - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix - наставка
+     * @return number             - ид на параметъра
+     */
+    public static function force($sysId, $name, $type, $options = NULL, $suffix = NULL)
+    {
+    	// Ако има параметър с това систем ид,връща се
+    	$id = self::fetchIdBySysId($sysId);
+    	if(!empty($id)) return $id;
+    	
+    	// Проверка дали типа е допустим
+    	expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set')));
+    	
+    	// Подготовка на записа на параметъра
+    	expect($Type = cls::get("cond_type_{$type}"));
+    	$nRec = new stdClass();
+    	$nRec->name = $name;
+    	$nRec->driverClass = $Type->getClassId();
+    	$nRec->sysId = $sysId;
+    	if(!empty($suffix)){
+    		$nRec->suffix = $suffix;
+    	}
+    	
+    	// Само за типовете enum и set, се искат опции
+    	if($type == 'enum' || $type == 'set'){
+    		expect($options);
+    		$nRec->options = $options;
+    	}
+    	
+    	// Създаване на параметъра
+    	return self::save($nRec);
     }
 }
