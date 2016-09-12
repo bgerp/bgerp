@@ -167,44 +167,36 @@ class label_Labels extends core_Master
         $readOnlyArr = $dataArr = $data->form->rec->params;
         
         // Ако формата не е субмитната и не я редактираме
-        if (!$data->form->isSubmitted()) {
-            
-            if (!$data->form->rec->id) {
-                // id на шаблона
-                $templateId = Request::get('templateId', 'int');
+        if (!$data->form->rec->id) {
+             // id на шаблона
+             $templateId = Request::get('templateId', 'int');
                 
-                // Ако не е избрано id на шаблона
-                if (!$templateId) {
+             // Ако не е избрано id на шаблона
+             if (!$templateId) redirect(array($mvc, 'selectTemplate'));
                 
-                    // Редиректваме към екшъна за избор на шаблон
-                    redirect(array($mvc, 'selectTemplate'));
-                }
-                
-                // Ако се създава етикет от обект, използваме неговите данни
-                Request::setProtected('classId, objId');
-                $classId = Request::get('classId');
-                $objId = Request::get('objId');
-                if ($classId && $objId) {
-                    $clsInst = cls::get($classId);
-                    $arr = (array) $clsInst->getLabelPlaceholders($objId);
-                    $readOnlyArr = $dataArr = arr::make($arr, TRUE);
+             // Ако се създава етикет от обект, използваме неговите данни
+             Request::setProtected('classId, objId');
+             $classId = Request::get('classId');
+             $objId = Request::get('objId');
+             if ($classId && $objId) {
+                  $clsInst = cls::get($classId);
+                  $arr = (array) $clsInst->getLabelPlaceholders($objId);
+                  $readOnlyArr = $dataArr = arr::make($arr, TRUE);
                     
-                    $data->form->setDefault('classId', $objId);
-                    $data->form->setDefault('objId', $classId);
+                  $data->form->setDefault('classId', $objId);
+                  $data->form->setDefault('objId', $classId);
                     
-                    $title = cls::get($classId)->getHandle($objId);
-                    $title = "#{$title}/" . dt::mysql2verbal(dt::now());
-                    $data->form->setDefault('title', $title);
-                }
-            } else {
-                
-                // Полетата, които идват от обекта, да не могат да се редактират
-                if ($data->form->rec->classId && $data->form->rec->objId) {
-                    $clsInst = cls::get($data->form->rec->classId);
-                    $readOnlyArr = (array)$clsInst->getLabelPlaceholders($data->form->rec->objId);
-                    $readOnlyArr = arr::make($readOnlyArr, TRUE);
-                }
-            }
+                  $title = cls::get($classId)->getHandle($objId);
+                  $title = "#{$title}/" . dt::mysql2verbal(dt::now());
+                  $data->form->setDefault('title', $title);
+              }
+         } else {
+             // Полетата, които идват от обекта, да не могат да се редактират
+             if ($data->form->rec->classId && $data->form->rec->objId) {
+                  $clsInst = cls::get($data->form->rec->classId);
+                  $readOnlyArr = (array)$clsInst->getLabelPlaceholders($data->form->rec->objId);
+                  $readOnlyArr = arr::make($readOnlyArr, TRUE);
+             }
         }
         
         // Ако няма templateId
