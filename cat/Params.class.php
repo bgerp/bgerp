@@ -305,4 +305,20 @@ class cat_Params extends embed_Manager
     		$row->suffix = $mvc->getFieldType('suffix')->toVerbal(tr($rec->suffix));
     	}
     }
+    
+    
+    /**
+     * Параметри функция за вербализиране
+     * 
+     * @param int $paramId - ид на параметър
+     * @param mixed $value - стойност за вебализиране
+     * @return mixed       - вербализирана стойност или FALSE ако не може
+     */
+    public static function toVerbal($paramId, $value)
+    {
+    	$Type = self::getTypeInstance($id);
+    	if($Type) return $Type->toVerbal(trim($value));
+    	
+    	return FALSE;
+    }
 }
