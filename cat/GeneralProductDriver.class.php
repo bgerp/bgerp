@@ -276,7 +276,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$previewHandler = cat_Products::getParams($rec->id, 'preview');
 		$handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
 	
-		if(isset($handler)){
+		if(!empty($handler)){
 			$Fancybox = cls::get('fancybox_Fancybox');
 			$preview = $Fancybox->getImage($handler, $size, $maxSize);
 			$preview = $preview->getContent();
