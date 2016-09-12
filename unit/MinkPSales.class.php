@@ -1241,7 +1241,13 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна обща сума";
         }
-         
+       
+        // Проформа
+        $browser->press('Проформа');
+        $browser->setValue('amountAccrued', '240');
+        $browser->press('Чернова');
+        $browser->press('Активиране');
+       
         // ПБД
         $browser->press('ПБД');
         $browser->setValue('ownAccount', '#BG11CREX92603114548401');
