@@ -285,11 +285,18 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
 	 *
-	 * @return array
+	 * @param mixed $id - ид или запис
+	 * @return array $fields - полета за етикети
 	 */
 	public function getLabelPlaceholders($id)
 	{
-		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'preview', 'label_text');
+		expect($rec = planning_Tasks::fetchRec($id));
+		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY');
+		
+		// Извличане на всички параметри на артикула
+		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
+		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
+		$fields = array_merge($fields, $params);
 		
 		return $fields;
 	}
@@ -329,13 +336,12 @@ class planning_Tasks extends tasks_Tasks
 		}
 		
 		// Извличане на всички параметри на артикула
+		Mode::push('text', 'plain');
 		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
-		if(is_array($params)){
-			foreach ($params as $key => $value){
-				$key = mb_strtoupper($key);
-				$res[$key] = $value;
-			}
-		}
+		Mode::pop('text');
+		
+		$params = cat_Params::getParamNameArr($params, TRUE);
+		$res = array_merge($res, $params);
 		
 		// Генериране на превю на артикула за етикети
 		$previewWidth = planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH');
