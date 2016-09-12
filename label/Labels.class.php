@@ -220,7 +220,7 @@ class label_Labels extends core_Master
         foreach ((array)$dataArr as $fieldName) {
         	$oFieldName = $fieldName;
             $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-           
+            
             // Стойностите, които идват от интерфейса не се очаква да ги попълва потребителя
             if ($data->form->rec->objId && $data->form->rec->classId) {
                 if ($data->form->fields[$fieldName] && isset($readOnlyArr[$oFieldName])) {

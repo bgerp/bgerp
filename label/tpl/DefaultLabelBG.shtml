@@ -98,7 +98,7 @@
         <tr>
             <td rowspan="3" valign="middle" align="center" class="no-border-left">
                 <div class="label-preview">
-                    [#PREVIEW#]
+                    [#preview#]
                 </div>
             </td>
             <td width="50%" class="description">
@@ -121,7 +121,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="3" class="description small-letter">[#OTHER#]</td>
+            <td colspan="3" class="description small-letter">[#label_text#]</td>
         </tr>
     </table>
 </div>

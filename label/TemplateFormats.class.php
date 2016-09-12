@@ -463,13 +463,13 @@ class label_TemplateFormats extends core_Detail
             
             // Плейсхолдера
             $placeHolder = trim($rec->placeHolder);
+            $placeHolder = mb_strtoupper($placeHolder);
             
             // Името на полето
             $placeHolderField = static::getPlaceholderFieldName($placeHolder);
             
             // Заглавието на полета
             $caption = "Параметри->" . $placeHolder;
-            
             // Ако е image
             if ($rec->type == 'image') {
                 
@@ -523,8 +523,7 @@ class label_TemplateFormats extends core_Detail
      */
     public static function getPlaceholderFieldName($placeHolder)
     {
-        
-        return ucfirst($placeHolder);
+        return mb_strtoupper($placeHolder);
     }
     
     
