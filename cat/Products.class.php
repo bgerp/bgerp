@@ -1342,7 +1342,7 @@ class cat_Products extends embed_Manager {
 	 * @param string $id     - ид на записа
 	 * @param string $name   - име на параметъра, или NULL ако искаме всички
 	 * @param boolean $verbal - дали да са вербални стойностите
-	 * @return mixed - стойност или FALSE ако няма
+	 * @return mixed - стойност или празен масив ако няма параметри
 	 */
     public static function getParams($id, $name = NULL, $verbal = FALSE)
     {
@@ -1352,8 +1352,8 @@ class cat_Products extends embed_Manager {
     		return $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
     	}
     	 
-    	// Ако няма връщаме FALSE
-    	return FALSE;
+    	// Ако няма връщаме празен масив
+    	return array();
     }
     
     
