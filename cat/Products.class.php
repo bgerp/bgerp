@@ -782,7 +782,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Закрити');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Прототипи,closed=Закрити');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
@@ -842,6 +842,10 @@ class cat_Products extends embed_Manager {
         	case 'closed':
         		$data->query->where("#state = 'closed'");
         		$data->query->orderBy("#{$order}");
+        		break;
+        	case 'prototypes':
+        		$folders = cat_Categories::getProtoFolders();
+        		$data->query->in("folderId", $folders);
         		break;
         	default :
         		$data->query->where("#isPublic = 'yes'");
