@@ -1,13 +1,14 @@
 <?php 
 
 
+
 /**
  * Модел за създаване на етикети за печатане
  * 
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -18,73 +19,67 @@ class label_Labels extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Етикети';
+    public $title = 'Етикети';
     
     
     /**
-     * 
+     * Еденично заглавие
      */
-    var $singleTitle = 'Етикет';
+    public $singleTitle = 'Етикет';
     
     
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/price_tag_label.png';
+    public $singleIcon = 'img/16/price_tag_label.png';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'label/tpl/SingleLayoutLabels.shtml';
+    public $singleLayoutFile = 'label/tpl/SingleLayoutLabels.shtml';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'label, admin, ceo';
+    public $canRead = 'label, admin, ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'label, admin, ceo';
+    public $canEdit = 'label, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'label, admin, ceo';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'label, admin, ceo';
+    public $canAdd = 'label, admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'label, admin, ceo';
+    public $canList = 'label, admin, ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'label, admin, ceo';
+	public $canSingle = 'label, admin, ceo';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'label, admin, ceo';
+    public $canReject = 'label, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
@@ -96,37 +91,31 @@ class label_Labels extends core_Master
     /**
      * Роли за мастера на етикетите
      */
-    var $canMasterlabel = 'labelMaster, admin, ceo';
+    public $canMasterlabel = 'labelMaster, admin, ceo';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Created, plg_Rejected, plg_Modified, plg_Search, plg_Clone, plg_Sorting';
+    public $loadList = 'label_Wrapper, plg_RowTools2, plg_State, plg_Created, plg_Rejected, plg_Modified, plg_Search, plg_Clone, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=✍, title, templateId, printedCnt, Object=Обект, createdOn, createdBy, modifiedOn, modifiedBy';
+    public $listFields = 'title, templateId, printedCnt, Object=Обект, createdOn, createdBy, modifiedOn, modifiedBy';
     
-    
-    /**
-     * 
-     */
-    var $rowToolsField = 'tools';
 
-    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
 
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, templateId';
+    public $searchFields = 'title, templateId';
     
     
 	/**
@@ -172,7 +161,7 @@ class label_Labels extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Вземаме данните от предишния запис
         $readOnlyArr = $dataArr = $data->form->rec->params;
@@ -197,7 +186,9 @@ class label_Labels extends core_Master
                 $objId = Request::get('objId');
                 if ($classId && $objId) {
                     $clsInst = cls::get($classId);
-                    $readOnlyArr = $dataArr = (array) $clsInst->getLabelData($objId, 0);
+                    $arr = (array) $clsInst->getLabelPlaceholders($objId);
+                    $readOnlyArr = $dataArr = arr::make($arr, TRUE);
+                    
                     $data->form->setDefault('classId', $objId);
                     $data->form->setDefault('objId', $classId);
                 }
@@ -206,7 +197,8 @@ class label_Labels extends core_Master
                 // Полетата, които идват от обекта, да не могат да се редактират
                 if ($data->form->rec->classId && $data->form->rec->objId) {
                     $clsInst = cls::get($data->form->rec->classId);
-                    $readOnlyArr = (array) $clsInst->getLabelData($data->form->rec->objId, 0);
+                    $readOnlyArr = (array)$clsInst->getLabelPlaceholders($data->form->rec->objId);
+                    $readOnlyArr = arr::make($readOnlyArr, TRUE);
                 }
             }
         }
@@ -225,19 +217,14 @@ class label_Labels extends core_Master
         label_TemplateFormats::addFieldForTemplate($data->form, $templateId);
         
         // Обхождаме масива
-        foreach ((array)$dataArr as $fieldName => $value) {
-            
-            $oFieldName = $fieldName;
-            
+        foreach ((array)$dataArr as $fieldName) {
+        	$oFieldName = $fieldName;
             $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-            
-            // Добавяме данните от записите
-            $data->form->rec->$fieldName = $value;
-            
-            // Стойностите от обекта да не може да се променят
+           
+            // Стойностите, които идват от интерфейса не се очаква да ги попълва потребителя
             if ($data->form->rec->objId && $data->form->rec->classId) {
                 if ($data->form->fields[$fieldName] && isset($readOnlyArr[$oFieldName])) {
-                    $data->form->setReadonly($fieldName);
+                    $data->form->setField($fieldName, 'input=none');
                 }
             }
         }
@@ -247,7 +234,7 @@ class label_Labels extends core_Master
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет от шаблон|* ';
     	$data->form->title .= '"' . label_Templates::getVerbal($data->form->rec->templateId, 'title') . '"';
@@ -260,7 +247,7 @@ class label_Labels extends core_Master
      * @param label_Labels $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         // Инпутваме пак формата, за да може да вкараме silent полетата,
         // които идват от шаблона 
@@ -312,13 +299,9 @@ class label_Labels extends core_Master
     
     
     /**
-     * 
-     * 
-     * @param label_Labels $mvc
-     * @param object $row
-     * @param object $rec
+     * След вербалното представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if (label_Templates::haveRightFor('single', $rec->templateId)) {
             $row->templateId = ht::createLink($row->templateId, array('label_Templates', 'single', $rec->templateId));
@@ -360,9 +343,10 @@ class label_Labels extends core_Master
         
         if ($classId && $objId) {
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
-            $labelDataArr = (array) $intfInst->getLabelData($objId, 0);
+            $labelDataArr = (array) $intfInst->getLabelPlaceholders($objId);
+            $labelDataArr = arr::make($labelDataArr, TRUE);
         }
-        
+       
         // Вземаме формата към този модел
         $form = $this->getForm();
         
@@ -377,10 +361,7 @@ class label_Labels extends core_Master
             $tQuery->where("#classId = '{$classId}'");
             $tQuery->where("#state != 'rejected'");
             
-            if (!$tQuery->count()) {
-                
-                return new Redirect($retUrl, '|Няма шаблон, който да се използва');
-            }
+            if (!$tQuery->count()) return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             
             while ($tRec = $tQuery->fetch()) {
                 $template = label_Templates::getTemplate($tRec->id);
@@ -390,6 +371,7 @@ class label_Labels extends core_Master
                 
                 foreach ($templatePlaceArr as $key => $v) {
                     $key = label_TemplateFormats::getPlaceholderFieldName($key);
+                   
                     if (isset($labelDataArr[$key])) {
                         $cnt++;
                     }
@@ -401,7 +383,7 @@ class label_Labels extends core_Master
                 if ($lCnt) {
                     $percent = ($cnt / $lCnt) * 100;
                 }
-                
+               
                 $dataColor = '#000000';
                 if ($percent >= 90) {
                     $dataColor = '#00ff00';
@@ -416,7 +398,7 @@ class label_Labels extends core_Master
                 $optArr[$tRec->id] = $opt;
             }
             
-            $form->setOptions('selectTemplateId', $optArr);
+            $form->setOptions('selectTemplateId', array('' => '') + $optArr);
             
             if (count($optArr) == 1) {
                 $redirect = TRUE;
@@ -481,7 +463,7 @@ class label_Labels extends core_Master
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         // Ако има права за отпечатване
         if (label_Prints::haveRightFor('print') && label_Labels::haveRightFor('uselabel', $data->rec)) {
@@ -497,7 +479,7 @@ class label_Labels extends core_Master
      * @param object $res
      * @param object $data
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Данни
         $previewLabelData = new stdClass();
@@ -524,7 +506,7 @@ class label_Labels extends core_Master
      * @param object $res
      * @param object $data
      */
-    static function on_BeforeRenderSingle($mvc, &$res, $data)
+    protected static function on_BeforeRenderSingle($mvc, &$res, $data)
     {
         // Рендираме етикетите
         $data->row->PreviewLabel = $mvc->renderLabel($data->PreviewLabel);
@@ -536,7 +518,7 @@ class label_Labels extends core_Master
      * 
      * @param object $data
      */
-    static function prepareLabel(&$data)
+    public static function prepareLabel(&$data)
     {
         $rec = $data->Label->rec;
         
@@ -670,14 +652,13 @@ class label_Labels extends core_Master
      * Рендираме етикете
      * 
      * @param object $data
-     * 
-     * @return core_Et - Шаблона, който ще връщаме
+     * @return core_ET - Шаблона, който ще връщаме
      */
-    static function renderLabel(&$data, $labelLayout=NULL)
+    public static function renderLabel(&$data, $labelLayout=NULL)
     {
         // Генерираме шаблона
         $allTpl = new core_ET();
-        
+       
         // Брой записи на страница
         setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
         
@@ -749,7 +730,7 @@ class label_Labels extends core_Master
      * @param object $res
      * @param object $data
      */
-    function on_AfterPrepareRetUrl($mvc, &$res, &$data)
+    protected static function on_AfterPrepareRetUrl($mvc, &$res, &$data)
     {
         // Ако е субмитната формата и сме натиснали бутона "Запис и нов"
         if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
@@ -769,7 +750,7 @@ class label_Labels extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако има запис
         if ($rec) {
@@ -821,7 +802,7 @@ class label_Labels extends core_Master
  	 * @param unknown_type $mvc
  	 * @param unknown_type $data
  	 */
-    function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Формата
         $form = $data->listFilter;
@@ -860,7 +841,7 @@ class label_Labels extends core_Master
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave($mvc, &$id, $rec)
+    protected static function on_AfterSave($mvc, &$id, $rec)
     {
         if (!$rec->templateId) {
             expect($rec->id);
@@ -879,7 +860,7 @@ class label_Labels extends core_Master
      * @param object $rec
      * @param object $nRec
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
         unset($nRec->searchKeywords);
         unset($nRec->printedCnt);
