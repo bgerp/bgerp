@@ -43,6 +43,18 @@ defIfNot('PLANNING_TASK_LABEL_ROTATION', 'yes');
 
 
 /**
+ * Широчина на превюто на артикула в етикета
+ */
+defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
+
+
+/**
+ * Височина на превюто на артикула в етикета
+ */
+defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -98,7 +110,9 @@ class planning_Setup extends core_ProtoSetup
     		'PLANNING_TASK_LABEL_WIDTH'                => array('int(min=1, max=5000)', 'caption=Шаблон за етикети на задачите->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_HEIGHT'               => array('int(min=1, max=5000)', 'caption=Шаблон за етикети на задачите->Височина,unit=px'),
     		'PLANNING_TASK_LABEL_ROTATION'             => array('enum(yes=Да, no=Не)', 'caption=Шаблон за етикети на задачите->Ротация'),
-    		);
+    		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'        => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
+    		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'       => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+    );
     
     /**
      * Списък с мениджърите, които съдържа пакета
