@@ -180,9 +180,11 @@ class plg_Search extends core_Plugin
                 
                 $wordBegin = ' ';
                 $wordEnd = '';
-                
+                $wordEndQ = '*';
+
                 if($strict === TRUE ||(is_numeric($strict) && $strict > strlen($w))) {
                     $wordEnd = ' ';
+                    $wordEndQ = '';
                 }
 
                 $mode = '+';
@@ -221,8 +223,7 @@ class plg_Search extends core_Plugin
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-
-                    if(strlen($w) < $query->mvc->db->getVariable('ft_min_word_len') || !empty($query->mvc->dbEngine)) {
+                    if(strlen($w) < 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
@@ -231,7 +232,7 @@ class plg_Search extends core_Plugin
                         $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
                     } else {
                         if($mode == '+') {
-                            $q .= " +{$w}*";
+                            $q .= " +{$w}{$wordEndQ}";
                         }
                         if($mode == '"') {
                             $q .= " \"{$w}\"";
@@ -246,7 +247,7 @@ class plg_Search extends core_Plugin
             $q = trim($q);
             
             if($q) {
-                $query->where("match(#searchKeywords) AGAINST('$q' IN BOOLEAN MODE)");
+                $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
             }
         }
     }

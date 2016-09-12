@@ -24,7 +24,7 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  4.".$this->act_SaleDiscountMinus();
         $res .= "  5.".$this->act_SaleDiscount101();
         $res .= "  6.".$this->act_CreateSaleVatInclude();
-        $res .= "  7.".$this->act_CreateSaleEURVatFree();
+        $res .= "  7.".$this->act_CreateSaleEURVatFree3();
         $res .= "  8.".$this->act_CreateSaleEURVatFreeAdv();
         $res .= "  9.".$this->act_CreateCreditDebitInvoice();
         $res .= "  10.".$this->act_CreateCreditDebitInvoiceVATFree();
