@@ -265,7 +265,7 @@ class sales_Quotations extends core_Master
        
        if(isset($form->rec->id)){
        		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
-       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
+       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId') as $fld){
        				$form->setReadOnly($fld);
        			}
        		}
