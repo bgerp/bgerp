@@ -2,7 +2,7 @@
 
 
 /**
- * Клас  'unit_MinkP' - тест PHP - рецепта с 3 етапа
+ * Клас  'unit_MinkBom' - тест PHP - рецепта с 3 етапа
  *
  *
  * @category  bgerp
@@ -15,9 +15,9 @@
  * Създава рецепта с 3 етапа, преди това - съставните артикули
  * Променени според новата система за ценови политики!
  */
-class unit_MinkP extends core_Manager
+class unit_MinkBom extends core_Manager
 {
-    //http://localhost/unit_MinkP/Run/
+    //http://localhost/unit_MinkBom/Run/
     public function act_Run()
     {
         
@@ -64,7 +64,7 @@ class unit_MinkP extends core_Manager
     /**
      * 1.Създава нов артикул - труд със себестойност 
      */
-    //http://localhost/unit_MinkP/CreateProductWork/
+    //http://localhost/unit_MinkBom/CreateProductWork/
     function act_CreateProductWork()
     {
         $browser = $this->SetUp();
@@ -95,7 +95,7 @@ class unit_MinkP extends core_Manager
     /**
      * 2.Създава нов артикул - Електричество със себестойност
      */
-    //http://localhost/unit_MinkP/CreateElectricity/
+    //http://localhost/unit_MinkBom/CreateElectricity/
     function act_CreateElectricity()
     {
         // Логваме се
@@ -129,7 +129,7 @@ class unit_MinkP extends core_Manager
     /**
      * 3.Създава нов артикул - опаковка
      */
-    //http://localhost/unit_MinkP/CreatePackage/
+    //http://localhost/unit_MinkBom/CreatePackage/
     function act_CreatePackage()
     {
         // Логваме се
@@ -153,7 +153,7 @@ class unit_MinkP extends core_Manager
     /**
      * 4.Създава нов артикул - материал 1
     */
-    //http://localhost/unit_MinkP/CreateMaterial1/
+    //http://localhost/unit_MinkBom/CreateMaterial1/
     function act_CreateMaterial1()
     {
         // Логваме се
@@ -176,7 +176,7 @@ class unit_MinkP extends core_Manager
     /**
      * 5.Създава нов артикул - материал 2
      */
-    //http://localhost/unit_MinkP/CreateMaterial2/
+    //http://localhost/unit_MinkBom/CreateMaterial2/
     function act_CreateMaterial2()
     {
         // Логваме се
@@ -199,7 +199,7 @@ class unit_MinkP extends core_Manager
     /**
      * 6.Създава нов артикул - отпадък 1
      */
-    //http://localhost/unit_MinkP/CreateWaste1/
+    //http://localhost/unit_MinkBom/CreateWaste1/
     function act_CreateWaste1()
     {
         // Логваме се
@@ -229,7 +229,7 @@ class unit_MinkP extends core_Manager
     /**
      * 7.Създава нов артикул - отпадък 2
      */
-    //http://localhost/unit_MinkP/CreateWaste2/
+    //http://localhost/unit_MinkBom/CreateWaste2/
     function act_CreateWaste2()
     {
         // Логваме се
@@ -261,7 +261,7 @@ class unit_MinkP extends core_Manager
     /**
      * 8.Създава нов артикул - отпадък 3
      */
-    //http://localhost/unit_MinkP/CreateWaste3/
+    //http://localhost/unit_MinkBom/CreateWaste3/
     function act_CreateWaste3()
     {
         // Логваме се
@@ -293,7 +293,7 @@ class unit_MinkP extends core_Manager
     /**
      * 9.Създава нов артикул - машина 1 (машинно време 1 етап)
      */
-    //http://localhost/unit_MinkP/CreateMash1/
+    //http://localhost/unit_MinkBom/CreateMash1/
     function act_CreateMash1()
     {
         // Логваме се
@@ -325,7 +325,7 @@ class unit_MinkP extends core_Manager
     /**
      * 10.Създава нов артикул - машина 2 (машинно време 2 етап)
      */
-    //http://localhost/unit_MinkP/CreateMash2/
+    //http://localhost/unit_MinkBom/CreateMash2/
     function act_CreateMash2()
     {
         // Логваме се
@@ -357,7 +357,7 @@ class unit_MinkP extends core_Manager
     /**
      * 11.Създава нов артикул - машина 3 (машинно време 3 етап)
      */
-    //http://localhost/unit_MinkP/CreateMash3/
+    //http://localhost/unit_MinkBom/CreateMash3/
     function act_CreateMash3()
     {
         // Логваме се
@@ -389,7 +389,7 @@ class unit_MinkP extends core_Manager
     /**
      * 12.Създава нов артикул - заготовка 1 (резултат от 1 етап)
      */
-    //http://localhost/unit_MinkP/CreateStage1/
+    //http://localhost/unit_MinkBom/CreateStage1/
     function act_CreateStage1()
     {
         // Логваме се
@@ -423,7 +423,7 @@ class unit_MinkP extends core_Manager
     /**
      * 13.Създава нов артикул - заготовка 2 (резултат от 2 етап)
      */
-    //http://localhost/unit_MinkP/CreateStage2/
+    //http://localhost/unit_MinkBom/CreateStage2/
     function act_CreateStage2()
     {
         // Логваме се
@@ -456,7 +456,7 @@ class unit_MinkP extends core_Manager
     /**
      * 14.Създава нов артикул - крайно изделие (резултат от 3 етап)
      */
-    //http://localhost/unit_MinkP/CreateTestBom/
+    //http://localhost/unit_MinkBom/CreateTestBom/
     function act_CreateTestBom()
     {
         // Логваме се
@@ -480,7 +480,7 @@ class unit_MinkP extends core_Manager
      * 15. Създаване на фирма-доставчик и папка към нея, допуска дублиране 
      * Select2 трябва да е деинсталиран
      */
-    //http://localhost/unit_MinkP/CreateCompany/
+    //http://localhost/unit_MinkBom/CreateCompany/
     function act_CreateCompany()
     {
         // Логване
@@ -510,7 +510,7 @@ class unit_MinkP extends core_Manager
     /**
      * 16. Създаване на склад
      */
-    //http://localhost/unit_MinkP/CreateStore/
+    //http://localhost/unit_MinkBom/CreateStore/
     function act_CreateStore()
     {
         // Логване
@@ -538,7 +538,7 @@ class unit_MinkP extends core_Manager
     /**
      * 17.Създава доставка на материалите
      */
-    //http://localhost/unit_MinkP/CreatePurchase/
+    //http://localhost/unit_MinkBom/CreatePurchase/
     function act_CreatePurchase()
     {  
         // Логваме се
@@ -612,7 +612,7 @@ class unit_MinkP extends core_Manager
     /**
      *18.Добавя рецепта за етап 1
      */
-    //http://localhost/unit_MinkP/CreateBomStage1/
+    //http://localhost/unit_MinkBom/CreateBomStage1/
     function act_CreateBomStage1()
     {
         // Логваме се
@@ -660,7 +660,7 @@ class unit_MinkP extends core_Manager
     /**
      *19.Добавя рецепта за етап 2
      */
-    //http://localhost/unit_MinkP/CreateBomStage2/
+    //http://localhost/unit_MinkBom/CreateBomStage2/
     function act_CreateBomStage2()
     {
         // Логваме се
@@ -704,7 +704,7 @@ class unit_MinkP extends core_Manager
     /**
      *20.Добавя рецепта за етап 3 - крайно изделие
      */
-    //http://localhost/unit_MinkP/CreateBomStage3/
+    //http://localhost/unit_MinkBom/CreateBomStage3/
     function act_CreateBomStage3()
     {
     
