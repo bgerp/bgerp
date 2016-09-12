@@ -906,17 +906,19 @@ class cat_Boms extends core_Master
     	$res = array();
     	 
     	$params = cat_Products::getParams($productId);
+    	
     	if(is_array($params)){
-    		foreach ($params as $paramName => $value){
+    		foreach ($params as $paramId => $value){
     			if(!is_numeric($value)) continue;
-    
+    			$paramName = cat_Params::fetchField($paramId, 'typeExt');
+    			
     			$key = mb_strtolower($paramName);
     			$key = preg_replace("/\s+/", "_", $key);
     			$key = "$" . $key;
     			$res[$key] = $value;
     		}
     	}
-    
+    	
     	if(count($res)){
     		return array($productId => $res);
     	}
