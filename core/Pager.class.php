@@ -200,6 +200,7 @@ class core_Pager extends core_BaseClass
 
         $q = clone ($query);
         $qCnt = clone ($query);
+        $qWork = clone ($query);
 
         // Извличаме резултатите за посочената страница
         setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
@@ -279,11 +280,15 @@ class core_Pager extends core_BaseClass
         expect(isset($resCnt));
 
         $this->itemsCount = $resCnt;
+        
+     
+       $query = $qWork;
  
-        $query = $query->mvc->getQuery();
         $this->calc();
         if($idCnt) {
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
+
+           //if($query->mvc->className == 'bgerp_Recently')  bp($ids, $this->rangeEnd - $this->rangeStart);
             $ids = implode(',', $ids);
             $query->where("#id IN ($ids)");
         } else {
