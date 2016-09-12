@@ -96,6 +96,11 @@
   margin: 2px 0 !important;
   text-align: left !important;
   line-height: normal;
+
+}
+
+.narrow .modal-toolbar.iw-contextMenu .button{
+  background-image: none !important;
 }
 
 input.button.more-btn {
