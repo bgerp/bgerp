@@ -247,6 +247,11 @@ class core_Query extends core_FieldSet
     function likeKeylist($field, $keylist, $or = FALSE)
     {
         $keylistArr = keylist::toArray($keylist);
+        
+        // Не споделяме с анонимния и системния потребител
+        if(stripos($field, 'shared') !== FALSE) {
+            unset($keylistArr[-1], $keylistArr[0]);
+        }
 
         $isFirst = TRUE;
 
@@ -268,6 +273,29 @@ class core_Query extends core_FieldSet
         return $this;
     }
 
+    
+    /**
+     * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
+     * Алтернативна функция с Regexp
+     */
+    function likeKeylist1($field, $keylist, $or = FALSE)
+    {
+        $keylistArr = keylist::toArray($keylist);
+
+        $isFirst = TRUE;
+
+        if(count($keylistArr)) {
+            foreach($keylistArr as $key => $value) {
+                if($regExp) $regExp .= '|';
+                $regExp .= '\\\|' . $key . '\\\|';
+            }
+
+            $this->where("#{$field} RLIKE '({$regExp})'", $or);
+        }
+
+        return $this;
+    } 
+    
 
     /**
      * Добавя ново условие с LIKE във WHERE клаузата
@@ -849,13 +877,23 @@ class core_Query extends core_FieldSet
             }
 
             foreach ($this->where as $expr) {
-                $expr = $this->expr2mysql($expr);
-                
-                if ($this->useExpr) {
-                    $having .= ($having ? " AND\n   " : "   ") . "({$expr})";
-                    $this->exprShow = arr::combine($this->exprShow, $this->usedFields);
+                if(stripos($expr, '#id in (') !== FALSE) {
+                    $expr = $this->expr2mysql($expr);
+                    if ($this->useExpr) {
+                        $having = "({$expr})" . ($having ? " AND\n   " : "   ") . $having;
+                        $this->exprShow = arr::combine($this->exprShow, $this->usedFields);
+                    } else {
+                        $where = "({$expr})" . ($where ? " AND\n   " : "   ") . $where;
+                    }
                 } else {
-                    $where .= ($where ? " AND\n   " : "   ") . "({$expr})";
+                    $expr = $this->expr2mysql($expr);
+
+                    if ($this->useExpr) {
+                        $having .= ($having ? " AND\n   " : "   ") . "({$expr})";
+                        $this->exprShow = arr::combine($this->exprShow, $this->usedFields);
+                    } else {
+                        $where .= ($where ? " AND\n   " : "   ") . "({$expr})";
+                    }
                 }
             }
             

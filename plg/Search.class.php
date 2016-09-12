@@ -247,7 +247,7 @@ class plg_Search extends core_Plugin
             $q = trim($q);
             
             if($q) {
-                $query->where("match(#searchKeywords) AGAINST('$q' IN BOOLEAN MODE)");
+                $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
             }
         }
     }

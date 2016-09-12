@@ -2152,6 +2152,9 @@ function prepareContextHtmlFromAjax() {
         $(holder).addClass('modal-toolbar');
         $(holder).attr('id', $(this).attr("data-id"));
         $(holder).attr('data-sizestyle', 'context');
+        $(holder).css('min-height', '120px');
+        $(holder).css('min-width', '140px');
+
 
         $(this).parent().append(holder);
     });

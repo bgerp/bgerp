@@ -30,7 +30,7 @@ class label_SequenceIntf
      */
     public function getLabelPlaceholders($id)
     {
-    	return $this->class->getLabelPlaceholders();
+    	return $this->class->getLabelPlaceholders($id);
     }
     
     

@@ -127,7 +127,7 @@ class tcost_Zones extends core_Detail
         	$bestSimilarityCount = 0;
         	while($rec = $query->fetch()) {
             	$similarityCount = self::strNearPCode((string)$pCode, $rec->pCode);
-                	if($similarityCount > $bestSimilarityCount) {
+                	if($similarityCount >= $bestSimilarityCount) {
                     	$bestSimilarityCount = $similarityCount;
                     	$bestZone = $rec;
                 }

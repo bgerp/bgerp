@@ -265,7 +265,7 @@ class sales_Quotations extends core_Master
        
        if(isset($form->rec->id)){
        		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
-       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
+       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId') as $fld){
        				$form->setReadOnly($fld);
        			}
        		}
@@ -524,6 +524,25 @@ class sales_Quotations extends core_Master
     			$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
     			
     			tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    			
+    			// Ако има транспорт за начисляване
+    			if($leftTransportCost > 0){
+    				
+    				// Ако може да се добавят артикули в офертата
+    				if(sales_QuotationsDetails::haveRightFor('add', (object)array('quotationId' => $rec->id))){
+    				
+    					// Добавяне на линк, за добавяне на артикул 'транспорт' със цена зададената сума
+    					$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    					$packPrice = $leftTransportCost * $rec->currencyRate;
+    				
+    					$url = array('sales_QuotationsDetails', 'add', 'quotationId' => $rec->id, 'productId' => 23, 'packPrice' => $packPrice, 'ret_url' => TRUE);
+    					$link = ht::createLink('Добавяне', $url, FALSE, array('ef_icon' => 'img/16/lorry_go.png', "style" => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
+    					$row->btnTransport = $link->getContent();
+    				
+    				}
+    			}
+    				
+    			
     		}
     	}
     	
