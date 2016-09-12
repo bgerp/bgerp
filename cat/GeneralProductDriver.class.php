@@ -235,21 +235,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Нормализиране на името на параметъра
-	 * 
-	 * @param string $name
-	 * @return string
-	 */
-	public static function normalizeName($name)
-	{
-		$name = preg_replace('/\s+/', '_', $name);
-		$name = mb_strtolower($name);
-		
-		return $name;
-	}
-	
-	
-	/**
 	 * ХТМЛ представяне на артикула (img)
 	 *
 	 * @param int $rec - запис на артикул

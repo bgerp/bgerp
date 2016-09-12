@@ -136,7 +136,7 @@ class cat_Params extends embed_Manager
         $rec->typeExt = tr($rec->name);
         
         if (!empty($rec->suffix)) {
-            $rec->typeExt .= ' [' . tr($rec->suffix) . ']';
+            $rec->typeExt .= ' (' . tr($rec->suffix) . ')';
         }
     }
     
@@ -323,9 +323,53 @@ class cat_Params extends embed_Manager
     }
     
     
-    function act_Test()
+    /**
+     * Връща нормализирано име на параметъра
+     * 
+     * @param mixed $rec         - ид или запис на параметър
+     * @param boolean $upperCase - всички букви да са в долен или в горен регистър
+     * @param string $lg         - език на който да е преведен
+     * @return string $name      - нормализирано име
+     */
+    public static function getNormalizedName($rec, $upperCase = FALSE, $lg = 'bg')
     {
-    	$r = cat_Products::getParams('2776');
-    	bp($r);
+    	$rec = cat_Params::fetchRec($rec, 'name,suffix');
+    	
+    	core_Lg::push($lg);
+    	$name = tr($rec->name) . ((!empty($rec->suffix)) ? " (" . tr($rec->suffix) . ")": '');
+    	$name = preg_replace('/\s+/', '_', $name);
+    	$name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
+    	core_Lg::pop($lg);
+    	
+    	return $name;
+    }
+    
+    
+    /**
+     * Разбира масив с параметри на масив с ключвове, преведените
+     * имена на параметрите
+     * 
+     * @param array $params      - масив с параметри
+     * @param boolean $upperCase - дали имената да са в долен или горен регистър
+     * @return array $arr        - масив
+     */
+    public static function getParamNameArr($params, $upperCase = FALSE)
+    {
+    	$arr = array();
+    	if(is_array($params)){
+    		foreach ($params as $key => $value){
+    			expect($rec = cat_Params::fetch($key, 'name,suffix'));
+    			
+    			// Името на параметъра се превежда на местния език
+    			$key1 = self::getNormalizedName($rec, $upperCase);
+    			$arr[$key1] = $value;
+    			
+    			// Името на параметъра се превежда на глобалния език
+    			$key2 = self::getNormalizedName($rec, $upperCase, 'en');
+    			$arr[$key2] = $value;
+    		}
+    	}
+    	
+    	return $arr;
     }
 }

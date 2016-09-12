@@ -904,17 +904,12 @@ class cat_Boms extends core_Master
     public static function getProductParams($productId)
     {
     	$res = array();
-    	 
     	$params = cat_Products::getParams($productId);
     	
     	if(is_array($params)){
     		foreach ($params as $paramId => $value){
     			if(!is_numeric($value)) continue;
-    			$paramName = cat_Params::fetchField($paramId, 'typeExt');
-    			
-    			$key = mb_strtolower($paramName);
-    			$key = preg_replace("/\s+/", "_", $key);
-    			$key = "$" . $key;
+    			$key = "$" . cat_Params::getNormalizedName($paramId);
     			$res[$key] = $value;
     		}
     	}
@@ -978,32 +973,6 @@ class cat_Boms extends core_Master
     	}
     	
     	return $scope;
-    }
-    
-    
-    /**
-     * Връща допустимите параметри за формулите
-     *
-     * @param stdClass $rec - запис
-     * @return array - допустимите параметри с техните стойностти
-     */
-    public static function getRowParams($productId)
-    {
-    	$res = array();
-    	
-    	$params = cat_Products::getParams($productId);
-    	if(is_array($params)){
-    		foreach ($params as $paramName => $value){
-    			if(!is_numeric($value)) continue;
-    
-    			$key = mb_strtolower($paramName);
-    			$key = preg_replace("/\s+/", "_", $key);
-    			$key = "$" . $key;
-    			$res[$key] = $value;
-    		}
-    	}
-    
-    	return $res;
     }
     
     
