@@ -191,6 +191,10 @@ class label_Labels extends core_Master
                     
                     $data->form->setDefault('classId', $objId);
                     $data->form->setDefault('objId', $classId);
+                    
+                    $title = cls::get($classId)->getHandle($objId);
+                    $title = "#{$title}/" . dt::mysql2verbal(dt::now());
+                    $data->form->setDefault('title', $title);
                 }
             } else {
                 
