@@ -1096,6 +1096,22 @@ class sales_Sales extends deals_DealMaster
     		$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
     		
     		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    		
+    		// Ако има транспорт за начисляване
+    		if($leftTransportCost > 0){
+    			
+    			// Ако може да се добавят артикули в офертата
+    			if(sales_SalesDetails::haveRightFor('add', (object)array('saleId' => $rec->id))){
+    				
+    				// Добавяне на линк, за добавяне на артикул 'транспорт' със цена зададената сума
+    				$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    				$packPrice = $leftTransportCost * $rec->currencyRate;
+    					
+    				$url = array('sales_SalesDetails', 'add', 'saleId' => $rec->id,'productId' => 23, 'packPrice' => $packPrice, 'ret_url' => TRUE);
+    				$link = ht::createLink('Добавяне', $url, FALSE, array('ef_icon' => 'img/16/lorry_go.png', "style" => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
+    				$row->btnTransport = $link->getContent();
+    			}
+    		}
     	}
     }
     

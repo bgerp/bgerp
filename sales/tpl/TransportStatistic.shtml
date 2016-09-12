@@ -10,7 +10,7 @@
       	<td>[#expectedTransportCost#]</td>
         <td>[#hiddenTransportCost#]</td>
         <td>[#visibleTransportCost#]</td>
-        <td>[#leftTransportCost#]</td>
+        <td>[#leftTransportCost#] [#btnTransport#]</td>
       </tr>
     </table>
 </div>

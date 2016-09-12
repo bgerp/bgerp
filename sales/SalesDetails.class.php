@@ -137,8 +137,8 @@ class sales_SalesDetails extends deals_DealDetail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::getDealDetailFields($this);
-        
         $this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,input=none');
+		$this->setField('packPrice', 'silent');
     }
     
     
