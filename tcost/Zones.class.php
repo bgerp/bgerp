@@ -96,7 +96,6 @@ class tcost_Zones extends core_Detail
         $this->FLD('zoneId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
         $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory,smartCenter');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
-        $this->setDbUnique("countryId, pCode");
     }
 
 
@@ -122,7 +121,7 @@ class tcost_Zones extends core_Detail
             $rec = $query->fetch();
             $bestZone = $rec;
         } else{
-        	// Обхождане на tcost_zones базата и намиране на най-подходящата зона
+        	// Обхождане на tcost_Zones базата и намиране на най-подходящата зона
         	$query->where(array('#countryId = [#1#]', $countryId));
         	$bestSimilarityCount = 0;
         	while($rec = $query->fetch()) {
@@ -168,5 +167,38 @@ class tcost_Zones extends core_Detail
         }
         
         return strlen($pc1);
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		
+    		// Намиране на всички зони за това условие на доставка
+    		$deliveryTermId = tcost_FeeZones::fetchField($rec->zoneId, 'deliveryTermId');
+    		$zQuery = tcost_FeeZones::getQuery();
+    		$zQuery->where("#deliveryTermId = {$deliveryTermId}");
+    		$zonesWithSameDeliveryCode = array_map(create_function('$o', 'return $o->id;'), $zQuery->fetchAll());
+    		$zonesWithSameDeliveryCode = array_values($zonesWithSameDeliveryCode);
+    		
+    		// Не може пощенския код да присъства за една и съща държава в различни зони към едно условие на доставка
+    		$query = self::getQuery();
+    		$query->in('zoneId', $zonesWithSameDeliveryCode);
+    		$query->where("#countryId = {$rec->countryId} AND #pCode = '{$rec->pCode}' AND #id!= '{$rec->id}'");
+    		$query->limit(1);
+    		
+    		// Ако има вече такъв код, сетва се грешка
+    		if($fRec = $query->fetch()){
+    			$zoneName = tcost_FeeZones::getTitleById($fRec->zoneId);
+    			$form->setError('countryId,pCode', "Кода и/или държавата вече са добавени в зона|* <b>{$zoneName}</b>, |за същото условие на доставка");
+    		}
+    	}
     }
 }
