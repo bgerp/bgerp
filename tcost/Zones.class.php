@@ -127,7 +127,7 @@ class tcost_Zones extends core_Detail
         	$bestSimilarityCount = 0;
         	while($rec = $query->fetch()) {
             	$similarityCount = self::strNearPCode((string)$pCode, $rec->pCode);
-                	if($similarityCount >= $bestSimilarityCount) {
+                	if($similarityCount > $bestSimilarityCount) {
                     	$bestSimilarityCount = $similarityCount;
                     	$bestZone = $rec;
                 }
@@ -143,7 +143,7 @@ class tcost_Zones extends core_Detail
         return array('zoneId' => $bestZone->zoneId, 'zoneName' => $zoneName);
     }
 
-
+    
     /**
      * Сравнява колко близо са два пощенски кода
      * 
@@ -153,10 +153,14 @@ class tcost_Zones extends core_Detail
      */
     private static function strNearPCode($pc1, $pc2)
     {
+        if(strlen($pc1) > strlen($pc2)) {
+        	list($pc1, $pc2) = array($pc2, $pc1);
+        }
+    	
         // Връща стринга с най-малък код
         $cycleNumber = min(strlen($pc1), strlen($pc2));
 
-        for($i= 0; $i<$cycleNumber; $i++)
+        for($i= 0; $i < $cycleNumber; $i++)
         {
             if($pc1{$i} != $pc2{$i}) {
                 return $i;
