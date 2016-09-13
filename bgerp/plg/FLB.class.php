@@ -61,6 +61,20 @@ class bgerp_plg_FLB extends core_Plugin
 		$form = &$data->form;
 		$form->setField($mvc->canActivateUserFld, 'mandatory');
 		
+		$roles = array();
+		$rQuery = core_Roles::getQuery();
+		$rQuery->where("#type = 'team'");
+		while($rRec = $rQuery->fetch()){
+			$roles[$rRec->id] = $rRec->role;
+		}
+		
+		if(count($roles)){
+			$roles = array('x' => (object)array('group' => TRUE, 'title' => tr('Екип'))) + $roles;
+		}
+		
+		$form->setSuggestions($mvc->canSelectRoleFld, $roles);
+		$form->setSuggestions($mvc->canActivateRoleFld, $roles);
+		
 		$roles = arr::make($mvc->canActivate);
 		
 		// Отсяване само на потребителите с избраните роли
