@@ -3,7 +3,7 @@
     border-radius: 8px;
     padding: 2px 3px 2px 3px;
     width: 94mm;
-    font-size: 16px;
+    font-size: 1em;
 }
 
 .label-holder table {
@@ -16,6 +16,8 @@
     border-left: 1px solid #aaa;
     border-top: 1px solid #aaa;
     padding: 0 1mm;
+    font-size: 17px;
+    font-weight: bold;
 }
 
 .label-holder table tr > td.no-border-left {
@@ -31,8 +33,8 @@
 }
 
 .details-label {
+    top: -2mm;
     position: relative;
-    top: -2px;
 }
 
 .small {
@@ -48,50 +50,38 @@
 .small.left {
     float: left;
 }
-.bold {
-    font-weight:bold;
-}
+
 .label-preview {
-    margin: 0 auto;
+    width: 27mm;
+}
+
+.label-preview img {
+    max-width: 27mm;
 }
 
 .description {
     border-left: 1px solid #aaa;
-    font-weight: bold;
-    height: 10mm;
-}
-.barcode-holder{
-    margin: 0 auto;
-}
-.small-letter{
-    font-size: 12px !important;
-    font-weight: normal !important;
+    height: 15mm;
 }
 .clearfix21 {
     clear: both;
 }
 </style>
-
 <div class="label-holder">
     <table cellpadding="0">
         <tr>
-            <td class="top-descr no-border-left no-border-top bold">
+            <td class="top-descr no-border-left no-border-top">
                 [#JOB#]
             </td>
-            <td colspan="2" class="top-descr no-border-top bold">
+            <td colspan="2" class="top-descr no-border-top">
                 [#NAME#]
-            </td>
-            <td rowspan="4" class="no-border-top" width="17%" align="center" valign="middle">
-                <div class="barcode-holder">
-                    [#BARCODE#]
-                </div>
             </td>
         </tr>
         <tr>
-            <td class="top-descr no-border-left bold">
+            <td class="top-descr no-border-left">
                 [#ORDER#]
             </td>
-            <td colspan="2" class="top-descr bold">
+            <td colspan="2" class="top-descr">
                 [#MATERIAL#]
             </td>
         </tr>
@@ -101,23 +91,28 @@
                     [#preview#]
                 </div>
             </td>
-            <td width="50%" class="description">
+            <td width="40%" class="description">
                 <div class="details-label">
                     <span class="small top left">quantity</span>
                     <span class="small top right">[#MEASURE_ID#]</span>
                     <div class="clearfix21"></div>
                 </div>
-                <span class="bold"> [#QUANTITY#]</span>
+                [#QUANTITY#]
+            </td>
+            <td rowspan="3" width="27%" align="center" valign="middle">
+                <div class="barcode-holder">
+                    [#BARCODE#]
+                </div>
             </td>
         </tr>
         <tr>
             <td class="description">
                 <div class="details-label">
                     <span class="small left">size</span>
-                    <span class="small right">sm</span>
+                    <span class="small right">cm</span>
                     <div class="clearfix21"></div>
                 </div>
-                <span class="bold">[#SIZE#]</span>
+                [#SIZE#]
             </td>
         </tr>
         <tr>
