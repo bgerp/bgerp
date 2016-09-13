@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_drivers_ProductionTaskProducts'
  *
@@ -32,25 +33,19 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,type,productId,packagingId,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'type,productId,packagingId,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'indTime,totalTime';
+    public $hideListFieldsIfEmpty = 'indTime,totalTime';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created,planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created,planning_Wrapper';
     
     
     /**
@@ -121,7 +116,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    public static function on_CalcTotalTime(core_Mvc $mvc, $rec)
+    protected static function on_CalcTotalTime(core_Mvc $mvc, $rec)
     {
     	if (empty($rec->indTime) || empty($rec->realQuantity)) {
     		return;
@@ -185,9 +180,10 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		$form->setField('packagingId', 'input=hidden');
     	}
     	
+    	$taskInfo = planning_Tasks::getTaskInfo($data->masterRec);
     	$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-    	$shortUom = cat_UoM::getShortName($data->masterRec->packagingId);
-    	$unit = tr('за') . " " . $Double->toVerbal($data->masterRec->plannedQuantity) . " " . $shortUom;
+    	$shortUom = cat_UoM::getShortName($taskInfo->packagingId);
+    	$unit = tr('за') . " " . $Double->toVerbal($taskInfo->plannedQuantity) . " " . $shortUom;
     	$unit = str_replace("&nbsp;", ' ', $unit);
     	
     	$form->setField('plannedQuantity', array('unit' => $unit));

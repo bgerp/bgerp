@@ -282,11 +282,28 @@ class planning_Tasks extends tasks_Tasks
 	}
 	
 	
+	/**
+	 * Информация за произведения артикул по задачата
+	 *
+	 * @param stdClass $rec
+	 * @return stdClass $arr
+	 * 			  o productId       - ид на артикула
+	 * 			  o packagingId     - ид на опаковката
+	 * 			  o quantityInPack  - количество в опаковка
+	 * 			  o plannedQuantity - планирано количество
+	 * 			  o wastedQuantity  - бракувано количество
+	 * 			  o totalQuantity   - прозведено количество
+	 * 			  o storeId         - склад
+	 * 			  o fixedAssets     - машини
+	 * 			  o indTime         - време за пускане
+	 * 			  o startTime       - време за прозиводство
+	 */
 	public static function getTaskInfo($id)
 	{
 		$rec = static::fetchRec($id);
+		
 		$Driver = static::getDriver($rec);
-		$info = $Driver->getProductDriverInfo($id);
+		$info = $Driver->getProductDriverInfo($rec);
 		
 		return $info;
 	}
