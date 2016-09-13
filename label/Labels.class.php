@@ -187,7 +187,7 @@ class label_Labels extends core_Master
                   $data->form->setDefault('objId', $classId);
                     
                   $title = cls::get($classId)->getHandle($objId);
-                  $title = "#{$title}/" . dt::mysql2verbal(dt::now());
+                  $title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
                   $data->form->setDefault('title', $title);
               }
          } else {
