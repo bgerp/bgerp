@@ -471,7 +471,18 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     		}
     	}
     	
-    	// Клонираме параметрите от артикула
-    	cat_products_Params::cloneParams('cat_Products', $rec->productId, 'planning_Tasks', $rec->id);
+    	// Копиране на параметрите на артикула към задачата
+    	$tasksClassId = planning_Tasks::getClassId();
+    	$params = cat_Products::getParams($rec->productId);
+    	if(is_array($params)){
+    		foreach ($params as $k => $v){
+    			$nRec = (object)array('paramId' => $k, 'paramValue' => $v, 'classId' => $tasksClassId, 'productId' => $rec->id);
+    			if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$k}", 'id')){
+    				$nRec->id = $id;
+    			}
+    			 
+    			cat_products_Params::save($nRec, NULL, "REPLACE");
+    		}
+    	}
     }
 }
