@@ -375,8 +375,8 @@ class tcost_Calcs extends core_Manager
     	foreach ($products as $p1){
     		
     		// Намира се обемното му тегло и се съжура
-    		$singleWeight = cat_Products::getParams($p1->{$productFld}, 'transportWeight');
-    		$singleVolume = cat_Products::getParams($p1->{$productFld}, 'transportVolume');
+    		$singleWeight = cat_Products::getWeight($p1->productId, $p1->packagingId);
+    		$singleVolume = cat_Products::getVolume($p1->productId, $p1->packagingId);
     		$singleWeight = $TransportCalc->getVolumicWeight($singleWeight, $singleVolume);
     		$totalWeight += $singleWeight * $p1->{$quantityFld};
     	}
