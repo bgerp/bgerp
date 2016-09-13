@@ -278,6 +278,7 @@ class planning_Tasks extends tasks_Tasks
 		// Генериране на баркод от серийния номер, според зададените параметри
 		$img = barcode_Generator::getLink($barcodeType, $serial, $size, $attr);
 		
+		// Връщане на генерираното изображение
 		return $img;
 	}
 	
@@ -318,11 +319,11 @@ class planning_Tasks extends tasks_Tasks
 	public function getLabelPlaceholders($id)
 	{
 		expect($rec = planning_Tasks::fetchRec($id));
-		$tInfo = planning_Tasks::getTaskInfo($rec);
 		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW');
 		
 		// Извличане на всички параметри на артикула
-		$params = cat_Products::getParams($tInfo->productId, NULL, TRUE);
+		$params = static::getTaskProductParams($rec, TRUE);
+		
 		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
 		$fields = array_merge($fields, $params);
 		
@@ -366,7 +367,7 @@ class planning_Tasks extends tasks_Tasks
 		
 		// Извличане на всички параметри на артикула
 		Mode::push('text', 'plain');
-		$params = cat_Products::getParams($tInfo->productId, NULL, TRUE);
+		$params = static::getTaskProductParams($rec, TRUE);
 		Mode::pop('text');
 		
 		$params = cat_Params::getParamNameArr($params, TRUE);
@@ -386,6 +387,38 @@ class planning_Tasks extends tasks_Tasks
 	}
     
     
+	/**
+	 * Помощна функция извличаща параметрите на задачата
+	 * 
+	 * @param stdClass $rec   - запис
+	 * @param boolean $verbal - дали параметрите да са вербални
+	 * @return array $params - масив с обеднението на параметрите на задачата и тези на артикула
+	 */
+	public static function getTaskProductParams($rec, $verbal = FALSE)
+	{
+		// Кои са параметрите на артикула
+		$classId = planning_Tasks::getClassId();
+		$tInfo = planning_Tasks::getTaskInfo($rec);
+		$productParams = cat_Products::getParams($tInfo->productId, NULL, TRUE);
+		
+		// Кои са параметрите на задачата
+		$params = array();
+		$query = cat_products_Params::getQuery();
+		$query->where("#classId = {$classId} AND #productId = {$rec->id}");
+		$query->show('paramId,paramValue');
+		while($dRec = $query->fetch()){
+			$dRec->paramValue = ($verbal === TRUE) ? cat_Params::toVerbal($dRec->paramId, $dRec->paramValue) : $dRec->paramValue;
+			$params[$dRec->paramId] = $dRec->paramValue;
+		}
+		
+		// Обединяване на параметрите на задачата с тези на артикула
+		$params = $params + $productParams;
+		
+		// Връщане на параметрите
+		return $params;
+	}
+	
+	
     /**
      * Броя на етикетите, които могат да се отпечатат
      * 
@@ -398,8 +431,9 @@ class planning_Tasks extends tasks_Tasks
      */
     public function getEstimateCnt($id, &$allowSkip)
     {
-        $allowSkip = TRUE;
-        
-        return 100 + $id;
+		// Планираното количество
+    	$tInfo = static::getTaskInfo($id);
+		
+        return $tInfo->plannedQuantity;
     }
 }
