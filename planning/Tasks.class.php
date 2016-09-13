@@ -376,7 +376,18 @@ class planning_Tasks extends tasks_Tasks
 		// Генериране на превю на артикула за етикети
 		$previewWidth = planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH');
 		$previewHeight = planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT');
-		$preview = cat_Products::getPreview($tInfo->productId, array($previewWidth, $previewHeight));
+		
+		// Ако в задачата има параметър за изглед, взима се той
+		$previewParamId = cat_Params::fetchIdBySysId('preview');
+		if($prevValue = cat_products_Params::fetchField("#classId = {$this->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$preview = $Fancybox->getImage($prevValue, array($previewWidth, $previewHeight), array('550', '550'))->getContent();
+		} else {
+			
+			// Иначе се взима от дефолтния параметър
+			$preview = cat_Products::getPreview($tInfo->productId, array($previewWidth, $previewHeight));
+		}
+		
 		if(!empty($preview)){
 			$res['ИЗГЛЕД'] = $preview;
 			$res['PREVIEW'] = $preview;
@@ -390,9 +401,9 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Помощна функция извличаща параметрите на задачата
 	 * 
-	 * @param stdClass $rec   - запис
-	 * @param boolean $verbal - дали параметрите да са вербални
-	 * @return array $params - масив с обеднението на параметрите на задачата и тези на артикула
+	 * @param stdClass $rec     - запис
+	 * @param boolean $verbal   - дали параметрите да са вербални
+	 * @return array $params    - масив с обеднението на параметрите на задачата и тези на артикула
 	 */
 	public static function getTaskProductParams($rec, $verbal = FALSE)
 	{
