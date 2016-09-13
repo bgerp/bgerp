@@ -65,6 +65,33 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Информация за произведения артикул по задачатаз
+	 * 
+	 * @param stdClass $rec
+	 * @return stdClass $arr
+	 * 			  o productId       - ид на артикула
+	 * 			  o packagingId     - ид на опаковката
+	 * 			  o quantityInPack  - количество в опаковка
+	 * 			  o plannedQuantity - планирано количество
+	 * 			  o wastedQuantity  - бракувано количество
+	 * 			  o totalQuantity   - прозведено количество
+	 */
+	public function getProductDriverInfo($rec)
+	{
+		$arr = array();
+		
+		$arr['productId']       = $rec->productId;
+		$arr['packagingId']     = $rec->packagingId;
+		$arr['quantityInPack']  = $rec->quantityInPack;
+		$arr['plannedQuantity'] = $rec->plannedQuantity;
+		$arr['wastedQuantity']  = $rec->totalQuantity;
+		$arr['totalQuantity']   = $rec->totalQuantity;
+		
+		return (object)$arr;
+	}
+	
+	
+	/**
 	 * След преобразуване на записа в четим за хора вид.
 	 */
 	public static function on_AfterRecToVerbal(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
