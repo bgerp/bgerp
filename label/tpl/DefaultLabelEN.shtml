@@ -116,7 +116,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="3" class="description small-letter">[#label_text#]</td>
+            <td class="description small-letter">[#label_text#]</td>
         </tr>
     </table>
 </div>
