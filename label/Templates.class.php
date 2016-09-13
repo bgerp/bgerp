@@ -124,6 +124,14 @@ class label_Templates extends core_Master
     public static $cache = array();
     
     
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sysId';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
