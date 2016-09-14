@@ -580,7 +580,11 @@ class sales_Quotations extends core_Master
     	
     	// Изчисляване на общото тегло на офертата
     	$totalWeight = tcost_Calcs::getTotalWeight($products, $TransportCalc);
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $rec->deliveryLocationId);
+    	$locationId  = NULL;
+    	if(isset($rec->deliveryPlaceId)){
+    		$locationId  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
+    	}
+    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId);
     	 
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
