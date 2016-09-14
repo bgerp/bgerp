@@ -231,9 +231,9 @@ class store_TransfersDetails extends doc_Detail
     	if ($form->isSubmitted()){
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
-            $rec->weight = cat_Products::getWeight($rec->newProductId);
-            $rec->volume = cat_Products::getVolume($rec->newProductId);
-            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+            $rec->weight = cat_Products::getWeight($rec->newProductId, $rec->packagingId, $rec->quantity);
+            $rec->volume = cat_Products::getVolume($rec->newProductId, $rec->packagingId, $rec->quantity);
     	}
     }
     

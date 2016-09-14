@@ -493,7 +493,7 @@ abstract class store_DocumentMaster extends core_Master
     	$query->where("#lineId = {$masterData->rec->id}");
     	$query->where("#state != 'rejected'");
     	$query->orderBy("#createdOn", 'DESC');
-    	 
+    	
     	$i = 1;
     	while($dRec = $query->fetch()){
     		$dRec->rowNumb = $i;

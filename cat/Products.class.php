@@ -1386,21 +1386,28 @@ class cat_Products extends embed_Manager {
     /**
      * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
      * 
-     * @param int $productId - ид на продукт
+     * @param int $productId   - ид на продукт
      * @param int $packagingId - ид на опаковка
+     * @param int $quantity    - общо количество
      * @return double - теглото на единица от продукта
      */
-    public static function getWeight($productId, $packagingId = NULL)
+    public static function getWeight($productId, $packagingId = NULL, $quantity)
     {
     	$weight = 0;
     	
     	// Транспортното тегло
     	$weight = static::getParams($productId, 'transportWeight');
+    	if($weight){
+    		$weight *= $quantity;
+    	}
     	
     	// Ако няма прави се опит да се изчисли от опаковката
     	if(!$weight){
     		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
     			$weight = $pack->netWeight + $pack->tareWeight;
+    			if($weight){
+    				$weight *= $quantity / $pack->quantity;
+    			}
     		}
     	}
     	
@@ -1411,21 +1418,28 @@ class cat_Products extends embed_Manager {
 	/**
      * Връща обема на единица от продукта, ако е в опаковка връща нейния обем
      * 
-     * @param int $productId - ид на продукт
+     * @param int $productId   - ид на продукт
      * @param int $packagingId - ид на опаковка
+     * @param int $quantity    - общо количество
      * @return double - теглото на единица от продукта
      */
-    public static function getVolume($productId, $packagingId = NULL)
+    public static function getVolume($productId, $packagingId = NULL, $quantity)
     {
     	$volume = 0;
     	
     	// Транспортният обем
     	$volume = static::getParams($productId, 'transportVolume');
+    	if($volume){
+    		$volume *= $quantity;
+    	}
     	
     	// Ако няма и има опаковка, се прави опит да се сметне обема от опаковката
     	if(!$volume){
     		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
     			$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
+    			if($volume){
+    				$volume *= $quantity / $pack->quantity;
+    			}
     		}
     	}
     	

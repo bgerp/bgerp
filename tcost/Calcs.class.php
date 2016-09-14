@@ -366,7 +366,7 @@ class tcost_Calcs extends core_Manager
      * @param string $quantityFld - поле съдържащо количеството на артикул
      * @return double $totalWeight - общото тегло
      */
-    public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity')
+    public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity',  $packagingFld = 'packagingId')
     {
     	$totalWeight = 0;
     	if(!is_array($products)) return $totalWeight;
@@ -374,11 +374,10 @@ class tcost_Calcs extends core_Manager
     	// За всеки артикул в масива
     	foreach ($products as $p1){
     		
-    		// Намира се обемното му тегло и се съжура
-    		$singleWeight = cat_Products::getWeight($p1->productId, $p1->packagingId);
-    		$singleVolume = cat_Products::getVolume($p1->productId, $p1->packagingId);
-    		$singleWeight = $TransportCalc->getVolumicWeight($singleWeight, $singleVolume);
-    		$totalWeight += $singleWeight * $p1->{$quantityFld};
+    		// Намира се обемното му тегло и се съдържа
+    		$singleWeight = cat_Products::getWeight($p1->{$productFld}, $p1->{$packagingFld}, $p1->{$quantityFld});
+    		$singleVolume = cat_Products::getVolume($p1->{$productFld}, $p1->{$packagingFld}, $p1->{$quantityFld});
+    		$totalWeight += $TransportCalc->getVolumicWeight($singleWeight, $singleVolume);
     	}
     	
     	// Връщане на общото тегло
