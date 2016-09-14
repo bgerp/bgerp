@@ -362,7 +362,8 @@ class doc_Threads extends core_Manager
         
         $conf = core_Packs::getConfig('doc');
         
-        if ($conf->DOC_REPAIR_STATE == 'yes') {
+        // Ако е зададено да се поправят всички стойности
+        if (doc_Setup::get('REPAIR_STATE') == 'yes') {
             $resArr += self::repairStates($from, $to, $delay);
         }
         
@@ -400,6 +401,9 @@ class doc_Threads extends core_Manager
                 if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
                 
                 try {
+                    
+                    if (!cls::load($cRec->docClass, TRUE)) continue;
+                    
                     $clsInst = cls::get($cRec->docClass);
                     $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
                     
