@@ -183,4 +183,15 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		$tpl = new ET('');
     	}
     }
+    
+    
+    /**
+     * Преди запис на продукт
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	$quantity = $rec->packQuantity * $rec->quantityInPack;
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $quantity);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $quantity);
+    }
 }
