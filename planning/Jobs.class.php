@@ -332,15 +332,11 @@ class planning_Jobs extends core_Master
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
     		
-    		// Колко е транспортното тегло
-    		if($weight = cls::get('cat_Products')->getWeight($rec->productId)){
-    			$rec->brutoWeight = $weight * $rec->quantity;
-    		} else {
-    			$rec->brutoWeight = NULL;
-    		}
+    		$weight = cat_Products::getWeight($rec->productId, NULL, $rec->quantity);
+    		$rec->brutoWeight = ($weight) ? $weight : NULL;
     		
     		// Колко е еденичното тегло
-    		if($weight = cat_Products::getParams($rec->productId, 'weight')){
+    		if($weight = cat_Products::getParams($rec->productId, 'transportWeight')){
     			$rec->weight = $weight * $rec->quantity;
     		} else {
     			$rec->weight = NULL;
