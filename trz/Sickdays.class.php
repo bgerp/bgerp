@@ -38,7 +38,7 @@ class trz_Sickdays extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trz_Wrapper, doc_DocumentPlg,acc_plg_DocumentSummary, 
-    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank';
+    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank';
     
     
     /**
@@ -165,6 +165,8 @@ class trz_Sickdays extends core_Master
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
     	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none');
     	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none');
+    	
+    	$this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители,mandatory');
     }
 
     
@@ -197,11 +199,11 @@ class trz_Sickdays extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$data->form->setDefault('reason', 3);
-        if(Request::get('accruals')){
+        //if(Request::get('accruals')){
         	$data->form->setField('paidByEmployer', 'input, mandatory');
         	$data->form->setField('paidByHI', 'input, mandatory');
         	
-        }
+        //}
         
         $rec = $data->form->rec;
         
@@ -234,6 +236,15 @@ class trz_Sickdays extends core_Master
     }
     
     
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
 	    if($action == 'accruals'){
@@ -247,6 +258,7 @@ class trz_Sickdays extends core_Master
 	    }
     }
 
+    
     /**
      *
      */
@@ -269,6 +281,7 @@ class trz_Sickdays extends core_Master
     	$mvc->updateSickdaysToCustomSchedules($rec->id);
     }
     
+    
     /**
      * Изпълнява се след начално установяване
      */
@@ -278,6 +291,7 @@ class trz_Sickdays extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('trzSickdays', 'Прикачени файлове в болнични листи', NULL, '104857600', 'user', 'user');
     }
+    
     
     /**
      * Обновява информацията за болничните в календара
@@ -473,6 +487,7 @@ class trz_Sickdays extends core_Master
         
         return $row;
     }
+    
     
     public static function act_Accruals()
     {
