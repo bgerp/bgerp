@@ -278,7 +278,35 @@ class planning_Tasks extends tasks_Tasks
 		// Генериране на баркод от серийния номер, според зададените параметри
 		$img = barcode_Generator::getLink($barcodeType, $serial, $size, $attr);
 		
+		// Връщане на генерираното изображение
 		return $img;
+	}
+	
+	
+	/**
+	 * Информация за произведения артикул по задачата
+	 *
+	 * @param stdClass $rec
+	 * @return stdClass $arr
+	 * 			  o productId       - ид на артикула
+	 * 			  o packagingId     - ид на опаковката
+	 * 			  o quantityInPack  - количество в опаковка
+	 * 			  o plannedQuantity - планирано количество
+	 * 			  o wastedQuantity  - бракувано количество
+	 * 			  o totalQuantity   - прозведено количество
+	 * 			  o storeId         - склад
+	 * 			  o fixedAssets     - машини
+	 * 			  o indTime         - време за пускане
+	 * 			  o startTime       - време за прозиводство
+	 */
+	public static function getTaskInfo($id)
+	{
+		$rec = static::fetchRec($id);
+		
+		$Driver = static::getDriver($rec);
+		$info = $Driver->getProductDriverInfo($rec);
+		
+		return $info;
 	}
 	
 	
@@ -291,10 +319,11 @@ class planning_Tasks extends tasks_Tasks
 	public function getLabelPlaceholders($id)
 	{
 		expect($rec = planning_Tasks::fetchRec($id));
-		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY');
+		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW');
 		
 		// Извличане на всички параметри на артикула
-		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
+		$params = static::getTaskProductParams($rec, TRUE);
+		
 		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
 		$fields = array_merge($fields, $params);
 		
@@ -318,26 +347,27 @@ class planning_Tasks extends tasks_Tasks
 		expect($rec = planning_Tasks::fetchRec($id));
 		expect($origin = doc_Containers::getDocument($rec->originId));
 		$jobRec = $origin->fetch();
-	   
+		$tInfo = planning_Tasks::getTaskInfo($rec);
+		
 		// Информация за артикула и заданието
 		$res['JOB'] = "#" . $origin->getHandle();
-		$res['NAME'] = cat_Products::getTitleById($rec->productId);
+		$res['NAME'] = cat_Products::getTitleById($tInfo->productId);
 		
 		// Генериране на баркод
-		$serial = planning_TaskSerials::force($id, $labelNo, $rec->productId);
+		$serial = planning_TaskSerials::force($id, $labelNo, $tInfo->productId);
 		$res['BARCODE'] = self::getBarcodeImg($serial)->getContent();
 		
 		// Информация за артикула
-		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+		$measureId = cat_Products::fetchField($tInfo->productId, 'measureId');
 		$res['MEASURE_ID'] = cat_UoM::getShortName($measureId);
-		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantityInPack);
+		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($tInfo->quantityInPack);
 		if(isset($jobRec->saleId)){
 			$res['ORDER'] = sales_Sales::getLink($jobRec->saleId, 0);
 		}
 		
 		// Извличане на всички параметри на артикула
 		Mode::push('text', 'plain');
-		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
+		$params = static::getTaskProductParams($rec, TRUE);
 		Mode::pop('text');
 		
 		$params = cat_Params::getParamNameArr($params, TRUE);
@@ -346,7 +376,18 @@ class planning_Tasks extends tasks_Tasks
 		// Генериране на превю на артикула за етикети
 		$previewWidth = planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH');
 		$previewHeight = planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT');
-		$preview = cat_Products::getPreview($rec->productId, array($previewWidth, $previewHeight));
+		
+		// Ако в задачата има параметър за изглед, взима се той
+		$previewParamId = cat_Params::fetchIdBySysId('preview');
+		if($prevValue = cat_products_Params::fetchField("#classId = {$this->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$preview = $Fancybox->getImage($prevValue, array($previewWidth, $previewHeight), array('550', '550'))->getContent();
+		} else {
+			
+			// Иначе се взима от дефолтния параметър
+			$preview = cat_Products::getPreview($tInfo->productId, array($previewWidth, $previewHeight));
+		}
+		
 		if(!empty($preview)){
 			$res['ИЗГЛЕД'] = $preview;
 			$res['PREVIEW'] = $preview;
@@ -357,6 +398,38 @@ class planning_Tasks extends tasks_Tasks
 	}
     
     
+	/**
+	 * Помощна функция извличаща параметрите на задачата
+	 * 
+	 * @param stdClass $rec     - запис
+	 * @param boolean $verbal   - дали параметрите да са вербални
+	 * @return array $params    - масив с обеднението на параметрите на задачата и тези на артикула
+	 */
+	public static function getTaskProductParams($rec, $verbal = FALSE)
+	{
+		// Кои са параметрите на артикула
+		$classId = planning_Tasks::getClassId();
+		$tInfo = planning_Tasks::getTaskInfo($rec);
+		$productParams = cat_Products::getParams($tInfo->productId, NULL, TRUE);
+		
+		// Кои са параметрите на задачата
+		$params = array();
+		$query = cat_products_Params::getQuery();
+		$query->where("#classId = {$classId} AND #productId = {$rec->id}");
+		$query->show('paramId,paramValue');
+		while($dRec = $query->fetch()){
+			$dRec->paramValue = ($verbal === TRUE) ? cat_Params::toVerbal($dRec->paramId, $dRec->paramValue) : $dRec->paramValue;
+			$params[$dRec->paramId] = $dRec->paramValue;
+		}
+		
+		// Обединяване на параметрите на задачата с тези на артикула
+		$params = $params + $productParams;
+		
+		// Връщане на параметрите
+		return $params;
+	}
+	
+	
     /**
      * Броя на етикетите, които могат да се отпечатат
      * 
@@ -369,8 +442,9 @@ class planning_Tasks extends tasks_Tasks
      */
     public function getEstimateCnt($id, &$allowSkip)
     {
-        $allowSkip = TRUE;
-        
-        return 100 + $id;
+		// Планираното количество
+    	$tInfo = static::getTaskInfo($id);
+		
+        return $tInfo->plannedQuantity;
     }
 }

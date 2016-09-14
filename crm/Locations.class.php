@@ -504,9 +504,7 @@ class crm_Locations extends core_Master {
         
         $resRecs = array();
         foreach ($locationRecs as $rec) {
-            $resRecs["$rec->id"] = new stdClass();
-            $resRecs["$rec->id"]->id = $rec->id;
-            $resRecs["$rec->id"]->gln = $rec->gln;
+            $resRecs["$rec->id"] = $rec->gln;
         }
         unset($locationRecs);
         

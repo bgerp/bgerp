@@ -429,35 +429,4 @@ class cat_products_Params extends doc_Detail
     		acc_Features::syncFeatures(cat_Products::getClassId(), $productId);
     	}
     }
-    
-    
-    /**
-     * Клонира параметрите от един обект на друг
-     * 
-     * @param mixed $fromClassId
-     * @param int $fromId
-     * @param mixed $toClassId
-     * @param int $toId
-     * @return void
-     */
-    public static function cloneParams($fromClassId, $fromId, $toClassId, $toId)
-    {
-    	$FromClass = cls::get($fromClassId);
-    	$ToClass = cls::get($toClassId);
-    	
-    	$paramQuery = cat_products_Params::getQuery();
-    	$paramQuery->where("#productId = '{$fromId}' AND #classId = {$FromClass->getClassId()}");
-    	while($paramRec = $paramQuery->fetch()){
-    		$newRec = clone $paramRec;
-    		$newRec->classId = $ToClass->getClassId();
-    		$newRec->productId = $toId;
-    		unset($newRec->id);
-    		
-    		if($id = cat_products_Params::fetchField("#classId = {$newRec->classId} AND #productId = {$newRec->productId} AND #paramId = {$newRec->paramId}", 'id')){
-    			$newRec->id = $id;
-    		}
-    		
-    		cat_products_Params::save($newRec, NULL, "REPLACE");
-    	}
-    }
 }

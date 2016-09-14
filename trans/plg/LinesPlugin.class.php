@@ -190,12 +190,12 @@ class trans_plg_LinesPlugin extends core_Plugin
 			// Ако има изчислен обем
 			if($obj->volume !== NULL){
 				$volume = $p->volume;
-				(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
+				(!$volume) ? $obj->volume = NULL : $obj->volume += $volume;
 			}
 				
 			if($obj->weight !== NULL){
 				$weight = $p->weight;
-				(!$weight) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
+				(!$weight) ? $obj->weight = NULL : $obj->weight += $weight;
 			}
 		}
 	

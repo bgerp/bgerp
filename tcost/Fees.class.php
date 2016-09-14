@@ -7,7 +7,7 @@
  *
  * @category  bgerp
  * @package   tcost
- * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -89,7 +89,10 @@ class tcost_Fees extends core_Detail
     {
         $this->FLD('feeId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
         $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->|Тегло|* (|кг|*), mandatory');
-        $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Цена, mandatory');
+        $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Стойност, mandatory');
+        
+        // Добавяне на уникални индекси
+        $this->setDbUnique("feeId,weight");
     }
 
 

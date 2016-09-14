@@ -129,11 +129,15 @@ class trz_Bonuses extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        
     	// Ако имаме права да видим визитката
     	if(crm_Persons::haveRightFor('single', $rec->personId)){
     		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
     		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
     	}
+    	
+    	$row->sum = $Double->toVerbal($rec->sum);
     }
     
     
