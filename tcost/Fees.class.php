@@ -79,13 +79,13 @@ class tcost_Fees extends core_Detail
     /**
      * Полета, които се виждат
      */
-     public $listFields  = "weight=|Тегло|* (|кг|*), price, secondPrice, total, createdOn, createdBy";
+     public $listFields  = "weight=|Тегло|* (|кг|*), price, secondPrice, thirdPrice, total, createdOn, createdBy";
 
 
      /**
       * Кои полета от листовия изглед да се скриват ако няма записи в тях
       */
-     public $hideListFieldsIfEmpty = 'secondPrice,total';
+     public $hideListFieldsIfEmpty = 'secondPrice,thirdPrice,total';
      
      
     /**
@@ -97,8 +97,10 @@ class tcost_Fees extends core_Detail
         $this->FLD('weight', 'double(min=0,smartRound)', 'caption=Правила за изчисление->Тегло, mandatory,unit=кг');
         $this->FLD('price', 'double(min=0)', 'caption=Стойност->Сума, mandatory,unit=без ДДС');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Стойност->Валута, mandatory');
-        $this->FLD('secondPrice', 'double(min=0)', 'caption=Допълнитена стойност->Стойност,silent,removeAndRefreshForm=secondCurrencyId,unit=без ДДС');
-        $this->FLD('secondCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Допълнитена стойност->Валута');
+        $this->FLD('secondPrice', 'double(min=0)', 'caption=Втора стойност->Стойност,silent,removeAndRefreshForm=secondCurrencyId,unit=без ДДС');
+        $this->FLD('secondCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Втора стойност->Валута');
+        $this->FLD('thirdPrice', 'double(min=0)', 'caption=Трета стойност->Стойност 2,silent,removeAndRefreshForm=thirdCurrencyId,unit=без ДДС');
+        $this->FLD('thirdCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Трета стойност->Валута 2');
         $this->FNC('total', 'double');
         
         // Добавяне на уникални индекси
@@ -132,6 +134,10 @@ class tcost_Fees extends core_Detail
     	if($form->isSubmitted()){
     		if((!empty($rec->secondPrice) && empty($rec->secondCurrencyId)) || (!empty($rec->secondCurrencyId) && empty($rec->secondPrice))){
     			$form->setError('secondPrice,secondCurrencyId', 'Двете полета трябва или да са попълнени или да не са');
+    		}
+    		
+    		if((!empty($rec->thirdPrice) && empty($rec->thirdCurrencyId)) || (!empty($rec->thirdCurrencyId) && empty($rec->thirdPrice))){
+    			$form->setError('thirdPrice,thirdCurrencyId', 'Двете полета трябва или да са попълнени или да не са');
     		}
     	}
     }
@@ -275,7 +281,8 @@ class tcost_Fees extends core_Detail
     	// Промяна на имената на колоните
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     	$data->listFields['price'] = "Стойност|* |без ДДС|*->Сума";
-    	$data->listFields['secondPrice'] = "Стойност|* |без ДДС|*->Доп. сума";
+    	$data->listFields['secondPrice'] = "Стойност|* |без ДДС|*->Втора сума";
+    	$data->listFields['thirdPrice'] = "Стойност|* |без ДДС|*->Трета сума";
     	$data->listFields['total'] = "Стойност|* |без ДДС|*->Общо|* (<small>{$baseCurrencyCode}</small>)";
     	
     	if(!count($data->rows)) return;
@@ -289,6 +296,10 @@ class tcost_Fees extends core_Detail
     		$row->price .=  " <span class='cCode'>{$rec->currencyId}</span>";
     		if(!empty($rec->secondPrice) && !empty($rec->secondCurrencyId)){
     			$row->secondPrice .=  " <span class='cCode'>{$rec->secondCurrencyId}</span>";
+    		}
+    		
+    		if(!empty($rec->thirdPrice) && !empty($rec->thirdCurrencyId)){
+    			$row->thirdPrice .=  " <span class='cCode'>{$rec->thirdCurrencyId}</span>";
     		}
     		
     		// Ако общата сума е различна от първата сума, ще се показва общата сума
@@ -321,8 +332,14 @@ class tcost_Fees extends core_Detail
     		$price2 = currency_CurrencyRates::convertAmount($rec->secondPrice, NULL, $rec->secondCurrencyId);
     	}
     	
+    	// Ако има трета сума
+    	$price3 = 0;
+    	if(!empty($rec->thirdPrice) && !empty($rec->thirdCurrencyId)){
+    		$price3 = currency_CurrencyRates::convertAmount($rec->thirdPrice, NULL, $rec->thirdCurrencyId);
+    	}
+    	
     	// Събиране на сумите
-    	$total = $price1 + $price2;
+    	$total = $price1 + $price2 + $price3;
     	
     	// Връщане на общата сума
     	return $total;
