@@ -55,12 +55,6 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
 
 
 /**
- * Съотношение на дефолтния броян
- */
-defIfNot('PLANNING_TASK_ADDITIONAL_MEASURE', '');
-
-
-/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -110,7 +104,6 @@ class planning_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'PLANNING_TASK_SERIAL_COUNTER'             => array ('int', 'caption=Задачи за производство->Стартов сериен номер'),
-    		'PLANNING_TASK_ADDITIONAL_MEASURE'         => array('key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Задачи за производство->Допълнителна мярка,optionsFunc=cat_UoM::getUomOptions'),
     		'PLANNING_TASK_LABEL_COUNTER_SHOWING'      => array('enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'caption=Шаблон за етикети на задачите->Показване'),
     		'PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE' => array('varchar', 'caption=Шаблон за етикети на задачите->Тип баркод,optionsFunc=barcode_Generator::getAllowedBarcodeTypesArr'),
     		'PLANNING_TASK_LABEL_RATIO'                => array('enum(1=1,2=2,3=3,4=4)', 'caption=Шаблон за етикети на задачите->Съотношение'),
