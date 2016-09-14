@@ -70,7 +70,7 @@ class trz_Trips extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,trz';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -403,18 +403,11 @@ class trz_Trips extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if ('crm_Persons' != $coverClass) {
-        	return FALSE;
-        }
-        
-        $personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+        // Името на класа
+    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+    	
+    	// Ако не е папка проект или контрагент, не може да се добави
+    	if ($coverClassName != 'crm_persons') return FALSE;
     }
     
     
@@ -447,6 +440,22 @@ class trz_Trips extends core_Master
             $query->where("#coverId IN ({$list})");
         } else {
             $query->where("#coverId = -2");
+        }
+    }
+    
+    
+    /**
+     * Преди да се подготвят опциите на кориците, ако
+     */
+    public static function getCoverOptions($coverClass)
+    {
+         
+        if($coverClass instanceof crm_Persons){
+    
+            // Искаме да филтрираме само групата "Служители"
+            $sysId = crm_Groups::getIdFromSysId('employees');
+             
+            $query->where("#groupList LIKE '%|{$sysId}|%'");
         }
     }
     

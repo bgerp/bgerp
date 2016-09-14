@@ -419,6 +419,7 @@ class trz_Orders extends core_Master
     	return array('crm_PersonAccRegIntf');
     }
     
+    
     /**
      * Метод филтриращ заявка към doc_Folders
      * Добавя условия в заявката, така, че да останат само тези папки, 

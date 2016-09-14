@@ -100,7 +100,7 @@ class trz_Sickdays extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,trz';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -300,6 +300,41 @@ class trz_Sickdays extends core_Master
     
     
     /**
+     * Извиква се след изпълняването на екшън
+     */
+    public static function on_AfterAction(&$invoker, &$tpl, $act)
+    {
+        if (strtolower($act) == 'single' && haveRole('trz,ceo') && !Mode::is('printing')) {
+    
+            // Взимаме ид-то на молбата
+            $id = Request::get('id', 'int');
+    
+            // намираме, кой е текущия потребител
+            $cu =  core_Users::getCurrent();
+    
+            // взимаме записа от модела
+            $rec = self::fetch($id);
+    
+            // превръщаме кей листа на споделените потребители в масив
+            $sharedUsers = type_Keylist::toArray($rec->sahredUsers);
+    
+            // добавяме текущия потребител
+            $sharedUsers[$cu] = $cu;
+    
+            // връщаме в кей лист масива
+            $rec->sharedUsers =  keylist::fromArray($sharedUsers);
+    
+            self::save($rec, 'sharedUsers');
+    
+            doc_ThreadUsers::removeContainer($rec->containerId);
+            doc_Threads::updateThread($rec->threadId);
+    
+            redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+        }
+    }
+    
+    
+    /**
      * Обновява информацията за болничните в календара
      */
     public static function updateSickdaysToCalendar($id)
@@ -450,18 +485,11 @@ class trz_Sickdays extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if ('crm_Persons' != $coverClass) {
-        	return FALSE;
-        }
-        
-        $personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+        // Името на класа
+    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+    	
+    	// Ако не е папка проект или контрагент, не може да се добави
+    	if ($coverClassName != 'crm_persons') return FALSE;
     }
     
     
@@ -530,6 +558,22 @@ class trz_Sickdays extends core_Master
             $query->where("#coverId IN ({$list})");
         } else {
             $query->where("#coverId = -2");
+        }
+    }
+    
+    
+    /**
+     * Преди да се подготвят опциите на кориците, ако
+     */
+    public static function getCoverOptions($coverClass)
+    {
+         
+        if($coverClass instanceof crm_Persons){
+    
+            // Искаме да филтрираме само групата "Служители"
+            $sysId = crm_Groups::getIdFromSysId('employees');
+             
+            $query->where("#groupList LIKE '%|{$sysId}|%'");
         }
     }
     
