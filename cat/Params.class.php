@@ -339,7 +339,7 @@ class cat_Params extends embed_Manager
     	$name = tr($rec->name) . ((!empty($rec->suffix)) ? " (" . tr($rec->suffix) . ")": '');
     	$name = preg_replace('/\s+/', '_', $name);
     	$name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
-    	core_Lg::pop($lg);
+    	core_Lg::pop();
     	
     	return $name;
     }
