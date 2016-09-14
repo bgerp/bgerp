@@ -128,6 +128,12 @@ class trz_Trips extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/working-travel.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

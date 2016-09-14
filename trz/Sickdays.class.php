@@ -139,6 +139,12 @@ class trz_Sickdays extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/sick.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

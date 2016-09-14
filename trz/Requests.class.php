@@ -117,6 +117,12 @@ class trz_Requests extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/leaves.png';
+    
+    
+    /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'trz/tpl/SingleLayoutRequests.shtml';
