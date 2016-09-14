@@ -65,6 +65,41 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Информация за произведения артикул по задачата
+	 * 
+	 * @param stdClass $rec
+	 * @return stdClass $arr
+	 * 			  o productId       - ид на артикула
+	 * 			  o packagingId     - ид на опаковката
+	 * 			  o quantityInPack  - количество в опаковка
+	 * 			  o plannedQuantity - планирано количество
+	 * 			  o wastedQuantity  - бракувано количество
+	 * 			  o totalQuantity   - прозведено количество
+	 * 			  o storeId         - склад
+	 * 			  o fixedAssets     - машини
+	 * 			  o indTime         - време за пускане
+	 * 			  o startTime       - време за прозиводство
+	 */
+	public function getProductDriverInfo($rec)
+	{
+		$arr = array();
+		
+		$arr['productId']       = $rec->productId;
+		$arr['packagingId']     = $rec->packagingId;
+		$arr['quantityInPack']  = $rec->quantityInPack;
+		$arr['plannedQuantity'] = $rec->plannedQuantity;
+		$arr['wastedQuantity']  = $rec->totalQuantity;
+		$arr['totalQuantity']   = $rec->totalQuantity;
+		$arr['storeId']         = $rec->storeId;
+		$arr['fixedAssets']     = $rec->fixedAssets;
+		$arr['indTime']         = $rec->indTime;
+		$arr['startTime']       = $rec->startTime;
+		
+		return (object)$arr;
+	}
+	
+	
+	/**
 	 * След преобразуване на записа в четим за хора вид.
 	 */
 	public static function on_AfterRecToVerbal(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
@@ -471,7 +506,18 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     		}
     	}
     	
-    	// Клонираме параметрите от артикула
-    	cat_products_Params::cloneParams('cat_Products', $rec->productId, 'planning_Tasks', $rec->id);
+    	// Копиране на параметрите на артикула към задачата
+    	$tasksClassId = planning_Tasks::getClassId();
+    	$params = cat_Products::getParams($rec->productId);
+    	if(is_array($params)){
+    		foreach ($params as $k => $v){
+    			$nRec = (object)array('paramId' => $k, 'paramValue' => $v, 'classId' => $tasksClassId, 'productId' => $rec->id);
+    			if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$k}", 'id')){
+    				$nRec->id = $id;
+    			}
+    			 
+    			cat_products_Params::save($nRec, NULL, "REPLACE");
+    		}
+    	}
     }
 }

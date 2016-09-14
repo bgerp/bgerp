@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_drivers_ProductionTaskDetails'
  *
@@ -121,6 +122,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     {
     	$form = &$data->form;
     	$rec = &$data->form->rec;
+    	$taskInfo = planning_Tasks::getTaskInfo($rec->taskId);
     	
     	// Добавяме последните данни за дефолтни
     	$query = $mvc->getQuery();
@@ -134,8 +136,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	}
     	
     	// Ако в мастъра са посочени машини, задаваме ги като опции
-    	if(isset($data->masterRec->fixedAssets)){
-    		$keylist = $data->masterRec->fixedAssets;
+    	if(isset($taskInfo->fixedAssets)){
+    		$keylist = $taskInfo->fixedAssets;
     		$arr = keylist::toArray($keylist);
     			
     		foreach ($arr as $key => &$value){
@@ -154,9 +156,9 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     	} else {
     		$form->FNC('productId', 'int', 'caption=Артикул,input,before=serial');
-    		$form->setOptions('productId', array($data->masterRec->productId = cat_Products::getTitleById($data->masterRec->productId, FALSE)));
+    		$form->setOptions('productId', array($taskInfo->productId = cat_Products::getTitleById($taskInfo->productId, FALSE)));
     		$form->setField('taskProductId', 'input=none');
-    		$unit = cat_UoM::getShortName($data->masterRec->packagingId);
+    		$unit = cat_UoM::getShortName($taskInfo->packagingId);
     		$form->setField('quantity', "unit={$unit}");
     		
     		if($rec->type == 'start'){
@@ -181,6 +183,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setField('quantity', "unit={$unit}");
     	}
     	
+    	// Връща слижителите с код
     	$employees = crm_ext_Employees::getEmployeesWithCode();
     	if(count($employees)){
     		$form->setSuggestions('employees', $employees);
@@ -198,7 +201,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$rec = &$form->rec;
     	 
     	if($form->isSubmitted()){
-    		$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::fetch($rec->taskId)->productId;
+    		$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     		
     		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
     		if($rec->type == 'product'){
@@ -246,13 +249,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
     	
-    	$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::fetch($rec->taskId)->productId;
+    	$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     	if($productId){
     		$row->taskProductId = cat_Products::getShortHyperlink($productId);
     		$row->taskProductId = "<div class='nowrap'>" . $row->taskProductId . "</div>";
     	}
     	
-    	$measureId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::fetch($rec->taskId)->packagingId;
+    	$measureId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
     	$row->packagingId = cat_UoM::getShortName($measureId);
     	
     	if(!empty($rec->notes)){
@@ -327,6 +330,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     	}
     	
+    	// Махане на кошчето
     	$data->toolbar->removeBtn('binBtn');
     }
 
@@ -415,20 +419,20 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
             
             switch($rec->type){
                 case 'input':
-                                $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
-                                continue;
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                    break;
                 case 'waste':
-                                $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
-                                continue;
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                	break;
                 case 'product':
-                				$time = planning_Tasks::fetch($rec->taskId)->indTime;
-                				continue;
+                	$time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
+                	break;
                 case 'start':
-                				$time = planning_Tasks::fetch($rec->taskId)->startTime;
-                				continue;
+                	$time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
+                	break;
                 default:
-                				$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-                				continue;
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                	break;
             }
             
             $time = $Double->fromVerbal($time);

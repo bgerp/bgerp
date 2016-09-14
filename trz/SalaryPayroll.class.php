@@ -112,7 +112,7 @@ class trz_SalaryPayroll extends core_Manager
     static public function calculateSalary ()
     {
         // до края на текущия месец
-        $to = dt::getLastDayOfMonth($now);
+        $to = dt::getLastDayOfMonth();
         
         $fromM =  date('m', time());
         $fromY =  date('Y', time());

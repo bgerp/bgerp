@@ -187,7 +187,7 @@ class label_Labels extends core_Master
                   $data->form->setDefault('objId', $classId);
                     
                   $title = cls::get($classId)->getHandle($objId);
-                  $title = "#{$title}/" . dt::mysql2verbal(dt::now());
+                  $title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
                   $data->form->setDefault('title', $title);
               }
          } else {
@@ -584,7 +584,11 @@ class label_Labels extends core_Master
             if ($rec->objId && $rec->classId) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
+                $lang = label_Templates::fetchField($rec->templateId, 'lang');
+                core_Lg::push($lang);
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
+                core_Lg::pop();
+                
                 foreach ($labelDataArr as $key => $val) {
                     $key = label_TemplateFormats::getPlaceholderFieldName($key);
                     $params[$key] = $val;

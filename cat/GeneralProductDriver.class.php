@@ -202,14 +202,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща стойността на параметъра с това име, или
-	 * всички параметри с техните стойностти
-	 * 
-	 * @param string $id     - ид на записа
-	 * @param string $name   - име на параметъра, или NULL ако искаме всички
-	 * @param boolean $verbal - дали да са вербални стойностите
-	 * @return mixed  $params - стойност или FALSE ако няма
-	 */
+     * Връща стойността на параметъра с това име, или
+     * всички параметри с техните стойностти
+     *
+     * @param int $classId    - ид на клас
+     * @param string $id      - ид на записа
+     * @param string $name    - име на параметъра, или NULL ако искаме всички
+     * @param boolean $verbal - дали да са вербални стойностите
+     * @return mixed  $params - стойност или FALSE ако няма
+     */
 	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
 		// Ако има посочено име се посочва директно стойноста му

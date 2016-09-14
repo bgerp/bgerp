@@ -487,10 +487,10 @@ class purchase_Purchases extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld){
             	$p->{$fld} = $dRec->{$fld};
             }
-            
+           
             $info = cat_Products::getProductInfo($p->productId);
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
+            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
+            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
             
             $agreed[] = $p;
             

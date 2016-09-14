@@ -52,6 +52,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  28.".$this->act_CreatePlanningJob();
         $res .= "  29.".$this->act_CreateSale();
         $res .= "  30.".$this->act_CreateTask();
+        $res .= "  31.".$this->act_CreateProductVAT9();
         
         return $res;
     }
@@ -1488,5 +1489,40 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         //return $browser->getHtml();
     }
+    /**
+     * 1. Създаване на артикул - ДДС група 9%, ако го има - редакция.
+     */
+    //http://localhost/unit_MinkPbgERP/CreateProductVAT9/
+    function act_CreateProductVAT9()
+    {
+        // Логване
+        $browser = $this->SetUp();
     
+        // Създаване на нов артикул - продукт
+        $browser->click('Каталог');
+        $browser->press('Нов запис');
+        $browser->setValue('catcategorieId', 'Продукти');
+        $browser->press('Напред');
+        $browser->setValue('name', 'Артикул ДДС 9');
+        $browser->setValue('code', 'dds9');
+        $browser->setValue('measureId', 'брой');
+        $browser->setValue('info', 'черен');
+        $browser->setValue('meta_canBuy', 'canBuy');
+        $browser->press('Запис');
+    
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            $browser->click('Продукти');
+            $browser->click('Артикул ДДС 9');
+            $browser->press('Редакция');
+        } else {
+            $browser->click('Цени');
+            $browser->click('Избор на ДДС група');
+            //$browser->refresh('Запис');
+            $browser->setValue('vatGroup', 'Г - 9,00 %');
+            $browser->press('Запис');
+        }
+        return $browser->getHtml();
+    }
+      
 }

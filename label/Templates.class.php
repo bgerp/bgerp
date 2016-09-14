@@ -97,7 +97,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, sizes, template=Шаблон, classId, createdOn, createdBy';
+    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy';
 
     
     /**
@@ -124,6 +124,14 @@ class label_Templates extends core_Master
     public static $cache = array();
     
     
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sysId';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -135,6 +143,7 @@ class label_Templates extends core_Master
         $this->FLD('template', 'html', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
+        $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         
         $this->setDbUnique('sysId');
     }
@@ -584,6 +593,7 @@ class label_Templates extends core_Master
     	$templateArr = array('defaultTpl' => 'label/tpl/DefaultLabelBG.shtml', 'defaultTplEn' => 'label/tpl/DefaultLabelEN.shtml');
     	foreach ($templateArr as $sysId => $tplPath){
     		$title = ($sysId == 'defaultTpl') ? 'Базов шаблон за етикети' : 'Default label template';
+    		$lang = ($sysId == 'defaultTpl') ? 'bg' : 'en';
     		
     		// Ако няма запис
     		$exRec = self::fetch("#sysId = '{$sysId}'");
@@ -597,6 +607,7 @@ class label_Templates extends core_Master
     		}
     		$exRec->sizes = '100x72 mm';
     		$exRec->state = 'active';
+    		$exRec->lang = $lang;
     		
     		// Ако има промяна в шаблона, ъпдейтва се
     		$templateHash = md5_file(getFullPath($tplPath));
