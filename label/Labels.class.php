@@ -587,7 +587,7 @@ class label_Labels extends core_Master
                 $lang = label_Templates::fetchField($rec->templateId, 'lang');
                 core_Lg::push($lang);
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
-                core_Lg::pop($lang);
+                core_Lg::pop();
                 
                 foreach ($labelDataArr as $key => $val) {
                     $key = label_TemplateFormats::getPlaceholderFieldName($key);
