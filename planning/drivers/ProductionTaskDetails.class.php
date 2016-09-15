@@ -190,6 +190,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	} else {
     		$form->setField('employees', 'input=none');
     	}
+    	
+    	if($taskInfo->showadditionalUom != 'yes'){
+    		$form->setField('weight', 'input=none');
+    	}
     }
     
 

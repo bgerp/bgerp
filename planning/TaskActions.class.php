@@ -21,7 +21,7 @@ class planning_TaskActions extends core_Manager
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Регистър на операциите на задачите';
+	public $title = 'Регистър на прогреса по задачите за производство';
 	
 	
 	
@@ -35,24 +35,18 @@ class planning_TaskActions extends core_Manager
 	 * Кой има право да променя?
 	 */
 	public $canWrite = 'no_one';
-	
-	
-	/**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,planning_Wrapper, plg_AlignDecimals2, plg_Search, plg_Created';
+    public $loadList = 'planning_Wrapper, plg_AlignDecimals2, plg_Search, plg_Created';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,type,action,serial,productId,taskId,jobId,quantity, employees,fixedAsset,createdOn,createdBy';
+    public $listFields = 'type,action,serial,productId,taskId,jobId,quantity, employees,fixedAsset,createdOn,createdBy';
     		
     		
     /**
@@ -63,8 +57,6 @@ class planning_TaskActions extends core_Manager
     
     /**
      * Брой записи на страница
-     *
-     * @var integer
      */
     public $listItemsPerPage = 40;
     
