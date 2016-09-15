@@ -292,6 +292,7 @@ class doc_Threads extends core_Manager
         
         // id на папката за несортирани
         $currUser = core_Users::getCurrent();
+        $defaultFolderId = NULL;
         if ($currUser > 0) {
             $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', FALSE);
         }
@@ -330,6 +331,9 @@ class doc_Threads extends core_Manager
                         if ($rec->id) {
                             self::delete($rec->id);
                             $resArr['del_cnt']++;
+                            
+                            self::logNotice("Изтрита нишка, в която няма документи", $rec->id);
+                            
                             continue;
                         }
                     }
@@ -338,6 +342,7 @@ class doc_Threads extends core_Manager
                     
                     if (self::save($rec, 'firstContainerId')) {
                         $resArr['firstContainerId']++;
+                        self::logNotice("Контейнерът {$firstCid} е направен първи документ в нишката", $rec->id);
                     }
                 }
                 
@@ -347,8 +352,11 @@ class doc_Threads extends core_Manager
                     
                     if (self::save($rec, 'folderId')) {
                         $resArr['folderId']++;
+                        self::logNotice("Нишката е преместена в папка {$defaultFolderId}", $rec->id);
                     }
                 }
+                
+                self::logNotice("Нишката е обновена, защото има развалени данни", $rec->id);
                 
                 // Обновяваме нишката
                 self::updateThread($rec->id);
@@ -388,8 +396,60 @@ class doc_Threads extends core_Manager
         
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
         
+        // id на папката за несортирани
+        $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
+        
+        // id на папката за несортирани
+        $currUser = core_Users::getCurrent();
+        $defaultFolderId = NULL;
+        if ($currUser > 0) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', FALSE);
+        }
+        if (!isset($defaultFolderId)) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id', FALSE);
+        }
+        
         while ($rec = $query->fetch()) {
             try {
+                
+                // Ако папката е грешна (няма такава папка)
+                if ($rec->folderId) {
+                    if (!doc_Folders::fetch($rec->folderId)) {
+                        self::logNotice("Променена папка от {$rec->folderId} на {$defaultFolderId}", $rec->id);
+                        $rec->folderId = $defaultFolderId;
+                        
+                        if (self::save($rec, 'folderId')) {
+                            $resArr['folderId']++;
+                        }
+                    }
+                }
+                
+                // Поправка за броя на документите
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
+                $cQuery->where("#state != 'rejected'");
+                
+                $pCQuery = clone $cQuery;
+                
+                // Ако се различава броя на документите
+                $cCnt = $cQuery->count();
+                if ($cCnt != $rec->allDocCnt) {
+                    self::logNotice("Променена брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
+                    self::updateThread($rec->id);
+                    $resArr['allDocCnt']++;
+                }
+                
+                // Ако се различава броя на документите, видими за партньори
+                $pCQuery->where("#visibleForPartners = 'yes'");
+                $pCCnt = $pCQuery->count();
+                if ($pCCnt != $rec->partnerDocCnt) {
+                    self::logNotice("Променена брой на документите от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
+                    self::updateThread($rec->id);
+                    $resArr['partnerDocCnt']++;
+                }
+                
+                // Поправяме състоянието, ако се е счупило
+                
                 if (!$rec->firstContainerId) continue;
                 
                 try {
