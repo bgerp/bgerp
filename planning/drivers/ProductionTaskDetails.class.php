@@ -45,7 +45,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper';
     
     
     /**
@@ -81,13 +81,16 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,type=Операция,serial,taskProductId,quantity,scrappedQuantity,packagingId=Мярка,weight,employees,fixedAsset,modified=Модифицирано';
+    public $listFields = 'type=Операция,serial,taskProductId,quantity,scrappedQuantity,packagingId=Мярка,weight,employees,fixedAsset,modified=Модифицирано';
     
-
+    
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
      */
-    public $rowToolsField = 'RowNumb';
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
@@ -528,8 +531,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     public static function getSalaryIndicators($date)
     {
-    
-        $query = self::getQuery();
+    	$query = self::getQuery();
         $me = cls::get(get_called_class());
         $Double = cls::get(type_Double);
     

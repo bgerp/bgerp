@@ -62,6 +62,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD("indTime", 'time(noSmart)', 'caption=Норма->Пускане,smartCenter');
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$fieldset->FLD('quantityInPack', 'double(smartRound)', 'input=none');
+		$fieldset->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
 	}
 	
 	
@@ -108,10 +109,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	public static function on_AfterRecToVerbal(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
 	{
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
-		if(!$rec->totalQuantity){
-			$rec->totalQuantity = 0;
-			$row->totalQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->totalQuantity);
-			$row->totalQuantity = "<span class='quiet'>{$row->totalQuantity}</span>";
+		foreach (array('totalQuantity', 'scrappedQuantity') as $fld){
+			if(!$rec->{$fld}){
+				$rec->{$fld} = 0;
+				$row->{$fld} = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->{$fld});
+				$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
+			}
 		}
 		
 		if(isset($rec->storeId)){
@@ -320,14 +323,16 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$dQuery->where("#state != 'rejected'");
 		$dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
 		$dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-		$dQuery->show('sumQuantity,sumWeight');
+		$dQuery->XPR('sumScrappedQuantity', 'double', 'SUM(#scrappedQuantity)');
+		$dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
 		 
 		$res = $dQuery->fetch();
 		 
 		// Преизчисляваме общото тегло
 		$rec->totalWeight = $res->sumWeight;
 		$rec->totalQuantity = $res->sumQuantity;
-		 
+		$rec->scrappedQuantity = $res->sumScrappedQuantity;
+		
 		// Изчисляваме колко % от зададеното количество е направено
 		$rec->progress = 0;
 		if (!empty($rec->plannedQuantity)) {
@@ -399,8 +404,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         																 <br>[#progressBar#] [#progress#]"));
         
         $packagingId = cat_UoM::getTitleById($rec->packagingId);
-        $resArr['quantity'] = array('name' => tr("Количества|*, |{$packagingId}|*"), 'val' => tr("|*<span style='font-weight:normal'>|Планирано|*</span>: [#plannedQuantity#]<br>
-        																						    <span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]"));
+        $resArr['quantity'] = array('name' => tr("Количества|*, |{$packagingId}|*"), 'val' => tr("|*<span style='font-weight:normal'>|Планирано|*</span>: &nbsp;&nbsp;&nbsp;[#plannedQuantity#]<br>
+        																						    <span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<br>
+        																						    <span style='font-weight:normal'>|Бракувано|*</span>: &nbsp;&nbsp;&nbsp;&nbsp;[#scrappedQuantity#]"));
         
         if($rec->showadditionalUom == 'yes'){
         	$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
