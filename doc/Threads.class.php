@@ -434,7 +434,7 @@ class doc_Threads extends core_Manager
                 // Ако се различава броя на документите
                 $cCnt = $cQuery->count();
                 if ($cCnt != $rec->allDocCnt) {
-                    self::logNotice("Променена брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
+                    self::logNotice("Променен брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
                     self::updateThread($rec->id);
                     $resArr['allDocCnt']++;
                 }
@@ -443,7 +443,7 @@ class doc_Threads extends core_Manager
                 $pCQuery->where("#visibleForPartners = 'yes'");
                 $pCCnt = $pCQuery->count();
                 if ($pCCnt != $rec->partnerDocCnt) {
-                    self::logNotice("Променена брой на документите от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
+                    self::logNotice("Променен брой на документите от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
                     self::updateThread($rec->id);
                     $resArr['partnerDocCnt']++;
                 }

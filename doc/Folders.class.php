@@ -1066,7 +1066,7 @@ class doc_Folders extends core_Master
                     $resArr['inCharge']++;
                     $rec->inCharge = $currUser;
                     self::save($rec, 'inCharge');
-                    self::logNotice("Добавение е собственик на папката", $rec->id);
+                    self::logNotice("Добавен е собственик на папката", $rec->id);
                 }
                 
                 // Ако липсва coverClass, да е на несортираните
