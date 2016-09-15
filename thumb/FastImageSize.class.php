@@ -49,7 +49,11 @@ class thumb_FastImageSize
 		$this->strpos = 0;
 		if ($this->getType())
 		{
-			return array_values($this->parseSize());
+		    $pSize = $this->parseSize();
+		    
+		    if (!$pSize || !is_array($pSize)) return FALSE;
+		    
+			return array_values($pSize);
 		}
 		
 		return false;
@@ -216,7 +220,9 @@ class thumb_FastImageSize
 	private function getByte()
 	{
 		$c = $this->getChars(1);
-		$b = unpack("C", $c);
+		$b = @unpack("C", $c);
+		
+		if (!$b || !is_array($b)) return FALSE;
 		
 		return reset($b);
 	}

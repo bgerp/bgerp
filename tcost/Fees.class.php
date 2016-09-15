@@ -79,23 +79,70 @@ class tcost_Fees extends core_Detail
     /**
      * Полета, които се виждат
      */
-     public $listFields  = "weight, price, createdOn, createdBy";
+     public $listFields  = "weight=|Тегло|* (|кг|*), price, secondPrice, thirdPrice, total, createdOn, createdBy";
 
 
+     /**
+      * Кои полета от листовия изглед да се скриват ако няма записи в тях
+      */
+     public $hideListFieldsIfEmpty = 'secondPrice,thirdPrice,total';
+     
+     
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('feeId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
-        $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->|Тегло|* (|кг|*), mandatory');
-        $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Стойност, mandatory');
+        $this->FLD('weight', 'double(min=0,smartRound)', 'caption=Правила за изчисление->Тегло, mandatory,unit=кг');
+        $this->FLD('price', 'double(min=0)', 'caption=Стойност->Сума, mandatory,unit=без ДДС');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Стойност->Валута, mandatory');
+        $this->FLD('secondPrice', 'double(min=0)', 'caption=Втора стойност->Стойност,silent,removeAndRefreshForm=secondCurrencyId,unit=без ДДС');
+        $this->FLD('secondCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Втора стойност->Валута');
+        $this->FLD('thirdPrice', 'double(min=0)', 'caption=Трета стойност->Стойност 2,silent,removeAndRefreshForm=thirdCurrencyId,unit=без ДДС');
+        $this->FLD('thirdCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Трета стойност->Валута 2');
+        $this->FNC('total', 'double');
         
         // Добавяне на уникални индекси
         $this->setDbUnique("feeId,weight");
     }
 
 
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if($form->isSubmitted()){
+    		if((!empty($rec->secondPrice) && empty($rec->secondCurrencyId)) || (!empty($rec->secondCurrencyId) && empty($rec->secondPrice))){
+    			$form->setError('secondPrice,secondCurrencyId', 'Двете полета трябва или да са попълнени или да не са');
+    		}
+    		
+    		if((!empty($rec->thirdPrice) && empty($rec->thirdCurrencyId)) || (!empty($rec->thirdCurrencyId) && empty($rec->thirdPrice))){
+    			$form->setError('thirdPrice,thirdCurrencyId', 'Двете полета трябва или да са попълнени или да не са');
+    		}
+    	}
+    }
+    
+    
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
      * 
@@ -133,7 +180,7 @@ class tcost_Fees extends core_Detail
         // Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = self::getQuery();
         $query->where(array("#feeId = [#1#]", $zone['zoneId']));
-
+		
         while($rec = $query->fetch()){
             // Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
             if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {
@@ -149,10 +196,11 @@ class tcost_Fees extends core_Detail
                 $weightsRight = $rec->weight;
             }
 
-            //Слагаме получените цени за по-късно ползване в асоциативния масив
-            $arrayOfWeightPrice[$rec->weight] = $rec->price;
+            // Слагаме получените цени за по-късно ползване в асоциативния масив
+            $price = self::getTotalPrice($rec);
+            $arrayOfWeightPrice[$rec->weight] = $price;
         }
-
+       
         //Създаваме вече индексиран масив от ключовете на по горния асоциативен маскив
         $indexedArray = array_keys($arrayOfWeightPrice);
 
@@ -171,7 +219,7 @@ class tcost_Fees extends core_Detail
 
         $finalPrice = NULL;
         //Ако е въведеното тегло е по-малко от най-малкото тегло в базата,то трябва да се върне отношение 1:1
-
+       
         //Ако съществува точно такова тегло, трябва да се върне цената директно цената за него
         if($totalWeight == $weightsLeft){
             $finalPrice = $arrayOfWeightPrice[$weightsLeft];
@@ -201,7 +249,7 @@ class tcost_Fees extends core_Detail
 
             $finalPrice = $a * $totalWeight + $b;
         }
-
+        
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
         $result = round($finalPrice / $totalWeight * $singleWeight, 2);
@@ -213,10 +261,87 @@ class tcost_Fees extends core_Detail
     
     /**
      * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+    	$rec->total = self::getTotalPrice($rec);
+    	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	// Промяна на имената на колоните
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
-    	$data->listFields['price'] .= "|* (<small>{$baseCurrencyCode}</small>) |без ДДС|*";
+    	$data->listFields['price'] = "Стойност|* |без ДДС|*->Сума";
+    	$data->listFields['secondPrice'] = "Стойност|* |без ДДС|*->Втора сума";
+    	$data->listFields['thirdPrice'] = "Стойност|* |без ДДС|*->Трета сума";
+    	$data->listFields['total'] = "Стойност|* |без ДДС|*->Общо|* (<small>{$baseCurrencyCode}</small>)";
+    	
+    	if(!count($data->rows)) return;
+    	$unsetTotal = TRUE;
+    	
+    	// За всеки запис
+    	foreach ($data->rows as $id => &$row){
+    		$rec = &$data->recs[$id];
+    		
+    		// Зад сумите, се залепва валутата им
+    		$row->price .=  " <span class='cCode'>{$rec->currencyId}</span>";
+    		if(!empty($rec->secondPrice) && !empty($rec->secondCurrencyId)){
+    			$row->secondPrice .=  " <span class='cCode'>{$rec->secondCurrencyId}</span>";
+    		}
+    		
+    		if(!empty($rec->thirdPrice) && !empty($rec->thirdCurrencyId)){
+    			$row->thirdPrice .=  " <span class='cCode'>{$rec->thirdCurrencyId}</span>";
+    		}
+    		
+    		// Ако общата сума е различна от първата сума, ще се показва общата сума
+    		if(trim($rec->price) != trim($rec->total)){
+    			$unsetTotal = FALSE;
+    		}
+    	}
+    	
+    	// Ако няма разлика емжду общата сума и първата сума, колоната за обща сума не се показва
+    	if($unsetTotal === TRUE){
+    		unset($data->listFields['total']);
+    	}
+    }
+    
+    
+    /**
+     * Намира сумата на реда в основна валута без ДДС
+     * 
+     * @param stdClass $rec  - запис
+     * @return double $total - сумата на реда в основна валута без ДДС
+     */
+    private static function getTotalPrice($rec)
+    {
+    	// Обръщане на сумата в основна валута
+    	$price1 = currency_CurrencyRates::convertAmount($rec->price, NULL, $rec->currencyId);
+    	
+    	// Ако има втора сума обръща се в основна валута и се събира
+    	$price2 = 0;
+    	if(!empty($rec->secondPrice) && !empty($rec->secondCurrencyId)){
+    		$price2 = currency_CurrencyRates::convertAmount($rec->secondPrice, NULL, $rec->secondCurrencyId);
+    	}
+    	
+    	// Ако има трета сума
+    	$price3 = 0;
+    	if(!empty($rec->thirdPrice) && !empty($rec->thirdCurrencyId)){
+    		$price3 = currency_CurrencyRates::convertAmount($rec->thirdPrice, NULL, $rec->thirdCurrencyId);
+    	}
+    	
+    	// Събиране на сумите
+    	$total = $price1 + $price2 + $price3;
+    	
+    	// Връщане на общата сума
+    	return $total;
     }
 }

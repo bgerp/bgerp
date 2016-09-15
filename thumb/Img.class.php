@@ -321,7 +321,7 @@ class thumb_Img
                 $this->gdRes = $this->source;
             } else {
                 if($asString = $this->getAsString()) {
-                    $this->gdRes = imagecreatefromstring($asString);
+                    $this->gdRes = @imagecreatefromstring($asString);
                 }
             }
         }
@@ -341,7 +341,7 @@ class thumb_Img
 
                 if(!$this->gdRes) {
                     if($this->sourceType == 'string') {
-                        $this->gdRes = imagecreatefromstring($this->source);
+                        $this->gdRes = @imagecreatefromstring($this->source);
                     } elseif($this->sourceType == 'gdRes') {
                         $this->gdRes = $this->source;
                     }

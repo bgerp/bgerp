@@ -108,7 +108,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,mandatory,smartCenter');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,smartCenter');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
-    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Обордуване,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
@@ -189,6 +189,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setSuggestions('employees', $employees);
     	} else {
     		$form->setField('employees', 'input=none');
+    	}
+    	
+    	if($taskInfo->showadditionalUom != 'yes'){
+    		$form->setField('weight', 'input=none');
     	}
     }
     
@@ -277,15 +281,27 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	}
     	
     	if(isset($rec->employees)){
-    		$verbalEmployees = array();
-    		$employees = keylist::toArray($rec->employees);
-    		foreach ($employees as $eId){
-    			$el = crm_ext_Employees::getCodeLink($eId);
-    			$verbalEmployees[$eId] = $el;
-    		}
-    		
-    		$row->employees = implode(', ', $verbalEmployees);
+    		$row->employees = self::getVerbalEmployees($rec->employees);
     	}
+    }
+    
+    
+    /**
+     * Показва вербалното име на служителите
+     * 
+     * @param text $employees - кейлист от служители
+     * @return string $verbalEmployees
+     */
+    public static function getVerbalEmployees($employees)
+    {
+    	$verbalEmployees = array();
+    	$employees = keylist::toArray($employees);
+    	foreach ($employees as $eId){
+    		$el = crm_ext_Employees::getCodeLink($eId);
+    		$verbalEmployees[$eId] = $el;
+    	}
+    	
+    	return implode(', ', $verbalEmployees);
     }
     
     
@@ -301,6 +317,52 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if(isset($rec->taskProductId)){
     		planning_drivers_ProductionTaskProducts::updateRealQuantity($rec->taskProductId);
     	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	self::addAction($rec, 'add', $rec->type);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = static::fetchRec($id);
+    	self::addAction($id, 'reject', $rec->type);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = static::fetchRec($id);
+    	self::addAction($rec, 'restore', $rec->type);
+    }
+    
+    
+    /**
+     * Добавяне на действие
+     * 
+     * @param stdClass $rec   - запис
+     * @param varchar $action - действие
+     * @param varchar $type   - тип
+     * @return void
+     */
+    private static function addAction($rec, $action, $type)
+    {
+    	$productId = (!empty($rec->taskProductId)) ? $rec->taskProductId : planning_Tasks::getTaskInfo($rec->taskId)->productId;
+    	$packagingId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
+    	
+    	planning_TaskActions::add($rec->taskId, $productId, $action, $type, $packagingId, $rec->quantity, $rec->serial, $rec->employees, $rec->fixedAsset);
     }
     
     

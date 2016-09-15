@@ -33,7 +33,7 @@
                         </tr>
                         <!--ET_BEGIN activateRoles-->
                         <tr>
-                            <td class='dt'>|Роли|*:</td>
+                            <td class='dt'>|Екипи|*:</td>
                             <td>[#activateRoles#]</td>
                         </tr>
                         <!--ET_END activateRoles-->
@@ -55,7 +55,7 @@
                         <!--ET_END selectUsers-->
                         <!--ET_BEGIN selectRoles-->
                         <tr>
-                            <td class='dt'>|Роли|*:</td>
+                            <td class='dt'>|Екипи|*:</td>
                             <td>[#selectRoles#]</td>
                         </tr>
                         <!--ET_END selectRoles-->
