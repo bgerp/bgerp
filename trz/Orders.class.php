@@ -134,6 +134,12 @@ class trz_Orders extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "5.3|Човешки ресурси"; 
+    
+    
+    /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/ordering.png';
 
     
     /**
@@ -412,6 +418,7 @@ class trz_Orders extends core_Master
     {
     	return array('crm_PersonAccRegIntf');
     }
+    
     
     /**
      * Метод филтриращ заявка към doc_Folders

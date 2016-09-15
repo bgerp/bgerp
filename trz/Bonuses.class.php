@@ -108,6 +108,12 @@ class trz_Bonuses extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/bonuses.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

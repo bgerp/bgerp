@@ -38,7 +38,7 @@ class trz_Sickdays extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trz_Wrapper, doc_DocumentPlg,acc_plg_DocumentSummary, 
-    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank';
+    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank';
     
     
     /**
@@ -100,7 +100,7 @@ class trz_Sickdays extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,trz';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -139,6 +139,12 @@ class trz_Sickdays extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/sick.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -165,6 +171,8 @@ class trz_Sickdays extends core_Master
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
     	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none');
     	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none');
+    	
+    	$this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители,mandatory');
     }
 
     
@@ -197,11 +205,11 @@ class trz_Sickdays extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$data->form->setDefault('reason', 3);
-        if(Request::get('accruals')){
+        //if(Request::get('accruals')){
         	$data->form->setField('paidByEmployer', 'input, mandatory');
         	$data->form->setField('paidByHI', 'input, mandatory');
         	
-        }
+        //}
         
         $rec = $data->form->rec;
         
@@ -234,6 +242,15 @@ class trz_Sickdays extends core_Master
     }
     
     
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
 	    if($action == 'accruals'){
@@ -247,6 +264,7 @@ class trz_Sickdays extends core_Master
 	    }
     }
 
+    
     /**
      *
      */
@@ -269,6 +287,7 @@ class trz_Sickdays extends core_Master
     	$mvc->updateSickdaysToCustomSchedules($rec->id);
     }
     
+    
     /**
      * Изпълнява се след начално установяване
      */
@@ -278,6 +297,42 @@ class trz_Sickdays extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('trzSickdays', 'Прикачени файлове в болнични листи', NULL, '104857600', 'user', 'user');
     }
+    
+    
+    /**
+     * Извиква се след изпълняването на екшън
+     */
+    public static function on_AfterAction(&$invoker, &$tpl, $act)
+    {
+        if (strtolower($act) == 'single' && haveRole('trz,ceo') && !Mode::is('printing')) {
+    
+            // Взимаме ид-то на молбата
+            $id = Request::get('id', 'int');
+    
+            // намираме, кой е текущия потребител
+            $cu =  core_Users::getCurrent();
+    
+            // взимаме записа от модела
+            $rec = self::fetch($id);
+    
+            // превръщаме кей листа на споделените потребители в масив
+            $sharedUsers = type_Keylist::toArray($rec->sahredUsers);
+    
+            // добавяме текущия потребител
+            $sharedUsers[$cu] = $cu;
+    
+            // връщаме в кей лист масива
+            $rec->sharedUsers =  keylist::fromArray($sharedUsers);
+    
+            self::save($rec, 'sharedUsers');
+    
+            doc_ThreadUsers::removeContainer($rec->containerId);
+            doc_Threads::updateThread($rec->threadId);
+    
+            redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+        }
+    }
+    
     
     /**
      * Обновява информацията за болничните в календара
@@ -430,18 +485,11 @@ class trz_Sickdays extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if ('crm_Persons' != $coverClass) {
-        	return FALSE;
-        }
-        
-        $personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+        // Името на класа
+    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+    	
+    	// Ако не е папка проект или контрагент, не може да се добави
+    	if ($coverClassName != 'crm_persons') return FALSE;
     }
     
     
@@ -473,6 +521,7 @@ class trz_Sickdays extends core_Master
         
         return $row;
     }
+    
     
     public static function act_Accruals()
     {
@@ -509,6 +558,22 @@ class trz_Sickdays extends core_Master
             $query->where("#coverId IN ({$list})");
         } else {
             $query->where("#coverId = -2");
+        }
+    }
+    
+    
+    /**
+     * Преди да се подготвят опциите на кориците, ако
+     */
+    public static function getCoverOptions($coverClass)
+    {
+         
+        if($coverClass instanceof crm_Persons){
+    
+            // Искаме да филтрираме само групата "Служители"
+            $sysId = crm_Groups::getIdFromSysId('employees');
+             
+            $query->where("#groupList LIKE '%|{$sysId}|%'");
         }
     }
     
