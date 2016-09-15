@@ -443,7 +443,7 @@ class doc_Threads extends core_Manager
                 $pCQuery->where("#visibleForPartners = 'yes'");
                 $pCCnt = $pCQuery->count();
                 if ($pCCnt != $rec->partnerDocCnt) {
-                    self::logNotice("Променен брой на документите от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
+                    self::logNotice("Променен брой на документите видими за партньори от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
                     self::updateThread($rec->id);
                     $resArr['partnerDocCnt']++;
                 }
