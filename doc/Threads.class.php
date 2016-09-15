@@ -476,6 +476,7 @@ class doc_Threads extends core_Manager
                     
                     if (self::save($rec, 'state')) {
                         $resArr['firstContainerIdState']++;
+                        self::logNotice("Променено състояние на първия документ в нишката", $rec->id);
                     }
                 } catch (core_exception_Expect $e) {
                     
