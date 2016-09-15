@@ -334,12 +334,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		if($rec->progress < 0){
 			$rec->progress = 0;
 		}
-		
-		// Записваме операцията в регистъра
-		$taskOrigin = doc_Containers::getDocument($rec->originId);
-		$quantity = $rec->totalQuantity * $rec->quantityInPack;
-		
-		planning_TaskActions::add($rec->id, $rec->productId, 'product', $taskOrigin->that, $quantity);
 	}
 
 
