@@ -60,6 +60,7 @@ class tcost_Setup extends core_ProtoSetup
             'tcost_Zones',
             'tcost_Fees',
     		'tcost_Calcs',
+    		'migrate::addFeeCurrencies',
         );
 
         
@@ -138,5 +139,23 @@ class tcost_Setup extends core_ProtoSetup
     	}
     
     	return $res;
+    }
+    
+    
+    /**
+     * Добавяне на валута към навлата
+     */
+    public function addFeeCurrencies()
+    {
+    	$Fees = cls::get('tcost_Fees');
+    	$Fees->setupMVC();
+    	
+    	$currencyId = acc_Periods::getBaseCurrencyCode();
+    	$query = $Fees->getQuery();
+    	$query->where("#currencyId IS NULL");
+    	while($rec = $query->fetch()){
+    		$rec->currencyId = $currencyId;
+    		$Fees->save($rec, 'currencyId');
+    	}
     }
 }

@@ -437,9 +437,12 @@ class sales_QuotationsDetails extends doc_Detail {
     		}
     		
     		if(!$form->gotErrors()){
-    			
+    		    if(isset($masterRec->deliveryPlaceId)){
+    		        $masterRec->deliveryPlaceId  = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}'", 'id');
+    		    }
+    		    
     			// Подготовка на сумата на транспорта, ако има
-    			tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations'));
+    			tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
     		}
 	    }
     }

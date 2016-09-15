@@ -294,11 +294,6 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	}
     	
     	self::save($rec, 'realQuantity');
-    	$taskOriginId = planning_Tasks::fetchField($rec->taskId, 'originId');
-    	$taskOrigin = doc_Containers::getDocument($taskOriginId);
-    	
-    	// Записваме операцията в регистъра
-    	planning_TaskActions::add($rec->taskId, $rec->productId, $rec->type, $taskOrigin->that, $rec->realQuantity);
     }
     
     

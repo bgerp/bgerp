@@ -51,6 +51,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		$fieldset->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Описание');
+		$fieldset->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Доп. мярка');
 		
 		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
@@ -69,31 +70,33 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	 * 
 	 * @param stdClass $rec
 	 * @return stdClass $arr
-	 * 			  o productId       - ид на артикула
-	 * 			  o packagingId     - ид на опаковката
-	 * 			  o quantityInPack  - количество в опаковка
-	 * 			  o plannedQuantity - планирано количество
-	 * 			  o wastedQuantity  - бракувано количество
-	 * 			  o totalQuantity   - прозведено количество
-	 * 			  o storeId         - склад
-	 * 			  o fixedAssets     - машини
-	 * 			  o indTime         - време за пускане
-	 * 			  o startTime       - време за прозиводство
+	 * 			  o productId         - ид на артикула
+	 * 			  o packagingId       - ид на опаковката
+	 * 			  o quantityInPack    - количество в опаковка
+	 * 			  o plannedQuantity   - планирано количество
+	 * 			  o wastedQuantity    - бракувано количество
+	 * 			  o totalQuantity     - прозведено количество
+	 * 			  o storeId           - склад
+	 * 			  o fixedAssets       - машини
+	 * 			  o indTime           - време за пускане
+	 * 			  o startTime         - време за прозиводство
+	 * 			  o showadditionalUom - показване на допълнителна мярка
 	 */
 	public function getProductDriverInfo($rec)
 	{
 		$arr = array();
 		
-		$arr['productId']       = $rec->productId;
-		$arr['packagingId']     = $rec->packagingId;
-		$arr['quantityInPack']  = $rec->quantityInPack;
-		$arr['plannedQuantity'] = $rec->plannedQuantity;
-		$arr['wastedQuantity']  = $rec->totalQuantity;
-		$arr['totalQuantity']   = $rec->totalQuantity;
-		$arr['storeId']         = $rec->storeId;
-		$arr['fixedAssets']     = $rec->fixedAssets;
-		$arr['indTime']         = $rec->indTime;
-		$arr['startTime']       = $rec->startTime;
+		$arr['productId']         = $rec->productId;
+		$arr['packagingId']       = $rec->packagingId;
+		$arr['quantityInPack']    = $rec->quantityInPack;
+		$arr['plannedQuantity']   = $rec->plannedQuantity;
+		$arr['wastedQuantity']    = $rec->totalQuantity;
+		$arr['totalQuantity']     = $rec->totalQuantity;
+		$arr['storeId']           = $rec->storeId;
+		$arr['fixedAssets']       = $rec->fixedAssets;
+		$arr['indTime']           = $rec->indTime;
+		$arr['startTime']         = $rec->startTime;
+		$arr['showadditionalUom'] = $rec->showadditionalUom;
 		
 		return (object)$arr;
 	}
@@ -334,12 +337,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		if($rec->progress < 0){
 			$rec->progress = 0;
 		}
-		
-		// Записваме операцията в регистъра
-		$taskOrigin = doc_Containers::getDocument($rec->originId);
-		$quantity = $rec->totalQuantity * $rec->quantityInPack;
-		
-		planning_TaskActions::add($rec->id, $rec->productId, 'product', $taskOrigin->that, $quantity);
 	}
 
 
@@ -394,16 +391,20 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public static function prepareFieldLetterHeaded($rec, $row)
     {
         $resArr = array();
+        
         $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
         																 <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
         																 <span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
         																 <!--ET_BEGIN fixedAssets--><br><span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<!--ET_END fixedAssets-->
         																 <br>[#progressBar#] [#progress#]"));
         
-        
         $packagingId = cat_UoM::getTitleById($rec->packagingId);
         $resArr['quantity'] = array('name' => tr("Количества|*, |{$packagingId}|*"), 'val' => tr("|*<span style='font-weight:normal'>|Планирано|*</span>: [#plannedQuantity#]<br>
         																						    <span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]"));
+        
+        if($rec->showadditionalUom == 'yes'){
+        	$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
+        }
         
         if(!empty($rec->startTime) || !empty($rec->indTime)){
         	if(isset($rec->indTime)){

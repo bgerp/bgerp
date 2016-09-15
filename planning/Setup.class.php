@@ -103,7 +103,7 @@ class planning_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'PLANNING_TASK_SERIAL_COUNTER'             => array ('int', 'caption=Задачи->Стартов сериен номер'),
+    		'PLANNING_TASK_SERIAL_COUNTER'             => array ('int', 'caption=Задачи за производство->Стартов сериен номер'),
     		'PLANNING_TASK_LABEL_COUNTER_SHOWING'      => array('enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'caption=Шаблон за етикети на задачите->Показване'),
     		'PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE' => array('varchar', 'caption=Шаблон за етикети на задачите->Тип баркод,optionsFunc=barcode_Generator::getAllowedBarcodeTypesArr'),
     		'PLANNING_TASK_LABEL_RATIO'                => array('enum(1=1,2=2,3=3,4=4)', 'caption=Шаблон за етикети на задачите->Съотношение'),
