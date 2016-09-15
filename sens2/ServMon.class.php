@@ -123,12 +123,14 @@ class sens2_ServMon  extends sens2_ProtoDriver
             $res['conn2'] = $this->checkConnection($config->conn2);
         }
 
-            if($inputs['conn3']) {
+        if($inputs['conn3']) {
             $res['conn3'] = $this->checkConnection($config->conn3);
         }
         
+        // Проверка натовареността на процесора
+        $cpuLoad = sys_getloadavg();
         if($inputs['cpuLoad']) {
-            $res['cpuLoad'] = implode('|', sys_getloadavg());
+            $res['cpuLoad'] = $cpuLoad[0];
         }
         
         return $res;
