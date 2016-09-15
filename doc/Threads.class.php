@@ -364,16 +364,14 @@ class doc_Threads extends core_Manager
                 reportException($e);
             }
         }
-        
-        // Връщаме старото състояние за ловговането в дебъг
-        core_Debug::$isLogging = $isLoging;
-        
-        $conf = core_Packs::getConfig('doc');
-        
+                
         // Ако е зададено да се поправят всички стойности
         if (doc_Setup::get('REPAIR_STATE') == 'yes') {
             $resArr += self::repairStates($from, $to, $delay);
         }
+        
+        // Връщаме старото състояние за ловговането в дебъг
+        core_Debug::$isLogging = $isLoging;
         
         return $resArr;
     }
