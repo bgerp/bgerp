@@ -44,7 +44,9 @@ class sens2_ServMon  extends sens2_ProtoDriver
                 'conn1' => (object) array('caption' => 'Връзка до conn1'),
                 'conn2' => (object) array('caption' => 'Връзка до conn2'),
                 'conn3' => (object) array('caption' => 'Връзка до conn3'),
-
+                
+                'cpuLoad' => (object) array('caption' => 'Натоварване процесор'),
+            
                 );
     }
 
@@ -63,6 +65,8 @@ class sens2_ServMon  extends sens2_ProtoDriver
         $form->FLD('conn1', 'varchar', 'caption=Връзки->Conn1');
         $form->FLD('conn2', 'varchar', 'caption=Връзки->Conn2');
         $form->FLD('conn3', 'varchar', 'caption=Връзки->Conn3');
+        $form->FLD('cpuLoad', 'varchar', 'caption=Процесор->cpuLoad');
+        
     }
 
 
@@ -119,10 +123,14 @@ class sens2_ServMon  extends sens2_ProtoDriver
             $res['conn2'] = $this->checkConnection($config->conn2);
         }
 
-        if($inputs['conn3']) {
+            if($inputs['conn3']) {
             $res['conn3'] = $this->checkConnection($config->conn3);
         }
-
+        
+        if($inputs['cpuLoad']) {
+            $res['cpuLoad'] = implode('|', sys_getloadavg());
+        }
+        
         return $res;
     }
 
