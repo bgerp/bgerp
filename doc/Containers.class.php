@@ -1877,11 +1877,12 @@ class doc_Containers extends core_Manager
                     
                     if ($iRec->state == $rec->state) continue;
                     
+                    $oldState = $rec->state;
                     $rec->state = $iRec->state;
                     
                     if (self::save($rec, 'state')) {
                         $resArr['state']++;
-                        self::logNotice('Променено състояние на документа', $rec->id);
+                        self::logNotice("Променено състояние на документа от {$oldState} на {$rec->state}", $rec->id);
                         self::update($rec->id);
                     }
                 } catch (core_exception_Expect $e) {
