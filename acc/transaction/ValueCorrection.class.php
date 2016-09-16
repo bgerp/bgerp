@@ -99,7 +99,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				$creditAcc = (isset($pInfo->meta['canStore'])) ? '701' : '703';
 				
 				$debitArr['quantity'] = currency_CurrencyRates::convertAmount($prod->allocated, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
-				$debitArr['quantity'] = currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
+				$debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
 				
 				$entries[] = array('amount' => $sign * $prod->allocated,
 								   'debit' => $debitArr,
@@ -117,7 +117,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 			
 			if($vatType == 'yes' || $vatType == 'separate'){
 				$debitArr['quantity'] = currency_CurrencyRates::convertAmount($vatAmount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
-				$debitArr['quantity'] = currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
+				$debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
 				
 				$entries[] = array('amount' => round($sign * $vatAmount, 2),
 						'debit' => $debitArr,
