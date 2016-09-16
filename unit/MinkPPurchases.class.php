@@ -31,6 +31,7 @@ class unit_MinkPPurchases extends core_Manager {
         $res .= "  11.".$this->act_CreateCreditDebitInvoiceVATNo();
         $res .= "  12.".$this->act_CreatePurchaseAdvPaymentInclVAT();
         $res .= "  13.".$this->act_CreatePurchaseAdvPaymentSep();
+        $res .= "  14.".$this->act_CreatePurchaseDifVAT();
         return $res;
     }
        
@@ -399,7 +400,6 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->setValue('number', '1');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -1274,4 +1274,89 @@ class unit_MinkPPurchases extends core_Manager {
         }
         //return $browser->getHtml();
     }
+    
+    /**
+     * Покупка на артикули с различно ДДС
+     */
+    //http://localhost/unit_MinkPPurchases/CreatePurchaseDifVAT/
+    function act_CreatePurchaseDifVAT()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+    
+        // нова Покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Покупка');
+        }
+         
+        //$browser->hasText('Създаване на Покупка');
+        $browser->setValue('note', 'MinkPPurchaseDifVAT');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        // Записване черновата на Покупката
+        $browser->press('Чернова');
+    
+        // Добавяме нов артикул - 20% ДДС
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '20');
+        $browser->setValue('packPrice', '20');
+        // Записване артикула и добавяне нов - 9% ДДС
+        $browser->press('Запис и Нов');
+        $browser->setValue('productId', 'Артикул ДДС 9');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '9');
+        $browser->setValue('packPrice', '9');
+        // Записваме артикула
+        $browser->press('Запис');
+    
+        // активиране на Покупката
+        $browser->press('Активиране');
+        //return $browser->getHtml();
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 80,00')) {
+        } else {
+            return "Грешно ДДС 20%";
+        }
+        if(strpos($browser->gettext(), 'ДДС 9%: BGN 7,29')) {
+        } else {
+            return "Грешно ДДС 9%";
+        }
+        if(strpos($browser->gettext(), 'Петстотин шестдесет и осем BGN и 0,29')) {
+        } else {
+            return "Грешна обща сума";
+        }
+        // Складова разписка
+        $browser->press('Засклаждане');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Складова разписка с цени');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+               
+        // Фактура
+        $browser->press('Вх. фактура');
+        $browser->setValue('number', '23');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 400,00')) {
+        } else {
+            return "Грешна данъчна основа 20%";
+        }
+        if(strpos($browser->gettext(), 'Данъчна основа 9%: BGN 81,00')) {
+        } else {
+            return "Грешна данъчна основа 9%";
+        }
+        //return $browser->getHtml();
+    }
+     
+    
 }
