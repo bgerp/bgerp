@@ -42,6 +42,15 @@ class cad2_PdfCanvas extends cad2_Canvas {
     // именовани цветове
     public $colorNames = array(
         '#0000fe' => 'MeasureLine',
+        '#020301' => 'ContourDark',
+        '#ABAAAC' => 'ContourLight',
+        '#000301' => 'InnerLineDark',
+        '#EAEEEF' => 'InnerLineLight',
+        '#606100' => 'FoldingLineDark',
+        '#feff9e' => 'FoldingLineLight',
+        '#735858' => 'PatternLineDark',
+        '#cebfbe' => 'PatternLineLight',
+        '#FDFED7' => 'LegendFill'
         );
 
     /**
