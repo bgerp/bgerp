@@ -826,11 +826,14 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('changeAmount', '-22.36');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Minus twenty-two EUR and 0,36 ')) {
+        if(strpos($browser->gettext(), 'Minus twenty-two EUR and 0,36')) {
         } else {
             return "Грешна сума в КИ - сума";
         }
-    
+        if(strpos($browser->gettext(), 'Amount reducing')) {
+        } else {
+            return "Грешка в КИ - текст";
+        }
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
@@ -864,7 +867,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна сума в ДИ - сума";
         }
-        
+        if(strpos($browser->gettext(), 'Amount increasing')) {
+        } else {
+            return "Грешка в ДИ - текст";
+        }
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
@@ -969,7 +975,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна сума в КИ - сума";
         }
-    
+        if(strpos($browser->gettext(), 'Amount reducing')) {
+        } else {
+            return "Грешка в КИ - текст";
+        }
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
@@ -1003,7 +1012,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна сума в ДИ - сума";
         }
-    
+        if(strpos($browser->gettext(), 'Amount increasing')) {
+        } else {
+            return "Грешка в ДИ - текст";
+        }
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
