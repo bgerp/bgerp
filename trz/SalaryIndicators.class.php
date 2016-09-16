@@ -303,8 +303,6 @@ class trz_SalaryIndicators extends core_Manager
             	self::save($rec);
             }
     	}
-    	
-    	
     }
     
     
