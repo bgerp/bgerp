@@ -1132,11 +1132,10 @@ class doc_Folders extends core_Master
             
             try {
                 // Поправяме документите, които няма инстанция или липсва запис за тях
-                $haveInst = cls::load($rec->coverClass, TRUE);
-                if ($haveInst) {
+                if (cls::load($rec->coverClass, TRUE)) {
                     $inst = cls::get($rec->coverClass);
                     
-                    if (!$inst->fetch($rec->coverId)) {
+                    if (!$inst->fetch($rec->coverId, '*', FALSE)) {
                         $mustRepair = TRUE;
                     }
                 } else {
