@@ -279,12 +279,24 @@ class trz_Sickdays extends core_Master
     
     
     /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        $rec->state = 'pending';
+    }
+    
+    
+    /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateSickdaysToCalendar($rec->id);
-    	$mvc->updateSickdaysToCustomSchedules($rec->id);
+    	$mvc->updateSickdaysToCustomSchedules($rec->id);	
     }
     
     
