@@ -367,7 +367,7 @@ class doc_Threads extends core_Manager
                 
         // Ако е зададено да се поправят всички стойности
         if (doc_Setup::get('REPAIR_STATE') == 'yes') {
-            $resArr += self::repairStates($from, $to, $delay);
+            $resArr += self::repairAll($from, $to, $delay);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
@@ -387,7 +387,7 @@ class doc_Threads extends core_Manager
      * 
      * @return array
      */
-    public static function repairStates($from = NULL, $to = NULL, $delay = 10)
+    public static function repairAll($from = NULL, $to = NULL, $delay = 10)
     {
         $resArr = array();
         $query = self::getQuery();
@@ -412,7 +412,7 @@ class doc_Threads extends core_Manager
                 
                 // Ако папката е грешна (няма такава папка)
                 if ($rec->folderId) {
-                    if (!doc_Folders::fetch($rec->folderId)) {
+                    if (!doc_Folders::fetch($rec->folderId, '*', FALSE)) {
                         self::logNotice("Променена папка от {$rec->folderId} на {$defaultFolderId}", $rec->id);
                         $rec->folderId = $defaultFolderId;
                         
@@ -451,7 +451,7 @@ class doc_Threads extends core_Manager
                 if (!$rec->firstContainerId) continue;
                 
                 try {
-                    $cRec = doc_Containers::fetch($rec->firstContainerId);
+                    $cRec = doc_Containers::fetch($rec->firstContainerId, '*', FALSE);
                 } catch (Exception $e) {
                     continue;
                 }
