@@ -205,11 +205,11 @@ class trz_Sickdays extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$data->form->setDefault('reason', 3);
-        //if(Request::get('accruals')){
+        if(Request::get('accruals')){
         	$data->form->setField('paidByEmployer', 'input, mandatory');
         	$data->form->setField('paidByHI', 'input, mandatory');
         	
-        //}
+        }
         
         $rec = $data->form->rec;
         
@@ -272,7 +272,7 @@ class trz_Sickdays extends core_Master
     {
         if($mvc->haveRightFor('accruals') && $data->rec->state == 'draft') {
             
-            //$data->toolbar->addBtn('Начисления', array($mvc, 'add', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
+            $data->toolbar->addBtn('Начисления', array($mvc, 'edit', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
         }
         
     }
