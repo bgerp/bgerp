@@ -1355,6 +1355,32 @@ class unit_MinkPPurchases extends core_Manager {
         } else {
             return "Грешна данъчна основа 9%";
         }
+        // Кредитно известие - количество
+        $browser->press('Известие');
+        $browser->setValue('number', '24');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('quantity', '18');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), ' Минус четиридесет и осем BGN')) {
+        } else {
+            return "Грешна сума в КИ - количество";
+        }
+        
+        // Кредитно известие - цена
+        $browser->press('Известие');
+        $browser->setValue('number', '25');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('packPrice', '15');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Минус сто и двадесет BGN')) {
+        } else {
+            return "Грешна сума в КИ - цена";
+        }
+        
         //return $browser->getHtml();
     }
      
