@@ -3,32 +3,43 @@
 
 
 /**
- * Мениджър на глоби и премии
+ * Мениджър на глоби и удръжки
  *
  *
  * @category  bgerp
  * @package   trz
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Глоби и Премии
+ * @title     Глоби
  */
-class trz_Fines extends core_Manager
+class trz_Fines extends core_Master
 {
+    
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
     
     
     /**
      * Заглавие
      */
-    public $title = 'Глоби';
+    public $title = 'Удръжки';
+    
+     
+    /**
+     * Заглавие в единствено число
+     */
+    public $singleTitle = "Удръжка";
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    trz_Wrapper, doc_plg_BusinessDoc';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
+                    trz_Wrapper';
     
     
     /**
@@ -41,6 +52,18 @@ class trz_Fines extends core_Manager
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,trz';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	public $canList = 'ceo,trz';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canSingle = 'ceo,trz';
     
     
     /**
@@ -62,27 +85,32 @@ class trz_Fines extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,trz';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,trz';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт';
+    public $listFields = 'id, periodId, personId, type, sum';
+    
+    /**
+     * Групиране на документите
+     */
+    public $newBtnGroup = "5.5|Човешки ресурси"; 
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'periodId';
+    
+    
+    /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/banknote.png';
     
     
     /**
@@ -90,29 +118,67 @@ class trz_Fines extends core_Manager
      */
     public function description()
     {
+    	$this->FLD('periodId', 'date',     'caption=Дата');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
+    	$this->FLD('type', 'varchar',     'caption=Произход на удръжката');
+    	$this->FLD('sum', 'double',     'caption=Сума');
+    	
     }
     
+    
     /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    public function act_Default()
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        requireRole('trz, admin');
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
         
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
-
-        return $this->renderWrapping($underConstructionImg);
+    	// Ако имаме права да видим визитката
+    	if(crm_Persons::haveRightFor('single', $rec->personId)){
+    		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+    		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
+    	}
+    	
+    	$row->sum = $Double->toVerbal($rec->sum);
+    }
+    
+    
+    public static function act_Test()
+    {
+    	$date = '2016-03-01';
+    	self::getSalaryIndicators($date);
     }
     
     
     /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
+     * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+     * 
+     * @param date $date
+     * @return array $result
      */
-    public static function getAllowedFolders()
+    public static function getSalaryIndicators($date)
     {
-    	return array('crm_PersonAccRegIntf');
+    	$query = self::getQuery();
+    	$query->where("#periodId  <= '{$date}'");
+    	$me = cls::get(get_called_class());
+
+    	while($rec = $query->fetch()){
+    	
+    		$result[] = (object)array(
+    		    'date' => $rec->periodId,
+	    		'personId' => $rec->personId, 
+	    		'docId'  => $rec->id, 
+	    	    'docClass' => core_Classes::getId('trz_Fines'),
+	    		'indicator' => tr("|$me->title|*"), 
+	    		'value' => $rec->sum
+	    	);
+    	}
+
+    	return $result;
     }
+
 }
