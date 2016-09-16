@@ -16,13 +16,7 @@
  */
 class trz_Fines extends core_Master
 {
-    
-    /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
-    
-    
+
     /**
      * Заглавие
      */
@@ -145,40 +139,4 @@ class trz_Fines extends core_Master
     	
     	$row->sum = $Double->toVerbal($rec->sum);
     }
-    
-    
-    public static function act_Test()
-    {
-    	$date = '2016-03-01';
-    	self::getSalaryIndicators($date);
-    }
-    
-    
-    /**
-     * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
-     * 
-     * @param date $date
-     * @return array $result
-     */
-    public static function getSalaryIndicators($date)
-    {
-    	$query = self::getQuery();
-    	$query->where("#periodId  <= '{$date}'");
-    	$me = cls::get(get_called_class());
-
-    	while($rec = $query->fetch()){
-    	
-    		$result[] = (object)array(
-    		    'date' => $rec->periodId,
-	    		'personId' => $rec->personId, 
-	    		'docId'  => $rec->id, 
-	    	    'docClass' => core_Classes::getId('trz_Fines'),
-	    		'indicator' => tr("|$me->title|*"), 
-	    		'value' => $rec->sum
-	    	);
-    	}
-
-    	return $result;
-    }
-
 }
