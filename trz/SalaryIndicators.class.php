@@ -136,6 +136,9 @@ class trz_SalaryIndicators extends core_Manager
     	    if(cls::getClassName($rec->docClass) == 'trz_Bonuses'){
     	        $name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
     	        $row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
+    	    } elseif(cls::getClassName($rec->docClass) == 'trz_Fines'){
+    	        $name = trz_Fines::fetchField("#id = '{$rec->docId}'", 'type');
+    	        $row->doc = ht::createLink($name, array ('trz_Fines', 'single', 'id' => $rec->docId));
     	    } else {
     	    
     	       $row->doc = $Class->getHyperlink($rec->docId);
