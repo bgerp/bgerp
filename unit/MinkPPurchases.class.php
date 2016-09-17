@@ -1360,7 +1360,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '14');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        //return $browser->getHtml();
+       
         $browser->setValue('quantity', '18');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1381,7 +1381,31 @@ class unit_MinkPPurchases extends core_Manager {
         } else {
             return "Грешна сума в КИ - цена";
         }
+        // Дебитно известие - количество
+        $browser->press('Известие');
+        $browser->setValue('number', '16');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('quantity', '21');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), ' Двадесет и четири BGN')) {
+        } else {
+            return "Грешна сума в ДИ - количество";
+        }
         
+        // Дебитно известие - цена
+        $browser->press('Известие');
+        $browser->setValue('number', '17');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('packPrice', '20,14');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Словом: Три BGN и 0,36 ')) {
+        } else {
+            return "Грешна сума в ДИ - цена";
+        }
         //return $browser->getHtml();
     }
      
