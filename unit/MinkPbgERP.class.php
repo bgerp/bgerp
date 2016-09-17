@@ -19,7 +19,7 @@ class unit_MinkPbgERP extends core_Manager {
    
    public static function reportErr($text, $type = 'warning')
    {
-       $text = debug_backtrace()['1']['function'] . ': ' . $text;
+       $text = 'ГРЕШКА В ' .debug_backtrace()['1']['function'] . ': ' . $text;
        
        if ($type == 'warning') {
            self::logWarning($text);
@@ -91,10 +91,10 @@ class unit_MinkPbgERP extends core_Manager {
         
         if(strpos($browser->gettext(), 'Първоначална регистрация на администратор')) {
         //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp  
-            $browser->setValue('nick', 'bgerp');
-            $browser->setValue('passNew', '111111');
-            $browser->setValue('passRe', '111111');
-            $browser->setValue('names', 'bgerp');
+            $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
+            $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
+            $browser->setValue('passRe', unit_Setup::get('DEFAULT_USER_PASS'));
+            $browser->setValue('names', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('email', 'bgerp@experta.bg');
             $browser->press('Запис');
         }     
@@ -118,18 +118,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Админ');
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
+        $browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
         
-        //$browser->click("Деактивиране на пакета");
-        ////////////// не работи
-        $browser->click('select2-deinstall');
-        return $browser->getHtml();
-        if (strpos($browser->getText(),"Наистина ли искате да деактивирате пакета?")){
-            $browser->press('OK');
-            return 'Деактивиране.';
-        } else {
-            return 'Грешка';
-        }
-        return $browser->getHtml();
     }
     
     /**
