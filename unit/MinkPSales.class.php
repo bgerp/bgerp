@@ -34,6 +34,7 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  14.".$this->act_CreateSaleDifVAT();
         $res .= "  15.".$this->act_CreateSaleInvalydData();
         $res .= "  16.".$this->act_CreateSaleManuf();
+        $res .= "  17.".$this->act_CreateSaleService();
         return $res;
     }
        
@@ -637,8 +638,6 @@ class unit_MinkPSales extends core_Manager {
         }
          
         //$browser->hasText('Създаване на продажба');
-        $enddate=strtotime("+2 Days");
-        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDI');
@@ -1530,6 +1529,72 @@ class unit_MinkPSales extends core_Manager {
             return "Грешна данъчна основа във фактурата";
         }
          
+        //return $browser->getHtml();
+    }
+ 
+    /**
+     * Продажба - договор за услуга
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateSaleService/
+    function act_CreateSaleService()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+         
+        //$browser->hasText('Създаване на продажба');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleService');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Включено ДДС в цените");
+        $browser->setValue('template', 'Договор за услуга');
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул - услуга
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Транспорт');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 1);
+        $browser->setValue('packPrice', 788.56);
+        $browser->setValue('discount', 10);
+        // Записване на артикула
+        $browser->press('Запис');
+        // активиране на продажбата
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
+        //return $browser->getHtml();
+        //if(strpos($browser->gettext(), '78,86')) {   
+        if(strpos($browser->gettext(), 'Отстъпка: BGN 78,86')) {
+        } else {
+            return "Грешна отстъпка";
+        }
+        if(strpos($browser->gettext(), 'Седемстотин и девет BGN и 0,70')) {
+        } else {
+            return "Грешна обща сума";
+        }
+        
+        // Фактура
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 591,42')) {
+        } else {
+            return "Грешна сума във фактура";
+        }
         //return $browser->getHtml();
     }
     
