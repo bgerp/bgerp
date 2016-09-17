@@ -1400,8 +1400,8 @@ class unit_MinkPSales extends core_Manager {
     /**
      * Проверка за некоректни данни в цена/количество - ,,100-3   200;-4    *.100-5  12.,5
      */
-    //http://localhost/unit_MinkPSales/SaleInvalydData/
-    function act_SaleInvalydData()
+    //http://localhost/unit_MinkPSales/CreateSaleInvalydData/
+    function act_CreateSaleInvalydData()
     {
     
         // Логваме се
