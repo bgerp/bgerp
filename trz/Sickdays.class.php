@@ -38,7 +38,7 @@ class trz_Sickdays extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trz_Wrapper, doc_DocumentPlg,acc_plg_DocumentSummary, 
-    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank';
+    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank,change_Plugin';
     
     
     /**
@@ -101,7 +101,7 @@ class trz_Sickdays extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'powerUser';
-    
+
     
     /**
      * Кой може да го види?
@@ -114,11 +114,16 @@ class trz_Sickdays extends core_Master
      */
     public $canDelete = 'ceo,trz';
     
+    
     /**
      * Кой има право да прави начисления
      */
     public $canAccruals = 'ceo,trz,manager';
-  
+    
+    public $canEdited = 'ceo,trz';
+    
+    public $canChange = 'ceo,trz';
+
     
     /**
      * Шаблон за единичния изглед
@@ -149,7 +154,7 @@ class trz_Sickdays extends core_Master
      */
     public function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител,readonly, autoFilter');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител,readonly');
     	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
     	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
     	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година');
@@ -169,8 +174,8 @@ class trz_Sickdays extends core_Master
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
-    	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none');
-    	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none');
+    	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none, changable');
+    	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none,changable');
     	
     	$this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители,mandatory');
     }
@@ -266,37 +271,26 @@ class trz_Sickdays extends core_Master
 
     
     /**
-     *
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        if($mvc->haveRightFor('accruals') && $data->rec->state == 'draft') {
-            
-            $data->toolbar->addBtn('Начисления', array($mvc, 'edit', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
-        }
-        
-    }
-    
-    
-    /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $rec
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-        $rec->state = 'pending';
-    }
-    
-    
-    /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateSickdaysToCalendar($rec->id);
     	$mvc->updateSickdaysToCustomSchedules($rec->id);	
+    	
+    	$subscribedArr = keylist::toArray($rec->sharedUsers);
+    	if(count($subscribedArr)) {
+    	    foreach($subscribedArr as $userId) {
+    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+    	            $rec->message  = self::getVerbal($rec, 'personId'). "| добави |* \"" . self::getRecTitle($rec) . "\"";
+    	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+    	            $rec->customUrl = array('trz_Sickdays', 'single',  $rec->id);
+    	            $rec->priority = 0;
+    	            
+    	            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+    	        }
+    	    }
+    	}
     }
     
     
@@ -312,10 +306,28 @@ class trz_Sickdays extends core_Master
     
     
     /**
+     * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
+     *
+     * @param blast_Emails $mvc
+     * @param object $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        $state = $data->rec->state;
+        
+        if($mvc->haveRightFor('accruals') && $data->rec->state == 'active') {
+        
+            $data->toolbar->addBtn('Начисления', array($mvc, 'edit', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
+        }
+    }
+    
+    
+    /**
      * Извиква се след изпълняването на екшън
      */
     public static function on_AfterAction(&$invoker, &$tpl, $act)
-    {
+    { 
         if (strtolower($act) == 'single' && haveRole('trz,ceo') && !Mode::is('printing')) {
     
             // Взимаме ид-то на молбата
@@ -343,6 +355,27 @@ class trz_Sickdays extends core_Master
     
             redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        
+        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
+        
+        $row->paidByEmployer = $Double->toVerbal($rec->paidByEmployer);
+        $row->paidByEmployer .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        
+        $row->paidByHI = $Double->toVerbal($rec->paidByHI);
+        $row->paidByHI .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     }
     
     
@@ -518,7 +551,7 @@ class trz_Sickdays extends core_Master
         $row = new stdClass();
         
         //Заглавие
-        $row->title = "Болничен лист №{$rec->fitNoteNum}";
+        $row->title = "Болничен лист №{$rec->id}";
 
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -540,6 +573,11 @@ class trz_Sickdays extends core_Master
     	self::requireRightFor('аccruals');
     }
     
+    public static function act_Edited()
+    {
+        self::requireRightFor('edited');
+    }
+
     
     /**
      * В кои корици може да се вкарва документа
@@ -597,7 +635,7 @@ class trz_Sickdays extends core_Master
     {
         $me = cls::get(get_called_class());
          
-        $title = tr('Болничен лист №|*'. $rec->fitNoteNum . ' на|* ') . $me->getVerbal($rec, 'personId');
+        $title = tr('Болничен лист №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
          
         return $title;
     }
