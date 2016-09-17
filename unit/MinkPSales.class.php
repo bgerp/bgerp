@@ -33,6 +33,7 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  13.".$this->act_CreateSaleAdvPaymentSep();
         $res .= "  14.".$this->act_CreateSaleDifVAT();
         $res .= "  15.".$this->act_CreateSaleInvalydData();
+        $res .= "  16.".$this->act_CreateSaleManuf();
         return $res;
     }
        
@@ -1460,4 +1461,76 @@ class unit_MinkPSales extends core_Manager {
         }
         //return $browser->getHtml();
     }
+    
+    /**
+     * Продажба договор за изработка
+     * да се добави задание, задача
+     * 
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateSaleManuf/
+    function act_CreateSaleManuf()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряме папката на фирмата
+        $browser = $this->SetFirmEUR();
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+        $enddate=strtotime("+2 Days");
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleManuf');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', 'exempt');
+        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        $browser->setValue('template', 'Manufacturing contract');
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Артикул по запитване');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '500');
+        $browser->setValue('packPrice', '0.51');
+       
+        // Записване на артикула
+        $browser->press('Запис');
+         
+        // активиране на продажбата
+        $browser->press('Активиране');
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Two hundred and fifty-five EUR')) {
+        } else {
+            return "Грешна обща сума";
+        }
+        // експедиционно нареждане
+        $browser->press('Експедиране');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Packaging list');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        
+        // Фактура
+        $browser->press('Фактура');
+        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), ' Данъчна основа: 498,74 BGN')) {
+        } else {
+            return "Грешна данъчна основа във фактурата";
+        }
+         
+        //return $browser->getHtml();
+    }
+    
 }
