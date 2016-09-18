@@ -18,6 +18,12 @@ class doc_Threads extends core_Manager
 
 
     /**
+     *
+     */
+    const DELETE_SYSTEM_ID = 'DeleteThread';
+    
+	
+    /**
      * Максимална дължина на показваните заглавия 
      */
     const maxLenTitle = 70;
@@ -2432,5 +2438,59 @@ class doc_Threads extends core_Manager
     	$folderId = self::fetchField($id, 'folderId');
     	core_Cache::remove("doc_Folders", "folder{$folderId}");
     	core_Cache::remove("doc_Folders", "visibleDocumentsInFolder{$folderId}");
+    }
+    
+    
+    /**
+     * Вика се по крон и изтрива оттеглените нишки и одкументи
+     * Ако са оттеглени преди константа, не са използвани в някой документ и има само един документ в нишката
+     */
+    public function cron_DeleteThread()
+    {
+        $query = self::getQuery();
+        
+        $from = NULL;
+        $to = dt::now();
+        doc_Folders::prepareRepairDateQuery($query, $from, $to, doc_Setup::get('REPAIR_DELAY'), 'modifiedOn');
+        
+        $delFrom = dt::subtractSecs(doc_Setup::get('DELETE_REJECTED_THREADS_PERIOD'));
+        $query->where(array("#modifiedOn <= '[#1#]'", $delFrom));
+        
+        $query->where("#state = 'rejected'");
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        $delCnn = 0;
+        while ($rec = $query->fetch()) {
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
+            
+            $query->limit(2);
+            $query->show('id');
+            
+            if ($cQuery->count() != 1) continue ;
+            
+            $query->orderBy('createdOn', 'DESC');
+            
+            $cRec = $cQuery->fetch();
+            
+            // Ако записа не е първия документ в нишката
+            if ($cRec->id != $rec->firstContainerId) continue;
+            
+            // Ако документа е използван някъде
+            if (doclog_Used::getUsedCount($cRec->id)) continue;
+            
+            // Изтриваме нишката
+            self::logNotice('Изтрита оттеглена нишка', $rec->id);
+            self::delete($rec->id);
+            
+            // Изтриваме документа
+            doc_Containers::logNotice('Изтрит оттеглен документ', $cRec->id);
+            doc_Containers::delete($cRec->id);
+            
+            $delCnn++;
+        }
+        
+        return "Изтрити записи: " . $delCnn; 
     }
 }

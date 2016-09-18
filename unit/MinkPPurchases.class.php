@@ -493,7 +493,7 @@ class unit_MinkPPurchases extends core_Manager {
         // Фактура
         $browser->press('Вх. фактура');
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
-        $browser->setValue('number', '2');
+        $browser->setValue('number', '101');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN 64,91')) {
@@ -574,7 +574,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Вх. фактура');
         //$browser->setValue('amountAccrued', '3,3');
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
-        $browser->setValue('number', '3');
+        $browser->setValue('number', '102');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN 6,45')) {
@@ -656,13 +656,13 @@ class unit_MinkPPurchases extends core_Manager {
                  
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '3');
+        $browser->setValue('number', '2');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
         // Кредитно известие - сума
         $browser->press('Известие');
-        $browser->setValue('number', '4');
+        $browser->setValue('number', '3');
         $browser->setValue('changeAmount', '-22.36');
         //return $browser->getHtml();
         $browser->press('Чернова');
@@ -675,7 +675,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Кредитно известие - количество
         $browser->press('Известие');
-        $browser->setValue('number', '5');
+        $browser->setValue('number', '4');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '20');
@@ -688,7 +688,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Кредитно известие - цена
         $browser->press('Известие');
-        $browser->setValue('number', '6');
+        $browser->setValue('number', '5');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.3');
@@ -701,7 +701,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Дебитно известие - сума
         $browser->press('Известие');
-        $browser->setValue('number', '7');
+        $browser->setValue('number', '6');
         $browser->setValue('changeAmount', '22.20');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -711,7 +711,7 @@ class unit_MinkPPurchases extends core_Manager {
         }
         // Дебитно известие - количество
         $browser->press('Известие');
-        $browser->setValue('number', '8');
+        $browser->setValue('number', '7');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
@@ -723,7 +723,7 @@ class unit_MinkPPurchases extends core_Manager {
         }
         // Дебитно известие - цена
         $browser->press('Известие');
-        $browser->setValue('number', '9');
+        $browser->setValue('number', '8');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '2.3');
@@ -800,14 +800,14 @@ class unit_MinkPPurchases extends core_Manager {
         // Фактура
         $browser->press('Вх. фактура');
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
-        $browser->setValue('number', '10');
+        $browser->setValue('number', '103');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
         // Кредитно известие - сума 
         $browser->press('Известие');
         $browser->setValue('changeAmount', '-22.36');
-        $browser->setValue('number', '11');
+        $browser->setValue('number', '104');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Минус двадесет и два EUR и 0,36')) {
@@ -818,7 +818,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Кредитно известие - количество
         $browser->press('Известие');
-        $browser->setValue('number', '12');
+        $browser->setValue('number', '105');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '20');
@@ -831,7 +831,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Кредитно известие - цена
         $browser->press('Известие');
-        $browser->setValue('number', '13');
+        $browser->setValue('number', '106');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.3');
@@ -844,7 +844,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Дебитно известие - сума 
         $browser->press('Известие');
-        $browser->setValue('number', '14');
+        $browser->setValue('number', '107');
         $browser->setValue('changeAmount', '22.20');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -855,7 +855,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Дебитно известие - количество
         $browser->press('Известие');
-        $browser->setValue('number', '15');
+        $browser->setValue('number', '108');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
@@ -868,7 +868,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Дебитно известие - цена
         $browser->press('Известие');
-        $browser->setValue('number', '16');
+        $browser->setValue('number', '109');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '2.4');
@@ -944,14 +944,14 @@ class unit_MinkPPurchases extends core_Manager {
          
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '17');
+        $browser->setValue('number', '110');
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
         // Кредитно известие - сума
         $browser->press('Известие');
-        $browser->setValue('number', '18');
+        $browser->setValue('number', '111');
         $browser->setValue('changeAmount', '-22.36');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -962,7 +962,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Кредитно известие - количество
         $browser->press('Известие');
-        $browser->setValue('number', '19');
+        $browser->setValue('number', '112');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '20');
@@ -975,7 +975,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Кредитно известие - цена
         $browser->press('Известие');
-        $browser->setValue('number', '20');
+        $browser->setValue('number', '113');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.3');
@@ -988,7 +988,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Дебитно известие - сума
         $browser->press('Известие');
-        $browser->setValue('number', '21');
+        $browser->setValue('number', '114');
         $browser->setValue('changeAmount', '22.20');
         $browser->press('Чернова');
         $browser->press('Контиране');
@@ -999,7 +999,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Дебитно известие - количество
         $browser->press('Известие');
-        $browser->setValue('number', '22');
+        $browser->setValue('number', '115');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
@@ -1012,7 +1012,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Дебитно известие - цена
         $browser->press('Известие');
-        $browser->setValue('number', '23');
+        $browser->setValue('number', '116');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '2.4');
@@ -1104,7 +1104,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '24');
+        $browser->setValue('number', '9');
         $browser->setValue('amountAccrued', '813,576');
         $browser->press('Чернова');
         //$browser->setValue('paymentType', 'По банков път');
@@ -1143,7 +1143,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '25');
+        $browser->setValue('number', '10');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), '-677,98')) {
@@ -1228,7 +1228,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '21');
+        $browser->setValue('number', '11');
         $browser->press('Чернова');
         //return 'paymentType';
         //$browser->setValue('paymentType', 'По банков път');
@@ -1255,7 +1255,7 @@ class unit_MinkPPurchases extends core_Manager {
        
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '22');
+        $browser->setValue('number', '12');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), '-200,00')) {
@@ -1344,7 +1344,7 @@ class unit_MinkPPurchases extends core_Manager {
                
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '23');
+        $browser->setValue('number', '13');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 400,00')) {
@@ -1357,9 +1357,10 @@ class unit_MinkPPurchases extends core_Manager {
         }
         // Кредитно известие - количество
         $browser->press('Известие');
-        $browser->setValue('number', '24');
+        $browser->setValue('number', '14');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
+       
         $browser->setValue('quantity', '18');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1370,7 +1371,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // Кредитно известие - цена
         $browser->press('Известие');
-        $browser->setValue('number', '25');
+        $browser->setValue('number', '15');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '15');
@@ -1380,7 +1381,31 @@ class unit_MinkPPurchases extends core_Manager {
         } else {
             return "Грешна сума в КИ - цена";
         }
+        // Дебитно известие - количество
+        $browser->press('Известие');
+        $browser->setValue('number', '16');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('quantity', '21');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), ' Двадесет и четири BGN')) {
+        } else {
+            return "Грешна сума в ДИ - количество";
+        }
         
+        // Дебитно известие - цена
+        $browser->press('Известие');
+        $browser->setValue('number', '17');
+        $browser->press('Чернова');
+        $browser->click('Редактиране на артикул');
+        $browser->setValue('packPrice', '20,14');
+        $browser->press('Запис');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Словом: Три BGN и 0,36 ')) {
+        } else {
+            return "Грешна сума в ДИ - цена";
+        }
         //return $browser->getHtml();
     }
      
