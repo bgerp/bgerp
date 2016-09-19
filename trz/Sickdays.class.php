@@ -118,11 +118,9 @@ class trz_Sickdays extends core_Master
     /**
      * Кой има право да прави начисления
      */
-    public $canAccruals = 'ceo,trz,manager';
-    
-    public $canEdited = 'ceo,trz';
-    
     public $canChange = 'ceo,trz';
+
+    public $canEdited = 'ceo,trz';
 
     
     /**
@@ -157,7 +155,7 @@ class trz_Sickdays extends core_Master
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител,readonly');
     	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
     	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
-    	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година');
+    	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, mandatory');
     	$this->FLD('fitNoteFile', 'fileman_FileType(bucket=trzSickdays)', 'caption=Болничен лист->Файл');
     	$this->FLD('reason', 'enum(1=Майчинство до 15 дни,
 								   2=Майчинство до 410 дни,
@@ -210,11 +208,6 @@ class trz_Sickdays extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$data->form->setDefault('reason', 3);
-        if(Request::get('accruals')){
-        	$data->form->setField('paidByEmployer', 'input, mandatory');
-        	$data->form->setField('paidByHI', 'input, mandatory');
-        	
-        }
         
         $rec = $data->form->rec;
         
@@ -243,7 +236,6 @@ class trz_Sickdays extends core_Master
         }
         
     	$rec = $form->rec;
-
     }
     
     
@@ -258,15 +250,7 @@ class trz_Sickdays extends core_Master
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
-	    if($action == 'accruals'){
-			if ($rec->id) {
-				
-					if(!haveRole('ceo') || !haveRole('trz')) {
-				
-						$requiredRoles = 'no_one';
-				}
-		    }
-	    }
+
     }
 
     
@@ -313,13 +297,7 @@ class trz_Sickdays extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        $rec = $data->rec;
-        $state = $data->rec->state;
-        
-        if($mvc->haveRightFor('accruals') && $data->rec->state == 'active') {
-        
-            $data->toolbar->addBtn('Начисления', array($mvc, 'edit', 'id' => $data->rec->id, 'accruals' => TRUE), 'ef_icon=img/16/calculator.png');
-        }
+
     }
     
     
@@ -376,6 +354,27 @@ class trz_Sickdays extends core_Master
         
         $row->paidByHI = $Double->toVerbal($rec->paidByHI);
         $row->paidByHI .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        
+        if(isset($rec->alternatePerson)) {
+            // Ако имаме права да видим визитката
+            if(crm_Persons::haveRightFor('single', $rec->alternatePerson)){
+                $name = crm_Persons::fetchField("#id = '{$rec->alternatePerson}'", 'name');
+                $row->alternatePerson = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->alternatePerson), NULL, 'ef_icon = img/16/vcard.png');
+            }
+        } 
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+        if(!isset($data->rec->paidByEmployer) || !isset($data->rec->paidByHI)) {
+        
+            $tpl->removeBlock('compensation');
+       
+        }
     }
     
     
@@ -565,17 +564,6 @@ class trz_Sickdays extends core_Master
         $row->recTitle = $this->getRecTitle($rec, FALSE);
         
         return $row;
-    }
-    
-    
-    public static function act_Accruals()
-    {
-    	self::requireRightFor('аccruals');
-    }
-    
-    public static function act_Edited()
-    {
-        self::requireRightFor('edited');
     }
 
     
