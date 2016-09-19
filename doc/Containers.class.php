@@ -343,6 +343,17 @@ class doc_Containers extends core_Manager
         
         doc_Threads::requireRightFor('single', $data->threadRec);
         
+        // Изчаква до 2 секунди, ако firstContainerId не е обновен
+        for ($i = 0; $i < 10; $i++) {
+            if (!$data->threadRec->firstContainerId) {
+                usleep(200000);
+                $data->threadRec = doc_Threads::fetch($data->threadId, '*', FALSE);
+            } else {
+                
+                break;
+            }
+        }
+        
         expect($data->threadRec->firstContainerId, 'Проблемен запис на нишка', $data->threadRec);
        
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, NULL, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
