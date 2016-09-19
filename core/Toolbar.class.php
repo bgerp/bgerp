@@ -259,11 +259,18 @@ class core_Toolbar extends core_BaseClass
             ht::setUniqId($attr);
 
             $rowId = $attr['id'];
+
+            $onRow2 =0;
             
             $layout = $this->getToolbarLayout($rowId);
-            
             foreach ($this->buttons as $id => $btn) {
-                $place = ($btn->attr['row'] == 2) ? 'ROW2' : 'ROW1' ;
+                if($btn->attr['row'] == 2) {
+                    $onRow2++;
+                }
+            }
+
+            foreach ($this->buttons as $id => $btn) {
+                $place = ($btn->attr['row'] == 2 && $onRow2 != 1) ? 'ROW2' : 'ROW1' ;
 				if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}

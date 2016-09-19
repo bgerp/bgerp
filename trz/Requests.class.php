@@ -193,6 +193,8 @@ class trz_Requests extends core_Master
 	        }
 	    	$rec->leaveDays = $days->workDays;
         }
+        
+        $rec->state = 'pending';
 
     }
     

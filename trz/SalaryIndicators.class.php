@@ -137,8 +137,7 @@ class trz_SalaryIndicators extends core_Manager
     	        $name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
     	        $row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
     	    } else {
-    	    
-    	       $row->doc = $Class->getHyperlink($rec->docId);
+    	        $row->doc = $Class->getHyperlink($rec->docId);
     	    }
     	}
     	
@@ -304,8 +303,6 @@ class trz_SalaryIndicators extends core_Manager
             	self::save($rec);
             }
     	}
-    	
-    	
     }
     
     

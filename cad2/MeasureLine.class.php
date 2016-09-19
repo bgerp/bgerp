@@ -38,7 +38,7 @@ class cad2_MeasureLine  extends cad2_Shape {
     { 
         extract($p);
         
-        $svg->setAttr('stroke', 'blue');
+        $svg->setAttr('stroke', "#0000fe");
         $svg->setAttr('stroke-width', 0.1);
 
         self::draw($svg, $Ax, $Ay, $Bx, $By, $dist);

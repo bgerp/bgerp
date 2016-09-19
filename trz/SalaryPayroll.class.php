@@ -106,6 +106,48 @@ class trz_SalaryPayroll extends core_Manager
     
     
     /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->fields['personId']->type->params['allowEmpty'] = 'allowEmpty';
+        unset($data->listFilter->fields['personId']->type->params['mandatory']);
+        $data->listFilter->fields['personId']->mandatory = '';
+        
+        $data->listFilter->fields['rule']->type->params['allowEmpty'] = 'allowEmpty';
+
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    
+        // Показваме само това поле. Иначе и другите полета
+        // на модела ще се появят
+        $data->listFilter->showFields = 'periodId, personId,rule';
+    
+        $data->listFilter->input('periodId, personId,rule', 'silent');
+    
+        $toDate = '';
+        if($data->listFilter->rec->periodId) {
+            $toDate = dt::getLastDayOfMonth($data->listFilter->rec->periodId);
+            $data->query->where("#periodId = '{$toDate}'");
+        }
+    
+        if($data->listFilter->rec->personId) {
+            $data->query->where("#personId = '{$data->listFilter->rec->personId}'");
+        }
+        
+        if($data->listFilter->rec->rule) {
+            $data->query->where("#rule = '{$data->listFilter->rec->rule}'");
+        }
+
+    }
+    
+    
+    /**
      * 
      * @param unknown $rec
      */

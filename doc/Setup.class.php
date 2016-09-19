@@ -49,7 +49,7 @@ defIfNot('DOC_REPAIR_DELAY', 120);
 
 
 /**
- * Дали да се поправят състояниеята на документите
+ * Дали да се проверяват всички документи за поправка
  */
 defIfNot('DOC_REPAIR_STATE', 'no');
 
@@ -95,6 +95,12 @@ defIfNot('DOC_STRING_FOR_REDUCE', 'За,Отн,Относно,回复,转发,SV,V
  * По-подразбиране са всички администратори
  */
 defIfNot('DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS', '');
+
+
+/**
+ * След колко време да се изтриват оттеглените нишки
+ */
+defIfNot('DOC_DELETE_REJECTED_THREADS_PERIOD', type_Time::SECONDS_IN_MONTH);
 
 
 /**
@@ -158,7 +164,7 @@ class doc_Setup extends core_ProtoSetup
     	'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array ('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
     		
     	'DOC_REPAIR_DELAY' => array ('time(suggestions=10 сек.|30 сек.|60 сек.|120 сек.)', 'caption=Отклонение при поправка на документи->Време'),
-        'DOC_REPAIR_STATE' => array ('enum(yes=Да, no=Не)', 'caption=Дали да се поправят състоянията на документите->Избор'),
+        'DOC_REPAIR_STATE' => array ('enum(yes=Да, no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
     
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
@@ -167,6 +173,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
         'DOC_CACHE_LIFETIME' => array("time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)", "caption=Кеширане на документите->Време"),
         'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array("userList", "caption=Нотификация за отворени теми в папки на оттеглени потребители->Потребители"),
+        'DOC_DELETE_REJECTED_THREADS_PERIOD'  => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
     );
 
     
@@ -192,7 +199,22 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
     );
-
+	
+    
+    /**
+     * Нагласяне на крон
+     */
+    var $cronSettings = array(
+            array(
+                    'systemId' => doc_Threads::DELETE_SYSTEM_ID,
+                    'description' => 'Изтриване на оттеглени и документи нишки',
+                    'controller' => 'doc_Threads',
+                    'action' => 'DeleteThread',
+                    'period' => 5,
+                    'timeLimit' => 120,
+            )
+    );
+	
     
     /**
      * Дефинирани класове, които имат интерфейси
