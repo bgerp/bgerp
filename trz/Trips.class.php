@@ -146,8 +146,8 @@ class trz_Trips extends core_Master
     public function description()
     {
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
-    	$this->FLD('startDate', 'datetime(format=smartTime)',     'caption=Считано->От');
-		$this->FLD('toDate', 'datetime(format=smartTime)',     'caption=Считано->До');
+    	$this->FLD('startDate', 'datetime',     'caption=Считано->От');
+		$this->FLD('toDate', 'datetime',     'caption=Считано->До');
         $this->FLD('place',    'richtext(rows=5, bucket=Notes)', 'caption=Място');
     	$this->FLD('purpose', 'richtext(rows=5, bucket=Notes)', 'caption=Цел');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
