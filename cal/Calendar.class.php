@@ -1133,7 +1133,7 @@ class cal_Calendar extends core_Master
     	
     	$nonWorking = $workDays = $allDays = 0;
     	
-    	$curDate = date("Y-m-d H:i:s", strtotime("{$leaveFrom} 00:00:00"));
+    	$curDate = date("Y-m-d H:i:s", strtotime("{$leaveFrom}"));
     	
     	while($curDate < dt::addDays(1, $leaveTo)){
     		
