@@ -2,7 +2,7 @@
 
 
 /**
- *  Клас  'unit_MinkPPayment' - PHP тестове за проверка на състоянието на плащане
+ *  Клас  'unit_MinkPPayment' - PHP тестове за проверка на състоянието на плащане; Проверка количество и цени - изрази
  *
  * @category  bgerp
  * @package   tests
@@ -17,7 +17,7 @@ class unit_MinkPPayment extends core_Manager {
    /** Изпълнява се след unit_MinkPbgERP!
     *  Номерацията показва препоръчвания ред на изпълнение, заради датите на фактурите. Еднаквите номера могат да се разместват.
     */
-    
+    ////         unit_MinkPbgERP::reportErr($text);
     //http://localhost/unit_MinkPPayment/Run/
     public function act_Run()
     {
@@ -92,7 +92,6 @@ class unit_MinkPPayment extends core_Manager {
          
         $valior=strtotime("-7 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
-        $browser->setValue('reff', 'А1234');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleWaitP');
         $browser->setValue('paymentMethodId', "До 7 дни след фактуриране");
@@ -130,11 +129,11 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '254,43')) {
         } else {
-            return "Грешно ДДС - MinkPPayment/CreateSaleWaitP";
+            return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
         if(strpos($browser->gettext(), 'Хиляда петстотин двадесет и шест BGN и 0,57')) {
         } else {
-            return "Грешна обща сума - MinkPPayment/CreateSaleWaitP";
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         // експедиционно нареждане
@@ -1053,8 +1052,6 @@ class unit_MinkPPayment extends core_Manager {
         $enddate=strtotime("+1 Day");
          
         $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-        //$browser->setValue('deliveryTime[d]', date('d-m-Y'));
-        //$browser->setValue('deliveryTime[t]', date('h:i:sa', $endhour));
         $browser->setValue('deliveryTime[t]', '10:30');
     
         $browser->setValue('reff', 'MinkP');
@@ -1552,7 +1549,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '008+03*08');//32
-        $browser->setValue('packPrice', '010+3*0.8');//12.4
+        $browser->setValue('packPrice', '010+3*0,8');//12.4
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
         // Записваме артикула и добавяме нов

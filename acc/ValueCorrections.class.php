@@ -158,16 +158,19 @@ class acc_ValueCorrections extends core_Master
     	$row->baseCurrencyCode = $rec->currencyId;
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
+    	
     	$rec->amount /= $rec->rate;
     	$row->realAmount = $mvc->getFieldType('amount')->toVerbal($rec->amount);
     	
     	if($chargeVat == 'yes' || $chargeVat == 'separate'){
     		$amount = $rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
-    		$row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
     		$row->vatType = tr('с ДДС');
     	} else {
     		$row->vatType = tr('без ДДС');
+    		$amount = $rec->amount;
     	}
+    	
+    	$row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
     	
     	if($rec->amount < 0){
     		$row->amount = "<span class='red'>{$row->amount}</span>";

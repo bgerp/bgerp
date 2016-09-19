@@ -42,7 +42,12 @@ class type_Order extends type_Varchar {
         $verb = str_pad((int) $vArr[0], 3, "0", STR_PAD_LEFT) . 
                 str_pad((int) $vArr[1], 3, "0", STR_PAD_LEFT) . 
                 str_pad((int) $vArr[2], 3, "0", STR_PAD_LEFT);
-
+        
+        if (strlen($verb) != 9) {
+            $this->error = 'Не е в допустимия формат - XXX.XXX.XXX. Може да се въведат до 3 групи, по 3 цифри.';
+            return FALSE;
+        }
+        
         return $verb;
     }
     

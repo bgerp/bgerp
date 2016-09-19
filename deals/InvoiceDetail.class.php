@@ -262,13 +262,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				if($originRec->dpOperation == 'accrued'){
 					$reason = ($amount > 0) ? 'Увеличаване на авансово плащане' : 'Намаляване на авансово плащане';
 				} else {
-					$reason = ($amount > 0) ? 'Увеличаване на стойност на фактура' : 'Намаляване на стойност на фактура';
+					$reason = ($amount > 0) ? 'Увеличаване на стойност' : 'Намаляване на стойност';
 				}
 				
 				$data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => TRUE);
-				$data->rows['advance'] = (object) array('RowNumb' => 1,
-						'reason' => $reason,
-						'amount' => $amount);
+				
+				core_Lg::push($masterRec->tplLang);
+				$data->rows['advance'] = (object) array('RowNumb' => 1, 'reason' => tr($reason), 'amount' => $amount);
+				core_Lg::pop();
 			} 
 		}
 	}

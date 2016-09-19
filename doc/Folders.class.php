@@ -1066,6 +1066,7 @@ class doc_Folders extends core_Master
                     $resArr['inCharge']++;
                     $rec->inCharge = $currUser;
                     self::save($rec, 'inCharge');
+                    self::logNotice("Добавен е собственик на папката", $rec->id);
                 }
                 
                 // Ако липсва coverClass, да е на несортираните
@@ -1086,6 +1087,8 @@ class doc_Folders extends core_Master
                     self::save($rec, 'title');
                     self::logNotice("Добавено заглавие на корица {$rec->coverId}");
                 }
+                
+                self::logNotice("Папката е обновена, защото има развалени данни", $rec->id);
                 
                 // Обновяваме папката
                 self::updateFolderByContent($rec->id);
@@ -1129,11 +1132,10 @@ class doc_Folders extends core_Master
             
             try {
                 // Поправяме документите, които няма инстанция или липсва запис за тях
-                $haveInst = cls::load($rec->coverClass, TRUE);
-                if ($haveInst) {
+                if (cls::load($rec->coverClass, TRUE)) {
                     $inst = cls::get($rec->coverClass);
                     
-                    if (!$inst->fetch($rec->coverId)) {
+                    if (!$inst->fetch($rec->coverId, '*', FALSE)) {
                         $mustRepair = TRUE;
                     }
                 } else {

@@ -33,6 +33,8 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  13.".$this->act_CreateSaleAdvPaymentSep();
         $res .= "  14.".$this->act_CreateSaleDifVAT();
         $res .= "  15.".$this->act_CreateSaleInvalydData();
+        $res .= "  16.".$this->act_CreateSaleManuf();
+        $res .= "  17.".$this->act_CreateSaleService();
         return $res;
     }
        
@@ -636,8 +638,6 @@ class unit_MinkPSales extends core_Manager {
         }
          
         //$browser->hasText('Създаване на продажба');
-        $enddate=strtotime("+2 Days");
-        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDI');
@@ -826,11 +826,14 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('changeAmount', '-22.36');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Minus twenty-two EUR and 0,36 ')) {
+        if(strpos($browser->gettext(), 'Minus twenty-two EUR and 0,36')) {
         } else {
             return "Грешна сума в КИ - сума";
         }
-    
+        if(strpos($browser->gettext(), 'Amount reducing')) {
+        } else {
+            return "Грешка в КИ - текст";
+        }
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
@@ -864,7 +867,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна сума в ДИ - сума";
         }
-        
+        if(strpos($browser->gettext(), 'Amount increasing')) {
+        } else {
+            return "Грешка в ДИ - текст";
+        }
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
@@ -969,7 +975,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна сума в КИ - сума";
         }
-    
+        if(strpos($browser->gettext(), 'Amount reducing')) {
+        } else {
+            return "Грешка в КИ - текст";
+        }
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
@@ -1003,7 +1012,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна сума в ДИ - сума";
         }
-    
+        if(strpos($browser->gettext(), 'Amount increasing')) {
+        } else {
+            return "Грешка в ДИ - текст";
+        }
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
@@ -1388,8 +1400,8 @@ class unit_MinkPSales extends core_Manager {
     /**
      * Проверка за некоректни данни в цена/количество - ,,100-3   200;-4    *.100-5  12.,5
      */
-    //http://localhost/unit_MinkPSales/SaleInvalydData/
-    function act_SaleInvalydData()
+    //http://localhost/unit_MinkPSales/CreateSaleInvalydData/
+    function act_CreateSaleInvalydData()
     {
     
         // Логваме се
@@ -1448,4 +1460,142 @@ class unit_MinkPSales extends core_Manager {
         }
         //return $browser->getHtml();
     }
+    
+    /**
+     * Продажба договор за изработка
+     * да се добави задание, задача
+     * 
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateSaleManuf/
+    function act_CreateSaleManuf()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряме папката на фирмата
+        $browser = $this->SetFirmEUR();
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+        $enddate=strtotime("+2 Days");
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleManuf');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', 'exempt');
+        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        $browser->setValue('template', 'Manufacturing contract');
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Артикул по запитване');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '500');
+        $browser->setValue('packPrice', '0.51');
+       
+        // Записване на артикула
+        $browser->press('Запис');
+         
+        // активиране на продажбата
+        $browser->press('Активиране');
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Two hundred and fifty-five EUR')) {
+        } else {
+            return "Грешна обща сума";
+        }
+        // експедиционно нареждане
+        $browser->press('Експедиране');
+        $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Packaging list');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        
+        // Фактура
+        $browser->press('Фактура');
+        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), ' Данъчна основа: 498,74 BGN')) {
+        } else {
+            return "Грешна данъчна основа във фактурата";
+        }
+         
+        //return $browser->getHtml();
+    }
+ 
+    /**
+     * Продажба - договор за услуга
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateSaleService/
+    function act_CreateSaleService()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+         
+        //$browser->hasText('Създаване на продажба');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleService');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Включено ДДС в цените");
+        $browser->setValue('template', 'Договор за услуга');
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул - услуга
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Транспорт');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 1);
+        $browser->setValue('packPrice', 788.56);
+        $browser->setValue('discount', 10);
+        // Записване на артикула
+        $browser->press('Запис');
+        // активиране на продажбата
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
+        //return $browser->getHtml();
+        //if(strpos($browser->gettext(), '78,86')) {   
+        if(strpos($browser->gettext(), 'Отстъпка: BGN 78,86')) {
+        } else {
+            return "Грешна отстъпка";
+        }
+        if(strpos($browser->gettext(), 'Седемстотин и девет BGN и 0,70')) {
+        } else {
+            return "Грешна обща сума";
+        }
+        
+        // Фактура
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 591,42')) {
+        } else {
+            return "Грешна сума във фактура";
+        }
+        //return $browser->getHtml();
+    }
+    
 }

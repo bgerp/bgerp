@@ -31,7 +31,7 @@ class trz_Wrapper extends plg_ProtoWrapper
         $this->TAB('trz_Requests', 'Отпуски->Молби', 'ceo,trz');
         $this->TAB('trz_Orders', 'Отпуски->Заповеди', 'ceo,trz');
         $this->TAB('trz_Trips', 'Командировки', 'ceo,trz');
-        $this->TAB('trz_Fines', 'Глоби', 'ceo,trz');
+        $this->TAB('trz_Fines', 'Удръжки', 'ceo,trz');
         
               
         $this->title = 'ТРЗ « Персонал';

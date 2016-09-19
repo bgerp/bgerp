@@ -45,7 +45,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper';
     
     
     /**
@@ -73,21 +73,30 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
+     * Кой има право да редактира?
+     */
+    public $canEdit = 'taskWorker,ceo';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,type=Операция,serial,taskProductId,packagingId=Мярка,quantity,weight,employees,fixedAsset,modified=Модифицирано';
+    public $listFields = 'type=Операция,serial,taskProductId,quantity,scrappedQuantity,packagingId=Мярка,weight,employees,fixedAsset,modified=Модифицирано';
     
-
+    
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
      */
-    public $rowToolsField = 'RowNumb';
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset, scrappedQuantity';
     
     
     /**
@@ -106,12 +115,14 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък,start=Пускане)', 'input=hidden,silent,smartCenter');
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter,focus');
     	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,mandatory,smartCenter');
+    	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,smartCenter');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Обордуване,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
+    	$this->FLD('actionRecId', 'int', 'input=none');
     }
     
     
@@ -160,6 +171,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setField('taskProductId', 'input=none');
     		$unit = cat_UoM::getShortName($taskInfo->packagingId);
     		$form->setField('quantity', "unit={$unit}");
+    		if(isset($rec->id)){
+    			$form->setReadOnly('serial');
+    			$form->setReadOnly('quantity');
+    			$form->setField('scrappedQuantity', 'input');
+    			$form->setField('scrappedQuantity', "unit={$unit}");
+    			$form->setFieldTypeParams('scrappedQuantity', array('max' => $rec->quantity, 'min' => 0));
+    		}
     		
     		if($rec->type == 'start'){
     			$form->setField('weight', 'input=none');
@@ -317,6 +335,48 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if(isset($rec->taskProductId)){
     		planning_drivers_ProductionTaskProducts::updateRealQuantity($rec->taskProductId);
     	}
+    	
+    	// Ако е записва прозиведен артикул
+    	if($rec->type == 'product'){
+    		
+    		// И има колчиество за скрап
+    		if(isset($rec->scrappedQuantity)){
+    			$sRec = clone $rec;
+    			$sRec->quantity = $sRec->scrappedQuantity;
+    			
+    			// Ако не е имало досега добавя се
+    			if(!$rec->actionRecId){
+    				$rec->actionRecId = self::addAction($sRec, 'add', 'scrap');
+    				$mvc->save_($rec, 'actionRecId');
+    			} else {
+    				
+    				// Ако реда е оттеглен или възстановен променя се и състоянието му
+    				$action = ($rec->state == 'rejected') ? 'reject' : (($rec->isRestored === TRUE) ? 'restore' : 'add');
+    				if($action == 'reject' || $action == 'restore'){
+    					$rec->actionRecId = self::addAction($sRec, $action, 'scrap');
+    				} else {
+    					planning_TaskActions::delete($rec->actionRecId);
+    					$rec->actionRecId = self::addAction($sRec, 'edit', 'scrap');
+    				}
+    			}
+    		} elseif(isset($rec->actionRecId)) {
+    				
+    			 	// Ако е имало бракувано количество, но вече няма
+    				planning_TaskActions::delete($rec->actionRecId);
+    				$rec->actionRecId = NULL;
+    				$mvc->save_($rec);
+    			}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// Отбелязваме че реда се редактира
+    	$id->isRestored = TRUE;
     }
     
     
@@ -325,6 +385,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+    	// Записване че е добавено
     	self::addAction($rec, 'add', $rec->type);
     }
     
@@ -334,8 +395,9 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
+    	// Записване че е имало оттегляне
     	$rec = static::fetchRec($id);
-    	self::addAction($id, 'reject', $rec->type);
+    	self::addAction($rec, 'reject', $rec->type);
     }
     
     
@@ -344,6 +406,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
+    	// Записване че е имало възстановяване
     	$rec = static::fetchRec($id);
     	self::addAction($rec, 'restore', $rec->type);
     }
@@ -355,14 +418,14 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      * @param stdClass $rec   - запис
      * @param varchar $action - действие
      * @param varchar $type   - тип
-     * @return void
+     * @return int
      */
     private static function addAction($rec, $action, $type)
     {
     	$productId = (!empty($rec->taskProductId)) ? $rec->taskProductId : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     	$packagingId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
     	
-    	planning_TaskActions::add($rec->taskId, $productId, $action, $type, $packagingId, $rec->quantity, $rec->serial, $rec->employees, $rec->fixedAsset);
+    	return planning_TaskActions::add($rec->taskId, $productId, $action, $type, $packagingId, $rec->quantity, $rec->serial, $rec->employees, $rec->fixedAsset);
     }
     
     
@@ -426,6 +489,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     {
     	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
+    		
     		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
     			$requiredRoles = 'no_one';
     		} 
@@ -438,6 +502,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			if(!count($pOptions)){
     				$requiredRoles = 'no_one';
     			}
+    		}
+    	}
+    	
+    	if($action == 'edit' && isset($rec)){
+    		if($rec->type != 'product' || $rec->state == 'rejected'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -461,8 +531,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     public static function getSalaryIndicators($date)
     {
-    
-        $query = self::getQuery();
+    	$query = self::getQuery();
         $me = cls::get(get_called_class());
         $Double = cls::get(type_Double);
     
