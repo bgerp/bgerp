@@ -1178,7 +1178,7 @@ td.portal-date {
 .document {
   width: 100%;
   min-width: 50em;
-  max-width: 56em;
+  max-width: 60em;
   border: solid 1px #bbbbbb;
   background: white;
   -moz-border-radius: 5px;
