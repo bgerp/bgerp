@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Множество
@@ -51,14 +51,9 @@ class cond_type_Set extends cond_type_Proto
 	 */
 	public function getType($rec)
 	{
-		$options = explode(PHP_EOL, $rec->options);
-		foreach ($options as &$opt){
-			$opt = trim($opt);
-		}
-			
-		$options = array_combine($options, $options);
+		$options = static::text2options($rec->options);
 		$options = arr::fromArray($options);
-			
+		
 		$Type = core_Type::getByName("set($options)");
 		
 		return $Type;
