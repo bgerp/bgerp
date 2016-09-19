@@ -384,14 +384,14 @@ class cat_Params extends embed_Manager
      * @param NULL|string $suffix - наставка
      * @return number             - ид на параметъра
      */
-    public static function force($sysId, $name, $type, $options = NULL, $suffix = NULL)
+    public static function force($sysId, $name, $type, $options = array(), $suffix = NULL)
     {
     	// Ако има параметър с това систем ид,връща се
     	$id = self::fetchIdBySysId($sysId);
     	if(!empty($id)) return $id;
     	
     	// Проверка дали типа е допустим
-    	expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set')));
+    	expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
     	
     	// Подготовка на записа на параметъра
     	expect($Type = cls::get("cond_type_{$type}"));
@@ -405,8 +405,7 @@ class cat_Params extends embed_Manager
     	
     	// Само за типовете enum и set, се искат опции
     	if($type == 'enum' || $type == 'set'){
-    		expect($options);
-    		$nRec->options = $options;
+    		$nRec->options = cond_type_Proto::options2text($options);
     	}
     	
     	// Създаване на параметъра
