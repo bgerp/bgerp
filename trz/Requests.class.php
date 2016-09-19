@@ -184,7 +184,7 @@ class trz_Requests extends core_Master
 	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
 	        	if($schedule == FALSE){ 
 	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
-	        	} else { bp();
+	        	} else {
 	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        	}
 	        } else {
