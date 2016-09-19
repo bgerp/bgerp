@@ -44,6 +44,9 @@ class unit_MinkPbgERP extends core_Manager {
 //         } catch (Exception $e) {
 //             self::reportErr($e->getMessage());
 //         }
+        if (!TEST_MODE) {
+            return;
+        }
         
         $res = '';
         $res .= "1.".$this->act_CreateUser1();
