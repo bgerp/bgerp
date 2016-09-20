@@ -56,7 +56,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	public static function setFields(&$mvc)
 	{
 		$mvc->FLD('name', 'varchar(64,ci)', 'caption=Име, mandatory');
-		$mvc->FLD('suffix', 'varchar(64,ci)', 'caption=Суфикс');
+		$mvc->FLD('suffix', 'varchar(16,ci)', 'caption=Суфикс');
 		$mvc->FLD('sysId', 'varchar(32)', 'input=none');
 		$mvc->FNC('typeExt', 'varchar', 'caption=Име');
 		$mvc->FLD('default', 'varchar(64)', 'caption=Конкретизиране->Дефолт');
