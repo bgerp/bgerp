@@ -396,14 +396,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$originRec = doc_Containers::getDocument($rec->originId)->rec();
 		
 		// Намираме всички непроизводствени действия от задачи
-		$aQuery = planning_TaskActions::getQuery();
+		//@TODO да не се гледа само от този модел
+		$aQuery = planning_drivers_ProductionTaskProducts::getQuery();
 		$aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
-		$aQuery->where("#taskState != 'rejected'");
-		$aQuery->where("#type != 'product'");
-		$aQuery->where("#jobId = {$originRec->id}");
+		$aQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+		$aQuery->where("#originId = {$rec->originId}");
 		
 		// Сумираме ги по тип и ид на продукт
-		$aQuery->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		$aQuery->where("#taskState != 'rejected'");
+		$aQuery->XPR('sumQuantity', 'double', "SUM(#realQuantity)");
 		$aQuery->groupBy("productId,type");
 		
 		// Събираме ги в масив

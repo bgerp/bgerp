@@ -216,7 +216,7 @@ class label_Templates extends core_Master
     {
         $hash = md5($content);
     	if(!array_key_exists($hash, static::$cache)){
-    		preg_match_all('/\[#([\wа-я]{1,})#\]/ui', $content, $matches);
+    		preg_match_all('/\[#([\wа-я\(\)]{1,})#\]/ui', $content, $matches);
     		$placesArr = arr::make($matches[1], TRUE);
     		
     		static::$cache[$hash] = $placesArr;

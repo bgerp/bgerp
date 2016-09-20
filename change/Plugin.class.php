@@ -121,6 +121,11 @@ class change_Plugin extends core_Plugin
         // Полетата, които ще се показва
         $fieldsArrShow = $allowedFieldsArr;
         
+        // Всички полета, които ще се показват да се инпутват
+        foreach ($fieldsArrShow as $f) {
+            $form->fields[$f]->input = 'input';
+        }
+        
         // Добавяме подверсията
         $allowedFieldsArr['subVersion'] = 'subVersion';
         

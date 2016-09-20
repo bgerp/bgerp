@@ -40,7 +40,7 @@ class planning_TaskActions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'planning_Wrapper, plg_AlignDecimals2, plg_Search, plg_Created, plg_Modified';
+    public $loadList = 'planning_Wrapper, plg_AlignDecimals2, plg_Search, plg_Created, plg_Modified, plg_Sorting';
 	
 	
     /**
