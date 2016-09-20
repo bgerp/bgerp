@@ -111,7 +111,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::deleteCache2',
     		'migrate::updateParams',
     		'migrate::addClassIdToParams',
-    		'migrate::updateBomType'
+    		'migrate::updateBomType',
+    		'migrate::updateParamStates',
         );
 
 
@@ -493,6 +494,23 @@ class cat_Setup extends core_ProtoSetup
     		} catch(core_exception_Expect $e){
     			reportException($e);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на състоянието на параметъра
+     */
+    public function updateParamStates()
+    {
+    	$Params = cls::get('cat_Params');
+    	$Params->setupMvc();
+    	
+    	$query = cat_Params::getQuery();
+    	$query->where("#state = '' || #state IS NULL");
+    	while($rec = $query->fetch()){
+    		$rec->state = 'active';
+    		$Params->save_($rec, 'state');
     	}
     }
 }

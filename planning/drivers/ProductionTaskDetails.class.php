@@ -85,15 +85,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
-     * При колко линка в тулбара на реда да не се показва дропдауна
-     *
-     * @param int
-     * @see plg_RowTools2
-     */
-    public $rowToolsMinLinksToShow = 2;
-    
-    
-    /**
      * Кои колони да скриваме ако янма данни в тях
      */
     public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset, scrappedQuantity';
@@ -171,12 +162,16 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setField('taskProductId', 'input=none');
     		$unit = cat_UoM::getShortName($taskInfo->packagingId);
     		$form->setField('quantity', "unit={$unit}");
+    		
     		if(isset($rec->id)){
     			$form->setReadOnly('serial');
     			$form->setReadOnly('quantity');
     			$form->setField('scrappedQuantity', 'input');
     			$form->setField('scrappedQuantity', "unit={$unit}");
     			$form->setFieldTypeParams('scrappedQuantity', array('max' => $rec->quantity, 'min' => 0));
+    			$form->setField('employees', 'input=none');
+    			$form->setField('fixedAsset', 'input=none');
+    			$form->setField('notes', 'input=none');
     		}
     		
     		if($rec->type == 'start'){
@@ -422,7 +417,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     private static function addAction($rec, $action, $type)
     {
-    	$productId = (!empty($rec->taskProductId)) ? $rec->taskProductId : planning_Tasks::getTaskInfo($rec->taskId)->productId;
+    	$productId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     	$packagingId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
     	
     	return planning_TaskActions::add($rec->taskId, $productId, $action, $type, $packagingId, $rec->quantity, $rec->serial, $rec->employees, $rec->fixedAsset);

@@ -418,11 +418,9 @@ class doc_Containers extends core_Manager
         bgerp_Notifications::clear($url);
         
         jquery_Jquery::run($tpl, "flashHashDoc(flashDocInterpolation);", TRUE);
-        
-        if(Mode::is('screenMode', 'narrow')) {
-        	jquery_Jquery::run($tpl, "setThreadElemWidth();");
-        	jquery_Jquery::runAfterAjax($tpl, "setThreadElemWidth");
-        }
+
+        jquery_Jquery::run($tpl, "setThreadElemWidth();");
+        jquery_Jquery::runAfterAjax($tpl, "setThreadElemWidth");
     }
     
     

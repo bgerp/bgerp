@@ -49,6 +49,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
         
         $res = '';
+        $res .= "0.".$this->act_DeinstallSelect2();
         $res .= "1.".$this->act_CreateUser1();
         $res .= "  2.".$this->act_CreateUser2();
         $res .= "  3.".$this->act_CreateStore();
@@ -80,6 +81,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  29.".$this->act_CreateSale();
         $res .= "  30.".$this->act_CreateTask();
         $res .= "  31.".$this->act_CreateProductVAT9();
+        $res .= "  32.".$this->act_CreatePersonUSA();
         
         return $res;
     }
@@ -1543,5 +1545,34 @@ class unit_MinkPbgERP extends core_Manager {
         }
         //return $browser->getHtml();
     }
-      
+    /**
+     * 3. Създаване на лице - клиент
+     * Select2 трябва да е деинсталиран
+     */
+    //http://localhost/unit_MinkPbgERP/CreatePersonUSA/
+    function act_CreatePersonUSA()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на лице
+        $browser->click('Визитник');
+        $browser->click('Лица');
+        $person = "Sam Wilson";
+        $browser->press('Ново лице');
+        $browser->setValue('name', $person);
+        $browser->setValue('country', 'САЩ');
+        $browser->setValue('place', 'Dallas');
+        $browser->setValue('address', 'Hatcher St 123');
+        $browser->setValue('egn', '9999999999');
+        $browser->setValue('Клиенти', '1');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Предупреждение:")){
+            $browser->setValue('Ignore', 1);
+            $browser->press('Запис');
+        }
+        // Създаване на папка на лицето
+        $browser->press('Папка');
+        //return $browser->getHtml();
+    }  
 }

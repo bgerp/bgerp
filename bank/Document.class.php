@@ -332,16 +332,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 		return $self->singleTitle . " №$rec->id";
 	}
-	
 
-	/**
-	 * Вкарваме css файл за единичния изглед
-	 */
-	protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
-	{
-		$tpl->push('bank/tpl/css/styles.css', 'CSS');
-	}
-	
 
 	/**
 	 * Подготовка на бутоните на формата за добавяне/редактиране

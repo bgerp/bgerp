@@ -233,7 +233,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$products = cat_Products::getByProperty('canManifacture');
 		if(isset($rec->productId)){
 			if(!isset($products[$rec->productId])){
-				$products[$rec->productId] = cat_Products::getRecTitle($rec->productId, FALSE);
+				$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
 			}
 		}
 		

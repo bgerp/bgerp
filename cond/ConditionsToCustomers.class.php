@@ -86,6 +86,9 @@ class cond_ConditionsToCustomers extends core_Manager
         $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
+    
+        // Добавяне на уникални индекси
+        $this->setDbUnique('cClass,cId,conditionId');
     }
     
     
@@ -191,6 +194,9 @@ class cond_ConditionsToCustomers extends core_Manager
     	
     	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
     		$row->value = $ParamType->toVerbal(trim($rec->value));
+    		if(!empty($paramRec->suffix)){
+    			$row->value .= " " . $paramRec->suffix;
+    		}
     	}
     	
     	$row->cId = cls::get($rec->cClass)->getHyperLink($rec->cId, TRUE);
@@ -321,5 +327,36 @@ class cond_ConditionsToCustomers extends core_Manager
         		acc_Features::syncFeatures($rec->cClass, $rec->cId);
         	}
         }
+    }
+    
+    
+    /**
+     * Форсира(ако няма създава, ако има го обновява) търговско условие към клиент
+     * 
+     * @param mixed $class     - клас на контрагента
+     * @param int $objectId    - ид на контрагента
+     * @param int $conditionId - ид на параметъра
+     * @param mixed $value     - стойност на параметъра
+     * @return int             - създадения/обновения запис
+     */
+    public static function force($class, $objectId, $conditionId, $value)
+    {
+    	expect($Class = cls::get($class));
+    	expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
+    	expect($pRec = cond_Parameters::fetch($conditionId));
+    	$Type = cond_Parameters::getTypeInstance($pRec);
+    	expect($value = $Type->fromVerbal($value));
+    	
+    	// Новия запис
+    	$rec = (object)array('cClass' => $Class->getClassId(), 'cId' => $objectId, 'conditionId' => $conditionId, 'value' => $value);
+    	
+    	// Имали стар запис, ако има се обновява
+    	$exRec = self::fetch("#cClass = {$rec->cClass} AND #cId = {$rec->cId} AND #conditionId = {$rec->conditionId}");
+    	if(is_object($exRec)){
+    		$rec->id = $exRec->id;
+    	}
+    	
+    	// създаване/обновяване на записа
+    	return self::save($rec);
     }
 }

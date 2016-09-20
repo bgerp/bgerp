@@ -84,7 +84,7 @@ class callcenter_Talks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
     
 
     /**
@@ -114,13 +114,13 @@ class callcenter_Talks extends core_Master
     /**
      * 
      */
-    var $listFields = 'externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration';
+    var $listFields = '_rowTools, externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsField = 'singleLink';
+    var $rowToolsSingleField = 'singleLink';
     
     
     /**
@@ -162,6 +162,9 @@ class callcenter_Talks extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {   
+        core_RowToolbar::createIfNotExists($row->_rowTools);
+//         $row->_rowTools->removeBtn("single{$rec->id}");
+        
         // Информация за външния номер
         $externalNumArr = drdata_PhoneType::toArray($rec->externalNum);
         
@@ -208,7 +211,7 @@ class callcenter_Talks extends core_Master
                 $uniqId = $rec->id . 'caller';
                 
                 // Добавяме линка
-                $row->externalData = static::getTemplateForAddNum($rec->externalNum, $uniqId, $externalNumArr);
+                static::getTemplateForAddNum($row->_rowTools, $rec->externalNum, $uniqId, $externalNumArr);
             }
         }
         
@@ -251,7 +254,7 @@ class callcenter_Talks extends core_Master
                 $uniqId = $rec->id . 'called';
                 
                 // Добавяме линка
-                $row->internalData = static::getTemplateForAddNum($rec->internalNum, $uniqId, array());
+                static::getTemplateForAddNum($row->_rowTools, $rec->internalNum, $uniqId, array());
             }
         }
         
@@ -1712,6 +1715,8 @@ class callcenter_Talks extends core_Master
                 $this->singleIcon = 'img/16/incoming-redirected.png';
             }
         }
+        
+        return $this->singleIcon;
     }
     
     
@@ -1727,7 +1732,7 @@ class callcenter_Talks extends core_Master
         if (mode::is('screenMode', 'narrow')) {
             
             // Променяме полетата, които ще се показват
-            $data->listFields = arr::make('externalNum=Външен, singleLink=-, internalNum=Вътрешен, startTime=Време');
+            $data->listFields = arr::make('_rowTools, externalNum=Външен, singleLink=-, internalNum=Вътрешен, startTime=Време');
         }
     }
     
@@ -1735,13 +1740,13 @@ class callcenter_Talks extends core_Master
     /**
      * Връща стринг с линкове за добавяне на номера във фирма, лица или номера
      * 
+     * @param core_RowToolbar $rowTools
      * @param string $num - Номера, за който се отнася
      * @param string $uniqId - Уникално id
      * @param string $numArr - Масив с номера
-     * 
-     * @return string - Тага за заместване
+     * @param NULL|string $type
      */
-    static function getTemplateForAddNum($num, $uniqId, $numArr = FALSE)
+    static function getTemplateForAddNum($rowTools, $num, $uniqId, $numArr = FALSE, $type = NULL)
     {
         // Ако не е подаден масив с номера
         if ($numArr === FALSE) {
@@ -1753,57 +1758,27 @@ class callcenter_Talks extends core_Master
         // Ако не е валиден номер
         // Третираме го като вътрешен
         if (!$numArr) {
-        
+            
             // Ако няма роля admin, да не се показва шаблона за нов
             if (!haveRole('admin')) return ;
             
-            // Аттрибути за стилове 
-            $numbersAttr['title'] = 'Добави към потребител';
-            
-            // Икона на телефон
-            $phonesImg = "<img src=" . sbf('img/16/telephone2-add.png') . " width='16' height='16'>";
-            
-            // Създаваме линк
-            $text = ht::createLink($phonesImg, array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
+            $rowTools->addLink('Добави', array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), 'ef_icon=img/16/telephone2-add.png, title=Добави към потребител');
         } else {
             
-            // Аттрибути за стилове 
-            $companiesAttr['title'] = 'Нова фирма';
+            if (isset($type)) {
+                $personNumField = $type;
+            } else {
+                $personNumField = 'tel';
+            }
             
-            // Икона на фирмите
-            $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
+            $rowTools->addLink('Нова фирма', array('crm_Companies', 'add', $personNumField => $num, 'ret_url' => TRUE), 'ef_icon=img/16/office-building-add.png, title=Създай нова фирма от номера');
             
-            // Добавяме линк към създаване на фирми
-            $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
-            
-            // Аттрибути за стилове 
-            $personsAttr['title'] = 'Ново лице';
-            
-            // Икона на изображенията
-            $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
-            
-            // Ако е мобилен номер, полето ще сочи към мобилен
-            $personNumField = ($numArr[0]->mobile) ? 'mobile' : 'tel';
-            
-            // Добавяме линк към създаване на лица
-            $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
+            if (!isset($type)) {
+                // Ако е мобилен номер, полето ще сочи към мобилен
+                $personNumField = ($numArr[0]->mobile) ? 'mobile' : 'tel';
+            }
+            $rowTools->addLink('Ново лице', array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png, title=Създай нова фирма от номера');
         }
-        
-        // Ако сме в мобилен режим
-        if (mode::is('screenMode', 'narrow')) {
-            
-            // Не се добавя JS
-            $res = "<div id='{$uniqId}'>{$text}</div>";
-        } else {
-            
-            // Ако не сме в мобилен режим
-            
-            // Скриваме полето и добавяме JS за показване
-            $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
-        		<div style='visibility:hidden;' id='{$uniqId}'>{$text}</div></div>";
-        }
-        
-        return $res;
     }
     
     
