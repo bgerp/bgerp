@@ -4376,7 +4376,10 @@ only screen and (max-width: 320px) {
     padding: 0; }
 
   .printVisible {
-    display: block; } }
+    display: block; }
+
+  thead {
+    display: table-row-group; } }
 
   .printing .specialLink {
     font-weight: bold; }
