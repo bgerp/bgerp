@@ -191,6 +191,9 @@ class cond_ConditionsToCustomers extends core_Manager
     	
     	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
     		$row->value = $ParamType->toVerbal(trim($rec->value));
+    		if(!empty($paramRec->suffix)){
+    			$row->value .= " " . $paramRec->suffix;
+    		}
     	}
     	
     	$row->cId = cls::get($rec->cClass)->getHyperLink($rec->cId, TRUE);
