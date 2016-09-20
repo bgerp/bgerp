@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Избор
@@ -51,21 +51,8 @@ class cond_type_Enum extends cond_type_Proto
 	 */
 	public function getType($rec)
 	{
-		if($rec->options) {
-		
-            $options = explode(PHP_EOL, $rec->options);
-            
-            foreach ($options as &$opt){
-                $opt = trim($opt);
-            }
-            
-            $options = array_combine($options, $options);
-        } else {
-             $options = array();
-        }
-        
-        $Type = cls::get('type_Enum');
-        $Type->options = $options;
+		$Type = cls::get('type_Enum');
+        $Type->options = static::text2options($rec->options);
 		
 		return $Type;
 	}

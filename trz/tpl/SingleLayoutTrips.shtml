@@ -21,15 +21,46 @@
         <!--ET_BEGIN purpose-->
         <div class='richtext-holder'><b>|Цел|*:</b> [#purpose#]</div>
         <!--ET_END purpose-->
-        <!--ET_BEGIN amountRoad-->
-        <p><b>|Пътни|*:</b> [#amountRoad#] [#roadCurrencyId#]</p>
-        <!--ET_END amountRoad-->
-        <!--ET_BEGIN amountDaily-->
-        <p><b>|Дневни|*:</b> [#amountDaily#] [#dailyCurrencyId#]</p>
-        <!--ET_END amountDaily-->
-        <!--ET_BEGIN amountHouse-->
-        <p><b>|Квартирни|*:</b> [#amountHouse#] [#houseCurrencyId#]</p>
-        <!--ET_END amountHouse-->
     </div>
+    
+    <!--ET_BEGIN compensation-->
+        <br><p><b>|Командировъчни|*:</b></p>
+        
+        <table class="listTable">
+        	<tr>
+        		<th>|Пътни|*</th>
+                <td class="centered">[#amountRoad#]</td>
+            </tr>
+        	<tr>
+        		<th>|Дневни|*</th>
+                <td class="centered">[#amountDaily#]</td>
+            </tr>
+
+            <tr>  
+            	<th>|Квартирни|*</th>
+	            <td class="centered">[#amountHouse#]</td>
+	        </tr>
+	    </table>
+        <!--ET_END compensation-->
+    
+    <!--ET_BEGIN access-->        
+    <br><p><b>|По време на отсъствието ще|*:</b></p>
+    <table class="listTable">
+    	<tr>
+    		<th>|отговарям на мобилен телефон|*</th>
+            <td class="centered">[#answerGSM#]</td>
+        </tr>
+        
+        <tr>
+        	<th>|имам достъп до системата|*</th>
+            <td class="centered">[#answerSystem#]</td>
+        </tr>
+            
+        <tr>
+            <th>|ме замества|*</th>
+            <td class="centered">[#alternatePerson#]</td>
+        </tr>
+    </table>
+    <!--ET_END access-->
     <div style='clear: both;'></div>
     [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

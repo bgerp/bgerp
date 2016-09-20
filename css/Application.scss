@@ -4810,6 +4810,9 @@ body.narrow {
     .printVisible {
 	    display: block;
 	}
+	thead {
+		display:table-row-group;
+	}
 }
 
 .printing {
