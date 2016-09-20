@@ -47,19 +47,19 @@
         
         <!--ET_BEGIN access-->        
         <br><p><b>|По време на отсъствието ще|*:</b></p>
-        <table class="listTable">
+        <table class="inlineRichTable listTable">
         	<tr>
-        		<th>|отговарям на мобилен телефон|*</th>
+        		<td>|отговарям на мобилен телефон|*</td>
                 <td class="centered">[#answerGSM#]</td>
             </tr>
             
             <tr>
-            	<th>|имам достъп до системата|*</th>
+            	<td>|имам достъп до системата|*</td>
                 <td class="centered">[#answerSystem#]</td>
             </tr>
             
             <tr>
-            	<th>|ме замества|*</th>
+            	<td>|ме замества|*</td>
             	<td class="centered">[#alternatePerson#]</td>
             </tr>
         </table>
