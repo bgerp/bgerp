@@ -1127,6 +1127,11 @@ class cat_Products extends embed_Manager {
         		if($rec->canManifacture == 'yes'){
         			static::createDefaultBom($rec);
         		}
+        		
+        		// Ако е създаден артикул, базиран на прототип клонират се споделените му папки
+        		if(isset($rec->proto)){
+        			cat_products_SharedInFolders::cloneFolders($rec->proto, $rec->id);
+        		}
         	}
         }
     }

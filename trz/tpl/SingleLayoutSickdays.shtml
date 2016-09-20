@@ -28,39 +28,42 @@
         <!--ET_BEGIN icdCode-->
         <p><b>|Код по MKB|*:</b> [#icdCode#]</p>
         <!--ET_END icdCode-->
+        
+        <!--ET_BEGIN compensation-->
         <br><p><b>|Заплащане|*:</b></p>
+        
         <table class="listTable">
-                
-                    <tr>
-                        <th>|Oт работодателя|*</th>
-                        <td class="centered">[#paidByEmployer#]</td>
-                    </tr>
-                    
-                    <tr>  
-	                    <th>|Oт НЗК|*</th>
-	                    <td class="centered">[#paidByHI#]</td>
-                    </tr>
+        	<tr>
+        		<th>|Oт работодателя|*</th>
+                <td class="centered">[#paidByEmployer#]</td>
+            </tr>
 
-                </table>
-                
-                <br><p><b>|По време на отсъствието|*:</b></p>
-                <table class="listTable">
-                    <tr>
-                        <th>|ще отговарям на мобилен телефон|*</th>
-                        <td class="centered">[#answerGSM#]</td>
-
-
-                    </tr>
-                    <tr>
-                        <th>|ще имам достъп до системата|*</th>
-                         <td class="centered">[#answerSystem#]</td>
-                    </tr>
-                    <tr>
-                        <th>|ще ме замества|*</th>
-                        <td class="centered">[#alternatePerson#]</td>
-
-                    </tr>
-                    </table>
+            <tr>  
+            	<th>|Oт НЗК|*</th>
+	            <td class="centered">[#paidByHI#]</td>
+	        </tr>
+	    </table>
+        <!--ET_END compensation-->
+        
+        <!--ET_BEGIN access-->        
+        <br><p><b>|По време на отсъствието ще|*:</b></p>
+        <table class="listTable">
+        	<tr>
+        		<th>|отговарям на мобилен телефон|*</th>
+                <td class="centered">[#answerGSM#]</td>
+            </tr>
+            
+            <tr>
+            	<th>|имам достъп до системата|*</th>
+                <td class="centered">[#answerSystem#]</td>
+            </tr>
+            
+            <tr>
+            	<th>|ме замества|*</th>
+            	<td class="centered">[#alternatePerson#]</td>
+            </tr>
+        </table>
+        <!--ET_END access-->
     </div>
     <div style='clear: both;'></div>
     

@@ -99,7 +99,7 @@ class trz_SalaryRules extends core_Manager
     	$this->FLD('name',    'varchar(64)', 'caption=Име на правилото,width=100%,mandatory');
     	$this->FLD('function',    'enum(const=константа, average=средно, summary=сумарно)', 'caption=Функция,width=100%,mandatory');
     	$this->FLD('indicators',    'varchar', 'caption=Индикатор,width=100%,mandatory');
-    	$this->FLD('factor',    'int', 'caption=Коефициент,width=100%,mandatory');
+    	$this->FLD('factor',    'double(Min=0)', 'caption=Коефициент,width=100%,mandatory');
     }
 
     
@@ -117,5 +117,20 @@ class trz_SalaryRules extends core_Manager
         if(is_array($indicatorNames)) {
             $data->form->setOptions('indicators', array('' => '') + $indicatorNames);
         }
+    }
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+
+        $row->factor = $Double->toVerbal($rec->factor);
+
     }
 }
