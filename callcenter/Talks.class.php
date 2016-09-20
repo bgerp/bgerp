@@ -1785,7 +1785,7 @@ class callcenter_Talks extends core_Master
             }
             $rowTools->addLink('Ново лице', array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png, title=Създай нова фирма от номера');
             
-            if (self::haveRightFor('$action')) {
+            if (self::haveRightFor('addto')) {
                 
                 Request::setProtected(array('num'));
                 
