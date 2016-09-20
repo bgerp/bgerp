@@ -417,7 +417,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     private static function addAction($rec, $action, $type)
     {
-    	$productId = (!empty($rec->taskProductId)) ? $rec->taskProductId : planning_Tasks::getTaskInfo($rec->taskId)->productId;
+    	$productId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     	$packagingId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
     	
     	return planning_TaskActions::add($rec->taskId, $productId, $action, $type, $packagingId, $rec->quantity, $rec->serial, $rec->employees, $rec->fixedAsset);
