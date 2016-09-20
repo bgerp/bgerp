@@ -63,7 +63,6 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		$mvc->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
 		$mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
 		
-		$mvc->setDbUnique('name, suffix');
 		$mvc->setDbUnique("sysId");
 	}
 	

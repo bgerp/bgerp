@@ -71,6 +71,8 @@ class cond_Parameters extends bgerp_ProtoParam
     function description()
     {
     	parent::setFields($this);
+    	
+    	$this->setDbUnique('name, suffix');
     }
     
     

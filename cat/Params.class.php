@@ -79,6 +79,8 @@ class cat_Params extends bgerp_ProtoParam
     {
     	parent::setFields($this);
     	$this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
+    
+    	$this->setDbUnique('name, suffix');
     }
     
     
