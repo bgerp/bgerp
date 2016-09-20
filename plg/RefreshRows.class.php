@@ -156,6 +156,25 @@ class plg_RefreshRows extends core_Plugin
             $resObjReload = new stdClass();
             $resObjReload->func = 'forceReloadAfterBack';
             $res[] = $resObjReload;
+            
+            jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
+            
+            // Стойности на плейсхолдера
+            $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
+            
+            // Добавя всички функции в масива, които ще се виката
+            if (!empty($runAfterAjaxArr)) {
+            
+                // Да няма повтарящи се функции
+                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+            
+                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                    $jqResObj = new stdClass();
+                    $jqResObj->func = $runAfterAjax;
+            
+                    $res[] = $jqResObj;
+                }
+            }
         }
         
         return FALSE;
