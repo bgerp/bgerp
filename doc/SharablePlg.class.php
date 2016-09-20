@@ -355,4 +355,20 @@ class doc_SharablePlg extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * Преди записване на клонирания запис
+     * 
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // Премахваме ненужните полета
+        unset($nRec->sharedViews);
+    }
 }
