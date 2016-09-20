@@ -145,10 +145,26 @@ class plg_RefreshRows extends core_Plugin
             
             $divId = Request::get('divId');
             
+            // Масив с добавения CSS
+            $cssArr = array();
+            $allCssArr = (array)$tpl->getArray('CSS');
+            $allCssArr = array_unique($allCssArr);
+            foreach ($allCssArr as $css) {
+                $cssArr[] = sbf($css, '', TRUE);
+            }
+            
+            // Масив с добавения JS
+            $jsArr = array();
+            $allJsArr = (array)$tpl->getArray('JS');
+            $allJsArr = array_unique($allJsArr);
+            foreach ($allJsArr as $js) {
+                $jsArr[] = sbf($js, '', TRUE);
+            }
+            
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE);
+            $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE, 'css' => $cssArr, 'js' => $jsArr);
             
             $res = array($resObj);
             
