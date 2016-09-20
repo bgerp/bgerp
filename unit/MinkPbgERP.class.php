@@ -15,7 +15,6 @@
 
 class unit_MinkPbgERP extends core_Manager {
    
-    
    
    public static function reportErr($text, $type = 'warning')
    {
@@ -34,8 +33,31 @@ class unit_MinkPbgERP extends core_Manager {
        return $text;
    }
    
-    /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
-    */
+    /**
+     * Стартира последователно всички тестове от Unit 
+     */
+    //http://localhost/unit_MinkPbgERP/All/
+    
+    public function act_All()
+    {
+        $res = '';
+        $res .= $this->act_Run();
+        $inst = cls::get('unit_MinkPSales');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPPurchases');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPPayment');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkBom');
+        $res .= $inst->act_Run();
+        //$inst = cls::get('unit_MinkInv');
+        //$res .= $inst->act_Run();
+        return $res;
+    }
+    
+    /**
+     * Стартира последователно тестовете от MinkPbgERP 
+     */
     //http://localhost/unit_MinkPbgERP/Run/
     public function act_Run()
     {
