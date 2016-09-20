@@ -60,7 +60,7 @@ class callcenter_Fax extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_RefreshRows, plg_Created, callcenter_ListOperationsPlg';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_Created, callcenter_ListOperationsPlg';
     
     
     /**
@@ -148,11 +148,13 @@ class callcenter_Fax extends core_Manager
             // Ако има номер
             if ($rec->faxNum) {
                 
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                
                 // Уникално id
                 $uniqId = $rec->id . 'faxTo';
                 
                 // Добавяме линка
-                $row->faxNumData = static::getTemplateForAddNum($rec->faxNum, $uniqId);
+                callcenter_Talks::getTemplateForAddNum($row->_rowTools, $rec->faxNum, $uniqId, FALSE, 'fax');
             }
         }
         
@@ -182,55 +184,6 @@ class callcenter_Fax extends core_Manager
             // Линк към сингъла на докуемнта
             $row->cid = doc_Containers::getLinkForSingle($rec->cid);
         }
-    }
-    
-    
-    /**
-     * Връща стринг с линкове за добавяне на номера във фирма, лица или номера
-     * 
-     * @param string $num - Номера, за който се отнася
-     * @param string $uniqId - Уникално id
-     * 
-     * @return string - Тага за заместване
-     */
-    static function getTemplateForAddNum($num, $uniqId)
-    {
-        // Аттрибути за стилове 
-        $companiesAttr['title'] = 'Нова фирма';
-        
-        // Икона на фирмите
-        $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
-        
-        // Добавяме линк към създаване на фирми
-        $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'fax' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
-        
-        // Аттрибути за стилове 
-        $personsAttr['title'] = 'Ново лице';
-        
-        // Икона на изображенията
-        $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
-        
-        // Добавяме линк към създаване на лица
-        $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', 'fax' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
-        
-        // Дали да се показва или не
-        $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
-        
-        // Ако сме в мобилен режим
-        if (mode::is('screenMode', 'narrow')) {
-            
-            // Не се добавя JS
-            $res = "<div id='{$uniqId}'>{$text}</div>";
-        } else {
-            
-            // Ако не сме в мобилен режим
-            
-            // Скриваме полето и добавяме JS за показване
-            $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
-        		<div style='visibility:hidden;' id='{$uniqId}'>{$text}</div></div>";
-        }
-        
-        return $res;
     }
     
     
