@@ -64,6 +64,12 @@ class callcenter_Talks extends core_Master
     
     
     /**
+     * 
+     */
+    var $canAddto = 'powerUser';
+    
+    
+    /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'powerUser';
@@ -1778,7 +1784,93 @@ class callcenter_Talks extends core_Master
                 $personNumField = ($numArr[0]->mobile) ? 'mobile' : 'tel';
             }
             $rowTools->addLink('Ново лице', array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png, title=Създай нова фирма от номера');
+            
+            if (self::haveRightFor('$action')) {
+                
+                Request::setProtected(array('num'));
+                
+                // Бутон за добавяне на номера към
+                $rowTools->addLink('Добави към...', array(get_called_class(), 'addTo', 'num' => $num, 'ret_url' => TRUE), 'ef_icon=img/16/add.png, title=Добавяне на номера към съществуващ контрагент');
+            }
         }
+    }
+    
+    
+    /**
+     * Екшън за прикачане на номер към контрагент
+     */
+    function act_AddTo()
+    {
+        Request::setProtected(array('num'));
+        
+        $this->requireRightFor('addto');
+        $form = cls::get('core_Form');
+        $form->title = "Добавяне на номера към фирма или лице";
+        
+        $form->FNC('sel', 'enum(, company_tel=Телефон на фирма, company_fax=Факс на фирма,
+                                  person_buzTel=Служебен номер на лице, person_buzFax=Служебен факс на лице,
+                                  person_tel=Номер на лице, person_fax=Факс на лице, person_mobile=Мобилен на лице)', 'caption=Добавяне към, mandatory, input=input,refreshForm');
+        
+        $form->FNC('num', 'drdata_PhoneType');
+        
+        $form->input();
+        
+        $class = $field = $className = NULL;
+        
+        if ($form->rec->sel) {
+            list($class, $field) = explode('_', $form->rec->sel);
+        }
+        
+        // Ако е избран клас, показваме избор на контрагент
+        if (isset($class)) {
+            
+            $className = 'crm_Persons';
+            $caption = 'Лице';
+            
+            if ($class == 'company') {
+                $className = 'crm_Companies';
+                $caption = 'Фирма';
+            }
+            
+            $form->FNC('contragentId', "key(mvc={$className}, select=name)", "caption={$caption}, input=input, mandatory");
+            $form->input('contragentId');
+        }
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array(get_called_class(), 'list');
+        }
+        
+        // Добавяме номера към съответния контрагент
+        if($form->isSubmitted()){
+            
+            expect($className && $form->rec->num);
+            
+            $inst = cls::get($className);
+            
+            $iRec = $inst->fetch($form->rec->contragentId);
+            
+            expect($iRec);
+            
+            $iRec->{$field} .= trim($iRec->{$field}) ? ', ' : '';
+            $iRec->{$field} .= $form->rec->num;
+            
+            if ($inst->save($iRec, $field)) {
+                $inst->logWrite('Добавен номер', $iRec->id);
+                $this->logWrite("Добавяне на телефонен номер към контрагент");
+                
+                return new Redirect($retUrl, 'Успешно добавихте номера');
+            } else {
+                $form->setError('sel', 'Възникна грешка при добавяне');
+            }
+        }
+        
+        // Добавяне на бутони
+        $form->toolbar->addSbBtn('Добави', 'save', 'ef_icon = img/16/add.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
