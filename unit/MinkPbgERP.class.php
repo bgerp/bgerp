@@ -40,6 +40,7 @@ class unit_MinkPbgERP extends core_Manager {
     
     public function act_All()
     {
+        set_time_limit(600);
         $res = '';
         $res .= $this->act_Run();
         $inst = cls::get('unit_MinkPSales');
@@ -71,8 +72,9 @@ class unit_MinkPbgERP extends core_Manager {
         }
         
         $res = '';
-        $res .= "0.".$this->act_DeinstallSelect2();
-        $res .= "1.".$this->act_CreateUser1();
+        $res .= 'MinkPbgERP ';
+        $res .= " 0.".$this->act_DeinstallSelect2();
+        $res .= " 1.".$this->act_CreateUser1();
         $res .= "  2.".$this->act_CreateUser2();
         $res .= "  3.".$this->act_CreateStore();
         $res .= "  4.".$this->act_CreateBankAcc1();
