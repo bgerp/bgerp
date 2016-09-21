@@ -24,6 +24,8 @@ class unit_MinkPPayment extends core_Manager {
             return;
         }
         $res = '';
+        echo '\r\n';
+        $res .= 'MinkPPayment';
         $res .= "  1.".$this->act_CreateSaleWaitP();
         $res .= "  2.".$this->act_CreateSaleOverdue3days();
         $res .= "  3.".$this->act_CreateSaleMomentOverdueNull();

@@ -21,6 +21,8 @@ class unit_MinkPPurchases extends core_Manager {
             return;
         }
         $res = '';
+        echo '\r\n';
+        $res .= 'MinkPPurchases ';
         $res .=  " 1.".$this->act_PurchaseQuantityMinus();
         $res .=  " 2.".$this->act_PurchaseQuantityZero();
         //$res .= "  3.".$this->act_PurchasePriceMinus();
