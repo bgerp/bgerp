@@ -1970,9 +1970,7 @@ class doc_Containers extends core_Manager
             // Ако класа може да се използва за документ
             if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
                 
-                if (!$docId) {
-                    $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
-                }
+                $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
                 
                 if ($docId) {
                     self::logNotice("Променено docId от {$rec->docId} на {$docId}", $rec->id);
