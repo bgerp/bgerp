@@ -264,18 +264,20 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$tpl = getTplFromFile('cond/tpl/ConditionsToCustomers.shtml');
     	$lastGroupId = NULL;
-    	foreach((array)$paramArr as &$row2) {
-    		 
-    		$block = clone $tpl->getBlock('PARAM_GROUP_ROW');
-    		if($row2->group != $lastGroupId){
-    			$block->replace($row2->group, 'group');
+    	if(is_array($paramArr)){
+    		foreach($paramArr as &$row2) {
+    			 
+    			$block = clone $tpl->getBlock('PARAM_GROUP_ROW');
+    			if($row2->group != $lastGroupId){
+    				$block->replace($row2->group, 'group');
+    			}
+    			$lastGroupId = $row2->group;
+    			unset($row2->group);
+    			$block->placeObject($row2);
+    			$block->removeBlocks();
+    			$block->removePlaces();
+    			$tpl->append($block, 'ROWS');
     		}
-    		$lastGroupId = $row2->group;
-    		unset($row2->group);
-    		$block->placeObject($row2);
-    		$block->removeBlocks();
-    		$block->removePlaces();
-    		$tpl->append($block, 'ROWS');
     	}
     
     	return $tpl;
