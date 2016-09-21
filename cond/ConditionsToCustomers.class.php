@@ -208,6 +208,11 @@ class cond_ConditionsToCustomers extends core_Manager
     	$paramRec->name = tr($paramRec->name);
     	$row->conditionId = cond_Parameters::getVerbal($paramRec, 'name');
     	
+    	if(!empty($paramRec->group)){
+    		$paramRec->group = tr($paramRec->group);
+    		$row->group = cond_Parameters::getVerbal($paramRec, 'group');
+    	}
+    	
     	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
     		$row->value = $ParamType->toVerbal(trim($rec->value));
     		if(!empty($paramRec->suffix)){
@@ -236,17 +241,44 @@ class cond_ConditionsToCustomers extends core_Manager
         }
       
 	    if(count($data->rows)) {
-			foreach($data->rows as $id => $row) {
-				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>");
-				$toolsHtml = $row->_rowTools->renderHtml();
-				$tpl->append($row->conditionId . " - {$row->value}<span style='position:relative;top:4px'>{$toolsHtml}</span>");
-				$tpl->append("</div>");
-			}
+	    	foreach($data->rows as $id => &$row) {
+	    		$row->tools = $row->_rowTools->renderHtml();
+	    	}
+
+	    	$tpl->append(static::renderParamBlock($data->rows));
 	    } else {
 	    	$tpl->append(tr("Все още няма условия"));
 	    }
 	    
 	    return $tpl;
+    }
+    
+    
+    /**
+     * Рендира блок с параметри за артикули
+     *
+     * @param array $paramArr
+     * @return core_ET $tpl
+     */
+    public static function renderParamBlock($paramArr)
+    {
+    	$tpl = getTplFromFile('cond/tpl/ConditionsToCustomers.shtml');
+    	$lastGroupId = NULL;
+    	foreach((array)$paramArr as &$row2) {
+    		 
+    		$block = clone $tpl->getBlock('PARAM_GROUP_ROW');
+    		if($row2->group != $lastGroupId){
+    			$block->replace($row2->group, 'group');
+    		}
+    		$lastGroupId = $row2->group;
+    		unset($row2->group);
+    		$block->placeObject($row2);
+    		$block->removeBlocks();
+    		$block->removePlaces();
+    		$tpl->append($block, 'ROWS');
+    	}
+    
+    	return $tpl;
     }
     
     
