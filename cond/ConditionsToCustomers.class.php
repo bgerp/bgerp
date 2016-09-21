@@ -201,11 +201,13 @@ class cond_ConditionsToCustomers extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$paramRec = cond_Parameters::fetch($rec->conditionId);
+    	$paramRec->name = tr($paramRec->name);
+    	$row->conditionId = cond_Parameters::getVerbal($paramRec, 'name');
     	
     	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
     		$row->value = $ParamType->toVerbal(trim($rec->value));
     		if(!empty($paramRec->suffix)){
-    			$row->value .= " " . $paramRec->suffix;
+    			$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));
     		}
     	}
     	
