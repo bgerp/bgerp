@@ -287,7 +287,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 			}
 		}
 		
-		if($action == 'changestate' && isset($rec->id)) {
+		if(($action == 'changestate') && isset($rec->id)) {
 			if(isset($rec->sysId)){
 				$requiredRoles = 'no_one';
 			}
