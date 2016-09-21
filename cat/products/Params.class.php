@@ -108,8 +108,7 @@ class cat_products_Params extends doc_Detail
         $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
-        $this->setDbIndex('classId');
-        $this->setDbIndex('productId');
+        $this->setDbIndex('cClass,cId');
     }
     
     
@@ -163,6 +162,12 @@ class cat_products_Params extends doc_Detail
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	$options = self::getRemainingOptions($form->rec->classId, $form->rec->productId, $form->rec->id);
 			$form->setOptions('paramId', array('' => '') + $options);
+			$form->paramOptions = $options;
+			
+			if(count($options) == 1){
+				$form->setDefault('paramId', key($options));
+				$form->setReadOnly('paramId');
+			}
     	} else {
     		$form->setReadOnly('paramId');
     	}
@@ -195,6 +200,10 @@ class cat_products_Params extends doc_Detail
     	if(isset($rec->classId) && isset($rec->productId)){
     		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
+    
+    	if(isset($data->form->paramOptions) && count($data->form->paramOptions) <= 1){
+    		$data->form->toolbar->removeBtn('saveAndNew');
+    	}
     }
     
     
@@ -206,21 +215,14 @@ class cat_products_Params extends doc_Detail
      */
     public static function getRemainingOptions($classId, $productId, $id = NULL)
     {
-        $options = cat_Params::makeArray4Select();
-        
-        if(count($options)) {
-            $query = self::getQuery();
-            $query->show('paramId');
-            if($id) {
-                $query->where("#id != {$id}");
-            }
-			
-            while($rec = $query->fetch("#productId = {$productId} AND #classId = '{$classId}'")) {
-               unset($options[$rec->paramId]);
-            }
-        } else {
-            $options = array();
-        }
+    	$query = self::getQuery();
+    	$query->where("#classId = {$classId} AND #productId = {$productId}");
+    	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
+    	$ids = array_combine($ids, $ids);
+    	$ids = implode(',', $ids);
+    	$where = "#id NOT IN ({$ids})";
+    	
+    	$options = cat_Params::makeArray4Select(NULL, $where);
 		
         return $options;
     }

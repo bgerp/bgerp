@@ -144,30 +144,52 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	
 	
 	/**
-	 * Подготвя опциите за селектиране на параметър като към името се
-	 * добавя неговия suffix
+	 * След подготовка на масива за избор на опции
 	 */
-	public static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
+	public static function on_AfterMakeArray4Select($mvc, &$options, $fields = NULL, &$where = "", $index = 'id'  )
+	{
+		$newOptions = $options;
+		
+		// Ако има опции
+		if(is_array($options)){
+			$newOptions = array();
+			foreach ($options as $id => $value){
+				$group = $mvc->fetchField($id, 'group');
+				
+				// Ако имат група, и няма такава група в масива, те се групират
+				if(!empty($group)){
+					if(!array_key_exists($group, $newOptions)){
+						$group = $mvc->getFieldType('group')->toVerbal(tr($group));
+						$newOptions[$group] = (object)array('title' => $group, 'group' => TRUE);
+					}
+				}
+				
+				// Махане на гръпата от името
+				$exploded = explode(" » ", $value);
+				$value = (count($exploded) == 2) ? $exploded[1] : $value;
+					
+				$newOptions[$id] = $value;
+			}
+		}
+		
+		$options = $newOptions;
+	}
+	
+	
+	/**
+	 * Подготвя опциите за селектиране на параметър като към името се добавя неговия suffix
+	 */
+	public function makeArray4Select_($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
 	{
 		$query = static::getQuery();
 		if(strlen($where)){
-			$query->where = $where;
+			$query->where($where);
 		}
 		$query->orderBy('group', 'ASC');
 		
 		$options = array();
 		while($rec = $query->fetch()){
-			if(!empty($rec->group)){
-				if(!array_key_exists($rec->group, $options)){
-					$group = tr($rec->group);
-					$options[$group] = (object)array('title' => $group, 'group' => TRUE);
-				}
-			}
-			
-			$exploded = explode(" » ", $rec->typeExt);
-			$typeExt = (count($exploded) == 2) ? $exploded[1] : $rec->typeExt;
-			
-			$options[$rec->{$index}] = $typeExt;
+			$options[$rec->{$index}] = $rec->typeExt;
 		}
 		
 		return $options;
