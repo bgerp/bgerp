@@ -136,6 +136,10 @@ class cat_products_Params extends doc_Detail
     	$paramRec = cat_Params::fetch($rec->paramId);
     	$paramRec->name = tr($paramRec->name);
     	$row->paramId = cat_Params::getVerbal($paramRec, 'name');
+    	if(!empty($paramRec->group)){
+    		$paramRec->group = tr($paramRec->group);
+    		$row->group = cat_Params::getVerbal($paramRec, 'group');
+    	}
     	
     	if($ParamType = cat_Params::getTypeInstance($paramRec)){
     		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
@@ -255,31 +259,26 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderDetail($data)
     {
-        $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
-        $tpl->replace(get_called_class(), 'DetailName');
-        
-        if($data->noChange !== TRUE){
-        	$tpl->append($data->changeBtn, 'addParamBtn');
-        }
-        
-        $mvc = cls::get(get_called_class());
-        foreach((array)$data->params as $row) {
+        foreach((array)$data->params as &$row) {
         	core_RowToolbar::createIfNotExists($row->_rowTools);
         	if($data->noChange !== TRUE && !Mode::isReadOnly()){
         		$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
         	} else {
         		unset($row->tools);
         	}
-        	
-            $block = clone $tpl->getBlock('param');
-            $block->placeObject($row);
-            $block->removeBlocks();
-            $block->append2Master();
+        }
+        
+        $tpl = cat_Params::renderParamBlock($data->params);
+        $tpl->replace(get_called_class(), 'DetailName');
+        
+        if($data->noChange !== TRUE){
+        	$tpl->append($data->changeBtn, 'addParamBtn');
         }
         
         if(!$data->params){
         	$tpl->append("<i>" . tr('Няма') . "</i>", 'NO_ROWS');
         }
+        $tpl->removeBlocks();
         
         return $tpl;
     }
@@ -291,8 +290,10 @@ class cat_products_Params extends doc_Detail
     public static function prepareParams(&$data)
     {
         $query = self::getQuery();
+        $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
         $query->where("#productId = {$data->masterId}");
         $query->where("#classId = {$data->masterClassId}");
+        $query->orderBy('group', 'ASC');
         
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
     	if($data->documentType === 'public'){
