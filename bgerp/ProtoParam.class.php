@@ -108,7 +108,8 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		if(count($params)){
 			$params = arr::make($params, TRUE);
 		}
-		$data->form->setSuggestions('group', $params);
+		
+		$data->form->setSuggestions('group', array('' => '') + $params);
 	}
 	
 	
