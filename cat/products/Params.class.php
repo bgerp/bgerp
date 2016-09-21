@@ -265,12 +265,14 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderDetail($data)
     {
-        foreach((array)$data->params as &$row) {
-        	core_RowToolbar::createIfNotExists($row->_rowTools);
-        	if($data->noChange !== TRUE && !Mode::isReadOnly()){
-        		$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
-        	} else {
-        		unset($row->tools);
+        if(is_array($data->params)){
+        	foreach($data->params as &$row) {
+        		core_RowToolbar::createIfNotExists($row->_rowTools);
+        		if($data->noChange !== TRUE && !Mode::isReadOnly()){
+        			$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
+        		} else {
+        			unset($row->tools);
+        		}
         	}
         }
         
