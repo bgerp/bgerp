@@ -1098,7 +1098,7 @@ class doc_Folders extends core_Master
         }
         
         // Ако е зададено да се поправят всички стойности
-        if (doc_Setup::get('REPAIR_STATE') == 'yes') {
+        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
             $resArr += self::repairAll($from, $to, $delay);
         }
         

@@ -43,7 +43,8 @@ defIfNot('DOC_SEARCH_FOLDER_CNT', 5);
 
 
 /**
- * Време на отклонения за поправка на документ
+ * Време на отклонения за поправка на документ (в секунди)
+ * Докумените създадени преди това време ще се проверяват за поправка
  */
 defIfNot('DOC_REPAIR_DELAY', 120);
 
@@ -51,7 +52,7 @@ defIfNot('DOC_REPAIR_DELAY', 120);
 /**
  * Дали да се проверяват всички документи за поправка
  */
-defIfNot('DOC_REPAIR_STATE', 'no');
+defIfNot('DOC_REPAIR_ALL', 'yes');
 
 
 /**
@@ -147,7 +148,8 @@ class doc_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете'))
+        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете')),
+        array('title' => 'Документи', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на развалени документи'))
     );
     
     
@@ -162,9 +164,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
         'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
     	'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array ('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
-    		
-    	'DOC_REPAIR_DELAY' => array ('time(suggestions=10 сек.|30 сек.|60 сек.|120 сек.)', 'caption=Отклонение при поправка на документи->Време'),
-        'DOC_REPAIR_STATE' => array ('enum(yes=Да, no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
+    	
+        'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
     
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
@@ -194,7 +195,6 @@ class doc_Setup extends core_ProtoSetup
     	'doc_DocumentCache',
     	'doc_Likes',
     	'doc_ExpensesSummary',
-        'migrate::repairAllBrokenRelations',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
@@ -326,53 +326,6 @@ class doc_Setup extends core_ProtoSetup
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Миграция за поправане на развалени връзки в папки, нишки и контейнери
-     * 
-     * @return string
-     */
-    static function repairAllBrokenRelations()
-    {
-        try {
-            
-            $conf = core_Packs::getConfig('doc');
-            $res = '';
-            
-            $repArr = array();
-            $repArr['folder'] = doc_Folders::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-            $repArr['thread'] = doc_Threads::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-            $repArr['container'] = doc_Containers::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-            
-            foreach ($repArr as $name => $repairedArr) {
-                if (!empty($repairedArr)) {
-                    
-                    if ($name == 'folder') {
-                        $res .= "<li class='green'>Поправки в папките: </li>\n";
-                    } elseif ($name == 'thread') {
-                        $res .= "<li class='green'>Поправки в нишките: </li>\n";
-                    } else {
-                        $res .= "<li class='green'>Поправки в контейнерите: </li>\n";
-                    }
-                    
-                    foreach ((array)$repairedArr as $field => $cnt) {
-                        if ($field == 'del_cnt') {
-                            $res .= "\n<li class='green'>Изтирите са {$cnt} записа</li>";
-                        } else {
-                            $res .= "\n<li>Поправени развалени полета '{$field}' - {$cnt} записа</li>";
-                        }
-                    }
-                }
-            }
-        
-        } catch (Exception $e) {
-            
-            return ;
-        }
         
         return $res;
     }

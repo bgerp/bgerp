@@ -372,7 +372,7 @@ class doc_Threads extends core_Manager
         }
                 
         // Ако е зададено да се поправят всички стойности
-        if (doc_Setup::get('REPAIR_STATE') == 'yes') {
+        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
             $resArr += self::repairAll($from, $to, $delay);
         }
         
