@@ -24,6 +24,8 @@ class unit_MinkBom extends core_Manager
             return;
         }
         $res = '';
+        echo '\r\n';
+        $res .= 'MinkBom ';
         $res .= $this->act_CreateProductWork();
         $res .= $this->act_CreateElectricity();
         $res .= $this->act_CreatePackage();
