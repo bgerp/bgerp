@@ -67,12 +67,6 @@ class cat_Params extends bgerp_ProtoParam
     
     
     /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'cat,ceo';
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'group, name, suffix,  sysId';
