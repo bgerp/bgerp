@@ -16,6 +16,12 @@ class callcenter_Talks extends core_Master
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'support_IssueCreateIntf';
+    
+    
+    /**
      * Разделител за края на uniqId, ако разговора е пренасочен
      */
     protected static $callUniqIdDelimiter = '|';
@@ -329,6 +335,12 @@ class callcenter_Talks extends core_Master
         // Номера, към който е редиректнат
         if ($rec->RedirectTo = self::getRedirectedToNum($rec)) {
             $row->RedirectTo = type_Varchar::escape($rec->RedirectTo);
+        }
+        
+        // Добавяме бутон за създаване на сигнал
+        if (support_Issues::haveRightFor('add')) {
+            Request::setProtected('srcId, srcClass');
+            $row->_rowTools->addLink('Сигнал', array('support_Issues', 'add', 'srcId' => $rec->id, 'srcClass' => $mvc->className, 'ret_url' => TRUE), 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
         }
     }
     
@@ -2169,5 +2181,86 @@ class callcenter_Talks extends core_Master
         $hash = md5(trim(strip_tags($status)));
         
         return $hash;
+    }
+    
+    
+	/**
+     * Връща запис с подразбиращи се данни за сигнала
+	 * 
+	 * @param integer $id Кой е пораждащия комит
+	 * 
+	 * @return stdObject за support_Issues
+	 * 
+	 * @see support_IssueCreateIntf
+	 */
+    function getDefaultIssueRec($id)
+    {
+        if (!$id) return ;
+        
+        $rec = $this->fetch($id);
+        
+        if (!$rec) return ;
+        
+        $iRec = new stdClass();
+        
+        $phoneInfo = $rec->externalNum;
+        
+        if ($rec->externalData) {
+            $phoneInfo = callcenter_Numbers::getCallerName($rec->externalData);
+        }
+        
+        $iRec->title = tr('Разговор с') . ' "' . $phoneInfo . '"';
+        $iRec->description = tr('Във връзка с') . ' ' . toUrl(array($this, 'Single', $id), TRUE);
+        
+        return $iRec;
+    }
+    
+    
+    /**
+	 * След създаване на сигнал от документа
+	 * 
+	 * @param integer $originId
+	 * 
+	 * @see support_IssueCreateIntf
+	 */
+    function afterCreateIssue($id, $iRec)
+    {
+        
+        return ;
+    }
+    
+	
+    /**
+     * След подготовка на тулбара на единичен изглед.
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param object $data
+	 */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        if ($data->rec->id && support_Issues::haveRightFor('add')) {
+            Request::setProtected('srcId, srcClass');
+            $data->toolbar->addBtn('Сигнал', array(
+                    'support_Issues',
+                    'add',
+                    'srcId' => $data->rec->id,
+                    'srcClass' => $mvc->className,
+                    'ret_url'=> TRUE
+                ),'ef_icon = img/16/support.png,title=Създаване на сигнал');
+        }
+    }
+    
+    
+    /**
+     * Преобразува линка към single' на файла richtext линк
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @return string $res - Линка в richText формат
+     */
+    function getVerbalLinkFromClass($id)
+    {
+        
+        return self::getLinkToSingle($id);
     }
 }
