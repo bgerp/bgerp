@@ -262,10 +262,10 @@ class unit_MinkPPurchases extends core_Manager {
             return unit_MinkPbgERP::reportErr('Не дава грешка при отрицателна отстъпка', 'warning');
         }
          
-        if(strpos($browser->gettext(), 'Не е над - \'0,00 %\'')) {//не го разпознава
-        } else {
-            return unit_MinkPbgERP::reportErr('Не дава грешка "Не е над - \'0,0000\'"', 'warning');
-        }
+        //if(strpos($browser->gettext(), 'Не е над - \'0,00 %\'')) {//не го разпознава
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Не дава грешка "Не е над - \'0,0000\'"', 'warning');
+        //}
         //return $browser->getHtml();
     }
     
@@ -310,10 +310,10 @@ class unit_MinkPPurchases extends core_Manager {
             return unit_MinkPbgERP::reportErr('Не дава грешка при отстъпка над 100%', 'warning'); 
         }
         
-        if(strpos($browser->gettext(), 'Над допустимото - \'100,00 %\'')) {//не го разпознава
-        } else {
-            return unit_MinkPbgERP::reportErr('Не дава грешка при отстъпка над 100%', 'warning');
-        }
+        //if(strpos($browser->gettext(), 'Над допустимото - \'100,00 %\'')) {//не го разпознава
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Не дава грешка при отстъпка над 100%', 'warning');
+        //}
         //return $browser->getHtml();
     
     } 
@@ -1126,7 +1126,7 @@ class unit_MinkPPurchases extends core_Manager {
         //if(strpos($browser->gettext(), 'Контиране')) {
         //}
         if(strpos($browser->gettext(), 'Три хиляди петстотин деветдесет и три BGN и 0,86')) {
-            // връща грешка, ако не е избрано с цени
+        // връща грешка, ако не е избрано с цени
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в складова разписка', 'warning');
         }
@@ -1139,6 +1139,7 @@ class unit_MinkPPurchases extends core_Manager {
         if(strpos($browser->gettext(), 'Четиристотин седемдесет и четири BGN и 0,02')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в протокол за услуги', 'warning');
+        }
         
         // Фактура
         $browser->press('Вх. фактура');
