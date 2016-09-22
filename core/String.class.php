@@ -560,7 +560,8 @@ class core_String
     /**
      *  Инкрементиране с единица на стринг, чиято последна част е число
      *  Ако стринга не завършва на числова част връща се FALSE
-     *  @param str $string - стринга който се подава
+     *  @param string $string - стринга който се подава
+     *
      *  @return mixed string/FALSE - инкрементирания стринг или FALSE
      */
     public static function increment($str)
@@ -602,6 +603,65 @@ class core_String
         $pointer += strlen($c);
 
         return $c;
+    }
+
+
+    /**
+     * Парсиране на текст
+     * Извлича думите и за всяка дума изпълнява $callback
+     * Колбек функцията може да е array(class, mothod)
+     * Тя може да има действие от вида:  $out = substr($out, 0, $len) . '<wrong>' . substr($out, $len) . '</wrong>';
+     * 
+     * @param string $string    Входящ стринг
+     * @param string $out       Изходящ стринг
+     * @param mixed  $callback  Колбек функция
+     * @param array  $deviders  Символи, които разделят думите
+     * @param boolean $html     Дали да се игнорират html таговете
+     * 
+     * @return array             Връща извлечените думи
+     */
+    static function parseWords($string, &$out, $callback = NULL, $deviders = NULL,  $html = TRUE)
+    {
+        $flagWord = TRUE;
+        $flagHtml = FALSE;
+        $pointer  = 0;
+        setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':'));
+ 
+        while('' != ($c = self::nextChar($string, $pointer))) {
+       
+            if(in_array($c, $deviders)) {  
+                if(!$flagHtml) {
+                    if($lastLen !== FALSE && $lastLen < strlen($out)) {
+                        // Записваме думата между $lastLen до края на аутпут буфера
+                        $res[] = substr($out, $lastLen);
+
+                        // Ако е зададен колбек - викаме го
+                        if($callback) {
+                            $callback($out, $lastLen);
+                        }
+                    }
+                }
+                $lastLen = FALSE;;
+            } else {
+                if($lastLen === FALSE) {
+                    $lastLen = strlen($out);
+                }
+            }
+            
+            if($html) {
+                if($c == '<') {
+                    $flagHtml = TRUE;
+                }
+
+                if($c == '>') {
+                    $flagHtml = FALSE;
+                }
+            }
+
+            $out .= $c;
+        }
+
+        return $res;
     }
 
 
