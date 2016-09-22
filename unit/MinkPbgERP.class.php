@@ -15,7 +15,6 @@
 
 class unit_MinkPbgERP extends core_Manager {
    
-    
    
    public static function reportErr($text, $type = 'warning')
    {
@@ -34,8 +33,32 @@ class unit_MinkPbgERP extends core_Manager {
        return $text;
    }
    
-    /** Номерацията показва препоръчвания ред на изпълнение. Еднаквите номера могат да се разместват.
-    */
+    /**
+     * Стартира последователно всички тестове от Unit 
+     */
+    //http://localhost/unit_MinkPbgERP/All/
+    
+    public function act_All()
+    {
+        set_time_limit(600);
+        $res = '';
+        $res .= $this->act_Run();
+        $inst = cls::get('unit_MinkPSales');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPPurchases');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPPayment');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkBom');
+        $res .= $inst->act_Run();
+        //$inst = cls::get('unit_MinkInv');
+        //$res .= $inst->act_Run();
+        return $res;
+    }
+    
+    /**
+     * Стартира последователно тестовете от MinkPbgERP 
+     */
     //http://localhost/unit_MinkPbgERP/Run/
     public function act_Run()
     {
@@ -49,8 +72,9 @@ class unit_MinkPbgERP extends core_Manager {
         }
         
         $res = '';
-        $res .= "0.".$this->act_DeinstallSelect2();
-        $res .= "1.".$this->act_CreateUser1();
+        $res .= 'MinkPbgERP ';
+        $res .= " 0.".$this->act_DeinstallSelect2();
+        $res .= " 1.".$this->act_CreateUser1();
         $res .= "  2.".$this->act_CreateUser2();
         $res .= "  3.".$this->act_CreateStore();
         $res .= "  4.".$this->act_CreateBankAcc1();

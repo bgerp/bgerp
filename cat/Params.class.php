@@ -67,9 +67,9 @@ class cat_Params extends bgerp_ProtoParam
     
     
     /**
-     * Кой има право да променя системните данни?
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $canEditsysdata = 'cat,ceo';
+    public $searchFields = 'group, name, suffix,  sysId';
     
     
     /**
@@ -79,9 +79,8 @@ class cat_Params extends bgerp_ProtoParam
     {
     	parent::setFields($this);
     	$this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
-    
-    	$this->setDbUnique('name, suffix');
     }
+    
     
     
     /**
@@ -186,5 +185,36 @@ class cat_Params extends bgerp_ProtoParam
     	}
     	
     	return $arr;
+    }
+    
+    
+    /**
+     * Рендира блок с параметри за артикули
+     * 
+     * @param array $paramArr
+     * @return core_ET $tpl
+     */
+    public static function renderParamBlock($paramArr)
+    {
+    	$tpl = getTplFromFile('cat/tpl/products/Params.shtml');
+    	$lastGroupId = NULL;
+    	
+    	if(is_array($paramArr)){
+    		foreach($paramArr as &$row2) {
+    			 
+    			$block = clone $tpl->getBlock('PARAM_GROUP_ROW');
+    			if($row2->group != $lastGroupId){
+    				$block->replace($row2->group, 'group');
+    			}
+    			$lastGroupId = $row2->group;
+    			unset($row2->group);
+    			$block->placeObject($row2);
+    			$block->removeBlocks();
+    			$block->removePlaces();
+    			$tpl->append($block, 'ROWS');
+    		}
+    	}
+    	
+    	return $tpl;
     }
 }

@@ -101,7 +101,8 @@ class cond_Countries extends core_Manager
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$paramRec = cond_Parameters::fetch($rec->conditionId);
-		 
+		$row->conditionId = cond_Parameters::getVerbal($paramRec, 'typeExt');
+		
 		if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
 			$row->value = $ParamType->toVerbal(trim($rec->value));
 		}

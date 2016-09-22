@@ -62,8 +62,28 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		$mvc->FLD('default', 'varchar(64)', 'caption=Конкретизиране->Дефолт');
 		$mvc->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
 		$mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+		$mvc->FLD('group', 'varchar(64,ci)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
 		
+		$mvc->setDbUnique('name, suffix, group');
 		$mvc->setDbUnique("sysId");
+	}
+	
+	
+	/**
+	 * Изчисляване на typeExt
+	 */
+	protected static function on_CalcTypeExt($mvc, $rec)
+	{
+		$rec->typeExt = tr($rec->name);
+		 
+		if (!empty($rec->group)) {
+			$group .= tr($rec->group);
+			$rec->typeExt = "{$group} » {$rec->typeExt}";
+		}
+		 
+		if (!empty($rec->suffix)) {
+			$rec->typeExt .= ' (' . tr($rec->suffix) . ')';
+		}
 	}
 	
 	
@@ -81,18 +101,32 @@ abstract class bgerp_ProtoParam extends embed_Manager
 			$data->form->setReadOnly('name');
 			$data->form->setReadOnly('suffix');
 		}
+		
+		$query = $mvc->getQuery();
+		$query->where("#group != '' AND #group IS NOT NULL");
+		$params = array_map(create_function('$o', 'return $o->group;'), $query->fetchAll());
+		if(count($params)){
+			$params = arr::make($params, TRUE);
+		}
+		
+		$data->form->setSuggestions('group', array('' => '') + $params);
 	}
 	
 	
 	/**
-	 * Изчисляване на typeExt
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Form $form
 	 */
-	protected static function on_CalcTypeExt($mvc, $rec)
+	public static function on_AfterInputEditForm($mvc, &$form)
 	{
-		$rec->typeExt = tr($rec->name);
-	
-		if (!empty($rec->suffix)) {
-			$rec->typeExt .= ' (' . tr($rec->suffix) . ')';
+		$rec = &$form->rec;
+		 
+		if($form->isSubmitted()){
+			if(!empty($rec->group)){
+				$rec->group = str::mbUcfirst(mb_strtolower($rec->group));
+			}
 		}
 	}
 	
@@ -110,21 +144,54 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	
 	
 	/**
-	 * Подготвя опциите за селектиране на параметър като към името се
-	 * добавя неговия suffix
+	 * След подготовка на масива за избор на опции
 	 */
-	public static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
+	public static function on_AfterMakeArray4Select($mvc, &$options, $fields = NULL, &$where = "", $index = 'id'  )
+	{
+		$newOptions = $options;
+		
+		// Ако има опции
+		if(is_array($options)){
+			$newOptions = array();
+			foreach ($options as $id => $value){
+				$group = $mvc->fetchField($id, 'group');
+				
+				// Ако имат група, и няма такава група в масива, те се групират
+				if(!empty($group)){
+					if(!array_key_exists($group, $newOptions)){
+						$group = $mvc->getFieldType('group')->toVerbal(tr($group));
+						$newOptions[$group] = (object)array('title' => $group, 'group' => TRUE);
+					}
+				}
+				
+				// Махане на гръпата от името
+				$exploded = explode(" » ", $value);
+				$value = (count($exploded) == 2) ? $exploded[1] : $value;
+					
+				$newOptions[$id] = $value;
+			}
+		}
+		
+		$options = $newOptions;
+	}
+	
+	
+	/**
+	 * Подготвя опциите за селектиране на параметър като към името се добавя неговия suffix
+	 */
+	public function makeArray4Select_($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
 	{
 		$query = static::getQuery();
 		if(strlen($where)){
-			$query->where = $where;
+			$query->where($where);
 		}
-		 
+		$query->orderBy('group', 'ASC');
+		
 		$options = array();
 		while($rec = $query->fetch()){
 			$options[$rec->{$index}] = $rec->typeExt;
 		}
-		 
+		
 		return $options;
 	}
 	
@@ -242,7 +309,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 			}
 		}
 		
-		if($action == 'changestate' && isset($rec->id)) {
+		if(($action == 'changestate') && isset($rec->id)) {
 			if(isset($rec->sysId)){
 				$requiredRoles = 'no_one';
 			}

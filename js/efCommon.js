@@ -4546,7 +4546,7 @@ function mailServerSettings() {
 		    case "mail.bg":
 		    	server.value = " imap.mail.bg:143";
 		    	protocol.value = "imap";
-		    	security.value = "ssl";
+		    	security.value = "tls";
 		    	cert.value = "validate";
 		    	smtpServer.value = "smtp.mail.bg:25";
 		    	smtpSecure.value = "tls";
