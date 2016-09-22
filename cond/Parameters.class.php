@@ -36,12 +36,6 @@ class cond_Parameters extends bgerp_ProtoParam
     
     
     /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'ceo,cond';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,cond';
@@ -71,8 +65,6 @@ class cond_Parameters extends bgerp_ProtoParam
     function description()
     {
     	parent::setFields($this);
-    	
-    	$this->setDbUnique('name, suffix');
     }
     
     

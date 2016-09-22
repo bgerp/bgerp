@@ -108,8 +108,7 @@ class cat_products_Params extends doc_Detail
         $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
-        $this->setDbIndex('classId');
-        $this->setDbIndex('productId');
+        $this->setDbIndex('classId,productId');
     }
     
     
@@ -136,6 +135,10 @@ class cat_products_Params extends doc_Detail
     	$paramRec = cat_Params::fetch($rec->paramId);
     	$paramRec->name = tr($paramRec->name);
     	$row->paramId = cat_Params::getVerbal($paramRec, 'name');
+    	if(!empty($paramRec->group)){
+    		$paramRec->group = tr($paramRec->group);
+    		$row->group = cat_Params::getVerbal($paramRec, 'group');
+    	}
     	
     	if($ParamType = cat_Params::getTypeInstance($paramRec)){
     		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
@@ -159,6 +162,12 @@ class cat_products_Params extends doc_Detail
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	$options = self::getRemainingOptions($form->rec->classId, $form->rec->productId, $form->rec->id);
 			$form->setOptions('paramId', array('' => '') + $options);
+			$form->paramOptions = $options;
+			
+			if(count($options) == 1){
+				$form->setDefault('paramId', key($options));
+				$form->setReadOnly('paramId');
+			}
     	} else {
     		$form->setReadOnly('paramId');
     	}
@@ -191,6 +200,10 @@ class cat_products_Params extends doc_Detail
     	if(isset($rec->classId) && isset($rec->productId)){
     		$data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
+    
+    	if(isset($data->form->paramOptions) && count($data->form->paramOptions) <= 1){
+    		$data->form->toolbar->removeBtn('saveAndNew');
+    	}
     }
     
     
@@ -202,21 +215,18 @@ class cat_products_Params extends doc_Detail
      */
     public static function getRemainingOptions($classId, $productId, $id = NULL)
     {
-        $options = cat_Params::makeArray4Select();
-        
-        if(count($options)) {
-            $query = self::getQuery();
-            $query->show('paramId');
-            if($id) {
-                $query->where("#id != {$id}");
-            }
-			
-            while($rec = $query->fetch("#productId = {$productId} AND #classId = '{$classId}'")) {
-               unset($options[$rec->paramId]);
-            }
-        } else {
-            $options = array();
-        }
+    	$query = self::getQuery();
+    	$query->where("#classId = {$classId} AND #productId = {$productId}");
+    	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
+    	$ids = array_combine($ids, $ids);
+    	
+    	$where = '';
+    	if(count($ids)){
+    		$ids = implode(',', $ids);
+    		$where = "#id NOT IN ({$ids})";
+    	}
+    	
+    	$options = cat_Params::makeArray4Select(NULL, $where);
 		
         return $options;
     }
@@ -255,31 +265,28 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderDetail($data)
     {
-        $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
+        if(is_array($data->params)){
+        	foreach($data->params as &$row) {
+        		core_RowToolbar::createIfNotExists($row->_rowTools);
+        		if($data->noChange !== TRUE && !Mode::isReadOnly()){
+        			$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
+        		} else {
+        			unset($row->tools);
+        		}
+        	}
+        }
+        
+        $tpl = cat_Params::renderParamBlock($data->params);
         $tpl->replace(get_called_class(), 'DetailName');
         
         if($data->noChange !== TRUE){
         	$tpl->append($data->changeBtn, 'addParamBtn');
         }
         
-        $mvc = cls::get(get_called_class());
-        foreach((array)$data->params as $row) {
-        	core_RowToolbar::createIfNotExists($row->_rowTools);
-        	if($data->noChange !== TRUE && !Mode::isReadOnly()){
-        		$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
-        	} else {
-        		unset($row->tools);
-        	}
-        	
-            $block = clone $tpl->getBlock('param');
-            $block->placeObject($row);
-            $block->removeBlocks();
-            $block->append2Master();
-        }
-        
         if(!$data->params){
         	$tpl->append("<i>" . tr('Няма') . "</i>", 'NO_ROWS');
         }
+        $tpl->removeBlocks();
         
         return $tpl;
     }
@@ -291,8 +298,10 @@ class cat_products_Params extends doc_Detail
     public static function prepareParams(&$data)
     {
         $query = self::getQuery();
+        $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
         $query->where("#productId = {$data->masterId}");
         $query->where("#classId = {$data->masterClassId}");
+        $query->orderBy('group', 'ASC');
         
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
     	if($data->documentType === 'public'){

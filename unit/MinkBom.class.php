@@ -20,8 +20,12 @@ class unit_MinkBom extends core_Manager
     //http://localhost/unit_MinkBom/Run/
     public function act_Run()
     {
-        
+        if (!TEST_MODE) {
+            return;
+        }
         $res = '';
+        echo '\r\n';
+        $res .= 'MinkBom ';
         $res .= $this->act_CreateProductWork();
         $res .= $this->act_CreateElectricity();
         $res .= $this->act_CreatePackage();
@@ -752,6 +756,6 @@ class unit_MinkBom extends core_Manager
         } else {
             return "Грешна себестойност";
         }
-        return $browser->gethtml(); 
+        //return $browser->gethtml(); 
     }
 }

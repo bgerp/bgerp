@@ -92,13 +92,6 @@ class bgerp_Setup extends core_ProtoSetup {
     
     
     /**
-     * Описание на системните действия
-     */
-    var $systemActions = array(
-        array('title' => 'Поправка', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на системата'))
-    );
-    
-    /**
      * Път до js файла
      */
     //    var $commonJS = 'js/PortalSearch.js';

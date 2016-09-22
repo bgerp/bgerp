@@ -3,7 +3,7 @@
         <div class='display-table'>
             <table class='innerTable border-table paddingCells'>
                 <tr>
-                    <td class='custom-header-bg'>
+                    <td class='custom-header-bg' style = 'width: 33%'>
                         <b>|Платец|*</b>
                     </td>
                     <td  rowspan='2' class='cell centered'>
@@ -14,7 +14,9 @@
                         <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
-                    <td class='custom-header-bg'><b>|Получател|*</b></td>
+                    <td class='custom-header-bg'  style = 'width: 33%'>
+                        <b>|Получател|*</b>
+                    </td>
                 </tr>
                 <tr>
                     <td>

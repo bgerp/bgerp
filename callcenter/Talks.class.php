@@ -16,6 +16,12 @@ class callcenter_Talks extends core_Master
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'support_IssueCreateIntf';
+    
+    
+    /**
      * Разделител за края на uniqId, ако разговора е пренасочен
      */
     protected static $callUniqIdDelimiter = '|';
@@ -61,6 +67,12 @@ class callcenter_Talks extends core_Master
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
+    
+    
+    /**
+     * 
+     */
+    var $canAddto = 'powerUser';
     
     
     /**
@@ -323,6 +335,12 @@ class callcenter_Talks extends core_Master
         // Номера, към който е редиректнат
         if ($rec->RedirectTo = self::getRedirectedToNum($rec)) {
             $row->RedirectTo = type_Varchar::escape($rec->RedirectTo);
+        }
+        
+        // Добавяме бутон за създаване на сигнал
+        if (support_Issues::haveRightFor('add')) {
+            Request::setProtected('srcId, srcClass');
+            $row->_rowTools->addLink('Сигнал', array('support_Issues', 'add', 'srcId' => $rec->id, 'srcClass' => $mvc->className, 'ret_url' => TRUE), 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
         }
     }
     
@@ -1778,7 +1796,93 @@ class callcenter_Talks extends core_Master
                 $personNumField = ($numArr[0]->mobile) ? 'mobile' : 'tel';
             }
             $rowTools->addLink('Ново лице', array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png, title=Създай нова фирма от номера');
+            
+            if (self::haveRightFor('addto')) {
+                
+                Request::setProtected(array('num'));
+                
+                // Бутон за добавяне на номера към
+                $rowTools->addLink('Добави към...', array(get_called_class(), 'addTo', 'num' => $num, 'ret_url' => TRUE), 'ef_icon=img/16/add.png, title=Добавяне на номера към съществуващ контрагент');
+            }
         }
+    }
+    
+    
+    /**
+     * Екшън за прикачане на номер към контрагент
+     */
+    function act_AddTo()
+    {
+        Request::setProtected(array('num'));
+        
+        $this->requireRightFor('addto');
+        $form = cls::get('core_Form');
+        $form->title = "Добавяне на номера към фирма или лице";
+        
+        $form->FNC('sel', 'enum(, company_tel=Телефон на фирма, company_fax=Факс на фирма,
+                                  person_buzTel=Служебен номер на лице, person_buzFax=Служебен факс на лице,
+                                  person_tel=Номер на лице, person_fax=Факс на лице, person_mobile=Мобилен на лице)', 'caption=Добавяне към, mandatory, input=input,refreshForm');
+        
+        $form->FNC('num', 'drdata_PhoneType');
+        
+        $form->input();
+        
+        $class = $field = $className = NULL;
+        
+        if ($form->rec->sel) {
+            list($class, $field) = explode('_', $form->rec->sel);
+        }
+        
+        // Ако е избран клас, показваме избор на контрагент
+        if (isset($class)) {
+            
+            $className = 'crm_Persons';
+            $caption = 'Лице';
+            
+            if ($class == 'company') {
+                $className = 'crm_Companies';
+                $caption = 'Фирма';
+            }
+            
+            $form->FNC('contragentId', "key(mvc={$className}, select=name)", "caption={$caption}, input=input, mandatory");
+            $form->input('contragentId');
+        }
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array(get_called_class(), 'list');
+        }
+        
+        // Добавяме номера към съответния контрагент
+        if($form->isSubmitted()){
+            
+            expect($className && $form->rec->num);
+            
+            $inst = cls::get($className);
+            
+            $iRec = $inst->fetch($form->rec->contragentId);
+            
+            expect($iRec);
+            
+            $iRec->{$field} .= trim($iRec->{$field}) ? ', ' : '';
+            $iRec->{$field} .= $form->rec->num;
+            
+            if ($inst->save($iRec, $field)) {
+                $inst->logWrite('Добавен номер', $iRec->id);
+                $this->logWrite("Добавяне на телефонен номер към контрагент");
+                
+                return new Redirect($retUrl, 'Успешно добавихте номера');
+            } else {
+                $form->setError('sel', 'Възникна грешка при добавяне');
+            }
+        }
+        
+        // Добавяне на бутони
+        $form->toolbar->addSbBtn('Добави', 'save', 'ef_icon = img/16/add.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -2077,5 +2181,86 @@ class callcenter_Talks extends core_Master
         $hash = md5(trim(strip_tags($status)));
         
         return $hash;
+    }
+    
+    
+	/**
+     * Връща запис с подразбиращи се данни за сигнала
+	 * 
+	 * @param integer $id Кой е пораждащия комит
+	 * 
+	 * @return stdObject за support_Issues
+	 * 
+	 * @see support_IssueCreateIntf
+	 */
+    function getDefaultIssueRec($id)
+    {
+        if (!$id) return ;
+        
+        $rec = $this->fetch($id);
+        
+        if (!$rec) return ;
+        
+        $iRec = new stdClass();
+        
+        $phoneInfo = $rec->externalNum;
+        
+        if ($rec->externalData) {
+            $phoneInfo = callcenter_Numbers::getCallerName($rec->externalData);
+        }
+        
+        $iRec->title = tr('Разговор с') . ' "' . $phoneInfo . '"';
+        $iRec->description = tr('Във връзка с') . ' ' . toUrl(array($this, 'Single', $id), TRUE);
+        
+        return $iRec;
+    }
+    
+    
+    /**
+	 * След създаване на сигнал от документа
+	 * 
+	 * @param integer $originId
+	 * 
+	 * @see support_IssueCreateIntf
+	 */
+    function afterCreateIssue($id, $iRec)
+    {
+        
+        return ;
+    }
+    
+	
+    /**
+     * След подготовка на тулбара на единичен изглед.
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param object $data
+	 */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        if ($data->rec->id && support_Issues::haveRightFor('add')) {
+            Request::setProtected('srcId, srcClass');
+            $data->toolbar->addBtn('Сигнал', array(
+                    'support_Issues',
+                    'add',
+                    'srcId' => $data->rec->id,
+                    'srcClass' => $mvc->className,
+                    'ret_url'=> TRUE
+                ),'ef_icon = img/16/support.png,title=Създаване на сигнал');
+        }
+    }
+    
+    
+    /**
+     * Преобразува линка към single' на файла richtext линк
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @return string $res - Линка в richText формат
+     */
+    function getVerbalLinkFromClass($id)
+    {
+        
+        return self::getLinkToSingle($id);
     }
 }

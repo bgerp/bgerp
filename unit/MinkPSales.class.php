@@ -22,6 +22,9 @@ class unit_MinkPSales extends core_Manager {
         }
         
         $res = '';
+        //echo nl2br;
+        echo '\r\n';
+        $res .= 'MinkPSales';
         $res .=  " 1.".$this->act_SaleQuantityMinus();
         $res .=  " 2.".$this->act_SaleQuantityZero();
         //$res .= "  3.".$this->act_SalePriceMinus();
@@ -319,10 +322,10 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Не дава грешка при отстъпка над 100%', 'warning');
         }
         
-        if(strpos($browser->gettext(), 'Над допустимото - \'100,00 %\'')) {//не го разпознава
-        } else {
-            return unit_MinkPbgERP::reportErr('Не дава грешка при отстъпка над 100%', 'warning');
-        }
+        //if(strpos($browser->gettext(), 'Над допустимото - \'100,00 %\'')) {//не го разпознава
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Не дава грешка 1 при отстъпка над 100%', 'warning');
+        //}
         //return $browser->getHtml();
     } 
     
@@ -1728,6 +1731,7 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if(strpos($browser->gettext(), 'Седемстотин и девет BGN и 0,70')) {
+            
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
