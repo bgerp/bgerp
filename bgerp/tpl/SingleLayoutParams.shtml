@@ -106,6 +106,7 @@
                 <td>[#isFeature#]</td>
             </tr>
             
+            <!--ET_BEGIN showInPublicDocuments-->
             <tr>
                 <th colspan="2" style='padding-top: 20px;'>|Показване във външни документи|*</th>
             </tr>
@@ -113,6 +114,7 @@
                 <td class="title-style">|Показване|*</td>
                 <td>[#showInPublicDocuments#]</td>
             </tr>
+            <!--ET_END showInPublicDocuments-->
         </table>
         
     	<div style='margin-top: 20px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>

@@ -1,6 +1,4 @@
-<div class='groupTitle'><span class='quiet'>|Параметри|*</span> [#addParamBtn#]</div>
-  <div class='groupList'>
-    [#NO_ROWS#]
+<div class='groupList'>
     <!--ET_BEGIN PARAM_BLOCK-->
     [#PARAM_BLOCK#]
     <table class = 'no-border small-padding' style='margin-bottom: 5px;'>
@@ -10,13 +8,13 @@
 
     	<!--ET_BEGIN group-->
     	<tr>
-    		<td colspan='4' class='productGroupInfo'>[#group#]</td>
+    		<td colspan='4' class='quiet' style=''><b>[#group#]</b></td>
     	</tr>
     	<!--ET_END group-->
     	<tr>
     		<td>&nbsp;-&nbsp;</td>
-    		<td>[#paramId#]:</td>
-    		<td style='padding-left:5px;'><span style='font-weight:bold;'>[#paramValue#]</span></td>
+    		<td>[#conditionId#]:</td>
+    		<td style='padding-left:5px;'><span style='font-weight:bold;'>[#value#]</span></td>
     		<td>[#tools#]</td>
     	</tr>
     	<!--ET_END PARAM_GROUP_ROW-->

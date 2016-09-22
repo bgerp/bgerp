@@ -1135,8 +1135,7 @@ td.portal-date {
  * тредове
  */
 .single-thread > .listRows > .listTable > tbody > tr > td {
-  padding: 9px;
-  max-width: 56em; }
+  padding: 9px; }
 
 .doc_Containers table.listTable td {
   vertical-align: top; }
@@ -4409,7 +4408,10 @@ only screen and (max-width: 320px) {
     padding: 0; }
 
   .printVisible {
-    display: block; } }
+    display: block; }
+
+  thead {
+    display: table-row-group; } }
 
   .printing .specialLink {
     font-weight: bold; }

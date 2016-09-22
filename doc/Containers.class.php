@@ -418,11 +418,9 @@ class doc_Containers extends core_Manager
         bgerp_Notifications::clear($url);
         
         jquery_Jquery::run($tpl, "flashHashDoc(flashDocInterpolation);", TRUE);
-        
-        if(Mode::is('screenMode', 'narrow')) {
-        	jquery_Jquery::run($tpl, "setThreadElemWidth();");
-        	jquery_Jquery::runAfterAjax($tpl, "setThreadElemWidth");
-        }
+
+        jquery_Jquery::run($tpl, "setThreadElemWidth();");
+        jquery_Jquery::runAfterAjax($tpl, "setThreadElemWidth");
     }
     
     
@@ -1765,7 +1763,7 @@ class doc_Containers extends core_Manager
         }
         
         // Ако е зададено да се поправят всички стойности
-        if (doc_Setup::get('REPAIR_STATE') == 'yes') {
+        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
             $resArr += self::repairAll($from, $to, $delay);
         }
 
@@ -1972,9 +1970,7 @@ class doc_Containers extends core_Manager
             // Ако класа може да се използва за документ
             if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
                 
-                if (!$docId) {
-                    $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
-                }
+                $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
                 
                 if ($docId) {
                     self::logNotice("Променено docId от {$rec->docId} на {$docId}", $rec->id);
@@ -2498,10 +2494,6 @@ class doc_Containers extends core_Manager
         
         $retUrl = getRetUrl();
         
-        if (!isset($retUrl)) {
-            $retUrl = array();
-        }
-        
         // Вземаме празна форма
         $form = cls::get('core_Form');
         
@@ -2581,7 +2573,7 @@ class doc_Containers extends core_Manager
             return new Redirect($retUrl, $res);
         }
         
-        $form->title = 'Поправка';
+        $form->title = 'Поправка в документите';
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Поправи', 'repair', 'ef_icon = img/16/hammer_screwdriver.png');

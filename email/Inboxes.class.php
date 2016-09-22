@@ -88,7 +88,13 @@ class email_Inboxes extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, email';
+    var $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canReject = 'admin, email';
     
     
     /**
