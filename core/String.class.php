@@ -620,12 +620,12 @@ class core_String
      * 
      * @return array             Връща извлечените думи
      */
-    static function parseWords($string, &$out, $callback = NULL, $deviders = NULL,  $html = TRUE)
+    static function parseWords($string, &$out = NULL, $callback = NULL, $deviders = NULL,  $html = TRUE)
     {
         $flagWord = TRUE;
         $flagHtml = FALSE;
         $pointer  = 0;
-        setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':'));
+        setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“'));
  
         while('' != ($c = self::nextChar($string, $pointer))) {
        
