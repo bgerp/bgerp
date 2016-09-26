@@ -153,7 +153,7 @@ class cond_ConditionsToCustomers extends core_Manager
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    private static function getRemainingOptions($cClass, $cId)
+    protected static function getRemainingOptions($cClass, $cId)
     {
         $query = self::getQuery();
         $query->where("#cClass = {$cClass} AND #cId = {$cId}");
@@ -330,7 +330,7 @@ class cond_ConditionsToCustomers extends core_Manager
        }
        
        if($action == 'add' && isset($rec->cClass) && isset($rec->cId)){
-       		if($requiredRoles != 'no_one'){
+       		if($res != 'no_one'){
        			if (!count($mvc::getRemainingOptions($rec->cClass, $rec->cId))) {
        				$res = 'no_one';
        			}

@@ -269,7 +269,7 @@ class cat_products_Params extends doc_Detail
         	foreach($data->params as &$row) {
         		core_RowToolbar::createIfNotExists($row->_rowTools);
         		if($data->noChange !== TRUE && !Mode::isReadOnly()){
-        			$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
+        			$row->tools = $row->_rowTools->renderHtml();
         		} else {
         			unset($row->tools);
         		}

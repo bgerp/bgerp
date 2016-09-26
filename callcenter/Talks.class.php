@@ -2219,7 +2219,8 @@ class callcenter_Talks extends core_Master
     /**
 	 * След създаване на сигнал от документа
 	 * 
-	 * @param integer $originId
+	 * @param integer $id
+	 * @param stdClass $iRec
 	 * 
 	 * @see support_IssueCreateIntf
 	 */
