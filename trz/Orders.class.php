@@ -279,6 +279,35 @@ class trz_Orders extends core_Master
     }
     
     
+    public static function act_Print()
+    {
+        $originId = Request::get('originId');
+        
+        // и е по  документ фактура намираме кой е той
+        $doc = doc_Containers::getDocument($originId);
+        
+        $class = $doc->className;
+        $dId = $doc->that;
+        $recOrigin = $class::fetch($dId);
+        
+        $rec = new stdClass();
+        $rec->personId = $recOrigin->personId;
+        $rec->leaveFrom = $recOrigin->leaveFrom;
+        $rec->leaveTo = $recOrigin->leaveTo;
+        $rec->leaveDays = $recOrigin->leaveDays;
+        $rec->note = $recOrigin->note;
+        $rec->useDaysFromYear = $recOrigin->useDaysFromYear;
+        $rec->isPaid = $recOrigin->paid;
+        $rec->state = 'active';
+        
+        self::save($rec);
+
+        $printUrl = array('trz_Orders', 'single', 'id' => $rec->id, 'Printing' => 'yes');
+
+        return new Redirect($printUrl);
+    }
+    
+    
     /**
      * Обновява информацията за командировките в Персонални работни графици
      */
