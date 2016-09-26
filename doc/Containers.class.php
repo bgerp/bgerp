@@ -2774,6 +2774,8 @@ class doc_Containers extends core_Manager
             foreach ($cssArr as $css) {
                 if(!preg_match($pattern, $css)) {
                     $htmlArg['css'][] = sbf($css, '');
+                } else {
+                    $htmlArg['css'][] = $css;
                 }
             }
             
@@ -2781,6 +2783,8 @@ class doc_Containers extends core_Manager
             foreach ($jsArr as $js) {
                 if(!preg_match($pattern, $js)) {
                     $htmlArg['js'][] = sbf($js, '');
+                } else {
+                    $htmlArg['js'][] = $js;
                 }
             }
         }
