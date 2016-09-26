@@ -300,7 +300,7 @@ class trz_Requests extends core_Master
         if(haveRole('trz, ceo') && $data->rec->state == 'active') {
             
         	// Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            $data->toolbar->addBtn('Заповед', array('trz_Orders', 'print', 'originId' => $data->rec->containerId), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
         }
         
         // Ако нямаме права за писане в треда
