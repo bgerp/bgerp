@@ -896,11 +896,13 @@ class unit_MinkPbgERP extends core_Manager {
         // нова оферта
         $browser->press('Нов...');
         $browser->press('Оферта');
-        $browser->setValue('others', 'MinkPTestCreateQuotation');
+        //$browser->setValue('others', 'MinkPTestCreateQuotation');
         //$browser->hasText('Създаване на оферта в');
         $browser->press('Чернова');
+        //return $browser->getHtml();
         // Добавяне на артикул - нестандартен
         $browser->press('Добавяне');
+        //Несъответствие на линия 120 в /home/pavlina/workspace/bgerp/unit/Browser.class.php
         $browser->setValue('productId', 'Артикул по запитване');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
