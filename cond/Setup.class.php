@@ -65,7 +65,7 @@ class cond_Setup  extends core_ProtoSetup
     		'migrate::removePayment',
     		'migrate::deleteOldPaymentTime1',
     		'migrate::deleteParams2',
-
+            'migrate::deleteOldPaymentMethods',
         );
 
         
@@ -161,7 +161,54 @@ class cond_Setup  extends core_ProtoSetup
     	}
     }
     
+
+    /**
+     * Изтрива старите начини на плащания
+     */
+    function deleteOldPaymentMethods()
+    {
+        $res = array();
+
+    	foreach(array('sales_Sales', 'sales_Quotations', 'sales_SaleRequests', 'purchase_Purchases') as $class) {
+            $query = $class::getQuery();
+            $query->show('paymentMethodId');
+            while($rec = $query->fetch()) {
+                $res[$rec->paymentMethodId] = TRUE;
+            }
+        }
+
+        $query = cond_Parameters::getQuery();
+        $class = core_Classes::getId('cond_type_PaymentMethod');
+        while($rec = $query->fetch("#driverClass = {$class}")) {
+            $pIds[] = $rec->id;
+        }
+        if(is_array($pIds)) {
+            $pIds = implode(',', $pIds);
+            $cQuery = cond_ConditionsToCustomers::getQuery();
+            while($rec = $cQuery->fetch("#conditionId IN ($pIds)")) {
+                $res[$rec->value] = TRUE;
+            }
+        }
+
+        $query = cond_PaymentMethods::getQuery();
+
+        while($rec = $query->fetch()) {
+            if($rec->state != 'active' && $rec->state != 'closed') {
+                if($res[$rec->id]) {
+                    $rec->state = 'closed';
+                    cond_PaymentMethods::save($rec);
+                    $closed++;
+                } else {
+                    cond_PaymentMethods::delete($rec->id);
+                    $deleted++;
+                }
+            }
+        }
+
+        return "Изтрити са $deleted метода на плащане и са затворени $closed";
+    }
     
+
     /**
      * Изтрива параметри
      */
