@@ -143,7 +143,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $allCssArr = (array)$tpl->getArray('CSS');
         $allCssArr = array_unique($allCssArr);
         foreach ($allCssArr as $css) {
-            $cssArr[] = sbf($css, '', TRUE);
+            $cssArr[] = page_Html::getFileForAppend($css);
         }
         
         // Масив с добавения JS
@@ -151,7 +151,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $allJsArr = (array)$tpl->getArray('JS');
         $allJsArr = array_unique($allJsArr);
         foreach ($allJsArr as $js) {
-            $jsArr[] = sbf($js, '', TRUE);
+            $jsArr[] = page_Html::getFileForAppend($js);
         }
         
         // Добавяме резултата
