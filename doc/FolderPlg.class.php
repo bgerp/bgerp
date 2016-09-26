@@ -31,6 +31,7 @@ class doc_FolderPlg extends core_Plugin
                 
                 // Поле за id на папката. Ако не е зададено - обекта няма папка
                 $mvc->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
+                $mvc->setDbIndex('folderId');
             }
             
             // Определя достъпа по подразбиране за новите папки
@@ -39,6 +40,8 @@ class doc_FolderPlg extends core_Plugin
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне,formOrder=10002');
+            
+            $mvc->setDbIndex('inCharge');
         }
         
         // Добавя интерфейс за папки
