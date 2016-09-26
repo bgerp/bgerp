@@ -78,38 +78,22 @@ class spcheck_Dictionary extends core_Manager
     
     
     /**
-     * Масив със стрингове, които няма да се проверяват
-     */
-    protected static $ignoreStrArr = array('div', 'span', 'src', 'li', 'img', 'href', 'replace_string', 'nbsp');
-    
-    
-    /**
      * Минимална дължина, под която няма да се проверяват
      */
     protected static $minLen = 1;
     
     
     /**
-     * Масив с шаблони, които ще се заместят и няма да се проверяват
-     * [0] => линкове
-     * [1] => думи само с главни букви и цифри
-     * [2] => думи, които започват с малка буква или цифра и имат главни букви
-     * [3] => думи между &...;
-     * [4] => евристика за определяне на имена
+     * Думи, които ще се игнорират и няма да се проверяват
+     * 
+     * [0] - думи с цифри
+     * [1] - думи с две или повече главни букви
+     * [2] - думи, които след малка буква имат главна
+     * [3] - думи с nbsp
+     * [4] - думи с lt
+     * [4] - думи с @
      */
-    protected static $maskPattern = array("/\<a.+?(<\/a>)/iu", "/[^\p{L}0-9][\p{Lu}0-9]{2,}([^\p{L}0-9])/u", "/(?<=[^\p{L}0-9])[\p{Ll}0-9]{1,}[\p{Lu}]+[\p{L}0-9]*/u", "/\&[\p{L}]+\;/u", "/([^\S\x0a\x0d]|\,|\:|\;|\-){1}((\p{Lu}+)|(\p{Lu}+\p{L}+))(\p{L})*/u");
-    
-    
-    /**
-     * Масив, в който ще се добавят заместените стрингове
-     */
-    protected static $replacedArr = array();
-    
-    
-    /**
-     * Шаблон, който ще се използва за заместване на стрингове
-     */
-    protected static $replaceStr = '__#1replace_string1#__';
+    protected static $ignorePatternArr = array('/[0-9]/', '/\p{Lu}{2}/u', '/\p{Ll}+\p{Lu}/u', '/nbsp/i', '/^lt$/i', '/\@/');
     
     
 	/**
@@ -183,71 +167,26 @@ class spcheck_Dictionary extends core_Manager
      */
     public static function highliteWrongWord($html, $lg = NULL)
     {
-        $strippedHtml = strip_tags($html);
+        $string = $html;
         
-        $htmlArr = preg_split("/\s/", $strippedHtml);
-        
-        $checkedArr = array();
-        
-        $errWordArr = array();
-        
-        foreach ($htmlArr as $w) {
-            $w = trim($w);
-            
-            if (!$w) continue;
-            
-            // Премахваме всички символи освен текст и числа
-            $cW = preg_replace('/[^\p{L}0-9]+/iu', ' ', $w);
-            
-            $cW = trim($cW);
-            
-            $cWArr = explode(' ', $cW);
-            foreach ($cWArr as $cWF) {
-                // Ако в тескта има числа, не се минава през проверка
-                if (preg_match('/[0-9]+/', $cWF)) continue;
-                
-                $cWF = trim($cWF);
-                
-                if (!$cWF) continue;
-                
-                if ($checkedArr[$cWF]) continue;
-                
-                if (self::$minLen && (mb_strlen($cWF) <= self::$minLen)) continue;
-                
-                if (in_array($cWF, self::$ignoreStrArr)) continue ;
-                
-                $checkedArr[$cWF] = TRUE;
-                
-                if (self::checkWord($cWF, $lg)) continue;
-                
-                $errWordArr[$cWF] = $cWF;
-            }
+        if ($html instanceof core_ET) {
+            $string = $html->getContent(NULL, 'CONTENT', FALSE, FALSE);
         }
         
-        // Ако има думи, които сме маркирали като грешни
-        if (!empty($errWordArr)) {
-            if ($html instanceof core_ET) {
-                $content = $html->getContent(NULL, 'CONTENT', FALSE, FALSE);
-            } else {
-                $content = $html;
-            }
-            
-            // Маскираме стринговете, които не трябва да се заместват
-            $content = self::maskString($content);
-            
-            // Заместваме вскички маркирани думи със специален стринг
-            foreach ($errWordArr as $errW) {
-                $content = preg_replace("/(?<=([^\p{L}0-9]))(" . preg_quote($errW, '/') . "){1}(?=([^\p{L}0-9]))/iu", "<span class='err-word'>$2</span>", $content);
-            }
-            
-            // Връщаме маскираните стрингове
-            $content = self::unmaskString($content);
-            
-            if ($html instanceof core_ET) {
-                $html->setContent($content);
-            } else {
-                $html = $content;
-            }
+        if (isset($lg)) {
+            core_Lg::push($lg);
+        }
+        
+        str::parseWords($string, $out, array(get_called_class(), 'getWord'));
+        
+        if (isset($lg)) {
+            core_Lg::pop();
+        }
+        
+        if ($html instanceof core_ET) {
+            $html->setContent($out);
+        } else {
+            $html = $out;
         }
         
         return $html;
@@ -255,60 +194,68 @@ class spcheck_Dictionary extends core_Manager
     
     
     /**
-     * Замества стринга с уникален стринг
+     * Колбек функция, която ако е необходимо проверява и маркира стринга
      * 
-     * @param string $content
-     * 
-     * @return string
+     * @param string $out
+     * @param integer $len
      */
-    protected static function maskString($content)
+    public static function getWord(&$out, $len)
     {
-        foreach (self::$maskPattern as $pattern) {
+        $w = substr($out, $len);
+        
+        $check = TRUE;
+        
+        if (mb_strlen($w) <= self::$minLen) {
+            $check = FALSE;
+        }
+        
+        // Игнорираме думи, които отговарят на шаблоните ни
+        if ($check) {
+            foreach (self::$ignorePatternArr as $pattern) {
+                if (preg_match($pattern, $w)) {
+                    $check = FALSE;
+                    break;
+                }
+            }
+        }
+        
+        if ($check) {
             
-            $content = preg_replace_callback($pattern, 'self::replacePattern', $content);
+            // Опитваме се да не проверяваме имената
+            if (preg_match('/^\p{Lu}/u', $w)) {
+                $l = $len-1;
+                while ($l) {
+                    $p = $l;
+                    $b = str::nextChar($out, $p);
+                    $l--;
+                    
+                    $ord = ord($b);
+                    if ($ord > 127) {
+                        
+                        $check = FALSE;
+                        
+                        break;
+                    }
+                    
+                    if ($b == ' ') continue;
+                    
+                    if ($b == "\n") break;
+                    
+                    if (($b != '.') && ($b != '!') && ($b != '?')) {
+                        $check = FALSE;
+                    }
+                    
+                    break;
+                }
+            }
+            
+            // Ако думата трябва да се проверява
+            if ($check && !self::checkWord($w)) {
+                $w = "<span class='err-word'>" . $w . '</span>';
+            }
         }
         
-        return $content;
-    }
-    
-    
-    /**
-     * Замества уникалния стринг със стойността в масива
-     * 
-     * @param string $content
-     * 
-     * @return string
-     */
-    protected static function unmaskString($content)
-    {
-        self::$replacedArr = array_reverse(self::$replacedArr);
-        
-        foreach (self::$replacedArr as $key => $str) {
-            $content = str_replace($key, $str, $content);
-        }
-        
-        self::$replacedArr = array();
-        
-        return $content;
-    }
-    
-    
-    /**
-     * Функция, която се вика от preg_replace_callback и замества мачнатия стринг с уникален такъв
-     * 
-     * @param array $matches
-     * 
-     * @return string
-     */
-    protected static function replacePattern($matches)
-    {
-        static $cnt = 0;
-        
-        $rStr = ' ' . self::$replaceStr . $cnt++ . ' ';
-        
-        self::$replacedArr[$rStr] = $matches[0];
-        
-        return $rStr;
+        $out = substr($out, 0, $len) . $w;
     }
     
     
