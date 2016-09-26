@@ -217,6 +217,7 @@ class cond_DeliveryTerms extends core_Master
     	expect($rec = self::fetch(array("#codeName = '[#1#]'", $deliveryCode)));
     	
     	if(($rec->address == 'supplier' && $isSale === TRUE) || ($rec->address == 'receiver' && $isSale === FALSE)){
+    		
     		if(isset($storeId)){
     			if($locationId = store_Stores::fetchField($storeId, 'locationId')){
     				$adress = crm_Locations::getAddress($locationId);
@@ -227,7 +228,7 @@ class cond_DeliveryTerms extends core_Master
     			$ownCompany = crm_Companies::fetchOurCompany();
     			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id)->getContent();
     		}
-    	} elseif(($rec->address = 'receiver' && $isSale === TRUE) || ($rec->address = 'supplier' && $isSale === FALSE)){
+    	} elseif(($rec->address == 'receiver' && $isSale === TRUE) || ($rec->address == 'supplier' && $isSale === FALSE)){
     		if(isset($locationId)){
     			$adress = crm_Locations::getAddress($locationId);
     		} else {
