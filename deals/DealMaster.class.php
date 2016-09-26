@@ -369,9 +369,11 @@ abstract class deals_DealMaster extends deals_DealBase
     			$form->setError('deliveryTermIdExtended', 'Невалидно условие за доставка');
     		} else {
     			$rec->deliveryTermId = $termId;
+    			$code = cond_DeliveryTerms::fetchField($termId, 'codeName');
+    			if($code == $deliveryExtended){
+    				$deliveryExtended = cond_DeliveryTerms::addDeliveryTermLocation($deliveryExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    			}
     			$rec->deliveryTermIdExtended = $deliveryExtended;
-    			
-    			$rec->deliveryTermIdExtended = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermIdExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
     		}
     	}
     }

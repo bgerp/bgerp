@@ -22,9 +22,8 @@ class unit_MinkPSales extends core_Manager {
         }
         
         $res = '';
-        //echo nl2br;
-        echo '\r\n';
-        $res .= 'MinkPSales';
+        $res .= '<br>'.'MinkPSales';
+        //$res .= "<br />\n".'MinkPSales';
         $res .=  " 1.".$this->act_SaleQuantityMinus();
         $res .=  " 2.".$this->act_SaleQuantityZero();
         //$res .= "  3.".$this->act_SalePriceMinus();
@@ -750,7 +749,6 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - цена', 'warning');
         }
-        
         //return $browser->getHtml();
     }  
     
@@ -1192,9 +1190,9 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - цена', 'warning');
         }
-    
         //return $browser->getHtml();
     }
+    
     /**
      * Продажба - схема с авансово плащане, Включено ДДС в цените
      * Проверка състояние чакащо плащане - не (платено)
@@ -1221,53 +1219,29 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
+        $browser->setValue('template', 'Договор за продажба');
         $browser->setValue('note', 'MinkPAdvancePaymentInclVAT');
         $browser->setValue('paymentMethodId', "20% авансово и 80% преди експедиция");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
          
         // Записваме черновата на продажбата
         $browser->press('Чернова');
-    
-        // Добавяме нов артикул
-        // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Чувал голям 50 L');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '010+03*08');//34
-        $browser->setValue('packPrice', '01+3*0,8');//3.4
-        $browser->setValue('discount', 3);
-        $browser->press('Запис и Нов');
-         
-        // Записваме артикула и добавяме нов
-        $browser->setValue('productId', 'Плик 7 л');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '03*048-0123');//21
-        $browser->setValue('packPrice', '010.20+0.3*08');//12.6
-        $browser->setValue('discount', 2);
-        $browser->press('Запис и Нов');
-        // Записваме артикула и добавяме нов
-    
+        // Добавяме нов артикул
         $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '023 + 017*02');//57
-        $browser->setValue('packPrice', '091 - 013*02');//65
+        $browser->setValue('packQuantity', '17');//57
+        $browser->setValue('packPrice', '6.325');//65
         $browser->setValue('discount', 3);
     
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други услуги');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 114);
-        $browser->setValue('packPrice', 1.1124);
+        $browser->setValue('packQuantity', 113);
+        $browser->setValue('packPrice', 1.0224);
         $browser->setValue('discount', 1);
-        // Записваме артикула и добавяме нов - услуга
-        $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Транспорт');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '160 / 05-03*08');//8
-        $browser->setValue('packPrice', '100/05+3*08');//44
-        $browser->setValue('discount', 1);
-    
+     
         // Записваме артикула
         $browser->press('Запис');
         // активираме продажбата
@@ -1275,12 +1249,12 @@ class unit_MinkPSales extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Авансово: BGN 887,86')) {
+        if(strpos($browser->gettext(), 'Авансово: BGN 43,73')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно авансово плащане', 'warning');
         }
     
-        if(strpos($browser->gettext(), 'Четири хиляди четиристотин тридесет и девет BGN и 0,32')) {
+        if(strpos($browser->gettext(), 'Двеста и осемнадесет BGN и 0,67')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -1288,7 +1262,7 @@ class unit_MinkPSales extends core_Manager {
         // ПБД
         $browser->press('ПБД');
         $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-        $browser->setValue('amountDeal', '887,86');
+        $browser->setValue('amountDeal', '43,73');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -1302,7 +1276,7 @@ class unit_MinkPSales extends core_Manager {
         // ПБД
         $browser->press('ПБД');
         $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-        $browser->setValue('amountDeal', '3551,46');
+        $browser->setValue('amountDeal', '174,94');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -1314,7 +1288,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Контиране')) {
         //}
-        if(strpos($browser->gettext(), 'Три хиляди деветстотин шестдесет и пет BGN и 0,30')) {
+        if(strpos($browser->gettext(), 'Сто и четири BGN и 0,29')) {
             // връща грешка, ако не е избрано ЕН с цени
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в ЕН', 'warning');
@@ -1332,7 +1306,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Фактура');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), '-739,88')) {
+        if(strpos($browser->gettext(), '-36,44')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума за приспадане', 'warning');
         }

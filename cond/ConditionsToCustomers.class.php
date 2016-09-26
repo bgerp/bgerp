@@ -158,10 +158,11 @@ class cond_ConditionsToCustomers extends core_Manager
         $query = self::getQuery();
         $query->where("#cClass = {$cClass} AND #cId = {$cId}");
     	$ids = array_map(create_function('$o', 'return $o->conditionId;'), $query->fetchAll());
-    	$ids = array_combine($ids, $ids);
     	
-    	$where = '';
     	if(count($ids)){
+    		$where = '';
+    	
+    		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
     	}

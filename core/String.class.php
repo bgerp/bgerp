@@ -625,8 +625,10 @@ class core_String
         $flagWord = TRUE;
         $flagHtml = FALSE;
         $pointer  = 0;
-        setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“'));
- 
+        setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“', '„', '…', '&', '_', '/'));
+        
+        $res = array();
+        
         while('' != ($c = self::nextChar($string, $pointer))) {
        
             if(in_array($c, $deviders)) {  
@@ -660,7 +662,7 @@ class core_String
 
             $out .= $c;
         }
-
+        
         return $res;
     }
 
