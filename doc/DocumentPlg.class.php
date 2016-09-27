@@ -1282,11 +1282,9 @@ class doc_DocumentPlg extends core_Plugin
         		$title .= ' |в|* ' . $t;
         	}
         }
-     
+        
         $rec = $form->rec;
         
-        $in = ' |в|* ';
-
         if($form->rec->id) {
             $form->title = 'Редактиране на|* ';
         } else {
@@ -1295,7 +1293,6 @@ class doc_DocumentPlg extends core_Plugin
             } else {
                 if($rec->threadId) {
                     $form->title = 'Добавяне на|* ';
-                    $in = ' |към|* ';
                 } else {
                     $form->title = 'Създаване на|* ';
                 }
@@ -1312,7 +1309,7 @@ class doc_DocumentPlg extends core_Plugin
             	unset($title);
             }
         }
-       
+        
         $form->title .= $title;
     }
     
