@@ -548,6 +548,7 @@ class price_Lists extends core_Master
             $rec->vat      = 'no';
             $rec->folderId = $this->getDefaultFolder();
             $rec->createdBy = core_Users::SYSTEM_USER;
+            $rec->createdOn = dt::now();
             
             $this->route($rec);
             $this->save($rec, NULL, 'REPLACE');
@@ -565,6 +566,7 @@ class price_Lists extends core_Master
             $rec->roundingPrecision = 3;
             $rec->folderId          = $this->getDefaultFolder();
             $rec->createdBy         = core_Users::SYSTEM_USER;
+            $rec->createdOn         = dt::now();
             
             $this->route($rec);
             $this->save($rec, NULL, 'REPLACE');
