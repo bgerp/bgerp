@@ -18,6 +18,9 @@
         <!--ET_BEGIN fitNoteNum-->
         <p><b>|Болничен лист|*:</b> № [#fitNoteNum#]</p>
         <!--ET_END fitNoteNum-->
+         <!--ET_BEGIN fitNoteDate-->
+        <p><b>|Издаден на|*:</b> [#fitNoteDate#]</p>
+        <!--ET_END fitNoteDate-->
         <!--ET_BEGIN fitNoteFile-->
         <p><b>|Файл|*:</b>[#fitNoteFile#]</p>
         <!--ET_END fitNoteFile-->
