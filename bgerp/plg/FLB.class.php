@@ -222,23 +222,15 @@ class bgerp_plg_FLB extends core_Plugin
 	
 	/**
 	 * Преди форсиране на обекта
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param core_Query $query
 	 */
-	public static function on_BeforeSelectByForce($mvc, &$res)
+	public static function on_BeforeSelectByForce($mvc, &$query)
 	{
-		$query = $mvc->getQuery();
-		$query->where("#state != 'rejected' || #state != 'closed'");
-
 		// Само ако потребителя не е ceo, се филтрира по полетата
 		if(!haveRole('ceo')){
 			self::addUserFilterToQuery($mvc, $query);
-		}
-		
-		// Ако има точно един обект, който потребителя може да избере се избира автоматично
-		if($query->count() == 1) {
-			$rec = $query->fetch();
-			if($id = $mvc->selectCurrent($rec)) {
-				$res = $id;
-			}
 		}
 	}
 }
