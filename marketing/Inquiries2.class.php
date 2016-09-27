@@ -192,11 +192,11 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
     	
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
-    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
-    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
-    	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
+    	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
+    	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
+    	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,mandatory,hint=Вашето име,contragentDataField=person,formOrder=50');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51,contragentDataField=countryId');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
@@ -256,11 +256,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	for($i = 1; $i <= $quantityCount; $i++){
     		$fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
-    		$mandatory = ($i == 1) ? 'mandatory' : '';
     		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption},{$mandatory}");
-    		if(isset($form->rec->moq)){
-    			$form->setFieldTypeParams("quantity{$i}", array('min' => $form->rec->moq));
-    		}
     	}
     }
     
@@ -279,7 +275,7 @@ class marketing_Inquiries2 extends embed_Manager
             	$form->setOptions('proto', $protoProducts);
             }
     	}
-   
+   	
     	$mvc->expandEditForm($data);
     }
     
@@ -803,6 +799,46 @@ class marketing_Inquiries2 extends embed_Manager
         core_Lg::pop();
 
     	return $tpl;
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		$moqVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->moq);
+    		
+    		// Ако няма въведени количества
+    		if(empty($rec->quantity1) && empty($rec->quantity2) && empty($rec->quantity3)){
+    			
+    			// Ако има МОК, потребителя трябва да въведе количество, иначе се приема за еденица
+    			if(isset($rec->moq)){
+    				$form->setError('quantity1,quantity2,quantity3', "Не е постигнато минималното количество за поръчка|* <b>{$moqVerbal}</b>");
+    			} else {
+    				$rec->quantity1 = 1;
+    			}
+    		}
+    		
+    		// Ако има минимално количество за поръчка
+    		if(isset($rec->moq)){
+    			foreach (range(1, 3) as $i){
+    				$quantity = $rec->{"quantity{$i}"};
+    				
+    				// Количествата не може да са под
+    				if(!empty($quantity)){
+    					if($quantity < $rec->moq){
+    						$form->setError("quantity{$i}", "Под минималното количество за поръчка|* <b>{$moqVerbal}</b>");
+    					}
+    				}
+    			}
+    		}
+    	}
     }
     
     
