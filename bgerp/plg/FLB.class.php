@@ -205,6 +205,7 @@ class bgerp_plg_FLB extends core_Plugin
 	 * @param core_Master $mvc
 	 * @param core_Query $query
 	 * @param int|NULL $userId
+	 * @param boolean $onlyActivate
 	 * @return void
 	 */
 	private static function addUserFilterToQuery($mvc, core_Query &$query, $userId = NULL, $onlyActivate = FALSE)
