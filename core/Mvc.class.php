@@ -48,7 +48,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Масив за кеширане на извлечените чрез fetch() записи
      */
-    var $_cashedRecords;
+    var $_cachedRecords;
 
 
     /**
@@ -225,16 +225,16 @@ class core_Mvc extends core_FieldSet
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {
             expect(!is_object($cond), $cond);
-            $casheKey = $cond . '|' . $fields;
+            $cacheKey = $cond . '|' . $fields;
 
-            if (isset($me->_cashedRecords[$casheKey])) {
+            if (isset($me->_cachedRecords[$cacheKey])) {
 
-                if(is_object($me->_cashedRecords[$casheKey])) {
+                if(is_object($me->_cachedRecords[$cacheKey])) {
 
-                    return clone ($me->_cashedRecords[$casheKey]);
+                    return clone ($me->_cachedRecords[$cacheKey]);
                 } else {
 
-                    return $me->_cashedRecords[$casheKey];
+                    return $me->_cachedRecords[$cacheKey];
                 }
             }
         }
@@ -255,7 +255,7 @@ class core_Mvc extends core_FieldSet
             } else {
                 $cacheData = $rec;
             }
-            $me->_cashedRecords[$casheKey] = $cacheData;
+            $me->_cachedRecords[$cacheKey] = $cacheData;
         }
 
         return $rec;
@@ -541,7 +541,7 @@ class core_Mvc extends core_FieldSet
      */
     function dbTableUpdated_()
     {
-        $this->_cashedRecords = array();
+        $this->_cachedRecords = array();
         $this->lastUpdateTime = DT::verbal2mysql();
     }
 

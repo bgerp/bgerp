@@ -1004,7 +1004,7 @@ class acc_Items extends core_Manager
     	$query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', $colName, '{$dateToCompare}') WHERE id = {$rec->id}";
     	
     	// Инвалидираме кешираните записи, за да няма обърквания по-нататък
-    	$Items->_cashedRecords = array();
+    	$Items->_cachedRecords = array();
     	
     	$Items->db->query($query);
     }
