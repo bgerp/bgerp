@@ -565,8 +565,9 @@ class core_Manager extends core_Mvc
         // Извличаме редовете
         while ($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
+            $this->_cachedRecords["{$rec->id}|*"] = $rec;
         }
-        
+    
         return $data;
     }
     
