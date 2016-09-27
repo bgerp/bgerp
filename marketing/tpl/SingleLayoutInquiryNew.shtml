@@ -1,6 +1,8 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-	    <div><b>[#innerClass#]</b>: [#title#]</div>
+	    <div>
+	    	<b>[#innerClass#]</b>
+	    	<!--ET_BEGIN title-->: [#title#]<!--ET_END title--></div>
 	    <!--ET_BEGIN proto--><div class='quiet'><small>|Базирано на|*: [#proto#]</small></div><!--ET_END proto--> 
 	    
 	    <!--ET_BEGIN inqDescription-->

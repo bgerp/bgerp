@@ -352,6 +352,8 @@ class marketing_Inquiries2 extends embed_Manager
     	if(isset($rec->proto)){
     		$row->proto = cat_Products::getHyperlink($rec->proto);
     	}
+    	
+    	$row->innerClass = core_Classes::translateClassName($row->innerClass);
     }
     
     
