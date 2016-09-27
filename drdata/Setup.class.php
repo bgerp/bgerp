@@ -116,7 +116,7 @@ class drdata_Setup extends core_ProtoSetup
             'drdata_Countries',
             'drdata_IpToCountry',
             'drdata_DialCodes',
-//             'drdata_PhoneCache',
+            'drdata_PhoneCache',
             'drdata_Vats',
             'drdata_Domains',
     		'drdata_Languages',

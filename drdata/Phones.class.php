@@ -141,7 +141,7 @@ class drdata_Phones extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function parseTel($tel, $dCC = '', $dAC = '', $useCache = FALSE)
+    function parseTel($tel, $dCC = '', $dAC = '', $useCache = TRUE)
     {
         // Добавка за българските телефони
         if($dCC == '359' && !$dAC) {
