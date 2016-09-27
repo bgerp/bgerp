@@ -219,8 +219,8 @@ class cat_products_Params extends doc_Detail
     	$query->where("#classId = {$classId} AND #productId = {$productId}");
     	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
     	
+    	$where = "";
     	if(count($ids)){
-    		$where = '';
     		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
