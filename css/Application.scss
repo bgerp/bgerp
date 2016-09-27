@@ -1948,23 +1948,24 @@ div.attachments {
 
 
 /*стилове за responsive дизайн на вградени ресурси*/
-.embedded-holder{
-	img{
+.embedded-holder {
+	img {
 		max-width: 100%;
 		height: auto;
 	}
+
 	.embedded {
 		position: relative;
 		padding-bottom: 56.25%;
 		padding-top: 30px;
-		height: 0; 
+		height: 0;
 		overflow: hidden;
 		embed, object, iframe, > a > img {
 			position: absolute;
 			top: 0;
 			left: 0;
-			width: 100%;
-			height: 100%;
+			width: 100% !important;
+			height: 100% !important;
 			max-width: 100% !important;
 		}
 	}
@@ -1972,6 +1973,26 @@ div.attachments {
 		margin-top: 5px;
 	}
 }
+
+.mejs-container {
+	width: 100% !important;
+	height: auto !important;
+	padding-top: 57%;
+}
+.mejs-overlay, .mejs-poster {
+	width: 100% !important;
+	height: 100% !important;
+}
+.mejs-mediaelement video {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100% !important;
+	height: 100% !important;
+}
+
 /*край на стилове за responsive дизайн на вградени ресурси*/
 
 
