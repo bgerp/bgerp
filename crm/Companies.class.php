@@ -994,7 +994,13 @@ class crm_Companies extends core_Master
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
-	       $mvc->restrictAccess($query);
+	       
+	       $viewAccess = TRUE;
+	       if ($typeKey->params['restrictViewAccess'] == 'yes') {
+	           $viewAccess = FALSE;
+	       }
+	       
+	       $mvc->restrictAccess($query, NULL, $viewAccess);
 	       $query->where("#state != 'rejected'");
 	       
 	       if (trim($where)) {
@@ -1965,7 +1971,7 @@ class crm_Companies extends core_Master
      * @return array $res - възможните класове
      */
     public function getDocButtonsInFolder($id)
-    {return;
+    {
     	$res = array();
     	 
     	$rec = $this->fetch($id);

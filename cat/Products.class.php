@@ -1362,7 +1362,7 @@ class cat_Products extends embed_Manager {
     	}
     	 
     	// Ако няма връщаме празен масив
-    	return array();
+    	return (isset($name)) ? NULL : array();
     }
     
     
@@ -1402,6 +1402,7 @@ class cat_Products extends embed_Manager {
     	
     	// Транспортното тегло
     	$weight = static::getParams($productId, 'transportWeight');
+    	
     	if($weight){
     		$weight *= $quantity;
     	}

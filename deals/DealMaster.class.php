@@ -318,10 +318,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $date = dt::mysql2verbal($rec->valior, 'd.m.year'); 
 
         $crm = cls::get($rec->contragentClassId);
-
         $cRec =  $crm->getContragentData($rec->contragentId);
         
-        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
+        $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
         
         if($escaped) {
             $contragent = type_Varchar::escape($contragent);

@@ -1698,6 +1698,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Запис');
         // активиране на продажбата
         $browser->press('Активиране');
+        $browser->setValue('action[ship]', 'ship');
         $browser->press('Активиране/Контиране');
         //if(strpos($browser->gettext(), '78,86')) {   
         if(strpos($browser->gettext(), 'Отстъпка: BGN 78,86')) {
