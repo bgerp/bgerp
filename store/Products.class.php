@@ -153,9 +153,9 @@ class store_Products extends core_Manager
     {
     	// Подготвяме формата
     	cat_Products::expandFilter($data->listFilter);
-    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
+    	$orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
     	$data->listFilter->setOptions('order', $orderOptions);
-		$data->listFilter->setDefault('order', 'standard');
+		$data->listFilter->setDefault('order', 'active');
     	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
@@ -206,6 +206,9 @@ class store_Products extends core_Manager
 		        		break;
         			case 'closed':
         				$data->query->where("#state = 'closed'");
+        				break;
+        			case 'active':
+        				$data->query->where("#state != 'closed'");
         				break;
         			default :
         				$data->query->where("#isPublic = 'yes'");
