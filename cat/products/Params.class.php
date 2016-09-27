@@ -218,10 +218,10 @@ class cat_products_Params extends doc_Detail
     	$query = self::getQuery();
     	$query->where("#classId = {$classId} AND #productId = {$productId}");
     	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
-    	$ids = array_combine($ids, $ids);
     	
-    	$where = '';
+    	$where = "";
     	if(count($ids)){
+    		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
     	}

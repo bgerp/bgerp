@@ -230,9 +230,10 @@ class type_UserList extends type_Keylist
                 $dArr = $this->getDiffArr($teams, $roles);
                 $rolesArr = $dArr['same'];
                 
-                foreach ($rolesArr as $rId) {
+                // Потребителят да е избран само в първата група, която участва
+                if ($rolesArr) {
+                    $rId = key($rolesArr);
                     $key = $this->getKey($rId, $uId);
-                    
                     $nValArr[$key] = $key;
                 }
             }
