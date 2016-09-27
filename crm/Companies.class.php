@@ -1965,7 +1965,7 @@ class crm_Companies extends core_Master
      * @return array $res - възможните класове
      */
     public function getDocButtonsInFolder($id)
-    {return;
+    {
     	$res = array();
     	 
     	$rec = $this->fetch($id);
