@@ -161,7 +161,6 @@ class cond_ConditionsToCustomers extends core_Manager
     	
     	if(count($ids)){
     		$where = '';
-    	
     		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
