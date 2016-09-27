@@ -278,6 +278,11 @@ class crm_Companies extends core_Master
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+        
+        // Индекси
+        $this->setDbIndex('name');
+        $this->setDbIndex('country');
+        $this->setDbIndex('email');
     }
 
     
