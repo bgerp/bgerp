@@ -241,17 +241,17 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако оттегляме документа
-        if ($action == 'reject' && $rec->folderId) {
-            
+        if ($action == 'reject' && $rec->folderId && $requiredRoles != 'no_one') {
+         
             // Ако има запис, който не е оттеглен
-            if (doc_Threads::fetch("#folderId = '{$rec->folderId}' && #state != 'rejected'")) {
+            if (doc_Threads::fetch("#folderId = '{$rec->folderId}' AND #state != 'rejected'")) {
                 
                 // Никой да не може да оттегля папката
                 $requiredRoles = 'no_one';    
             }
         }
         
-        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc')) {
+        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
             
             $rec = $mvc->fetch($rec->id);
             
@@ -279,7 +279,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // Не може да се създава нова папка, ако потребителя няма достъп до обекта
-        if($action == 'createnewfolder' && isset($rec)){
+        if($action == 'createnewfolder' && isset($rec) && $requiredRoles != 'no_one'){
         	if (!doc_Folders::haveRightToObject($rec, $userId)) {
         		$requiredRoles = 'no_one';
         	} elseif($rec->state == 'rejected'){
@@ -287,7 +287,7 @@ class doc_FolderPlg extends core_Plugin
         	}
         }
         
-        if (($action == 'viewlogact') && $rec) {
+        if (($action == 'viewlogact') && $rec && $requiredRoles != 'no_one') {
             if (!$mvc->haveRightFor('single', $rec, $userId)) {
                 $requiredRoles = 'no_one';
             }
