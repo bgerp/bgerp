@@ -20,7 +20,7 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Search, plg_Clone';
     
     
     /**
@@ -57,6 +57,14 @@ class cond_Parameters extends bgerp_ProtoParam
      * Кой може да добавя
      */
     public $canAdd = 'ceo,cond';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sysId';
     
     
     /**
@@ -102,10 +110,9 @@ class cond_Parameters extends bgerp_ProtoParam
     			0 => "name",
     			1 => "driverClass",
     			2 => "sysId",
-    			3 => "state",
-    			4 => "group",
-    			5 => 'suffix',
-    			6 => 'default',
+    			3 => "group",
+    			4 => 'suffix',
+    			5 => 'default',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
