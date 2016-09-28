@@ -171,6 +171,28 @@ class tcost_Zones extends core_Detail
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	$query = self::getQuery();
+    	$query->where("#zoneId = {$rec->zoneId} AND #id != '{$rec->id}'");
+    	$query->orderBy('id', 'DESC');
+    	$query->show('countryId');
+    	
+    	if($countryId = $query->fetch()->countryId){
+    		$form->setDefault('countryId', $countryId);
+    	}
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc $mvc

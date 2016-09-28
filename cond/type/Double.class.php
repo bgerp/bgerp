@@ -55,11 +55,11 @@ class cond_type_Double extends cond_type_Proto
 		}
 		
 		if(isset($rec->min)){
-			$params['Min'] = $rec->min;
+			$params['min'] = $rec->min;
 		}
 		
 		if(isset($rec->max)){
-			$params['Max'] = $rec->max;
+			$params['max'] = $rec->max;
 		}
 		
 		if(count($params)){

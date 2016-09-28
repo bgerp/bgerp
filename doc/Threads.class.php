@@ -1996,9 +1996,9 @@ class doc_Threads extends core_Manager
      */
     static function getContragentData($threadId, $field = NULL)
     {
-        static $cashe;
+        static $cache;
         
-        if(!$bestContragentData = $cashe[$threadId]) {
+        if(!$bestContragentData = $cache[$threadId]) {
             $query = doc_Containers::getQuery();
             $query->where("#state != 'rejected'");
             $query->where("#threadId = '{$threadId}'");
@@ -2083,7 +2083,7 @@ class doc_Threads extends core_Manager
                 $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
             }
             
-            $cashe[$threadId] = $bestContragentData;
+            $cache[$threadId] = $bestContragentData;
         }
         
         if($field) {

@@ -37,11 +37,22 @@ class plg_Current extends core_Plugin
             // Ако в сесията го има обекта, връщаме го
             if($res) return;
             
+            $query = $mvc->getQuery();
+            $query->where("#state != 'rejected' || #state != 'closed' || #state IS NULL");
+            
+            // Генериране на събитие, нотифициращо че предстои форсиране на обекта
+            $mvc->invoke('BeforeSelectByForce', array(&$query));
+            
+            // Ако има точно един обект, който потребителя може да избере се избира автоматично
+            if($query->count() == 1) {
+            	$rec = $query->fetch();
+            	
+            	// Избиране на единствения обект (ако потребителя може да го избере)
+            	self::setCurrent($mvc, $res, $rec);
+            }
+            
             // Ако форсираме
             if($bForce){
-            	
-            	// Генериране на събитие, нотифициращо че предстои форсиране на обекта
-            	$mvc->invoke('BeforeSelectByForce', array(&$res));
             	
             	// Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
             	if(empty($res) && ($mvc->className != Request::get('Ctr'))) {
@@ -99,29 +110,13 @@ class plg_Current extends core_Plugin
             expect(is_numeric($rec), $rec);
             expect($rec = $mvc->fetch($rec));
         }
-        
-        // Ако текущия потребител няма права - не правим избор
-        if(!$mvc->haveRightFor('select', $rec)) {
 
-            return;
-        }
-
+        // Кой е текущия обект
         $curId = $mvc->getCurrent('id', FALSE);
 
+        // Ако текущия обект е различен от избрания, избира се новия
         if($curId != $rec->id) {
-            // Задаваме новия текущ запис
-            $modeKey = self::getModeKey($className);
-            Mode::setPermanent($modeKey, $rec);
-    		
-            // Слагане на нотификация
-    		$objectName = $mvc->getTitleById($rec->id);
-    		$singleTitle = mb_strtolower($mvc->singleTitle);
-    		
-    		// Добавяме статус съобщението
-            core_Statuses::newStatus("|Успешен избор на {$singleTitle}|* \"{$objectName}\"");
-
-            // Извикваме събитие за да сигнализираме, че е сменен текущия елемент
-            $mvc->invoke('afterChangeCurrent', array(&$res, $rec));
+        	self::setCurrent($mvc, $res, $rec);
         }
 
         if(!isset($res)) {
@@ -130,7 +125,39 @@ class plg_Current extends core_Plugin
     }
 
 
-
+    /**
+     * Помощна функция, която записва в сесията текущия обект
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @return void
+     */
+	private static function setCurrent($mvc, &$res, &$rec)
+	{
+		// Ако текущия потребител няма права - не правим избор
+		if(!$mvc->haveRightFor('select', $rec)) return;
+		
+		$className = cls::getClassName($mvc);
+		
+		// Задаваме новия текущ запис
+		$modeKey = self::getModeKey($className);
+		Mode::setPermanent($modeKey, $rec);
+		
+		// Слагане на нотификация
+		$objectName = $mvc->getTitleById($rec->id);
+		$singleTitle = mb_strtolower($mvc->singleTitle);
+		
+		// Добавяме статус съобщението
+		core_Statuses::newStatus("|Успешен избор на {$singleTitle}|* \"{$objectName}\"");
+		
+		// Извикваме събитие за да сигнализираме, че е сменен текущия елемент
+		$mvc->invoke('afterChangeCurrent', array(&$res, $rec));
+		
+		$res = $rec->id;
+	}
+	
+	
     /**
      * Връща ключа от сесията, под който се държат текущите записи
      */

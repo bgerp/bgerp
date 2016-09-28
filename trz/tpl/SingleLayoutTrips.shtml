@@ -26,7 +26,7 @@
     <!--ET_BEGIN compensation-->
         <br><p><b>|Командировъчни|*:</b></p>
         
-        <table class="listTable">
+        <table class="inlineRichTable listTable" style="width:48%">
         	<tr>
         		<th>|Пътни|*</th>
                 <td class="centered">[#amountRoad#]</td>

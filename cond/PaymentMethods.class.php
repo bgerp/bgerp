@@ -26,7 +26,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, state, type';
+    var $listFields = 'id, sysId, title, state, type';
     
     
     /**
@@ -110,9 +110,16 @@ class cond_PaymentMethods extends core_Master
         // Плащане при получаване
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
         
-        // Колко дни след фактуриране да е балансовото плащане?
-        $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
+        // Колко дни след дадено събитие да е балансовото плащане?
+        $this->FLD('eventBalancePayment', 'enum(invDate=Датата на фактурата||Invoice date,
+                                               invEndOfMonth=След краят на месеца на фактурата||After the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
+        $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
+
+        // Отстъпка за предсрочно плащане
+        $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
+        $this->FLD('discountPeriod', 'time(uom=days,suggestions=незабавно|5 дни|10 дни|15 дни)', 'caption=Отстъпка за предсрочно плащане->Срок,hint=Дни');
+
         $this->setDbUnique('sysId');
         $this->setDbUnique('title');
     }
@@ -289,12 +296,15 @@ class cond_PaymentMethods extends core_Master
             2 => 'downpayment',
             3 => 'paymentBeforeShipping',
             4 => 'paymentOnDelivery',
-            5 => 'timeBalancePayment');
+            5 => 'eventBalancePayment',
+            6 => 'timeBalancePayment',
+            7 => 'discountPercent',
+            8 => 'discountPeriod',
+        );
             
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	$res .= $cntObj->html;
-    	
-    	return $res;
+
+        $res .= $cntObj->html;
     }
     
     
@@ -326,4 +336,5 @@ class cond_PaymentMethods extends core_Master
     	// Връщане на аванса
     	return $amount;
     }
+
 }

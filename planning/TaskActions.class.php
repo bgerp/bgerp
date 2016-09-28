@@ -135,12 +135,15 @@ class planning_TaskActions extends core_Manager
 	/**
 	 * Записва действие по задача
 	 * 
-	 * @param int $taskId - ид на задача
-	 * @param int $productId - ид на артикул
-	 * @param add|reject|restore $action - вид на действието
-	 * @param product|input|waste|start $type - вид на действието
-	 * @param int $jobId - ид на задачие
-	 * @param int $quantity - количество
+	 * @param int $taskId                           - ид на задача
+	 * @param int $productId                        - ид на артикул
+	 * @param add|reject|restore $action            - вид на действието
+	 * @param product|input|waste|start|scrap $type - вид на действието
+	 * @param int $packagingId                      - опаковка
+	 * @param int $quantity                         - количество
+	 * @param int $serial                           - сериен номер
+	 * @param text $employees                       - работници
+	 * @param text $fixedAsset                      - оборудване
 	 * @return int
 	 */
 	public static function add($taskId, $productId, $action, $type, $packagingId, $quantity, $serial, $employees, $fixedAsset)

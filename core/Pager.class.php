@@ -238,7 +238,7 @@ class core_Pager extends core_BaseClass
             if($idCnt == 0) {
                 if($this->rangeStart == 0) {
                     $resCnt = 0;
-                } else {
+                } else { 
                     // Тази страница е след страниците с резултати
                     // Налага се да преброим резултатите и отново да извлечем последната страница
                     $resCnt = $qCnt->count();
@@ -281,7 +281,7 @@ class core_Pager extends core_BaseClass
 
         $this->itemsCount = $resCnt;
         
-     
+ 
        $query = $qWork;
  
         $this->calc();
@@ -292,7 +292,7 @@ class core_Pager extends core_BaseClass
             $ids = implode(',', $ids);
             $query->where("#id IN ($ids)");
         } else {
-            $this->itemsCount = 0;
+            //$this->itemsCount = 0;
             $this->calc();
             $query->limit(0);
         }

@@ -790,7 +790,6 @@ class cat_Products extends embed_Manager {
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
     	'caption=Подредба,input,silent,remember,autoFilter');
-    	$listFilter->setDefault('order', 'standard');
     	
     	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
     			'placeholder=Групи,input,silent,remember,autoFilter');
@@ -806,7 +805,8 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
     	static::expandFilter($data->listFilter);
-		
+    	$data->listFilter->setDefault('order', 'standard');
+    	
     	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
        							canSell=Продаваеми,
                                 canBuy=Купуваеми,
@@ -1362,7 +1362,7 @@ class cat_Products extends embed_Manager {
     	}
     	 
     	// Ако няма връщаме празен масив
-    	return array();
+    	return (isset($name)) ? NULL : array();
     }
     
     
@@ -1402,6 +1402,7 @@ class cat_Products extends embed_Manager {
     	
     	// Транспортното тегло
     	$weight = static::getParams($productId, 'transportWeight');
+    	
     	if($weight){
     		$weight *= $quantity;
     	}

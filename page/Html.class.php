@@ -193,22 +193,42 @@ class page_Html extends core_ET {
       
         if(is_array($files->css)) {
             foreach($files->css as $file) {
-                if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '', $absolute);
-                }
+                $file = $this->getFileForAppend($file, $absolute);
+                
                 $files->invoker->appendOnce("\n@import url(\"{$file}\");", "STYLE_IMPORT", TRUE); 
             }
         }
         
         if(is_array($files->js)) {
             foreach($files->js as $file) {
-                if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '', $absolute);
-                }
+                $file = $this->getFileForAppend($file, $absolute);
+                
                 $files->invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
         } 
+    }
+    
+    
+    /**
+     * Връща файла за добавя. Ако е от системата минава през sbf.
+     * Ако е външен линк, не го променя
+     * 
+     * @param string $filePath
+     * @param NULL|boolean $absolute
+     * 
+     * @return string
+     */
+    public static function getFileForAppend($filePath, $absolute = NULL)
+    {
+        if(preg_match('#^[^/]*//#', $filePath)) return $filePath;
         
+        if (!isset($absolute)) {
+            $absolute = (boolean)(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
+        }
+        
+        $filePath = sbf($filePath, '', $absolute);
+        
+        return $filePath;
     }
     
     
