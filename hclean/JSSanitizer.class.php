@@ -122,11 +122,14 @@ class hclean_JSSanitizer extends core_Manager
     					
     					init();
     				
-    					function urlX(url) { return url }
+    					function urlX(url) { return url; }
     					
     					function init() {
     						
                     		var sanitized = html_sanitize('[#SANITIZEHTML#]', urlX);
+                    		
+                    		// Добавяме линковете да се отварят в нов таб
+                    		sanitized = sanitized.replace(/(<a\s)((.|\s)+?)(<\/a>)/ig, '$1 target=\"_blank\" $2$4');
                     		
                     		var emb = document.getElementById('[#SANITIZEID#]');
                     		

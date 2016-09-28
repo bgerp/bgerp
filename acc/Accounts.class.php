@@ -195,7 +195,6 @@ class acc_Accounts extends core_Manager
      * Подготовка на филтър формата
      *
      * @param core_Mvc $mvc
-     * @param StdClass $res
      * @param StdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
@@ -439,6 +438,7 @@ class acc_Accounts extends core_Manager
         // Импортираме данните от CSV файла. 
         // Ако той не е променян - няма да се импортират повторно 
         $cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
+        $res = '';
         
         // Записваме в лога вербалното представяне на резултата от импортирането 
         $res .= $cntObj->html;
@@ -583,7 +583,7 @@ class acc_Accounts extends core_Manager
      * Връща номер на сметка по ид на сметка.
      *
      * @param int $id ид на сметка
-     * @return string номер на сметка
+     * @return string|FALSE номер на сметка
      */
     public static function getNumById($id)
     {
@@ -604,7 +604,7 @@ class acc_Accounts extends core_Manager
      * Връща ид на сметка по номер на сметка
      *
      * @param string $num номер на сметка
-     * @return int ид на сметка
+     * @return int|FALSE ид на сметка
      */
     function getIdByNum($num)
     {
@@ -613,7 +613,7 @@ class acc_Accounts extends core_Manager
         }
         
         if (!isset(self::$numToIdMap[$num])) {
-            return false;
+            return FALSE;
         }
         
         return self::$numToIdMap[$num];

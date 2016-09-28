@@ -322,6 +322,7 @@ div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
 	max-width: 720px;
+	min-width: 540px;
 	margin-top: 10px;
 	line-height: 1.2em;
 	position: relative;
@@ -737,6 +738,21 @@ div.productImage {
 	}
 }
 
+.group-link {
+	font-size: 0.8em;
+	background-color: #e4e4e4;
+	border: 1px solid #aaa;
+	border-radius: 4px;
+	margin-top: 5px;
+	padding: 1px 5px;
+	color: #333 !important;
+	cursor: pointer;
+	&:hover {
+		color: #000 !important;
+		background-color: #f1f1f1;
+	}
+}
+
 .groupList .small-padding .productGroupInfo {
 	padding-top:10px !important; 
 	text-decoration:underline; 
@@ -950,6 +966,10 @@ div.mobile {
 }
 
 /*край на стилове за CRM*/
+
+.groupTitle {
+	padding: 0 2px;
+}
 
 option.team {
 	background: black;
@@ -1269,7 +1289,6 @@ td.portal-date {
 /*тредове*/
 .single-thread > .listRows > .listTable > tbody > tr > td {
 	padding: 9px;
-	max-width: 56em;
 }
 
 .doc_Containers table.listTable td {
@@ -1315,7 +1334,7 @@ td.portal-date {
 .document {
 	width: 100%;
     min-width: 50em;
-    max-width: 56em;
+    max-width: 60em;
 	border: solid 1px $gray4;
 	background: #ffffff;
 	@include border-radius(5px);
@@ -1513,9 +1532,13 @@ td.portal-date {
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 	display: inline;
 	float: none;
-	.liked, .disliked {
+	.liked, .disliked, .linkWithIcon {
 		position: relative;
-		top: 3px;
+		top: 2px;
+		margin-left: 0;
+	}
+	.document-settings .linkWithIcon, .eyeIcon {
+		margin-right: 5px;
 	}
 }
 
@@ -1531,13 +1554,6 @@ td.portal-date {
 .narrow .docBgIcon {
 	font-size: 0.9em;
 	padding-right: 20px;
-}
-
-.narrow .document-settings {
-    position: absolute;
-    right: 2px;
-    top:50%;
-    margin-top: -10px;
 }
 
 .narrow .document-settings-left span {
@@ -1677,6 +1693,13 @@ pre.document {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
     zoom: 1;
 	background: rgba(200, 200, 200, 0.3);
+	span.timeSpan {
+		white-space: nowrap;
+	}
+	.linkWithIcon {
+		margin-bottom: 0;
+	}
+
 }
 
 .antetkaCell {
@@ -2260,6 +2283,9 @@ ul.history {
         }
         &.export b {
 			background-color: #37f;
+		}
+		&.expenseSummary b {
+			background-color: orange;
 		}
 	}
 	.detailed b {
@@ -4572,6 +4598,12 @@ body.narrow {
     .listTable td {
         vertical-align: top !important;
     }
+	.extState {
+		font-weight: bold;
+		margin-bottom: 10px;
+		font-size: 1.1em;
+		text-transform: uppercase;
+	}
 }
  
 .wide .external .vertical .formTable {
@@ -4892,6 +4924,11 @@ body.narrow {
     .header-state {
         display: none;
     }
+	.group-link:hover {
+		cursor: default;
+		background-color: #e4e4e4;
+		color: #333 !important;
+	}
 }
 
 .narrow .printing .document{

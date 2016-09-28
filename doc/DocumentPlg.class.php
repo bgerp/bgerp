@@ -70,6 +70,7 @@ class doc_DocumentPlg extends core_Plugin
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
+        setIfNot($mvc->interfaces['acc_RegisterIntf'], 'acc_RegisterIntf');
         
         // Добавя поле за последно използване
         if(!isset($mvc->fields['lastUsedOn'])) {
@@ -101,19 +102,79 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['History'] = 'doclog_Documents';
         }
         
+        if (Request::get('Sid', 'int')){
+        	$mvc->details = arr::make($mvc->details);
+        	$mvc->details['Expenses'] = 'doc_ExpensesSummary';
+        }
+        
+        
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
         
-        // Дали можое да се редактират активирани документи
+        // Дали може да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
         setIfNot($mvc->canExportdoc, 'powerUser');
+        setIfNot($mvc->canForceexpenseitem, 'ceo,acc');
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
         $mvc->setDbIndex('originId');
+        
+        // Закачане на плъгина за счетоводни пера, ако вече не е закачен
+        $plugins = $mvc->getPlugins();
+        if(!isset($plugins['acc_plg_Registry'])){
+        	$mvc->load('acc_plg_Registry');
+        }
+    }
+    
+    
+    /**
+     * След промяна в журнала със свързаното перо
+     */
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
+    {
+    	$listId = acc_Lists::fetchBySystemId('costObjects')->id;
+    	if(keylist::isIn($listId, $item->lists)){
+    		doc_ExpensesSummary::updateSummary($rec->containerId, $item);
+    	}
+    }
+    
+    
+    /**
+     * Дефолт имплементация на getItemRec
+     * @see acc_RegisterIntf
+     */
+    public static function on_AfterGetItemRec($mvc, &$res, $id)
+    {
+    	if(!empty($res)) return;
+    	
+    	$result = NULL;
+    	
+    	if ($rec = $mvc->fetch($id)) {
+    		$row = $mvc->getDocumentRow($rec->id);
+    		$num = "#" . $mvc->getHandle($rec->id);
+    		
+    		$result = (object)array(
+    				'num'      => $num,
+    				'title'    => $row->recTitle,
+    				'features' => array('Папка' => doc_Folders::getVerbal($rec->folderId, 'title')),
+    		);
+    	}
+    	
+    	$res = $result;
+    }
+    
+    
+    /**
+     * Дефолт имплементация на getItemInUse
+     * @see acc_RegisterIntf
+     */
+    public static function on_AfterItemInUse($mvc, &$res, $id)
+    {
+    	
     }
     
     
@@ -274,8 +335,15 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($mvc->haveRightFor('exportdoc', $data->rec)) {
             Request::setProtected(array('classId', 'docId'));
-            $data->toolbar->addBtn("Сваляне", array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id),
+            $data->toolbar->addBtn("Сваляне", toUrl(array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id)),
                             "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
+            Request::removeProtected(array('classId', 'docId'));
+        }
+        
+        // Дали документа може да бъде разоден обект
+        if ($mvc->haveRightFor('forceexpenseitem', $data->rec)) {
+        	$data->toolbar->addBtn('Разходен обект', array($mvc, 'forceexpenseitem', $data->rec->id),
+        			"warning=Наистина ли искате да направите документа разходен обект?, row=2,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png');
         }
     }
     
@@ -369,19 +437,19 @@ class doc_DocumentPlg extends core_Plugin
         if($fields['-list']){
             if($rec->folderId) {
         	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            
+        	    if($invoker->hasPlugin('plg_RowTools2')){
+        	    	if(doc_Folders::haveRightFor('single', $rec->folderId)) {
+        	    		core_RowToolbar::createIfNotExists($row->_rowTools);
+        	    
+        	    		$folderRec = doc_Folders::fetch($rec->folderId, 'title,openThreadsCnt');
+        	    		$folderTitle = doc_Folders::getVerbal($folderRec, 'title');
+        	    		$icon = ($folderRec->openThreadsCnt) ? 'img/16/folder-g.png' : 'img/16/folder-y.png';
+        	    
+        	    		$row->_rowTools->addLink($folderTitle, array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
+        	    	}
+        	    }
             }
-        }
-        
-        if($invoker->hasPlugin('plg_RowTools2')){
-        	if(doc_Folders::haveRightFor('single', $rec->folderId)) {
-        		core_RowToolbar::createIfNotExists($row->_rowTools);
-        		
-        		$folderRec = doc_Folders::fetch($rec->folderId, 'title,openThreadsCnt');
-        		$folderTitle = doc_Folders::getVerbal($folderRec, 'title');
-        		$icon = ($folderRec->openThreadsCnt) ? 'img/16/folder-g.png' : 'img/16/folder-y.png';
-        		
-        		$row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
-        	}
         }
     }
     
@@ -639,7 +707,7 @@ class doc_DocumentPlg extends core_Plugin
         	
             expect($id = Request::get('id', 'int'));
             
-            expect($rec = $mvc->fetch($id));
+            expect($rec = $mvc->fetch($id), $id);
             
             // Изтриваме нотификацията, ако има такава, свързани с този документ
             $url = array($mvc, 'single', 'id' => $id);
@@ -656,41 +724,17 @@ class doc_DocumentPlg extends core_Plugin
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
-                    
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $handle, 'Cid' => Request::get('Cid'), '#' => $hnd);
                     
-                    $Q = Request::get('Q');
+                    // Добавяме към новото урл специфичните урл параметри за документите 
+                    $url += doc_Containers::extractDocParamsFromUrl();
                     
-                    if (trim($Q)) {
-                        $url['Q'] = $Q;
-                    }
-                    
-                    // Ако има подаден таб
-                    if ($tab = Request::get('Tab')) {
-                        
-                        // Добавяме таба
-                        $url['Tab'] = $tab;
-                        
-                        // Добавяме нова котва към детайлите на таба
-                        $url['#'] = 'detailTabs';
-                    }
-                   
-                    // Ако има подаден горен таб
-                    if ($tab1 = Request::get("TabTop{$rec->containerId}")) {
-                    	
-                    	// Добавяме таба
-                    	$url["TabTop{$rec->containerId}"] = $tab1;
-                    }
-                   
-                    // Ако има страница на документа
-                    if ($P = Request::get('P_doclog_Documents')) {
-                        
-                        // Добавяме страницата
-                        $url['P_doclog_Documents'] = $P;
+                    if(isset($url['Tab'])){
+                    	$url['#'] = 'detailTabs';
                     }
                     
-                    if($nid = Request::get('Nid', 'int')) {
-                        $url['Nid'] = $nid;
+                    if(isset($url["TabTop{$rec->containerId}"])){
+                    	$url['#'] = "detailTabTop{$rec->containerId}";
                     }
                     
                     $res = new Redirect($url);
@@ -790,6 +834,28 @@ class doc_DocumentPlg extends core_Plugin
             $res = new Redirect($res); //'OK';
             
             return FALSE;
+        }
+        
+        // При форсиране на документа като разходен обект
+        if($action == 'forceexpenseitem'){
+        	$mvc->requireRightFor('forceexpenseitem');
+        	expect($id  = Request::get('id', 'int'));
+        	expect($rec = $mvc->fetch($id));
+        	
+        	// Форсираме документа като разходен обект
+        	$listId = acc_Lists::fetchBySystemId('costObjects')->id;
+        	acc_Items::force($mvc->getClassId(), $rec->id, $listId);
+        	
+        	// Създаване на празен запис в кеш таблицата за разходите
+        	doc_ExpensesSummary::save((object)array('containerId' => $rec->containerId));
+        	
+        	if (!$res = getRetUrl()) {
+        		$res = array($mvc, 'single', $id);
+        	}
+        	
+        	$res = new Redirect($res);
+        	
+        	return FALSE;
         }
     }
     
@@ -1630,6 +1696,27 @@ class doc_DocumentPlg extends core_Plugin
             if ($rec->state == 'rejected' || $rec->state == 'draft' || !$mvc->haveRightFor('single', $rec) || !$mvc->getExportFormats()) {
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        // При опит за форсиране на документа, като разходен обект
+        if($action == 'forceexpenseitem' && isset($rec->id)){
+        	$costClasses = acc_Setup::get('COST_OBJECT_DOCUMENTS');
+        	
+        	if(!keylist::isIn($mvc->getClassId(), $costClasses)){
+        		
+        		// Ако класа на документа не е документите, които могат да са разходни пера не може да се форсира
+        		$requiredRoles = 'no_one';
+        	} elseif(acc_Items::isItemInList($mvc, $rec->id, 'costObjects')) {
+        		
+        		// Ако документа, вече е в номенклатура за 'Разходни обекти', не може отново да се добави
+        		$requiredRoles = 'no_one';
+        	} else {
+        		
+        		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed'){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
         }
     }
     
@@ -2703,7 +2790,9 @@ class doc_DocumentPlg extends core_Plugin
         // Ако няма избрана версия, да се скрива антетката във външната част
         $hideArr = $mvc->getHideArrForLetterHead($rec, $row);
         
-        $tableRows = $mvc->prepareHeaderLines($headerRes, $hideArr);
+        $showHeadersArr = $mvc->removeHideArrForLetterHead($headerRes, $hideArr);
+        
+        $tableRows = $mvc->prepareHeaderLines($showHeadersArr);
         
         $res->replace($tableRows, 'TableRow');
         
@@ -2772,6 +2861,36 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Премахва от масива стойностите, които трябва да се скрият в зависимост от режима
+     * 
+     * @param core_Master $mvc
+     * @param NULL|core_ET $res
+     * @param array $headerArr - двумерен масив с ключ името на полето
+     * и стойност 'name' - име на полето и 'val' - стойност
+     * @param array $hideArr - кои полета да се скриват
+     * Отговаря на ключа на $headerArr
+     */
+    public static function on_AfterRemoveHideArrForLetterHead($mvc, &$res, $headerArr, $hideArr = array())
+    {
+        if (!$headerArr) return ;
+        
+        // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
+        $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
+        
+        if (!isset($res)) $res = array();
+        
+        // Добавяме полетата, които ще се показват в съответния режим
+        foreach ((array)$headerArr as $key => $value) {
+            if ($isInternal && (($hideArr['internal'][$key]) || $hideArr['internal']['*'])) continue;
+        
+            if (!$isInternal && (($hideArr['external'][$key]) || $hideArr['external']['*'])) continue;
+        
+            $res[$key] = $value;
+        }
+    }
+    
+    
+    /**
      * Получава масив със стойности, които да ги показва в таблица.
      * В зависимост от режима, определя как да са подредени и връща редовете и колоните на таблицата
      * 
@@ -2779,28 +2898,12 @@ class doc_DocumentPlg extends core_Plugin
      * @param NULL|core_ET $res
      * @param array $headerArr - двумерен масив с ключ името на полето
      * и стойност 'name' - име на полето и 'val' - стойност
-     * @param array $hideInInternal - кои полета да се скриват, при вътрешно показване
-     * Отговаря на ключа на $headerArr
      */
-    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideArr = array())
+    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
     {
         if (!$headerArr) return ;
         
-        // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
-        $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
-        
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
-        
-        $showHeaderArr = array();
-        
-        // Добавяме полетата, които ще се показват в съответния режим
-        foreach ((array)$headerArr as $key => $value) {
-            if ($isInternal && (($hideArr['internal'][$key]) || $hideArr['internal']['*'])) continue;
-            
-            if (!$isInternal && (($hideArr['external'][$key]) || $hideArr['external']['*'])) continue;
-            
-            $showHeaderArr[$key] = $value;
-        }
         
         if ($isNarrow) {
             $res = new ET('');
@@ -2811,14 +2914,22 @@ class doc_DocumentPlg extends core_Plugin
             
             // Ако бройката е под ограничението, няма да има втори ред
             $noSecondRow = FALSE;
-            if (count($showHeaderArr) < $limitForSecondRow) {
+            
+            $headerArrCnt = count($headerArr);
+            
+            if ($headerArrCnt < $limitForSecondRow) {
                 $noSecondRow = TRUE;
+            } else {
+                // Ако не е зададено твърдо броя на колоните в първия ред
+                if (!isset($mvc->headerLinesLimit)) {
+                    $limitForSecondRow = max(array(ceil($headerArrCnt / 2), $limitForSecondRow));
+                }
             }
             
             // Определяме, кои полета ще са на втори ред или дали ще има такива
             $secondRowArr = array();
             $cnt = 0;
-            foreach ($showHeaderArr as $key => &$hArr) {
+            foreach ($headerArr as $key => &$hArr) {
                 
                 if ($noSecondRow) {
                     unset($hArr['row']);
@@ -2843,7 +2954,7 @@ class doc_DocumentPlg extends core_Plugin
             // Ако имаме само един кандидат за втория ред, да не се показва сам
             if ((count($secondRowArr) == 1)) {
                 $key = key($secondRowArr);
-                unset($showHeaderArr[$key]['row']);
+                unset($headerArr[$key]['row']);
                 $haveSecondRow = FALSE;
             }
             
@@ -2864,10 +2975,9 @@ class doc_DocumentPlg extends core_Plugin
         $collspan = 0;
         $firstRowCnt = 0;
         $secondRowCnt = count($secondRowArr);
-        $showCnt = count($showHeaderArr);
         
         if (!$isNarrow && $haveSecondRow) {
-            $firstRowCnt = $showCnt - $secondRowCnt;
+            $firstRowCnt = $headerArrCnt - $secondRowCnt;
             $collspan = $firstRowCnt - $secondRowCnt;
         }
         
@@ -2875,7 +2985,7 @@ class doc_DocumentPlg extends core_Plugin
         $row2Cnt = 0;
         $i = 0;
         $addedColspan = FALSE;
-        foreach ((array)$showHeaderArr as $key => $value) {
+        foreach ((array)$headerArr as $key => $value) {
             
             $colspanPlace = '_colspan_' . $i++;
             
@@ -3073,10 +3183,14 @@ class doc_DocumentPlg extends core_Plugin
     	}
     	
     	// При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
-    
+    	if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+            
+    	    if ($data->rec->state == 'draft') {
+    	        $data->row->ExtState = $data->row->state;
+    	    }
+    	    
     		// Оставяме състоянието да се показва само ако не е оттеглено
-    		if($data->rec->state != 'rejected'){
+    		if ($data->rec->state != 'rejected') {
     			unset($data->row->state);
     		}
     	}

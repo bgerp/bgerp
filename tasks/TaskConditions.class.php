@@ -218,6 +218,15 @@ class tasks_TaskConditions extends tasks_TaskDetails
     
     
     /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	$data->listTableMvc->setFieldType('progress', 'varchar');
+    }
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)

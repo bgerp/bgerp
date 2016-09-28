@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState';
+	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate';
 	
 	
 	/**
@@ -177,7 +177,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('contragentId', 'int', 'input=hidden');
 		
 		// Доставка
-		$mvc->FLD('deliveryTermIdExtended', 'varchar', 'caption=Доставка->Условие');
+		$mvc->FLD('deliveryTermIdExtended', 'varchar', 'caption=Доставка->Условие,class=w25');
 		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,input=hidden');
 		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
@@ -203,7 +203,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
+		$mvc->FLD('paymentState', 'enum(pending=Има,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
 
 		$mvc->setDbIndex('valior');
 	}
@@ -223,15 +223,17 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
 		$form->setDefault('makeInvoice', 'yes');
 		
-		// Поле за избор на локация - само локациите на контрагента по покупката
-		$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
-		$form->setOptions('deliveryLocationId', $locations);
+		// Поле за избор на локация - само локациите на контрагента по сделката
+		if(!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')){
+			$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+			$form->setOptions('deliveryLocationId', $locations);
+		}
 		
 		if ($form->rec->id){
         	
         	// Не може да се сменя ДДС-то ако има вече детайли
         	$Detail = $mvc->mainDetail;
-        	if($mvc->$Detail->fetch("#{$mvc->$Detail->masterKey} = {$form->rec->id}")){
+        	if($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$form->rec->id}")){
         		foreach (array('chargeVat', 'currencyId', 'deliveryTermId') as $fld){
         			$form->setReadOnly($fld, isset($form->rec->{$fld}) ? $form->rec->{$fld} : $mvc->fetchField($form->rec->id, $fld));
         		}
@@ -239,11 +241,6 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         $form->setField('sharedUsers', 'input=none');
-        
-        // Търговеца по дефолт е отговорника на контрагента
-        $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
-        $form->setDefault('dealerId', $inCharge);
-        
         
         $deliverySuggestions = array();
         $query = cond_DeliveryTerms::getQuery();
@@ -287,8 +284,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		$rec = $this->fetchRec($id);
 		
 		$Detail = $this->mainDetail;
-		$query = $this->$Detail->getQuery();
-		$query->where("#{$this->$Detail->masterKey} = '{$id}'");
+		$query = $this->{$Detail}->getQuery();
+		$query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
 		$recs = $query->fetchAll();
 	
 		deals_Helper::fillRecs($this, $recs, $rec);
@@ -305,32 +302,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		return $this->save($rec);
 	}
 
-    
-	/**
-     * Подготвя данните на хедъра на документа
-     */
-    private function prepareHeaderInfo(&$row, $rec)
-    {
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-        $Companies = cls::get('crm_Companies');
-        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-        $row->MyCompany = transliterate(tr($row->MyCompany));
-        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
-        
-        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-        if($uic != $ownCompanyData->vatNo){
-    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
-    	}
-    	$row->uicId = $uic;
-    	
-    	// Данните на клиента
-        $ContragentClass = cls::get($rec->contragentClassId);
-        $cData = $ContragentClass->getContragentData($rec->contragentId);
-    	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-    	
-    	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-    }
-
 
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -341,7 +312,6 @@ abstract class deals_DealMaster extends deals_DealBase
 
     	$rec = static::fetchRec($rec);
     
-     	
         $abbr = $mvc->abbr;
         $abbr{0} = strtoupper($abbr{0});
 
@@ -689,8 +659,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$rec = $this->fetchRec($id);
     	
     	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->where("#{$this->$Detail->masterKey} = {$rec->id}");
+    	$dQuery = $this->{$Detail}->getQuery();
+    	$dQuery->where("#{$this->{$Detail}->masterKey} = {$rec->id}");
     	
     	while($d = $dQuery->fetch()){
         	$info = cat_Products::getProductInfo($d->productId);
@@ -720,10 +690,10 @@ abstract class deals_DealMaster extends deals_DealBase
 
      	// заявка към детайлите
      	$Detail = $mvc->mainDetail;
-     	$query = $mvc->$Detail->getQuery();
+     	$query = $mvc->{$Detail}->getQuery();
      	
      	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->$Detail->masterKey}  = '{$rec->id}'");
+     	$query->where("#{$mvc->{$Detail}->masterKey}  = '{$rec->id}'");
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите
@@ -795,7 +765,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-    	//Ако потребителя не е в група доставчици го включваме
+    	// Ако потребителя не е в група доставчици го включваме
     	$rec = $mvc->fetchRec($rec);
     	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $mvc->crmDefGroup);
     }
@@ -822,7 +792,12 @@ abstract class deals_DealMaster extends deals_DealBase
             	$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
             	$row->{"amount{$amnt}"} = '<span class="quiet">0' . $pointSign . '00</span>';
             } else {
-            	@$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
+            	if(!empty($rec->currencyRate)){
+            		$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
+            	} else {
+            		$value = round($rec->{"amount{$amnt}"}, 2);;
+            	}
+            	
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
@@ -892,7 +867,7 @@ abstract class deals_DealMaster extends deals_DealBase
 					$fld = 'noVat';
 					break;
 			}
-			$row->$fld = ' ';
+			$row->{$fld} = ' ';
 			
 			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
@@ -917,7 +892,9 @@ abstract class deals_DealMaster extends deals_DealBase
 
 			core_Lg::push($rec->tplLang);
 			
-			$mvc->prepareHeaderInfo($row, $rec);
+			// Подготовка на имената на моята фирма и контрагента
+			$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+			$row = (object)((array)$row + (array)$headerInfo);
 			
 			if(isset($actions['ship'])){
 				$row->isDelivered .= mb_strtoupper(tr('доставено'));
@@ -1025,12 +1002,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
     	// Изтриваме досегашните детайли на сделката
     	$Detail = $mvc->mainDetail;
-    	$Detail::delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
+    	$Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
     	
     	$details = deals_Helper::normalizeProducts($details);
     	if(count($details)){
     		foreach ($details as &$det1){
-    			$det1->{$mvc->$Detail->masterKey} = $rec->id;
+    			$det1->{$mvc->{$Detail}->masterKey} = $rec->id;
     			$Detail::save($det1);
     		}
     	}
@@ -1594,7 +1571,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-		// не може да се клонира ако потребителя няма достъп до папката
+		// Не може да се клонира ако потребителя няма достъп до папката
     	if($action == 'clonerec' && isset($rec)){
     		if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
     			$res = 'no_one';
@@ -1670,7 +1647,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 				  o quantity       - количество опаковка
      * 				  o quantityInPack - количество в опаковката
      * 				  o discount       - отстъпка
-     * 				  o price          - цена за еденица от основната мярка
+     * 				  o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {

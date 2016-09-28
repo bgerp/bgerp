@@ -46,16 +46,16 @@ defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files (x86)
 
 /**
  * Минималната големина на файла, до която ще се търси баркод
- * 15kB
+ * 1kB
  */
-defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 15360);
+defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 1024);
 
 
 /**
  * Максималната големина на файла, до която ще се търси баркод
- * 1 mB
+ * 3 mB
  */
-defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 1048576);
+defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 3145728);
 
 
 /**
@@ -299,10 +299,10 @@ class fileman_Setup extends core_ProtoSetup
         if ($versionArr) {
             
             // Ако версията 8.71
-            if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71)) {
+            if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71) || ($versionArr['version'] == 9) && ($versionArr['subVersion'] == 18)) {
                     
                 // Добавяме съобщение
-                return "<li class='debug-error'>Версията на GhostScript \"" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\" e 8.71. С тази версия има проблеми. Моля да я обновите.</li>";
+                return "Версията на GhostScript \"" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\" e {$versionArr['version']}.{$versionArr['subVersion']}. С тази версия има проблеми. Моля да я обновите.";
             }
         }
     }
@@ -382,15 +382,5 @@ class fileman_Setup extends core_ProtoSetup
             $rec->fileLen = $rec->dataSize;
             fileman_Files::save($rec, 'fileLen');
         }
-    }
-    
-    
-    /**
-     * Връща JS файлове, които са подходящи за компактиране
-     */
-    public function getCommonCss()
-    {
-        
-        return 'fileman/css/default.css, fileman/css/dialogGallery.css';
     }
 }

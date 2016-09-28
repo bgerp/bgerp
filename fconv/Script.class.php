@@ -109,7 +109,7 @@ class fconv_Script
     /**
      * Програми, които трябва да се проверят, преди да се изпълни
      */
-    protected $chechProgramsArr = array();
+    protected $checkProgramsArr = array();
     
     
     /**
@@ -304,7 +304,7 @@ class fconv_Script
         }
         
         // Възможност за логване на грешките при изпълняване на скрипт
-        if ($params['errFilePath']) {
+        if ($params['errFilePath'] && !stristr(PHP_OS, 'WIN')) {
             $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
         }
         
@@ -381,33 +381,30 @@ class fconv_Script
         $url = toUrl(array('fconv_Processes',
                 'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
         
-        if (stristr(PHP_OS, 'WIN')) {
-        
-        } else {
-            $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
-        }
+        $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
+        $this->setCheckProgramsArr('wget');
         
         $this->lineExec($cmdLine, array('skipOnRemote' => TRUE));
     }
     
     
     /**
-     * Задаваме рограми, които ще се проверяват преди да се пусни обработка
+     * Задаваме програми, които ще се проверяват преди да се пусни обработка
      */
-    public function setChechProgramsArr($programs)
+    public function setCheckProgramsArr($programs)
     {
         $programs = arr::make($programs, TRUE);
-        $this->chechProgramsArr += $programs;
+        $this->checkProgramsArr += $programs;
     }
     
     
     /**
      * Програми, които ще се проверяват преди да се пусни обработка
      */
-    public function getChechProgramsArr()
+    public function getCheckProgramsArr()
     {
         
-        return $this->chechProgramsArr;
+        return $this->checkProgramsArr;
     }
     
     
@@ -449,7 +446,8 @@ class fconv_Script
             }
         }
         
-        $checkProgramsArr = $this->getChechProgramsArr();
+        $checkProgramsArr = $this->getCheckProgramsArr();
+
         // Ако са зададени програми, които да се проверят преди обработка.
         if (!empty($checkProgramsArr)) {
             foreach ($checkProgramsArr as $program) {
@@ -460,7 +458,22 @@ class fconv_Script
                 }
                 
                 exec($path . ' --help', $output, $code);
-                if ($code == 127) {
+                
+                if ($code == 127 || ($code == 1)) {
+                    if ($code == 1) {
+                        exec($path . ' -h', $output, $code);
+                        
+                        if ($code === 0) continue ;
+                        
+                        if ($code == 1) {
+                            
+                            exec("which {$path}", $output, $code);
+                            
+                            if ($code === 0) continue ;
+                        }
+                    }
+                    
+                    log_System::add('fconv_Remote', "Липсва програма: " . $path, $rRec->id, 'warning');
                     
                     return FALSE;
                 }

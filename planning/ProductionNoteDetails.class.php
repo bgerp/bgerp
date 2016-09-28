@@ -116,7 +116,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	$rec = &$form->rec;
     	

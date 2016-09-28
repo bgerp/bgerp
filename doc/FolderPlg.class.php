@@ -553,7 +553,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Изтриваме нотификациите от премахнатите потребители 
-            if ($delNotifyArr) {
+            if (!empty($delNotifyArr)) {
                 foreach ($delNotifyArr as $clearUser) {
                     bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'share' => TRUE), 'yes', $clearUser);
                     bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'share' => TRUE), 'yes', $clearUser);

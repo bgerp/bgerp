@@ -96,7 +96,8 @@ abstract class deals_DealBase extends core_Master
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
 				
 				// Добавяме контрагента като перо, ако не е
-				$Cover->forceItem('contractors');
+				$listId = acc_Lists::fetchBySystemId('contractors')->id;
+				acc_Items::force($Cover->getClassId(), $Cover->that, $listId);
 			}
 		}
 	}
@@ -710,7 +711,7 @@ abstract class deals_DealBase extends core_Master
     	
     	foreach ($report as $id =>  $r) { 
         	foreach (array('shipQuantity', 'bQuantity') as $fld){
-        	    $r->$fld =  $Double->toVerbal($r->$fld);
+        	    $r->{$fld} =  $Double->toVerbal($r->{$fld});
         	}
 
         	if($r->bQuantity > 0){
@@ -808,7 +809,7 @@ abstract class deals_DealBase extends core_Master
     				}
     				 
     				foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld){
-    					$obj->$fld = "<span style='float:right'>" . $Double->toVerbal($ent->$fld) . "</span>";
+    					$obj->{$fld} = "<span style='float:right'>" . $Double->toVerbal($ent->{$fld}) . "</span>";
     				}
     				 
     				$history[] = $obj;

@@ -92,6 +92,14 @@ class core_Form extends core_FieldSet
     
     
     /**
+     * Тулбар на формата
+     * 
+     * @param core_Toolbar
+     */
+    public $toolbar;
+    
+    
+    /**
      * Инициализира формата с мениджърския клас и лейаута по подразбиране
      */
     function init($params = array())
@@ -141,7 +149,7 @@ class core_Form extends core_FieldSet
         $optionsFunc = $this->selectFields("#optionsFunc");
         if ($optionsFunc) {
             foreach ($optionsFunc as $name => $field) {
-                if ($field->type instanceof type_Varchar) {
+                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist) {
                     $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
                 } else {
                     $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
@@ -294,7 +302,7 @@ class core_Form extends core_FieldSet
         if ($optionsFunc) {
             
             foreach ($optionsFunc as $name => $field) {
-                if ($field->type instanceof type_Varchar) {
+                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist) {
                     $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
                 } else {
                     $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
@@ -691,16 +699,20 @@ class core_Form extends core_FieldSet
                 if ($field->height) {
                     $attr['style'] .= "height:{$field->height};";
                 }
-
-                if($field->removeAndRefreshForm) {
-                    $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
-                    $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
-                } elseif($field->refreshForm) { 
-                    $attr['onchange'] .= "refreshForm(this.form);";
-                } elseif($field->autoFilter && strtolower($this->getMethod()) == 'get') {
-                    $attr['onchange'] = 'this.form.submit();';
-                }
                 
+                if(strtolower($this->getMethod()) == 'get') {
+                    if($field->autoFilter || $field->refreshForm) {
+                        $attr['onchange'] = 'this.form.submit();';
+                    }
+                } else {
+                    if($field->removeAndRefreshForm ) {
+                        $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
+                        $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
+                    } elseif($field->refreshForm) { 
+                        $attr['onchange'] .= "refreshForm(this.form);";
+                    }
+                }
+                                
                 if ($field->placeholder) {
                     $attr['placeholder'] = tr($field->placeholder);
                 } elseif ($this->view == 'horizontal') {

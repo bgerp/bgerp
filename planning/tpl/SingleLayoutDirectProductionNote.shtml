@@ -8,8 +8,9 @@
                             <table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
-                                       <td class="cell centered" rowspan='4' style='width:30%;'>
+                                       <td class="cell centered" rowspan='4' style='width:32%;'>
                                             <div class="document-title">|протокол за производство|*</div>
+                                            <small>( [#subTitle#] )</small>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
@@ -22,24 +23,48 @@
                                     </tr>
                                     <tr>
                                        <td>
-                                       	   <div><span class='quiet'>|Артикул|*</span>: [#productId#]</div>
-                                    	   <!--ET_BEGIN debitAmount-->
-                                       	   <div><span class='quiet'>|Себестойност|*</span>: [#debitAmount#]</div>
-                                       	   <!--ET_END debitAmount-->
-                                    	   
-                                    	   <!--ET_BEGIN storeId-->
-                                       	   <div><span class='quiet'>|Засклаждане в|*</span>: [#storeId#]</div>
-                                       	   <!--ET_END storeId-->
-                                       	   <!--ET_BEGIN dealId-->
-                                       	   <div><span class='quiet'>|Извършена услуга по продажба|*</span>:[#dealId#]</div>
-                                       	   <!--ET_END dealId-->
-                                    	   <div><span class='quiet'>|Количество|*</span>: [#quantity#]</div>
-                                    	   <!--ET_BEGIN expenses-->
-                                    	   		<div><span class='quiet'>|Режийни разходи|*</span>: [#expenses#]</div>
-                                    	   <!--ET_END expenses-->
-                                    	   <!--ET_BEGIN batch-->
-                                    	   <div><span class='quiet'>|Партида|*</span>: [#batch#]</div>
-                                    	   <!--ET_END batch-->
+                                       		<table class='no-border' style='float:left'>
+                                       			<tr>
+                                       				<td class='quiet'>|Артикул|*:</td>
+                                       				<td class='nowrap'>[#productId#]</td>
+                                       			</tr>
+                                       			<!--ET_BEGIN debitAmount-->
+                                       			<tr>
+                                       				<td class='quiet'>|Себестойност|*:</td>
+                                       				<td>[#debitAmount#]</td>
+                                       			</tr>
+                                       			<!--ET_END debitAmount-->
+                                       			<!--ET_BEGIN storeId-->
+                                       			<tr>
+                                       				<td class='quiet'>|Засклаждане в|*:</td>
+                                       				<td>[#storeId#]</td>
+                                       			</tr>
+                                       			<!--ET_END storeId-->
+                                       			<!--ET_BEGIN expenseItemId-->
+                                       			<tr>
+                                       				<td class='quiet'>|Разход за|*:</td>
+                                       				<td>[#expenseItemId#]</td>
+                                       			</tr>
+                                       			<!--ET_END expenseItemId-->
+                                       			<!--ET_BEGIN quantity-->
+                                       			<tr>
+                                       				<td class='quiet'>|К-во|*:</td>
+                                       				<td>[#quantity#]</td>
+                                       			</tr>
+                                       			<!--ET_END quantity-->
+                                       			<!--ET_BEGIN expenses-->
+                                       			<tr>
+                                       				<td class='quiet'>|Реж. разходи|*:</td>
+                                       				<td>[#expenses#]</td>
+                                       			</tr>
+                                       			<!--ET_END expenses-->
+                                       			<!--ET_BEGIN batch-->
+                                       			<tr>
+                                       				<td class='quiet'>|Партида|*:</td>
+                                       				<td>[#batch#]</td>
+                                       			</tr>
+                                       			<!--ET_END batch-->
+                                       		</table>
                                        </td>
                                     </tr>
                                 </tbody>

@@ -86,7 +86,7 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod";
+    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File";
     
     
 	/**
@@ -108,6 +108,10 @@ class cond_Setup  extends core_ProtoSetup
 		// Замества handle' ите на документите с линк към документа
 		$html .= $Plugins->installPlugin('Плъгин за пасажи в RichEdit', 'cond_RichTextPlg', 'type_Richtext', 'private');
 
+		// Кофа за файлове от тип параметър
+		$Bucket = cls::get('fileman_Buckets');
+		$Bucket->createBucket('paramFiles', 'Прикачени файлови параметри', NULL, '1GB', 'user', 'user');
+		
     	return $html;
     }
     

@@ -96,7 +96,7 @@ class recently_Values extends core_Manager
         $name = str::convertToFixedKey($name, 64);
 
         $rec = $this->fetch(array(
-                "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = {$cu}",
+                "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = '{$cu}'",
                 $name,
                 $value
             ));

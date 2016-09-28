@@ -83,7 +83,7 @@ class crm_Companies extends core_Master
      */
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
+                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export';
     
     
@@ -180,8 +180,8 @@ class crm_Companies extends core_Master
     /**
      * Детайли, на модела
      */
-    var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails';
+    var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**
@@ -270,7 +270,7 @@ class crm_Companies extends core_Master
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
         
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
                 
         // В кои групи е?
@@ -681,8 +681,9 @@ class crm_Companies extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $row
      * @param stdClass $rec
+     * @param stdClass $fields
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
         
@@ -705,6 +706,9 @@ class crm_Companies extends core_Master
             		$row->uicId = ht::createHint($row->uicId, 'Невалиден ЕИК', 'error');
             	}
             }
+            
+            $VatType = new drdata_VatType();
+            $row->vat = $VatType->toVerbal($rec->vatId);
         }
         
         
@@ -750,18 +754,9 @@ class crm_Companies extends core_Master
         }
                 
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
-
-        $row->id = $mvc->getVerbal($rec, 'id');  
-        
-        
+		$row->id = $mvc->getVerbal($rec, 'id');  
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
-        
-        $vatType = new drdata_VatType();
         $row->title .=  $mvc->getTitleById($rec->id);
-        
-        $vat = $vatType->toVerbal($rec->vatId);
-        $row->vat = $vat;
-        
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         if ($rec->vatId && $rec->uicId) {
@@ -815,6 +810,35 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Връща размера за шрифта на името на файла в зависимост от дължината
+     * 
+     * @param string $companyName
+     * 
+     * @return number
+     */
+    public static function getCompanyFontSize($companyName)
+    {
+        $companyNameLen = mb_strlen($companyName);
+        
+        if ($companyNameLen > 38) {
+            $companyFontSize = 100;
+        } elseif ($companyNameLen > 30) {
+            $companyFontSize = 130;
+        } elseif ($companyNameLen > 24) {
+            $companyFontSize = 150;
+        } elseif ($companyNameLen > 20) {
+            $companyFontSize = 160;
+        } elseif ($companyNameLen > 18) {
+            $companyFontSize = 190;
+        } else {
+            $companyFontSize = 220;
+        }
+        
+        return $companyFontSize;
+    }
+    
+    
+    /**
      * Помощна функция за сетване на лого на компанията
      *
      * @param string $companyConstName
@@ -834,11 +858,14 @@ class crm_Companies extends core_Master
                 $activeColor = $dRec->activeColor;
             }
         }
-
-        $tpl = getTplFromFile('bgerp/tpl/svg.svg');
+        
+        $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
         $cRec = crm_Companies::fetchOwnCompany();
+        $cRec->company = trim($cRec->company);
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
+        
+        $tpl->replace(self::getCompanyFontSize($cRec->company), 'companyFontSize');
         
         // Подготвяме адреса
         $fAddres = '';
@@ -866,21 +893,21 @@ class crm_Companies extends core_Master
         
         if (trim($cRec->tel)) {
             $telArr = drdata_PhoneType::toArray($cRec->tel);
-            if ($telArr && $telArr[0]) {
+            if (!empty($telArr) && $telArr[0]) {
                 $tel = $telArr[0]->original;
             }
         }
         
         if (trim($cRec->fax)) {
             $faxArr = drdata_PhoneType::toArray($cRec->fax);
-            if ($faxArr && $faxArr[0]) {
+            if (!empty($faxArr) && $faxArr[0]) {
                 $fax = $faxArr[0]->original;
             }
         }
         
         if (trim($cRec->email)) {
             $emailsArr = type_Emails::toArray($cRec->email);
-            if ($emailsArr) {
+            if (!empty($emailsArr)) {
                 $email = $emailsArr[0];
             }
         }
@@ -905,7 +932,7 @@ class crm_Companies extends core_Master
         
         // Ако не може да се генерира локално лого на фирмата, се прави опит да се генерира отдалечено
         try {
-            if (!$pngHnd) {
+            if (empty($pngHnd)) {
                 if (defined('CRM_REMOTE_COMPANY_LOGO_CREATOR')) {
                     $url = CRM_REMOTE_COMPANY_LOGO_CREATOR;
             
@@ -944,7 +971,7 @@ class crm_Companies extends core_Master
             reportException($e);
         }
         
-        if ($pngHnd) {
+        if (!empty($pngHnd)) {
             core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
         }
     }
@@ -956,14 +983,20 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param array $options
      * @param type_Key $typeKey
+     * @param string $where
      */    
-    protected static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    protected static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey, $where = '')
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
 	       $mvc->restrictAccess($query);
+	       $query->where("#state != 'rejected'");
 	       
-	       while($rec = $query->fetch("#state != 'rejected'")) {
+	       if (trim($where)) {
+	           $query->where($where);
+	       }
+	       
+	       while($rec = $query->fetch()) {
 	       	   $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
 	       }
        }
@@ -1404,7 +1437,7 @@ class crm_Companies extends core_Master
             	$result->features += $groupFeatures;
             }
             
-            $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
+            $result->features = cond_ConditionsToCustomers::getFeatures($self, $objectId, $result->features);
         }
         
         return $result;
@@ -1618,6 +1651,20 @@ class crm_Companies extends core_Master
         // Никой да не може да изтрива
         if ($action == 'delete') {
             $requiredRoles = 'no_one';
+        }
+        
+        if($action == 'edit' && isset($rec)){
+        	if($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID){
+        		if(!haveRole('ceo,admin')){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
+        }
+        
+        if($action == 'close' && isset($rec)){
+        	if($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID){
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
     

@@ -210,7 +210,7 @@ class cal_Tasks extends core_Master
                                     high=Висок,
                                     critical=Критичен)',
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
-        $this->FLD('description', 'richtext(bucket=calTasks)', 'caption=Описание,changable');
+        $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
 
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,changable');

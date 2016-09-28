@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'purchase_PurchasesDetails'
  *
@@ -36,7 +39,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument';
+    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering,acc_plg_ExpenseAllocation, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument';
     
     
     /**

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Командировки
@@ -34,7 +34,7 @@ class trz_Trips extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trz_Wrapper, doc_DocumentPlg, acc_plg_DocumentSummary,
-    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank';
+    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank,change_Plugin';
     
     
     /**
@@ -70,7 +70,7 @@ class trz_Trips extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,trz';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -83,6 +83,13 @@ class trz_Trips extends core_Master
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,trz';
+    
+    
+    /**
+     * Кой има право да прави начисления
+     */
+    public $canChange = 'ceo,trz';
+    
     
     /**
      * Групиране на документите
@@ -128,23 +135,31 @@ class trz_Trips extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/working-travel.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
-    	$this->FLD('startDate', 'date',     'caption=Считано->От');
-		$this->FLD('toDate', 'date',     'caption=Считано->До');
+    	$this->FLD('startDate', 'datetime',     'caption=Считано->От');
+		$this->FLD('toDate', 'datetime',     'caption=Считано->До');
         $this->FLD('place',    'richtext(rows=5, bucket=Notes)', 'caption=Място');
     	$this->FLD('purpose', 'richtext(rows=5, bucket=Notes)', 'caption=Цел');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
-    	$this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни');
-    	$this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни');
-    	$this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни');
+    	$this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни,input=none, changable');
+    	$this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни,input=none, changable');
+    	$this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
+    	
+    	$this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители,mandatory');
     }
-    
+
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -152,6 +167,21 @@ class trz_Trips extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateTripsToCalendar($rec->id);
+    	$mvc->updateTripsToCustomSchedules($rec->id);
+    	
+    	$subscribedArr = keylist::toArray($rec->sharedUsers);
+    	if(count($subscribedArr)) {
+    	    foreach($subscribedArr as $userId) {
+    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+    	            $rec->message  = self::getVerbal($rec, 'personId'). "| добави |* \"" . self::getRecTitle($rec) . "\"";
+    	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+    	            $rec->customUrl = array('trz_Trips', 'single',  $rec->id);
+    	            $rec->priority = 0;
+    	             
+    	            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+    	        }
+    	    }
+    	}
     }
 
     
@@ -178,6 +208,7 @@ class trz_Trips extends core_Master
     	}
     }
     
+    
     /**
      * Подготовка на формата за добавяне/редактиране
      */
@@ -188,6 +219,50 @@ class trz_Trips extends core_Master
         if ($rec->folderId) {
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
+        }
+    }
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        
+        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
+        
+        $row->amountRoad = $Double->toVerbal($rec->amountRoad);
+        $row->amountRoad .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        
+        $row->amountDaily = $Double->toVerbal($rec->amountDaily);
+        $row->amountDaily .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        
+        $row->amountHouse = $Double->toVerbal($rec->amountHouse);
+        $row->amountHouse .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        
+        if(isset($rec->alternatePerson)) {
+            // Ако имаме права да видим визитката
+            if(crm_Persons::haveRightFor('single', $rec->alternatePerson)){
+                $name = crm_Persons::fetchField("#id = '{$rec->alternatePerson}'", 'name');
+                $row->alternatePerson = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->alternatePerson), NULL, 'ef_icon = img/16/vcard.png');
+            }
+        } 
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+        if(!isset($data->rec->amountRoad) || !isset($data->rec->amountDaily) || !isset($data->rec->amountHouse)  ) {
+    
+            $tpl->removeBlock('compensation');
+             
         }
     }
     
@@ -217,7 +292,7 @@ class trz_Trips extends core_Master
     	
     	while($curDate < dt::addDays(1, $rec->toDate)){
         // Подготвяме запис за началната дата
-	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft')) {
+	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
 	            
 	            $calRec = new stdClass();
 	                
@@ -260,24 +335,62 @@ class trz_Trips extends core_Master
     
     
     /**
-     * Подготовка за рендиране на единичния изглед
-     * 
-     *  
-     * @param cal_Reminders $mvc
-     * @param stdClass $data
+     * Обновява информацията за командировките в Персонални работни графици
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function updateTripsToCustomSchedules($id)
     {
-    	$currencyId = "<span class='cCode'>" . acc_Periods::getBaseCurrencyCode($rec->startDate) . "</span>";
-    	if(isset($data->rec->amountRoad)){
-    		$data->row->roadCurrencyId = $currencyId;
-    	}
-    	if(isset($data->rec->amountDaily)){
-    		$data->row->dailyCurrencyId = $currencyId;
-    	}
-    	if(isset($data->rec->amountHouse)){
-    		$data->row->houseCurrencyId = $currencyId;
-    	}
+        $rec = static::fetch($id);
+    
+        $events = array();
+    
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+    
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+    
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+    
+        // Префикс на ключовете за записите персонални работни цикли
+        $prefix = "TRIP-{$id}";
+    
+        $curDate = $rec->startDate;
+         
+        while($curDate < dt::addDays(1, $rec->toDate)){
+            // Подготвяме запис за началната дата
+            if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
+                 
+                $customRec = new stdClass();
+                 
+                // Ключ на събитието
+                $customRec->key = $prefix . "-{$curDate}";
+                 
+                // Дата на събитието
+                $customRec->date = $curDate;
+    
+                // За човек или департамент е
+                $customRec->strukture  = 'personId';
+    
+                // Тип на събитието
+                $customRec->typePerson = 'traveling';
+    
+                // За кого се отнася
+                $customRec->personId = $rec->personId;
+    
+                // Документа
+                $customRec->docId = $rec->id;
+    
+                // Класа ан документа
+                $customRec->docClass = core_Classes::getId("trz_Trips");
+    
+                $events[] = $customRec;
+            }
+    
+            $curDate = dt::addDays(1, $curDate);
+        }
+    
+        return hr_CustomSchedules::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
 
@@ -305,7 +418,7 @@ class trz_Trips extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $rec->title;
+        $row->recTitle = $this->getRecTitle($rec, FALSE);
         
         return $row;
     }
@@ -334,18 +447,11 @@ class trz_Trips extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if ('crm_Persons' != $coverClass) {
-        	return FALSE;
-        }
-        
-        $personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+        // Името на класа
+    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
+    	
+    	// Ако не е папка проект или контрагент, не може да се добави
+    	if ($coverClassName != 'crm_persons') return FALSE;
     }
     
     
@@ -379,5 +485,34 @@ class trz_Trips extends core_Master
         } else {
             $query->where("#coverId = -2");
         }
+    }
+    
+    
+    /**
+     * Преди да се подготвят опциите на кориците, ако
+     */
+    public static function getCoverOptions($coverClass)
+    {
+         
+        if($coverClass instanceof crm_Persons){
+    
+            // Искаме да филтрираме само групата "Служители"
+            $sysId = crm_Groups::getIdFromSysId('employees');
+             
+            $query->where("#groupList LIKE '%|{$sysId}|%'");
+        }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+         
+        $title = tr('Командировъчен лист  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
+         
+        return $title;
     }
 }

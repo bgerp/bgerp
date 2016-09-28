@@ -67,12 +67,6 @@
                                 <td>[#locationId#]</td>
                             </tr>
                             <!--ET_END locationId-->
-                            <!--ET_BEGIN activityCenterId-->
-                            <tr>
-                                <td class='quiet nowrap aright' style='width:1%'>|Център на дейност|*:</td>
-                                <td>[#activityCenterId#]</td>
-                            </tr>
-                            <!--ET_END activityCenterId-->
                         </table>
                         <!--ET_BEGIN note-->
                         <hr>

@@ -306,10 +306,10 @@ class acc_BalanceDetails extends core_Detail
         $data->summary = new stdClass();
         
         foreach ($arr as $param){
-            $data->summary->$param = $this->getFieldType($param)->toVerbal(${$param});
+            $data->summary->{$param} = $this->getFieldType($param)->toVerbal(${$param});
             
             if(${$param} < 0){
-                $data->summary->$param = "<span style='color:red'>{$data->summary->$param}</span>";
+                $data->summary->{$param} = "<span style='color:red'>{$data->summary->{$param}}</span>";
             }
         }
     }
@@ -483,19 +483,19 @@ class acc_BalanceDetails extends core_Detail
     		
     		// Групиране на данните
     		foreach (array('ent1Id', 'ent2Id', 'ent3Id', 'accountNum', 'balanceId') as $fld){
-    			$r->$fld = $rec1->$fld;
+    			$r->{$fld} = $rec1->{$fld};
     		}
     		 
     		// Събираме числовите данни
     		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    			if (!is_null($rec1->$fld)) {
-    				$r->$fld += $rec1->$fld;
+    			if (!is_null($rec1->{$fld})) {
+    				$r->{$fld} += $rec1->{$fld};
     			}
     		}
     		
     		foreach (array('grouping1', 'grouping2', 'grouping3') as $gr){
-    			if(isset($rec1->$gr)){
-    				$r->$gr = $rec1->$gr;
+    			if(isset($rec1->{$gr})){
+    				$r->{$gr} = $rec1->{$gr};
     			}
     		}
     	}
@@ -939,9 +939,10 @@ class acc_BalanceDetails extends core_Detail
      *
      * @param string $from дата в MySQL формат
      * @param string $to дата в MySQL формат
+     * @param boolean $isMiddleBalance - дали се изчислява зареждането на данни от междинния баланс
      * @return boolean $hasUpdatedJournal - дали да продължи преизчисляването или не
      */
-    public function calcBalanceForPeriod($from, $to)
+    public function calcBalanceForPeriod($from, $to, $isMiddleBalance = FALSE)
     {
         $JournalDetails = &cls::get('acc_JournalDetails');
         
@@ -961,10 +962,25 @@ class acc_BalanceDetails extends core_Detail
         
         if(count($recs)){
             
-            // Захранваме стратегиите при нужда
-            foreach ($recs as $rec){
-                $this->feedStrategy($rec);
-            }
+        	if($isMiddleBalance === TRUE){
+        		
+        		// Ако зареждаме данните от журнала, които са в междинния баланс
+        		// за храненето на стратегията се взимат всичките записи до края
+        		$queryClone = $JournalDetails->getQuery();
+        		$to = dt::getLastDayOfMonth($to);
+        		acc_JournalDetails::filterQuery($queryClone, $from, $to);
+        		$queryClone->orderBy('valior,id', 'ASC');
+        		$strategyRecs = $queryClone->fetchAll();
+        	} else {
+        		$strategyRecs = $recs;
+        	}
+        	
+        	// Хранене на стратегията със записите от журнала
+        	if(is_array($strategyRecs)){
+        		foreach ($strategyRecs as $rec1){
+        			$this->feedStrategy($rec1);
+        		}
+        	}
             
             foreach ($recs as $rec){
                 $this->calcAmount($rec);
@@ -1010,7 +1026,12 @@ class acc_BalanceDetails extends core_Detail
     		if($rec->{$quantityField}){
     			
     			// Изчисляваме цената
-    			@$price = round($rec->amount / $rec->{$quantityField}, 10);
+    			$abs = abs($rec->{$quantityField});
+    			if(!empty($abs)){
+    				$price = round($rec->amount / $rec->{$quantityField}, 10);
+    			} else {
+    				$price = 0;
+    			}
     			
     			// Ако изчислената сума е различна от записаната в журнала
     			if(trim($rec->{$priceField}) != trim($price)){
@@ -1043,7 +1064,11 @@ class acc_BalanceDetails extends core_Detail
     									
     								// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
     								$rec->amount = $defCost * $rec->{$quantityField};
-    								@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    								if(!empty($rec->{$quantityField})){
+    									$price = round($rec->amount / $rec->{$quantityField}, 4);
+    								} else {
+    									$price = 0;
+    								}
     							}
     						}
     					}

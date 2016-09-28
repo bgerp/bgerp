@@ -26,7 +26,7 @@ class change_Plugin extends core_Plugin
         if (!$mvc->fields['version']) {
             
             // Добавяме
-            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,autohide,width=100%');
+            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,autohide,width=100%, spellcheck=no');
         }
         
         // Ако няма добавено поле за подверсия
@@ -120,6 +120,11 @@ class change_Plugin extends core_Plugin
         
         // Полетата, които ще се показва
         $fieldsArrShow = $allowedFieldsArr;
+        
+        // Всички полета, които ще се показват да се инпутват
+        foreach ($fieldsArrShow as $f) {
+            $form->fields[$f]->input = 'input';
+        }
         
         // Добавяме подверсията
         $allowedFieldsArr['subVersion'] = 'subVersion';

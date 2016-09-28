@@ -43,15 +43,16 @@ defIfNot('DOC_SEARCH_FOLDER_CNT', 5);
 
 
 /**
- * Време на отклонения за поправка на документ
+ * Време на отклонения за поправка на документ (в секунди)
+ * Докумените създадени преди това време ще се проверяват за поправка
  */
 defIfNot('DOC_REPAIR_DELAY', 120);
 
 
 /**
- * Дали да се поправят състояниеята на документите
+ * Дали да се проверяват всички документи за поправка
  */
-defIfNot('DOC_REPAIR_STATE', 'no');
+defIfNot('DOC_REPAIR_ALL', 'yes');
 
 
 /**
@@ -88,6 +89,19 @@ defIfNot('DOC_CACHE_LIFETIME', 5*60);
  * Стрингове, които да се замества с точка при повторение
  */
 defIfNot('DOC_STRING_FOR_REDUCE', 'За,Отн,Относно,回复,转发,SV,VS,VS,VL,RE,FW,FRW,TR,AW,WG,ΑΠ,ΣΧΕΤ,ΠΡΘ,R,RIF,I,SV,FS,SV,VB,RE,RV,RES,ENC,Odp,PD,YNT,İLT');
+
+
+/**
+ * Потребители, които ще се нотифицират за отворени теми в папки на оттеглени потребители
+ * По-подразбиране са всички администратори
+ */
+defIfNot('DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS', '');
+
+
+/**
+ * След колко време да се изтриват оттеглените нишки
+ */
+defIfNot('DOC_DELETE_REJECTED_THREADS_PERIOD', type_Time::SECONDS_IN_MONTH);
 
 
 /**
@@ -134,7 +148,8 @@ class doc_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете'))
+        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете')),
+        array('title' => 'Документи', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на развалени документи'))
     );
     
     
@@ -149,9 +164,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
         'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
     	'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array ('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
-    		
-    	'DOC_REPAIR_DELAY' => array ('time(suggestions=10 сек.|30 сек.|60 сек.|120 сек.)', 'caption=Отклонение при поправка на документи->Време'),
-        'DOC_REPAIR_STATE' => array ('enum(yes=Да, no=Не)', 'caption=Дали да се поправят състоянията на документите->Избор'),
+    	
+        'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
     
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
@@ -159,6 +173,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
         'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
         'DOC_CACHE_LIFETIME' => array("time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)", "caption=Кеширане на документите->Време"),
+        'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array("userList", "caption=Нотификация за отворени теми в папки на оттеглени потребители->Потребители"),
+        'DOC_DELETE_REJECTED_THREADS_PERIOD'  => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
     );
 
     
@@ -178,10 +194,27 @@ class doc_Setup extends core_ProtoSetup
     	'doc_HiddenContainers',
     	'doc_DocumentCache',
     	'doc_Likes',
-        'migrate::repairAllBrokenRelations',
-        'migrate::repairBrokenFolderId'
+    	'doc_ExpensesSummary',
+        'migrate::repairBrokenFolderId',
+        'migrate::repairLikeThread',
+        'migrate::repairFoldersKeywords',
     );
-
+	
+    
+    /**
+     * Нагласяне на крон
+     */
+    var $cronSettings = array(
+            array(
+                    'systemId' => doc_Threads::DELETE_SYSTEM_ID,
+                    'description' => 'Изтриване на оттеглени и документи нишки',
+                    'controller' => 'doc_Threads',
+                    'action' => 'DeleteThread',
+                    'period' => 5,
+                    'timeLimit' => 120,
+            )
+    );
+	
     
     /**
      * Дефинирани класове, които имат интерфейси
@@ -299,53 +332,6 @@ class doc_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция за поправане на развалени връзки в папки, нишки и контейнери
-     * 
-     * @return string
-     */
-    static function repairAllBrokenRelations()
-    {
-        try {
-            
-            $conf = core_Packs::getConfig('doc');
-            $res = '';
-            
-            $repArr = array();
-            $repArr['folder'] = doc_Folders::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-            $repArr['thread'] = doc_Threads::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-            $repArr['container'] = doc_Containers::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-            
-            foreach ($repArr as $name => $repairedArr) {
-                if (!empty($repairedArr)) {
-                    
-                    if ($name == 'folder') {
-                        $res .= "<li class='green'>Поправки в папките: </li>\n";
-                    } elseif ($name == 'thread') {
-                        $res .= "<li class='green'>Поправки в нишките: </li>\n";
-                    } else {
-                        $res .= "<li class='green'>Поправки в контейнерите: </li>\n";
-                    }
-                    
-                    foreach ((array)$repairedArr as $field => $cnt) {
-                        if ($field == 'del_cnt') {
-                            $res .= "\n<li class='green'>Изтирите са {$cnt} записа</li>";
-                        } else {
-                            $res .= "\n<li>Поправени развалени полета '{$field}' - {$cnt} записа</li>";
-                        }
-                    }
-                }
-            }
-        
-        } catch (Exception $e) {
-            
-            return ;
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Поправка на развалените folderId в doc_Containers
      * 
      * @return integer
@@ -381,5 +367,44 @@ class doc_Setup extends core_ProtoSetup
         }
         
         return $cnt;
+    }
+    
+    
+    /**
+     * Добавяне на id на нишките в харесванията - за бързодействие
+     */
+    public static function repairLikeThread()
+    {
+        $query = doc_Likes::getQuery();
+        $query->where("#threadId IS NULL OR #threadId = ''");
+        
+        while ($rec = $query->fetch()) {
+            try {
+                $rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId');
+                
+                doc_Likes::save($rec, 'threadId');
+            } catch (Exception $e) {
+                
+                continue;
+            }
+        }
+    }
+    
+    
+    /**
+     * Регенерира на ключовите думи на папките
+     */
+    public static function repairFoldersKeywords()
+    {
+        $query = doc_Folders::getQuery();
+        
+        while ($rec = $query->fetch()) {
+            try {
+                doc_Folders::save($rec, 'searchKeywords');
+            } catch (Exception $e) {
+                
+                continue;
+            }
+        }
     }
 }

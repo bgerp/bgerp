@@ -25,7 +25,7 @@ class survey_Alternatives extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, survey_Wrapper, plg_SaveAndNew,options=survey_Options';
+    var $loadList = 'plg_RowTools, survey_Wrapper, plg_SaveAndNew,options=survey_Options,plg_Clone';
     
   
     /**
@@ -43,7 +43,7 @@ class survey_Alternatives extends core_Detail {
     /**
 	 *  Брой елементи на страница 
 	 */
-	var $listItemsPerPage = "20";
+	var $listItemsPerPage = "70";
 	
 	
     /**
@@ -67,7 +67,7 @@ class survey_Alternatives extends core_Detail {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	var $canList = 'survey, ceo, admin';
     
     
     /**
@@ -204,6 +204,11 @@ class survey_Alternatives extends core_Detail {
     	
     	$url = toUrl(array('survey_Votes', 'vote'));
     	$tpl->appendOnce("voteUrl = '{$url}';", 'SCRIPTS');
+    	
+    	// Рендиране на пейджъра
+    	if($data->pager){
+    	    $tpl->append($data->pager->getHtml(), 'PAGER');
+    	}
     	
     	return $tpl;
     }

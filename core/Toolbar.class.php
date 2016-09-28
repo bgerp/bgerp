@@ -236,7 +236,7 @@ class core_Toolbar extends core_BaseClass
         
         if (!count($this->buttons) > 0) return $layout;
         
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) return $layout;
+        if (Mode::isReadOnly() || Mode::is('text', 'plain')) return $layout;
         
         // Какъв ще бъде изгледа на лентата с инструменти?
       //  if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
@@ -259,11 +259,18 @@ class core_Toolbar extends core_BaseClass
             ht::setUniqId($attr);
 
             $rowId = $attr['id'];
+
+            $onRow2 =0;
             
             $layout = $this->getToolbarLayout($rowId);
-            
             foreach ($this->buttons as $id => $btn) {
-                $place = ($btn->attr['row'] == 2) ? 'ROW2' : 'ROW1' ;
+                if($btn->attr['row'] == 2) {
+                    $onRow2++;
+                }
+            }
+
+            foreach ($this->buttons as $id => $btn) {
+                $place = ($btn->attr['row'] == 2 && $onRow2 != 1) ? 'ROW2' : 'ROW1' ;
 				if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}

@@ -23,12 +23,14 @@ class bgerp_iface_DealProduct
      */
     public $productId;
     
+    
     /**
      * Мярка
      *
      * @var int key(mvc=cat_UoM)
      */
     public $uomId;
+    
     
     /**
      * Опаковка
@@ -38,12 +40,14 @@ class bgerp_iface_DealProduct
      */
     public $packagingId;
     
+    
     /**
      * Количество
      *
      * @var double
      */
     public $quantity;
+    
     
     /**
      * Количество
@@ -52,6 +56,7 @@ class bgerp_iface_DealProduct
      */
     public $quantityInPack;
     
+    
     /**
      * Цена
      *
@@ -59,12 +64,14 @@ class bgerp_iface_DealProduct
      */
     public $price;
     
+    
     /**
      * Отстъпка
      *
      * @var double в интервала [0..1]
      */
     public $discount;
+    
     
     /**
      * Тегло на продукта (ако има)
@@ -74,6 +81,7 @@ class bgerp_iface_DealProduct
      */
     public $weight;
     
+    
     /**
      * Обем на продукта (ако има)
      *
@@ -81,6 +89,7 @@ class bgerp_iface_DealProduct
      * @see $classId
      */
     public $volume;
+    
     
     /**
      * Срок на продукта
@@ -95,4 +104,10 @@ class bgerp_iface_DealProduct
      * Забележки
      */
     public $notes;
+    
+    
+    /**
+     * Разходно перо
+     */
+    public $expenseItemId;
 }

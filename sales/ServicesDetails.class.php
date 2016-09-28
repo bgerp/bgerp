@@ -35,7 +35,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy, ReversePolicy=purchase_PurchaseLastPricePolicy';
+                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy, ReversePolicy=purchase_PurchaseLastPricePolicy,acc_plg_ExpenseAllocation';
     
     
     /**
@@ -95,7 +95,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         parent::setDocumentFields($this);
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short');
     }
-        
+    
     
     /**
      * Достъпните продукти
@@ -134,10 +134,8 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-
-    			if($rec->notes){
+                if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
     			}
     		}

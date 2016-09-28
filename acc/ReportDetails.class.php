@@ -171,7 +171,7 @@ class acc_ReportDetails extends core_Manager
         
         if(is_array($data->recs)) {
             foreach ($data->recs as $dRec){
-                @$dRec->blPrice = $dRec->blAmount / $dRec->blQuantity;
+                $dRec->blPrice = (!empty($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
                 
                 // На коя позиция се намира, перото на мастъра
                 $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
@@ -207,8 +207,8 @@ class acc_ReportDetails extends core_Manager
                 
                 // К-то и сумата се обръщат във вербален вид
                 foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld){
-                    $style = ($dRec->$fld < 0) ? "color:red" : "";
-                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
+                    $style = ($dRec->{$fld} < 0) ? "color:red" : "";
+                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->{$fld}) . "</span>";
                 }
                 
                 $row['amountRec'] = $dRec->blAmount;
@@ -230,19 +230,14 @@ class acc_ReportDetails extends core_Manager
         }
         
         if(is_array($accounts)) {
-            // За засегнатите сметки, проверяваме имали зададени сч. лимити за тях
-            foreach ($accounts as $sysId){
-                $limitQuery = acc_Limits::getQuery();
-                $limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
-                 
-                $row1['limits'] = array();
-                while($lRec = $limitQuery->fetch()){
-                     
-                    $lRow = acc_Limits::recToVerbal($lRec);
-                    $lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
-                    $rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
-                }
-            }
+        	
+        	$limitQuery = acc_Limits::getQuery();
+        	$limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
+        	while($lRec = $limitQuery->fetch()){
+        		$lRow = acc_Limits::recToVerbal($lRec);
+        		$lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
+        		$rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
+        	}
         }
         
         $data->totalRow = $Double->toVerbal($data->total);
@@ -268,7 +263,7 @@ class acc_ReportDetails extends core_Manager
     	
     	if(isset($data->balanceRec->periodId)){
     		$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => "Оборотна ведомост за|* \"{$link}\""));
     		}
     		 
@@ -315,7 +310,7 @@ class acc_ReportDetails extends core_Manager
                 	unset($fields['blPrice']);
                 }
                 
-                if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')){
+                if(Mode::isReadOnly()){
                 	unset($fields['tools']);
                 }
                 
@@ -396,7 +391,7 @@ class acc_ReportDetails extends core_Manager
         
         // Ако потребителя може да добавя счетоводни лимити
         if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId())) 
-                && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
+                && !Mode::isReadOnly()){
         	$url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
         	$btn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново ограничение на перото');
         	$tpl->append($btn, 'BTN_LIMITS');

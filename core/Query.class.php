@@ -247,6 +247,11 @@ class core_Query extends core_FieldSet
     function likeKeylist($field, $keylist, $or = FALSE)
     {
         $keylistArr = keylist::toArray($keylist);
+        
+        // Не споделяме с анонимния и системния потребител
+        if(stripos($field, 'shared') !== FALSE) {
+            unset($keylistArr[-1], $keylistArr[0]);
+        }
 
         $isFirst = TRUE;
 
@@ -268,6 +273,29 @@ class core_Query extends core_FieldSet
         return $this;
     }
 
+    
+    /**
+     * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
+     * Алтернативна функция с Regexp
+     */
+    function likeKeylist1($field, $keylist, $or = FALSE)
+    {
+        $keylistArr = keylist::toArray($keylist);
+
+        $isFirst = TRUE;
+
+        if(count($keylistArr)) {
+            foreach($keylistArr as $key => $value) {
+                if($regExp) $regExp .= '|';
+                $regExp .= '\\\|' . $key . '\\\|';
+            }
+
+            $this->where("#{$field} RLIKE '({$regExp})'", $or);
+        }
+
+        return $this;
+    } 
+    
 
     /**
      * Добавя ново условие с LIKE във WHERE клаузата
@@ -849,13 +877,23 @@ class core_Query extends core_FieldSet
             }
 
             foreach ($this->where as $expr) {
-                $expr = $this->expr2mysql($expr);
-                
-                if ($this->useExpr) {
-                    $having .= ($having ? " AND\n   " : "   ") . "({$expr})";
-                    $this->exprShow = arr::combine($this->exprShow, $this->usedFields);
+                if(stripos($expr, '#id in (') !== FALSE) {
+                    $expr = $this->expr2mysql($expr);
+                    if ($this->useExpr) {
+                        $having = "({$expr})" . ($having ? " AND\n   " : "   ") . $having;
+                        $this->exprShow = arr::combine($this->exprShow, $this->usedFields);
+                    } else {
+                        $where = "({$expr})" . ($where ? " AND\n   " : "   ") . $where;
+                    }
                 } else {
-                    $where .= ($where ? " AND\n   " : "   ") . "({$expr})";
+                    $expr = $this->expr2mysql($expr);
+
+                    if ($this->useExpr) {
+                        $having .= ($having ? " AND\n   " : "   ") . "({$expr})";
+                        $this->exprShow = arr::combine($this->exprShow, $this->usedFields);
+                    } else {
+                        $where .= ($where ? " AND\n   " : "   ") . "({$expr})";
+                    }
                 }
             }
             
@@ -907,7 +945,9 @@ class core_Query extends core_FieldSet
         }
 
         // Задължително показваме полето id
-        $this->show['id'] = TRUE;
+        if($this->fields['id']) {
+            $this->show['id'] = TRUE;
+        }
         
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
@@ -1037,24 +1077,20 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Задава пълнотекстово търсене по посочения параметър
+     * Връща хеш на заявката за търсене
+     * Ако $excludeStartAndLimit = TRUE, не се вземат в предвид
      */
-    function fullTextSearch($filter, $rateName = 'searchRate', $searchTName = 'searcht', $searchDName = 'searchD')
+    function getHash($excludeStartAndLimit = FALSE)
     {
-        $filter = str::utf2ascii(mb_strtolower(trim($filter)));
-        
-        if ($filter) {
-            $queryBulder = cls::get('core_SearchMysql', array(
-                    'filter' => $filter,
-                    'searcht' => $searchTName,
-                    'searchD' => $searchDName
-                ));
-            $s = $queryBulder->prepareSql($this->mvc->dbTableName);
-            $this->XPR($rateName, 'double', $s[0]);
-            $this->orderBy("#{$rateName}=DESC");
-            $this->where("#{$rateName} > 0");
-            $this->where($s[1]);
+        $q = clone($this);
+        if($excludeStartAndLimit) {
+            $q->startFrom(NULL);
+            $q->limit(NULL);
         }
+
+        $res = md5($q->buildQuery());
+
+        return $res;
     }
     
     

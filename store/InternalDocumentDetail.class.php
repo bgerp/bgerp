@@ -102,7 +102,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	
     		if(!isset($rec->packPrice)){
     			$Policy = cls::get('price_ListToCustomers');
-    			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
+    			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
     			$rec->packPrice = $rec->packPrice * $rec->quantityInPack;
     		}
     		
@@ -110,8 +110,8 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     			$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
     		}
     		
-    		$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
-    		$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
+    		$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
+    		$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     	}
     }
     
@@ -182,5 +182,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	if($data->masterData->rec->state != 'draft' && !$data->rows){
     		$tpl = new ET('');
     	}
+    }
+    
+    
+    /**
+     * Преди запис на продукт
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	$quantity = $rec->packQuantity * $rec->quantityInPack;
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $quantity);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $quantity);
     }
 }

@@ -90,6 +90,12 @@ class acc_Periods extends core_Manager
     
     
     /**
+     * Лог
+     */
+    public $actLog;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -664,39 +670,44 @@ class acc_Periods extends core_Manager
             case "months":
 
                 $dFrom = date('d', dt::mysql2timestamp($from));
+                $date1 = new DateTime(dt::addDays(1,$to));
+                $date2 = new DateTime($from);
+                $interval = date_diff($date1, $date2);
+                $months = $interval->m;
+                $days = $interval->days;
 
-                if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to)) {
+                if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to) && $interval->y == 0) {
                     
                     $toCompare = dt::getLastDayOfMonth($from,-1);
             
                     $first = date('Y-m-01', dt::mysql2timestamp($toCompare));
-                    $dFrom = date('d', dt::mysql2timestamp($toCompare));
-                    $mFrom = date('m', dt::mysql2timestamp($toCompare));
+                    $dToCompare = date('d', dt::mysql2timestamp($toCompare));
+                    $mToCompare= date('m', dt::mysql2timestamp($toCompare));
 
-                    $date1 = new DateTime($to);
-                    $date2 = new DateTime($from);
-                    $interval = date_diff($date1, $date2);
-                    $months = $interval->m;
-             
                     if($months == 1) {
-                        $fromCompare1 = $first;
+                        if ($interval->d == 0 || $interval->d == 1) {
+                            $fromCompare1 = $first;
+                        } elseif ($interval->d == 2) {
+                            $fromCompare1 = dt::addMonths(-$months+1,$first);
+                        } else {
+                            $fromCompare1 = dt::addMonths(-$months,$first);
+                        }
                     } else {
-                        $fromCompare1 = dt::addMonths(-$months,$first);
+                        $fromCompare1 = dt::addMonths(-$months+1,$first);
                     }
                    
-                    if ($dFrom == '28' && $mFrom == '02') { 
+                    if ($dToCompare == '28' && $mToCompare == '02') { 
                         $fromCompare1 = dt::addMonths(-$months+1,$toCompare);
                     } 
-   
+
                     $fromCompare = date('Y-m-01', dt::mysql2timestamp($fromCompare1));
                     
                 } else {
-                    
-                    $fromCompare = date('Y-m-d', dt::mysql2timestamp($from) - abs(dt::mysql2timestamp($to) - dt::mysql2timestamp($from))-1);
+
                     $toCompare = strstr(dt::addDays(-1,$from), " ", TRUE);
-                    
+                    $fromCompare = strstr(dt::addDays(-($days-1),$toCompare), " ", TRUE);
                 }
-                
+          
                 break;
                 
             case "year":
@@ -713,5 +724,21 @@ class acc_Periods extends core_Manager
         }
         
         return (object) array('from'=> $fromCompare , 'to'=> $toCompare);
+    }
+    
+    
+    /**
+     * Дали датата е в затворен счетоводен период
+     * 
+     * @param date $date - дата
+     * @return boolean - Затворен ли е периода в който е датата
+     */
+    public static function  isClosed($date)
+    {
+    	// В кой период е датата
+    	$period = self::fetchByDate($date);
+    	
+    	// Проверка дали периода е затворен
+    	return $period->state == 'closed';
     }
 }

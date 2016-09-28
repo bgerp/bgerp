@@ -9,7 +9,7 @@
 * @category  bgerp
 * @package   deals
 * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
-* @copyright 2006 - 2014 Experta OOD
+* @copyright 2006 - 2016 Experta OOD
 * @license   GPL 3
 * @since     v 0.1
 */
@@ -154,7 +154,7 @@ abstract class deals_ManifactureMaster extends core_Master
 			
 			$Detail = $mvc->mainDetail;
 			$dQuery = $Detail::getQuery();
-			$dQuery->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+			$dQuery->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
 			$dQuery->show('productId');
 			while($dRec = $dQuery->fetch()){
 				$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->productId));

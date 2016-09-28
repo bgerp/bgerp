@@ -206,7 +206,7 @@ class marketing_Router
 	{
 		$rec = new stdClass();
 		foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge') as $param){
-			$rec->$param = ${$param};
+			$rec->{$param} = ${$param};
 		}
 		
 		try{

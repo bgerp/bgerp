@@ -166,7 +166,7 @@ class callcenter_Numbers extends core_Manager
      * 
      * @return string
      */
-    static function getCallerName($id, $userId)
+    static function getCallerName($id, $userId = NULL)
     {
         // Ако не е подадено id
         if (!$id) return ;

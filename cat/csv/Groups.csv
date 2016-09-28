@@ -8,3 +8,7 @@
 "Заготовки","prefabrications"
 "Услуги","services"
 "Дълготрайни активи","fixedAssets"
+"Ценова група","priceGroup"
+"0","group0","Ценова група"
+"A","groupA","Ценова група"
+"B","groupB","Ценова група"

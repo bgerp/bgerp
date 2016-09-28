@@ -67,7 +67,7 @@
   background-color: #dddddd !important; }
 
 #add-file-info {
-  max-height: 334px;
+  max-height: 206px;
   overflow: auto; }
 
 .uploaded-filenames {
@@ -105,7 +105,7 @@
 
 .uploaded-title {
   margin-top: 5px;
-  padding: 5px;
+  padding: 6px;
   border: solid 1px #cccccc;
   background-color: #ffffee;
   margin-bottom: 5px;
@@ -179,4 +179,55 @@
 
 .narrow .fileman_Log.switching-display {
   margin-top: 5px; }
+
+.progressBarBlock {
+  background: url('../img/progress.gif');
+  height: 16px;
+  margin-top: 1px;
+  display: inline-block;
+  text-align: center;
+  padding: 1px 0;
+  border-radius: 3px;
+  box-shadow: 0 0 1px #999999; }
+  .progressBarBlock .percent {
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    color: white; }
+
+.narrow .progressBarBlock {
+  padding-top: 0;
+  font-size: 0.85em; }
+
+.cancelButton {
+  width: 1%;
+  font-size: 0.9em;
+  color: black;
+  cursor: pointer; }
+
+#uploadsTitle {
+  margin-top: 10px; }
+
+.fileNameRow {
+  margin-top: 3px; }
+
+.uploads-holder {
+  max-height: 200px;
+  overflow: auto; }
+
+.fileman_Upload {
+  background-image: url('../../img/16/upload.png'); }
+
+.fileman_Get {
+  background-image: url('../../img/16/world_link.png'); }
+
+.empty {
+  background-image: url('../../img/16/new.png'); }
+
+.tab-title.fileman_Log {
+  background-image: url('../../img/16/databases.png'); }
+
+.uploaded-title {
+  background-image: url('../../img/16/tick-circle-frame.png'); }
+
+.btn-ulfile {
+  background-image: url('../../img/16/paper_clip.png'); }
 

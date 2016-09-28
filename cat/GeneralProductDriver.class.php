@@ -202,35 +202,60 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща стойността на параметъра с това име, или
-	 * всички параметри с техните стойностти
-	 * 
-	 * @param string $classId - ид на ембедъра
-	 * @param string $id   - ид на записа
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
-	 * @return mixed - стойност или FALSE ако няма
-	 */
-	public function getParams($classId, $id, $name = NULL)
+     * Връща стойността на параметъра с това име, или
+     * всички параметри с техните стойностти
+     *
+     * @param int $classId    - ид на клас
+     * @param string $id      - ид на записа
+     * @param string $name    - име на параметъра, или NULL ако искаме всички
+     * @param boolean $verbal - дали да са вербални стойностите
+     * @return mixed  $params - стойност или FALSE ако няма
+     */
+	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
-		if(isset($name)){
-			
-			return cat_products_Params::fetchParamValue($classId, $id, $name);
-		}
+		// Ако има посочено име се посочва директно стойноста му
+		if(isset($name)) return cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
 		
 		// Ако не искаме точен параметър връщаме всичките параметри за артикула
-		$foundParams = array();
+		$params = array();
+		$classId = cat_Products::getClassId();
 		$pQuery = cat_products_Params::getQuery();
 		$pQuery->where("#productId = {$id}");
-		$pQuery->EXT('name', 'cat_Params', 'externalName=name,externalKey=paramId');
-		$pQuery->EXT('suffix', 'cat_Params', 'externalName=suffix,externalKey=paramId');
+		$pQuery->where("#classId = {$classId}");
+		$pQuery->show('paramId,paramValue');
+		
 		while($pRec = $pQuery->fetch()){
-			if($pRec->suffix){
-				$pRec->name .= "({$pRec->suffix})";
+			if($verbal === TRUE){
+				$pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $pRec->paramValue);
 			}
-			$foundParams[$pRec->name] = $pRec->paramValue;
+			$params[$pRec->paramId] = $pRec->paramValue;
 		}
 		
-		return $foundParams;
+		return $params;
+	}
+	
+	
+	/**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $rec - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	{
+		$preview = NULL;
+		$previewHandler = cat_Products::getParams($rec->id, 'preview');
+		$handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
+	
+		if(!empty($handler)){
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$preview = $Fancybox->getImage($handler, $size, $maxSize);
+			$preview = $preview->getContent();
+		}
+	
+		return $preview;
 	}
 	
 	

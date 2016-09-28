@@ -21,79 +21,79 @@ class price_History extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Кеширани цени';
+    public $title = 'Кеширани цени';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Кеширана цена";
+    public $singleTitle = "Кеширана цена";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper';
                     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'price_ListRules';
+    public $details = 'price_ListRules';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, listId, validFrom, productId, price';
+    public $listFields = 'id, listId, validFrom, productId, price';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo';
+    public $canRead = 'ceo';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canWrite = 'ceo';
+    public $canWrite = 'ceo';
     
     
      /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo';
+    public $canDelete = 'ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'priceMaster,ceo';
+	public $canList = 'admin,debug';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'priceMaster,ceo';
+	public $canSingle = 'priceMaster,ceo';
 
 	
     /**
      * Масив с всички ремена, които имат отношение към историята на цените
      */
-    static $timeline = array();
+    protected static $timeline = array();
 
 
     /**
      * Масив с кеш на изчислените стойности
      */
-    static $cache = array();
+    protected static $cache = array();
 
 
     /**
@@ -113,7 +113,7 @@ class price_History extends core_Manager
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $form = $data->listFilter;
         
@@ -145,7 +145,7 @@ class price_History extends core_Manager
     /**
      * Връща началото на най-близкия исторически интервал до посоченото време
      */
-    static function canonizeTime($datetime)
+    public static function canonizeTime($datetime)
     {   
         $timeline = &self::$timeline;
         
@@ -175,13 +175,6 @@ class price_History extends core_Manager
                 }
             }
 
-            // Вземаме всички времена от групите на продуктите
-            $query = price_GroupOfProducts::getQuery();
-            $query->show('validFrom');
-            while($rec = $query->fetch()) {
-                $timeline[$rec->validFrom] = TRUE;
-            }
-
             // Вземаме всички времена от ценоразписите на клиентите
             $query = price_ListToCustomers::getQuery();
             $query->show('validFrom');
@@ -209,7 +202,7 @@ class price_History extends core_Manager
     /**
      * Инвалидира кеша с времевата линия
      */
-    static function removeTimeline()
+    public static function removeTimeline()
     {
         // Изтриваме кеша
         core_Cache::remove('price_History', 'timeline');
@@ -220,7 +213,7 @@ class price_History extends core_Manager
     /**
      * Връща кешираната цена за продукта
      */
-    static function getPrice($listId, $datetime, $productId, $packagingId = NULL)
+    public static function getPrice($listId, $datetime, $productId, $packagingId = NULL)
     {
         $validFrom = self::canonizeTime($datetime);
         if(!$validFrom) return;
@@ -236,7 +229,7 @@ class price_History extends core_Manager
     /**
      * Записва кеш за цената на продукта
      */
-    static function setPrice($price, $listId, $datetime, $productId)
+    public static function setPrice($price, $listId, $datetime, $productId)
     {
         $validFrom = self::canonizeTime($datetime);
         
@@ -256,7 +249,7 @@ class price_History extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
     	if(haveRole('admin,debug')){
     		$data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => TRUE), 'ef_icon=img/16/sport_shuttlecock.png, title=Премахване на кешираните записи');

@@ -21,63 +21,114 @@ class planning_TaskActions extends core_Manager
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Регистър на операциите на задачите';
+	public $title = 'Регистър на прогреса по задачите за производство';
 	
 	
 	
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'debug,ceo';
+	public $canList = 'ceo,planning';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
 	public $canWrite = 'no_one';
-	
-	
-	/**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools';
+    public $loadList = 'planning_Wrapper, plg_AlignDecimals2, plg_Search, plg_Created, plg_Modified, plg_Sorting';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,type,productId,taskId,jobId,quantity';
+    public $listFields = 'id,type,action,serial,productId,taskId,jobId,quantity, employees,fixedAsset,modifiedOn,modifiedBy';
     		
     		
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId,taskId,jobId,serial,employees,fixedAsset';
+    
+    
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 40;
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'serial,employees,fixedAsset';
+    
+    
 	/**
 	 * Описание на модела
 	 */
 	function description()
 	{
-		$this->FLD('type', 'enum(input=Вложено,product=Произведено,waste=Отпадък)', 'input=none,mandatory,caption=Действие');
+		$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък,start=Пускане,scrap=Брак)', 'input=none,mandatory,caption=Действие');
+		$this->FLD('action', 'enum(reject=Оттегляне,add=Добавяне,restore=Възстановяване,edit=Редакция)');
 		$this->FLD('productId', 'key(mvc=cat_Products)', 'input=none,mandatory,caption=Артикул');
 		$this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=none,mandatory,caption=Задача');
 		$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,mandatory,caption=Задание');
 		$this->FLD('quantity', 'double', 'input=none,mandatory,caption=Количество');
+		$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)');
 		
-		$this->setDbUnique('type,taskId,productId');
+		$this->FLD('serial', 'varchar(32)', 'input=none,mandatory,caption=С. номер,smartCenter');
+		$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'input=none,mandatory,caption=Служители');
+		$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'input=none,mandatory,caption=Обордуване');
 	}
 	
 	
 	/**
-	 * След преобразуване на записа в четим за хора вид
+	 * Преди рендиране на таблицата
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+	protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
 	{
-		$row->productId = cat_Products::getHyperlink($rec->productId);
-		$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
-		$row->taskId = planning_Tasks::getLink($rec->taskId, 0);
+		unset($data->listFields['action']);
+		$rows = &$data->rows;
+		if(!count($rows)) return;
+		
+		foreach ($rows as $id => $row){
+			$rec = $data->recs[$id];
+				
+			$class = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : (($rec->type == 'start') ? 'state-stopped' : 'row-removed'));
+			if($rec->action == 'reject' || $rec->action == 'restore' || $rec->action == 'edit'){
+				$row->type = "{$row->type} <small>({$row->action})</small>";
+				if($rec->action == 'restore'){
+					$class = 'state-restore';
+				} elseif($rec->action == 'edit') {
+					$class = 'state-closed';
+				} else {
+					$class = '';
+				}
+			}
+			
+			if($class != ''){
+				$row->ROW_ATTR['class'] = $class;
+			} else {
+				$row->ROW_ATTR['style'] = 'background-color:rgba(204,102,102,.6)';
+			}
+			
+			if($rec->type == 'scrap' && $rec->action == 'add'){
+				$row->ROW_ATTR['style'] = 'background-color:white';
+			}
+			
+			$row->productId = cat_Products::getShortHyperlink($rec->productId);
+			$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
+			$row->taskId = planning_Tasks::getLink($rec->taskId, 0);
+			$row->quantity .= " " . cat_UoM::getShortName($rec->packagingId);
+			
+			if(isset($rec->employees)){
+				$row->employees = planning_drivers_ProductionTaskDetails::getVerbalEmployees($rec->employees);
+			}
+		}
 	}
 	
 	
@@ -86,27 +137,31 @@ class planning_TaskActions extends core_Manager
 	 * 
 	 * @param int $taskId - ид на задача
 	 * @param int $productId - ид на артикул
-	 * @param product|input|waste $type - вид на действието
+	 * @param add|reject|restore $action - вид на действието
+	 * @param product|input|waste|start $type - вид на действието
 	 * @param int $jobId - ид на задачие
 	 * @param int $quantity - количество
+	 * @return int
 	 */
-	public static function add($taskId, $productId, $type, $jobId, $quantity)
+	public static function add($taskId, $productId, $action, $type, $packagingId, $quantity, $serial, $employees, $fixedAsset)
 	{
 		if(!$productId) return;
 		
-		if($rec = self::fetch("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}'")){
-			$rec->quantity = $quantity;
-			
-			return self::save($rec, 'quantity');
-		} else {
-			$rec = (object)array('taskId'    => $taskId, 
-								 'productId' => $productId, 
-								 'type'      => $type, 
-								 'quantity'  => $quantity, 
-								 'jobId'     => $jobId);
-			
-			return self::save($rec);
-		}
+		$taskOriginId = planning_Tasks::fetchField($taskId, 'originId');
+		$jobId = doc_Containers::getDocument($taskOriginId)->that;
+		
+		$rec = (object)array('taskId'      => $taskId,
+				             'productId'   => $productId,
+							 'action'      => $action,
+				             'type'        => $type,
+				             'quantity'    => $quantity,
+							 'serial'      => $serial,
+							 'employees'   => $employees,
+							 'fixedAsset'  => $fixedAsset,
+							 'packagingId' => $packagingId,
+							 'jobId'       => $jobId);
+		
+		return self::save($rec);
 	}
 	
 	
@@ -119,7 +174,7 @@ class planning_TaskActions extends core_Manager
 	 */
 	public static function getQuantityForJob($jobId, $type)
 	{
-		expect(in_array($type, array('product', 'input', 'waste')));
+		expect(in_array($type, array('product', 'input', 'waste', 'start')));
 		expect($jobRec = planning_Jobs::fetch($jobId));
 		
 		$query = self::getQuery();
@@ -129,6 +184,7 @@ class planning_TaskActions extends core_Manager
 		$query->where("#jobId = {$jobId}");
 		$query->where("#productId = {$jobRec->productId}");
 		$query->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		$query->show('quantity,sumQuantity');
 		
 		$quantity = $query->fetch()->sumQuantity;
 		if(!isset($quantity)){
@@ -136,5 +192,60 @@ class planning_TaskActions extends core_Manager
 		}
 		
 		return $quantity;
+	}
+	
+	
+	/**
+	 * Подготовка на филтър формата
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $data
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		// Добавяне на полета към филтъра
+		$data->listFilter->class = 'simpleForm';
+		$data->listFilter->FNC('filterType', 'enum(all=Действия,input=Влагане,product=Произвеждане,waste=Отпадък,start=Пускане,reject=Оттегляне,restore=Възстановяване,scrap=Бракуване)', 'caption=Действие');
+		$data->listFilter->FNC('assets', 'keylist(mvc=planning_AssetResources,select=code,allowEmpty)', 'caption=Оборудване');
+		
+		$employees = crm_ext_Employees::getEmployeesWithCode();
+		$data->listFilter->showFields = 'search,filterType,assets';
+		
+		// Ако има служители с кодове, възможност да се избират
+		if(count($employees)){
+			$data->listFilter->FNC('filterEmployees', 'keylist(mvc=crm_Persons,select=id,allowEmpty)', 'caption=Служители');
+			$data->listFilter->setSuggestions('filterEmployees', array('' => '') + $employees);
+			$data->listFilter->showFields .= ",filterEmployees";
+		} 
+		
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+		$data->listFilter->setDefault('action', 'all');
+		$data->listFilter->input();
+		
+		// Ако филтъра е събмитнат
+		if($filter = $data->listFilter->rec){
+			
+			// Филтър по действие
+			if(isset($filter->filterType) && $filter->filterType != 'all'){
+				if($filter->filterType != 'reject' && $filter->filterType != 'restore'){
+					$data->query->where("#type = '{$filter->filterType}'");
+					$data->query->where("#action = 'add'");
+				} else {
+					$data->query->where("#action = '{$filter->filterType}'");
+				}
+			}
+			
+			// Филтър по служители
+			if(isset($filter->filterEmployees)){
+				$data->query->likeKeylist('employees', $filter->filterEmployees);
+			}
+			
+			// Филтър по оборудване
+			if(isset($filter->assets)){
+				$data->query->likeKeylist('fixedAsset', $filter->assets);
+			}
+		}
+		
+		$data->query->orderBy('modifiedOn,id', "DESC");
 	}
 }

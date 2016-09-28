@@ -100,7 +100,8 @@ class trans_plg_LinesPlugin extends core_Plugin
         $exLineId = $rec->lineId;
 
 		$form = cls::get('core_Form');
-		$form->title = 'Промяна на транспорт за|* <b>' . $mvc->getRecTitle($rec) . "</b>";
+		
+		$form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
 		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty,where=#state \\= \\\'active\\\')', 'caption=Транспорт' . ($exLineId?'':''));
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
@@ -189,12 +190,12 @@ class trans_plg_LinesPlugin extends core_Plugin
 			// Ако има изчислен обем
 			if($obj->volume !== NULL){
 				$volume = $p->volume;
-				(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
+				(!$volume) ? $obj->volume = NULL : $obj->volume += $volume;
 			}
 				
 			if($obj->weight !== NULL){
 				$weight = $p->weight;
-				(!$weight) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
+				(!$weight) ? $obj->weight = NULL : $obj->weight += $weight;
 			}
 		}
 	

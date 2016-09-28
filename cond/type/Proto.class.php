@@ -88,4 +88,51 @@ abstract class cond_type_Proto extends core_BaseClass
     	
     	return $type;
     }
+    
+    
+    /**
+     * Обръща подадени опции в подходящ текст за вътрешно съхранение
+     * 
+     * @param array|string $options - масив или текст от опции
+     * @return string               - текстовия вид, в който ще се съхраняват
+     */
+    public static function options2text($options)
+    {
+    	$options = arr::make($options);
+    	expect(count($options));
+    
+    	$opts = '';
+    	foreach ($options as $k => $v){
+    		$opts .= "{$k}={$v}" . PHP_EOL;
+    	}
+    
+    	return trim($opts);
+    }
+    
+    
+    /**
+     * Подготвя опциите на типа от вътрешен формат
+     * 
+     * @param string $text - опциите във вътрешен вид
+     * @return array $res  - обработените опции
+     */
+    public static function text2options($text)
+    {
+    	$res = array();
+    	
+    	if(!empty($text)) {
+    		$options = explode(PHP_EOL, trim($text));
+    		
+    		foreach ($options as $val){
+    			list($k, $v) = explode('=', $val);
+    			if(!isset($v)){
+    				$v = $k;
+    			}
+    			
+    			$res[trim($k)] = trim($v);
+    		}
+    	}
+    
+    	return $res;
+    }
 }

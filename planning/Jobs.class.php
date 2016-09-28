@@ -125,7 +125,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, quantity=Планирано,quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, dueDate, quantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -185,11 +185,12 @@ class planning_Jobs extends core_Master
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
-    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Планирано,mandatory,silent');
-    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
-    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Заскладено,notNull,value=0');
+    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Планирано,mandatory,silent');
+    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
+    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
+    	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структурни звена');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
@@ -312,10 +313,10 @@ class planning_Jobs extends core_Master
     		}
     	}
 
-    	// Бутон за добавяне на документ за бързо производство
+    	// Бутон за добавяне на документ за производство
     	if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
     	}
     }
     
@@ -331,15 +332,11 @@ class planning_Jobs extends core_Master
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
     		
-    		// Колко е транспортното тегло
-    		if($weight = cls::get('cat_Products')->getWeight($rec->productId)){
-    			$rec->brutoWeight = $weight * $rec->quantity;
-    		} else {
-    			$rec->brutoWeight = NULL;
-    		}
+    		$weight = cat_Products::getWeight($rec->productId, NULL, $rec->quantity);
+    		$rec->brutoWeight = ($weight) ? $weight : NULL;
     		
     		// Колко е еденичното тегло
-    		if($weight = cat_Products::getParams($rec->productId, 'weight')){
+    		if($weight = cat_Products::getParams($rec->productId, 'transportWeight')){
     			$rec->weight = $weight * $rec->quantity;
     		} else {
     			$rec->weight = NULL;
@@ -437,6 +434,10 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+    		$row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
+    		$row->captionNotStored = ($canStore == 'yes') ? tr('Незаскладено') : tr('Неизпълнено');
+    		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
     		}
@@ -457,6 +458,15 @@ class planning_Jobs extends core_Master
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
     		}
+    		
+    		if(isset($rec->departments)){
+    			
+    			$row->departments = '';
+    			$departments = keylist::toArray($rec->departments);
+    			foreach ($departments as $dId){
+    				$row->departments .= hr_Departments::getHyperlink($dId, TRUE) . "<br>";
+    			}
+    		}
     	}
     	
     	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
@@ -468,6 +478,16 @@ class planning_Jobs extends core_Master
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		if(isset($rec->dueDate)){
     			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
+    	}
+    	
+    	if($fields['-single']){
+    		if(!$rec->quantityFromTasks){
+    			unset($row->quantityFromTasks, $row->quantityNotStored);
+    			unset($row->captionNotStored);
+    		} else {
+    			$row->measureId2 = $row->measureId;
+    			$row->quantityFromTasksCaption = tr('Произведено');
     		}
     	}
     }
@@ -525,7 +545,7 @@ class planning_Jobs extends core_Master
     			if(empty($rec->productId)){
     				$res = 'no_one';
     			} else {
-    				$productRec = cat_Products::fetch($rec->productId);
+    				$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
     				 
     				// Трябва да е активиран
     				if($productRec->state != 'active'){
@@ -557,7 +577,7 @@ class planning_Jobs extends core_Master
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
     
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")){
+    		if($mvc->fetchField("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')", 'id')){
     			$res = 'no_one';
     		}
     	}
@@ -639,7 +659,19 @@ class planning_Jobs extends core_Master
     public static function on_AfterActivation($mvc, &$rec)
     {
     	// След активиране на заданието, добавяме артикула като перо
-    	cat_Products::forceItem($rec->productId, 'catProducts');
+    	$listId = acc_Lists::fetchBySystemId('catProducts')->id;
+    	acc_Items::force('cat_Products', $rec->productId, $listId);
+    	
+    	// След активиране на заданието, ако е към продажба, форсираме я като разходно перо
+    	if(isset($rec->saleId)) {
+    		if(cat_Products::fetchField($rec->productId, 'canStore') == 'no'){
+    			if(!acc_Items::isItemInList('sales_Sales', $rec->saleId, 'costObjects')){
+    				$listId = acc_Lists::fetchBySystemId('costObjects')->id;
+    				acc_Items::force('sales_Sales', $rec->saleId, $listId);
+    				doc_ExpensesSummary::save((object)array('containerId' => sales_Sales::fetchField($rec->saleId, 'containerId')));
+    			}
+    		}
+    	}
     }
     
     
@@ -672,37 +704,29 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-    	// Записваме действието във историята
-    	$rec = $mvc->fetchRec($id);
-    	self::addToHistory($rec->history, 'rejected', $rec->modifiedOn, $rec->modifiedBy);
-    	$mvc->save($rec, 'history');
-    }
-    
-    
-    /**
-     * След възстановяване
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-    	// Записваме действието във историята
-    	$rec = $mvc->fetchRec($id);
-    	self::addToHistory($rec->history, 'restore', $rec->modifiedOn, $rec->modifiedBy);
-    	$mvc->save($rec, 'history');
-    }
-    
-    
-    /**
      * След промяна на състоянието
      */
-    public static function on_AfterChangeState($mvc, &$rec)
+    public static function on_AfterChangeState($mvc, &$rec, $action)
     {
     	// Записваме в историята действието
-    	self::addToHistory($rec->history, $rec->state, dt::now(), core_Users::getCurrent(), $rec->_reason);
+    	self::addToHistory($rec->history, $action, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
     	$mvc->save($rec, 'history');
+    	
+    	// Ако заданието е затворено, затваряме и задачите към него
+    	if($rec->state == 'closed'){
+    		$count = 0;
+    		$tQuery = planning_Tasks::getQuery();
+    		$tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
+    		while($tRec = $tQuery->fetch()){
+    			$tRec->state = 'closed';
+    			cls::get('planning_Tasks')->save_($tRec, 'state');
+    			$count++;
+    		}
+    		
+    		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
+    	}
+    	
+    	doc_Containers::touchDocumentsByOrigin($rec->containerId);
     }
     
     
@@ -836,7 +860,7 @@ class planning_Jobs extends core_Master
     		$producedQuantity += $prodQuery->fetch()->totalQuantity;
     	}
     	
-    	// Взимаме к-та на произведените артикули по заданието в протокола за бързо производство
+    	// Взимаме к-та на произведените артикули по заданието в протокола за производство
     	$directProdQuery = planning_DirectProductionNote::getQuery();
     	$directProdQuery->where("#originId = {$rec->containerId}");
     	$directProdQuery->where("#state = 'active'");

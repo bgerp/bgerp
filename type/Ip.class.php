@@ -109,12 +109,14 @@ class type_IP extends type_Varchar {
      * 
      * @return boolean
      */
-    static function isPrivate($ip)
+    public static function isPrivate($ip)
     {
         if(strpos($ip, '10.') === 0) return TRUE;
         
         if(strpos($ip, '127.0.0.') === 0) return TRUE;
-        
+ 
+        if($ip == '::1') return TRUE;
+
         if(strpos($ip, '192.168.') === 0) return TRUE;
         
         for($i = 16; $i < 32; $i++) {
@@ -123,12 +125,24 @@ class type_IP extends type_Varchar {
         
         return FALSE;
     }
+
+
+    /**
+     * Връща TRUE, ако IP-то на потребителя е от локалния компютър
+     */
+    public static function isLocal()
+    {
+        $localIpArr = array('::1', '127.0.0.1');
+        $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
+        
+        return $isLocal;
+    }
     
     
     /**
      * Дали посоченото IP е публично
      */
-    static function isPublic($ip)
+    public static function isPublic($ip)
     {
         return !type_Ip::isPrivate($ip);
         

@@ -1,13 +1,14 @@
 <?php 
 
 
+
 /**
  * Шаблони за създаване на етикети
  * 
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -18,115 +19,117 @@ class label_Templates extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Шаблони';
+    public $title = 'Шаблони';
     
     
     /**
-     * 
+     * Еденично заглавие
      */
-    var $singleTitle = 'Шаблон';
+    public $singleTitle = 'Шаблон';
     
     
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/template.png';
+    public $singleIcon = 'img/16/template.png';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'label/tpl/SingleLayoutTemplates.shtml';
+    public $singleLayoutFile = 'label/tpl/SingleLayoutTemplates.shtml';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'label, admin, ceo';
+    public $canRead = 'label, admin, ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'labelMaster, admin, ceo';
+    public $canEdit = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'labelMaster, admin, ceo';
+    public $canAdd = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да създва етикет?
      */
-    var $canCreatelabel = 'label, admin, ceo';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'label, admin, ceo';
+    public $canCreatelabel = 'label, admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'label, admin, ceo';
+    public $canList = 'label, admin, ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'label, admin, ceo';
+	public $canSingle = 'label, admin, ceo';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'labelMaster, admin, ceo';
+    public $canReject = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
+    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, sizes, template=Шаблон, classId, createdOn, createdBy';
-    
-    
-    /**
-     * 
-     */
-    var $rowToolsField = 'id';
+    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy';
 
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
 
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, template, css';
+    public $searchFields = 'title, template, css';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'label_TemplateFormats';
+    public $details = 'label_TemplateFormats';
+    
+    
+    /**
+     * Работен кеш
+     */
+    public static $cache = array();
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sysId';
     
     
 	/**
@@ -139,16 +142,20 @@ class label_Templates extends core_Master
         $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Интерфейс');
         $this->FLD('template', 'html', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
+        $this->FLD('sysId', 'varchar', 'input=none');
+        $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
+        
+        $this->setDbUnique('sysId');
     }
     
     
     /**
-     * 
+     * След подготовка на тулбара за еденичния изглед
      * 
      * @param unknown_type $mvc
      * @param unknown_type $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако имаме права за добавяне на етикет
         if ($mvc->haveRightFor('createlabel', $data->rec->id)) {
@@ -207,11 +214,15 @@ class label_Templates extends core_Master
      */
     public static function getPlaceholders($content)
     {
-        preg_match_all('/\[#([\wа-я]{1,})#\]/ui', $content, $matches);
+        $hash = md5($content);
+    	if(!array_key_exists($hash, static::$cache)){
+    		preg_match_all('/\[#([\wа-я\(\)]{1,})#\]/ui', $content, $matches);
+    		$placesArr = arr::make($matches[1], TRUE);
+    		
+    		static::$cache[$hash] = $placesArr;
+    	}
         
-        $placesArr = arr::make($matches[1], TRUE);
-        
-        return $placesArr;
+    	return static::$cache[$hash];
     }
     
     
@@ -254,7 +265,7 @@ class label_Templates extends core_Master
      * 
      * @return boolean
      */
-    static function isPlaceExistInTemplate($id, $placeHolder)
+    public static function isPlaceExistInTemplate($id, $placeHolder)
     {
         // Вземаме шаблона
         $template = self::getTemplate($id);
@@ -288,7 +299,7 @@ class label_Templates extends core_Master
      * 
      * @return string
      */
-    static function templateWithInlineCSS($template, $css)
+    public static function templateWithInlineCSS($template, $css)
     {
         // Вкарваме темплейта в блок, който после ще отрежим
         $template = '<div id="begin">' . $template . '<div id="end">'; 
@@ -316,13 +327,9 @@ class label_Templates extends core_Master
     
     
     /**
-     * 
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $row
-     * @param unknown_type $rec
+     * След подготовка на вербалното представяне на реда
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Вземаме шаблона с вкарания css
         $row->template = static::templateWithInlineCSS($row->template, $rec->css);
@@ -332,10 +339,10 @@ class label_Templates extends core_Master
  	/**
  	 * Изпълнява се след подготовката на формата за филтриране
  	 * 
- 	 * @param unknown_type $mvc
- 	 * @param unknown_type $data
+ 	 * @param core_Master_type $mvc
+ 	 * @param stdClass $data
  	 */
-    function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Формата
         $form = $data->listFilter;
@@ -405,7 +412,7 @@ class label_Templates extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Добавяме всички възжможни избори за медия
         $sizesArr = label_Media::getAllSizes();
@@ -427,14 +434,33 @@ class label_Templates extends core_Master
         if (!$string || !$placeArr) return $string;
         
         $nArr = array();
+        $placeholders = self::getPlaceholders($string);
+       
+        // Всички плейсхолдъри, подменяме ги с главни букви
+        if(is_array($placeholders)){
+        	$replacePlaceholders = array();
+        	foreach ($placeholders as $p){
+        		$new = mb_strtoupper($p);
+        		$newPlaceholder = self::toPlaceholder($new);
+        		$oldPlaceholder = self::toPlaceholder($p);
+        		$replacePlaceholders[$oldPlaceholder] = $newPlaceholder;
+        	}
+        	
+        	if(count($replacePlaceholders)){
+        		$string = strtr($string, $replacePlaceholders);
+        	}
+        }
         
+        // Заместване на плейсхолдърите със стойностите
         foreach ((array)$placeArr as $key => $val) {
+        	$key = mb_strtoupper($key);
             $key = self::toPlaceholder($key);
             $nArr[$key] = $val;
         }
-        
+       
         $replacedStr = strtr($string, $nArr);
-        
+       
+        // Връщане на заместения стринг
         return $replacedStr;
     }
     
@@ -448,7 +474,6 @@ class label_Templates extends core_Master
      */
     public static function toPlaceholder($str)
     {
-        
         return "[#{$str}#]";
     }
     
@@ -462,7 +487,7 @@ class label_Templates extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако има запис
         if ($rec) {
@@ -518,7 +543,7 @@ class label_Templates extends core_Master
      * @param object $rec
      * @param object $nRec
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
         unset($nRec->state);
         unset($nRec->exState);
@@ -538,7 +563,7 @@ class label_Templates extends core_Master
      * @param object $rec
      * @param object $nRec
      */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
         // Клонира и детайлите след клониране на мастера
         $detailsArr = arr::make($mvc->details);
@@ -553,5 +578,69 @@ class label_Templates extends core_Master
                 $detailInst->save($dRec);
             }
         }
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    function loadSetupData()
+    {
+    	$res = '';
+    	$added = $skipped = $updated = 0;
+    	
+    	// Добавяне на дефолтни шаблони
+    	$templateArr = array('defaultTpl' => 'label/tpl/DefaultLabelBG.shtml', 'defaultTplEn' => 'label/tpl/DefaultLabelEN.shtml');
+    	foreach ($templateArr as $sysId => $tplPath){
+    		$title = ($sysId == 'defaultTpl') ? 'Базов шаблон за етикети' : 'Default label template';
+    		$lang = ($sysId == 'defaultTpl') ? 'bg' : 'en';
+    		
+    		// Ако няма запис
+    		$exRec = self::fetch("#sysId = '{$sysId}'");
+    		
+    		if(!$exRec){
+    			$exRec = new stdClass();
+    			$exRec->sysId = $sysId;
+    			$exRec->title = $title;
+    			core_Classes::add('planning_Tasks');
+    			$exRec->classId = planning_Tasks::getClassId();
+    		}
+    		$exRec->sizes = '100x72 mm';
+    		$exRec->state = 'active';
+    		$exRec->lang = $lang;
+    		
+    		// Ако има промяна в шаблона, ъпдейтва се
+    		$templateHash = md5_file(getFullPath($tplPath));
+    		if(md5($exRec->template) != $templateHash || $exRec->title != $title){
+    			($exRec->id) ? $updated++ : $added;
+    			$exRec->template = getFileContent($tplPath);
+    			
+    			if(isset($exRec->id)){
+    				label_TemplateFormats::delete("#templateId = {$exRec->id}");
+    			}
+    			
+    			core_Users::forceSystemUser();
+    			self::save($exRec);
+    			
+    			// Добавяне на плейсхолдърите
+    			$arr = $this->getPlaceholders($exRec->template);
+    			if(is_array($arr)){
+    				foreach ($arr as $placeholder){
+    					$type = (in_array($placeholder, array('BARCODE', 'preview'))) ? 'html' : 'caption';
+    					$dRec = (object)array('placeHolder' => $placeholder, 'type' => $type, 'templateId' => $exRec->id);
+    					label_TemplateFormats::save($dRec);
+    				}
+    			}
+    			
+    			core_Users::cancelSystemUser();
+    		} else {
+    			$skipped++;
+    		}
+    	}
+    	
+    	$class = ($added > 0 || $updated > 0) ? ' class="green"' : '';
+    	$res = "<li{$class}>Добавени са {$added} шаблона за етикети, обновени са {$updated}, пропуснати са {$skipped}</li>";
+    	 
+    	return $res;
     }
 }

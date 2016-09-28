@@ -161,7 +161,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
-    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     }
 }

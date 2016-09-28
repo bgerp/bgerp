@@ -379,6 +379,14 @@ class vtotal_Checks extends core_Master
         $query->orderBy("#createdOn", "DESC");
         $query->limit(vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"));
         
+        $maxScanLimit = vtotal_Setup::get("MAX_SCAN_OF_FILE");
+        
+        if ($maxScanLimit > 0) {
+            $query->where(array("#timesScanned < '[#1#]'", $maxScanLimit));
+        }
+        
+        $isAvastInstalled = $this->isAvastInstalled();
+        
         while($rec = $query->fetch())
         {
             $result = self::VTGetReport($rec->md5);
@@ -395,7 +403,7 @@ class vtotal_Checks extends core_Master
             } elseif($result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
 
-                if($this->isAvastInstalled()) {
+                if ($isAvastInstalled) {
                     $dQuery = fileman_Data::getQuery();
                     $dRec = $dQuery->fetch($rec->filemanDataId);
                     $dangerRate = $this->AvastSingleFileScan($dRec->path);
@@ -409,8 +417,7 @@ class vtotal_Checks extends core_Master
                         fileman_Files::save($fRec, 'dangerRate');
                     }
                 } else {
-                    if($rec->timesScanned >= 2)
-                    {
+                    if ($maxScanLimit && ($rec->timesScanned >= $maxScanLimit)) {
                         $fQuery = fileman_Files::getQuery();
                         $fQuery->where("#dataId = {$rec->filemanDataId}");
                         while($fRec = $fQuery->fetch())

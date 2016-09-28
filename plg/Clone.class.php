@@ -337,6 +337,7 @@ class plg_Clone extends core_Plugin
     									
     								// Записваме клонирания детайл
     								$Detail->save($dRec);
+    								$Detail->invoke('AfterSaveClonedDetail', array($dRec, $oldRec));
     							} else {
     								$notClones = TRUE;
     							}

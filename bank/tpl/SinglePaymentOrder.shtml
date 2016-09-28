@@ -115,6 +115,14 @@
                         [#amount#]
                     </div>
                 </div>
+                <!--ET_BEGIN sayWords-->
+                <div class='bg_white line'>
+                    <div class='text'>
+                        <span class='pos_abs small_text_top_left'>|С думи|*</span><br>
+                        [#sayWords#]
+                    </div>
+                </div>
+                <!--ET_END sayWords-->
                 <div class='bg_white line'>
                     <div class='text'>
                         <span class='pos_abs small_text_top_left'>|Основание за превод - информация за получателя|*</span><br>

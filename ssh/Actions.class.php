@@ -60,13 +60,13 @@ class ssh_Actions
         // Проверяваме дали е достъпен
         $timeoutInSeconds = 1;
         if (!($fp = @fsockopen($this->host, $this->port, $errCode, $errStr, $timeoutInSeconds))) {
-            throw new core_exception_Expect("{$this->host}: не може да бъде достигнат");
+            throw new core_exception_Expect("@{$this->host}: не може да бъде достигнат");
         }
         fclose($fp);
         
         // Проверяваме има ли ssh2 модул инсталиран
         if (!function_exists('ssh2_connect')) {
-            throw new core_exception_Expect("Липсващ PHP модул: <b>`ssh2`</b>
+            throw new core_exception_Expect("@Липсващ PHP модул: <b>`ssh2`</b>
                 инсталирайте от командна линия с: apt-get install libssh2-php");
         }
         
@@ -126,7 +126,7 @@ class ssh_Actions
         $remoteFileName = basename($localFileName);
         
         if (!ssh2_scp_send($this->connection, $localFileName, $remoteFileName)) {
-            throw new core_exception_Expect("Грешка при качване на файл на отдалечен хост.");
+            throw new core_exception_Expect("@Грешка при качване на файл на отдалечен хост.");
         }
     }
     
@@ -139,11 +139,11 @@ class ssh_Actions
     public function getContents($remoteFileName)
     {
         if (!($localFileName = tempnam(EF_TEMP_PATH, $remoteFileName))) {
-        	throw new core_exception_Expect("Грешка при създаване на временен файл.");
+        	throw new core_exception_Expect("@Грешка при създаване на временен файл.");
         }
         
         if (!ssh2_scp_recv($this->connection, $remoteFileName, $localFileName)) {
-            throw new core_exception_Expect("Грешка при сваляне на файл от отдалечен хост.");
+            throw new core_exception_Expect("@Грешка при сваляне на файл от отдалечен хост.");
         }
         $contents = file_get_contents($localFileName);
         @unlink($localFileName);

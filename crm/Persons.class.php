@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
@@ -216,8 +216,8 @@ class crm_Persons extends core_Master
      * 
      * @var string|array
      */
-    public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards';
+    public $details = 'ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**
@@ -278,7 +278,7 @@ class crm_Persons extends core_Master
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
 
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото,export=Csv');
 
         // В кои групи е?
@@ -729,14 +729,20 @@ class crm_Persons extends core_Master
      * @param crm_Persons $mvc
      * @param array $options
      * @param type_Key $typeKey
+     * @param string $where
      */    
-    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey, $where = '')
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
 	       $mvc->restrictAccess($query);
+	       $query->where("#state != 'rejected'");
 	       
-	       while($rec = $query->fetch("#state != 'rejected'")) {
+	       if (trim($where)) {
+	           $query->where($where);
+	       }
+	       
+	       while($rec = $query->fetch()) {
 	       	   $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
 	       }
        }
@@ -1026,7 +1032,7 @@ class crm_Persons extends core_Master
             	$result->features += $groupFeatures;
             }
             
-            $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
+            $result->features = cond_ConditionsToCustomers::getFeatures($self, $objectId, $result->features);
         }
 
         return $result;
@@ -1082,7 +1088,7 @@ class crm_Persons extends core_Master
         if(crm_Persons::haveRightFor('add') && crm_Companies::haveRightFor('edit', $data->masterId)){
 		    $addUrl = array('crm_Persons', 'add', 'buzCompanyId' => $data->masterId, 'ret_url' => TRUE);
 		    
-		    if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+		    if(!Mode::isReadOnly()){
 		    	$data->addBtn = ht::createLink('', $addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на представител'));
 		    }
         }
@@ -2802,5 +2808,30 @@ class crm_Persons extends core_Master
         if ($oRec = $query->fetch()) {
             $rec->id = $oRec->id;
         }
+    }
+    
+    
+    /**
+     * Лицата от група 'Служители'
+     * 
+     * @return array $options - Опции
+     */
+    public static function getEmployeesOptions()
+    {
+    	$options = $codes = array();
+    	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+    	
+    	$query = self::getQuery();
+    	$query->like("groupList", "|{$emplGroupId}|");
+    	
+    	while($rec = $query->fetch()){
+    		$options[$rec->id] = $val = self::getVerbal($rec, 'name');
+    	}
+    	
+    	if(count($options)){
+    		$options = array('e' => (object)array('group' => TRUE, 'title' => tr('Служители'))) + $options;
+    	}
+    	
+    	return $options;
     }
 }

@@ -33,8 +33,8 @@ class bgerp_iface_DealAggregator
     public function setIfNot($name, $value)
     {
         // Ако няма стойност пропъртито, задаваме му първата стойност
-        if(empty($this->$args[0])){
-            $this->$name = $value;
+        if(empty($this->{$args[0]})){
+            $this->{$name} = $value;
         }
     }
     
@@ -48,7 +48,7 @@ class bgerp_iface_DealAggregator
      */
     public function set($name, $value)
     {
-        $this->$name = $value;
+        $this->{$name} = $value;
     }
     
     
@@ -61,7 +61,7 @@ class bgerp_iface_DealAggregator
     public function get($name)
     {
         // Връщаме стойността на пропъртито
-        return $this->$name;
+        return $this->{$name};
     }
     
     
@@ -75,7 +75,7 @@ class bgerp_iface_DealAggregator
     public function sum($name, $value)
     {
         // Добавяме към стойността на пропъртито
-        $this->$name += $value;
+        $this->{$name} += $value;
     }
     
     
@@ -88,16 +88,16 @@ class bgerp_iface_DealAggregator
     public function push($name, $array, $index = NULL)
     {
         // Ако няма такова пропърти, създаваме го
-        if(!isset($this->$name)){
-            $this->$name = array();
+        if(!isset($this->{$name})){
+            $this->{$name} = array();
         }
         
         if($index){
-            $a = &$this->$name;
+            $a = &$this->{$name};
             $a[$index] = $array;
         } else {
             // Долепяме в края на масива
-            array_push($this->$name, $array);
+            array_push($this->{$name}, $array);
         }
     }
     
@@ -111,11 +111,11 @@ class bgerp_iface_DealAggregator
     public function pushToArray($name, $array, $index)
     {
         // Ако няма такова пропърти, създаваме го
-        if(!isset($this->$name)){
-            $this->$name = array();
+        if(!isset($this->{$name})){
+            $this->{$name} = array();
         }
         
-        $a = &$this->$name;
+        $a = &$this->{$name};
         $a[$index][] = $array;
     }
 }

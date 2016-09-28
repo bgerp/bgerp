@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -56,7 +56,7 @@ class cat_Categories extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи';
+    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи,count=Артикули';
     
     
     /**
@@ -164,7 +164,7 @@ class cat_Categories extends core_Master
     /**
      * Извиква се след подготовката на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$suggestions = cat_UoM::getUomOptions();
     	$data->form->setSuggestions('measures', $suggestions);
@@ -182,7 +182,7 @@ class cat_Categories extends core_Master
         $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като прототипи->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('prefix', 'varchar(64)', 'caption=Настройки - препоръчителни за артикулите в категорията->Начало код');
-        $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Маркери,columns=2');
+        $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Групи,columns=2');
         $this->FLD('params', 'keylist(mvc=cat_Params,select=name,makeLinks)', 'caption=Настройки - препоръчителни за артикулите в категорията->Параметри');
         
         // Свойства присъщи на продуктите в групата
@@ -207,7 +207,7 @@ class cat_Categories extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
@@ -219,10 +219,20 @@ class cat_Categories extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(empty($rec->useAsProto)){
+    		$rec->useAsProto = 'no';
+    		$row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal($rec->useAsProto);
+    	}
+    	
     	if($fields['-list']){
     		$row->name .= " {$row->folder}";
+    		
+    		$count = cat_Products::count("#folderId = '{$rec->folderId}'");
+    		
+    		$row->count = cls::get('type_Int')->toVerbal($count);
+    		$row->count = "<span style='float:right'>{$row->count}</span>";
     	}
     }
     
@@ -258,7 +268,7 @@ class cat_Categories extends core_Master
     /**
      * Изпълнява се преди импортирването на данните
      */
-    public static function on_BeforeImportRec($mvc, &$rec)
+    protected static function on_BeforeImportRec($mvc, &$rec)
     {
     	if($rec->csv_measures){
     		$measures = arr::make($rec->csv_measures, TRUE);
@@ -273,7 +283,7 @@ class cat_Categories extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         $res .= core_Classes::add($mvc);
         
@@ -353,6 +363,28 @@ class cat_Categories extends core_Master
     
     
     /**
+     * Връща папките, в които може да има прототипи
+     * 
+     * @return array $folders
+     */
+    public static function getProtoFolders()
+    {
+    	$folders = array();
+    	
+    	// В кои категории може да има прототипни артикули
+    	$query = self::getQuery();
+    	$query->where("#useAsProto = 'yes'");
+    	$query->show('folderId');
+    	while($cRec = $query->fetch()) {
+    		$folders[$cRec->folderId] = $cRec->folderId;
+    	}
+    	
+    	return $folders;
+    }
+    
+    
+    
+    /**
      * Връща възможните за избор прототипни артикули с дадения драйвер
      * 
      * @param int|NULL $driverId - Ид на продуктов драйвер
@@ -364,12 +396,8 @@ class cat_Categories extends core_Master
     {
     	$opt = $cArr = array();
     	
-    	// В кои категории може да има прототипни артикули
-    	$cQuery = self::getQuery();
-    	$cQuery->show('folderId');
-    	while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
-    		$cArr[] = $cRec->folderId;
-    	}
+    	// Извличаме папките за прототипи
+    	$cArr = static::getProtoFolders();
     	
     	// Ако има такива, извличаме активните артикули със същия драйвер
     	if(count($cArr)) {
@@ -391,11 +419,53 @@ class cat_Categories extends core_Master
     		}
     		
     		while($pRec = $query->fetch()) {
-    			$opt[$pRec->id] = cat_Products::getTitleById($pRec->id, FALSE);
+    			$opt[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
     		}
     	}
     	
     	// Връщаме готовите опции
     	return $opt;
+    }
+    
+    
+    /**
+     * След подготовка на филтъра за филтриране в корицата
+     * 
+     * @param core_mvc $mvc
+     * @param core_Form $threadFilter
+     * @param core_Query $threadQuery
+     */
+    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
+    {
+    	// Добавяме поле за избор на групи
+    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name)', 'caption=Група');
+    	$threadFilter->showFields .= ",group";
+    	$threadFilter->input('group');
+    	
+    	if(isset($threadFilter->rec)){
+    		
+    		// Ако търсим по група
+    		if($group = $threadFilter->rec->group){
+    			$catClass = cat_Products::getClassId();
+    			
+    			// Подготвяме заявката да се филтрират само нишки с начало Артикул
+    			$threadQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
+    			$threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+    			$threadQuery->where("#docClass = {$catClass}");
+    			
+    			// Разпъваме групите
+    			$descendants = cat_groups::getDescendantArray($group);
+    			$keylist = keylist::fromArray($descendants);
+    			
+    			// Намираме ид-та на артикулите от тези групи
+    			$catQuery = cat_Products::getQuery();
+    			$catQuery->likeKeylist("groups", $keylist);
+    			$catQuery->show('id');
+    			$productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
+    			
+    			// Искаме от нишките да останат само тези за въпросните артикули
+    			$threadQuery->in('docId', $productIds);
+    		}
+    	}
     }
 }

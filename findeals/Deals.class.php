@@ -43,7 +43,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone';
     
     
     /**
@@ -97,19 +97,13 @@ class findeals_Deals extends deals_DealBase
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
+    public $listFields = 'detailedName,folderId,state,createdOn,createdBy';
     
     
     /**
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = TRUE;
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -206,6 +200,20 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Документа продажба може да бъде само начало на нишка
+     */
+    public $onlyFirstInThread = TRUE;
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'amountDeal';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -244,7 +252,25 @@ class findeals_Deals extends deals_DealBase
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->setOptions('accountId', acc_Accounts::getOptionsByListInterfaces($mvc->accountListInterfaces));
+    	$options = acc_Accounts::getOptionsByListInterfaces($mvc->accountListInterfaces);
+    	
+    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
+    	$except = arr::make(static::$exceptAccSysIds);
+    	foreach ($except as $sysId){
+    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
+    		unset($options[$accId]);
+    	}
+    	
+    	$form->setOptions('accountId', $options);
+    	
+    	if(count($options) == 2){
+    		$form->setField('accountId', 'input=hidden');
+    		foreach ($options as $key => $opt){
+    			if(!is_object($opt)){
+    				$form->setDefault('accountId', $key);
+    			}
+    		}
+    	}
     }
     
     
@@ -296,19 +322,6 @@ class findeals_Deals extends deals_DealBase
     	 
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
-    	 
-    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
-    	
-    	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
-    	
-    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
-    	$except = arr::make(static::$exceptAccSysIds);
-    	foreach ($except as $sysId){
-    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
-    		unset($options[$accId]);
-    	}
-    	
-    	$form->setOptions('accountId', array('' => '') + $options);
     	
     	return $data;
     }
@@ -372,6 +385,9 @@ class findeals_Deals extends deals_DealBase
     		}
 
     		$row->accountId = acc_Balances::getAccountLink($rec->accountId, NULL, TRUE, TRUE);
+    		if(empty($row->contragentCaption)){
+    			$row->contragentCaption = tr('Контрагент');
+    		}
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -551,7 +567,7 @@ class findeals_Deals extends deals_DealBase
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
     	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
-    	$tpl->append($table->get($data->history, $fields), 'DETAILS');
+    	$tpl->append($table->get($data->history, $fields), 'HISTORY');
     	
     	if($data->pager){
     		$tpl->replace($data->pager->getHtml(), 'PAGER');
@@ -894,10 +910,9 @@ class findeals_Deals extends deals_DealBase
     			// Които са контиращи документи
     			if($desc->haveInterface('acc_TransactionSourceIntf') && $desc->fetchField('state') == 'active'){
     				$date = $desc->getValiorValue();
-    				$pRec = acc_Periods::fetchByDate($date);
     				
     				// И вальора им е в приключен период
-    				if($pRec->state == 'closed'){
+    				if(acc_Periods::isClosed($date)){
     					$handle = $desc->getHandle();
     					
     					// Запомняме ги

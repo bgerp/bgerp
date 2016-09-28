@@ -210,7 +210,7 @@ class doc_UnsortedFolders extends core_Master
     public function description()
     {
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
-        $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
+        $this->FLD('description' , 'richtext(rows=3, passage=Общи)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
         $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
         $this->setDbUnique('name');
@@ -496,7 +496,7 @@ class doc_UnsortedFolders extends core_Master
         		
         		if($timeStart){
         			// ако няма продължителност на задачата
-    	    		if(!$recTask->timeDuration) {
+    	    		if(!$recTask->timeDuration && !$timeEnd) {
     	    			// продължителността на задачата е края - началото
     	    			$timeDuration = 1800;
     	    		} elseif(!$recTask->timeDuration && $timeEnd) {

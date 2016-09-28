@@ -134,6 +134,12 @@ class trz_Orders extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "5.3|Човешки ресурси"; 
+    
+    
+    /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/ordering.png';
 
     
     /**
@@ -274,6 +280,76 @@ class trz_Orders extends core_Master
     
     
     /**
+     * Обновява информацията за командировките в Персонални работни графици
+     */
+    public static function updateOrdersToCustomSchedules($id)
+    {
+        $rec = static::fetch($id);
+    
+        $events = array();
+    
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+    
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+    
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+    
+        // Префикс на ключовете за записите персонални работни цикли
+        $prefix = "ORDER-{$id}";
+    
+        $curDate = $rec->leaveFrom;
+         
+        while($curDate < dt::addDays(1, $rec->leaveTo)){
+            // Подготвяме запис за началната дата
+            if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
+                 
+                $customRec = new stdClass();
+                 
+                // Ключ на събитието
+                $customRec->key = $prefix . "-{$curDate}";
+                 
+                // Дата на събитието
+                $customRec->date = $curDate;
+    
+                // За човек или департамент е
+                $customRec->strukture  = 'personId';
+    
+                // Тип на събитието
+                $customRec->typePerson = 'leave';
+    
+                // За кого се отнася
+                $customRec->personId = $rec->personId;
+    
+                // Документа
+                $customRec->docId = $rec->id;
+    
+                // Класа ан документа
+                $customRec->docClass = core_Classes::getId("trz_Orders");
+    
+                $events[] = $customRec;
+            }
+    
+            $curDate = dt::addDays(1, $curDate);
+        }
+    
+        return hr_CustomSchedules::updateEvents($events, $fromDate, $toDate, $prefix);
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        $mvc->updateOrdersToCustomSchedules($rec->id);
+    }
+    
+    
+    
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
@@ -342,6 +418,7 @@ class trz_Orders extends core_Master
     {
     	return array('crm_PersonAccRegIntf');
     }
+    
     
     /**
      * Метод филтриращ заявка към doc_Folders

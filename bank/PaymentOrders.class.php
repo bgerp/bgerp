@@ -224,6 +224,12 @@ class bank_PaymentOrders extends bank_DocumentBlank
             // Извличаме името на банката и BIC-а на получателя от IBAN-а му
             $row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);
             $row->contragentBankBic = bglocal_Banks::getBankBic($rec->beneficiaryIban);
+
+            $SpellNumber = cls::get('core_SpellNumber');
+            $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', TRUE);
+            
+            $row->sayWords = str_replace('0.0', '', $row->sayWords);
+            $row->sayWords = str_replace('0.', '', $row->sayWords);
         }
     }
 
@@ -276,6 +282,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
         if($data->rec->documentType != "budget") {
             $tpl->removeBlock('budgetBlock');
             $tpl->removeBlock('paymentType');
+            $tpl->removeBlock('sayWords');
         }
     }
 }

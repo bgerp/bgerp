@@ -19,13 +19,13 @@ class hr_WorkingCycles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Графици";
+    var $title = "Цикли";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Работни графици";
+    var $singleTitle = "Работни цикли";
     
     
     /**
@@ -93,6 +93,36 @@ class hr_WorkingCycles extends core_Master
     
     
     /**
+     * Съкращение на видовете дни
+     */
+    static $shiftMap = array(
+        0 => 'п',
+        1 => 'I',
+        2 => 'II',
+        3 => 'н',
+        4 => 'д',
+        5 => 'о',
+        6 => 'б',
+        7 => 'к',
+    );
+    
+    
+    /**
+     * Съкращение на видовете дни, когато интерфейса е на английски
+     */
+    static $shiftMapEn = array(
+        0 => 'r',
+        1 => 'I',
+        2 => 'II',
+        3 => 'n',
+        4 => 'd',
+        5 => 'l',
+        6 => 's',
+        7 => 't',
+    );
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -120,7 +150,7 @@ class hr_WorkingCycles extends core_Master
             $night = 0;
             
             for($j = 0; $j < 7; $j++) {
-                $day = (($i + $j) % $rec->cycleDuration) + 1;
+                $day = (($i + $j) % $rec->cycleDuration) + 1; 
                 $dRec = hr_WorkingCycleDetails::fetch(array("#cycleId = [#1#] AND #day = [#2#]", $rec->id, $day));
                 $night += hr_WorkingCycleDetails::getSection($dRec->start, $dRec->duration, 22 * 60 * 60, 7 * 60 * 60);
             }
@@ -129,6 +159,13 @@ class hr_WorkingCycles extends core_Master
         }
         
         $maxNight = $tTime->toVerbal($maxNight);
+        
+        if (hr_Departments::haveRightFor('single', $rec)) {
+            $url = array('hr_WorkingCycles',"Print", $rec);
+            $efIcon = 'img/16/printer.png';
+            $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");
+            $data->row->print = $link;
+        }
         
         //$data->row->info = "Max night: $maxNight<br>";
     }
@@ -161,39 +198,51 @@ class hr_WorkingCycles extends core_Master
     /**
      * Подготвя локациите на контрагента
      */
-    function prepareGrafic($data)
+    function prepareGrafic($data, $start = NULL)
     {
         
-        expect($data->masterId);
+        expect($data->masterId); 
         $shift = hr_Departments::fetchField($data->masterId, 'schedule');
         
-        if($shift){
-            $name = hr_Departments::fetchField($data->masterId, 'name');
-            $startingOn = hr_Departments::fetchField($data->masterId, 'startingOn');
+        $customScheQuery = hr_CustomSchedules::getQuery();
+        $custom = array();
+        
+        if($data->Cycles) {
+            $customScheQuery->where("#personId = {$data->Cycles->personId} AND #personId IS NOT NULL");
             
+            $shift = hr_Departments::fetchField($data->Cycles->masterId, 'schedule');
+            $startingOn = hr_Departments::fetchField($data->Cycles->masterId, 'startingOn');
+            $name = hr_Departments::fetchField($data->Cycles->masterId, 'name');
+            
+        } else {
+            $customScheQuery->where("#departmenId = {$data->masterId}");
+        
+            $shift = hr_Departments::fetchField($data->masterId, 'schedule');
+            $startingOn = hr_Departments::fetchField($data->masterId, 'startingOn');
+            $name = hr_Departments::fetchField($data->masterId, 'name');
+        }
+        
+        while($customRec = $customScheQuery->fetch()) {
+            $custom[] = (object) $customRec;
+        }
+
+        if($shift){ 
+
             $state = self::getQuery();
             $state->where("#id='{$shift}'");
             $cycleDetails = $state->fetch();
             
-            static $shiftMap = array(
-                0 => 'п',
-                1 => 'I',
-                2 => 'II',
-                3 => 'н',
-                4 => 'д',
-            );
-            
-            static $shiftMapEn = array(
-                0 => 'r',
-                1 => 'I',
-                2 => 'II',
-                3 => 'n',
-                4 => 'd',
-            );
-            
-            $month = Request::get('cal_month', 'int');
-            $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-            $year  = Request::get('cal_year', 'int');
+            if ($start) {
+                 $startTms = dt::mysql2timestamp($start);
+                     
+                    $year = date('Y', $startTms);
+                    $month = date('m', $startTms);
+     
+            } else {
+                $month = Request::get('cal_month', 'int');
+                $month = str_pad($month, 2, 0, STR_PAD_LEFT);
+                $year  = Request::get('cal_year', 'int');
+            }
             
             if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
                 $year = date('Y');
@@ -221,6 +270,7 @@ class hr_WorkingCycles extends core_Master
             } else {
                 $ny = $year;
             }
+            
             $nextMonth = tr(dt::$months[$nm-1]) . " " . $ny;
             
             $nextLink = $prevtLink = getCurrentUrl();
@@ -238,29 +288,30 @@ class hr_WorkingCycles extends core_Master
             
             // Броя на дните в месеца (= на последната дата в месеца);
             $lastDay = date('t', $firstDayTms);
-            
+           
             for($i = 1; $i <= $lastDay; $i++){
                 $daysTs = mktime(0, 0, 0, $month, $i, $year);
                 $date = date("Y-m-d H:i", $daysTs);
                 $d[$i] = new stdClass();
                 
                 $start = explode("-", $startingOn);
-                
-                if($month < $start[1] && $year == $start[0]){
+     
+                if($month < $start[1] && $year == $start[0]) {
                     $d[$i]->html = "";
-                }else{
-                    $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
+                } else { 
+                    $d[$i]->html = "<span style='float: left;'>" . self::$shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
                 }
                 
                 if(core_Lg::getCurrent() == 'en'){
-                    $d[$i]->html = "<span style='float: left;'>" . $shiftMapEn[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
+                    $d[$i]->html = "<span style='float: left;'>" . self::$shiftMapEn[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
                     
                     if($month < $start[1]){
                         $d[$i]->html = "";
                     }
                 }
-                $d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
                 
+                $d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
+              
                 $url = array("cal_Calendar" , "day", "from" => $i . '.' . $month . '.' . $year);
                 $url = toUrl($url);
                 
@@ -269,7 +320,69 @@ class hr_WorkingCycles extends core_Master
             
             $data->TabCaption = tr('График');
             $month = str_pad($month, 2, ' ', STR_PAD_LEFT);
-            
+  
+            if(is_array($custom)) { 
+        
+                foreach($custom as $cRec) {
+                     
+                    if (isset($cRec->typeDepartmen)) {
+                        $typeDate = $cRec->typeDepartmen;
+                    } else {
+                        $typeDate = $cRec->typePerson;
+                    }
+
+                    $dateTms = dt::mysql2timestamp($cRec->date);
+                     
+                    $cYear = date('Y', $dateTms);
+                    $cMonth = date('m', $dateTms);
+                    $cDay = date('d', $dateTms);
+                    
+                    $jDate = date('j', $dateTms);
+
+                    if ($month == $cMonth) {
+                        if ($d[$jDate]) {
+                            switch ($typeDate) {
+                  
+                                case 'working':
+                                    $day = hr_WorkingCycleDetails::getWorkingShiftType($cRec->start, $cRec->duration);
+                                    $hour = gmdate("H:i", $cRec->start);
+                                        
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[$day] .  "   " .  $hour . "</span>";
+                                    $d[$jDate]->type =  $day;
+                                        
+                                    break;
+                                        
+                                case 'nonworking':
+                                        
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[0] . "</span>";
+                                    $d[$jDate]->type = "0";
+
+                                    break;
+                                        
+                                case 'leave':
+                                        
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[5] . "</span>";
+                                    $d[$jDate]->type = "5";
+                                        
+                                    break;
+                                case 'traveling':
+                                        
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[7] . "</span>";
+                                    $d[$jDate]->type = "7";
+                                        
+                                    break;
+                                case 'sicDay':
+                                        
+                                    $d[$jDate]->html = "<span style='float: left;'>" . self::$shiftMap[6] . "</span>";
+                                    $d[$jDate]->type = "6";
+                                        
+                                    break;
+                            } 
+                        }
+                    }
+                }
+            }
+
             return (object) array('year'=>$year,
                 'month'=>$month,
                 'd'=>$d,
@@ -285,7 +398,6 @@ class hr_WorkingCycles extends core_Master
                 'name'=>$name,
                 'year'=> $year,
                 'start'=> $start[1],
-            
             );
         }
     }
@@ -297,7 +409,7 @@ class hr_WorkingCycles extends core_Master
     function renderGrafic($data)
     {
         $prepareRecs = static::prepareGrafic($data);
-        
+  
         $tpl = new ET(getTplFromFile('hr/tpl/SingleLayoutShift.shtml'));
         $tpl->push('hr/tpl/style.css', 'CSS');
         
@@ -320,28 +432,37 @@ class hr_WorkingCycles extends core_Master
                 
                 $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d, $header);
                 $tpl->append($calendar, 'calendar');
-                
-                $url = toUrl(array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year));
-                $title = "<legend class='groupTitle'>" . tr('Работен график') . "</legend>";
-                
-                $tpl->append($url, 'id');
-                $tpl->append($title, 'title');
+
+                // правим url  за принтиране
+                $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year);
+                $efIcon = 'img/16/printer.png';
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $tpl->append($link, 'print');
             }
         }
         
         if(Mode::is('printing')) {
+            $curUrl = getCurrentUrl();
+  
             
             $month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'F',  'bg'), MB_CASE_LOWER, "UTF-8");
-            $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($prepareRecs->name) . tr(" за месец ") . tr($month) . "<br /></b>";
-            $tpl->append($title, 'title');
+            $tpl->content = str_replace("Работен график", "", $tpl->content);
+            
+            if ($curUrl['personId']) {
+                $personName = crm_Persons::fetchField($curUrl['personId'], 'name');
+                $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($personName) . tr(" за месец ") . tr($month) . "<br /></b>";
+            } else {
+                $title = "<b class='printing-title'>" . tr("Работен график на ") . tr($prepareRecs->name) . tr(" за месец ") . tr($month) . "<br /></b>";
+            }
+            $tpl->append($title, 'printTitle');
             
             $calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
             $tpl->append($calendar, 'calendar');
         }
         
-        for($j = 0; $j <= 4; $j++){
-            for($i = 1; $i <= $prepareRecs->lastDay; $i++){
-                if($prepareRecs->d[$i]->type == '0' && '0' == $j && $prepareRecs->month >= $prepareRecs->start){
+        for($j = 0; $j <= 7; $j++){
+            for($i = 1; $i <= $prepareRecs->lastDay; $i++){ 
+                if($prepareRecs->d[$i]->type == '0' && '0' == $j){
                     $tpl->append(' rest', "shift{$j}");
                 } elseif($prepareRecs->d[$i]->type == '1' && '1' == $j){
                     $tpl->append(' first', "shift{$j}");
@@ -351,12 +472,19 @@ class hr_WorkingCycles extends core_Master
                     $tpl->append(' third', "shift{$j}");
                 } elseif($prepareRecs->d[$i]->type == '4' && '4' == $j){
                     $tpl->append(' diurnal', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '5' && '5' == $j){
+                    $tpl->append(' leave', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '6' && '6' == $j){
+                    $tpl->append(' sick', "shift{$j}");
+                } elseif($prepareRecs->d[$i]->type == '7' && '7' == $j){
+                    $tpl->append(' traveling', "shift{$j}");
                 }
             }
         }
-        
+
         return $tpl;
     }
+
     
     /**
      * @todo Чака за документация...
@@ -382,7 +510,7 @@ class hr_WorkingCycles extends core_Master
      */
     static public function getShiftDay($recShift, $date, $startOn)
     {
-        
+ 
         // По кой цикъл работи смяната
         // Кога започва графика на смяната
         $cycle = $recShift->id;
@@ -394,7 +522,7 @@ class hr_WorkingCycles extends core_Master
         
         // В кой ден от цикъла сме
         $dayIs = (dt::daysBetween($date, $startOn) + 1) % $cycleDuration;
-        
+ 
         // Извличане на данните за циклите
         $stateDetails = hr_WorkingCycleDetails::getQuery();
         
@@ -406,7 +534,7 @@ class hr_WorkingCycles extends core_Master
         $cycleDetails = $stateDetails->fetch();
         $dayStart = $cycleDetails->start;
         $dayDuration = $cycleDetails->duration;
-        
+
         return hr_WorkingCycleDetails::getWorkingShiftType($dayStart, $dayDuration);
     }
     
@@ -431,7 +559,7 @@ class hr_WorkingCycles extends core_Master
         
         // Намираме кога започва графика
         $startingOn = hr_Departments::fetchField($masterId, 'startingOn');
-        
+       
         $curDate = $leaveFrom;
         
         // От началната дата до крайната, проверяваме всеки ден
@@ -453,6 +581,66 @@ class hr_WorkingCycles extends core_Master
         
         return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
     }
+
+
+    /**
+     * Изчислява изработените часове по график
+     * 
+     * @param int $schedule - работен цикъл
+     * @param string $from - от дата
+     * @param string $to - до дата
+     * @param string $startingOn - начало на работния график
+     * 
+     * @return StdClass array(workingSecs=>изработените часове по графика в секунди,
+     *                        rest=>почивните дни по графика в часове, 
+     *                        secsPeriod=>периода в секунди)
+     */
+    static public function calcWorkingHoursBySchedule($schedule, $from, $to, $startingOn)
+    {
+        $workingSecs = $rest = $secsPeriod = $allDays =  0;
+
+        $cycleDetails = self::fetch($schedule);
+
+        $curDate = $from;
+        
+        // От началната дата до крайната, проверяваме всеки ден
+        // каква е работната му продължителност
+        while($curDate < dt::addDays(1, $to)){
+            
+            // В кой ден от цикъла сме
+            $dayIs = (dt::daysBetween($curDate, $startingOn) + 1) % $cycleDetails->cycleDuration;
+            
+            // Извличане на данните за циклите
+            $scheduleDetails = hr_WorkingCycleDetails::getQuery();
+            
+            // Подробности за конкретния цикъл
+            $scheduleDetails->where("#cycleId='{$schedule}' AND #day='{$dayIs}'");
+            
+            // Взимаме записа на точно този избран ден от цикъла
+            // Кога за почва режима и с каква продължителност е
+            $details = $scheduleDetails->fetch();
+            $dayStart = $details->start;
+            $dayDuration = $details->duration;
+            $dayBreak = $details->break;
+            
+            // Какъв е типа на деня
+            $dateType = static::getShiftDay($cycleDetails, $curDate, $startingOn);
+            
+            if($dateType == 0) {
+                $rest += 24*60*60;
+            } else {
+                $workingSecs += $dayDuration - $dayBreak;
+            }
+
+            $curDate = dt::addDays(1, $curDate);
+            
+            $allDays++;
+        }
+
+        $secsPeriod = $allDays * (24*60*60);
+        
+        return (object) array('workingSecs'=>$workingSecs, 'rest'=>$rest, 'secsPeriod'=>$secsPeriod);
+    }
     
     
     /**
@@ -461,7 +649,7 @@ class hr_WorkingCycles extends core_Master
     function act_Print()
     {
         $data = new stdClass();
-        $id = Request::get('masterId', 'int');
+        $id = Request::get('masterId', 'int'); 
         $data->masterId  = $id;
         
         if(Mode::is('printing')) {

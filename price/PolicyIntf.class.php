@@ -29,13 +29,15 @@ class price_PolicyIntf
      * @param datetime $date - към коя дата искаме цената
      * @param double $rate - валутен курс
      * @param enum(yes,no,export,separate) $chargeVat - да се начислявали ДДС или не върху цената
+     * @param int|NULL $listId - ценова политика
+     * @param boolean $quotationPriceFirst - Дали първо да търси цена от последна оферта
      * 
      * @return object
      * 			$rec->price  - цена
      * 			$rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
+    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no', $listId = NULL, $quotationPriceFirst = TRUE)
     {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity, $date, $rate, $chargeVat);
+        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity, $date, $rate, $chargeVat, $listId, $quotationPriceFirst);
     }
 }

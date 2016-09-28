@@ -494,4 +494,30 @@ class currency_FinIndexes extends core_Manager {
         $data->toolbar->addBtn('Зареждане EONIA',             array($this, 'loadEoniaCsv'), NULL, 'title= Зареждане на Euro OverNight Index Average');
         $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($this, 'loadSofibidSofiborCsv'), NULL, 'title= Зареждане на Sofia Interbank Bid Rate и Sofia Interbank Offered Rate');
     }
+
+
+    public static function getIndex($name, $period, $date, $force = TRUE)
+    {
+        expect(in_array($name, array('SOFIBOR', 'SOFIBID', 'EONIA', 'EURIBOR'), $name));
+
+        $me = cls::get('currency_FinIndexes');
+        $periodType = $me->getFieldType('period');
+        expect(in_array($period, $periodType->options), $period);
+
+        $res = self::fetchField("#indexName = '{$name}' AND #period = '{$period}' AND #date = '{$date}'", 'indexValue');
+        
+        if(($res === NULL) && $force) {
+            if($name == 'SOFIBOR' || $name == 'SOFIBID') {
+                Request::forward(array('currency_FinIndexes', 'loadSofibidSofiborCsv'));
+            } elseif($name == 'EONIA') {
+                Request::forward(array('currency_FinIndexes', 'loadEoniaCsv'));
+            } elseif($name == 'EURIBOR') {
+                Request::forward(array('currency_FinIndexes', 'loadEuriborCsv'));
+            }
+            
+            $res = $me->getIndex($name, $period, $date, FALSE);
+        }
+
+        return $res;
+    }
 }

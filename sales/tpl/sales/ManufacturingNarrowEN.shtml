@@ -136,46 +136,7 @@
             </ol>
             <!--ET_END conditions-->
             <hr>
-            <table class='no-border paddingCells business-doc-summary-table fright'>
-                <tr class='nowrap'>
-                    <td class="aright">Value :</td>
-                    <td><span class='cCode'>[#currencyId#]</span></td>
-                    <td class="aright"> <b class="lighterBold">[#value#]</b></td>
-                </tr>
-                <!--ET_BEGIN discountValue-->
-                <tr class='nowrap'>
-                    <td class="aright">Discount :</td>
-                    <td><span class='cCode'>[#discountCurrencyId#]</span></td>
-                    <td class="aright"><b class="lighterBold">[#discountValue#]</b></td>
-                </tr>
-                <!--ET_END discountValue-->
-                <!--ET_BEGIN neto-->
-                <tr class='nowrap'>
-                    <td class="aright">Netto :</td>
-                    <td><span class='cCode'>[#netoCurrencyId#]</span></td>
-                    <td class="aright"><b class="lighterBold">[#neto#]</b></td>
-                </tr>
-                <!--ET_END neto-->
-                <!--ET_BEGIN baseAmount-->
-                <tr class='nowrap'>
-                    <td class="aright">Tax base :</td>
-                    <td><span class='cCode'>[#baseCurrencyId#]</span></td>
-                    <td class="aright"><b class="lighterBold">[#baseAmount#]</b></td>
-                </tr>
-                <!--ET_END baseAmount-->
-                <!--ET_BEGIN vatAmount-->
-                <tr class='nowrap'>
-                    <td class="aright">VAT <b>[#vat#]</b> :</td>
-                    <td><span class='cCode'>[#vatCurrencyId#]</span></td>
-                    <td class="aright"><b class="lighterBold">[#vatAmount#]</b></td>
-                </tr>
-                <!--ET_END vatAmount-->
-                <tr class='nowrap'>
-                    <td class="aright">Total :</td>
-                    <td><span class='cCode'>[#currencyId#]</span></td>
-                    <td class="aright"><b>[#total#]</b></td>
-                </tr>
-            </table>
+            [#/deals/tpl/DocumentPiceInfo.shtml#]
             <div class="clearfix21"></div>
             <hr>
             <!--ET_BEGIN responsible-->

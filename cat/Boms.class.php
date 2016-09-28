@@ -144,6 +144,13 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Искаме ли в листовия филтър да е попълнен филтъра по дата
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterAutoDate = FALSE;
+    
+    
+    /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'cat,ceo';
@@ -394,7 +401,7 @@ class cat_Boms extends core_Master
     		if(empty($rec->productId)){
     			$res = 'no_one';
     		} else {
-    			$productRec = cat_Products::fetch($rec->productId);
+    			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
     			
     			// Трябва да е активиран
     			if($productRec->state != 'active'){
@@ -423,7 +430,7 @@ class cat_Boms extends core_Master
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
     	} elseif($action == 'activate' && isset($rec->id)){
-    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}"))){
+    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id'))){
     			$res = 'no_one';
     		}
     	}
@@ -499,7 +506,7 @@ class cat_Boms extends core_Master
     			
     			$row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
     		
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $rec->state != 'rejected'){
+    			if(!Mode::isReadOnly() && $rec->state != 'rejected'){
     				$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
     			}
     		}
@@ -564,6 +571,7 @@ class cat_Boms extends core_Master
     		$dQuery = cat_BomDetails::getQuery();
     		$dQuery->where("#bomId = {$res->id}");
     		$dQuery->where("#type = 'input'");
+    		$dQuery->show('id');
     		
     		if(!$dQuery->count()){
     			core_Statuses::newStatus('Рецептатата не може да се активира, докато няма поне един вложим ресурс', 'warning');
@@ -792,6 +800,10 @@ class cat_Boms extends core_Master
     		}
     	}
     	 
+    	if(Mode::isReadOnly()){
+    		$data->hideToolsCol = TRUE;
+    	}
+    	
     	$masterInfo = cat_Products::getProductInfo($data->masterId);
     	if(!isset($masterInfo->meta['canManifacture'])){
     		$data->notManifacturable = TRUE;
@@ -826,7 +838,7 @@ class cat_Boms extends core_Master
     	 $title = tr('Технологични рецепти');
     	 $tpl->append($title, 'title');
     	 
-    	 if(isset($data->addUrl)){
+    	 if(isset($data->addUrl) && !Mode::isReadOnly()){
     	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова търговска технологична рецепта');
     	 	$tpl->append($addBtn, 'title');
     	 }
@@ -892,19 +904,16 @@ class cat_Boms extends core_Master
     public static function getProductParams($productId)
     {
     	$res = array();
-    	 
     	$params = cat_Products::getParams($productId);
+    	
     	if(is_array($params)){
-    		foreach ($params as $paramName => $value){
+    		foreach ($params as $paramId => $value){
     			if(!is_numeric($value)) continue;
-    
-    			$key = mb_strtolower($paramName);
-    			$key = preg_replace("/\s+/", "_", $key);
-    			$key = "$" . $key;
+    			$key = "$" . cat_Params::getNormalizedName($paramId);
     			$res[$key] = $value;
     		}
     	}
-    
+    	
     	if(count($res)){
     		return array($productId => $res);
     	}
@@ -964,32 +973,6 @@ class cat_Boms extends core_Master
     	}
     	
     	return $scope;
-    }
-    
-    
-    /**
-     * Връща допустимите параметри за формулите
-     *
-     * @param stdClass $rec - запис
-     * @return array - допустимите параметри с техните стойностти
-     */
-    public static function getRowParams($productId)
-    {
-    	$res = array();
-    	
-    	$params = cat_Products::getParams($productId);
-    	if(is_array($params)){
-    		foreach ($params as $paramName => $value){
-    			if(!is_numeric($value)) continue;
-    
-    			$key = mb_strtolower($paramName);
-    			$key = preg_replace("/\s+/", "_", $key);
-    			$key = "$" . $key;
-    			$res[$key] = $value;
-    		}
-    	}
-    
-    	return $res;
     }
     
     
@@ -1097,7 +1080,7 @@ class cat_Boms extends core_Master
     	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
     	if($rQuantity != cat_BomDetails::CALC_ERROR){
     		
-    		// Искаме количеството да е за еденица, не за опаковка
+    		// Искаме количеството да е за единица, не за опаковка
     		$rQuantity *= $rec->quantityInPack;
     	}
     	
@@ -1137,7 +1120,7 @@ class cat_Boms extends core_Master
     			}
     		} else {
     			// Ако не е търсим най-подходящата цена за рецептата
-    			$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+    			$price = self::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
     		}
     		
     		// Записваме намерената цена
@@ -1176,7 +1159,7 @@ class cat_Boms extends core_Master
     		while($dRec = $query->fetch()){
     			
     			// Опитваме се да намерим цената му
-    			$dRec->primeCost = static::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
+    			$dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
     			
     			// Ако няма цена връщаме FALSE
     			if($dRec->primeCost === FALSE){
@@ -1275,7 +1258,7 @@ class cat_Boms extends core_Master
     			self::pushParams($params, $pushParams);
     			
     			// Опитваме се да намерим себестойността за основното количество
-    			$rowCost1 = static::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
+    			$rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
     			
     			// Ако няма връщаме FALSE
     			if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
@@ -1284,13 +1267,13 @@ class cat_Boms extends core_Master
     			if($minDelta != $maxDelta){
     				
     				$params['$T'] = $t1;
-    				$rowCost1 = static::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
+    				$rowCost1 = self::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
     				
     				if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost1 += $rowCost1;
     					
     				$params['$T'] = $t2;
-    				$rowCost2 = static::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
+    				$rowCost2 = self::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
     				if($rowCost2 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost2 += $rowCost2;
     				
@@ -1436,8 +1419,6 @@ class cat_Boms extends core_Master
     			if($quantityS == cat_BomDetails::CALC_ERROR){
     				$quantityS = 0;
     			}
-    			
-    			$quantityS = $quantityS;
     			
     			$place = ($cRec->type == 'pop') ? 'waste' : 'input';
     			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);

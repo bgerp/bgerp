@@ -284,30 +284,7 @@ class cms_Articles extends core_Master
             $rec->menuId = $menuId;
             $lArr = array('a', 'a', 'a');
 
-            $query1 = self::getQuery();
-            $query1->where("#menuId = {$menuId} AND #state = 'active'");
-
-            plg_Search::applySearch($q, $query1);
-
-
-            $q1 = type_Varchar::escape($q);
-            $content->append("<h1 style='margin-top:0'>Търсене на \"{$q1}\"</h1>");
-            
-            while($r = $query1->fetch()) {
-                $title = str::cut($r->body, '[h1]', '[/h1]');
-                if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
-                    $title = $r->title;
-                }
-                $title = type_Varchar::escape($title);
-                $url = self::getUrl($r);
-                $url['q'] = $q;
-                $title = ht::createLink($title, $url);
-                $content->append("<h3>" . $title . "</h3>");
-            }
-
-            if(!$title) {
-                $content->append("<p><i>" . tr("Няма намерени резултати") . "</i></p>");
-            }
+            $content->append(cms_Content::renderSearchResults($menuId, $q));
 
             vislog_History::add("Търсене в статиите: {$q}");
         }  
@@ -382,6 +359,9 @@ class cms_Articles extends core_Master
             $navData->links[] = $l;
         }
         
+        $navData->searchCtr = 'cms_Articles';
+        $navData->searchAct = 'Article';
+
         // Оцветяваме ако има търсене
         if($q && isset($rec->id)) {
             plg_Search::highlight($content, $q, 'searchContent');
@@ -397,7 +377,8 @@ class cms_Articles extends core_Master
         if($cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }
-              expect($rec);  
+        
+        expect($rec);  
         // SEO
         if(is_object($rec) && !$rec->seoTitle) {
             $rec->seoTitle = self::getVerbal($rec, 'title');
@@ -480,10 +461,13 @@ class cms_Articles extends core_Master
             $navTpl->append( "</div>");
         }
         
-        if($data->menuId > 0 && self::count("#menuId = {$data->menuId}") > 10) {
+        if($data->menuId > 0 && ($data->searchCtr) ) {
+            if(!$data->q) {
+                $data->q = Request::get('q');
+            }
             $searchForm = cls::get('core_Form', array('method' => 'GET'));
             $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
-            $searchForm->layout->replace(toUrl(array('cms_Articles', 'Article')), 'ACTION');
+            $searchForm->layout->replace(toUrl(array($data->searchCtr, $data->searchAct)), 'ACTION');
             $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
             $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
             $searchForm->setHidden('menuId', $data->menuId);
@@ -640,6 +624,71 @@ class cms_Articles extends core_Master
         unset($url['PU']);
 
         return $url;
+    }
+
+
+    /**
+     * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
+     */
+    static function getSearchResults($menuId, $q, $maxResults = 15)
+    {
+        $queryM = self::getQuery();
+        $queryM->where("#menuId = {$menuId} AND #state = 'active'");
+        $queryM->limit($maxResults);
+        $queryM->orderBy('modifiedOn=DESC');
+        $res = array();
+        
+        $query = clone($queryM);
+        plg_Search::applySearch($q, $query, NULL, 5, 64);
+
+        while($r = $query->fetch()) {
+            $title = str::cut($r->body, '[h1]', '[/h1]');
+            if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
+                $title = $r->title;
+            }
+
+            $url = self::getUrl($r);
+            $url['q'] = $q;
+
+            $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+        }
+
+        if(count($res) < $maxResults) {
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query, NULL, 9);
+  
+            while($r = $query->fetch()) {
+                $title = str::cut($r->body, '[h1]', '[/h1]');
+                if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
+                    $title = $r->title;
+                }
+
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
+        }
+
+
+        if(count($res) < $maxResults) {
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query, NULL, 3);
+  
+            while($r = $query->fetch()) {
+                $title = str::cut($r->body, '[h1]', '[/h1]');
+                if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
+                    $title = $r->title;
+                }
+
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
+        }
+ 
+        return $res; 
     }
 
 

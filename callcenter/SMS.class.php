@@ -78,7 +78,7 @@ class callcenter_SMS extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows, callcenter_ListOperationsPlg, plg_Modified';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows, callcenter_ListOperationsPlg, plg_Modified';
     
     
     /**
@@ -108,13 +108,7 @@ class callcenter_SMS extends core_Master
     /**
      * 
      */
-    var $listFields = 'singleLink=-, mobileNumData, mobileNum, createdBy=Информация->От, createdOn=Информация->Дата, service=Информация->Услуга, sender=Информация->Титла, receivedTime=Информация->Получено на, text';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsField = 'singleLink';
+    var $listFields = 'mobileNumData, mobileNum, createdBy=Информация->От, createdOn=Информация->Дата, service=Информация->Услуга, sender=Информация->Титла, receivedTime=Информация->Получено на, text';
     
     
     /**
@@ -632,7 +626,7 @@ class callcenter_SMS extends core_Master
         
         // Ако има данни за търсещия
         if ($rec->mobileNumData) {
-         
+            
             // Вземаме записа
             $numRec = callcenter_Numbers::fetch($rec->mobileNumData);
             
@@ -653,6 +647,8 @@ class callcenter_SMS extends core_Master
         // Ако флага не е дигнат
         if (!$haveExternalData) {
             
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            
             // Ако има номер
             if ($rec->mobileNum) {
                 
@@ -660,7 +656,7 @@ class callcenter_SMS extends core_Master
                 $uniqId = $rec->id . 'mobileTo';
                 
                 // Добавяме линка
-                $row->mobileNumData = self::getTemplateForAddNum($rec->mobileNum, $uniqId);
+                callcenter_Talks::getTemplateForAddNum($row->_rowTools, $rec->mobileNum, $uniqId);
             }
         }
         
@@ -716,58 +712,8 @@ class callcenter_SMS extends core_Master
         if (mode::is('screenMode', 'narrow')) {
             
             // Променяме полетата, които ще се показват
-            $data->listFields = arr::make('singleLink=-, mobileNum=Получател, sender=Информация->Титла, service=Информация->Услуга, receivedTime=Информация->Получено на');
+            $data->listFields = arr::make('mobileNum=Получател, sender=Информация->Титла, service=Информация->Услуга, receivedTime=Информация->Получено на');
         }
-    }
-    
-    
-    /**
-     * Връща стринг с линкове за добавяне на номера във фирма, лица или номера
-     * 
-     * @param string $num - Номера, за който се отнася
-     * @param string $uniqId - Уникално id
-     * 
-     * @return string - Тага за заместване
-     */
-    static function getTemplateForAddNum($num, $uniqId)
-    {
-        $companiesAttr = array();
-        
-        $personsAttr = array();
-        
-        // Аттрибути за стилове 
-        $companiesAttr['title'] = 'Нова фирма';
-        
-        // Икона на фирмите
-        $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
-        
-        // Добавяме линк към създаване на фирми
-        $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
-        
-        // Аттрибути за стилове 
-        $personsAttr['title'] = 'Ново лице';
-        
-        // Икона на изображенията
-        $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
-        
-        // Добавяме линк към създаване на лица
-        $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', 'mobile' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
-        
-        // Ако сме в мобилен режим
-        if (mode::is('screenMode', 'narrow')) {
-            
-            // Не се добавя JS
-            $res = "<div id='{$uniqId}'>{$text}</div>";
-        } else {
-            
-            // Ако не сме в мобилен режим
-            
-            // Скриваме полето и добавяме JS за показване
-            $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
-        		<div style='visibility:hidden;' id='{$uniqId}'>{$text}</div></div>";
-        }
-        
-        return $res;
     }
     
     

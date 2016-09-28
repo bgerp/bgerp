@@ -2,15 +2,13 @@
 
 
 /**
- * Складове
- *
  * Мениджър на складове
  *
  *
  * @category  bgerp
  * @package   store
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -39,37 +37,19 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified';
-    
-    
-    /**
-     * Кой може да пише
-     */
-    public $canCreatenewfolder = 'ceo, storeWorker';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,storeWorker';
-    
-    
-    /**
-     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
-     */
-    public $coverMasterRoles = 'ceo, storeMaster';
+    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,storeMaster';
+    public $canEdit = 'ceo,admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,storeMaster';
+    public $canAdd = 'ceo,admin';
     
     
     /**
@@ -81,13 +61,13 @@ class store_Stores extends core_Master
 	/**
 	 * Кой може да пише
 	 */
-	public $canReject = 'ceo, storeMaster';
+	public $canReject = 'ceo, admin';
 	
 	
 	/**
 	 * Кой може да пише
 	 */
-	public $canRestore = 'ceo, storeMaster';
+	public $canRestore = 'ceo, admin';
 	
 	
 	/**
@@ -139,12 +119,6 @@ class store_Stores extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'ceo,storeMaster';
-    
-    
-    /**
      * Да се създаде папка при създаване на нов запис
      */
     public $autoCreateFolder = 'instant';
@@ -153,31 +127,27 @@ class store_Stores extends core_Master
     /**
      * Кой може да пише
      */
-    public $canWrite = 'ceo,store';
-    
-    
-    /**
-	 * Кой може да селектира всички записи
-	 */
-	public $canSelectAll = 'ceo,storeMaster';
+    public $canWrite = 'ceo, admin';
 	
 	
    /**
-	* Кой може да селектира?
+	* Кой може да активира?
 	*/
-	public $canSelect = 'ceo,storeWorker';
+	public $canActivate = 'ceo, store';
     
     
     /**
-	 * Кое поле отговаря на кой работи с даден склад
-	 */
-	public $inChargeField = 'chiefs';
+     * Поле за избор на потребителите, които могат да активират обекта
+     *
+     * @see bgerp_plg_FLB
+     */
+    public $canActivateUserFld = 'chiefs';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name, chiefs';
+    public $listFields = 'name, chiefs,activateRoles,selectUsers,selectRoles';
     
     
     /**
@@ -211,9 +181,9 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Отговорници,mandatory');
-        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');
-        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
+        $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
+        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
+        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
     	$this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
@@ -287,13 +257,11 @@ class store_Stores extends core_Master
     {
         // @todo!
     }
-    
-    
+
+
     /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     * След показване на едит формата
      */
-
-
 	protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
 	{
 		$company = crm_Companies::fetchOwnCompany();

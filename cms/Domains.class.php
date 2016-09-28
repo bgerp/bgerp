@@ -256,6 +256,10 @@ class cms_Domains extends core_Embedder
                 }
             }
         }
+        
+        if (!$domainRec || ($part == 'id' && !$domainRec->{$part})) {
+            wp($domainRec);
+        }
               
         if($part) {
  

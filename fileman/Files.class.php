@@ -1388,9 +1388,6 @@ class fileman_Files extends core_Master
             $attr['title'] = $name;
         }
 
-        //Инстанция на класа
-        $FileSize = cls::get('fileman_FileSize');
-        
         // Титлата пред файла в plain режим
         $linkFileTitlePlain = tr('Файл') . ": ";
         
@@ -1410,12 +1407,6 @@ class fileman_Files extends core_Master
                 $link = "{$linkFileTitlePlain}$name ( $url )";
             } else {
                 
-                //Големината на файла в байтове
-                $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
-                
-                //Преобразуваме големината на файла във вербална стойност
-                $size = $FileSize->toVerbal($fileLen);
-                
                 if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
                         
                     // Линка да се отваря на нова страница
@@ -1428,12 +1419,6 @@ class fileman_Files extends core_Master
                         $attr['class'] .= ' dangerFile';
                     }
                 }
-                
-                //Заместваме &nbsp; с празен интервал
-                $size =  str_ireplace('&nbsp;', ' ', $size);
-                    
-                //Добавяме към атрибута на линка информация за размера
-                $attr['title'] .= ($attr['title'] ? "\n" : '') . "|Размер|*: {$size}";
                 
                 $attr['rel'] = 'nofollow';
                 
@@ -1560,24 +1545,31 @@ class fileman_Files extends core_Master
     	$urlPreview['#'] = 'fileDetail';
     
     	$tpl = new core_ET();
-    	$preview = ht::createBtn('Преглед', $urlPreview, NULL, NULL,  array('ef_icon' => $icon, 'title' => 'Преглед на файла'));
+    	$preview = ht::createLink(tr('Преглед'), $urlPreview, NULL, array('ef_icon' => $icon, 'title' => 'Преглед на файла', "class" => "button"));
     	$tpl->append($preview);
-    
+        
     	// Вземаме линка към сингъла на файла таб информация
     	$url = array('fileman_Files', 'single', $fh);
     	$url['currentTab'] = 'info';
     	$url['#'] = 'fileDetail';
-    	$infoBtn = ht::createBtn('Информация', $url, NULL, NULL,  array('ef_icon' => 'img/16/info-16.png', 'title' => 'Информация за файла'));
+    	$infoBtn = ht::createLink(tr('Информация'), $url, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Информация за файла', "class" => "button"));
     	$tpl->append($infoBtn);
-    
-    
-    	$linkBtn = ht::createBtn('Линк', array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => TRUE), NULL, NULL, array('ef_icon' => 'img/16/link.png', 'title'=> 'Генериране на линк за сваляне'));
+        
+    	$fileLen = '';
+    	if ($fRec->fileLen) {
+    	    $FileSize = cls::get('fileman_FileSize');
+    	    Mode::push('text', 'plain');
+    	    $fileLen .= ' '. $FileSize->toVerbal($fRec->fileLen);
+    	    Mode::pop('text');
+    	}
+    	
+    	$linkBtn = ht::createLink(tr('Линк'), array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/link.png', 'title'=> 'Генериране на линк за сваляне', "class" => "button"));
     	$tpl->append($linkBtn);
-    
+        
     	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
-    	$download  =  ht::createBtn('Сваляне', $downloadUrl, NULL, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла'));
+    	$download  =  ht::createLink(tr('Сваляне') . " " . $fileLen, $downloadUrl, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла', "class" => "button"));
     	$tpl->append($download);
-    
+
     	// Ако сме в AJAX режим
     	if(Request::get('ajax_mode')) {
     		$resObj = new stdClass();

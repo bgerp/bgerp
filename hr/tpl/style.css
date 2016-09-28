@@ -70,3 +70,15 @@ table.mc-calendar td.diurnal span,
 .cal-legend td.diurnal {
   color: #770ea3; }
 
+table.mc-calendar td.leave span,
+.cal-legend td.leave {
+  color: darkcyan; }
+
+table.mc-calendar td.sick span,
+.cal-legend td.sick {
+  color: olive; }
+
+table.mc-calendar td.traveling span,
+.cal-legend td.traveling {
+  color: goldenrod; }
+

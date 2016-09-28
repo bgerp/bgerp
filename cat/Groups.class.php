@@ -20,115 +20,97 @@ class cat_Groups extends core_Manager
 	/**
      * Заглавие
      */
-    var $title = "Маркери на артикулите";
+    public $title = "Групи на артикулите";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Каталог";
+    public $pageMenu = "Каталог";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,productCnt,orderProductBy';
+    public $listFields = 'id,name,productCnt,orderProductBy';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'name';
+    public $searchFields = 'sysId, name, productCnt';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кои полета да се сумират за наследниците
      */
-    var $fieldsToSumOnChildren = 'productCnt';
+    public $fieldsToSumOnChildren = 'productCnt';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Маркер";
+    public $singleTitle = "Маркер";
     
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'cat,ceo';
+    public $canRead = 'cat,ceo';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'cat,ceo';
+    public $canEditsysdata = 'cat,ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'cat,ceo,sales,purchase';
+    public $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'cat,ceo,sales,purchase';
+    public $canSingle = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'cat,ceo';
+    public $canWrite = 'cat,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'cat,ceo';
-    
-    
-    /**
-     * Клас за елемента на обграждащия <div>
-     */
-    var $cssClass = 'folder-cover';
-    
-    
-    /**
-     * Нов темплейт за показване
-     */
-    var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    public $canDelete = 'cat,ceo';
     
     
     /**
@@ -149,9 +131,25 @@ class cat_Groups extends core_Manager
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2,input=none');
         
-        
         $this->setDbUnique("sysId");
-        $this->setDbUnique("name");
+        $this->setDbIndex('parentId');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		$condition = "#name = '[#1#]' AND #id != '{$rec->id}' AND ";
+    		$condition .= isset($rec->parentId) ? "#parentId = {$rec->parentId}" : " #parentId IS NULL";
+    		
+    		if($mvc->fetchField(array($condition, $rec->name))){
+    			$form->setError('name,parentId', 'Вече съществува запис със същите данни');
+    		}
+    	}
     }
     
     
@@ -162,7 +160,7 @@ class cat_Groups extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
@@ -189,13 +187,10 @@ class cat_Groups extends core_Manager
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        //$row->productCnt = intval($rec->productCnt);
-        
         if($fields['-list']){
-            //$row->name .= " ({$row->productCnt})";
-            $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'groupId' => $rec->id));
+            $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), FALSE, "title=Филтър на|* \"{$row->name}\"");
         }
     }
     
@@ -209,21 +204,43 @@ class cat_Groups extends core_Manager
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
         	$requiredRoles = 'no_one';
         }
+        
+        if($action == 'edit' && $rec->sysId){
+        	$requiredRoles = 'no_one';
+        }
     }
     
     
+    /**
+     * Преди импорт на записи
+     */
+    protected static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	// Ако е зададен баща опитваме се да го намерим
+    	if(isset($rec->csv_parentId)){
+    		if($parentId = $mvc->fetchField(array("#name = '[#1#]'", $rec->csv_parentId), 'id')){
+    			$rec->parentId = $parentId;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След обновяване на модела
+     */
     protected static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cat/csv/Groups.csv";
     	$fields = array(
     			0 => "name",
     			1 => "sysId",
+    			2 => 'csv_parentId',
     	);
     
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
@@ -234,7 +251,7 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Връща кейлист от систем ид-та на маркерите
+     * Връща кейлист от систем ид-та на групите
      * 
      * @param mixed $sysIds - масив със систем ид-та
      * @return string
@@ -251,5 +268,64 @@ class cat_Groups extends core_Manager
     	}
     	
     	return $kList;
+    }
+
+
+    /**
+     * Форсира група (маркер) от каталога
+     *
+     * @param   string  $name       Име на групата. Съдържа целия път
+     * @param   int     $parentId   Id на родител
+     * @param   boolean $force 
+     *
+     * @return  int|NULL            id на групата
+     */
+    public static function forceGroup($name, $parentId = NULL, $force = TRUE)
+    {  
+        static $groups = array();
+        
+        $parentIdNumb = (int) $parentId;
+
+        if(!($res = $groups[$parentIdNumb][$name])) {
+            
+            if(strpos($name, '»')) {
+                $gArr = explode('»', $name);
+                foreach($gArr as $gName) {
+                    $gName = trim($gName);
+                    $parentId = self::forceGroup($gName, $parentId, $force);
+                }
+
+                $res = $parentId;
+            } else {
+
+                if($parentId === NULL) {
+                   $cond = "AND #parentId IS NULL";
+                } else {
+                    expect(is_numeric($parentId), $parentId);
+
+                    $cond = "AND #parentId = {$parentId}";
+                }
+                
+                $gRec = cat_Groups::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
+
+                if(isset($gRec->name)) {
+                    $res = $gRec->id;
+                } else {
+                    if ($force) {
+                        $gRec = (object) array('name' => $name, 'orderProductBy' => 'code', 'meta' => 'canSell,canBuy,canStore,canConvert,canManifacture', 'parentId' => $parentId);
+                        
+                        cat_Groups::save($gRec);
+                        
+                        $res = $gRec->id;
+                    } else {
+                        $res = NULL;
+                    }
+                }
+            }
+
+            $groups[$parentIdNumb][$name] = $res;
+        } 
+ 
+        return $res;
     }
 }

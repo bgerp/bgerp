@@ -216,9 +216,9 @@ class deals_OpenDeals extends core_Manager {
 	    	foreach (array('Deal', 'Paid', 'Delivered') as $name){
 	    		$field = "amount{$name}";
 		    	
-	    		$row->$field = $mvc->getFieldType($field)->toVerbal($rec->$field / $docRec->currencyRate);
-		    	if(empty($rec->$field)){
-		    		$row->$field = "<span class='quiet'>{$row->$field}</span>";
+	    		$row->{$field} = $mvc->getFieldType($field)->toVerbal($rec->{$field} / $docRec->currencyRate);
+		    	if(empty($rec->{$field})){
+		    		$row->{$field} = "<span class='quiet'>{$row->{$field}}</span>";
 		    	}
 	    	}
 	    	

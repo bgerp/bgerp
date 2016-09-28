@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -16,6 +16,8 @@
  */
 class purchase_transaction_Service extends acc_DocumentTransactionSource
 {
+	
+	
     /**
      * 
      * @var purchase_Services
@@ -66,73 +68,53 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     
     
     /**
-     * Записите на транзакцията
+     * Генериране на записите от тип за изпълнение на услуги (ако има)
+     * 
+     *    Dt: 60201. Разходи за (нескладируеми) услуги и консумативи    (Разходни обекти, Артикули)
+     *    
+     *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      */
     public function getEntries($rec, $origin, $reverse = FALSE)
     {
     	$entries = array();
     	$sign = ($reverse) ? -1 : 1;
+    	$dClass = ($reverse) ? 'sales_ServicesDetails' : 'purchase_ServicesDetails';
     	
     	if(count($rec->details)){
     		deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
 			$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
 			
     		foreach ($rec->details as $dRec) {
-    			$pInfo = cat_Products::getProductInfo($dRec->productId);
-    			$transfer = FALSE;
     			
-    			if(isset($pInfo->meta['fixedAsset'])){
-    				$reason = 'Приети ДА';
-    				$debitArr = array('613', array('cat_Products', $dRec->productId),
-    									'quantity' => $dRec->quantity,);
-    			} else {
-    				$transfer = TRUE;
-    				$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
-    				
-    				$debitArr = array(
-    							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
-    							array('hr_Departments', $centerId),
-    							array('cat_Products', $dRec->productId), // Перо 1 - Артикул
-    							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
-    					);
-    				$reason = 'Приети услуги и нескладируеми консумативи';
-    			}
-    	
-    			$amount = $dRec->amount;
-    			$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
-    			$amount = round($amount, 2);
+    			// Към кои разходни обекти ще се разпределят разходите
+    			$splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $dRec->id, $dRec->productId, $dRec->quantity, $dRec->amount, $dRec->discount);
     			
-    			$entries[] = array(
-    					'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
-    					'debit' => $debitArr,
-    					'credit' => array(
-    							$rec->accountId, 
-    							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-    							array($origin->className, $origin->that),			// Перо 2 - Сделка
-    							array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-    							'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
-    					),
-    					'reason' => $reason,
-    			);
-    			
-    			// Ако сме дебитирали 60020 сметка, прехвърляме го в 61101 или 61102
-    			if($transfer === TRUE){
-    				$pInfo = cat_Products::getProductInfo($dRec->productId);
-    				if(isset($pInfo->meta['canConvert'])){
-    					$newArr = array('61101', array('cat_Products', $dRec->productId),
-    							'quantity' => $dRec->quantity);
-						$reason = 'Вложени в производството нескладируеми услуги и консумативи';
-    				} else {
-    					$newArr = array('61102');
-						$reason = 'Отнесени общи (нескладируеми и невложими) разходи за дейността';
-    				}
+    			foreach ($splitRecs as $dRec1){
+    				$amount = $dRec1->amount;
+    				$amountAllocated = $amount * $rec->currencyRate;
     				
     				$entries[] = array(
-    						'amount' => $sign * $amount * $rec->currencyRate,
-    						'debit' => $newArr,
-    						'credit' => $debitArr,
-    						'reason' => $reason,
-    						);
+    						'amount' => $sign * $amountAllocated, // В основна валута
+    						'debit' => array('60201', 
+    										 $dRec1->expenseItemId, 
+    										array('cat_Products', $dRec1->productId),
+    										'quantity' => $sign * $dRec1->quantity),
+    						'credit' => array($rec->accountId,
+    										  array($rec->contragentClassId, $rec->contragentId),
+    										  array($origin->className, $origin->that),		
+    										  array('currency_Currencies', $currencyId), 
+    										  'quantity' => $sign * $amount, 
+    						),
+    						'reason' => $dRec1->reason,
+    				);
+    				
+    				// Корекция на стойности при нужда
+    				if(isset($dRec1->correctProducts) && count($dRec1->correctProducts)){
+    					$correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy, $reverse);
+    					if(count($correctionEntries)){
+    						$entries = array_merge($entries, $correctionEntries);
+    					}
+    				}
     			}
     		}
     		

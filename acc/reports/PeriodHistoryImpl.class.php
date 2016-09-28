@@ -141,8 +141,8 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 	    					 
 	    				// Сабираме салдата и оборотите
 	    				foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity', 'baseAmount', 'debitAmount', 'creditAmount', 'blAmount') as $fld){
-	    					if(isset($b->$fld)){
-	    						$newRec->$fld += $b->$fld;
+	    					if(isset($b->{$fld})){
+	    						$newRec->{$fld} += $b->{$fld};
 	    					}
 	    				}
     				}

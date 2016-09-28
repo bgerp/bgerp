@@ -65,8 +65,13 @@ abstract class deals_Helper
 		$arr = array();
         
         // Конвертиране цените във валутата
-        @$arr['noVat'] = $price / $rate;
-		@$arr['withVat'] = ($price * (1 + $vat)) / $rate;
+        if(!empty($rate)){
+        	$arr['noVat'] = $price / $rate;
+        	$arr['withVat'] = ($price * (1 + $vat)) / $rate;
+        } else {
+        	$arr['noVat'] = $price;
+        	$arr['withVat'] = ($price * (1 + $vat));
+        }
 		
 		$arr['noVat'] = $arr['noVat'];
 		$arr['withVat'] = $arr['withVat'];
@@ -97,65 +102,73 @@ abstract class deals_Helper
 		$map = array_merge(self::$map, $map);
 	
 		// Дали трябва винаги да не се показва ддс-то към цената
-		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
+		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->{$map['chargeVat']} == 'yes') ? TRUE : FALSE);
 		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
 		$vats = array();
 		
 		// Обработваме всеки запис
 		foreach($recs as &$rec){
 			$vat = 0;
-			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-				$vat = cat_Products::getVat($rec->$map['productId'], $masterRec->$map['valior']);
+			if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
+				$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
 			}
-			$vats[$vat] = $vat;
 			
 			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
-			$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
+			$price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
+			$rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
 			
-			$noVatAmount = round($price->noVat * $rec->$map['quantityFld'], 2);
+			$noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, 2);
         	
-			if($rec->$map['discount']){
-				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->$map['discount']), 2);
+			if($rec->{$map['discount']}){
+				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
 				$withoutVatAndDisc = $noVatAmount;
 			}
 			
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
 			
-        	$rec->$map['amountFld'] = $noVatAmount;
-        	if($masterRec->$map['chargeVat'] == 'yes' && !$map['alwaysHideVat']){
-        		$rec->$map['amountFld'] = round($rec->$map['amountFld'] + round($noVatAmount * $vat, 2), 2);
+        	$rec->{$map['amountFld']} = $noVatAmount;
+        	if($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']){
+        		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, 2), 2);
         	}
 
-        	if($rec->$map['discount']){
-        		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
+        	if($rec->{$map['discount']}){
+        		$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
         	}
         	
         	// Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
         	if($masterRec->type === 'dc_note'){
         		if($rec->changedQuantity === TRUE || $rec->changedPrice === TRUE){
         			
-        			$amountRow += $rec->$map['amountFld'];
+        			$amountRow += $rec->{$map['amountFld']};
         			$amount += $noVatAmount;
         			$amountVat += $vatRow;
         			 
         			$amountJournal += $withoutVatAndDisc;
-        			if($masterRec->$map['chargeVat'] == 'yes') {
+        			if($masterRec->{$map['chargeVat']} == 'yes') {
         				$amountJournal += $vatRow;
         			}
         		}
         	} else {
         		
         		// За всички останали събираме нормално
-        		$amountRow += $rec->$map['amountFld'];
+        		$amountRow += $rec->{$map['amountFld']};
         		$amount += $noVatAmount;
         		$amountVat += $vatRow;
         		 
         		$amountJournal += $withoutVatAndDisc;
-        		if($masterRec->$map['chargeVat'] == 'yes') {
+        		if($masterRec->{$map['chargeVat']} == 'yes') {
         			$amountJournal += $vatRow;
         		}
+        	}
+        	
+        	if(!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE))){
+        		if(!array_key_exists($vat, $vats)){
+        			$vats[$vat] = (object)array('amount' => 0, 'sum' => 0);
+        		}
+        		 
+        		$vats[$vat]->amount += $vatRow;
+        		$vats[$vat]->sum += $withoutVatAndDisc;
         	}
 		}
 		
@@ -216,22 +229,44 @@ abstract class deals_Helper
 		$coreConf = core_Packs::getConfig('core');
 		$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
 		
+		if($invoice || $chargeVat == 'separate'){
+			if(is_array($values['vats'])){
+				foreach ($values['vats'] as $percent => $vi){
+					if(is_object($vi)){
+						$index = str_replace('.', '', $percent);
+						$arr["vat{$index}"] = $percent * 100 . "%";
+						$arr["vat{$index}Amount"] = $vi->amount * (($invoice) ? $currencyRate : 1);
+						$arr["vat{$index}AmountCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
+							
+						if($invoice){
+							$arr["vat{$index}Base"] = $arr["vat{$index}"];
+							$arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+							$arr["vat{$index}BaseCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
+						}
+					}
+				}
+			} else {
+				$arr['vat02Amount'] = 0;
+				$arr['vat02AmountCurrencyId'] = ($invoice) ? $baseCurrency : $currencyId;
+			}
+		}
+		
 		if($invoice){ // ако е фактура
-			$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
-			$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
+			//$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
+			//$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
 			$arr['baseAmount'] = $arr['total'] * $currencyRate; // Данъчната основа
 			$arr['baseAmount'] = ($arr['baseAmount']) ? $arr['baseAmount'] : "<span class='quiet'>0" . $pointSign . "00</span>";;
 			$arr['baseCurrencyId'] = $baseCurrency; 			// Валутата на данъчната основа е тази на периода
 		} else { // ако не е фактура
-			$arr['vatAmount'] = $values['vat']; 		// ДДС-то
-			$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
+			//$arr['vatAmount'] = $values['vat']; 		// ДДС-то
+			//$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
 		}
 		
 		if(!$invoice && $chargeVat != 'separate'){ 				 // ако документа не е фактура и не е с отделно ддс
-			unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
+			//unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
 		} else { // ако е фактура или е сотделно ддс
 			if($arr['total']){
-				$arr['vat'] = round(($values['vat'] / $arr['total']) * 100); // % ддс
+				//$arr['vat'] = round(($values['vat'] / $arr['total']) * 100); // % ддс
 				$arr['total'] = $arr['total'] + $values['vat']; 	  // Крайното е стойноста + ддс-то
 			}
 		}
@@ -246,7 +281,7 @@ abstract class deals_Helper
 		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0" . $pointSign . "00</span>";
 
 		if(!$arr['vatAmount'] && ($invoice || $chargeVat == 'separate')){
-			$arr['vatAmount'] = "<span class='quiet'>0" . $pointSign . "00</span>";
+			//$arr['vatAmount'] = "<span class='quiet'>0" . $pointSign . "00</span>";
 		}
 		
 		$Double = cls::get('type_Double');
@@ -256,10 +291,6 @@ abstract class deals_Helper
 			if(is_numeric($el)){
 				$arr[$index] = $Double->toVerbal($el);
 			}
-		}
-		
-		if($arr['vat']){
-			$arr['vat'] .= ' %';
 		}
 		
 		return (object)$arr;
@@ -288,7 +319,7 @@ abstract class deals_Helper
 	    
 	    expect($rate, 'Не е подаден валутен курс');
 	    
-	    // Обреъщаме в валутата чийто курс е подаден
+	    // Обръщаме във валутата, чийто курс е подаден
 	    if($rate != 1){
 	    	$price /= $rate;
 	    }
@@ -403,10 +434,16 @@ abstract class deals_Helper
 	{
 		if(cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
-				 
+				$measureId = cat_Products::fetchField($productId, 'measureId');
+				
+				if($quantityInPack < 1 && cat_UoM::fetchBySysId('K pcs')->id == $measureId){
+					$quantityInPack *= 1000;
+					$measureId = cat_UoM::fetchBySysId('pcs')->id;
+				}
+				
 				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
 				
-				$shortUomName = cat_UoM::getShortName(cat_Products::getProductInfo($productId)->productRec->measureId);
+				$shortUomName = cat_UoM::getShortName($measureId);
 				$packagingRow .= ' <small class="quiet">' . $quantityInPack . ' ' . $shortUomName . '</small>';
 				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
 			}
@@ -456,7 +493,7 @@ abstract class deals_Helper
 	 * @param NULL|varchar $batch
 	 * @return FALSE|stdClass
 	 */
-	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL)
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL, $expenseItemId = NULL)
 	{
 		$cond = "#{$mvc->masterKey} = $masterId";
 		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -484,6 +521,14 @@ abstract class deals_Helper
 			$cond .= " AND #id != {$id}";
 		}
 		
+		if($mvc->getField('expenseItemId', FALSE)){
+			if(isset($expenseItemId)){
+				$cond .= " AND #expenseItemId = {$expenseItemId}";
+			} else {
+				$cond .= " AND #expenseItemId IS NULL";
+			}
+		}
+		
 		return $mvc->fetch($cond);
 	}
 	
@@ -507,7 +552,7 @@ abstract class deals_Helper
 					if(is_array($arr)){
 						foreach ($arr as $p){
 							$index = $p->productId;
-			
+							
 							if(!isset($combined[$index])){
 								$combined[$index] = new stdClass();
 								$combined[$index]->productId = $p->productId;
@@ -539,8 +584,14 @@ abstract class deals_Helper
 		
 		if(count($combined)){
 			foreach ($combined as &$det){
-				@$det->price = $det->sumAmounts / ($det->quantity * (1 - $det->discount));
-				if($det->price < 0){
+				$delimiter = ($det->quantity * (1 - $det->discount));
+				if(!empty($delimiter)){
+					$det->price = $det->sumAmounts / $delimiter;
+					
+					if($det->price < 0){
+						$det->price = 0;
+					}
+				} else {
 					$det->price = 0;
 				}
 			}
@@ -666,5 +717,69 @@ abstract class deals_Helper
 		}
 		
 		return TRUE;
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща подходящо представяне на клиентсктие данни и тези на моята фирма
+	 * в бизнес документите
+	 * 
+	 * @param mixed $contragentClass - клас на контрагента
+	 * @param int $contragentId      - ид на контрагента
+	 * @param int $contragentName    - името на контрагента, ако е предварително известно
+	 * @return array $res
+	 * 				['MyCompany']         - Името на моята фирма
+	 * 				['MyAddress']         - Адреса на моята фирма
+	 * 				['MyCompanyVatNo']    - ДДС номера на моята фирма
+	 * 				['uicId']             - Националния номер на моята фирма
+	 *  			['contragentName']    - Името на контрагента
+	 *   			['contragentAddress'] - Адреса на контрагента
+	 *              ['vatNo']             - ДДС номера на контрагента
+	 */
+	public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = NULL)
+	{
+		$res = array();
+		
+		// Данните на 'Моята фирма'
+		$ownCompanyData = crm_Companies::fetchOwnCompany();
+		
+		// Името и адреса на 'Моята фирма'
+		$Companies = cls::get('crm_Companies');
+		$res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+		$res['MyCompany'] = transliterate(tr($res['MyCompany']));
+		$res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
+		
+		// ДДС и националния номер на 'Моята фирма'
+		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+		if($uic != $ownCompanyData->vatNo){
+			$res['MyCompanyVatNo'] = $ownCompanyData->vatNo;
+		}
+		$res['uicId'] = $uic;
+			
+		// името, адреса и ДДС номера на контрагента
+		if(isset($contragentClass) && isset($contragentId)){
+			$ContragentClass = cls::get($contragentClass);
+			$cData = $ContragentClass->getContragentData($contragentId);
+			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
+			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
+			$res['vatNo'] = $cData->vatNo;
+		} elseif(isset($contragentName)){
+			$res['contragentName'] = $contragentName;
+		}
+		
+		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml'));
+		
+		// Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
+		if($makeLink === TRUE){
+			$res['MyCompany'] = ht::createLink($res['MyCompany'], crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
+			$res['MyCompany'] = $res['MyCompany']->getContent();
+			
+			if(isset($contragentClass) && isset($contragentId)){
+				$res['contragentName'] = ht::createLink($res['contragentName'], $ContragentClass::getSingleUrlArray($contragentId));
+				$res['contragentName'] = $res['contragentName']->getContent();
+			}
+		}
+		
+		return $res;
 	}
 }

@@ -88,7 +88,13 @@ class email_Inboxes extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, email';
+    var $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canReject = 'admin, email';
     
     
     /**
@@ -840,7 +846,7 @@ class email_Inboxes extends core_Master
      *  5. Всички инбокс-имейли, за които е отбелязано, че могат да се използват за изпращане на писма от всички потребители
      *
      */
-    function on_BeforePrepareKeyOptions($mvc, &$options, $type)
+    function on_BeforePrepareKeyOptions($mvc, &$options, $type, $where = '')
     {
         $folderId = $type->params['folderId'];
         
@@ -848,7 +854,7 @@ class email_Inboxes extends core_Master
         
         if ($folderId) {
             try {
-                $options = $mvc->getFromEmailOptions($folderId);
+                $options = $mvc->getFromEmailOptions($folderId, NULL, FALSE, $where);
             } catch (Exception $e) {
                 // Не се прави нищо
             }
@@ -901,7 +907,7 @@ class email_Inboxes extends core_Master
      * Връща списък с [id на кутия] => имейл от които текущия потребител може да изпраща писма от папката
      * Първия имейл е най-предпочитания
      */
-    static function getFromEmailOptions($folderId=FALSE, $userId=NULL, $personalOnly=FALSE)
+    static function getFromEmailOptions($folderId=FALSE, $userId=NULL, $personalOnly=FALSE, $where = '')
     {
         $options = array();
         
@@ -963,6 +969,10 @@ class email_Inboxes extends core_Master
         // 3b. Имейлите, които ни са споделени
         $query = self::getQuery();
         $query->where("#inCharge = {$userId}");
+        
+        if (trim($where)) {
+            $query->where($where);
+        }
         
         // Ако не е зададено да се показват само персоналните
         if (!$personalOnly) {

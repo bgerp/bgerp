@@ -37,6 +37,13 @@ class drdata_VatType extends type_Varchar
                         ''        => array('Грешка при определяне на валидността', 'red')
                     );
 
+    
+    /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
     /**
      * Инициализиране на дължината
      */
@@ -92,8 +99,12 @@ class drdata_VatType extends type_Varchar
         if(Mode::is('text', 'plain')) return $value;
 
         $Vats = cls::get('drdata_Vats');
-        list($status, $info) = $Vats->check($value);
- 
+        if(!array_key_exists($value, static::$cache)){
+        	static::$cache[$value] = $Vats->check($value);
+        }
+        
+        list($status, $info) = static::$cache[$value];
+
         $status = $this->statuses[$status];
         
         if(!$status) {

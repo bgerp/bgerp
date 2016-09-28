@@ -45,6 +45,7 @@
         <!--ET_END printHeader-->
     </table>
     <div style='margin-top:10px;'>|Всички цени са|* [#vat#] |ДДС|* </div>
+    [#PAGER_TOP#]
     <div class='overflow-scroll'>
         <table class = 'norm-table' style='width:100%'>
             <tr>
@@ -79,10 +80,5 @@
             <!--ET_END GROUP-->
         </table>
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
     [#PAGER#]
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

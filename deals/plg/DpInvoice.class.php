@@ -297,7 +297,10 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	}
 	    	
 	    	if(!is_null($rec->dpAmount)){
-	    		$rec->dpAmount = core_Math::roundNumber(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate);
+	    		$rec->dpAmount = deals_Helper::getPurePrice($rec->dpAmount, $vat, $rec->rate, $rec->vatRate);
+	    		if($rec->vatRate == 'separate'){
+	    			$rec->dpAmount /= 1 + $vat;
+	    		}
 	    	}
 	    	
 	    	// Обновяваме данните на мастър-записа при редакция
@@ -454,17 +457,11 @@ class deals_plg_DpInvoice extends core_Plugin
     	$total->vat    += $dpVat;
     	$total->amount += $dpAmount;
     	
-    	$conf = core_Packs::getConfig('acc');
-    	
-    	// Ако сумата и ддс-то е в границата на допустимото разминаваме, приравняваме ги на 0
-    	$vatToCompare = $total->vat * $masterRec->rate;
-    	if($vatToCompare >= -1 * $conf->ACC_MONEY_TOLERANCE && $vatToCompare <= $conf->ACC_MONEY_TOLERANCE){
-    		//$total->vat = 0;
-    	}
-    	
-    	$amountToCompare = $total->amount * $masterRec->rate;
-    	if($amountToCompare >= -1 * $conf->ACC_MONEY_TOLERANCE && $amountToCompare <= $conf->ACC_MONEY_TOLERANCE){
-    		//$total->amount = 0;
+    	if(isset($total->vats["{$vat}"])){
+    		$total->vats["{$vat}"]->amount += $dpVat;
+    		$total->vats["{$vat}"]->sum += $masterRec->dpAmount / $masterRec->rate;
+    	} else {
+    		$total->vats = array("{$vat}" => (object)array('amount' => $dpVat, 'sum' => $masterRec->dpAmount / $masterRec->rate));
     	}
     }
 }

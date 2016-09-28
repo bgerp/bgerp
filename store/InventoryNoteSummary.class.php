@@ -119,7 +119,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('charge', 'user', 'caption=Начет');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
@@ -387,9 +387,10 @@ class store_InventoryNoteSummary extends doc_Detail
     	} else {
     		$data->listTableMvc->FLD('quantitySum', 'double');
     		if(!Mode::get('printing')){
-    			$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
-    			$pager->itemsCount = count($data->rows);
-    			$data->pager = $pager;
+    			$Pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
+    			$Pager->setPageVar($data->masterMvc->className, $data->masterId);
+    			$Pager->itemsCount = count($data->rows);
+    			$data->pager = $Pager;
     		}
     	}
     	
@@ -625,7 +626,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	if($masterRec->state == 'draft'){
     		$unsetCharge = TRUE;
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
+    		if(!Mode::isReadOnly() && !Mode::is('blank')){
     			if(static::haveRightFor('setresponsibleperson', $rec)){
     				$attr = array();
     				$attr['class']       = "toggle-charge";
@@ -665,7 +666,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	if(!is_array($recs)) return;
     	$ordered = array();
     	
-    	// Вербализираме и подреждаме маркерите
+    	// Вербализираме и подреждаме групите
     	$groups = keylist::toArray($masterRec->groups);
     	cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
     	

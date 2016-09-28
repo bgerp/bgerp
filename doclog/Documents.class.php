@@ -2264,7 +2264,6 @@ class doclog_Documents extends core_Manager
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
         
-        $html = "<ul class=\"history summary\">{$html}</ul>";
         return $html;
     }
     
@@ -2308,7 +2307,15 @@ class doclog_Documents extends core_Manager
     {
         $data = static::prepareContainerHistory($containerId, $threadId);
         
-        return static::renderSummary($data);
+        $html = static::renderSummary($data);
+        
+        $html .= doc_ExpensesSummary::getSummary($containerId);
+        
+        if(strlen($html) != 0){
+        	$html = "<ul class=\"history summary\">{$html}</ul>";
+        }
+        
+        return $html;
     }
 
     

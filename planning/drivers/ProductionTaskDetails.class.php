@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_drivers_ProductionTaskDetails'
  *
@@ -30,6 +31,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
+     * Интерфейси
+     */
+    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    
+    
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'taskId';
@@ -38,7 +45,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper';
     
     
     /**
@@ -48,21 +55,39 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
+     * Кой има право да оттегля?
+     */
+    public $canReject = 'taskWorker,ceo';
+    
+    
+    /**
+     * Кой има право да възстановява?
+     */
+    public $canRestore = 'taskWorker,ceo';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'taskWorker,ceo';
+    
+    
+    /**
+     * Кой има право да редактира?
+     */
+    public $canEdit = 'taskWorker,ceo';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,type=Операция,serial,taskProductId,packagingId=Мярка,quantity,weight,employees,fixedAsset,modified=Модифицирано';
-    
-
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'RowNumb';
+    public $listFields = 'type=Операция,serial,taskProductId,quantity,scrappedQuantity,packagingId=Мярка,weight,employees,fixedAsset,modified=Модифицирано';
     
     
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset, scrappedQuantity';
     
     
     /**
@@ -78,25 +103,28 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
-    	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък)', 'input=hidden,silent,smartCenter');
+    	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък,start=Пускане)', 'input=hidden,silent,smartCenter');
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter,focus');
-    	$this->FLD('quantity', 'double', 'caption=Количество,mandatory,smartCenter');
+    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,mandatory,smartCenter');
+    	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,smartCenter');
-    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници,smartCenter,tdClass=nowrap');
-    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
+    	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Обордуване,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
+    	$this->FLD('actionRecId', 'int', 'input=none');
     }
     
     
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$data->form->rec;
+    	$taskInfo = planning_Tasks::getTaskInfo($rec->taskId);
     	
     	// Добавяме последните данни за дефолтни
     	$query = $mvc->getQuery();
@@ -110,8 +138,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	}
     	
     	// Ако в мастъра са посочени машини, задаваме ги като опции
-    	if(isset($data->masterRec->fixedAssets)){
-    		$keylist = $data->masterRec->fixedAssets;
+    	if(isset($taskInfo->fixedAssets)){
+    		$keylist = $taskInfo->fixedAssets;
     		$arr = keylist::toArray($keylist);
     			
     		foreach ($arr as $key => &$value){
@@ -121,7 +149,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setField('fixedAsset', 'input');
     	}
     	
-    	if($rec->type != 'product'){
+    	if($rec->type != 'product' && $rec->type != 'start'){
     		$productOptions = planning_drivers_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
     		$form->setOptions('taskProductId', $productOptions);
     		if(count($productOptions) == 1 && $form->cmd != 'refresh'){
@@ -130,10 +158,27 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     	} else {
     		$form->FNC('productId', 'int', 'caption=Артикул,input,before=serial');
-    		$form->setOptions('productId', array($data->masterRec->productId = cat_Products::getTitleById($data->masterRec->productId, FALSE)));
+    		$form->setOptions('productId', array($taskInfo->productId = cat_Products::getTitleById($taskInfo->productId, FALSE)));
     		$form->setField('taskProductId', 'input=none');
-    		$unit = cat_UoM::getShortName($data->masterRec->packagingId);
+    		$unit = cat_UoM::getShortName($taskInfo->packagingId);
     		$form->setField('quantity', "unit={$unit}");
+    		
+    		if(isset($rec->id)){
+    			$form->setReadOnly('serial');
+    			$form->setReadOnly('quantity');
+    			$form->setField('scrappedQuantity', 'input');
+    			$form->setField('scrappedQuantity', "unit={$unit}");
+    			$form->setFieldTypeParams('scrappedQuantity', array('max' => $rec->quantity, 'min' => 0));
+    			$form->setField('employees', 'input=none');
+    			$form->setField('fixedAsset', 'input=none');
+    			$form->setField('notes', 'input=none');
+    		}
+    		
+    		if($rec->type == 'start'){
+    			$form->setField('weight', 'input=none');
+    			$form->setField('notes', 'input=none');
+    			$form->setField('serial', 'input=none');
+    		}
     	}
     	
     	// Добавяме мярката
@@ -143,12 +188,24 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$unit = cat_UoM::getShortName($unit);
     		
     		
-    		$planned = tr("Планувано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'plannedQuantity') . "</b>";
+    		$planned = tr("Планирано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'plannedQuantity') . "</b>";
     		$real = tr("Изпълнено|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'realQuantity') . "</b>";
     		$form->info = "{$planned}<br>$real";
     		
     		
     		$form->setField('quantity', "unit={$unit}");
+    	}
+    	
+    	// Връща слижителите с код
+    	$employees = crm_ext_Employees::getEmployeesWithCode();
+    	if(count($employees)){
+    		$form->setSuggestions('employees', $employees);
+    	} else {
+    		$form->setField('employees', 'input=none');
+    	}
+    	
+    	if($taskInfo->showadditionalUom != 'yes'){
+    		$form->setField('weight', 'input=none');
     	}
     }
     
@@ -156,12 +213,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	 
     	if($form->isSubmitted()){
-    		$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::fetch($rec->taskId)->productId;
+    		$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     		
     		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
     		if($rec->type == 'product'){
@@ -187,7 +244,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->fixedAsset)){
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
@@ -203,19 +260,19 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$row->serial = "<b>{$row->serial}</b>";
     	}
     	 
-    	$class = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed'));
+    	$class = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : (($rec->type == 'start') ? 'state-stopped' : 'row-removed')));
     	$row->ROW_ATTR['class'] = $class;
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
     	
-    	$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::fetch($rec->taskId)->productId;
+    	$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     	if($productId){
     		$row->taskProductId = cat_Products::getShortHyperlink($productId);
     		$row->taskProductId = "<div class='nowrap'>" . $row->taskProductId . "</div>";
     	}
     	
-    	$measureId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::fetch($rec->taskId)->packagingId;
+    	$measureId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
     	$row->packagingId = cat_UoM::getShortName($measureId);
     	
     	if(!empty($rec->notes)){
@@ -235,6 +292,29 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			}
     		}
     	}
+    	
+    	if(isset($rec->employees)){
+    		$row->employees = self::getVerbalEmployees($rec->employees);
+    	}
+    }
+    
+    
+    /**
+     * Показва вербалното име на служителите
+     * 
+     * @param text $employees - кейлист от служители
+     * @return string $verbalEmployees
+     */
+    public static function getVerbalEmployees($employees)
+    {
+    	$verbalEmployees = array();
+    	$employees = keylist::toArray($employees);
+    	foreach ($employees as $eId){
+    		$el = crm_ext_Employees::getCodeLink($eId);
+    		$verbalEmployees[$eId] = $el;
+    	}
+    	
+    	return implode(', ', $verbalEmployees);
     }
     
     
@@ -245,11 +325,102 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if(isset($rec->taskProductId)){
     		planning_drivers_ProductionTaskProducts::updateRealQuantity($rec->taskProductId);
     	}
+    	
+    	// Ако е записва прозиведен артикул
+    	if($rec->type == 'product'){
+    		
+    		// И има колчиество за скрап
+    		if(isset($rec->scrappedQuantity)){
+    			$sRec = clone $rec;
+    			$sRec->quantity = $sRec->scrappedQuantity;
+    			
+    			// Ако не е имало досега добавя се
+    			if(!$rec->actionRecId){
+    				$rec->actionRecId = self::addAction($sRec, 'add', 'scrap');
+    				$mvc->save_($rec, 'actionRecId');
+    			} else {
+    				
+    				// Ако реда е оттеглен или възстановен променя се и състоянието му
+    				$action = ($rec->state == 'rejected') ? 'reject' : (($rec->isRestored === TRUE) ? 'restore' : 'add');
+    				if($action == 'reject' || $action == 'restore'){
+    					$rec->actionRecId = self::addAction($sRec, $action, 'scrap');
+    				} else {
+    					planning_TaskActions::delete($rec->actionRecId);
+    					$rec->actionRecId = self::addAction($sRec, 'edit', 'scrap');
+    				}
+    			}
+    		} elseif(isset($rec->actionRecId)) {
+    				
+    			 	// Ако е имало бракувано количество, но вече няма
+    				planning_TaskActions::delete($rec->actionRecId);
+    				$rec->actionRecId = NULL;
+    				$mvc->save_($rec);
+    			}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// Отбелязваме че реда се редактира
+    	$id->isRestored = TRUE;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// Записване че е добавено
+    	self::addAction($rec, 'add', $rec->type);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	// Записване че е имало оттегляне
+    	$rec = static::fetchRec($id);
+    	self::addAction($rec, 'reject', $rec->type);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// Записване че е имало възстановяване
+    	$rec = static::fetchRec($id);
+    	self::addAction($rec, 'restore', $rec->type);
+    }
+    
+    
+    /**
+     * Добавяне на действие
+     * 
+     * @param stdClass $rec   - запис
+     * @param varchar $action - действие
+     * @param varchar $type   - тип
+     * @return int
+     */
+    private static function addAction($rec, $action, $type)
+    {
+    	$productId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
+    	$packagingId = (!empty($rec->taskProductId)) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
+    	
+    	return planning_TaskActions::add($rec->taskId, $productId, $action, $type, $packagingId, $rec->quantity, $rec->serial, $rec->employees, $rec->fixedAsset);
     }
     
     
@@ -273,8 +444,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'waste'))){
     			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
     		}
+    		
+    		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'start'))){
+    			$data->toolbar->addBtn('Пускане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'start', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/media_playback_start.png,title=Пускане на произведения артикул');
+    		}
     	}
     	
+    	// Махане на кошчето
     	$data->toolbar->removeBtn('binBtn');
     }
 
@@ -294,7 +470,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Преди извличане на записите от БД
      */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    protected static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	// Искаме да показваме и оттеглените детайли
     	$data->query->orWhere("#state = 'rejected'");
@@ -304,22 +480,29 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
+    		
     		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
     			$requiredRoles = 'no_one';
     		} 
     	}
     	
     	// Трябва да има поне един артикул възможен за добавяне
-    	if($action == 'add' && isset($rec->type) && $rec->type != 'product'){
+    	if($action == 'add' && isset($rec->type) && $rec->type != 'product' && $rec->type != 'start'){
     		if($requiredRoles != 'no_one'){
     			$pOptions = planning_drivers_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
     			if(!count($pOptions)){
     				$requiredRoles = 'no_one';
     			}
+    		}
+    	}
+    	
+    	if($action == 'edit' && isset($rec)){
+    		if($rec->type != 'product' || $rec->state == 'rejected'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -331,6 +514,81 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
     	$rec = &$data->form->rec;
-    	$data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : 'произвеждане');
+    	$data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : (($rec->type == 'start') ? 'пускане' : 'произвеждане'));
+    }
+    
+    
+    /**
+     * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+     *
+     * @param date $date
+     * @return array $result
+     */
+    public static function getSalaryIndicators($date)
+    {
+    	$query = self::getQuery();
+        $me = cls::get(get_called_class());
+        $Double = cls::get(type_Double);
+    
+        $from = $date . ' 00:00:00';
+        $to   = $date   . ' 23:59:59';
+  
+        $query->where("#modifiedOn >= '{$from}' AND #modifiedOn <= '{$to}' AND #state = 'active'");
+    
+        $result = array();
+        $tplObj = (object) array ('date' => $date, 'docClass' => core_Classes::getId('planning_Tasks'), 'indicator' => tr("|Производство|*"));
+        
+        $queryProduct = planning_drivers_ProductionTaskProducts::getQuery();
+        $queryMasterm = planning_Tasks::getQuery();
+
+        while ($rec = $query->fetch()) { 
+            
+            switch($rec->type){
+                case 'input':
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                    break;
+                case 'waste':
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                	break;
+                case 'product':
+                	$time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
+                	break;
+                case 'start':
+                	$time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
+                	break;
+                default:
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                	break;
+            }
+            
+            $time = $Double->fromVerbal($time);
+            $persons = keylist::toArray($rec->employees);
+            
+            if(is_array($persons)) {
+                if ($time) {
+                    $timePerson = ($rec->quantity * $time) / count($persons) ;
+                }
+
+            } else {
+                if ($time) {
+                    $timePerson = $rec->quantity * $time;
+                }
+            }
+
+            foreach ($persons as $person) {
+                
+                $key = $person . "|" . $rec->taskId;
+                if(!$result[$key]){
+                    $result[$key] = clone($tplObj);
+                }
+                
+                $result[$key]->personId = $person;
+                $result[$key]->docId = $rec->taskId;
+                $result[$key]->value += $timePerson;
+               
+            }
+        }
+
+        return $result;
     }
 }

@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'batch_plg_DirectProductionNoteMovement' - За генериране на партидни движения на протокола за бързо производство
+ * Клас 'batch_plg_DirectProductionNoteMovement' - За генериране на партидни движения на протокола за производство
  *
  *
  * @category  bgerp

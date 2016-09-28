@@ -144,8 +144,13 @@ class core_Db extends core_BaseClass
     {
        
         if(!($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
-
-            $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
+            
+            if(strpos($this->dbHost, ':')) {
+                list($host, $port) = explode(':', $this->dbHost);
+                $link = new mysqli($host, $this->dbUser, $this->dbPass, '', $port);
+            } else {
+                $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
+            }
 
             self::$links[$this->dbHost][$this->dbUser][$this->dbName] = $link;
 
@@ -429,6 +434,23 @@ class core_Db extends core_BaseClass
         return TRUE;
     }
     
+
+    function getVariable($name)
+    {
+        $query = "SHOW VARIABLES LIKE '{$name}'";
+        
+        $dbRes = $this->query($query);
+        
+        if(!$dbRes) {
+            
+            return FALSE;
+        }
+        
+        // Извличаме резултата
+        $res = $this->fetchObject($dbRes);
+
+        return $res->Value;
+    }
     
     /**
      * Връща атрибутите на посоченото поле от таблицата
@@ -658,6 +680,8 @@ class core_Db extends core_BaseClass
                 
                 if ($name == 'PRIMARY') {
                     $type = 'PRIMARY';
+                } elseif($rec->Index_type == 'FULLTEXT') {
+                    $type = 'FULLTEXT';
                 } elseif ($rec->Non_unique) {
                     $type = 'INDEX';
                 } else {
@@ -667,8 +691,21 @@ class core_Db extends core_BaseClass
                 $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = TRUE;
             }
         }
-        
+  
         return $indexes;
+    }
+
+
+    /**
+     * Преброява редовете в една MySQL таблица
+     */
+    function countRows($table)
+    {
+        $dbRes = $this->query("SELECT COUNT(*) AS cnt FROM `{$table}`");
+        $res   = $this->fetchObject($dbRes);
+        $count = $res->cnt;
+
+        return $count;
     }
     
     

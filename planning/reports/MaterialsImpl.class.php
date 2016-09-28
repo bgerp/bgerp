@@ -188,6 +188,8 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 		    if ($recs->quantity < $recs->store) {
 		    	unset($data->recs[$id]);
 		    }
+		    
+		    $recs->res = abs($recs->store - $recs->quantity);
 	    }
 
         return $data;
@@ -209,13 +211,22 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
-        if(count($data->recs)){
-          
-            foreach ($data->recs as $id => $rec){
-				if(!$pager->isOnPage()) continue;
+        $recs = array();
+        foreach($data->recs as $rec){
+            $recs[] = $rec;
+        }
+
+        if(count($recs)){
+     
+            foreach ($recs as $id => $r){ 
                 
-                $row = $mvc->getVerbal($rec);
+                $r->num = $id +1;
+
+				if(!$pager->isOnPage()) continue;
+				
+                $row = $mvc->getVerbal($r);
                 $data->rows[$id] = $row;
+                
             }
         }
 
@@ -264,9 +275,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 
     	$f = cls::get('core_FieldSet');
     	
-    	$f->FLD('id', 'varchar', 'tdClass=itemClass');
-    	$f->FLD('quantity', 'double', 'tdClass=itemClass,smartCenter');
-    	$f->FLD('store', 'double', 'tdClass=itemClass,smartCenter');
+    	$f->FLD('num', 'int', 'tdClass=accItemClass');
+    	$f->FLD('id', 'varchar', 'tdClass=accItemClass');
+    	$f->FLD('quantity', 'double', 'tdClass=accItemClass,smartCenter');
+    	$f->FLD('store', 'double', 'tdClass=accItemClass,smartCenter');
+    	$f->FLD('res', 'double', 'tdClass=accItemClass,smartCenter');
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
 
@@ -287,9 +300,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     {
     
         $data->listFields = array(
-        		'id' => 'Име (код)',
-        		'quantity' => 'Количество',
-        		'store' => 'На склад',
+                'num' => '№',
+        		'id' => 'Материали (код)',
+        		'quantity' => 'Необходимо к-во по задания',
+        		'store' => 'Налично к-во на склад',
+                'res' => 'Необходимо к-во за закупуване',
         		);
     }
 
@@ -306,6 +321,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 
         $row = new stdClass();
         
+        $row->num = $Int->toVerbal($rec->num);
         $row->id = cat_Products::getShortHyperlink($rec->id);
     	$row->quantity = $Double->toVerbal($rec->quantity);
     	
@@ -314,6 +330,8 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     	if($row->store < 0){
     		$row->store = "<span class='red'>$rec->store</span>";
     	}
+    	
+    	$row->res = $Double->toVerbal($rec->res);
 
         return $row;
     }
@@ -364,6 +382,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	    $f->FLD('id', 'key(mvc=cat_Products,select=name)');
 	    $f->FLD('quantity', 'double');
 	    $f->FLD('store', 'double');
+	    $f->FLD('res', 'double');
 	    
 	    return $f;
 	}

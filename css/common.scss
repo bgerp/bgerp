@@ -431,10 +431,16 @@ input[type="search"] {
 }
 
 /**
+ хак за смяна на цвета на плейсхолдърите в IE11
+*/
+input:-ms-input-placeholder {
+	color: #999;
+}
+
+/**
  * Remove inner padding and search cancel button in Safari 5 and Chrome
  * on OS X.
  */
-
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {
     -webkit-appearance: none;
@@ -447,6 +453,8 @@ input[type="search"]::-webkit-search-decoration {
 	display:block;
 	position:relative;
 	height:1.5em;
+	border-radius: 5px;
+	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
 
 #simpleSearch.forumSearch .button {
@@ -470,7 +478,6 @@ input[type="search"]::-webkit-search-decoration {
 	outline:none;
 	height:1.2em;
 	box-shadow: none;
-	font-size:0.95em;
  	width:90%;
 	padding:0px;
 	padding-left:0.2em;
@@ -776,6 +783,10 @@ a.button, input[type="button"], input[type="submit"], button {
     -webkit-appearance: none;	  
 }
 
+a.button {
+	box-sizing: border-box;
+}
+
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button { 
 	padding: 0.3em 0.4em;
     font-family: Tahoma, Arial, sans-serif;
@@ -1039,6 +1050,10 @@ a.more-btn {
  	padding: 0.1em;
 }
 
+.narrow .docBgIcon {
+	background-position: 3px 5px;
+}
+
 .wide .icon { 
 	display: inline-block;
 	height: 16px;
@@ -1107,6 +1122,11 @@ a {
 	font-weight: bold;
 	border-bottom: solid 1px #ccc;
 	padding: 2px;
+}
+
+.err-word {
+	border-bottom: 1px dashed #ff6566;
+	display: inline-block;
 }
 /* край на общи стилове за линковете */
 
@@ -1403,6 +1423,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .wide table.listAction {
     min-width:760px;
+	width: 100%;
 }
 
 .wide .user-profile .remote_Authorizations table.listAction {
@@ -1964,11 +1985,14 @@ table.keylist {
 		}
 	}
 	&.shrinked:not(.keylist-wide) {
-	   width: auto !important;
 	   td {
 	       padding-right: 20px;
 	   }
 	}
+}
+
+.wide table.keylist.shrinked:not(.keylist-wide) {
+	width: auto !important;
 }
 
 .narrow table.keylist{
@@ -2472,7 +2496,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
     }
     div.tab-row {
         .tab, .tab.selected {
-	         padding: 2px !important;
+			padding: 4px 2px 1px !important
 	    }
     }
     div.tab-page {

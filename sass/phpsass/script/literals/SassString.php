@@ -9,7 +9,7 @@
  * @subpackage  Sass.script.literals
  */
 
-require_once('SassLiteral.php');
+require_once 'SassLiteral.php';
 
 /**
  * SassString class.
@@ -17,7 +17,8 @@ require_once('SassLiteral.php');
  * @package      PHamlP
  * @subpackage  Sass.script.literals
  */
-class SassString extends SassLiteral {
+class SassString extends SassLiteral
+{
   const MATCH = '/^(((["\'])(.*?)(\3))|(-[a-zA-Z-]+[^\s]*?))/i';
   const _MATCH = '/^(["\'])(.*?)(\1)?$/'; // Used to match strings such as "Times New Roman",serif
   const VALUE = 2;
@@ -33,13 +34,13 @@ class SassString extends SassLiteral {
    * @param string string
    * @return SassString
    */
-  public function __construct($value) {
+  public function __construct($value)
+  {
     preg_match(self::_MATCH, $value, $matches);
     if ((isset($matches[self::QUOTE]))) {
       $this->quote =  $matches[self::QUOTE];
       $this->value = $matches[self::VALUE];
-    }
-    else {
+    } else {
       $this->quote =  '';
       $this->value = $value;
     }
@@ -52,40 +53,47 @@ class SassString extends SassLiteral {
    * @param sassString string to add to this
    * @return sassString the string result
    */
-  public function op_plus($other) {
+  public function op_plus($other)
+  {
     $this->value .= $other->value;
+
     return $this;
   }
 
   /**
    * String multiplication.
    * this is repeated other times
-   * @param sassNumber the number of times to repeat this
+   * @param sassNumber $other the number of times to repeat this
    * @return sassString the string result
    */
-  public function op_times($other) {
+  public function op_times($other)
+  {
     if (!($other instanceof SassNumber) || !$other->isUnitless()) {
       throw new SassStringException('Value must be a unitless number', SassScriptParser::$context->node);
     }
     $this->value = str_repeat($this->value, $other->value);
+
     return $this;
   }
 
   /**
    * Equals - works better
    */
-  public function op_eq($other) {
+  public function op_eq($other)
+  {
     return new SassBoolean($this->value == $other->value || $this->toString() == $other->toString());
   }
 
   /**
    * Evaluates the value as a boolean.
    */
-  public function toBoolean() {
+  public function toBoolean()
+  {
     $value = strtolower(trim($this->value, ' "\''));
     if (!$value || in_array($value, array('false', 'null', '0'))) {
       return FALSE;
     }
+
     return TRUE;
   }
 
@@ -93,7 +101,8 @@ class SassString extends SassLiteral {
    * Returns the value of this string.
    * @return string the string
    */
-  public function getValue() {
+  public function getValue()
+  {
     return $this->value;
   }
 
@@ -101,24 +110,28 @@ class SassString extends SassLiteral {
    * Returns a string representation of the value.
    * @return string string representation of the value.
    */
-  public function toString() {
+  public function toString()
+  {
     if ($this->quote) {
         $value = $this->quote . $this->value . $this->quote;
-    }
-    else {      
+    } else {
         $value = strlen(trim($this->value)) ? trim($this->value) : $this->value;
     }
+
     return $value;
   }
 
-  public function toVar() {
+  public function toVar()
+  {
     return SassScriptParser::$context->getVariable($this->value);
   }
 
-  public function getTypeOf() {
+  public function getTypeOf()
+  {
     if (SassList::isa($this->toString())) {
       return 'list';
     }
+
     return 'string';
   }
 
@@ -128,7 +141,8 @@ class SassString extends SassLiteral {
    * @param string the subject string
    * @return mixed match at the start of the string or false if no match
    */
-  public static function isa($subject) {
+  public static function isa($subject)
+  {
     return (preg_match(self::MATCH, $subject, $matches) ? $matches[0] : false);
   }
 }

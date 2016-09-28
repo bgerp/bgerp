@@ -231,7 +231,6 @@ class cal_Reminders extends core_Master
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
-
     }
 
 
@@ -272,8 +271,9 @@ class cal_Reminders extends core_Master
               
             $todey = dt::now();
             $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
-            $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
-
+            
+            $time = strstr($nextWorkDay, " ", TRUE). " 08:00";
+  
             $data->form->setDefault('timeStart', $time);
             $data->form->setDefault('title', $title);
         }
@@ -420,70 +420,70 @@ class cal_Reminders extends core_Master
     {
     	if($data->rec->repetitionType == 'days' ) {
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'ден';
+    			$data->row->repetitionType = tr('ден');
     		}elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		}else {
-    			$data->row->each = 'на всеки';
+    			$data->row->each = tr('на всеки');
     		}
     	} elseif($data->rec->repetitionType == 'months'){
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'месец';
+    			$data->row->repetitionType = tr('месец');
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else {
-    			$data->row->each = 'на всеки';
+    			$data->row->each = tr('на всеки');
     		}
     		
     	} elseif($data->rec->repetitionType == 'weeks') {
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всяка';
+    			$data->row->each = tr('всяка');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'седмица';
+    			$data->row->repetitionType = tr('седмица');
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else {
-    			$data->row->each = 'на всеки';
+    			$data->row->each = tr('на всеки');
     		}
     	} elseif($data->rec->repetitionType == 'weekDay'){
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'месец';
-    			$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). " от месеца";
+    			$data->row->repetitionType = tr('месец');
+    			$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else{
-	    		$data->row->each = 'на всеки';
-	    		$data->row->repetitionType = 'месеца';
-	    		$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). " от месеца";
+	    		$data->row->each = tr('на всеки');
+	    		$data->row->repetitionType = tr('месеца');
+	    		$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
     		}
     	} elseif($data->rec->repetitionType == 'monthDay') {
     		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = 'всеки';
+    			$data->row->each = tr('всеки');
     			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = 'месец';
-    			$data->row->repetitionTypeMonth = 'точния ден от месеца';
+    			$data->row->repetitionType = tr('месец');
+    			$data->row->repetitionTypeMonth = tr('точния ден от месеца');
     		} elseif ($data->rec->repetitionEach == NULL) {
     			$data->row->rem = $data->row->nextStartTime;
     			$data->row->nextStartTime = NULL;
     		} else {
-	    		$data->row->each = 'на всеки';
-	    		$data->row->repetitionType = 'месеца';
-	    		$data->row->repetitionTypeMonth = 'точния ден от месеца';
+	    		$data->row->each = tr('на всеки');
+	    		$data->row->repetitionType = tr('месеца');
+	    		$data->row->repetitionTypeMonth = tr('точния ден от месеца');
     		}
     		
     	}
     	
-    	if($data->rec->action === 'notifyNoAns') $data->row->action = 'Нотификация-ако няма отговор';
+    	if($data->rec->action === 'notifyNoAns') $data->row->action = tr('Нотификация-ако няма отговор');
 
     	if($data->rec->repetitionEach === NULL){
     		$data->row->each = '';
@@ -632,6 +632,97 @@ class cal_Reminders extends core_Master
     
     
     /**
+     * Обновява информацията за напомнянията
+     * за текущата и следващите три години
+     */
+    static function updateRemindersToCalendar($id)
+    {
+        if(($rec = static::fetch($id)) && ($rec->state == 'active')) {
+
+            if(!$rec->timeStart) return;
+    
+            list($y, $m, $d) = type_Combodate::toArray($rec->timeStart);
+        }
+    
+        $events = array();
+    
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
+    
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+    
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+    
+        // Масив с години, за които ще се вземат напомнянията
+        $years = array($cYear, $cYear + 1, $cYear + 2);
+        
+        // Префикс на клучовете за напомнянията в календара
+        $prefix = "RЕМ-{$id}";
+        
+        // Подготвяме запис за началната дата
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active')) {
+            
+            if ($d > 0 && $m > 0) {
+                
+                $calRec = new stdClass();
+    
+                // Ключ на събитието
+                $calRec->key = $prefix . '-Start';
+    
+                // TODO да се проверява за високосна година
+                $calRec->time = $rec->timeStart;
+    
+                $calRec->type = 'alarm_clock';
+                
+                $calRec->allDay = 'no';
+                
+                $calRec->state = $rec->state;
+
+                $calRec->title = $rec->title;
+ 
+                $calRec->users =  $rec->sharedUsers;
+
+                $calRec->url = array('cal_Reminders', 'Single', $id);
+    
+                $calRec->priority = 90;
+    
+                $events[] = $calRec;
+            }
+        }
+           
+        if ($rec->nextStartTime && $rec->nextStartTime >= $fromDate && $rec->nextStartTime <= $toDate && ($rec->state == 'active')){
+        
+            $calRec = new stdClass();
+               
+            // Ключ на събитието
+            $calRec->key = $prefix . '-NextStart';
+
+            $calRec->time = $rec->nextStartTime;
+               
+            $calRec->type = 'alarm_clock';
+               
+            $calRec->allDay = 'no';
+               
+            $calRec->state = $rec->state;
+               
+            $calRec->title = $rec->title;
+               
+            $calRec->users =  $rec->sharedUsers;
+               
+            $calRec->url = array('cal_Reminders', 'Single', $id);
+               
+            $calRec->priority = 90;
+               
+            $events[] = $calRec;
+        }
+
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+    }
+    
+    
+    /**
      * Екшън за спиране
      */
     function act_Stop()
@@ -730,7 +821,27 @@ class cal_Reminders extends core_Master
         $now = dt::verbal2mysql();
        
         $this->doReminderingForActiveRecs();
+    }
+    
+    
+    /**
+     * Обновяване на рожденните дни по разписание
+     * (Еженощно)
+     */
+    function cron_UpdateCalendarEvents()
+    {
+        $query = self::getQuery();
 
+        while($rec = $query->fetch()) {
+            $res = static::updateRemindersToCalendar($rec->id);
+            $new += $res['new'];
+            $deleted += $res['deleted'];
+            $updated += $res['updated'];
+        }
+    
+        $status = "В календара са добавени {$new}, обновени {$updated} и изтрити {$deleted} напомняния";
+    
+        return $status;
     }
 
     
@@ -817,9 +928,14 @@ class cal_Reminders extends core_Master
     /**
      *  Изчислява времето за следващото стартиране на напомнянето. Винаги е дата > от текущата
      */
-    static public function calcNextStartTime($rec)
+    static public function calcNextStartTime($rec, $date=NULL)
     {
-    	$now = dt::verbal2mysql();
+        if(!$date) {
+    	   $now = dt::verbal2mysql();
+        } else {
+            $now = $date;
+        }
+        
     	// Секундите на днешната дата
     	$nowTs = dt::mysql2timestamp($now) + $rec->timePreviously;
     	
@@ -834,8 +950,8 @@ class cal_Reminders extends core_Master
         	
         } elseif($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
         	$nextStartTime = $rec->timeStart;
-        	return $nextStartTime;
         	
+        	return $nextStartTime;
         }
         
         if($rec->repetitionEach !== NULL ) {
@@ -958,7 +1074,7 @@ class cal_Reminders extends core_Master
         }
 
     }
-    
+
     
     /**
      * По зададен брой пъти и тип (ден или сецмица) изчислява интервала в секунди
@@ -989,6 +1105,16 @@ class cal_Reminders extends core_Master
         $rec->period = 1;
         $rec->offset = 0;
         $res .= core_Cron::addOnce($rec);
+        
+        // Нагласяне на Крон
+        $rec = new stdClass();
+        $rec->systemId = "UpdateRemindersToCal";
+        $rec->description = "Обновяване на напомнянията в календара";
+        $rec->controller = "cal_Reminders";
+        $rec->action = "UpdateCalendarEvents";
+        $rec->period = 90;
+        $rec->offset = 0;
+        $res .= core_Cron::addOnce($rec);
            
         //Създаваме, кофа, където ще държим всички прикачени файлове на напомнянията
         $Bucket = cls::get('fileman_Buckets');
@@ -1009,9 +1135,9 @@ class cal_Reminders extends core_Master
         $resArr = arr::make($resArr);
         
         $allFieldsArr = array('priority' => 'Приоритет',
-        						'timeStart' => 'Начало',
-        						'action' => 'Действие',
+          						'action' => 'Действие',
         						'timePreviously' => 'Предварително',
+                                'timeStart' => 'Начало',
         						'nextStartTime' => 'Следващо напомняне',
         						'rem' => 'Напомняне',
         						'repetitionTypeMonth' => 'Съблюдаване на',
@@ -1020,6 +1146,10 @@ class cal_Reminders extends core_Master
             if ($row->{$fieldName}) {
                 $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
             }
+        }
+        
+        if($rec->timeStart == $rec->nextStartTime) {
+            unset($resArr['nextStartTime']);
         }
         
         if ($row->repetitionEach){

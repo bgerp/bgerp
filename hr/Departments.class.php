@@ -8,23 +8,18 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class hr_Departments extends core_Master
 {
     
+	
      /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf, doc_FolderIntf';
-
-    
-    /**
-     * Необходими пакети
-     */
-    public $depends = 'acc=0.1';
+    public $interfaces = 'acc_RegisterIntf, hr_DepartmentAccRegIntf, doc_FolderIntf';
     
     
     /**
@@ -142,23 +137,28 @@ class hr_Departments extends core_Master
     public $defaultAccess = 'public';
     
     
-    // Подготвяме видовете графики 
-    static $chartTypes = array(
-        'List' => 'Tаблица',
-        'StructureChart' => 'Графика',
-    );
+    /**
+     * Видове графики
+     */
+    public static $chartTypes = array('List' => 'Tаблица', 'StructureChart' => 'Графика',);
     
     
     /**
      * Активен таб
      */
-    var $currentTab = 'Структура->Таблица';
+    public $currentTab = 'Структура->Таблица';
     
     
     /**
      * Кои полета да се сумират за наследниците
      */
-    var $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
+    public $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
+    
+    
+    /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
     
     
     /**
@@ -188,8 +188,8 @@ class hr_Departments extends core_Master
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работно време->График");
-        $this->FLD('startingOn', 'datetime', "caption=Работно време->Начало");
+        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл");
+        $this->FLD('startingOn', 'datetime', "caption=Работен график->Начало");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -203,7 +203,7 @@ class hr_Departments extends core_Master
     /**
      * Изпълнява се след четене на запис
      */
-    static function on_AfterRead($mvc, &$rec)
+    protected static function on_AfterRead($mvc, &$rec)
     {
         if($rec->name == 'Моята Организация') {
             $rec->name = crm_Companies::fetchField(crm_Setup::BGERP_OWN_COMPANY_ID, 'name');
@@ -229,19 +229,24 @@ class hr_Departments extends core_Master
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$fRec = &$data->form->rec;
     	$data->form->setField('parentId', 'remember');
     	self::expandRec($fRec);
     	
+    	$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');
+    	
+    	if(!$mvc->count("#id != {$undefinedDepId}") || (isset($fRec->id) && $fRec->id != $undefinedDepId && empty($fRec->parentId))){
+    		$data->form->setField('parentId', 'input=none');
+    	}
     }
     
     
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy("#orderStr");
     }
@@ -250,7 +255,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave($mvc, $id, $rec)
+    protected static function on_BeforeSave($mvc, $id, $rec)
     {
         $rec->orderStr = '';
         
@@ -282,12 +287,8 @@ class hr_Departments extends core_Master
     
     /**
      * Добавя след таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
      */
-    public function on_AfterRenderListTable($mvc, &$tpl, $data)
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $chartType = Request::get('Chart');
         
@@ -303,13 +304,9 @@ class hr_Departments extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->locationId){
     		$row->locationId = crm_Locations::getHyperlink($rec->locationId, TRUE);
@@ -319,6 +316,28 @@ class hr_Departments extends core_Master
     	if($rec->systemId == 'emptyCenter'){
     		unset($row->_addBtn);
     	}
+    	
+    	$empTpl = new core_ET("");
+    	$pQuery = crm_ext_Employees::getQuery();
+    	$pQuery->like("departments", "|{$rec->id}|");
+    	while($pRec = $pQuery->fetch()){
+    		$codeLink = crm_ext_Employees::getCodeLink($pRec->personId);
+    		$empTpl->append("{$codeLink}<br>");
+    	}
+    	
+    	$row->employees = $empTpl;
+    	
+    	$aTpl = new core_ET("");
+    	$aQuery = planning_AssetResources::getQuery();
+    	$aQuery->like("departments", "|{$rec->id}|");
+    	while($aRec = $aQuery->fetch()){
+    		$fields = cls::get('planning_AssetResources')->selectFields();
+    		$fields['-list'] = TRUE;
+    		
+    		$aRow = planning_AssetResources::recToVerbal($aRec, $fields);
+    		$aTpl->append("{$aRow->code} ($aRow->quantity)<br>");
+    	}
+    	$row->assets = $aTpl;
     }
     
     
@@ -454,7 +473,7 @@ class hr_Departments extends core_Master
     /**
      * Връща възможните опции за избор на бащи на обекта
      */
-    public static function on_AfterPrepareParentOptions($mvc, &$res, $rec)
+    protected static function on_AfterPrepareParentOptions($mvc, &$res, $rec)
     {
     	if(count($res)){
     		$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');

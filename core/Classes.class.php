@@ -72,7 +72,7 @@ class core_Classes extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Клас,mandatory,width=100%');
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,oldField=info');
+        $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%,oldField=info');
         $this->FLD('interfaces', 'keylist(mvc=core_Interfaces,select=name)', 'caption=Интерфейси');
         
         $this->setDbUnique('name');
@@ -194,10 +194,16 @@ class core_Classes extends core_Manager
         
         if(is_array($options)){
         	foreach($options as $cls => &$name) {
-        		$name = tr($name);
+        		
+        		$exp = explode('»', $name);
+        		if(count($exp) == 2){
+        			$name = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
+        		} else {
+        			$name = tr($name);
+        		}
         	}
         }
- 
+       
         return $options;
     }
     
@@ -346,6 +352,8 @@ class core_Classes extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
     	if($fields['-list']){
+    		$row->title = tr($row->title);
+    		
     		if($rec->state == 'active'){
                 try {
     			    $row->interfaces = $mvc->getVerbalInterfaces($rec);

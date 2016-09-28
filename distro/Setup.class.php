@@ -39,38 +39,63 @@ class distro_Setup extends core_ProtoSetup
      */
     var $info = "Разпределена група файлове";
     
+	
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'ssh=0.1';
+    
     
     /**
-     * Инсталиране на пакета
+     * Мениджъри за инсталиране
      */
-    function install()
-    {   
-        // Инсталиране на мениджърите
-        $managers = array(
+    var $managers = array(
             'distro_Group',
             'distro_Files',
             'distro_Automation',
-        );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
+            'distro_Repositories',
+            'distro_Actions',
+            'distro_RenameDriver',
+            'distro_DeleteDriver',
+            'distro_CopyDriver',
+            'distro_AbsorbDriver',
+            'distro_ArchiveDriver',
+            'migrate::reposToKey',
+    );
     
     
     /**
-     * Де-инсталиране на пакета
+     * Миграция за превръщане от keylist в key поле
      */
-    function deinstall()
+    public static function reposToKey()
     {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        // Ако полето липсва в таблицата на модела да не се изпълнява
+        $cls = cls::get('distro_Files');
+        $cls->db->connect();
+        $reposField = str::phpToMysqlName('repos');
+        if (!$cls->db->isFieldExists($cls->dbTableName, $reposField)) return ;
+
+        $fQuery = $cls->getQuery();
         
-        return $res;
+        unset($fQuery->fields['repos']);
+        $fQuery->FLD('repos', 'keylist(mvc=distro_Repositories, select=name)');
+        
+        $fQuery->where("#repoId IS NULL");
+        
+        while ($fRec = $fQuery->fetch()) {
+            
+            $reposArr = type_Keylist::toArray($fRec->repos);
+            
+            foreach ($reposArr as $repoId) {
+                $fRec->repos = NULL;
+                $fRec->repoId = $repoId;
+                
+                $cls->save($fRec);
+                
+                unset($fRec->id);
+            }
+        }
+        
+        return ;
     }
 }

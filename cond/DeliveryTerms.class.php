@@ -11,101 +11,84 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class cond_DeliveryTerms extends core_Master
 {
     
-    /**
-     * Старо име на класа
-     */
-	var $oldClassName = 'salecond_DeliveryTerms';
-	
-	
+    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, codeName, term, state';
+    public $listFields = 'codeName, term, state';
     
     
     /**
      * Поле в което ще се показва тулбара
      */
-    var $rowToolsSingleField = 'codeName';
-
-    /**
-     * 
-     * Полетата, които ще се показват в единичния изглед
-     */
-    var $singleFields = 'id, term, codeName, forSeller, forBuyer, transport';
-    
-    
-    /**
-     * Кой може да чете
-     */
-    var $canRead = 'ceo,cond';
+    public $rowToolsSingleField = 'codeName';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,cond';
+    public $canWrite = 'ceo,cond';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'ceo,cond';
+    public $canAdd = 'ceo,cond';
     
     
     /**
      * Кой може да променя
      */
-    var $canEdit = 'ceo,admin';
+    public $canEdit = 'ceo,cond';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'powerUser';
+	public $canList = 'ceo,cond';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'powerUser';
+	public $canSingle = 'ceo,cond';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Условия на доставка';
+    public $title = 'Условия на доставка';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Условие на доставка";
+    public $singleTitle = "Условие на доставка";
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/delivery.png';
+    public $singleIcon = 'img/16/delivery.png';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cond/tpl/SingleDeliveryTerms.shtml';
+    public $singleLayoutFile = 'cond/tpl/SingleDeliveryTerms.shtml';
     
     
     /**
@@ -118,15 +101,60 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('forSeller', 'text', 'caption=За продавача');
         $this->FLD('forBuyer', 'text', 'caption=За купувача');
         $this->FLD('transport', 'text', 'caption=Транспорт');
+        $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
+        $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         
         $this->setDbUnique('codeName');
     }
     
     
     /**
+     * Връща имплементация на драйвера за изчисляване на транспортната себестойност
+     * 
+     * @param mixed $id - ид, запис или NULL
+     * @return tcost_CostCalcIntf|NULL
+     */
+    public static function getCostDriver($id)
+    {
+    	if(!empty($id)){
+    		$rec = self::fetchRec($id);
+    		if(cls::load($rec->costCalc, TRUE)){
+    			return cls::getInterface('tcost_CostCalcIntf', $rec->costCalc);
+    		}
+    	}
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Дали да се изчислява скрития транспорт, за дадения артикул
+     * 
+     * @param mixed $id      - ид или запис
+     * @param int $productId - ид на артикул
+     * @return boolean $res  - да се начислява ли скрит транспорт или не
+     */
+    public static function canCalcHiddenCost($id, $productId)
+    {
+    	if(!$id) return FALSE;
+    	
+    	expect($rec = self::fetchRec($id));
+    	if($rec->calcCost == 'yes'){
+    		
+    		// Може да се начислява скрит транспорт само за складируем артикул, ако в условието на доставка е разрешено
+    		if(cat_Products::fetchField($productId, 'canStore') == 'yes'){
+    			return TRUE;
+    		}
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cond/csv/DeliveryTerms.csv";
     	$fields = array( 

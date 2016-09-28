@@ -1,6 +1,19 @@
 var shortURL;
 
 
+/**
+ * Опитваме се да репортнем JS грешките
+ */
+window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
+	
+	if (typeof $.ajax != 'undefined') {
+		$.ajax({
+			url: "/A/wp/",
+			data: {errType: 'JS error', currUrl: window.location.href, error: errorMsg, script: url, line: lineNumber, column: columnNum}
+		})
+	}
+}
+
 function runOnLoad(functionName) {
     if (window.attachEvent) {
         window.attachEvent('onload', functionName);
@@ -17,6 +30,7 @@ function runOnLoad(functionName) {
         }
     }
 }
+
 
 /**
  * Сменя изображенията с fade ефект
@@ -1020,7 +1034,7 @@ function prepareContextMenu() {
 
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id) {
-    var elem = $("#" + id).parent().find('.more-btn');
+    var elem = $("#" + id).parent().children('.more-btn');
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }
@@ -1546,6 +1560,11 @@ function setFormElementsWidth() {
         $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
     } else {
+        $('.formTable .hiddenFormRow select.w50').css('width', "50%");
+        $('.formTable .hiddenFormRow select.w75').css('width', "75%");
+        $('.formTable .hiddenFormRow select.w100').css('width', "100%");
+        $('.formTable .hiddenFormRow select.w25').css('width', "25%");
+
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
@@ -1884,6 +1903,7 @@ function refreshForm(form, removeFields) {
 	frm.css('cursor', 'wait');
 	
 	frm.find('input, select, textarea').css('cursor', 'wait');
+    frm.find('#save, #saveAndNew').prop( "disabled", true );
 	
 	var params = frm.serializeArray();
 
@@ -1893,7 +1913,7 @@ function refreshForm(form, removeFields) {
 	} else {
 		var filteredParams = params.filter(function(e){ return $.inArray(e.name, removeFields) == -1});
 	}
-	
+
 	var serialized = $.param(filteredParams);
 
 	// form.submit();
@@ -2001,7 +2021,7 @@ function replaceFormData(frm, data)
 	
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
-	
+    frm.find('#save, #saveAndNew').prop( "disabled", false );
 	frm.find('input, select, textarea').css('cursor', 'default');
 }
 /**
@@ -2132,6 +2152,9 @@ function prepareContextHtmlFromAjax() {
         $(holder).addClass('modal-toolbar');
         $(holder).attr('id', $(this).attr("data-id"));
         $(holder).attr('data-sizestyle', 'context');
+        $(holder).css('min-height', '120px');
+        $(holder).css('min-width', '140px');
+
 
         $(this).parent().append(holder);
     });
@@ -2152,9 +2175,6 @@ function getContextMenuFromAjax() {
         var el = $(this);
         el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
-
-
-
 }
 
 function openAjaxMenu(el) {
@@ -3395,6 +3415,15 @@ function render_prepareContextMenu() {
 
 
 /**
+ * Функция, която извиква подготвянето на контекстното меню по ajax
+ * Може да се комбинира с efae
+ */
+function render_getContextMenuFromAjax() {
+    getContextMenuFromAjax();
+}
+
+
+/**
 * Функция, която извиква подготвянето на smartCenter
 * Може да се комбинира с efae
 */
@@ -3417,7 +3446,7 @@ function render_sumOfChildrenWidth() {
 * Може да се комбинира с efae
 */
 function render_setFormElementsWidth() {
-        setFormElementsWidth();
+	setFormElementsWidth();
 }
 
 
@@ -3426,7 +3455,7 @@ function render_setFormElementsWidth() {
 * Може да се комбинира с efae
 */
 function render_setThreadElemWidth() {
-        setThreadElemWidth();
+	setThreadElemWidth();
 }
 
 
@@ -4421,6 +4450,16 @@ function addBugReportInput(form, nameInput, value)
 }
 
 
+/**
+ * При хоризонтален скрол на страницата, да създадем watch point
+ */
+function detectScrollAndWp() {
+    if($('#packWrapper').outerWidth() > $(window).width() ) {
+    	getEfae().process({url: wpUrl}, {errType: 'Scroll Detected', currUrl: window.location.href});
+    }
+}
+
+
 function removeNarrowScroll() {
 	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
 		$('body').removeClass('narrow-scroll');
@@ -4507,7 +4546,7 @@ function mailServerSettings() {
 		    case "mail.bg":
 		    	server.value = " imap.mail.bg:143";
 		    	protocol.value = "imap";
-		    	security.value = "ssl";
+		    	security.value = "tls";
 		    	cert.value = "validate";
 		    	smtpServer.value = "smtp.mail.bg:25";
 		    	smtpSecure.value = "tls";

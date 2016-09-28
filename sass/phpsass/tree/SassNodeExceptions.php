@@ -74,7 +74,6 @@ class SassForNodeException extends SassNodeException {}
  */
 class SassFunctionDefinitionNodeException extends SassNodeException {}
 
-
 /**
  * SassIfNodeException class.
  * @package      PHamlP

@@ -33,7 +33,11 @@ class plg_Search extends core_Plugin
         }
 
         $mvc->setField('searchKeywords', "collation=ascii_bin");
- 
+
+        if(empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
+            $mvc->setDbIndex('searchKeywords', NULL, 'FULLTEXT');
+        }
+
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
         setIfNot($mvc->searchInputField, 'search');
     }
@@ -102,7 +106,7 @@ class plg_Search extends core_Plugin
                     $verbalVal = $mvc->getVerbal($cRec, $field);
                     
                     if (!($fieldObj->type instanceof type_Varchar)) {
-                        $verbalVal = strip_tags($verbalVal);
+                        $verbalVal = type_Richtext::stripTags($verbalVal); 
                     }
             
                     $searchKeywords .= ' ' . static::normalizeText($verbalVal);
@@ -140,7 +144,16 @@ class plg_Search extends core_Plugin
             }
         }
     }
-       
+    
+
+    /**
+     * Помощна функция за сортиране по дължина на думите
+     */
+    static function sortLength($a, $b)
+    {
+        return strlen($a)-strlen($b);
+    }
+   
     
     /**
      * Прилага търсене по ключови думи
@@ -149,9 +162,16 @@ class plg_Search extends core_Plugin
      * @param core_Query $query
      * @param string $field
      */
-    public static function applySearch($search, $query, $field = 'searchKeywords')
+    public static function applySearch($search, $query, $field = NULL, $strict = 4, $limit = NULL)
     {
+        if(!$field) {
+            $field = 'searchKeywords';
+        }
+
         if ($words = static::parseQuery($search)) {
+            
+            usort($words, 'plg_Search::sortLength');
+ 
             foreach($words as $w) {
                 
                 $w = trim($w);
@@ -160,8 +180,17 @@ class plg_Search extends core_Plugin
                 
                 $wordBegin = ' ';
                 $wordEnd = '';
+                $wordEndQ = '*';
+
+                if($strict === TRUE ||(is_numeric($strict) && $strict > strlen($w))) {
+                    $wordEnd = ' ';
+                    $wordEndQ = '';
+                }
+
+                $mode = '+';
 
                 if($w{0} == '"') {
+                    $mode = '"';
                     $w = substr($w, 1);
                     if(!$w) continue;
                     $wordEnd = ' ';
@@ -175,23 +204,50 @@ class plg_Search extends core_Plugin
                 
                 if($w{0} == '-') {
                     $w = substr($w, 1);
-                    
+                    $mode = '-';
+
+
                     if(!$w) continue;
+                    $wordEnd = ' ';
                     $like = "NOT LIKE";
                     $equalTo = " = 0";
                 } else {
+
                     $like = "LIKE";
                     $equalTo = "";
                 }
                 
-                $w = static::normalizeText($w);
+                $w = static::normalizeText($w, array('*'));
 
                 if(strpos($w, '*') !== FALSE) {
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', #{$field}){$equalTo}");
+                    if(strlen($w) < 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
+                        if($limit > 0 && $like == 'LIKE') {
+                            $field1 =  "LEFT(#{$field}, {$limit})";
+                        } else {
+                            $field1 =  "#{$field}";
+                        }
+                        $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
+                    } else {
+                        if($mode == '+') {
+                            $q .= " +{$w}{$wordEndQ}";
+                        }
+                        if($mode == '"') {
+                            $q .= " \"{$w}\"";
+                        }
+                        if($mode == '-') {
+                            $q .= " -{$w}";
+                        }
+                    }
                 }
+            }
+            
+            $q = trim($q);
+            
+            if($q) {
+                $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
             }
         }
     }
@@ -204,10 +260,14 @@ class plg_Search extends core_Plugin
      * и прави всички букви в долен регистър (lower case).
      *
      * @param string $str
+     * @param array $ignoreParamsArr
+     * 
      * @return string
      */
-    public static function normalizeText($str)
+    public static function normalizeText($str, $ignoreParamsArr = array())
     {
+        $ignoreParamsArr = arr::make($ignoreParamsArr);
+        
         $conf = core_Packs::getConfig('core');
         
         // Максимално допустима дължина
@@ -221,7 +281,15 @@ class plg_Search extends core_Plugin
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);
-        $str = preg_replace('/[^a-z0-9\*]+/', ' ', $str);
+        $ignoreStr = '';
+        
+        if (!empty($ignoreParamsArr)) {
+            foreach ($ignoreParamsArr as $ignore) {
+                $ignoreStr .= preg_quote($ignore, '/');
+            } 
+        }
+        
+        $str = preg_replace("/[^a-z0-9{$ignoreStr}]+/", ' ', $str);
         
         return trim($str);
     }

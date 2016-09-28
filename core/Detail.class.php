@@ -202,13 +202,12 @@ class core_Detail extends core_Manager
         }
 		
         if ($this->haveRightFor('add', $rec) && $data->masterId) {
-        	$topTabParam = $data->masterData->tabTopParam;
         	
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
                     'add',
                     $masterKey => $data->masterId,
-                    'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey}, 'Tab' => Request::get('Tab'), $topTabParam => Request::get($topTabParam))
+                    'ret_url' => TRUE,
                 ),
                 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
         }

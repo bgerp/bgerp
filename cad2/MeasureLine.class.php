@@ -38,7 +38,7 @@ class cad2_MeasureLine  extends cad2_Shape {
     { 
         extract($p);
         
-        $svg->setAttr('stroke', 'blue');
+        $svg->setAttr('stroke', "#0000fe");
         $svg->setAttr('stroke-width', 0.1);
 
         self::draw($svg, $Ax, $Ay, $Bx, $By, $dist);
@@ -48,7 +48,7 @@ class cad2_MeasureLine  extends cad2_Shape {
     /**
      * Метод за изрисуване на оразмерителна линия
      */
-    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist)
+    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist, $measureText = NULL)
     {
         // разстояние след линията
         $offset = 2;
@@ -102,8 +102,10 @@ class cad2_MeasureLine  extends cad2_Shape {
         
         // Текст
         $ab = new cad_Vector($B1->x - $A1->x, $B1->y - $A1->y);
-        $text = round($ab->r) . ' mm';
-        $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / $svg->pixPerMm);
+        $text = $measureText ? $measureText . ' mm' : round($ab->r). ' mm';
+
+        $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
+
         $ab1 = $svg->p($ab->a, -$width);
         $td = $svg->p($ab->a + pi()/2, -2);
         if(rad2deg($ab->a) > (90 - 0.001) && rad2deg($ab->a) < (270 - 0.001)) {
@@ -139,7 +141,7 @@ class cad2_MeasureLine  extends cad2_Shape {
         $svg->moveTo($B1->x, $B1->y, TRUE);
         $svg->lineTo($Ar2->x, $Ar2->y, TRUE);
         
-        $svg->moveTo(80, 80, TRUE);
+        //$svg->moveTo(80, 80, TRUE);
 
 
         $svg->closeGroup();

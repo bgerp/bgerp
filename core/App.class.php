@@ -357,6 +357,9 @@ class core_App
         
         if (!isDebug() && $sendOutput) {
             self::flushAndClose();
+        } else {
+            ob_flush();
+            flush();
         }
 
 
@@ -824,7 +827,11 @@ class core_App
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
         if($params['ret_url'] === TRUE) {
-            $params['ret_url'] = self::getCurrentUrl();
+        	if($retUrl = Mode::get('ret_url')){
+        		$params['ret_url'] = $retUrl;
+        	} else {
+        		$params['ret_url'] = self::getCurrentUrl();
+        	}
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
@@ -1004,7 +1011,7 @@ class core_App
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
 
-	   if (is_readable($shortPath)) {
+	   if (@is_readable($shortPath)) {
            
            return $shortPath;
        }
@@ -1018,7 +1025,7 @@ class core_App
         foreach($pathsArr as $base) {
             $fullPath = $base . '/' . $shortPath;
  
-            if(is_readable($fullPath)) return $fullPath;
+            if(@is_readable($fullPath)) return $fullPath;
         }
 
         return FALSE;

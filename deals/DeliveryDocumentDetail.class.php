@@ -37,7 +37,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,input=input');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка,smartCenter');
+		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
 		
 		$mvc->setDbUnique("{$mvc->masterKey},productId,packagingId,price,quantity,discount");
@@ -98,8 +98,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$form->setDefault('packagingId', key($packs));
 			
 			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
-			if(isset($mvc->$LastPolicy)){
-				$policyInfoLast = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+			if(isset($mvc->{$LastPolicy})){
+				$policyInfoLast = $mvc->{$LastPolicy}->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
 				if($policyInfoLast->price != 0){
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
@@ -160,9 +160,11 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				}
 				
 				if(!$policyInfo){
+					$listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : NULL;
+					
 					// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
 					$Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
-					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
 				}
 				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
@@ -175,7 +177,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$rec->packPrice = $policyInfo->price * $rec->quantityInPack;
 				}
 				
-				if($policyInfo->discount && empty($rec->discount)){
+				if($policyInfo->discount && !isset($rec->discount)){
 					$rec->discount = $policyInfo->discount;
 				}
 				
@@ -190,7 +192,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 			
 			// Ако има такъв запис, сетваме грешка
-			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch);
+			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId);
 			if($exRec){
 				$form->setError('productId,packagingId,packPrice,discount,batch', 'Вече съществува запис със същите данни');
 				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);

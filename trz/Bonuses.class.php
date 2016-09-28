@@ -108,6 +108,12 @@ class trz_Bonuses extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/bonuses.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -129,17 +135,22 @@ class trz_Bonuses extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        
     	// Ако имаме права да видим визитката
     	if(crm_Persons::haveRightFor('single', $rec->personId)){
     		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
     		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
     	}
+    	
+    	$row->sum = $Double->toVerbal($rec->sum);
     }
     
     
     public static function act_Test()
     {
-    	$date = '2013-07-16';
+    	$date = '2016-03-01';
+    	self::getSalaryIndicators($date);
     }
     
     
@@ -152,15 +163,17 @@ class trz_Bonuses extends core_Master
     public static function getSalaryIndicators($date)
     {
     	$query = self::getQuery();
-    	$query->where("#periodId  = '{$date}'");
-    	     	 
+    	$query->where("#periodId  <= '{$date}'");
+    	$me = cls::get(get_called_class());
+
     	while($rec = $query->fetch()){
     	
     		$result[] = (object)array(
+    		    'date' => $rec->periodId,
 	    		'personId' => $rec->personId, 
 	    		'docId'  => $rec->id, 
 	    	    'docClass' => core_Classes::getId('trz_Bonuses'),
-	    		'indicator' => 'bonuses', 
+	    		'indicator' => tr("|$me->title|*"), 
 	    		'value' => $rec->sum
 	    	);
     	}

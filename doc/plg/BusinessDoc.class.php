@@ -32,6 +32,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
+        setIfNot($mvc->alwaysForceFolderIfEmpty, FALSE);
     }
     
     
@@ -60,8 +61,9 @@ class doc_plg_BusinessDoc extends core_Plugin
     	if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
             Request::get('threadId', 'key(mvc=doc_Threads)') ||
             Request::get('cloneId', 'key(mvc=doc_Containers)') ||
-            Request::get('originId', 'key(mvc=doc_Containers)') ) {
+    		($mvc->alwaysForceFolderIfEmpty === FALSE && Request::get('originId', 'key(mvc=doc_Containers)'))) {
             // Има основание - не правим нищо
+            
             return;
         }
         
@@ -182,13 +184,19 @@ class doc_plg_BusinessDoc extends core_Plugin
     			    
                     $coverClassId = core_Classes::getId($coverId);
                     $query = doc_Folders::getQuery();
-                    $query->where("#coverClass = {$coverClassId} AND #state != 'rejected'");
+                    $query->where("#coverClass = {$coverClassId} AND #state != 'rejected' AND #state != 'closed'");
                     $mvc->RestrictQueryOnlyFolderForDocuments($query);
                     $query->orderBy('#modifiedOn', 'DESC');
     				$newOptions = array();
                     
                     while($rec = $query->fetch()) {
-                        $newOptions[$rec->coverId] = $rec->title;
+                    	$oRec = (object)array('folderId' => $rec->id);
+                    	if($oId = Request::get('originId')){
+                    		$oRec->originId = $oId;
+                    	}
+                    	if($mvc->haveRightFor('add', $oRec)){
+                    		$newOptions[$rec->coverId] = $rec->title;
+                    	}
                     }
 
     		        if ($newOptions) {

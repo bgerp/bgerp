@@ -164,6 +164,80 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logRead($action, $objectId, $lifeDays)
+     */
+    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
+    {
+        self::logToFolder('read', $action, $objectId, $lifeDays);
+        
+        return parent::logRead($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
+     */
+    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    {
+        self::logToFolder('write', $action, $objectId, $lifeDays);
+        
+        return parent::logWrite($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $type
+     * @param string $action
+     * @param integer|NULL $objectId
+     * @param integer|NULL $lifeDays
+     */
+    protected static function logToFolder($type, $action, $objectId, $lifeDays)
+    {
+        if (!$objectId) return ;
+        
+        $allowedType = array('read', 'write');
+        
+        if (!in_array($type, $allowedType)) {
+            
+            return ;
+        }
+        
+        try {
+            $rec = self::fetch($objectId);
+            
+            $type = strtolower($type);
+            $type = ucfirst($type);
+            $fncName = 'log' . $type;
+            
+            if (!cls::load($rec->coverClass, TRUE)) return ;
+            
+            $inst = cls::get($rec->coverClass);
+            
+            $inst->$fncName($action, $rec->coverId, $lifeDays);
+            
+            return TRUE;
+        } catch (core_exception_Expect $e) {
+            
+            reportException($e);
+        }
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -435,7 +509,24 @@ class doc_Folders extends core_Master
                         // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
                         $isRejected = core_Users::checkUsersIsRejected($notifyArr);
                         if ($isRejected) {
-                            $notifyArr += core_Users::getByRole('admin');
+                            
+                            $otherNotifyArr = array();
+                            if ($defNotify = doc_Setup::get('NOTIFY_FOR_OPEN_IN_REJECTED_USERS')) {
+                                $otherNotifyArr = type_Keylist::toArray($defNotify);
+                            }
+                            
+                            // Ако има избрани потребители в настройките, проверяваме да не са оттеглени
+                            if (!empty($otherNotifyArr)) {
+                                if (core_Users::checkUsersIsRejected($otherNotifyArr)) {
+                                    $otherNotifyArr = array();
+                                }
+                            }
+                            
+                            if (empty($otherNotifyArr)) {
+                                $otherNotifyArr = core_Users::getByRole('admin');
+                            }
+                            
+                            $notifyArr += $otherNotifyArr;
                         }
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
@@ -841,7 +932,7 @@ class doc_Folders extends core_Master
             // Атрибути на линка
             $attr = array();
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon})";    
+            $attr['style'] = "background-image:url({$sbfIcon});";    
             $attr['target'] = '_blank'; 
 
             // Създаваме линк
@@ -967,7 +1058,7 @@ class doc_Folders extends core_Master
         $query->orWhere("#title IS NULL");
         
         $query->limit(500);
-
+        
         while($rec = $query->fetch()) {
             try {
                 // Ако има папка без собственик
@@ -975,33 +1066,17 @@ class doc_Folders extends core_Master
                     $resArr['inCharge']++;
                     $rec->inCharge = $currUser;
                     self::save($rec, 'inCharge');
+                    self::logNotice("Добавен е собственик на папката", $rec->id);
                 }
                 
                 // Ако липсва coverClass, да е на несортираните
                 if (!isset($rec->coverClass)) {
-                    $resArr['coverClass']++;
-                    $rec->coverClass = $unsortedFolderId;
-                    self::save($rec, 'coverClass');
+                    $resArr += self::moveToUnsorted($rec, $currUser);
                 }
                 
                 // Ако няма coverId
                 if (!isset($rec->coverId)) {
-                    $resArr['coverId']++;
-                    
-                    // Ако не е несортирани
-                    if ($rec->coverClass != $unsortedFolderId) {
-                        $resArr['coverClass']++;
-                        $rec->coverClass = $unsortedFolderId;
-                        self::save($rec, 'coverClass');
-                    }
-                    
-                    // Създаваме документ и използваме id-то за coverId
-                    $unRec = new stdClass();
-                    $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
-                    $unRec->inCharge = $currUser;
-                    $unRec->folderId = $rec->id;
-                    $rec->coverId = $unsortedFolders::save($unRec);
-                    self::save($rec, 'coverId');
+                    $resArr += self::moveToUnsorted($rec, $currUser);
                 }
                 
                 // Ако няма заглвиет, използваме заглавието от документа
@@ -1010,7 +1085,10 @@ class doc_Folders extends core_Master
                     $coverMvc = cls::get($rec->coverClass);
                     $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
                     self::save($rec, 'title');
+                    self::logNotice("Добавено заглавие на корица {$rec->coverId}");
                 }
+                
+                self::logNotice("Папката е обновена, защото има развалени данни", $rec->id);
                 
                 // Обновяваме папката
                 self::updateFolderByContent($rec->id);
@@ -1019,13 +1097,122 @@ class doc_Folders extends core_Master
             }
         }
         
+        // Ако е зададено да се поправят всички стойности
+        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+            $resArr += self::repairAll($from, $to, $delay);
+        }
+        
         // Връщаме старото състояние за ловговането в дебъг
         core_Debug::$isLogging = $isLoging;
         
         return $resArr;
     }
-    
 
+
+
+    /**
+     * Проверка и поправка на всички записи
+     *
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     *
+     * @return array
+     */
+    public static function repairAll($from = NULL, $to = NULL, $delay = 10)
+    {
+        $resArr = array();
+        $query = self::getQuery();
+    
+        self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
+        
+        while ($rec = $query->fetch()) {
+            
+            $mustRepair = FALSE;
+            
+            try {
+                // Поправяме документите, които няма инстанция или липсва запис за тях
+                if (cls::load($rec->coverClass, TRUE)) {
+                    $inst = cls::get($rec->coverClass);
+                    
+                    if (!$inst->fetch($rec->coverId, '*', FALSE)) {
+                        $mustRepair = TRUE;
+                    }
+                } else {
+                    $mustRepair = TRUE;
+                }
+            } catch (Exception $e) {
+                reportException($e);
+                
+                continue;
+            }
+            
+            if ($mustRepair) {
+                try {
+                    $resArr += self::moveToUnsorted($rec);
+                } catch (Exception $e) {
+                    reportException($e);
+                
+                    continue;
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Прави миграция на папките към несортирани. Използва се при поправка на документите.
+     * 
+     * @param stdObject $rec
+     * @param NULL|integer $currUser
+     * 
+     * @return array
+     */
+    protected static function moveToUnsorted($rec, $currUser = NULL)
+    {
+        $resArr = array();
+        $unsortedFolders = 'doc_UnsortedFolders';
+        $unsortedFolderId = core_Classes::getId($unsortedFolders);
+        
+        if (!$currUser) {
+            $currUser = core_Users::getCurrent();
+            if ($currUser <= 0) {
+                $currUser = core_Users::getFirstAdmin();
+            }
+            $currUser = ($currUser) ? $currUser : 1;
+        }
+        
+        if (isset($rec->coverClass) || ($rec->coverClass != $unsortedFolderId)) {
+            
+            self::logNotice("Променен клас на корица от {$rec->coverClass} на {$unsortedFolderId}");
+            
+            $resArr['coverClass']++;
+            $rec->coverClass = $unsortedFolderId;
+            $rec->coverId = NULL;
+            self::save($rec, 'coverClass, coverId');
+        }
+        
+        $resArr['coverId']++;
+        
+        $oldCoverId = $rec->coverId;
+        
+        // Създаваме документ и използваме id-то за coverId
+        $unRec = new stdClass();
+        $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
+        $unRec->inCharge = $currUser;
+        $unRec->folderId = $rec->id;
+        $rec->coverId = $unsortedFolders::save($unRec);
+        
+        self::save($rec, 'coverId');
+        
+        self::logNotice("Променено id на папка от {$oldCoverId} на {$rec->coverId}");
+        
+        return $resArr;
+    }
+    
+    
     /**
      * Екшън за поправка на структурите в документната система
      */
@@ -1140,6 +1327,14 @@ class doc_Folders extends core_Master
         if (!$rec->coverClass) return ;
         $class = cls::get($rec->coverClass);
         $title = $class->getTitle();
+        
+        if ($class instanceof core_Master) {
+            $singleTitle = $class->singleTitle;
+            if ($singleTitle && ($title != $singleTitle)) {
+                $title .= ' ' . $singleTitle;
+            }
+        }
+        
         $searchKeywords .= " " . plg_Search::normalizeText($title);
     }
     
@@ -1221,8 +1416,10 @@ class doc_Folders extends core_Master
         // Добавяме функционални полета
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени теми->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
-        $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на темите->Правило, input=input');
-        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From`->Имейл, input=input');
+
+        $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
+
+        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Получен личен имейл->Известяване, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
@@ -1293,7 +1490,7 @@ class doc_Folders extends core_Master
     	
     	$query->show('title');
     	while($rec = $query->fetch()){
-    		$options[$rec->id] = doc_Folders::getTitleById($rec->id, FALSE);
+    		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
     	}
     
     	return $options;

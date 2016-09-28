@@ -106,7 +106,10 @@ class cond_plg_DefaultValues extends core_Plugin
     			// За всяко поле със стратегия, му се намира стойността
     			foreach ($mvc::$defaultStrategies as $name => $strat){
     				$value = self::getDefValue($mvc, $rec, $name, $strat);
-    				$form->setDefault($name, $value);
+    				
+    				if($form->cmd != 'refresh'){
+    					$form->setDefault($name, $value);
+    				}
     			}
     		}
     	}
@@ -172,7 +175,7 @@ class cond_plg_DefaultValues extends core_Plugin
     /**
      * Намира последния документ в дадена папка
      */
-    private static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = TRUE)
+    public static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = TRUE)
     {
     	if(empty($folderId)) return;
     	
@@ -189,7 +192,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	$query->show($name);
     	$query->limit(1);
     	
-    	return $query->fetch()->$name;
+    	return $query->fetch()->{$name};
     }
     
     
@@ -215,7 +218,7 @@ class cond_plg_DefaultValues extends core_Plugin
                 if($cData->countryId == $cData2->countryId){
                     
                     // Ако контрагента е от същата държава 
-                    return $oRec->$name;
+                    return $oRec->{$name};
                 }
             } catch(core_exception_Expect $e){}
         }

@@ -561,7 +561,7 @@ class marketing_Inquiries2 extends embed_Manager
     			$data->toolbar->addBtn("Артикул|* {$arrow}", array('cat_Products', 'single', $pId), "ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване");
     		} else {
     			// Създаване на нов артикул от запитването
-    			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
+    			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId, 'threadId' => $rec->threadId))){
     				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId, 'proto' => $rec->proto, 'ret_url' => TRUE);
     				if(doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')){
     					$url['folderId'] = $rec->folderId; 
@@ -774,8 +774,8 @@ class marketing_Inquiries2 extends embed_Manager
                     $fieldNamesArr = array_keys($contactFields);
                     $userData = array();
                     foreach ((array)$fieldNamesArr as $fName) {
-                        if (!trim($form->rec->$fName)) continue;
-                        $userData[$fName] = $form->rec->$fName;
+                        if (!trim($form->rec->{$fName})) continue;
+                        $userData[$fName] = $form->rec->{$fName};
                     }
                     log_Browsers::setVars($userData);
     			}

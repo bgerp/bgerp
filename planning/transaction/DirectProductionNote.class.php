@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -29,19 +29,17 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason'      => "Протокол за бързо производство №{$rec->id}",
+				'reason'      => "Протокол за производство №{$rec->id}",
 				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
 				'entries'     => array()
 		);
 	
 		// Ако има ид, добавяме записите
-		//if(isset($rec->id)){
-			$entries = $this->getEntries($rec, $result->totalAmount);
-			if(count($entries)){
-				$result->entries = $entries;
-			}
-		//}
+		$entries = $this->getEntries($rec, $result->totalAmount);
+		if(count($entries)){
+			$result->entries = $entries;
+		}
 		
 		return $result;
 	}
@@ -60,6 +58,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      * Ct: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
      *   или ако артикула е услуга Ct: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
 	 * 
+	 * Нескладируемите артикули ги влагаме в незавършеното производство от разходната сметка
+	 * където се предполага че са натрупани към разходния обект 'Неразпределени разходи'
+	 * 
+	 * Dt: 61101 - Незавършено производство                (Артикули)
+     * 
+     * Ct: 60201 - Разходи за (нескладируеми) услуги и консумативи  (Разходни обекти, Артикули)
+     *   
 	 * 2. Етап: вкарваме в склада произведения продукт
 	 * 
 	 * Изписваме вложените материали и вкарваме в склада продукта. Той влиза с цялото си количество
@@ -69,17 +74,22 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	 * Вкарване на материал
 	 * 
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
-     * или ако артикула е услуга Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
+     * или ако артикула е услуга 60201 Разходи за (нескладируеми) услуги и консумативи  (Разходни обекти, Артикули) 
+     * по посочения разходен обект
      * 
      * Ct: 61101 - Незавършено производство                (Артикули)
 	 * 
 	 * Вкарване на отпадък
 	 * 
-	 * Dt: 61101 - Незавършено производство                (Артикули)
+	 * Dt: с/ка 61101 - Незавършено производство
+	 * Ct: с/ка 484 - Операции захранващи стратегии двустранно
+	 * с количеството на ОТПАДЪКА и сума - според зададената му себестойност - по този начин заприхождаваме ОТПАДЪКА в незавършеното производство
 	 * 
-     * Ct: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
-     * или ако артикула е услуга Ct: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
-     * 
+	 * Dt: с/ка 321 - Суровини, материали, продукция, стоки
+	 * 		или 60201 - Разходи за (нескладируеми) услуги и консумативи  по перо 'Неразпределени разходи'
+	 * Ct: с/ка 484 - Операции захранващи стратегии двустранно
+	 * с количество 0 за ПРОИЗВЕДЕНИЯ артикул и сума = себестойността на ОТПАДЪКА но с ОТРИЦАТЕЛЕН ЗНАК, с цел - да намалим себестойността на ПРОИЗВЕДЕНИЯ артикул със стойността на генерирания ОТПАДЪК 
+	 * 
      * 3. Етап: Ако има режийни разходи за разпределение
      * 
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
@@ -97,11 +107,16 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
 		} else {
-			$doc = doc_Containers::getDocument($rec->dealId);
-			$saleRec = $doc->fetch();
-			$array = array('703', array($saleRec->contragentClassId, $saleRec->contragentId),
-								  array($doc->getInstance()->className, $doc->that),
-								  array('cat_Products', $rec->productId));
+			$expenseItem = $rec->expenseItemId;
+			if(!isset($expenseItem)){
+				if(isset($pInfo->meta['fixedAsset'])){
+					$expenseItem = array('cat_Products', $rec->productId);
+				} else{
+					$expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+				}
+			}
+			
+			$array = array('60201', $expenseItem, array('cat_Products', $rec->productId));
 		}
 		
 		$dRecs = array();
@@ -114,7 +129,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		if(is_array($dRecs)){
 			
-			if(!count($dRecs) && empty($rec->inputStoreId)){
+			if(!count($dRecs)){
 				$rec->debitAmount = ($rec->debitAmount) ? $rec->debitAmount : 0;
 				
 				$amount = $rec->debitAmount;
@@ -122,27 +137,39 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$array['quantity'] = $rec->quantity;
 				
 				$entry = array('amount' => $amount,
-							   'debit' => $array,
+							   'debit'  => $array,
 							   'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-				//$total += $amount;
 					
 				$entries[] = $entry;
 			} else {
 				foreach ($dRecs as $dRec){
-					if(empty($dRec->storeId)) continue;
 				
 					// Влагаме артикула, само ако е складируем, ако не е
 					// се предполага ,че вече е вложен в незавършеното производство
 					if($dRec->type == 'input'){
 						$productInfo = cat_Products::getProductInfo($dRec->productId);
-						if(!isset($productInfo->meta['canStore'])) continue;
-						
-						$entry = array('debit' => array('61101', array('cat_Products', $dRec->productId),
-								'quantity' => $dRec->quantity),
-								'credit' => array('321', array('store_Stores', $dRec->storeId),
-										array('cat_Products', $dRec->productId),
-										'quantity' => $dRec->quantity),
-								'reason' => 'Влагане на материал в производството');
+						if(isset($productInfo->meta['canStore'])){
+							if(empty($dRec->storeId)) continue;
+							
+							$entry = array('debit' => array('61101', 
+															array('cat_Products', $dRec->productId),
+															'quantity' => $dRec->quantity),
+										   'credit' => array('321', 
+													         array('store_Stores', $dRec->storeId),
+													         array('cat_Products', $dRec->productId),
+											                'quantity' => $dRec->quantity),
+									       'reason' => 'Влагане на материал в производството');
+						} else {
+							$item = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+							$entry = array('debit' => array('61101',
+														array('cat_Products', $dRec->productId),
+														'quantity' => $dRec->quantity),
+										   'credit' => array('60201',
+															$item,
+															array('cat_Products', $dRec->productId),
+															'quantity' => $dRec->quantity),
+										   'reason' => 'Влагане на нескладируема услуга или консуматив в производството');
+						}
 							
 						$entries[] = $entry;
 					}
@@ -168,6 +195,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						$sign = 1;
 					} else {
 						$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, NULL, $rec->valior);
+						$primeCost *= $dRec1->quantity;
 						$sign = -1;
 					}
 					
@@ -182,7 +210,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				
 					// Ако е материал го изписваме към произведения продукт
 					if($dRec1->type == 'input'){
-						$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на продукт'));
+						$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : ((!isset($productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
 				
 						$array['quantity'] = $quantity;
 						$entry['debit'] = $array;
@@ -190,19 +218,24 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						$entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
 								'quantity' => $dRec1->quantity);
 						$entry['reason'] = $reason;
+						
+						$entries[] = $entry;
 					} else {
-						$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId),
-								'quantity' => $dRec1->quantity);
-						
-						$array['quantity'] = $quantity;
-						$entry['credit'] = $array;
-						
 						$entry['amount'] = $primeCost;
-						$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
-						//$total -= $amount;
+						$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId), 'quantity' => $dRec1->quantity);
+						$entry['credit'] = array('484');
+						$entry['reason'] = 'Заприхождаване на отпадък в незавършеното производство ';
+						$entries[] = $entry;
+						
+						$entry2 = array();
+						$entry2['amount'] = -1 * $primeCost;
+						$entry2['debit'] = $array;
+						$entry2['credit'] = array('484');
+						$entry2['debit']['quantity'] = 0;
+						$entry2['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
+						$entries[] = $entry2;
 					}
 				
-					$entries[] = $entry;
 					$index++;
 				}
 			}
@@ -221,7 +254,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				
 				$costArray = array(
 						'amount' => $costAmount,
-						'debit' => $array,
+						'debit'  => $array,
 						'credit' => array('61102'),
 						'reason' => 'Разпределени режийни разходи');
 					

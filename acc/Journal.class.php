@@ -214,9 +214,9 @@ class acc_Journal extends core_Master
             
             while($dRec = $dQuery->fetch()){
                 foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
-                    if(isset($dRec->$item)){
-                        $mvc->affectedItems[$dRec->$item] = $dRec->$item;
-                        acc_Items::updateEarliestUsedOn($dRec->$item, $rec->valior);
+                    if(isset($dRec->{$item})){
+                        $mvc->affectedItems[$dRec->{$item}] = $dRec->{$item};
+                        acc_Items::updateEarliestUsedOn($dRec->{$item}, $rec->valior);
                     }
                 }
             }
@@ -250,7 +250,7 @@ class acc_Journal extends core_Master
             $dQuery->where("#journalId = {$rec->id}");
             $details = $dQuery->fetchAll();
             
-            $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
+            $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
             
             $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
             
@@ -445,7 +445,8 @@ class acc_Journal extends core_Master
      */
     public static function deleteTransaction($docClassId, $docId)
     {
-        $query = static::getQuery();
+    	$docClassId = cls::get($docClassId)->getClassId();
+    	$query = static::getQuery();
         $query->where("#docType = {$docClassId} AND #docId = {$docId}");
     	
         // Изтриваме всички записи направени в журнала от документа

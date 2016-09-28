@@ -15,4 +15,25 @@
 class planning_DriverIntf extends tasks_DriverIntf
 {
 	
+	
+	/**
+	 * Информация за произведения артикул по задачата
+	 * 
+	 * @param stdClass $rec
+	 * @return stdClass $arr
+	 * 			  o productId       - ид на артикула
+	 * 			  o packagingId     - ид на опаковката
+	 * 			  o quantityInPack  - количество в опаковка
+	 * 			  o plannedQuantity - планирано количество
+	 * 			  o wastedQuantity  - бракувано количество
+	 * 			  o totalQuantity   - прозведено количество
+	 * 			  o storeId         - склад
+	 * 			  o fixedAssets     - машини
+	 * 			  o indTime         - време за пускане
+	 * 			  o startTime       - време за прозиводство
+	 */
+	public function getProductDriverInfo($id)
+	{
+		$this->class->getProductDriverInfo($id);
+	}
 }

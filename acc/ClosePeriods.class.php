@@ -275,6 +275,14 @@ class acc_ClosePeriods extends core_Master
     	if(acc_Balances::haveRightFor('single', $balanceId)){
     		$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $balanceId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
     	}
+    	
+    	foreach (array('amountVatGroup1', 'amountVatGroup2', 'amountVatGroup3', 'amountVatGroup4', 'amountWithoutInvoice', 'amountKeepBalance', 'amountFromInvoices') as $fld){
+    		if($rec->{$fld} == 0){
+    			$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
+    		}
+    	}
+    	
+    	$row->amountKeepBalance .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
     }
     
     
@@ -400,9 +408,9 @@ class acc_ClosePeriods extends core_Master
     		$nRow = new stdClass();
     		$nRow->accountId = acc_Balances::getAccountLink($dRec->accountId, $bId, TRUE, TRUE);
     		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    			$nRow->$fld = $Double->toVerbal($dRec->$fld);
-    			if($dRec->$fld < 0){
-    				$nRow->$fld = "<span class='red'>{$nRow->$fld}</span>";
+    			$nRow->{$fld} = $Double->toVerbal($dRec->{$fld});
+    			if($dRec->{$fld} < 0){
+    				$nRow->{$fld} = "<span class='red'>{$nRow->{$fld}}</span>";
     			}
     		}
     		

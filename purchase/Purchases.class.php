@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   purchase
- * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -16,6 +16,14 @@
  */
 class purchase_Purchases extends deals_DealMaster
 {
+	
+    
+    /**
+     * Дали да се показва бутон на чернова документ
+     * 
+     * @see doc_EmailCreatePlg
+     */
+	public $canEmailDraft = TRUE;
     
     
     /**
@@ -161,7 +169,6 @@ class purchase_Purchases extends deals_DealMaster
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|defMethod',
-    	'activityCenterId'   => 'lastDocUser|lastDoc',
     );
     
     
@@ -244,7 +251,6 @@ class purchase_Purchases extends deals_DealMaster
     {
     	parent::setDealFields($this);
     	$this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
-    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Доставка->Център,mandatory,after=shipmentStoreId');
     	$this->setField('dealerId', 'caption=Наш персонал->Закупчик');
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад');
     }
@@ -266,29 +272,14 @@ class purchase_Purchases extends deals_DealMaster
         $form->setField('deliveryLocationId', 'caption=Доставка->Обект от');
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
-        // Ако имаме само един център не показваме полето за избор на център
-        if(hr_Departments::count() == 1){
-        	$form->setField('activityCenterId', 'input=none');
-        } else {
-        	$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
-        	$form->setDefault('activityCenterId', $defCenter);
-        }
-        
         $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
         }
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    	if(isset($rec->activityCenterId)){
-    		$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
-    	}
+        
+        // Търговеца по дефолт е отговорника на контрагента
+        $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
+        $form->setDefault('dealerId', $inCharge);
     }
     
     
@@ -434,8 +425,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
-        $result->setIfNot('activityCenterId', $rec->activityCenterId);
-        
+       
         purchase_transaction_Purchase::clearCache();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         
@@ -494,13 +484,13 @@ class purchase_Purchases extends deals_DealMaster
         $agreed = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld){
             	$p->{$fld} = $dRec->{$fld};
             }
-            
+           
             $info = cat_Products::getProductInfo($p->productId);
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
+            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
+            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
             
             $agreed[] = $p;
             
@@ -520,7 +510,7 @@ class purchase_Purchases extends deals_DealMaster
             	$result->push('shippedPacks', $arr, $index);
             }
         }
-        
+       
         $agreed = deals_Helper::normalizeProducts(array($agreed));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);

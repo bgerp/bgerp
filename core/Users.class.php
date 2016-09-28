@@ -285,8 +285,10 @@ class core_Users extends core_Manager
             
             // Ако е зададен ник
             if ($nick) {
-                $nick = strtolower($nick);
+                $nick = mb_strtolower($nick);
                 $query->where(array("LOWER(#nick) LIKE '[#1#]%'", $nick));
+                $query->orWhere(array("LOWER(#names) LIKE '[#1#]%'", $nick));
+                $query->orWhere(array("LOWER(#names) LIKE '% [#1#]%'", $nick));
             }
             
             // Ако е зададено ограничение
@@ -693,8 +695,16 @@ class core_Users extends core_Manager
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLoginMsg($inputs, 'missing_password');
                     core_LoginLog::add('reject', $userRec->id, $inputs->time);
-                } elseif ($userRec->state == 'blocked') {
-                    $form->setError('nick', 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
+                } elseif ($userRec->state == 'blocked') { 
+                    if(type_Ip::isLocal()) {
+                        Request::setProtected('userId');
+                        $url = array('core_Users', 'unblocklocal', 'userId' => $userRec->id);
+                        $url = toUrl($url);
+                        $msg = 'Този потребител е блокиран|*.<br>|Може да го активирате от тук:|* <a href="' . $url . '">[*]</a>';
+                    } else {
+                        $msg = 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.';
+                    }
+                    $form->setError('nick', $msg);
                     $this->logLoginMsg($inputs, 'blocked_user');
                     core_LoginLog::add('block', $userRec->id, $inputs->time);
                 } elseif ($userRec->state == 'draft') {
@@ -1070,7 +1080,7 @@ class core_Users extends core_Manager
             $userRec->maxIdleTime = 0;
         } else {
             // Дали нямаме дублирано ползване?
-            if ($userRec->lastLoginIp != $Users->getRealIpAddr() &&
+            if ( $userRec->lastLoginIp != $Users->getRealIpAddr() &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
                 dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 

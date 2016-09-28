@@ -57,14 +57,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public static function setInvoiceDetailFields(&$mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул','tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory','tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,smartCenter,input=hidden');
 		$mvc->FLD('quantity', 'double', 'caption=Количество','tdClass=small-field,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка,smartCenter');
+		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
 	}
 	
@@ -167,7 +167,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				// За всеки запис ако е променен от оригиналния показваме промяната
 				$count = 0;
 				foreach($recs as &$dRec){
-					$originRef = $cached[$count][$dRec->productId];
+					$originRef = $cached->recs[$count][$dRec->productId];
 					
 					$diffQuantity = $dRec->quantity - $originRef['quantity'];
 					$diffPrice = $dRec->packPrice - $originRef['price'];
@@ -208,11 +208,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			foreach (array('Quantity' => 'quantity', 'Price' => 'packPrice', 'Amount' => 'amount') as $key => $fld){
 				if($rec->{"changed{$key}"} === TRUE){
 					$changed = TRUE;
-					if($rec->$fld < 0){ 
-						$row->$fld = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
-						$row->$fld = "<span style='color:red'>{$row->$fld}</span>";
-					} elseif($rec->$fld > 0){
-						$row->$fld = "<span style='color:green'>+{$row->$fld}</span>";
+					if($rec->{$fld} < 0){ 
+						$row->{$fld} = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
+						$row->{$fld} = "<span style='color:red'>{$row->{$fld}}</span>";
+					} elseif($rec->{$fld} > 0){
+						$row->{$fld} = "<span style='color:green'>+{$row->{$fld}}</span>";
 					}
 				}
 			}
@@ -254,19 +254,22 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$data->rows = array();
 				
 				// Показване на сумата за промяна на известието
-				$amount = $mvc->getFieldType('amount')->toVerbal($masterRec->dealValue / $masterRec->rate);
+				$Type = $mvc->getFieldType('amount');
+				$Type->params['decimals'] = 2;
+				$amount = $Type->toVerbal($masterRec->dealValue / $masterRec->rate);
 				$originRec = doc_Containers::getDocument($masterRec->originId)->rec();
 				
 				if($originRec->dpOperation == 'accrued'){
 					$reason = ($amount > 0) ? 'Увеличаване на авансово плащане' : 'Намаляване на авансово плащане';
 				} else {
-					$reason = ($amount > 0) ? 'Увеличаване на стойност на фактура' : 'Намаляване на стойност на фактура';
+					$reason = ($amount > 0) ? 'Увеличаване на стойност' : 'Намаляване на стойност';
 				}
 				
 				$data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => TRUE);
-				$data->rows['advance'] = (object) array('RowNumb' => 1,
-						'reason' => $reason,
-						'amount' => $amount);
+				
+				core_Lg::push($masterRec->tplLang);
+				$data->rows['advance'] = (object) array('RowNumb' => 1, 'reason' => tr($reason), 'amount' => $amount);
+				core_Lg::pop();
 			} 
 		}
 	}
@@ -438,8 +441,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 						
 				if(!$policyInfo){
+					$listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : NULL;
 					$Policy = cls::get('price_ListToCustomers');
-					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::now(), $masterRec->rate);
+					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
 				}
 					
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
@@ -451,7 +455,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$rec->price = $policyInfo->price;
 					$rec->packPrice = $policyInfo->price * $rec->quantityInPack;
 					
-					if($policyInfo->discount && empty($rec->discount)){
+					if($policyInfo->discount && !isset($rec->discount)){
 						$rec->discount = $policyInfo->discount;
 					}
 				}
@@ -503,7 +507,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$recs[] = $dRec->id;
 				}
 				$index = array_search($rec->id, $recs);
-				$cache = $cache[$index][$rec->productId];
+				$cache = $cache->recs[$index][$rec->productId];
 				
 
 				$pPrice = isset($packPrice)? $packPrice : $rec->packPrice;

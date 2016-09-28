@@ -24,6 +24,7 @@ class cms_ObjectSourceIntf
         return $this->class->prepareCmsObject($data);
     }
 
+
     /**
      * Връща ЕТ шаблон по подразбиране за рендирането на този обект
      */
@@ -32,6 +33,7 @@ class cms_ObjectSourceIntf
         return $this->class->getDefaultCmsTpl($data, $tpl);
     }
 
+
     /**
      * Връща HTML кода на обекта, като рендира данните
      */
@@ -39,5 +41,8 @@ class cms_ObjectSourceIntf
     {
         return $this->class->renderCmsObject($data, $tpl);
     }
+
+
+
     
 }

@@ -217,7 +217,9 @@ class store_ConsignmentProtocols extends core_Master
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
-    	store_DocumentMaster::prepareHeaderInfo($row, $rec);
+    	$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+		$row = (object)((array)$row + (array)$headerInfo);
+		
     	if(isset($fields['-single'])){
     		$row->storeId = store_Stores::getHyperlink($rec->storeId);
     		if($rec->lineId){

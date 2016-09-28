@@ -228,12 +228,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
-    		if(!empty($rec->$fld)){
+    		if(!empty($rec->{$fld})){
     			if($fld == 'address'){
-    				$row->$fld = core_Lg::transliterate($row->$fld);
+    				$row->{$fld} = core_Lg::transliterate($row->{$fld});
     			}
     			
-    			$row->deliveryTo .= ", {$row->$fld}";
+    			$row->deliveryTo .= ", {$row->{$fld}}";
     		}
     	}
     	
@@ -272,7 +272,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         	
         	if($rec->locationId){
         		foreach (array('company','person','tel','country','pCode','place','address',) as $del){
-        			 if($rec->$del){
+        			 if($rec->{$del}){
         			 	$form->setError("locationId,{$del}", 'Не може да има избрана локация и въведени адресни данни');
         			 	break;
         			 }
@@ -366,7 +366,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * 				  o quantity       - количество опаковка
      * 				  o quantityInPack - количество в опаковката
      * 				  o discount       - отстъпка
-     * 				  o price          - цена за еденица от основната мярка
+     * 				  o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {
@@ -430,7 +430,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     				}
     			} else {
     				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png');
+    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
     				}
     			}
     		}

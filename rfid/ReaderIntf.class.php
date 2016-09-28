@@ -25,13 +25,4 @@ class rfid_ReaderIntf
     {
         $this->class->getData($date);
     }
-    
-    
-    /**
-     * Задава параметрите за свръзка
-     */
-    function init($params = array())
-    {
-        return $this->class->init($params);
-    }
 }

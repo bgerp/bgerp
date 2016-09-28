@@ -332,6 +332,8 @@ class doc_Search extends core_Manager
             // Няма условия за търсене - показваме само формата за търсене, без данни
             $data->query->where("0 = 1");
         }
+
+        $data->query->useCacheForPager = TRUE;
     }
     
     

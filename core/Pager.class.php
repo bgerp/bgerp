@@ -105,8 +105,9 @@ class core_Pager extends core_BaseClass
         $this->rangeEnd = NULL;
         $this->pagesCount = NULL;
         
-        if (!($this->itemsCount >= 0))
-        $this->itemsPerPage = 0;
+        if (!($this->itemsCount >= 0)) {
+            $this->itemsPerPage = 0;
+        }
         
         $maxPages = max(1, round($this->itemsCount / $this->itemsPerPage));
         
@@ -194,14 +195,115 @@ class core_Pager extends core_BaseClass
      */
     function setLimit(&$query)
     {
+        // Дали да използва кеширане
+        $useCache = $query->useCacheForPager;
+
         $q = clone ($query);
-        
-        $wh = $q->getWhereAndHaving();
-        $wh = $wh->w . ' ' . $wh->h;
+        $qCnt = clone ($query);
+        $qWork = clone ($query);
+
+        // Извличаме резултатите за посочената страница
+        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
+                    
+        // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
+        
+        if(!$useCache) {
+            $query->addOption('SQL_CALC_FOUND_ROWS');
+        } else {
+            $resCntCache = core_QueryCnts::getFromChache($qCnt);
+            if($resCntCache !== FALSE) {
+                $this->itemsCount = $resCntCache;
+            }
+        }
+
         $this->calc();
 
-        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
+        // Подготовка на заявката за извличане на id
+        $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);  
+        $query->limit($limit);
+        $query->startFrom($this->rangeStart);
+        $query->show('id');
+
+        while($rec = $query->fetch()) {
+            $ids[] = $rec->id;
+        }
+  
+        $idCnt = count($ids);
+
+        if($useCache) {
+        
+            $resCnt = NULL;
+            
+            if($idCnt == 0) {
+                if($this->rangeStart == 0) {
+                    $resCnt = 0;
+                } else {
+                    // Тази страница е след страниците с резултати
+                    // Налага се да преброим резултатите и отново да извлечем последната страница
+                    $resCnt = $qCnt->count();
+                    core_QueryCnts::set($q, $resCnt);
+                    $this->itemsCount = $resCnt;
+                    $this->calc();
+                    $q->startFrom($this->rangeStart);
+                    $q->limit($this->rangeEnd - $this->rangeStart);
+                    $q->show('id');
+                    while($rec = $q->fetch()) {
+                        $ids[] = $rec->id;
+                    }
+                    $idCnt = count($ids);
+                }
+            } elseif($idCnt < $limit) {
+                // Края на резултатите попада в търсената страница
+                $resCnt = $this->rangeStart + $idCnt;
+                core_QueryCnts::set($q, $resCnt);
+            } else {
+                // Края на резултатите е след търсената страница
+                
+                // Ако не сме имали резултати от кеша
+                if($resCntCache === NULL || $resCntCache === FALSE) {
+                    $totalRows = $query->mvc->db->countRows($query->mvc->dbTableName);
+                    $resCnt = min($this->rangeEnd+180, $totalRows);
+                    $this->approx = TRUE;
+                } else {
+                    $resCnt = $resCntCache;
+                }
+                core_QueryCnts::delayCount($qCnt);
+            }
+        } else {
+            $dbRes = $qCnt->mvc->db->query("SELECT FOUND_ROWS()");
+            $cntArr = $qCnt->mvc->db->fetchArray($dbRes);
+            $resCnt  = array_shift($cntArr);
+        }
+        
+        // До тук задължително трябва да сме изчислили колко резултата имаме
+        expect(isset($resCnt));
+
+        $this->itemsCount = $resCnt;
+        
+     
+       $query = $qWork;
+ 
+        $this->calc();
+        if($idCnt) {
+            $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
+
+           //if($query->mvc->className == 'bgerp_Recently')  bp($ids, $this->rangeEnd - $this->rangeStart);
+            $ids = implode(',', $ids);
+            $query->where("#id IN ($ids)");
+        } else {
+            $this->itemsCount = 0;
+            $this->calc();
+            $query->limit(0);
+        }
+
+        return;
+
+
+        // Вземаме резултатите за станица и половина
+ 
+        if($query->mvc->db->countRows($query->mvc->dbTableName) < 50000) {
+            
             $qCnt = clone ($query);
             $qCnt->orderBy = array();
 
@@ -217,11 +319,9 @@ class core_Pager extends core_BaseClass
                     $ids[] = $rec->id;
                 }
             }
-
             if(count($ids)) {
-
                 $ids = implode(',', $ids);
-
+                $query = $query->mvc->getQuery();
                 $query->where("#id IN ($ids)");
             } else {
                 $this->itemsCount = 0;
@@ -229,35 +329,60 @@ class core_Pager extends core_BaseClass
                 $query->limit(0);
             } 
         } elseif((!Request::get('V')) || Request::get('V') == 2) {
-            $q->show('id');
-            $q->addOption('SQL_CALC_FOUND_ROWS');
+            $qCnt = clone ($query);
+            
+            setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
+    
+            // Опитваме да извлечем резултатите от кеша
+            $cntAll = core_QueryCnts::getFromChache($qCnt);
+            if($cntAll === FALSE) {
+                $cntAll = $this->itemsPerPage*($this->page+9);
+                $autoCnt = TRUE;
+            } elseif($cntAll === 0) {
+                $cntAll = $this->itemsPerPage;
+                $autoCnt = FALSE;
+            }
 
+            $this->itemsCount = $cntAll;
+            $this->calc(); 
             if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
-                $q->startFrom($this->rangeStart); 
+                $q->limit($this->rangeEnd - $this->rangeStart);
+                $q->startFrom($this->rangeStart);
+                $q->show('id');
                 $q->select();
                 while($rec = $q->fetch()) {
                     $ids[] = $rec->id;
                 }
             }
-            
-            if(count($ids)) {
-                $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
-                $cntArr = $q->mvc->db->fetchArray($dbRes);
-                $this->itemsCount  = array_shift($cntArr);
-                $this->calc();
 
-                $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
-
+            if($cntIds = count($ids)) {
                 $ids = implode(',', $ids);
-
+                $query = $query->mvc->getQuery();
                 $query->where("#id IN ($ids)");
             } else {
                 $this->itemsCount = 0;
                 $this->calc();
                 $query->limit(0);
             }
-        } elseif(Request::get('V') == 3) {
+            
+            // Точно сме определили колко резултата имаме
+            if(($cntIds > 0 && $cntIds < $this->rangeEnd - $this->rangeStart) || ($cntIds == 0 && $this->rangeStart == 0)) {
+                $cntAll = $this->rangeStart + $cntIds;
+                $this->itemsCount = $cntAll;
+                $this->calc(); 
+                core_QueryCnts::set($qCnt, $cntAll);
+            } else {
+                // Залагаме да броим резултатите
+                $Cache = cls::get('core_Cache');
+                core_QueryCnts::delayCount($qCnt);
+
+                if($autoCnt && $cntIds > 0 && $cntIds == $this->rangeEnd - $this->rangeStart) {
+                    $this->autoCnt = TRUE;
+                }
+            }
+
+
+       } elseif(Request::get('V') == 3) {
             $q = clone ($query);
 
             $this->itemsCount = 100000000;
@@ -305,7 +430,7 @@ class core_Pager extends core_BaseClass
             $next = "<a href=\"" . toUrlEsc($link) . "\" class=\"pager\">{$nextTitle}</a>";
         }
 
-        return "<div class=\"small\"><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div></div>";
+        return "<div class=\"small\" style='margin-bottom: 10px;'><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div><div class='clearfix21'></div> </div>";
     }
     
     
@@ -361,6 +486,9 @@ class core_Pager extends core_BaseClass
                     $mid = round($mid / 2) + $end;
                     $html .= "<a href=\"" . htmlspecialchars(Url::change($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\" title='{$pn}{$mid}'>...</a>";
                     $last = $this->getPagesCount();
+                    if($this->approx) {
+                        $last = $last . '?';
+                    }
                     $html .= "<a href=\"" . htmlspecialchars(Url::change($link, array($this->pageVar => $this->getPagesCount())), ENT_QUOTES, "UTF-8") .
                     "\" class=\"pager\" title='{$pn}{$last}'>{$last}</a>";
                 }

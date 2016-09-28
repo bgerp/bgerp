@@ -71,13 +71,13 @@ class trz_Requests extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'powerUser';
+    public $canRead = 'ceo,trz';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'powerUser';
+    public $canEdit = 'ceo,trz';
     
     
     /**
@@ -117,6 +117,12 @@ class trz_Requests extends core_Master
     
     
     /**
+     * Единична икона
+     */
+    public $singleIcon = 'img/16/leaves.png';
+    
+    
+    /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'trz/tpl/SingleLayoutRequests.shtml';
@@ -146,8 +152,8 @@ class trz_Requests extends core_Master
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
-    	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
-    	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
+    	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveTo', 'datetime', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
@@ -156,7 +162,7 @@ class trz_Requests extends core_Master
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
     	// Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители,mandatory');
     }
 
     
@@ -176,18 +182,17 @@ class trz_Requests extends core_Master
 	        	$department = $employeeContractDetails->departmentId;
 	        	
 	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-	        	if($schedule == FALSE){
+	        	if($schedule == FALSE){ 
 	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
 	        	} else {
 	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        	}
-	        }else{
+	        } else {
         	
 	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        }
 	    	$rec->leaveDays = $days->workDays;
         }
-
     }
     
     
@@ -379,7 +384,7 @@ class trz_Requests extends core_Master
     	
     	while($curDate < dt::addDays(1, $rec->leaveTo)){
         // Подготвяме запис за началната дата
-	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft')) {
+	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
 	            
 	            $calRec = new stdClass();
 	                

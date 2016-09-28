@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'sales_Sales'
  *
@@ -15,13 +18,21 @@
 class sales_Sales extends deals_DealMaster
 {
 	
+    
+    /**
+     * Дали да се показва бутон на чернова документ
+     * 
+     * @see doc_EmailCreatePlg
+     */
+	public $canEmailDraft = TRUE;
+	
 	
 	/**
      * Заглавие
      */
     public $title = 'Договори за продажба';
-
-
+    
+	
     /**
      * Флаг, който указва, че документа е партньорски
      */
@@ -48,7 +59,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,doc_plg_BusinessDoc';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
     
     /**
@@ -170,7 +181,6 @@ class sales_Sales extends deals_DealMaster
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
-    	'dealerId'           => 'lastDocUser',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
@@ -256,7 +266,7 @@ class sales_Sales extends deals_DealMaster
         parent::setDealFields($this);
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate');
-        $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към,after=makeInvoice');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени');
         $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime');
     }
     
@@ -266,8 +276,33 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+    	$rec = $form->rec;
+    	
+    	if(empty($rec->id)){
+    		
+    		// Ако има локация, питаме търговските маршрути, кой да е дефолтния търговец
+    		if(isset($rec->deliveryLocationId)){
+    			$dealerId = sales_Routes::getSalesmanId($rec->deliveryLocationId);
+    		}
+    		
+    		// Ако няма, но отговорника на папката е търговец - него
+    		if(empty($dealerId)){
+    			$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+    			if(core_Users::haveRole('sales', $inCharge)){
+    				$dealerId = $inCharge;
+    			}
+    		}
+    		
+    		// В краен случай от последната продажба на същия потребител
+    		if(empty($dealerId)){
+    			$dealerId = cond_plg_DefaultValues::getFromLastDocument($mvc, $rec->folderId, 'dealerId', TRUE);
+    		}
+    		
+    		$form->setDefault('dealerId', $dealerId);
+    	}
+    	
     	if ($form->isSubmitted()) {
-    		if(isset($form->rec->deliveryTermTime) && isset($form->rec->deliveryTime)){
+    		if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
     			$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     		}
     	}
@@ -319,17 +354,18 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = $form->rec;
         
         // При клониране
         if($data->action == 'clone'){
         	
         	// Ако няма reff взимаме хендлъра на оригиналния документ
-        	if(empty($form->rec->reff)){
-        		$form->rec->reff = $mvc->getHandle($form->rec->id);
+        	if(empty($rec->reff)){
+        		$rec->reff = $mvc->getHandle($rec->id);
         	}
         	
         	// Инкрементираме reff-а на оригинална
-        	$form->rec->reff = str::addIncrementSuffix($form->rec->reff, 'v', 2);
+        	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
         }
         
         $myCompany = crm_Companies::fetchOwnCompany();
@@ -348,35 +384,31 @@ class sales_Sales extends deals_DealMaster
         	$accountRec = bank_Accounts::fetch($bankAccountId);
         	$bankCurrencyCode = currency_Currencies::getCodeById($accountRec->currencyId);
         	
-        	if($form->rec->currencyId == $bankCurrencyCode){
+        	if($rec->currencyId == $bankCurrencyCode){
         		$form->setDefault('bankAccountId', $bankAccountId);
         	}
         }
        
-        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
-        $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
-        
-        $conf = core_Packs::getConfig('sales');
-        $maxMonths =  $conf->SALE_MAX_FUTURE_PRICE / type_Time::SECONDS_IN_MONTH;
-		$minMonths =  $conf->SALE_MAX_PAST_PRICE / type_Time::SECONDS_IN_MONTH;
-        
-        $priceAtDateFld = $form->getFieldType('pricesAtDate');
-        $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
-        $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
+        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
+        $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
         }
         
-        // При нова продажба, ако отговорника на папката е има права 'sales',
-        // той да е дефолтен по подразбиране
-        if(!isset($form->rec->id)){
-        	$inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
-        	if(core_Users::haveRole('sales', $inCharge)){
-        		$form->rec->dealerId = $inCharge;
+        if(empty($rec->id)){
+        	$form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
+        } else {
+        	
+        	// Ако има поне един детайл, условието ан доставка не мжое да се сменя
+        	if(sales_SalesDetails::fetchField("#saleId = {$rec->id}")){
+        		$form->setReadOnly('deliveryTermIdExtended');
+        		$form->setReadOnly('deliveryLocationId');
         	}
         }
+        
+        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
     }
     
     
@@ -543,6 +575,7 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', $rec->bankAccountId);
+        $result->setIfNot('priceListId', $rec->priceListId);
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
@@ -609,8 +642,8 @@ class sales_Sales extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
             	$p->{$fld} = $dRec->{$fld};
             }
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
+            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
+            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
             
             $agreed[] = $p;
             
@@ -771,13 +804,20 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
+    	$rec = $data->rec;
+    	
     	// Изкарваме езика на шаблона от сесията за да се рендира статистиката с езика на интерфейса
     	core_Lg::pop();
     	$statisticTpl = getTplFromFile('sales/tpl/SaleStatisticLayout.shtml');
     	$tpl->replace($statisticTpl, 'STATISTIC_BAR');
     	
     	// Отново вкарваме езика на шаблона в сесията
-    	core_Lg::push($data->rec->tplLang);
+    	core_Lg::push($rec->tplLang);
+    	
+    	$hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
+    	if(Mode::isReadOnly() || $hasTransport === FALSE){
+    		$tpl->removeBlock('TRANSPORT_BAR');
+    	}
     }
     
     
@@ -975,7 +1015,7 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     	
-    			$jobsTable = $table->get($data->JobsInfo, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobsTable = $table->get($data->JobsInfo, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
     			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
     			$jobTpl->replace($jobsTable, 'table');
     			$tpl->replace($jobTpl, 'JOB_INFO');
@@ -1003,6 +1043,8 @@ class sales_Sales extends deals_DealMaster
     	$saleQuery->where("#saleId = {$rec->id}");
     	$saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
     	$saleQuery->where("#meta = 'yes'");
+    	$saleQuery->show('productId');
+    	
     	while($dRec = $saleQuery->fetch()){
     		$res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
     	}
@@ -1017,7 +1059,7 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($rec->bankAccountId)){
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
     		}
     	}
@@ -1029,7 +1071,7 @@ class sales_Sales extends deals_DealMaster
     	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     		
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			if($rec->contragentClassId == crm_Companies::getClassId()){
     				$companyRec = crm_Companies::fetch($rec->contragentId);
     				$bulgariaCountryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
@@ -1042,18 +1084,90 @@ class sales_Sales extends deals_DealMaster
     			}
     		}
     	}
+    	
+    	if(isset($rec->priceListId)){
+    		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		$row->transportCurrencyId = $row->currencyId;
+    		$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
+    		$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		
+    		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    		
+    		// Ако има транспорт за начисляване
+    		if($leftTransportCost > 0){
+    			
+    			// Ако може да се добавят артикули в офертата
+    			if(sales_SalesDetails::haveRightFor('add', (object)array('saleId' => $rec->id))){
+    				
+    				// Добавяне на линк, за добавяне на артикул 'транспорт' със цена зададената сума
+    				$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    				$packPrice = $leftTransportCost * $rec->currencyRate;
+    					
+    				$url = array('sales_SalesDetails', 'add', 'saleId' => $rec->id,'productId' => $transportId, 'packPrice' => $packPrice, 'ret_url' => TRUE);
+    				$link = ht::createLink('Добавяне', $url, FALSE, array('ef_icon' => 'img/16/lorry_go.png', "style" => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
+    				$row->btnTransport = $link->getContent();
+    			}
+    		}
+    	}
     }
-
-
+    
+    
     /**
-     * В кои корици може да се вкарва документа
+     * Колко е видимия транспорт начислен в сделката
      * 
-     * @return array - интерфейси, които трябва да имат кориците
+     * @param stdClass $rec - запис на ред
+     * @return double - сумата на видимия транспорт в основна валута без ДДС
      */
-    public static function getAllowedFolders()
+    private function getVisibleTransportCost($rec)
     {
-        
-    	return array('crm_ContragentAccRegIntf');
+    	// Извличат се всички детайли и се изчислява сумата на транспорта, ако има
+    	$query = sales_SalesDetails::getQuery();
+    	$query->where("#saleId = {$rec->id}");
+    	
+    	return tcost_Calcs::getVisibleTransportCost($query);
     }
-
+    
+    
+    /**
+     * Колко е сумата на очаквания транспорт
+     * 
+     * @param stdClass $rec - запис на ред
+     * @return double $expectedTransport - очаквания транспорт без ддс в основна валута
+     */
+    private function getExpectedTransportCost($rec)
+    {
+    	$expectedTransport = 0;
+    	
+    	// Ако няма калкулатор в условието на доставка, не се изчислява нищо
+    	$TransportCalc = cond_DeliveryTerms::getCostDriver($rec->deliveryTermId);
+    	if(!is_object($TransportCalc)) return $expectedTransport;
+    	
+    	// Подготовка на заявката, взимат се само складируеми артикули
+    	$query = sales_SalesDetails::getQuery();
+    	$query->where("#saleId = {$rec->id}");
+    	$query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+    	$query->where("#canStore = 'yes'");
+    	$products = $query->fetchAll();
+    	
+    	// Изчисляване на общото тегло на офертата
+    	$totalWeight = tcost_Calcs::getTotalWeight($products, $TransportCalc);
+    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId);
+    	
+    	// За всеки артикул се изчислява очаквания му транспорт
+    	foreach ($products as $p2){
+    		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		
+    		// Сумира се, ако е изчислен
+    		if(is_array($fee) && $fee['totalFee'] != tcost_CostCalcIntf::CALC_ERROR){
+    			$expectedTransport += $fee['totalFee'];
+    		}
+    	}
+    	
+    	// Връщане на очаквания транспорт
+    	return $expectedTransport;
+    }
 }

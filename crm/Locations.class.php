@@ -127,7 +127,7 @@ class crm_Locations extends core_Master {
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
         $this->FLD('title', 'varchar', 'caption=Наименование');
         $this->FLD('type', 'varchar(32)', 'caption=Тип,mandatory');
-        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData');
+        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData,mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
@@ -140,6 +140,7 @@ class crm_Locations extends core_Master {
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
         $this->setDbUnique('gln');
+        $this->setDbIndex('contragentId');
     }
     
     
@@ -196,7 +197,7 @@ class crm_Locations extends core_Master {
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
     	$data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id, 'на');
@@ -226,7 +227,7 @@ class crm_Locations extends core_Master {
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = NULL)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = NULL)
     {
     	$f = arr::make($fields, TRUE);
     	
@@ -249,21 +250,24 @@ class crm_Locations extends core_Master {
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $cMvc = cls::get($rec->contragentCls);
-        $field = $cMvc->rowToolsSingleField;
-        $cRec = $cMvc->fetch($rec->contragentId);
-        $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
-        $row->contragent = $cRow->{$field};
-       
-    	if($rec->image) {
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
-		}
+        expect($rec->contragentId);
+        
+        if(isset($fields['-single'])){
+        	if(isset($rec->image)) {
+        		$Fancybox = cls::get('fancybox_Fancybox');
+        		$row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
+        	}
+        	
+        	if(!$rec->gpsCoords){
+        		unset($row->gpsCoords);
+        	}
+        }
 		
-		if(!$rec->gpsCoords){
-			unset($row->gpsCoords);
-		}
-		
+        if(isset($fields['-single']) || isset($fields['-list'])){
+        	$cMvc = cls::get($rec->contragentCls);
+        	$row->contragent = $cMvc->getHyperlink($rec->contragentId, TRUE);
+        }
+        
         if($rec->state == 'rejected'){
         	if($fields['-single']){
         		$row->headerRejected = ' state-rejected';
@@ -306,7 +310,7 @@ class crm_Locations extends core_Master {
     /**
      * Премахване на бутона за добавяне на нова локация от лист изгледа
      */
-    public static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
+    protected static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
     {
         $data->toolbar->removeBtn('btnAdd');
     }
@@ -371,7 +375,7 @@ class crm_Locations extends core_Master {
         if(count($data->rows)) {
             foreach($data->rows as $id => $row) {
             	core_RowToolbar::createIfNotExists($row->_rowTools);
-            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
+            	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> <span style='position:relative;top:4px'>[#tools#]</span></div>");
             	$block->placeObject($row);
             	$block->append($row->_rowTools->renderHtml(), 'tools');
             	$block->removeBlocks();
@@ -484,6 +488,27 @@ class crm_Locations extends core_Master {
         }
         
         return $locationRecs;
+    }
+    
+    
+    /**
+     * GLN на всички локации на зададен контрагент + id-тата им
+     * 
+     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
+     * @param int $contragentId първичен ключ на контрагента (в мениджъра му)
+     * @return array масив от GLN на локации, ключ - ид на локации
+     */
+    public static function getContragentGLNs($contragentClassId, $contragentId)
+    {
+        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
+        
+        $resRecs = array();
+        foreach ($locationRecs as $rec) {
+            $resRecs["$rec->id"] = $rec->gln;
+        }
+        unset($locationRecs);
+        
+        return $resRecs;
     }
     
     

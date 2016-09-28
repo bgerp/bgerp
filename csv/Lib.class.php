@@ -91,6 +91,9 @@ class csv_Lib
                 // Ако нямаме запис с посочените уникални стойности, вкарваме новия
                 $mvc->save($rec);
                 
+                // Генериране на събитие след импортиране на запис
+                $mvc->invoke('AfterImportRec', array(&$rec));
+                
                 if($flagUpdate) {
                     $res->skipped++;
                     $rec = $mvc->fetch($rec->id);
@@ -239,8 +242,8 @@ class csv_Lib
             }
         }
         
-        $delimiter = str_replace(array('&comma;', 'semicolon', 'colon', 'vertica', '&Tab;', 'comma', '&vert;'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
-        
+        $delimiter = str_replace(array('&comma;', 'semicolon', 'colon', '&vert;', '&Tab;', 'comma', 'vertical'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
+
         if(strlen($delimiter) > 1) {
             $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
@@ -330,7 +333,7 @@ class csv_Lib
      * 
      * @return string
      */
-    protected static function getCsvLine($valsArr, $delimiter, $enclosure, $trim = TRUE)
+    public static function getCsvLine($valsArr, $delimiter, $enclosure, $trim = TRUE)
     {
         $csvLine = NULL;
         foreach ($valsArr as $v) {

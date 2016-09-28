@@ -14,56 +14,26 @@
  * @since     v 0.1
  * @title     Продуктови параметри
  */
-class cat_Params extends embed_Manager
+class cat_Params extends bgerp_ProtoParam
 {
-    
-    
-	/**
-	 * Свойство, което указва интерфейса на вътрешните обекти
-	 */
-	public $driverInterface = 'cond_ParamTypeIntf';
 	
 	
     /**
      * Заглавие
      */
-    public $title = "Параметри";
+    public $title = "Продуктови параметри";
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = "Параметър";
+    public $singleTitle = "Продуктов параметър";
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
-    
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'tools=Пулт,typeExt,driverClass=Тип,lastUsedOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'typeExt';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'powerUser';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2';
     
     
     /**
@@ -97,15 +67,9 @@ class cat_Params extends embed_Manager
     
     
     /**
-     * Нов темплейт за показване
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $singleLayoutFile = 'cat/tpl/SingleLayoutParams.shtml';
-    
-    
-    /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'cat,ceo';
+    public $searchFields = 'group, name, suffix,  sysId';
     
     
     /**
@@ -113,32 +77,10 @@ class cat_Params extends embed_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Символи,text=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност,time=Време)', 'caption=Тип,input=none');
-        $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
-        $this->FLD('sysId', 'varchar(32)', 'input=none');
-        $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=hidden');
-        $this->FNC('typeExt', 'varchar', 'caption=Име');
-        $this->FLD('default', 'varchar(64)', 'caption=Конкретизиране->Дефолт');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
-        $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
-        
-        $this->setDbUnique('name, suffix');
-        $this->setDbUnique("sysId");
+    	parent::setFields($this);
+    	$this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
     }
     
-    
-    /**
-     * Изчисляване на typeExt
-     */
-    protected static function on_CalcTypeExt($mvc, $rec)
-    {
-        $rec->typeExt = $rec->name;
-        
-        if (!empty($rec->suffix)) {
-            $rec->typeExt .= ' [' . $rec->suffix . ']';
-        }
-    }
     
     
     /**
@@ -147,80 +89,9 @@ class cat_Params extends embed_Manager
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('showInPublicDocuments', 'yes');
-    	$data->form->setField('driverClass', 'caption=Тип');
-    	
-    	if($data->form->rec->sysId){
-    		$data->form->setReadOnly('name');
-    		$data->form->setReadOnly('type');
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if($action == 'delete' && $rec->id) {
-           if($rec->sysId || $rec->lastUsedOn) {
-                $requiredRoles = 'no_one';
-           }
-        }
-    }
-    
-   
-    /**
-     * Връща ид-то на параметъра по зададен sysId
-     * @param string $sysId
-     * @return int $id - ид на параметъра
-     */
-    public static function fetchIdBySysId($sysId)
-    {
-    	return static::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
-    }
-    
-    
-    /**
-     * Подготвя опциите за селектиране на параметър като към името се
-     * добавя неговия suffix 
-     */
-    public static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
-    {
-    	$query = static::getQuery();
-    	if(strlen($where)){
-    		$query->where = $where;
-    	}
-    	
-    	$options = array();
-    	while($rec = $query->fetch()){
-    		$title = $rec->name;
-    		if($rec->suffix){
-    			$title .= " ({$rec->suffix})";
-    		}
-    		$options[$rec->{$index}] = $title;
-    	}
-    	
-    	return $options;
-    }
-    
-    
-    /**
-     * Връща типа на параметъра
-     * 
-     * @param mixed $id - ид или запис на параметър
-     * @return FALSE|cond_type_Proto - инстанцирания тип или FALSE ако не може да се определи
-     */
-    public static function getTypeInstance($id)
-    {
-    	$rec = static::fetchRec($id);
-    	if($Driver = static::getDriver($rec)){
-    		return $Type = $Driver->getType($rec);
-    	}
-    	
-    	return FALSE;
     }
     
     
@@ -238,6 +109,8 @@ class cat_Params extends embed_Manager
     			4 => "options",
     			5 => "default",
     			6 => "showInPublicDocuments",
+    			7 => "state",
+    			8 => 'csv_params',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -265,11 +138,83 @@ class cat_Params extends embed_Manager
     
     
     /**
-     * Изпълнява се преди импортирването на данните
+     * Връща нормализирано име на параметъра
+     * 
+     * @param mixed $rec         - ид или запис на параметър
+     * @param boolean $upperCase - всички букви да са в долен или в горен регистър
+     * @param string $lg         - език на който да е преведен
+     * @return string $name      - нормализирано име
      */
-    public static function on_BeforeImportRec($mvc, &$rec)
+    public static function getNormalizedName($rec, $upperCase = FALSE, $lg = 'bg')
     {
-    	core_Classes::add($rec->driverClass);
-    	$rec->driverClass = cls::get($rec->driverClass)->getClassId();
+    	$rec = cat_Params::fetchRec($rec, 'name,suffix');
+    	
+    	core_Lg::push($lg);
+    	$name = tr($rec->name) . ((!empty($rec->suffix)) ? " (" . tr($rec->suffix) . ")": '');
+    	$name = preg_replace('/\s+/', '_', $name);
+    	$name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
+    	core_Lg::pop();
+    	
+    	return $name;
+    }
+    
+    
+    /**
+     * Разбира масив с параметри на масив с ключвове, преведените
+     * имена на параметрите
+     * 
+     * @param array $params      - масив с параметри
+     * @param boolean $upperCase - дали имената да са в долен или горен регистър
+     * @return array $arr        - масив
+     */
+    public static function getParamNameArr($params, $upperCase = FALSE)
+    {
+    	$arr = array();
+    	if(is_array($params)){
+    		foreach ($params as $key => $value){
+    			expect($rec = cat_Params::fetch($key, 'name,suffix'));
+    			
+    			// Името на параметъра се превежда на местния език
+    			$key1 = self::getNormalizedName($rec, $upperCase);
+    			$arr[$key1] = $value;
+    			
+    			// Името на параметъра се превежда на глобалния език
+    			$key2 = self::getNormalizedName($rec, $upperCase, 'en');
+    			$arr[$key2] = $value;
+    		}
+    	}
+    	
+    	return $arr;
+    }
+    
+    
+    /**
+     * Рендира блок с параметри за артикули
+     * 
+     * @param array $paramArr
+     * @return core_ET $tpl
+     */
+    public static function renderParamBlock($paramArr)
+    {
+    	$tpl = getTplFromFile('cat/tpl/products/Params.shtml');
+    	$lastGroupId = NULL;
+    	
+    	if(is_array($paramArr)){
+    		foreach($paramArr as &$row2) {
+    			 
+    			$block = clone $tpl->getBlock('PARAM_GROUP_ROW');
+    			if($row2->group != $lastGroupId){
+    				$block->replace($row2->group, 'group');
+    			}
+    			$lastGroupId = $row2->group;
+    			unset($row2->group);
+    			$block->placeObject($row2);
+    			$block->removeBlocks();
+    			$block->removePlaces();
+    			$tpl->append($block, 'ROWS');
+    		}
+    	}
+    	
+    	return $tpl;
     }
 }

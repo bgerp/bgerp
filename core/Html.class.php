@@ -798,16 +798,16 @@ class core_Html
         	// Оцветяваме линка в зависимост от особеностите му
         	if(!$attr['disabled']) {
         		if($warning){
-        			$attr['style'] .= 'color:#772200 !important;';
+        			$attr['style'] .= ' color:#772200 !important;';
         		} elseif (strpos($url, '://')) {
         			if(!strpos($attr['class'], 'out')) {
         				$attr['class'] .= ' out';
         			}
         		} elseif($attr['target'] == '_blank') {
-        			$attr['style'] .= 'color:#008800 !important;';
+        			$attr['style'] .= ' color:#008800 !important;';
         		}
         	} else {
-        		$attr['style'] .= 'color:#999 !important;';
+        		$attr['style'] .= ' color:#999 !important;';
         	}
         }
         
@@ -934,9 +934,10 @@ class core_Html
      * @param title $hint                       - текст на хинта
      * @param notice|warning|error|string $icon - име на иконката
      * @param boolean $appendToEnd              - дали хинта да се добави в края на стринга
+     * @param array $attr                       - атрибути на елемента
      * @return core_ET $element                 - шаблон с хинта
      */
-    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = TRUE)
+    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = TRUE, $attr = array())
     {
     	if(empty($hint)) return $body;
     	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
@@ -946,7 +947,8 @@ class core_Html
     	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
-    	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
+    	$attr = arr::make($attr, TRUE) + array('src' => sbf($iconPath, ''));
+    	$iconHtml = ht::createElement("img", $attr);
     	
     	if($appendToEnd === TRUE){
     		$elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";

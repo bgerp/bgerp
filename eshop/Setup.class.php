@@ -61,7 +61,7 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'migrate::migrateDrivers1'
+    		'migrate::migrateDrivers1',
         );
 
         
@@ -128,4 +128,6 @@ class eshop_Setup extends core_ProtoSetup
     		eshop_Products::save($pRec, 'coDriver');
     	}
     }
+
+
 }

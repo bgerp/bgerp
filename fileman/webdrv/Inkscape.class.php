@@ -68,7 +68,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * Преобразува подадения файл в различни формати
      *
      * @param string $file
-     * @param $to $file - pdf|png
+     * @param string $file - pdf|png
      * @param string $type
      * @param string $name
      * @param boolean $cmyk
@@ -82,7 +82,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         expect(in_array($to, array('pdf', 'png')));
         
-        $lineExec = "inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-page";
+        $lineExec = "inkscape [#INPUTF#]  --export-text-to-path  --export-pdf=[#OUTPUTF#] --export-area-page";
         
         if ($to == 'png') {
             $height = static::$pngExportHeight;
@@ -281,7 +281,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
 
-        $Script->setChechProgramsArr('inkscape');
+        $Script->setCheckProgramsArr('inkscape');
         // Стартираме скрипта синхронно
         if ($Script->run() === FALSE) {
             fileman_Indexes::createError($params);

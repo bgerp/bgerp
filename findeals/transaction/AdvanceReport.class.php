@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -31,63 +31,76 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
      */
     public function getTransaction($id)
     {
+    	$entries = array();
+    	
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     	expect($origin = $this->class->getOrigin($rec));
     	$originRec = $origin->fetch();
-    	 
+    	$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+    	
     	$entries = array();
-    	$creditArr = array($rec->creditAccount, array($originRec->contragentClassId, $originRec->contragentId), array($origin->className, $origin->that), array('currency_Currencies', $rec->currencyId));
-    	 
-    	/*
-    	 * Дебитираме разходната сметка, кредитираме сметката от фин. сделката
-    	*/
-    	$vatAmount = 0;
+    	$creditArr = array($rec->creditAccount, 
+    						array($originRec->contragentClassId, $originRec->contragentId), 
+    						array($origin->className, $origin->that), 
+    						array('currency_Currencies', $currencyId));
+    	
     	$dQuery = findeals_AdvanceReportDetails::getQuery();
     	$dQuery->where("#reportId = '{$rec->id}'");
-    	while($dRec = $dQuery->fetch()){
-    		$arr = array();
-    
-    		$vatAmount += $dRec->amount * $dRec->vat;
-    		$vatAmount = round($vatAmount, 2);
+    	$details = $dQuery->fetchAll();
+    	
+    	deals_Helper::fillRecs($this->class, $details, $rec, array('alwaysHideVat' => TRUE));
+    	
+    	foreach ($details as $dRec) {
+    		 
+    		// Към кои разходни обекти ще се разпределят разходите
+    		$splitRecs = acc_CostAllocations::getRecsByExpenses('findeals_AdvanceReportDetails', $dRec->id, $dRec->productId, $dRec->quantity, $dRec->amount, $dRec->discount);
     		
-    		$arr['amount'] = round($dRec->amount, 2);
-    		$pInfo = cat_Products::getProductInfo($dRec->productId);
-    
-    		$debitArr = array();
-    		$debitArr[] = '60020';
-    		$debitArr[] = array('hr_Departments', $dRec->activityCenterId);
-    		$debitArr[] = array('cat_Products', $dRec->productId);
-    		$debitArr['quantity'] = $dRec->quantity;
-    		$arr['debit'] = $debitArr;
-    
-    		$creditArr['quantity'] = $dRec->amount / $rec->rate;
-    
-    		$arr['credit'] = $creditArr;
-    
-    		$entries[] = $arr;
+    		foreach ($splitRecs as $dRec1){
+    			$amount = $dRec1->amount;
+    			$creditArr['quantity'] = $amount;
+    			$amountAllocated = $amount * $rec->currencyRate;
+    			
+    			$entries[] = array(
+    					'amount' => $amountAllocated, // В основна валута
+    					'debit' => array('60201', 
+    										$dRec1->expenseItemId,
+    										array('cat_Products', $dRec1->productId),
+    										'quantity' => $dRec1->quantity),
+    					'credit' => $creditArr,
+    					'reason' => $dRec1->reason,
+    			);
+    			
+    			// Корекция на стойности при нужда
+    			if(isset($dRec1->correctProducts) && count($dRec1->correctProducts)){
+    				$correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy);
+    				if(count($correctionEntries)){
+    					$entries = array_merge($entries, $correctionEntries);
+    				}
+    			}
+    		}
     	}
     	
-    	$vatAmount = $vatAmount;
-    	$entries[] = array(
-    			'amount' => $vatAmount, // В основна валута
-    			'credit' => array(
-    					$rec->creditAccount,
-    					array($originRec->contragentClassId, $originRec->contragentId),   // Перо 1 - Клиент
-    					array($origin->className, $origin->that), // Перо 2 - Фин. сделка
-    					array('currency_Currencies', $rec->currencyId), // Перо 3 - Валута
-    					'quantity' => $vatAmount / $rec->rate,
-    			),
-    			 
-    			'debit' => array('4530', array($origin->className, $origin->that),),
-    	);
-    	 
-    	// Подготвяме информацията която ще записваме в Журнала
+    	// Отчитаме ддс-то
+    	if($this->class->_total){
+    		$vat = $this->class->_total->vat;
+    		$vatAmount = $this->class->_total->vat * $rec->currencyRate;
+    		$creditArr['quantity'] = $vat;
+    		
+    		$entries[] = array(
+    				'amount' => $vatAmount,
+    				'credit' => $creditArr,
+    				'debit' => array('4530', array($origin->className, $origin->that),),
+    				'reason' => 'ДДС за начисляване при фактуриране',
+    		);
+    	}
+    	
     	$result = (object)array(
-    			'reason' => $this->class->getRecTitle($rec), // основанието за ордера
-    			'valior' => $rec->valior,   // датата на ордера
+    			'reason'  => $this->class->getRecTitle($rec),
+    			'valior'  => $rec->valior,
     			'entries' => $entries);
     	 
+    	
     	return $result;
     }
 }

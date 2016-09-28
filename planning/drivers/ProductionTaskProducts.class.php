@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_drivers_ProductionTaskProducts'
  *
@@ -32,61 +33,43 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,type,productId,packagingId,plannedQuantity=Количества->Планувано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'type,productId,packagingId,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'indTime,totalTime';
+    public $hideListFieldsIfEmpty = 'indTime,totalTime';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created,planning_Wrapper';
-    
-    
-    /**
-     * Кой има право да оттегля?
-     */
-    public $canReject = 'planning,ceo';
-    
-    
-    /**
-     * Кой има право да възстановява?
-     */
-    public $canRestore = 'planning,ceo';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created,planning_Wrapper';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'planning,ceo';
+    public $canEdit = 'taskPlanning,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'planning,ceo';
+    public $canAdd = 'taskPlanning,ceo';
     
     
     /**
      * Кой има право да добавя артикули към активна задача?
      */
-    public $canAddtoactive = 'planning,ceo';
+    public $canAddtoactive = 'taskPlanning,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'planning,ceo';
+    public $canDelete = 'taskPlanning,ceo';
     
     
     /**
@@ -116,12 +99,12 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field nowrap');
-    	$this->FLD("plannedQuantity", 'double(smartRound)', 'mandatory,caption=Планувано к-во,smartCenter,oldFieldName=planedQuantity');
+    	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter');
-    	$this->FLD("indTime", 'time', 'caption=Времена->Изпълнение,smartCenter');
-    	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
+    	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Време,smartCenter');
+    	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
     }
@@ -133,7 +116,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    public static function on_CalcTotalTime(core_Mvc $mvc, $rec)
+    protected static function on_CalcTotalTime(core_Mvc $mvc, $rec)
     {
     	if (empty($rec->indTime) || empty($rec->realQuantity)) {
     		return;
@@ -197,9 +180,10 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		$form->setField('packagingId', 'input=hidden');
     	}
     	
+    	$taskInfo = planning_Tasks::getTaskInfo($data->masterRec);
     	$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-    	$shortUom = cat_UoM::getShortName($data->masterRec->packagingId);
-    	$unit = tr('за') . " " . $Double->toVerbal($data->masterRec->plannedQuantity) . " " . $shortUom;
+    	$shortUom = cat_UoM::getShortName($taskInfo->packagingId);
+    	$unit = tr('за') . " " . $Double->toVerbal($taskInfo->plannedQuantity) . " " . $shortUom;
     	$unit = str_replace("&nbsp;", ' ', $unit);
     	
     	$form->setField('plannedQuantity', array('unit' => $unit));
@@ -266,14 +250,22 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state != 'draft'){
+    		if($state == 'active' || $state == 'pending' || $state == 'wakeup' || $state == 'draft'){
     			if($action == 'add'){
     				$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
-    			} else {
-    				$requiredRoles = 'no_one';
     			}
+    		} else {
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($requiredRoles == 'no_one') return;
+    	
+    	if(($action == 'delete' || $action == 'edit') && isset($rec->taskId) && isset($rec->id)){
+    		if(planning_drivers_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #taskProductId = {$rec->id}")){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -302,11 +294,6 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	}
     	
     	self::save($rec, 'realQuantity');
-    	$taskOriginId = planning_Tasks::fetchField($rec->taskId, 'originId');
-    	$taskOrigin = doc_Containers::getDocument($taskOriginId);
-    	
-    	// Записваме операцията в регистъра
-    	planning_TaskActions::add($rec->taskId, $rec->productId, $rec->type, $taskOrigin->that, $rec->realQuantity);
     }
     
     
@@ -406,5 +393,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	$rec = &$data->form->rec;
     	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : 'отпадъчен артикул';
+    }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	unset($rec->realQuantity);
     }
 }

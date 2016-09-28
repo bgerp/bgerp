@@ -23,7 +23,7 @@ class plg_RowTools2 extends core_Plugin
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
-    {   
+    {
         static $titleDD;
         if(!$titleDD) {
             $titleDD = tr('Отваряне');

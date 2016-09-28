@@ -39,6 +39,12 @@ defIfNot('EF_ROUND_SIGNIFICANT_DIGITS', '6');
 
 
 /**
+ * Минимален брой видими нули при подравняване
+ */
+defIfNot('CORE_MIN_ALIGN_DIGITS', 2);
+
+
+/**
  * @todo Чака за документация...
  */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
@@ -238,7 +244,9 @@ class core_Setup extends core_ProtoSetup {
            'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
            
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-        );
+        
+           'CORE_MIN_ALIGN_DIGITS' => array('int', 'caption=Минимален брой видими нули при подравняване->Брой'),
+    );
     
     
     /**
@@ -266,7 +274,8 @@ class core_Setup extends core_ProtoSetup {
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
         'migrate::clearApcCache3',
-        'migrate::removeFalseTranslate'
+        'migrate::removeFalseTranslate',
+        'migrate::repairSearchKeywords'
     );
     
     
@@ -564,5 +573,35 @@ class core_Setup extends core_ProtoSetup {
     {
         return $res;
     }
-
+    
+    
+    /**
+     * Премахва всички * от полетата за търсене
+     */
+    public static function repairSearchKeywords()
+    {
+        // Вземаме инстанция на core_Interfaces
+        $Interfaces = cls::get('core_Interfaces');
+    
+        // id' то на интерфейса
+        $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
+        
+        $query = core_Classes::getQuery();
+        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
+        
+        while ($rec = $query->fetch()) {
+            
+            if (!cls::load($rec->name, TRUE)) continue;
+            
+            $Inst = cls::get($rec->name);
+            
+            $plugins = arr::make($Inst->loadList, TRUE);
+            
+            if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) continue;
+            
+            $searchField = str::phpToMysqlName('searchKeywords');
+            
+            $Inst->db->query("UPDATE {$Inst->dbTableName} SET {$searchField} = REPLACE({$searchField}, '*', '')");
+        }
+    }
 }

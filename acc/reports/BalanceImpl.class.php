@@ -218,18 +218,25 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $count = 0;
             
             foreach ($data->recs as $id => $rec){
-                
-                // Показваме само тези редове, които са в диапазона на страницата
-                if($count >= $start && $count <= $end){
+                if (!Mode::is('printing')) {
+                    // Показваме само тези редове, които са в диапазона на страницата
+                    if($count >= $start && $count <= $end){
+                        $rec->id = $count + 1;
+                        $row = $mvc->getVerbalDetail($rec);
+                        $data->rows[$id] = $row;
+                    } 
+                } else {
+                    unset($data->pager);
                     $rec->id = $count + 1;
                     $row = $mvc->getVerbalDetail($rec);
                     $data->rows[$id] = $row;
                 }
+
                 
                 // Сумираме всички суми и к-ва
                 foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-                    if(!is_null($rec->$fld)){
-                        $data->summaryRec->$fld += $rec->$fld;
+                    if(!is_null($rec->{$fld})){
+                        $data->summaryRec->{$fld} += $rec->{$fld};
                     }
                 }
                 
@@ -241,9 +248,9 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $Double->params['decimals'] = 2;
         
         foreach ((array)$data->summaryRec as $name => $num){
-            $data->summary->$name  = $Double->toVerbal($num);
+            $data->summary->{$name}  = $Double->toVerbal($num);
             if($num < 0){
-            	$data->summary->$name  = "<span class='red'>{$data->summary->$name}</span>";
+            	$data->summary->{$name}  = "<span class='red'>{$data->summary->{$name}}</span>";
             }
         }
         
@@ -447,8 +454,8 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
            $row->id = $Int->toVerbal($rec->id);
        
            foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
-               $row->$fld = $Double->toVerbal($rec->$fld);
-               $row->$fld = (($rec->$fld) < 0) ? "<span style='color:red'>{$row->$fld}</span>" : $row->$fld;
+               $row->{$fld} = $Double->toVerbal($rec->{$fld});
+               $row->{$fld} = (($rec->{$fld}) < 0) ? "<span style='color:red'>{$row->{$fld}}</span>" : $row->{$fld};
            }
        
            foreach (range(1, 3) as $i) {
@@ -585,12 +592,12 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         foreach($this->innerState->recs as $id => $rec) {
             $dataRecs[$id] = $this->getVerbalDetail($rec);
             foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent){
-                $dataRecs[$id]->$ent = acc_Items::getVerbal($rec->$ent, 'title');
+                $dataRecs[$id]->{$ent} = acc_Items::getVerbal($rec->{$ent}, 'title');
             }
 
             foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-                if(!is_null($rec->$fld)){
-                    $dataRecs[$id]->$fld = $rec->$fld;
+                if(!is_null($rec->{$fld})){
+                    $dataRecs[$id]->{$fld} = $rec->{$fld};
                 }
             }
         }

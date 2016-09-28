@@ -3,24 +3,25 @@
 
 
 /**
- * Правилата за ценоразписите за продуктите от каталога
+ * Ценови политики към клиенти
  *
  *
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Правила за ценоразписи
+ * @title     Ценови политики към клиенти
  */
-class price_ListToCustomers extends core_Detail
+class price_ListToCustomers extends core_Manager
 {
     
+	
     /**
      * Заглавие
      */
-    public $title = 'Ценови политики';
+    public $title = 'Ценови политики към клиенти';
     
     
     /**
@@ -32,7 +33,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
+    public $loadList = 'plg_Created, price_Wrapper, plg_RowTools';
                     
     
     /**
@@ -44,43 +45,31 @@ class price_ListToCustomers extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'listId, cClass, cId, validFrom, createdBy, createdOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
-    
-    
-    /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'powerUser';
+    public $listFields = 'listId=Политика, cClass=Контрагент, validFrom=В сила от, createdBy=Създаване->От, createdOn=Създаване->На,state=Състояние';
     
     
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'powerUser';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'powerUser';
-    
-        
-    /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'powerUser';
+    public $canAdd = 'price,sales,ceo';
     
 
     /**
-     * Поле - ключ към мастера
+     * Кой има право да листва?
      */
-    public $masterKey = 'cId';
+    public $canList = 'price,ceo';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'price,sales,ceo';
     
 
     /**
@@ -90,14 +79,26 @@ class price_ListToCustomers extends core_Detail
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('cId', 'int', 'caption=Клиент->Обект');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
+        $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
+        $this->FLD('validFrom', 'datetime(format=smartTime)', 'caption=В сила от');
+        $this->FLD('state', 'enum(closed=Неактивен,active=Активен)', 'caption=Състояние,input=none');
+        $this->EXT('listState', 'price_Lists', 'externalName=state,externalKey=listId');
+        
+        $this->setDbIndex('cClass,cId');
+        $this->setDbIndex('state');
+        $this->setDbIndex('listId');
     }
 
     
@@ -107,20 +108,15 @@ class price_ListToCustomers extends core_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()) {
-            
             $rec = $form->rec;
 
             $now = dt::verbal2mysql();
 
             if(!$rec->validFrom) {
                 $rec->validFrom = $now;
-            }
-
-            if($rec->validFrom < $now) {
-                $form->setError('validFrom', 'Ценоразписа не може да се задава с минала дата');
             }
 
             if($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
@@ -133,7 +129,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Подготвя формата за въвеждане на ценови правила за клиент
      */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $rec = $data->form->rec;
 
@@ -143,110 +139,47 @@ class price_ListToCustomers extends core_Detail
 
         $rec->listId = self::getListForCustomer($rec->cClass, $rec->cId);
   		
-        $data->form->setOptions('listId', price_Lists::getAccessibleOptions());
+        $data->form->setOptions('listId', price_Lists::getAccessibleOptions($rec->cClass, $rec->cId));
         
-        if(price_Lists::haveRightFor('add')){
+        if(price_Lists::haveRightFor('add', (object)array('cClass' => $rec->cClass, 'cId' => $rec->cId))){
         	$data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId, 'ret_url' => TRUE), NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }
     }
-
-
-    /**
-     * След подготовка на заявката към детайла
-     */
-    public static function on_AfterPrepareDetailQuery($mvc, $data)
-    {
-        $cClassId = core_Classes::getId($data->masterMvc);
-        
-        $data->query->where("#cClass = {$cClassId}");
-
-        $data->query->orderBy("#validFrom,#id", "DESC");
-    }
-
     
+
     /**
-     * Кой е мастър класа
+     * След подготовката на заглавието на формата
      */
-    public function getMasterMvc_($rec)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $masterMvc = cls::get($rec->cClass);
- 
-        return $masterMvc;      
+    	$rec = $data->form->rec;
+    	if(isset($rec->cClass) && isset($rec->cId)){
+    		$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+    	}
     }
     
     
-    /**
-     * Кое поле е ключ към мастъра
-     */
-    public function getMasterKey_($rec)
-    {
-        return 'cId';      
-    }
-    
-    
-    /**
-     * След като се намери мастъра
-     */
-    public static function on_AfterGetMasters($mvc, &$masters, $rec)
-    {
-        if (empty($masters)) {
-            $masters = array();
-        }
-        
-        $masters['cId']    = cls::get($rec->cClass);
-        $masters['listId'] = cls::get('price_Lists');
-    }
-    
-
     /**
      * След подготовка на лентата с инструменти за табличния изглед
      */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
+    protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $data->toolbar->removeBtn('*');
-            $masterClassId = core_Classes::getId($data->masterMvc);
-            $masterRec = $data->masterMvc->fetch($data->masterId);
-            
-            if($data->masterMvc->haveRightFor('edit', $masterRec)){
-            	$data->addUrl = array($mvc, 'add', 'cClass' => $masterClassId, 'cId' => $data->masterId, 'ret_url' => TRUE);
-            }
-        }
-    }
-
-	
-    /**
-     * След рендиране на детайла
-     */
-    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
-    {
-        $wrapTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $wrapTpl->append($mvc->title, 'title');
-        $wrapTpl->append($tpl, 'content');
-        $wrapTpl->replace(get_class($mvc), 'DetailName');
-    
-        $tpl = $wrapTpl;
-        
-        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на Ценова политика'), 'title');
-        }
+       $data->toolbar->removeBtn('btnAdd');
     }
 
 
     /**
      * Връща актуалния към посочената дата набор от ценови правила за посочения клиент
      */
-    public static function getValidRec($customerClassId, $customerId, $datetime = NULL)
+    private static function getValidRec($customerClassId, $customerId, $datetime = NULL)
     { 
-        $now = dt::verbal2mysql();
-
-        if(!$datetime) {
-            $datetime = $now;
-        }
+    	$datetime = (isset($datetime)) ? $datetime : dt::verbal2mysql();
 
         $query = self::getQuery();
         $query->where("#cClass = {$customerClassId} AND #cId = {$customerId}");
         $query->where("#validFrom <= '{$datetime}'");
+        $query->where("#listState != 'rejected'");
+        
         $query->limit(1);
         $query->orderBy("#validFrom,#id", 'DESC');
         $lRec = $query->fetch();
@@ -277,48 +210,31 @@ class price_ListToCustomers extends core_Detail
     /**
      * Подготвя ценоразписите на даден клиент
      */
-    public static function preparePricelists($data)
+    public function preparePricelists($data)
     { 
-        static::prepareDetail($data);
-
-        $now = dt::verbal2mysql();
-
-        $cClassId = core_Classes::getId($data->masterMvc);
+    	$data->TabCaption = 'Цени';
+    	
+    	$data->recs = $data->rows = array();
+    	$query = self::getQuery();
+        $query->where("#listState != 'rejected'");
+        $query->where("#cClass={$data->masterMvc->getClassId()} AND #cId = {$data->masterId}");
+        $query->orderBy("#validFrom,#id", 'DESC');
         
-        $validRec = self::getValidRec($cClassId, $data->masterId, $now);
-       
-        if(count($data->rows)) {
-            foreach($data->rows as $id => &$row) {
-                $rec = $data->recs[$id];
-                if($rec->validFrom > $now) {
-                    $state = 'draft';
-                } elseif($validRec->id == $rec->id) {
-                    $state = 'active';
-                } else {
-                    $state = 'closed';
-                }
-                $data->rows[$id]->ROW_ATTR['class'] = "state-{$state}";
-
-                if(price_Lists::haveRightFor('single', $rec)) {
-                    $row->listId = ht::createLink($row->listId, array('price_Lists', 'single', $rec->listId));
-                }
-            }
-        }
-
-        $data->TabCaption = 'Цени';
-    }
-
-
-    /**
-     * След обработка на ролите
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
-    {
-        if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
-            if($rec->validFrom <= dt::verbal2mysql()) {
-                $requiredRoles = 'no_one';
-            }
-        }
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$data->rows[$rec->id] = self::recToVerbal($rec);
+    		if($rec->state == 'draft'){
+    			$data->displayTools = TRUE;
+    		}
+    	}
+    	
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if($data->masterMvc->haveRightFor('edit', $data->masterData->rec)){
+    			if($this->haveRightFor('add')){
+    				$data->addUrl = array($this, 'add', 'cClass' => $data->masterMvc->getClassId(), 'cId' => $data->masterId, 'ret_url' => TRUE);
+    			}
+    		}
+    	}
     }
 
     
@@ -327,29 +243,45 @@ class price_ListToCustomers extends core_Detail
      */
     public function renderPricelists($data)
     {
-        // Премахваме контрагента - в случая той е фиксиран и вече е показан 
-        unset($data->listFields[$this->masterKey]);
-        unset($data->listFields['cClass']);
+    	$tpl = new core_ET("");
+    	
+    	$listFields = $this->listFields;
+    	$listFields = arr::make($listFields, TRUE);
+    	
+    	if($data->displayTools === TRUE){
+    		$listFields = array('tools' => 'Пулт') + $listFields;
+    	}
+    	
+    	if(!haveRole('debug')){
+    		unset($listFields['state']);
+    	}
+    	unset($listFields['cClass']);
+    	
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $tpl->append(tr('Ценови политики'), 'priceListTitle');
+        $tpl->append($table->get($data->rows, $listFields));
         
-        return static::renderDetail($data);
+        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ценова политика'), 'priceListTitle');
+        }
+        
+        return $tpl;
     }
 
     
     /**
-     * Премахва кеша за интервалите от време
+     * След запис в модела
      */
-    public static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
-        price_History::removeTimeline();
+    	// Ако ценовата политика е бъдеща задаваме
+    	if($rec->validFrom > dt::now()){
+    		core_CallOnTime::setOnce($mvc->className, 'updateStates', (object)array('cClass' => $rec->cClass, 'cId' => $rec->cId, 'validFrom' => $rec->validFrom), $rec->validFrom);
+    	}
+    	
+    	static::updateStates($rec->cClass, $rec->cId);
+    	price_History::removeTimeline();
     }
-
-
-
-    /****************************************************************************************************
-     *                                                                                                  *
-     *    И Н Т Е Р Ф Е Й С   `price_PolicyIntf`                                                        *
-     *                                                                                                  *
-     ***************************************************************************************************/
     
 
     /**
@@ -360,12 +292,7 @@ class price_ListToCustomers extends core_Detail
         static::canonizeTime($datetime);
     	
     	$validRec = self::getValidRec($customerClass, $customerId, $datetime);
-
-        if($validRec) {
-            $listId   = $validRec->listId;
-        } else {
-            $listId = price_ListRules::PRICE_LIST_CATALOG;
-        }
+    	$listId = ($validRec) ? $validRec->listId : price_ListRules::PRICE_LIST_CATALOG;
         
         return $listId;
     }
@@ -382,16 +309,21 @@ class price_ListToCustomers extends core_Detail
      * @param datetime $datetime - дата
      * @param double $rate  - валутен курс
      * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+     * @param int|NULL $listId - ценова политика
+     * @param boolean $quotationPriceFirst - Дали първо да търси цена от последна оферта
      * @return stdClass $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no', $listId = NULL, $quotationPriceFirst = TRUE)
     {
         $isProductPublic = cat_Products::fetchField($productId, 'isPublic');
+        $rec = (object)array('price' => NULL);
         
         // Проверяваме имали последна цена по оферта
-        $rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity);
-
+        if($quotationPriceFirst === TRUE){
+        	$rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity);
+        }
+		
         // Ако има връщаме нея
         if(empty($rec->price)){
         	
@@ -425,7 +357,9 @@ class price_ListToCustomers extends core_Detail
         		 
         		// Ако има рецепта връщаме по нея
         		if($bomRec){
-        			$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId);
+        			$defPriceListId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
+        			$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $defPriceListId);
+        			
         			$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
         			if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
         				$defPriceListId = price_ListRules::PRICE_LIST_COST;
@@ -434,15 +368,17 @@ class price_ListToCustomers extends core_Detail
         			$rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
         		}
         	} else {
+        		$listId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
+        		
         		// За стандартните артикули търсим себестойността в ценовите политики
-        		$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        		$rec = $this->getPriceByList($listId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         	}
         }
-       
+        
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if(!is_null($rec->price)){
         	$vat = cat_Products::getVat($productId);
-        	$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat, $listRec->roundingPrecision);
+        	$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
        
         // Връщаме цената
@@ -455,16 +391,15 @@ class price_ListToCustomers extends core_Detail
      * 
      * @param mixed $customerClass - ид на клас на контрагента
      * @param int $customerId      - ид на контрагента
+     * @param iny $defPriceListId  - ценоразпис
      * @return object $res		   - масив с надценката и отстъпката
      * 				 o minDelta  - минималната отстъпка
      * 				 o maxDelta  - максималната надценка
      */
-    public static function getMinAndMaxDelta($customerClass, $customerId)
+    private static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
     {
     	$res = (object)array('minDelta' => 0, 'maxDelta' => 0);
-    	
-    	$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
-    	 
+    
     	// Ако контрагента има зададен ценоразпис, който не е дефолтния
     	if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
     		 
@@ -473,7 +408,7 @@ class price_ListToCustomers extends core_Detail
     		$res->minDelta = $defPriceList->minSurcharge;
     		$res->maxDelta = $defPriceList->maxSurcharge;
     	}
-    	 
+    	
     	// Ако няма мин надценка, взимаме я от търговските условия
     	if(!$res->minDelta){
     		$res->minDelta = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
@@ -491,9 +426,8 @@ class price_ListToCustomers extends core_Detail
     /**
      * Опит за намиране на цената според политиката за клиента (ако има такава)
      */
-    private function getPriceByList($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    private function getPriceByList($listId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-    	$listId = self::getListForCustomer($customerClass, $customerId, $datetime);
     	$rec = new stdClass();
     	$rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
     	
@@ -504,7 +438,8 @@ class price_ListToCustomers extends core_Detail
     		 
     		// Намираме цената по тази политика и намираме колко % е отстъпката/надценката
     		$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
-    		if($comparePrice){
+    		
+    		if($comparePrice && $rec->price){
     			$disc = ($rec->price - $comparePrice) / $comparePrice;
     			$discount = round(-1 * $disc, 4);
     			
@@ -540,5 +475,150 @@ class price_ListToCustomers extends core_Detail
 	          }
 	      }
 	   }
+	}
+	
+	
+	/**
+	 * Ф-я викаща се по разписание
+	 * @see core_CallOnTime
+	 * 
+	 * @param stdClass $data
+	 */
+	public function callback_updateStates($data)
+	{
+		$this->updateStates($data->cClass, $data->cId);
+	}
+	
+	
+	/**
+	 * Обновяване на състоянието на контрагентски рецепти
+	 * 
+	 * @param int $cClass - клас на контрагента
+	 * @param int $cId - клас Ид
+	 */
+	public static function updateStates($cClass = NULL, $cId = NULL)
+	{
+		$self = cls::get(get_called_class());
+		$query = self::getQuery();
+		
+		$query->where("#cClass IS NOT NULL AND #cId IS NOT NULL");
+		if(isset($cClass) && isset($cId)){
+			$query->where("#cClass = {$cClass} AND #cId = {$cId}");
+		}
+		
+		$count = $query->count();
+		if($count > 200){
+			core_App::setTimeLimit($count * 0.7);
+		}
+		
+		$recsToSave = array();
+		$cache = array();
+		while($rec = $query->fetch()){
+			$state = 'closed';
+			
+			$index = "$rec->cClass|$rec->cId";
+			if(!array_key_exists($index, $cache)){
+				$cache[$index] = self::getValidRec($rec->cClass, $rec->cId);
+			}
+			$aRec = $cache[$index];
+			
+			if(!empty($aRec) && $rec->id == $aRec->id){
+				$state = 'active';
+			}
+			
+			if($rec->state != $state){
+				$recsToSave[] = (object)array('id' => $rec->id, 'state' => $state);
+			}
+		}
+		
+		$self->saveArray($recsToSave, 'id,state');
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$row->cClass = cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE);
+		if($rec->validFrom > dt::now()){
+			$rec->state = 'draft';
+			$row->state = tr('Бъдещ');
+		}
+		
+		$row->ROW_ATTR['class'] = "state-{$rec->state}";
+		$row->listId = price_Lists::getHyperlink($rec->listId, TRUE);
+	}
+	
+	
+	/**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$listId = Request::get('listId', 'key(mvc=price_Lists)');
+		if(isset($listId)){
+			$data->query->where("#listId = {$listId}");
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на листовия изглед
+	 */
+	protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+	{
+		$listId = Request::get('listId', 'key(mvc=price_Lists)');
+		if(isset($listId)){
+			$data->title = 'Ценова политика|* ' . price_Lists::getHyperlink($listId, TRUE);
+		}
+	}
+	
+	
+	/**
+	 * Връща масив с контрагентите свързани към даден ценоразпис
+	 * 
+	 * @param int $listId     - ид на политика
+	 * @param boolean $links  - дали имената на контрагентите да са линк
+	 * @return array $options - масив със свързаните контрагенти
+	 */
+	public static function getCustomers($listId, $links = FALSE)
+	{
+		$options = array();
+		
+		$query = price_ListToCustomers::getQuery();
+		$query->where("#listId = {$listId} AND #state = 'active'");
+		$count = $query->count();
+		if(!empty($count)){
+			while($rec = $query->fetch()){
+				$title = ($links === TRUE) ? cls::get($rec->cClass)->getHyperlink($rec->cId, TRUE) : cls::get($rec->cClass)->getTitleById($rec->cId, FALSE);
+				$options[$rec->id] = $title;
+			}
+		}
+		
+		return $options;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'delete' && isset($rec)){
+			if($rec->validFrom <= dt::now()){
+				$requiredRoles = 'no_one';
+			}
+		}
+		
+		if(($action == 'add' || $action == 'delete') && isset($rec)){
+			if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
+				$requiredRoles = 'no_one';
+			}
+		}
 	}
 }

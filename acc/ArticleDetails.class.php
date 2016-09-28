@@ -351,7 +351,7 @@ class acc_ArticleDetails extends doc_Detail
         	foreach ($accs as $type => $acc) {
         		if ($acc->isDimensional && !isset($rec->amount)) {
         			if(isset($rec->{"{$type}Price"}) && isset($rec->{"{$type}Quantity"})){
-        				@$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
+        				$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
         			}
         		}
         	}
@@ -381,13 +381,13 @@ class acc_ArticleDetails extends doc_Detail
                          */
                         switch (true) {
                             case !isset($rec->{"{$type}Quantity"}) :
-                            @$rec->{"{$type}Quantity"} = $rec->amount / $rec->{"{$type}Price"};
+                            $rec->{"{$type}Quantity"} = (!empty($rec->{"{$type}Price"})) ? $rec->amount / $rec->{"{$type}Price"} : 0;
                             break;
                             case !isset($rec->{"{$type}Price"}) :
-                            @$rec->{"{$type}Price"} = $rec->amount / $rec->{"{$type}Quantity"};
+                            $rec->{"{$type}Price"} = (!empty($rec->{"{$type}Quantity"})) ? $rec->amount / $rec->{"{$type}Quantity"} : 0;
                             break;
                             case !isset($rec->amount) :
-                            @$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
+                            $rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
                             break;
                         }
                         
@@ -447,8 +447,8 @@ class acc_ArticleDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
-            if(isset($rec->$fld)){
-                $row->$fld = acc_Items::getVerbal($rec->$fld, 'titleLink');
+            if(isset($rec->{$fld})){
+                $row->{$fld} = acc_Items::getVerbal($rec->{$fld}, 'titleLink');
             }
         }
         
@@ -458,8 +458,8 @@ class acc_ArticleDetails extends doc_Detail
         
         // Кешираме линковете към сметките
         foreach (array('debitAccId', 'creditAccId') as $accId){
-            if(!isset(static::$cache['accs'][$rec->$accId])){
-                static::$cache['accs'][$rec->$accId] = acc_Balances::getAccountLink($rec->$accId, $balanceValior);
+            if(!isset(static::$cache['accs'][$rec->{$accId}])){
+                static::$cache['accs'][$rec->{$accId}] = acc_Balances::getAccountLink($rec->{$accId}, $balanceValior);
             }
         }
         

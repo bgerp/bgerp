@@ -16,45 +16,57 @@ class doc_Likes extends core_Manager
     
     
     /**
+     * 
+     */
+    protected static $isLikedArr = array();
+    
+    
+    /**
+     * 
+     */
+    protected static $likedArr = array();
+    
+    
+    /**
      * Заглавие
      */
-    var $title = "Харесвания";
+    public $title = "Харесвания";
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'debug';
+    public $canView = 'debug';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    public $canList = 'debug';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, plg_Created';
+    public $loadList = 'doc_Wrapper, plg_Created';
     
     
     /**
@@ -63,7 +75,9 @@ class doc_Likes extends core_Manager
     function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption = Контейнер');
+        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption = Нишка');
         
+        $this->setDbIndex('threadId');
         $this->setDbUnique('containerId, createdBy');
     }
     
@@ -72,21 +86,29 @@ class doc_Likes extends core_Manager
      * Отбелязва докумена, като харесан
      * 
      * @param integer $cid
+     * @param NULL|integer $threadId
      * @param NULL|integer $userId
      * 
      * @return integer
      */
-    public static function like($cid, $userId = NULL)
+    public static function like($cid, $threadId = NULL, $userId = NULL)
     {
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
         
+        if (!isset($threadId)) {
+            $threadId = doc_Containers::fetchField($cid, 'threadId');
+        }
+        
         $rec = new stdClass();
         $rec->containerId = $cid;
         $rec->createdBy = $userId;
+        $rec->threadId = $threadId;
         
         $savedId = self::save($rec, NULL, 'IGNORE');
+        
+        self::resetCache();
         
         return $savedId;
     }
@@ -108,6 +130,8 @@ class doc_Likes extends core_Manager
         
         $delCnt = self::delete(array("#containerId = '[#1#]' AND #createdBy = '[#2#]'", $cid, $userId));
         
+        self::resetCache();
+        
         return $delCnt;
     }
     
@@ -116,19 +140,36 @@ class doc_Likes extends core_Manager
      * Проверява дали има харесване за документа
      * 
      * @param integer $cid
+     * @param integer $threadId
      * @param integer $userId
      * 
      * @return boolean
      */
-    public static function isLiked($cid, $userId = NULL)
+    public static function isLiked($cid, $threadId, $userId = NULL)
     {
-        if ($userId) {
-            $id = self::fetchField(array("#containerId = '[#1#]' AND #createdBy = '[#2#]'", $cid, $userId), 'id');
-        } else {
-            $id = self::fetchField(array("#containerId = '[#1#]'", $cid), 'id');
+        $likedArr = self::prepareLikedArr($cid, $threadId);
+        
+        if (!isset($userId)) {
+            
+            $isEmpty = empty($likedArr);
+            
+            return !$isEmpty;
         }
         
-        return (boolean) $id;
+        if (!isset(self::$isLikedArr[$cid][$userId])) {
+            self::$isLikedArr[$cid][$userId] = FALSE;
+            
+            foreach ($likedArr as $lRec) {
+                if ($lRec->createdBy == $userId) {
+                    
+                    self::$isLikedArr[$cid][$userId] = TRUE;
+                    
+                    break;
+                }
+            }
+        }
+        
+        return self::$isLikedArr[$cid][$userId];
     }
     
     
@@ -136,17 +177,15 @@ class doc_Likes extends core_Manager
      * Връща броя на харесванията на документа
      * 
      * @param integer $cid
+     * @param integer $threadId
      * 
-     * @return 
+     * @return integer
      */
-    public static function getLikesCnt($cid)
+    public static function getLikesCnt($cid, $threadId)
     {
-        $query = self::getQuery();
-        $query->where(array("#containerId = '[#1#]'", $cid));
+        $likedArr = self::prepareLikedArr($cid, $threadId);
         
-        $cnt = $query->count();
-        
-        return $cnt;
+        return (int) count($likedArr);
     }
     
     
@@ -158,13 +197,47 @@ class doc_Likes extends core_Manager
      * 
      * @return array
      */
-    public static function getLikedArr($cid, $order = 'ASC')
+    public static function getLikedArr($cid, $threadId, $order = 'DESC')
     {
-        $query = self::getQuery();
-        $query->where(array("#containerId = [#1#]", $cid));
-        $query->orderBy('createdOn', $order);
-        $resArr = $query->fetchAll();
         
-        return $resArr;
+        return self::prepareLikedArr($cid, $threadId, $order);
+    }
+    
+    
+    /**
+     * 
+     * @param integer $cid
+     * @param integer $threadId
+     * @param string $order
+     * 
+     * @return array
+     */
+    protected static function prepareLikedArr($cid, $threadId, $order = 'DESC')
+    {
+        $key = $order . '|' . $threadId;
+        
+        if (!isset(self::$likedArr[$key])) {
+            self::$likedArr[$key] = array();
+            
+            $query = self::getQuery();
+            $query->where(array("#threadId = [#1#]", $threadId));
+            $query->orderBy('createdOn', $order);
+            
+            while ($rec = $query->fetch()) {
+                self::$likedArr[$key][$rec->containerId][] = $rec;
+            }
+        }
+        
+        return (array) self::$likedArr[$key][$cid];
+    }
+    
+    
+    /**
+     * Ресетва масив с кешовете
+     */
+    protected static function resetCache()
+    {
+        self::$isLikedArr = array();
+        self::$likedArr = array();
     }
 }
