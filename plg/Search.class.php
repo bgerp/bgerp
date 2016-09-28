@@ -162,7 +162,7 @@ class plg_Search extends core_Plugin
      * @param core_Query $query
      * @param string $field
      */
-    public static function applySearch($search, $query, $field = NULL, $strict = 4, $limit = NULL)
+    public static function applySearch($search, $query, $field = NULL, $strict = 2, $limit = NULL)
     {
         if(!$field) {
             $field = 'searchKeywords';

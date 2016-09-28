@@ -35,13 +35,12 @@ class jsgauge_Setup extends core_ProtoSetup
 	/**
 	 * Описание на модула
 	 */
-	public $info = "Палет за работа с Gauge";
+	public $info = "Пакет за визуализация на gauge-индикатори";
 	
 	
 	/**
 	 * Пътища до JS файлове
 	 */
-//	var $commonJS = "[#GAUGE_PATH#]/gauge.js";
 
 	
 	/**
