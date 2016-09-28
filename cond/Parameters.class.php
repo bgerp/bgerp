@@ -74,7 +74,7 @@ class cond_Parameters extends bgerp_ProtoParam
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setField('driverClass', 'caption=Тип,input');
     }
@@ -83,7 +83,7 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
