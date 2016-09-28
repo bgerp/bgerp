@@ -218,10 +218,10 @@ class cat_products_Params extends doc_Detail
     	$query = self::getQuery();
     	$query->where("#classId = {$classId} AND #productId = {$productId}");
     	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
-    	$ids = array_combine($ids, $ids);
     	
-    	$where = '';
+    	$where = "";
     	if(count($ids)){
+    		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
     	}
@@ -256,7 +256,7 @@ class cat_products_Params extends doc_Detail
      		return $paramValue;
      	}
      	
-     	return FALSE;
+     	return NULL;
     }
     
     
@@ -269,7 +269,7 @@ class cat_products_Params extends doc_Detail
         	foreach($data->params as &$row) {
         		core_RowToolbar::createIfNotExists($row->_rowTools);
         		if($data->noChange !== TRUE && !Mode::isReadOnly()){
-        			$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
+        			$row->tools = $row->_rowTools->renderHtml();
         		} else {
         			unset($row->tools);
         		}

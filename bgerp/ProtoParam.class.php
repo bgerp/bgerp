@@ -77,7 +77,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		$rec->typeExt = tr($rec->name);
 		 
 		if (!empty($rec->group)) {
-			$group .= tr($rec->group);
+			$group = tr($rec->group);
 			$rec->typeExt = "{$group} » {$rec->typeExt}";
 		}
 		 

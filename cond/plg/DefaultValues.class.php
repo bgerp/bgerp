@@ -265,7 +265,7 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getFromClientData(core_Mvc $mvc, $rec, $name)
     {
-    	if(!isset($mvc->_cashedContragentData)){
+    	if(!isset($mvc->_cachedContragentData)){
 	    	
     		// Ако документа няма такъв метод, се взимат контрагент данните от корицата
 	    	$data = self::getCoverMethod($rec->folderId, 'getContragentData');
@@ -279,7 +279,7 @@ class cond_plg_DefaultValues extends core_Plugin
 	    		$data->countryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
 	    	}
 	    	
-    		$mvc->_cashedContragentData = $data;
+    		$mvc->_cachedContragentData = $data;
     	}
     	
     	if($dataField = $mvc->fields[$name]->contragentDataField){
@@ -291,8 +291,8 @@ class cond_plg_DefaultValues extends core_Plugin
     		$name = "p".ucfirst($name);
     	}
     	
-    	if(isset($mvc->_cashedContragentData->{$name})){
-    		return $mvc->_cashedContragentData->{$name};
+    	if(isset($mvc->_cachedContragentData->{$name})){
+    		return $mvc->_cachedContragentData->{$name};
     	}
     }
     

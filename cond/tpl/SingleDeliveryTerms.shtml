@@ -17,4 +17,8 @@
     <!--ET_BEGIN forBuyer-->
     <p><b>|За купувача|*:</b> [#forBuyer#]</p>
     <!--ET_END forBuyer-->
+    
+    <!--ET_BEGIN address-->
+    <b>|Показване на мястото на доставка|*</b>: [#address#]
+    <!--ET_END address-->
 </div>

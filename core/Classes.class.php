@@ -194,17 +194,30 @@ class core_Classes extends core_Manager
         
         if(is_array($options)){
         	foreach($options as $cls => &$name) {
-        		
-        		$exp = explode('»', $name);
-        		if(count($exp) == 2){
-        			$name = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
-        		} else {
-        			$name = tr($name);
-        		}
+        		$name = static::translateClassName($name);
         	}
         }
        
         return $options;
+    }
+    
+    
+    /**
+     * Помощна ф-я за превод на име на сложно име на клас
+     * 
+     * @param string $name
+     * @return string $name;
+     */
+    public static function translateClassName($name)
+    {
+    	$exp = explode('»', $name);
+    	if(count($exp) == 2){
+    		$name = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
+    	} else {
+    		$name = tr($name);
+    	}
+    	
+    	return $name;
     }
     
     

@@ -320,7 +320,7 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title);    
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow},initially=hidden, title=" . tr('Всички') . ' ' . $title);
 
         }
         
@@ -329,7 +329,7 @@ class doc_DocumentPlg extends core_Plugin
             
             if ($historyCnt) {
                 $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
-                "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
+                "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png,initially=hidden');
             }
         }
         
@@ -343,7 +343,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали документа може да бъде разоден обект
         if ($mvc->haveRightFor('forceexpenseitem', $data->rec)) {
         	$data->toolbar->addBtn('Разходен обект', array($mvc, 'forceexpenseitem', $data->rec->id),
-        			"warning=Наистина ли искате да направите документа разходен обект?, row=2,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png');
+        			"warning=Наистина ли искате да направите документа разходен обект?, row=2,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png,initially=hidden');
         }
     }
     
@@ -1282,11 +1282,9 @@ class doc_DocumentPlg extends core_Plugin
         		$title .= ' |в|* ' . $t;
         	}
         }
-     
+        
         $rec = $form->rec;
         
-        $in = ' |в|* ';
-
         if($form->rec->id) {
             $form->title = 'Редактиране на|* ';
         } else {
@@ -1295,7 +1293,6 @@ class doc_DocumentPlg extends core_Plugin
             } else {
                 if($rec->threadId) {
                     $form->title = 'Добавяне на|* ';
-                    $in = ' |към|* ';
                 } else {
                     $form->title = 'Създаване на|* ';
                 }
@@ -1312,7 +1309,7 @@ class doc_DocumentPlg extends core_Plugin
             	unset($title);
             }
         }
-       
+        
         $form->title .= $title;
     }
     

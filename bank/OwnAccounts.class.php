@@ -506,7 +506,7 @@ class bank_OwnAccounts extends core_Master {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
-        $query->where("#state != 'rejected' && #state != 'closed'");
+        $query->where("#state != 'rejected' AND #state != 'closed'");
         $cu = core_Users::getCurrent();
         
         while($rec = $query->fetch()) {

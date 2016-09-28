@@ -205,40 +205,37 @@ class bgerp_plg_FLB extends core_Plugin
 	 * @param core_Master $mvc
 	 * @param core_Query $query
 	 * @param int|NULL $userId
+	 * @param boolean $onlyActivate
 	 * @return void
 	 */
-	private static function addUserFilterToQuery($mvc, core_Query &$query, $userId = NULL)
+	private static function addUserFilterToQuery($mvc, core_Query &$query, $userId = NULL, $onlyActivate = FALSE)
 	{
 		$userId = ($userId) ? $userId : core_Users::getCurrent();
 		$userRoles = core_Users::fetchField($userId, 'roles');
 		
 		$query->likeKeylist($mvc->canActivateUserFld, $userId);
 		$query->orLikeKeylist($mvc->canActivateRoleFld, $userRoles);
-		$query->orLikeKeylist($mvc->canSelectUserFld, $userId);
-		$query->orLikeKeylist($mvc->canSelectRoleFld, $userRoles);
+		
+		if($onlyActivate === FALSE){
+			$query->orLikeKeylist($mvc->canSelectUserFld, $userId);
+			$query->orLikeKeylist($mvc->canSelectRoleFld, $userRoles);
+		}
+		
 		$query->orWhere("#inCharge = {$userId}");
 	}
 	
 	
 	/**
 	 * Преди форсиране на обекта
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param core_Query $query
 	 */
-	public static function on_BeforeSelectByForce($mvc, &$res)
+	public static function on_BeforeSelectByForce($mvc, &$query)
 	{
-		$query = $mvc->getQuery();
-		$query->where("#state != 'rejected' || #state != 'closed'");
-
 		// Само ако потребителя не е ceo, се филтрира по полетата
 		if(!haveRole('ceo')){
-			self::addUserFilterToQuery($mvc, $query);
-		}
-		
-		// Ако има точно един обект, който потребителя може да избере се избира автоматично
-		if($query->count() == 1) {
-			$rec = $query->fetch();
-			if($id = $mvc->selectCurrent($rec)) {
-				$res = $id;
-			}
+			self::addUserFilterToQuery($mvc, $query, NULL, TRUE);
 		}
 	}
 }

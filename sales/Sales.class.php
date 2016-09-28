@@ -401,10 +401,16 @@ class sales_Sales extends deals_DealMaster
         	$form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
         } else {
         	
-        	// Ако има поне един детайл, условието ан доставка не мжое да се сменя
+        	// Ако има поне един детайл
         	if(sales_SalesDetails::fetchField("#saleId = {$rec->id}")){
-        		$form->setReadOnly('deliveryTermIdExtended');
-        		$form->setReadOnly('deliveryLocationId');
+        		
+        		// И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
+        		if(isset($rec->deliveryTermId)){
+        			if(cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes'){
+        				$form->setReadOnly('deliveryTermIdExtended');
+        				$form->setReadOnly('deliveryLocationId');
+        			}
+        		}
         	}
         }
         

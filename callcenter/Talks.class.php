@@ -1153,7 +1153,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме грешката
-            self::logErr($err, $err);
+            self::logWarning($err, $err);
         }
     }
     
@@ -1844,7 +1844,7 @@ class callcenter_Talks extends core_Master
                 $caption = 'Фирма';
             }
             
-            $form->FNC('contragentId', "key(mvc={$className}, select=name)", "caption={$caption}, input=input, mandatory");
+            $form->FNC('contragentId', "key(mvc={$className}, select=name, restrictViewAccess=yes)", "caption={$caption}, input=input, mandatory");
             $form->input('contragentId');
         }
         
@@ -2219,7 +2219,8 @@ class callcenter_Talks extends core_Master
     /**
 	 * След създаване на сигнал от документа
 	 * 
-	 * @param integer $originId
+	 * @param integer $id
+	 * @param stdClass $iRec
 	 * 
 	 * @see support_IssueCreateIntf
 	 */
