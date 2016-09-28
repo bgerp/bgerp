@@ -205,12 +205,6 @@ class bank_InternalMoneyTransfer extends core_Master
             return;
         }
         
-        if($folderId = Request::get('folderId', 'int')){
-            if($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')){
-                redirect(array('bank_OwnAccounts', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна сметка");
-            }
-        }
-        
         // Има ли вече зададено основание? 
         if (Request::get('operationSysId', 'varchar')) {
             
@@ -241,6 +235,9 @@ class bank_InternalMoneyTransfer extends core_Master
         $form->toolbar->addBtn('Отказ', toUrl(array('bank_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close16.png');
         
         $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
+        if(!doc_Folders::haveRightToObject($folderId)){
+        	$folderId = static::getDefaultFolder(NULL, FALSE);
+        }
         $form->setDefault('folderId', $folderId);
         
         return $form;
@@ -276,6 +273,20 @@ class bank_InternalMoneyTransfer extends core_Master
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         $form->setReadOnly('creditBank', bank_OwnAccounts::getCurrent());
+    }
+    
+    
+    /**
+     * Ако в документа няма код, който да рутира документа до папка/тред,
+     * долния код, рутира документа до "Несортирани - [заглавие на класа]"
+     */
+    protected static function on_BeforeRoute($mvc, &$res, $rec)
+    {
+    	if($rec->operationSysId == 'bank2bank'){
+    		$rec->folderId = bank_OwnAccounts::forceCoverAndFolder($rec->debitBank);
+    	} elseif($rec->operationSysId == 'bank2case'){
+    		$rec->folderId = cash_Cases::forceCoverAndFolder($rec->debitCase, 'folderId');
+    	}
     }
     
     
@@ -432,5 +443,16 @@ class bank_InternalMoneyTransfer extends core_Master
         $self = cls::get(__CLASS__);
         
         return $self->singleTitle . " №$rec->id";
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+   		// Споделяме текущия потребител със нишката на заданието
+    	$cu = core_Users::getCurrent();
+   		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     }
 }
