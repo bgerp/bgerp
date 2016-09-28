@@ -52,7 +52,6 @@ class doc_ExpensesSummary extends core_Manager
     {
     	$this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption = Контейнер');
     	$this->FLD('count', 'int', 'notNull,value=0,caption=Брой');
-    	$this->FLD('data', 'blob(serialize, compress)', 'input=none');
     	
         $this->setDbUnique('containerId');
     }
@@ -116,10 +115,9 @@ class doc_ExpensesSummary extends core_Manager
         $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
         $data->rows = array();
         $data->recs = self::updateSummary($rec->containerId, $itemRec);
-        $rec->data = $data->recs;
         
-        if(is_array($rec->data)){
-        	foreach ($rec->data as $index => $r){
+        if(is_array($data->recs)){
+        	foreach ($data->recs as $index => $r){
         		$data->rows[$index] = $this->getVerbalRow($r);
         	}
         }
