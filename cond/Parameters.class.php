@@ -81,6 +81,18 @@ class cond_Parameters extends bgerp_ProtoParam
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$rec->name = str::mbUcfirst($rec->name);
+    	}
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     function loadSetupData()
