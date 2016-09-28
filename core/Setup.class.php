@@ -595,6 +595,16 @@ class core_Setup extends core_ProtoSetup {
             
             $Inst = cls::get($rec->name);
             
+            // Ако няма таблица
+            if (!$Inst || !$Inst->db) continue;
+            
+            // Ако таблицата не съществува в модела
+            if (!$Inst->db->tableExists($Inst->dbTableName)) continue ;
+            
+            // Ако полето не съществува в таблицата
+            $sk = str::phpToMysqlName('searchKeywords');
+            if (!$Inst->db->isFieldExists($Inst->dbTableName, $sk)) continue ;
+            
             $plugins = arr::make($Inst->loadList, TRUE);
             
             if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) continue;
