@@ -138,7 +138,7 @@ class doc_DocumentPlg extends core_Plugin
     {
     	$listId = acc_Lists::fetchBySystemId('costObjects')->id;
     	if(keylist::isIn($listId, $item->lists)){
-    		doc_ExpensesSummary::updateSummary($rec->containerId, $item);
+    		doc_ExpensesSummary::updateSummary($rec->containerId, $item, TRUE);
     	}
     }
     
