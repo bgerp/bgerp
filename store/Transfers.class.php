@@ -457,4 +457,15 @@ class store_Transfers extends core_Master
     {
         return tr("|Междускладов трансфер|* №") . $rec->id;
     }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// Споделяме текущия потребител със нишката на заданието
+    	$cu = core_Users::getCurrent();
+    	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+    }
 }
