@@ -91,8 +91,9 @@ class cond_Parameters extends bgerp_ProtoParam
     			1 => "driverClass",
     			2 => "sysId",
     			3 => "state",
-    			4 => 'suffix',
-    			5 => 'default',
+    			4 => "group",
+    			5 => 'suffix',
+    			6 => 'default',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);

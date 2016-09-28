@@ -179,9 +179,12 @@ class cond_ConditionsToCustomers extends core_Manager
     {
         expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
+        
         $query = static::getQuery();
+        $query->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");
-    	
+        $query->orderBy('group', 'ASC');
+        
         while($rec = $query->fetch()) {
         	
         	// Според параметарът, се променя вербалното представяне на стойността
