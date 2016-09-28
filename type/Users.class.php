@@ -157,6 +157,7 @@ class type_Users extends type_Keylist
         
         // Добавка за оттеглените потребители
         if($rejected) {
+            $key = 'rejected';
             $this->options[$key] = new stdClass();
             $this->options[$key]->title = tr("Оттеглени потребители");
             $this->options[$key]->keylist = '|' . $rejected . '|';
