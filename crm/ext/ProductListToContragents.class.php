@@ -49,7 +49,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Артикул,packagingId=Опаковка,code=Техен код,modified=Модифициране';
+    public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,modified=Модифициране';
 			
 
     /**
@@ -61,7 +61,7 @@ class crm_ext_ProductListToContragents extends core_Manager
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'productId,packagingId,code';
+    public $searchFields = 'productId,packagingId,reff';
     
     
     /**
@@ -98,10 +98,10 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId,caption=Артикул');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,caption=Опаковка,input=hidden,mandatory');
     	$this->FLD('type', 'enum(sellable,buyable)', 'caption=За,input=hidden,silent');
-    	$this->FLD('code', 'varchar(32)', 'caption=Техен код');
+    	$this->FLD('reff', 'varchar(32)', 'caption=Техен код');
 	
     	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId,type');
-    	$this->setDbIndex('code');
+    	$this->setDbIndex('reff');
 	}
 	
 	
@@ -149,20 +149,20 @@ class crm_ext_ProductListToContragents extends core_Manager
 		if($form->isSubmitted()){
 			
 			// Ако няма код
-			if(empty($rec->code)){
+			if(empty($rec->reff)){
 				
 				// И има такава опаковка, взима се ЕАН кода
 				if($pack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId)){
-					$rec->code = (!empty($pack->eanCode)) ? $pack->eanCode : NULL;
+					$rec->reff = (!empty($pack->eanCode)) ? $pack->eanCode : NULL;
 				}
 				
 				// Ако още не е намерен код, взима се кода на артикула
-				if(empty($rec->code)){
-					$rec->code = cat_Products::fetchField($rec->productId, 'code');
+				if(empty($rec->reff)){
+					$rec->reff = cat_Products::fetchField($rec->productId, 'code');
 				}
 				
-				if(empty($rec->code)){
-					$rec->code = NULL;
+				if(empty($rec->reff)){
+					$form->setError('reff', 'Трябва да бъде въведен код');
 				}
 			}
 		}
@@ -413,7 +413,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
 		$row->modified .= " " . tr('от||by') . " " . crm_Profiles::createLink($rec->modifiedBy) . "</div>";
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
-	    $row->code = "<b>{$row->code}</b>";
+	    $row->reff = "<b>{$row->reff}</b>";
 	}
 	
 	
@@ -446,4 +446,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		// Връщане на кешираните данни
 		return self::$cache[$contragentClassId][$contragentId];
 	}
+	
+	
+	//public static function get
 }
