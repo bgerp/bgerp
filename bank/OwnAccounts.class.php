@@ -16,6 +16,12 @@
 class bank_OwnAccounts extends core_Master {
     
     
+	/**
+	 * Да се създаде папка при създаване на нов запис
+	 */
+	public $autoCreateFolder = 'instant';
+	
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */

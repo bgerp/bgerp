@@ -570,7 +570,7 @@ class doc_Threads extends core_Manager
         if($folderRec->inCharge > 0) {
             $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
-            $user = '@system';
+            $user = core_Setup::get('SYSTEM_NICK');
         }
         $title->replace($user, 'user');
       

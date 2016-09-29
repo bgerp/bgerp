@@ -389,7 +389,7 @@ class doc_Containers extends core_Manager
         if($folderRec->inCharge) {
             $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
-            $user = '@system';
+            $user = core_Setup::get('SYSTEM_NICK');
         }
         $title->replace($user, 'user');
         
@@ -616,11 +616,6 @@ class doc_Containers extends core_Manager
         	if(doc_Threads::haveRightFor('single', $data->threadRec)){
         	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
         	}
-        	
-        	if (log_System::haveRightFor('list')){
-        	    $data->toolbar->addBtn('История', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->threadId), 'ef_icon=img/16/memo.png', 'title=Разглеждане на историята на нишката');
-        	}
-        	
         }
         
         // Ако има права за настройка на папката, добавяме бутона

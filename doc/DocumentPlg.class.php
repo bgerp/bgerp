@@ -138,7 +138,7 @@ class doc_DocumentPlg extends core_Plugin
     {
     	$listId = acc_Lists::fetchBySystemId('costObjects')->id;
     	if(keylist::isIn($listId, $item->lists)){
-    		doc_ExpensesSummary::updateSummary($rec->containerId, $item);
+    		doc_ExpensesSummary::updateSummary($rec->containerId, $item, TRUE);
     	}
     }
     
@@ -344,6 +344,14 @@ class doc_DocumentPlg extends core_Plugin
         if ($mvc->haveRightFor('forceexpenseitem', $data->rec)) {
         	$data->toolbar->addBtn('Разходен обект', array($mvc, 'forceexpenseitem', $data->rec->id),
         			"warning=Наистина ли искате да направите документа разходен обект?, row=2,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png,initially=hidden');
+        }
+        
+        if ($data->rec->threadId && ($tRec = doc_Threads::fetch($data->rec->threadId))) {
+            if ($tRec->firstContainerId == $data->rec->containerId) {
+                if (log_System::haveRightFor('list')) {
+                    $data->toolbar->addBtn('Логове', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->rec->threadId), 'ef_icon=img/16/memo.png, title=Разглеждане на логовете на нишката, order=19, row=2, initially=hidden');
+                }
+            }
         }
     }
     

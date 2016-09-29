@@ -419,7 +419,11 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 27,66')) {
         } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума във фактура', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
+        }
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 5,53')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
         }
         //return $browser->getHtml();
     }
@@ -1310,7 +1314,15 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума за приспадане', 'warning');
         }
-     
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 145,79')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
+        }
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 29,15')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
+        }    
+        
        // Приключване
         $browser->press('Приключване');
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');

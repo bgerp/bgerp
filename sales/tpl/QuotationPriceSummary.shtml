@@ -1,0 +1,51 @@
+<!--ET_BEGIN SUMMARY-->
+[#SUMMARY#]
+<tr>
+   <th style='width: 20%;'>|Стойност|*</th>
+   <th style='width: 20%;'>[#discountTitle#] [#discountPercent#] </th>
+   <th style='width: 20%;'>[#netTitle#]</th>
+   <th style='width: 20%;'>|ДДС|* [#onlyVat#]</th>
+   <th style='width: 20%;'>|Общо|*</th>
+</tr>
+<tr style='font-weight: bold;'>
+   <td class='centered dark-gray'>[#value#]</td>
+   <td class='centered'><span class='discount'>[#discountValue#]</span></td>
+   <td class='centered dark-gray'>[#neto#]</td>
+   <td class='centered dark-gray'>
+   	 [#chargeVat#]
+      <table style="margin: 0 auto" >
+         <!--ET_BEGIN vat02Amount-->
+         <tr>
+            <td class="aright" style="padding-right: 5px;"><b>[#vat02#]</b> </td>
+            <td><span class='cCode'>[#vat02AmountCurrencyId#]</span></td>
+            <td class="aright">[#vat02Amount#]</td>
+         </tr>
+         <!--ET_END vat02Amount-->
+
+         <!--ET_BEGIN vat009Amount-->
+         <tr>
+            <td class="aright" style="padding-right: 5px;"><b>[#vat009#]</b> </td>
+            <td><span class='cCode'>[#vat009AmountCurrencyId#]</span></td>
+            <td class="aright">[#vat009Amount#]</td>
+         </tr>
+         <!--ET_END vat009Amount-->
+
+         <!--ET_BEGIN vat0Amount-->
+         <tr>
+            <td class="aright" style="padding-right: 5px;"><b>[#vat0#]</b> </td>
+            <td><span class='cCode'>[#vat0AmountCurrencyId#]</span></td>
+            <td class="aright">[#vat0Amount#]</td>
+         </tr>
+         <!--ET_END vat0Amount-->
+      </table>
+   </td>
+   <td class='centered'>[#total#]</td>
+</tr>
+<!--ET_BEGIN sayWords-->
+<tr>
+   <td colspan="5" class='aright'>
+      |Словом|*: [#sayWords#]    
+   </td>
+</tr>
+<!--ET_END sayWords-->
+<!--ET_END SUMMARY-->
