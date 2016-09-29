@@ -48,7 +48,7 @@ class plg_Modified extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
         if($rec->modifiedBy == -1) {
-            $row->modifiedBy = '@system';
+            $row->modifiedBy = core_Setup::get('SYSTEM_NICK');
         } elseif($rec->modifiedBy == 0) {
             $row->modifiedBy = '@anonym';
         } else {

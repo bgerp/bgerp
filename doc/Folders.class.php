@@ -459,7 +459,7 @@ class doc_Folders extends core_Master
                 $rec = doc_Folders::fetch($id);
 
                 if(!$rec) {
-                    return;
+                    continue;
                 }
                 
                 // Запомняме броя на отворените теми до сега

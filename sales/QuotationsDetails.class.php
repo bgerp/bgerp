@@ -200,10 +200,20 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
     		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, FALSE, $masterRec->tplLang);
+    		if(isset($data->summary->vat009) && !isset($data->summary->vat0) && !isset($data->summary->vat02)){
+    			$data->summary->onlyVat = $data->summary->vat009;
+    			unset($data->summary->vat009);
+    		} elseif(isset($data->summary->vat0) && !isset($data->summary->vat009) && !isset($data->summary->vat02)){
+    			$data->summary->onlyVat = $data->summary->vat0;
+    			unset($data->summary->vat0);
+    		} elseif(isset($data->summary->vat02) && !isset($data->summary->vat009) && !isset($data->summary->vat0)){
+    			$data->summary->onlyVat = $data->summary->vat02;
+    			unset($data->summary->vat02);
+    		}
     		
     		// Обработваме сумарните данни
-    		if(!$data->summary->vatAmount){
-    			$data->summary->vatAmount = $data->masterData->row->chargeVat;
+    		if($data->masterData->rec->chargeVat != 'separate'){
+    			$data->summary->chargeVat = $data->masterData->row->chargeVat;
     		}
     		
     		if(!$data->summary->discountValue){

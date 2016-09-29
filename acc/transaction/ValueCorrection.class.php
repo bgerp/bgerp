@@ -360,7 +360,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 						$am = $p->quantity;
 					}
 					
-					$allocated = round($p->allocated * ($q / $am), 2);
+					$allocated = core_Math::roundNumber($p->allocated * ($q / $am));
 					$creditArr['quantity'] = $sign * $allocated;
 					
 					$entries[] = array('debit' => array('321',

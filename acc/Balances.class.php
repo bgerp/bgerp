@@ -176,7 +176,7 @@ class acc_Balances extends core_Master
     	}
     	
     	if($rec->lastAlternation > $rec->lastCalculate){
-    		$row->lastAlternation = "<span class='red'>{$row->lastAlternation}</span>";
+    		$row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
     	}
     }
     

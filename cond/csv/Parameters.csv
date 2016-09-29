@@ -1,12 +1,12 @@
-Минимална надценка,cond_type_Percent,minSurplusCharge,active,,0.2 
-Максимална надценка,cond_type_Percent,maxSurplusCharge,active,,0.4 
-Условие на доставка (продажба),cond_type_Delivery,deliveryTermSale,active
-Начин на плащане (продажба),cond_type_PaymentMethod,paymentMethodSale,active
-Условие на доставка (покупка),cond_type_Delivery,deliveryTermPurchase,active
-Начин на плащане (покупка),cond_type_PaymentMethod,paymentMethodPurchase,active
-Общи условия за продажба,cond_type_Text,commonConditionSale,active
-Общи условия за покупка,cond_type_Text,commonConditionPur,active
-Общи условия за продажба (английски),cond_type_Text,commonConditionSaleEng,active
-Общи условия за покупка (английски),cond_type_Text,commonConditionPurEng,active
-Други условия към фактура,cond_type_Text,invoiceText,active
-Очаквано тегло на доставка (кг),cond_type_Double,calcShippingWeight,active,,0
+Минимална надценка,cond_type_Percent,minSurplusCharge,Продажба,,0.2 
+Максимална надценка,cond_type_Percent,maxSurplusCharge,Продажба,,0.4 
+Условие на доставка,cond_type_Delivery,deliveryTermSale,Продажба
+Начин на плащане,cond_type_PaymentMethod,paymentMethodSale,Продажба
+Условие на доставка,cond_type_Delivery,deliveryTermPurchase,Покупка
+Начин на плащане,cond_type_PaymentMethod,paymentMethodPurchase,Покупка
+Общи условия,cond_type_Text,commonConditionSale,Продажба
+Общи условия,cond_type_Text,commonConditionPur,Покупка
+Общи условия (английски),cond_type_Text,commonConditionSaleEng,Продажба
+Общи условия (английски),cond_type_Text,commonConditionPurEng,Покупка
+Други условия към фактура,cond_type_Text,invoiceText
+Очаквано тегло на доставка (кг),cond_type_Double,calcShippingWeight,,,0
