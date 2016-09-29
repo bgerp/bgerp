@@ -352,7 +352,7 @@ class distro_Files extends core_Detail
             } else {
                 
                 // Добавяме файла в БД
-                $this->addFileToBD($groupId, $fName, $repoId);
+                $this->addFileToDB($groupId, $fName, $repoId);
                 $actArr['addToDB']++;
             }
         }
@@ -431,7 +431,7 @@ class distro_Files extends core_Detail
             foreach ($repoActArr as $groupId => $actArr) {
                     
                 foreach ((array)$actArr['create'] as $name => $date) {
-                    $addRes = $this->addFileToBD($groupId, $name, $repoId, $date);
+                    $addRes = $this->addFileToDB($groupId, $name, $repoId, $date);
                     
                     if (!isset($addRes)) continue;
                     
@@ -501,7 +501,7 @@ class distro_Files extends core_Detail
      * 
      * @return NULL|integer
      */
-    protected function addFileToBD($groupId, $name, $repoId, $date = NULL)
+    protected function addFileToDB($groupId, $name, $repoId, $date = NULL)
     {
         $subDir = $this->Master->getSubDirName($groupId);
         

@@ -487,14 +487,16 @@ class distro_Repositories extends core_Master
     {
         $rec = self::fetchRec($rec);
         
-        $repoConnectArr = array();
+        static $repoConnectArr = array();
         
-        if (!$rec) {
-            $repoConnectArr[$rec->id] = FALSE;
-            self::logNotice('Изтрито хранилище');
-        } elseif ($rec->state == 'rejected') {
-            $repoConnectArr[$rec->id] = FALSE;
-            self::logNotice('Оттеглено хранилище', $rec->id);
+        if (!isset($repoConnectArr[$rec->id])) {
+            if (!$rec) {
+                $repoConnectArr[$rec->id] = FALSE;
+                self::logWarning('Хранилището е било изтрито');
+            } elseif ($rec->state == 'rejected') {
+                $repoConnectArr[$rec->id] = FALSE;
+                self::logWarning('Хранилището е било оттеглено', $rec->id);
+            }
         }
         
         if (!isset($repoConnectArr[$rec->id])) {
@@ -599,6 +601,8 @@ class distro_Repositories extends core_Master
     {
         $sshObj = self::connectToRepo($rec);
         
+        if ($sshObj === FALSE) return FALSE;
+        
         // Премахваме процеса от кронтаба
         $autorunPath = rtrim($rec->path, '/');
         $autorunPath .= '/' . self::$systemPath . '/' . self::$autorunFile;
@@ -662,6 +666,8 @@ class distro_Repositories extends core_Master
         
         $sshObj = self::connectToRepo($rec);
         
+        if ($sshObj === FALSE) return ;
+        
         // Добавяме скрипта за стартирана на inotifywait
         $autorunSh = $mvc->getAutorunSh($rec->path);
         $autorunSh = escapeshellarg($autorunSh);
@@ -694,11 +700,43 @@ class distro_Repositories extends core_Master
      * @param mixed $res
      * @param int|object $id първичен ключ или запис на $mvc
      */
+    public static function on_BeforeReject($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $mvc->connectToRepo($rec);
+    }
+    
+    
+    /**
+     * След оттегляне на документа
+     *
+     * @param distro_Repositories $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
     public static function on_AfterReject($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
         
         $mvc->stopProcess($rec);
+    }
+    
+    
+    /**
+     * Преди изтриване на запис
+     * 
+     * @param distro_Repositories $mvc
+     * @param stdClass $res
+     * @param core_Query $query
+     * @param string $cond
+     */
+    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    {
+        // Свързваме се към хранилището
+        while ($rec = $query->fetch($cond)) {
+            $mvc->connectToRepo($rec);
+        }
     }
     
 
@@ -725,6 +763,8 @@ class distro_Repositories extends core_Master
         $rec = $mvc->fetchRec($id);
         
         $sshObj = self::connectToRepo($rec);
+        
+        if ($sshObj === FALSE) return ;
         
         // Добавяме процеса в кронтаба
         $path = rtrim($rec->path, '/');
