@@ -263,6 +263,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		// Намиране на всички листвани артикули за контрагента
 		$sellableQuery = self::getQuery();
 		$sellableQuery->where("#contragentClassId = {$data->contragentClassId} AND #contragentId = {$data->masterId}");
+		$sellableQuery->orderBy('id', "ASC");
 		
 		// Ако има филтър по ключови думи, добавя се и той
 		if(!empty($data->form->rec->search)){
