@@ -154,8 +154,8 @@ class crm_Profiles extends core_Master
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
         
         $this->FLD('stateInfo', 'varchar', 'caption=Статус->Информация,input=none');
-        $this->FLD('stateDateFrom', 'datetime', 'caption=Статус->От,input=none');
-        $this->FLD('stateDateTo', 'datetime', 'caption=Статус->До,input=none');
+        $this->FLD('stateDateFrom', 'datetime(format=smartTime)', 'caption=Статус->От,input=none');
+        $this->FLD('stateDateTo', 'datetime(format=smartTime)', 'caption=Статус->До,input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -1086,8 +1086,7 @@ class crm_Profiles extends core_Master
         }
     }
 
-
-
+    
     /**
      * След подготовката на редовете на списъчния изглед
      * 
@@ -1116,10 +1115,10 @@ class crm_Profiles extends core_Master
                     
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
                     $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
-                    
+
                     if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
                         $Date = cls::get('type_Date');
-                        $row->stateData = static::$map[$rec->stateInfo] . " от ".$Date->toVerbal($rec->stateDateFrom) . " до ". $Date->toVerbal($rec->stateDateTo);
+                        $row->stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
                     }
                 }
             }
