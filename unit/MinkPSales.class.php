@@ -1668,8 +1668,8 @@ class unit_MinkPSales extends core_Manager {
     }
  
     /**
-     * Продажба - Включено ДДС в цените
      * Проверка извънредни приходи
+     * Продажба - Включено ДДС в цените
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleExtraIncome/
@@ -1746,16 +1746,16 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
         
-        if(strpos($browser->gettext(), 'BGN 2,70')) {
+        if(strpos($browser->gettext(), 'BGN 2,70 BGN 0,00')) {
         } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума приход', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешна сума извънреден приход', 'warning');
         }
         //return $browser->getHtml();
     }
     
     /**
-     * Продажба - схема с авансово плащане, отделно ДДС
      * Проверка извънредни приходи (с втория ПБД е платена цялата сума, вместо разликата)
+     * Продажба - схема с авансово плащане, отделно ДДС
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleAdvExtraIncome/
@@ -1779,7 +1779,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPExtraIncome');
+        $browser->setValue('note', 'MinkPAdvExtraIncome');
         $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
@@ -1867,13 +1867,18 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
+        //Проверка изв.приход
+        if(strpos($browser->gettext(), 'BGN 11,52 BGN 0,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна сума - извънреден приход', 'warning');
+        }
         //return $browser->getHtml();
     }
     
     /**
+     * Проверка извънредни приходи
      * Продажба - схема с авансово плащане, отделно ДДС
      * Втората фактура е без приспадане на аванса
-     * Проверка извънредни приходи
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleAdvExtraIncome1/
@@ -1897,7 +1902,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPExtraIncome');
+        $browser->setValue('note', 'MinkPAdvExtraIncome1');
         $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
@@ -1984,7 +1989,7 @@ class unit_MinkPSales extends core_Manager {
         }
         //Проверка изв.приход
         if(strpos($browser->gettext(), 'BGN 9,60 BGN 0,00')) {
-        } else {return $browser->getHtml();
+        } else {
             return unit_MinkPbgERP::reportErr('Грешна сума - извънреден приход', 'warning');
         }
         //return $browser->getHtml();
