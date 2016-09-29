@@ -546,8 +546,16 @@ class email_Router extends core_Manager
 
         	// Ако се наложи създаване на папка за несортирани писма от държава, 
             // aко е зададено кой да е отговорника взимаме него, иначе отговорника
-            // трябва да е отговорника на кутията, до която е изпратено писмото
-            $inChargeUserId = ($rec->inCharge) ? $rec->inCharge : email_Inboxes::getEmailInCharge($rec->toBox);
+            // трябва да е отговорника на кутията, до която е изпратено писмото, ако не е зададено в конфига
+            
+            if (!($inChargeUserId = $rec->inCharge)) {
+                $inChargeUserId = email_Setup::get('UNSORTABLE_INCHARGE');
+                $inChargeUserId = trim($inChargeUserId);
+                
+                if (!$inChargeUserId) {
+                    $inChargeUserId = email_Inboxes::getEmailInCharge($rec->toBox);
+                }
+            }
             
             $rec->folderId = static::forceCountryFolder(
                 $rec->country /* key(mvc=drdata_Countries) */,
@@ -570,15 +578,12 @@ class email_Router extends core_Manager
     {
         $folderId = NULL;
         
-        $conf = core_Packs::getConfig('email');
-        
         $countryName = drdata_Countries::getCountryName($countryId);
-        
 
         if (!empty($countryName)) {
             $folderId = doc_UnsortedFolders::forceCoverAndFolder(
                 (object)array(
-                    'name'     => sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $countryName),
+                    'name'     => sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), $countryName),
                     'inCharge' => $inCharge
                 )
             );
