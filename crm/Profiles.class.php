@@ -94,7 +94,7 @@ class crm_Profiles extends core_Master
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'userId,personId,lastLoginTime=Последно логване';
+    var $listFields = 'userId,personId,stateData=Статус,lastLoginTime=Последно логване';
     
     
     /**
@@ -134,6 +134,12 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Помощен масив за типовете дни
+     */
+    static $map = array('sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -146,6 +152,10 @@ class crm_Profiles extends core_Master
         $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
+        
+        $this->FLD('stateInfo', 'varchar', 'caption=Статус->Информация,input=none');
+        $this->FLD('stateDateFrom', 'datetime', 'caption=Статус->От,input=none');
+        $this->FLD('stateDateTo', 'datetime', 'caption=Статус->До,input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -1090,7 +1100,7 @@ class crm_Profiles extends core_Master
     {
         $rows = &$data->rows;
         $recs = &$data->recs;
-        
+
         if(count($rows)) {
             foreach ($rows as $i=>&$row) {
                 $rec = &$recs[$i];
@@ -1106,6 +1116,11 @@ class crm_Profiles extends core_Master
                     
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
                     $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+                    
+                    if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
+                        $Date = cls::get('type_Date');
+                        $row->stateData = static::$map[$rec->stateInfo] . " от ".$Date->toVerbal($rec->stateDateFrom) . " до ". $Date->toVerbal($rec->stateDateTo);
+                    }
                 }
             }
         }

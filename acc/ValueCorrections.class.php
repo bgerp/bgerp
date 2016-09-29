@@ -609,9 +609,9 @@ class acc_ValueCorrections extends core_Master
     			}
     			
     			// Изчисляване на сумата за разпределяне (коефициент * сума за разпределение)
-    			$p->allocated = round($coefficient * $amount, 2);
+    			$p->allocated = core_Math::roundNumber($coefficient * $amount);
     			$restAmount -= $p->allocated;
-    			$restAmount = round($restAmount, 2);
+    			$restAmount = core_Math::roundNumber($restAmount);
     		} else {
     			
     			// Ако няма следващ елемент значи този е последен, и да няма грешки от закръгляне

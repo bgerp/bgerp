@@ -52,7 +52,6 @@ class doc_ExpensesSummary extends core_Manager
     {
     	$this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption = Контейнер');
     	$this->FLD('count', 'int', 'notNull,value=0,caption=Брой');
-    	$this->FLD('data', 'blob(serialize, compress)', 'input=none');
     	
         $this->setDbUnique('containerId');
     }
@@ -113,16 +112,16 @@ class doc_ExpensesSummary extends core_Manager
         }
         
         // Ако има записи вербализираме ги
+        $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
         $data->rows = array();
-        $data->recs = $rec->data;
-       
-        if(is_array($rec->data)){
-        	foreach ($rec->data as $index => $r){
+        $data->recs = self::updateSummary($rec->containerId, $itemRec);
+        
+        if(is_array($data->recs)){
+        	foreach ($data->recs as $index => $r){
         		$data->rows[$index] = $this->getVerbalRow($r);
         	}
         }
         
-        $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
         if($itemRec->state == 'closed'){
         	$data->isClosed = tr('Перото е затворено');
         }
@@ -243,9 +242,10 @@ class doc_ExpensesSummary extends core_Manager
      * 
      * @param int $containerId - ид на контейнера
      * @param mixed $itemRec - запис или ид на перото
+     * @param boolean $saveCount - да се записвали бройката в модела
      * @return void
      */
-    public static function updateSummary($containerId, $itemRec)
+    public static function updateSummary($containerId, $itemRec, $saveCount = FALSE)
     {
     	$itemRec = acc_Items::fetchRec($itemRec);
     	
@@ -293,9 +293,9 @@ class doc_ExpensesSummary extends core_Manager
     						           'item1Id'  => $ent->{"debitItem1"},
     						           'item2Id'  => $ent->{"debitItem2"},
     						           'item3Id'  => $ent->{"debitItem3"},
-    						           'index'   => $index,
+    						           'index'    => $index,
     						           'valior'   => $ent->valior,
-    						           'quantity' => $ent->{"debitQuantity"},
+    						           'quantity' => ($type == 'corrected') ? $ent->{"creditQuantity"} : $ent->{"debitQuantity"},
     						           'type'     => $type,
     						           'amount'   => $ent->amount,);
     				$arr[] = $r;
@@ -332,8 +332,11 @@ class doc_ExpensesSummary extends core_Manager
     		$res = array_merge($res, $notDistributed);
     	}
     	
-    	// Кеширане на данните и бройката за контейнера
-    	$rec->data = $res;
-    	self::save($rec, 'data,count');
+    	if($saveCount === TRUE){
+    		// Кеширане на данните и бройката за контейнера
+    		self::save($rec, 'count');
+    	}
+    	
+    	return $res;
     }
 }

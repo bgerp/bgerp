@@ -108,5 +108,9 @@ class cond_Countries extends core_Manager
 		}
 		
 		$row->ROW_ATTR['class'] .= " state-active";
+		
+		if(cond_Parameters::haveRightFor('single', $rec->conditionId)){
+			$row->conditionId = ht::createLink($row->conditionId, array('cond_Parameters', 'single', $rec->conditionId));
+		}
 	}
 }

@@ -261,17 +261,24 @@ class core_Toolbar extends core_BaseClass
             $rowId = $attr['id'];
 
             $onRow2 =0;
-            
+            $hiddenBtns = 0;
+
             $layout = $this->getToolbarLayout($rowId);
             foreach ($this->buttons as $id => $btn) {
                 if($btn->attr['row'] == 2) {
                     $onRow2++;
+                    if($btn->attr['initially'] == "hidden") {
+                        $hiddenBtns++;
+                    }
                 }
-            }
 
+
+            }
+        
             foreach ($this->buttons as $id => $btn) {
-                $place = ($btn->attr['row'] == 2 && $onRow2 != 1 ) ? ($btn->attr['initially'] == "hidden") ?  'HIDDEN': 'ROW2' : 'ROW1' ;
-				if($place == 'ROW2'){
+                $place = ($btn->attr['row'] == 2 && $onRow2 != 1 ) ? ($hiddenBtns > 1 && $btn->attr['initially'] == "hidden") ?  'HIDDEN': 'ROW2' : 'ROW1' ;
+
+                if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}
 				unset($btn->attr['row']);

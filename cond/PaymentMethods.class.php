@@ -20,73 +20,75 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2,plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2,plg_Translate, plg_Clone';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, sysId, title, state, type';
+    public $listFields = 'id, sysId, title, state, type';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Методи на плащане';
+    public $title = 'Методи на плащане';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Метод на плащане";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'ceo, cond, admin';
+    public $singleTitle = "Метод на плащане";
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,cond, admin';
+	public $canList = 'ceo,cond, admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,cond, admin';
+	public $canSingle = 'ceo,cond, admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, cond, admin';
+    public $canEdit = 'ceo, cond, admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, cond, admin';
+    public $canAdd = 'ceo, cond, admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, cond, admin';
+    public $canDelete = 'ceo, cond, admin';
     
     
     /**
      * Шаблон за единичен изглед
      */
-    var $singleLayoutFile = "cond/tpl/SinglePaymentMethod.shtml";
+    public $singleLayoutFile = "cond/tpl/SinglePaymentMethod.shtml";
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sysId';
     
     
     /**
@@ -287,7 +289,7 @@ class cond_PaymentMethods extends core_Master
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cond/csv/PaymentMethods.csv";
     	$fields = array(
