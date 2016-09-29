@@ -1,0 +1,25 @@
+<!--ET_BEGIN BLOCK-->
+[#BLOCK#]
+<div>
+	<!--ET_BEGIN SELLABLE-->
+	<div>[#FILTER#]</div>
+	<div>
+		<div>|Артикули за продажба|*</div>
+		<div>[#SELLABLE#]
+		     [#SELLABLE_PAGER#]
+		</div>
+		<div>[#SELLABLE_BTN#]</div>
+	</div>
+	<!--ET_END SELLABLE-->
+	
+	<!--ET_BEGIN BUYABLE-->
+	<div style='margin-top:15px'>
+		<div>|Артикули за покупка|*</div>
+		<div>[#BUYABLE#]
+			 [#BUYABLE_PAGER#]
+		</div>
+		<div>[#BUYABLE_BTN#]</div>
+	</div>
+	<!--ET_END BUYABLE-->
+</div>
+<!--ET_END BLOCK-->
