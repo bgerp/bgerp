@@ -212,8 +212,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		}
     		
     		// Обработваме сумарните данни
-    		if(!$data->summary->vatAmount){
-    			$data->summary->vatAmount = $data->masterData->row->chargeVat;
+    		if($data->masterData->rec->chargeVat != 'separate'){
+    			$data->summary->chargeVat = $data->masterData->row->chargeVat;
     		}
     		
     		if(!$data->summary->discountValue){
