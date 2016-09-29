@@ -389,7 +389,7 @@ class doc_Containers extends core_Manager
         if($folderRec->inCharge) {
             $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
-            $user = '@system';
+            $user = core_Setup::get('SYSTEM_NICK');
         }
         $title->replace($user, 'user');
         

@@ -154,6 +154,11 @@ defIfNot('CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM', 'no');
 defIfNot('CORE_RESET_PASSWORD_FROM_LOGIN_FORM', 'yes');
 
 
+/**
+ * Ник на системния потребител
+ */
+defIfNot('CORE_SYSTEM_NICK', '@system');
+
 
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
@@ -220,7 +225,9 @@ class core_Setup extends core_ProtoSetup {
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
     
            'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
-           
+            
+           'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Ник на системния потребител->Ник'),
+       
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
       
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),

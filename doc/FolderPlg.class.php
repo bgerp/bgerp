@@ -605,7 +605,7 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->inCharge == -1) {
-            $row->inCharge = '@system';
+            $row->inCharge = core_Setup::get('SYSTEM_NICK');
         }
         
         if($fields['-single']) {
