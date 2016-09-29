@@ -12,18 +12,31 @@
    <td class='centered'><span class='discount'>[#discountValue#]</span></td>
    <td class='centered dark-gray'>[#neto#]</td>
    <td class='centered dark-gray'>
-   <!--ET_BEGIN vat02Amount-->
-   <div><b>[#vat02#]</b> <span class='fright1'><span class='cCode'>[#vat02AmountCurrencyId#]</span>[#vat02Amount#]</span></div>
-   <!--ET_END vat02Amount-->
-   
-   <!--ET_BEGIN vat009-->
-   <div><b>[#vat009#]</b> <span class='fright1'><span class='cCode'>[#vat009AmountCurrencyId#]</span>[#vat009Amount#]</span></div>
-   <!--ET_END vat009-->
-   
-   <!--ET_BEGIN vat0-->
-   <div><b>[#vat0#]</b> <span class='fright1'><span class='cCode'>[#vat0AmountCurrencyId#]</span>[#vat0Amount#]</span></div>
-   <!--ET_END vat0-->
-   
+      <table style="margin: 0 auto" >
+         <!--ET_BEGIN vat02Amount-->
+         <tr>
+            <td class="aright" style="padding-right: 5px;"><b>[#vat02#]</b> </td>
+            <td><span class='cCode'>[#vat02AmountCurrencyId#]</span></td>
+            <td class="aright">[#vat02Amount#]</td>
+         </tr>
+         <!--ET_END vat02Amount-->
+
+         <!--ET_BEGIN vat009Amount-->
+         <tr>
+            <td class="aright" style="padding-right: 5px;"><b>[#vat009#]</b> </td>
+            <td><span class='cCode'>[#vat009AmountCurrencyId#]</span></td>
+            <td class="aright">[#vat009Amount#]</td>
+         </tr>
+         <!--ET_END vat009Amount-->
+
+         <!--ET_BEGIN vat0Amount-->
+         <tr>
+            <td class="aright" style="padding-right: 5px;"><b>[#vat0#]</b> </td>
+            <td><span class='cCode'>[#vat0AmountCurrencyId#]</span></td>
+            <td class="aright">[#vat0Amount#]</td>
+         </tr>
+         <!--ET_END vat0Amount-->
+      </table>
    </td>
    <td class='centered'>[#total#]</td>
 </tr>
