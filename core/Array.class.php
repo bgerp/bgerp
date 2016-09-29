@@ -575,4 +575,24 @@ class core_Array
     	// Връщаме допълнения масив
     	return $arrayToFill;
     }
+    
+    
+    /**
+     * Извлича масив със стойностите на определено поле от масив от обекти/масиви
+     * 
+     * @param array $arr     - масив от който ще се извличат стойностите
+     * @param varchar $field - стойност на записа за екстрактване
+     * @return array $result - екстракнатите стойности, в масив
+     */
+    public static function extractValuesFromArray($arr, $field)
+    {
+    	expect(is_array($arr));
+    	$result = array_values(array_map(function($obj) use ($field) {return (is_object($obj)) ? $obj->{$field} : $obj[$field];}, $arr));
+    	$result = array_values($result);
+    	if(count($result)){
+    		$result = array_combine($result, $result);
+    	}
+    	
+    	return $result;
+    }
 }

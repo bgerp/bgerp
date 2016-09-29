@@ -1192,7 +1192,7 @@ class cat_Products extends embed_Manager {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public static function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
+    public static function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL, $ignoreIds = NULL)
     {
 		// Само активни артикули
     	$query = static::getQuery();
@@ -1220,6 +1220,11 @@ class cat_Products extends embed_Manager {
     	// Ограничаваме заявката при нужда
     	if(isset($limit)){
     		$query->limit($limit);
+    	}
+    	
+    	// Ако има указано записи за игнориране, пропускат се
+    	if(is_array($ignoreIds) && count($ignoreIds)){
+    		$query->notIn('id', $ignoreIds);
     	}
     	
     	$private = $products = array();
