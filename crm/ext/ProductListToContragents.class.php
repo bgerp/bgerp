@@ -35,6 +35,12 @@ class crm_ext_ProductListToContragents extends core_Manager
 	
 	
 	/**
+	 * Кой  може да листва?
+	 */
+	public $canList = 'no_one';
+	
+	
+	/**
 	 * Кой  може да редактира?
 	 */
 	public $canEdit = 'ceo, crm';
