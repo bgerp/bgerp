@@ -1865,6 +1865,14 @@ class core_Users extends core_Manager
      */
     static function getFirstAdmin()
     {
+        $fAdmin = core_Setup::get('FIRST_ADMIN');
+        $fAdmin = trim($fAdmin);
+        
+        if ($fAdmin) {
+            
+            return $fAdmin;
+        }
+        
         $Roles = cls::get('core_Roles');
         $adminId = $Roles->fetchByName('admin');
         
