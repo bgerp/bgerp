@@ -624,7 +624,9 @@ class distro_Actions extends embed_Manager
                     }
                 
                     $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), TRUE);
-                
+                    
+                    self::logDebug("Стартирана команда: {$command}", $rec->id);
+                    
                     $ssh->exec($command, $output, $errors, $callBackUrl);
                 
                     if ($eTrim = trim($errors)) {
