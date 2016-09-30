@@ -94,7 +94,7 @@ class crm_Profiles extends core_Master
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'userId,personId,stateData=Статус,lastLoginTime=Последно логване';
+    var $listFields = 'userId,personId,lastLoginTime=Последно логване';
     
     
     /**
@@ -975,7 +975,7 @@ class crm_Profiles extends core_Master
             $url  = array();
             
             if(self::fetchField($userId,'stateInfo') !== NULL) {
-                $attr['class'] .= ' profile pofile-state';
+                $attr['class'] .= ' profile profile-state';
             } else {
     	       $attr['class'] .= ' profile';
             }
@@ -1121,9 +1121,9 @@ class crm_Profiles extends core_Master
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
 
                     if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
-                        $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon, 'class' => 'profile-state'));
-                        $Date = cls::get('type_Date');
-                        $row->stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                        $link  = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+                        $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                        $row->userId = ht::createHint($link, $stateData,'notice');
                     } else {
                         $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                     }
