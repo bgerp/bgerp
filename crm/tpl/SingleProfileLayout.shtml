@@ -13,6 +13,10 @@
 	        [#userInfo#]
 	        <!--ET_END userInfo-->
 	        
+	        <!--ET_BEGIN userStatus-->
+	        [#userStatus#]
+	        <!--ET_END userStatus-->
+	        
 	        <div style="clear:both;"></div>
 	        
             <!--ET_BEGIN colabFolders-->
