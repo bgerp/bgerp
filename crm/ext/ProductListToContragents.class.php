@@ -116,13 +116,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$meta = ($rec->type == 'sellable') ? 'canSell' : 'canBuy';
 		
 		if(empty($rec->id)){
-			
-			// Извличане на всички допустими артикули, които още не са листвани към контрагента
-			$cached = self::getAll($rec->contragentClassId, $rec->contragentId);
-			$cached = $cached[$rec->type];
-			$ignoreIds = arr::extractValuesFromArray($cached, 'productId');
-			
-			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, $meta, NULL, NULL, $ignoreIds);
+			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, $meta, NULL, NULL);
 			$products = array('' => '') + $products;
 		} else {
 			$products = array($rec->productId => cat_Products::getRecTitle(cat_Products::fetch($rec->productId), FALSE));
@@ -434,12 +428,14 @@ class crm_ext_ProductListToContragents extends core_Manager
 			// Кои са листваните артикули за контрагента
 			$query = self::getQuery();
 			$query->where("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}");
+			$query->orderBy('id', 'DESC');
 			self::$cache[$contragentClassId][$contragentId]['sellable'] = array();
 			self::$cache[$contragentClassId][$contragentId]['buyable'] = array();
 			
 			// Добавя се всеки запис, групиран според типа
 			while($rec = $query->fetch()){
-				self::$cache[$contragentClassId][$contragentId][$rec->type][$rec->id] = $rec;
+				$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff);
+				self::$cache[$contragentClassId][$contragentId][$rec->type][$rec->id] = $obj;
 			}
 		}
 		
@@ -448,5 +444,137 @@ class crm_ext_ProductListToContragents extends core_Manager
 	}
 	
 	
-	//public static function get
+	/**
+	 * Помощна ф-я връщаща намерения артикул и опаковка според кода
+	 * 
+	 * @param mixed $cClass          - ид на клас
+	 * @param int $cId               - ид на контрагента
+	 * @param varchar $reff          - код за търсене
+	 * @param buyable|sellable $type - продаваем или купуваем
+	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
+	 */
+	private static function getProductByReff($cClass, $cId, $reff, $type = 'sellable')
+	{
+		// Взимане от кеша на листваните артикули
+		expect(in_array($type, array('buyable', 'sellable')));
+		$all = self::getAll($cClass, $cId);
+		$arr = $all[$type];
+		
+		// Оставят се само тези записи, в които се среща кода
+		$res = array_filter($arr, function (&$e) use ($reff) {
+			if($e->reff == $reff){
+				return TRUE;
+			}
+				
+			return FALSE;
+		});
+		
+		// Ако има първи елемент, взима се той
+		$firstFound = $res[key($res)];
+		$reff = (is_object($firstFound)) ? (object)array('productId' => $firstFound->productId, 'packagingId' => $firstFound->packagingId) : NULL;
+		
+		return $reff;
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
+	 * се връща първия намерен код
+	 *
+	 * @param mixed $cClass          - ид на клас
+	 * @param int $cId               - ид на контрагента
+	 * @param int $productId         - ид на артикул
+	 * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
+	 * @param buyable|sellable $type - продаваем или купуваем
+	 * @return varchar|NULL          - намерения код или NULL
+	 */
+	private static function getReffByProductId($cClass, $cId, $productId, $packagingId = NULL, $type = 'sellable')
+	{
+		// Извличане на всичките листвани артикули
+		expect(in_array($type, array('buyable', 'sellable')));
+		$all = self::getAll($cClass, $cId);
+		$arr = $all[$type];
+		
+		// Намират се записите за търсения артикул
+		$res = array_filter($arr, function (&$e) use ($productId, $packagingId) {
+			if(isset($packagingId)){
+				if($e->productId == $productId && $e->packagingId == $packagingId){
+					return TRUE;
+				}
+			} else{
+				if($e->productId == $productId){
+					return TRUE;
+				}
+			}
+				
+			return FALSE;
+		});
+		
+		// Ако има намерен поне един запис се връща кода
+		$firstFound = $res[key($res)];
+		$reff = (is_object($firstFound)) ? $firstFound->reff : NULL;
+		
+		// Връща се намерения код
+		return $reff;
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
+	 * се връща първия намерен код
+	 *
+	 * @param mixed $cClass          - ид на клас
+	 * @param int $cId               - ид на контрагента
+	 * @param int $productId         - ид на артикул
+	 * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
+	 * @return varchar|NULL          - намерения код или NULL
+	 */
+	public static function getSaleReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
+	{
+		return self::getReffByProductId($cClass, $cId, $productId, $packagingId, 'sellable');
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
+	 * се връща първия намерен код
+	 *
+	 * @param mixed $cClass          - ид на клас
+	 * @param int $cId               - ид на контрагента
+	 * @param int $productId         - ид на артикул
+	 * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
+	 * @return varchar|NULL          - намерения код или NULL
+	 */
+	public static function getPurchaseReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
+	{
+		return self::getReffByProductId($cClass, $cId, $productId, $packagingId, 'buyable');
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща намерения артикул и опаковка според кода на за продажба
+	 *
+	 * @param mixed $cClass          - ид на клас
+	 * @param int $cId               - ид на контрагента
+	 * @param varchar $reff          - код за търсене
+	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
+	 */
+	public static function getSaleProductByReff($cClass, $cId, $reff)
+	{
+		return self::getProductByReff($cClass, $cId, $reff, 'sellable');
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща намерения артикул и опаковка според кода на за покупка
+	 *
+	 * @param mixed $cClass          - ид на клас
+	 * @param int $cId               - ид на контрагента
+	 * @param varchar $reff          - код за търсене
+	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
+	 */
+	public static function getPurchaseProductByReff($cClass, $cId, $reff)
+	{
+		return self::getProductByReff($cClass, $cId, $reff, 'buyable');
+	}
 }
