@@ -574,7 +574,7 @@ class hr_CustomSchedules extends core_Master
             // правим масив с всички служители
             if(!array_key_exists($id, $persons)){
                 // ако двете дати са в миналото, това събитие не ни интересува
-                if( $recLeave->leaveFrom <= $now || $recLeave->leaveTo <= $now) { continue; }
+                if( $recLeave->leaveFrom <= $now || $recLeave->leaveTo <= $now) {}
                 
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if( $recLeave->leaveFrom >= $now && $recLeave->leaveTo >= $now) {
@@ -601,7 +601,7 @@ class hr_CustomSchedules extends core_Master
                 $obj = &$persons[$id];
                 
                 // ако двете дати са в миналото, това събитие не ни интересува
-                if($recLeave->leaveFrom <= $now || $recLeave->leaveTo <= $now) { continue; }
+                if($recLeave->leaveFrom <= $now || $recLeave->leaveTo <= $now) { }
                 
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if($recLeave->leaveFrom >= $now && $recLeave->leaveTo >= $now) {
@@ -625,7 +625,7 @@ class hr_CustomSchedules extends core_Master
                 }
             }
         }
-        
+       
         // взимаме всички профили
         $query = crm_Profiles::getQuery();
         // които са активни
