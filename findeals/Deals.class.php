@@ -240,8 +240,6 @@ class findeals_Deals extends deals_DealBase
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
-    	
-    	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     }
     
     
