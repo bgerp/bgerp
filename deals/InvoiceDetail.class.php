@@ -29,7 +29,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	public $hideListFieldsIfEmpty = 'discount';
+	public $hideListFieldsIfEmpty = 'discount,reff';
 	
 	
 	/**
@@ -198,6 +198,19 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		if(!count($data->rows)) return;
 		
 		$masterRec = $data->masterData->rec;
+		$firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
+		$listMethod = ($firstDocument->isInstanceOf('sales_Sales')) ? 'getSaleReffByProductId' : (($firstDocument->isInstanceOf('purchase_Purchases')) ? 'getPurchaseReffByProductId' : NULL);
+		
+		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш реф.'), 'productId');
+		$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
+		
+		if(isset($listMethod)){
+			foreach ($data->rows as $id => &$row1){
+				$rec = $data->recs[$id];
+				$row1->reff = crm_ext_ProductListToContragents::$listMethod($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);			
+			}
+		}
+		
 		if($masterRec->type != 'dc_note') return;
 		
 		foreach ($data->rows as $id => &$row){
