@@ -236,7 +236,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				
 				// Показване на вашия реф ако има
 				if(isset($listMethod)){
-					$row->reff = crm_ext_ProductListToContragents::{$listMethod}($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
+					$row->reff = crm_ext_ProductListToContragents::$listMethod($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
 				}
 				
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";

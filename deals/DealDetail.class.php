@@ -328,7 +328,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec = $recs[$id];
     		
     		// Показване на вашия реф, ако има
-    		$row->reff = crm_ext_ProductListToContragents::{$listMethod}($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
+    		$row->reff = crm_ext_ProductListToContragents::$listMethod($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		

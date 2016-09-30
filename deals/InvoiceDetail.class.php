@@ -207,7 +207,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		if(isset($listMethod)){
 			foreach ($data->rows as $id => &$row1){
 				$rec = $data->recs[$id];
-				$row1->reff = crm_ext_ProductListToContragents::{$listMethod}($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);			
+				$row1->reff = crm_ext_ProductListToContragents::$listMethod($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);			
 			}
 		}
 		
