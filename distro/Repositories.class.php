@@ -219,7 +219,11 @@ class distro_Repositories extends core_Master
         $path = escapeshellarg($oPath);
         
         // TODO - асинхронно
-        $sshObj->exec('mkdir -p ' . $path);
+        $sshObj->exec('mkdir -p ' . $path, $output, $errors);
+        
+        if ($eTrim = trim($errors)) {
+            self::logErr($errors, $rec->id);
+        }
         
         return $oPath;
     }
@@ -645,6 +649,27 @@ class distro_Repositories extends core_Master
         
         if ($form->isSubmitted() && !$mvc->isUnique($form->rec, $fields)) {
             $form->setError($fields, "Вече съществува запис със същите данни");
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            $hostConfig = FALSE;
+            
+            if ($form->rec->hostId) {
+                try {
+                    $hostConfig = ssh_Hosts::fetchConfig($form->rec->hostId);
+                } catch (core_exception_Expect $e) {
+                    self::logErr($e->getMessage(), $id);
+                }
+            }
+            
+            if (!$hostConfig) {
+                if (!$form->rec->id) {
+                    $form->setError('hostId', 'Не може да се осъществи връзка с отдалечения хост');
+                } else {
+                    $form->setWarning('hostId', 'Не може да се осъществи връзка с отдалечения хост');
+                }
+            }
         }
     }
     
