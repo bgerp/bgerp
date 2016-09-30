@@ -417,15 +417,16 @@ class hr_CustomSchedules extends core_Master
         
         //масив за проверка с всички данни
         $chekArr = array();
-        
+        $next2weeks = dt::addDays(14,dt::today());
+
         $querySick = trz_Sickdays::getQuery();
-        $querySick->where("(#startDate <= '{$now}' AND #toDate >= '{$now}') AND #state = 'active'");
+        $querySick->where("(#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}') AND #state = 'active'");
     
         $queryTrip = trz_Trips::getQuery();
-        $queryTrip->where("(#startDate <= '{$now}' AND #toDate >= '{$now}') AND #state = 'active'");
+        $queryTrip->where("(#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}') AND #state = 'active'");
     
         $queryLeave = trz_Requests::getQuery();
-        $queryLeave->where("(#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') AND #state = 'active'");
+        $queryLeave->where("(#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') OR (#leaveFrom >= '{$now}' AND #leaveFrom <= '{$next2weeks}') AND #state = 'active'");
     
         // добавяме болничните
         while($recSick = $querySick->fetch()){
@@ -625,7 +626,7 @@ class hr_CustomSchedules extends core_Master
                 }
             }
         }
-       
+
         // взимаме всички профили
         $query = crm_Profiles::getQuery();
         // които са активни
