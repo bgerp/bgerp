@@ -278,6 +278,11 @@ class crm_Companies extends core_Master
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+        
+        // Индекси
+        $this->setDbIndex('name');
+        $this->setDbIndex('country');
+        $this->setDbIndex('email');
     }
 
     
@@ -989,7 +994,13 @@ class crm_Companies extends core_Master
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
-	       $mvc->restrictAccess($query);
+	       
+	       $viewAccess = TRUE;
+	       if ($typeKey->params['restrictViewAccess'] == 'yes') {
+	           $viewAccess = FALSE;
+	       }
+	       
+	       $mvc->restrictAccess($query, NULL, $viewAccess);
 	       $query->where("#state != 'rejected'");
 	       
 	       if (trim($where)) {
@@ -1964,10 +1975,15 @@ class crm_Companies extends core_Master
     	$res = array();
     	 
     	$rec = $this->fetch($id);
-    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
-    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
-    	$debitGroupId = crm_Groups::getIdFromSysId('debitors');
-    	$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+        
+        static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
+
+        if(!isset($clientGroupId)) {
+    	    $clientGroupId = crm_Groups::getIdFromSysId('customers');
+            $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+            $debitGroupId = crm_Groups::getIdFromSysId('debitors');
+            $creditGroupId = crm_Groups::getIdFromSysId("creditors");
+        }
     	
     	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
     	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){

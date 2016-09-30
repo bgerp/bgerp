@@ -599,7 +599,7 @@ class distro_Actions extends embed_Manager
      * @param stdObject $res
      * @param stdObject $rec
      */
-    public static function on_AfterSave(core_Manager $mvc, $res, $rec)
+    public static function on_AfterSave($mvc, $res, $rec)
     {
         // Ако ще се пускат обработки на файла
         if (!$rec->StopExec) {
@@ -624,7 +624,9 @@ class distro_Actions extends embed_Manager
                     }
                 
                     $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), TRUE);
-                
+                    
+                    $mvc->logDebug("Стартирана команда: {$command}", $rec->id);
+                    
                     $ssh->exec($command, $output, $errors, $callBackUrl);
                 
                     if ($eTrim = trim($errors)) {

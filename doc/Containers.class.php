@@ -389,7 +389,7 @@ class doc_Containers extends core_Manager
         if($folderRec->inCharge) {
             $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
-            $user = '@system';
+            $user = core_Setup::get('SYSTEM_NICK');
         }
         $title->replace($user, 'user');
         
@@ -616,11 +616,6 @@ class doc_Containers extends core_Manager
         	if(doc_Threads::haveRightFor('single', $data->threadRec)){
         	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
         	}
-        	
-        	if (log_System::haveRightFor('list')){
-        	    $data->toolbar->addBtn('История', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->threadId), 'ef_icon=img/16/memo.png', 'title=Разглеждане на историята на нишката');
-        	}
-        	
         }
         
         // Ако има права за настройка на папката, добавяме бутона
@@ -2764,24 +2759,18 @@ class doc_Containers extends core_Manager
             $html = '<td>' . $row->created . '</td>' . $html;
         }
         
-        
         $htmlArg = array('id' => $rowId, 'html' => $html, 'replace' => TRUE);
         
         // Добавяме CSS и JS файловете
         if ($row && $row->document instanceof core_ET) {
             $cssArr = $row->document->getArray('CSS', FALSE);
-            $pattern = '#^[^/]*//#';
             foreach ($cssArr as $css) {
-                if(!preg_match($pattern, $css)) {
-                    $htmlArg['css'][] = sbf($css, '');
-                }
+                $htmlArg['css'][] = page_Html::getFileForAppend($css);
             }
             
             $jsArr = $row->document->getArray('JS', FALSE);
             foreach ($jsArr as $js) {
-                if(!preg_match($pattern, $js)) {
-                    $htmlArg['js'][] = sbf($js, '');
-                }
+                $htmlArg['js'][] = page_Html::getFileForAppend($js);
             }
         }
         

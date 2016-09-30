@@ -141,17 +141,21 @@ class drdata_Phones extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function parseTel($tel, $dCC = '', $dAC = '')
+    function parseTel($tel, $dCC = '', $dAC = '', $useCache = TRUE)
     {
         // Добавка за българските телефони
         if($dCC == '359' && !$dAC) {
             $dAC = '2';
         }
-
-        $cacheHnd = "_{$tel}_{$dCC}_{$dAC}";
-        $res = core_Cache::get('drdata_Phones', $cacheHnd, 2000, "drdata_DialCodes");
         
-        if($res === FALSE) {
+        if($useCache) {
+            $telSave = $tel;
+            $dCCSave = $dCC;
+            $dACSave = $dAC;
+            $res = drdata_PhoneCache::get($tel, $dCC, $dAC);
+        }
+        
+        if($res === NULL) {
             // Основната идея е да направим различни разбивки на номера и да 
             // проверим за всяка една от тях дали се съдържа САМО реални номера
             // Реалните номера предполагаме, че са: ... [Код на страна] [Код на регион] номер [вътрешен] ...
@@ -477,8 +481,10 @@ class drdata_Phones extends core_Manager {
                 
                 if(!$error) break;
             }
-          
-            core_Cache::set('drdata_Phones', $cacheHnd, $res, 2000, "drdata_DialCodes");
+
+            if($useCache) {
+                drdata_PhoneCache::set($telSave, $dCCSave, $dACSave, $res);
+            }
         }
         
         return $res;

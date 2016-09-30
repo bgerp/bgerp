@@ -318,10 +318,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $date = dt::mysql2verbal($rec->valior, 'd.m.year'); 
 
         $crm = cls::get($rec->contragentClassId);
-
         $cRec =  $crm->getContragentData($rec->contragentId);
         
-        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
+        $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
         
         if($escaped) {
             $contragent = type_Varchar::escape($contragent);
@@ -369,9 +368,11 @@ abstract class deals_DealMaster extends deals_DealBase
     			$form->setError('deliveryTermIdExtended', 'Невалидно условие за доставка');
     		} else {
     			$rec->deliveryTermId = $termId;
+    			$code = cond_DeliveryTerms::fetchField($termId, 'codeName');
+    			if($code == $deliveryExtended){
+    				$deliveryExtended = cond_DeliveryTerms::addDeliveryTermLocation($deliveryExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    			}
     			$rec->deliveryTermIdExtended = $deliveryExtended;
-    			
-    			$rec->deliveryTermIdExtended = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermIdExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
     		}
     	}
     }
@@ -1328,7 +1329,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
      * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
      * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - yes=Да,no=Не,free=Освободено (ако няма, се определя според контрагента)
+     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
      * 		o $fields['shipmentStoreId']    -  ид на склад (@see store_Stores)
      * 		o $fields['deliveryTermId']     -  ид на метод на доставка (@see cond_DeliveryTerms)
      * 		o $fields['deliveryLocationId'] -  ид на локация за доставка (@see crm_Locations)

@@ -44,7 +44,7 @@ class trz_Sickdays extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,personId, fitNoteNum, fitNoteFile, startDate, toDate, reason, note, icdCode';
+    public $listFields = 'id,personId, fitNoteNum, fitNoteDate, fitNoteFile, startDate, toDate, reason, note, icdCode';
     
     
     /**
@@ -155,7 +155,8 @@ class trz_Sickdays extends core_Master
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител,readonly');
     	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
     	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
-    	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, mandatory');
+    	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, input=none, changable');
+    	$this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на, input=none, changable');
     	$this->FLD('fitNoteFile', 'fileman_FileType(bucket=trzSickdays)', 'caption=Болничен лист->Файл');
     	$this->FLD('reason', 'enum(1=Майчинство до 15 дни,
 								   2=Майчинство до 410 дни,

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
@@ -17,8 +18,6 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  * ID на нашата фирма
  */
 defIfNot('BGERP_OWN_COMPANY_ID', 1);
-
-
 
 
 /**
@@ -88,6 +87,7 @@ class crm_Setup extends core_ProtoSetup
             'crm_Groups',
             'crm_Companies',
             'crm_Persons',
+    		'crm_ext_ProductListToContragents',
             'crm_ext_IdCards',
             'crm_Personalization',
             'crm_ext_CourtReg',

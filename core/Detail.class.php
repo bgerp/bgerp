@@ -291,7 +291,8 @@ class core_Detail extends core_Manager
     	}
     	
     	$masterTitle = str::limitLen($masterTitle, $len);
-    	 
+    	$masterTitle = str_replace('|', '&#124;', $masterTitle);
+    	
     	$url = $MasterMvc->getSingleUrlArray($masterId);
     	if(count($url)) {
     		$masterTitle = ht::createLink($masterTitle, $url, NULL, array('ef_icon' => $MasterMvc->singleIcon, 'class' => 'linkInTitle'));

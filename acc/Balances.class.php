@@ -125,8 +125,8 @@ class acc_Balances extends core_Master
         $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory,autoFilter');
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
-        $this->FLD('lastAlternation', 'datetime', 'input=none,caption=Последно->Изменение');
-        $this->FLD('lastCalculate', 'datetime', 'input=none,caption=Последно->Изчисляване');
+        $this->FLD('lastAlternation', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изменение');
+        $this->FLD('lastCalculate', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изчисляване');
     }
     
     
@@ -176,7 +176,7 @@ class acc_Balances extends core_Master
     	}
     	
     	if($rec->lastAlternation > $rec->lastCalculate){
-    		$row->lastAlternation = "<span class='red'>{$row->lastAlternation}</span>";
+    		$row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
     	}
     }
     

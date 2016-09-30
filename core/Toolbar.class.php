@@ -261,17 +261,23 @@ class core_Toolbar extends core_BaseClass
             $rowId = $attr['id'];
 
             $onRow2 =0;
-            
+            $hiddenBtns = 0;
+
             $layout = $this->getToolbarLayout($rowId);
             foreach ($this->buttons as $id => $btn) {
                 if($btn->attr['row'] == 2) {
                     $onRow2++;
+
+                }
+                if($btn->attr['row'] == 3) {
+                    $hiddenBtns++;
                 }
             }
 
             foreach ($this->buttons as $id => $btn) {
-                $place = ($btn->attr['row'] == 2 && $onRow2 != 1) ? 'ROW2' : 'ROW1' ;
-				if($place == 'ROW2'){
+                $place = ($btn->attr['row'] == 2 && $onRow2 != 1 ) ? 'ROW2' : (($hiddenBtns > 1 && $btn->attr['row'] == 3) ? 'HIDDEN' : 'ROW1') ;
+
+                if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}
 				unset($btn->attr['row']);
@@ -304,7 +310,7 @@ class core_Toolbar extends core_BaseClass
      */
     function appendSecondRow_($toolbar, $rowId)
     {
-    	
+    	bp();
         $toolbar->prepend(ht::createFnBtn(' ', "toggleDisplay('Row2_{$rowId}');", NULL, array('class'=>'more-btn', 'title'=>'Други действия с този документ')), "ROW0");
     }
     

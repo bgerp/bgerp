@@ -22,7 +22,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Clone';
     
     
     /**
@@ -103,6 +103,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('transport', 'text', 'caption=Транспорт');
         $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
+        $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
         
         $this->setDbUnique('codeName');
     }
@@ -162,7 +163,9 @@ class cond_DeliveryTerms extends core_Master
 	    	1 => "codeName", 
 	    	2 => "forSeller", 
 	    	3 => "forBuyer", 
-	    	4 => "transport");
+	    	4 => "transport",
+    		5 => "address",
+    	);
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
@@ -196,7 +199,6 @@ class cond_DeliveryTerms extends core_Master
     }
     
     
-    
     /**
      * Помощен метод допълващ условието на доставка с адреса
      * 
@@ -212,19 +214,21 @@ class cond_DeliveryTerms extends core_Master
     {
     	$adress = '';
     	$isSale = ($document instanceof sales_Sales);
+    	expect($rec = self::fetch(array("#codeName = '[#1#]'", $deliveryCode)));
     	
-    	if(($deliveryCode == 'EXW' && $isSale === TRUE) || ($deliveryCode == 'DDP' && $isSale === FALSE)){
+    	if(($rec->address == 'supplier' && $isSale === TRUE) || ($rec->address == 'receiver' && $isSale === FALSE)){
+    		
     		if(isset($storeId)){
     			if($locationId = store_Stores::fetchField($storeId, 'locationId')){
     				$adress = crm_Locations::getAddress($locationId);
     			}
-    		} 
+    		}
     		
     		if(empty($adress)){
     			$ownCompany = crm_Companies::fetchOurCompany();
     			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id)->getContent();
     		}
-    	} elseif(($deliveryCode == 'DDP' && $isSale === TRUE) || ($deliveryCode == 'EXW' && $isSale === FALSE)){
+    	} elseif(($rec->address == 'receiver' && $isSale === TRUE) || ($rec->address == 'supplier' && $isSale === FALSE)){
     		if(isset($locationId)){
     			$adress = crm_Locations::getAddress($locationId);
     		} else {

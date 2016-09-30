@@ -291,7 +291,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     				$downpaymentAmounts = array($cItemId => (object)array('quantity' => 0, 'amount' => 0));
     			}
     			 
-    			$downpaymentAmounts[$cItemId]->quantity += $res->quantity;
+    			$downpaymentAmounts[$cItemId]->quantity -= $res->quantity;
     			$downpaymentAmounts[$cItemId]->amount -= $res->amount;
     		}
     	}

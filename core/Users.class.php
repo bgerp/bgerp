@@ -930,7 +930,7 @@ class core_Users extends core_Manager
         if(($cond == self::SYSTEM_USER) && is_numeric($cond)) {
             $res = (object) array(
                                 'id' => self::SYSTEM_USER,
-                                'nick' => '@system',
+                                'nick' => core_Setup::get('SYSTEM_NICK'),
                                 'state' => 'active',
                                 'names' => tr('Системата')
                             );
@@ -957,7 +957,7 @@ class core_Users extends core_Manager
         
         if($Users->isSystemUser) {
             $rec = new stdClass();
-            $rec->nick = '@system';
+            $rec->nick = core_Setup::get('SYSTEM_NICK');
             $rec->id = -1;
             $rec->state = 'active';
             $res = $rec->{$part};
@@ -1865,6 +1865,14 @@ class core_Users extends core_Manager
      */
     static function getFirstAdmin()
     {
+        $fAdmin = core_Setup::get('FIRST_ADMIN');
+        $fAdmin = trim($fAdmin);
+        
+        if ($fAdmin) {
+            
+            return $fAdmin;
+        }
+        
         $Roles = cls::get('core_Roles');
         $adminId = $Roles->fetchByName('admin');
         
@@ -1952,7 +1960,7 @@ class core_Users extends core_Manager
         } elseif($userId == -1) {
             
             // Ако е сустемния потребител
-            $nick = "@system" ;
+            $nick = core_Setup::get('SYSTEM_NICK');
         } else {
             
             // Ако е непознат потребител

@@ -194,7 +194,7 @@ class core_Cache extends core_Manager
             foreach ($type as $t) {
                 $key = $Cache->getKey($t, $handler);
                 $query = self::getQuery();
-                while($rec = $query->fetch(array("#key LIKE '[#1#]'", "{$key}"))) {
+                while($rec = $query->fetch(array("#key = '[#1#]'", "{$key}"))) {
                     $Cache->deleteData($rec->key);
                 }
             }
@@ -272,7 +272,8 @@ class core_Cache extends core_Manager
         $deletedRecs = 0;
         
         while($rec = $query->fetch()) {
-            $deletedRecs += $this->deleteData($rec->key);
+            $this->deleteData($rec->key, TRUE);
+            $deletedRecs += $this->delete($rec->id);
         }
         
         if($all) {
@@ -399,7 +400,7 @@ class core_Cache extends core_Manager
 
         if($onlyInMemory) return;
 
-        return $this->delete(array("#key LIKE '[#1#]'", $key));
+        return $this->delete(array("#key = '[#1#]'", $key));
     }
     
     

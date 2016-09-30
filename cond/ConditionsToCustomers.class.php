@@ -84,7 +84,7 @@ class cond_ConditionsToCustomers extends core_Manager
     {
         $this->FLD('cClass', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
-        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
+        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=typeExt,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
     
         // Добавяне на уникални индекси
@@ -153,15 +153,15 @@ class cond_ConditionsToCustomers extends core_Manager
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    private static function getRemainingOptions($cClass, $cId)
+    protected static function getRemainingOptions($cClass, $cId)
     {
         $query = self::getQuery();
         $query->where("#cClass = {$cClass} AND #cId = {$cId}");
     	$ids = array_map(create_function('$o', 'return $o->conditionId;'), $query->fetchAll());
-    	$ids = array_combine($ids, $ids);
     	
-    	$where = '';
+    	$where = "";
     	if(count($ids)){
+    		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
     	}
@@ -179,9 +179,12 @@ class cond_ConditionsToCustomers extends core_Manager
     {
         expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
+        
         $query = static::getQuery();
+        $query->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");
-    	
+        $query->orderBy('group', 'ASC');
+        
         while($rec = $query->fetch()) {
         	
         	// Според параметарът, се променя вербалното представяне на стойността
@@ -330,7 +333,7 @@ class cond_ConditionsToCustomers extends core_Manager
        }
        
        if($action == 'add' && isset($rec->cClass) && isset($rec->cId)){
-       		if($requiredRoles != 'no_one'){
+       		if($res != 'no_one'){
        			if (!count($mvc::getRemainingOptions($rec->cClass, $rec->cId))) {
        				$res = 'no_one';
        			}

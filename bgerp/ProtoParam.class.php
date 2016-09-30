@@ -77,7 +77,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		$rec->typeExt = tr($rec->name);
 		 
 		if (!empty($rec->group)) {
-			$group .= tr($rec->group);
+			$group = tr($rec->group);
 			$rec->typeExt = "{$group} » {$rec->typeExt}";
 		}
 		 
@@ -119,7 +119,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	 * @param core_Mvc $mvc
 	 * @param core_Form $form
 	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
+	protected static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
 		 
@@ -146,7 +146,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * След подготовка на масива за избор на опции
 	 */
-	public static function on_AfterMakeArray4Select($mvc, &$options, $fields = NULL, &$where = "", $index = 'id'  )
+	protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = NULL, &$where = "", $index = 'id'  )
 	{
 		$newOptions = $options;
 		

@@ -94,7 +94,7 @@ class crm_Profiles extends core_Master
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'userId,personId,lastLoginTime=Последно логване';
+    var $listFields = 'userId,personId,stateData=Статус,lastLoginTime=Последно логване';
     
     
     /**
@@ -134,6 +134,12 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Помощен масив за типовете дни
+     */
+    static $map = array('sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -146,6 +152,10 @@ class crm_Profiles extends core_Master
         $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
+        
+        $this->FLD('stateInfo', 'varchar', 'caption=Статус->Информация,input=none');
+        $this->FLD('stateDateFrom', 'datetime(format=smartTime)', 'caption=Статус->От,input=none');
+        $this->FLD('stateDateTo', 'datetime(format=smartTime)', 'caption=Статус->До,input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -982,7 +992,7 @@ class crm_Profiles extends core_Master
     			}
     			
                 if (core_Users::haveRole('no_one', $userId)) {
-                    $attr['style'] .= " text-decoration: underline red;"; 
+                    $attr['class'] .= " no-one";
                 }
     
     			if ($userRec->lastActivityTime) {
@@ -1076,8 +1086,7 @@ class crm_Profiles extends core_Master
         }
     }
 
-
-
+    
     /**
      * След подготовката на редовете на списъчния изглед
      * 
@@ -1090,7 +1099,7 @@ class crm_Profiles extends core_Master
     {
         $rows = &$data->rows;
         $recs = &$data->recs;
-        
+
         if(count($rows)) {
             foreach ($rows as $i=>&$row) {
                 $rec = &$recs[$i];
@@ -1103,9 +1112,16 @@ class crm_Profiles extends core_Master
                     } else {
                         $personLink = NULL;
                     }
-                    
+     
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
-                    $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+
+                    if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
+                        $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon, 'class' => 'profile-state'));
+                        $Date = cls::get('type_Date');
+                        $row->stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                    } else {
+                        $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+                    }
                 }
             }
         }

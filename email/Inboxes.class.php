@@ -924,12 +924,12 @@ class email_Inboxes extends core_Master
                 $settings = core_Settings::fetchKey($key, $userId);
                 $defEmailId = (int)$settings['defaultEmail'];
                 if ($defEmailId > 0) {
-                    $options[$defEmailId] = self::fetchField("#id = '{$defEmailId}' && #state = 'active'", 'email');
+                    $options[$defEmailId] = self::fetchField("#id = '{$defEmailId}' AND #state = 'active'", 'email');
                 }
             }
             
             // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
-            $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
+            $rec = self::fetch("#folderId = {$folderId} AND #state = 'active'");
             if($rec && email_Accounts::canSendEmail($rec->accountId)) {
                 $options[$rec->id] = $rec->email;
             }
@@ -945,7 +945,7 @@ class email_Inboxes extends core_Master
             // Ако не е зададено да се показват само персоналните
             if (!$personalOnly) {
                 
-                $rec = self::fetch("#email = '{$corpAccRec->email}' && #state = 'active'");
+                $rec = self::fetch("#email = '{$corpAccRec->email}' AND #state = 'active'");
                                 
                 if($rec) {
                     $options[$rec->id] = $rec->email;
@@ -956,7 +956,7 @@ class email_Inboxes extends core_Master
             
             $userEmail = email_Inboxes::getUserEmail($userId);
 
-            if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
+            if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' AND #state = 'active'"))) {
                 $options[$rec->id] = $rec->email;
             }
             

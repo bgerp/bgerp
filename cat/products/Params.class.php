@@ -104,7 +104,7 @@ class cat_products_Params extends doc_Detail
     {
     	$this->FLD('classId', 'class', 'input=hidden,silent');
     	$this->FLD('productId', 'int', 'input=hidden,silent');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
@@ -218,10 +218,10 @@ class cat_products_Params extends doc_Detail
     	$query = self::getQuery();
     	$query->where("#classId = {$classId} AND #productId = {$productId}");
     	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
-    	$ids = array_combine($ids, $ids);
     	
-    	$where = '';
+    	$where = "";
     	if(count($ids)){
+    		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
     	}
@@ -256,7 +256,7 @@ class cat_products_Params extends doc_Detail
      		return $paramValue;
      	}
      	
-     	return FALSE;
+     	return NULL;
     }
     
     
@@ -269,7 +269,7 @@ class cat_products_Params extends doc_Detail
         	foreach($data->params as &$row) {
         		core_RowToolbar::createIfNotExists($row->_rowTools);
         		if($data->noChange !== TRUE && !Mode::isReadOnly()){
-        			$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
+        			$row->tools = $row->_rowTools->renderHtml();
         		} else {
         			unset($row->tools);
         		}

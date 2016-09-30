@@ -286,6 +286,11 @@ class crm_Persons extends core_Master
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+
+        // Индекси
+        $this->setDbIndex('name');
+        $this->setDbIndex('country');
+        $this->setDbIndex('email');
     }
 
 
@@ -735,7 +740,13 @@ class crm_Persons extends core_Master
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
-	       $mvc->restrictAccess($query);
+	       
+	       $viewAccess = TRUE;
+	       if ($typeKey->params['restrictViewAccess'] == 'yes') {
+	           $viewAccess = FALSE;
+	       }
+	       
+	       $mvc->restrictAccess($query, NULL, $viewAccess);
 	       $query->where("#state != 'rejected'");
 	       
 	       if (trim($where)) {

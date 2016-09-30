@@ -47,11 +47,11 @@ class cond_type_Int extends cond_type_Proto
 		$params = array();
 	
 		if(isset($rec->min)){
-			$params['Min'] = $rec->min;
+			$params['min'] = $rec->min;
 		}
 	
 		if(isset($rec->max)){
-			$params['Max'] = $rec->max;
+			$params['max'] = $rec->max;
 		}
 	
 		if(count($params)){
