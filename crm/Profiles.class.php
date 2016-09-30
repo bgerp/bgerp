@@ -1112,13 +1112,15 @@ class crm_Profiles extends core_Master
                     } else {
                         $personLink = NULL;
                     }
-                    
+     
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
-                    $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
 
                     if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
+                        $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon, 'class' => 'profile-state'));
                         $Date = cls::get('type_Date');
                         $row->stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                    } else {
+                        $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                     }
                 }
             }
