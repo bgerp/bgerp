@@ -478,7 +478,8 @@ class crm_Profiles extends core_Master
         if(isset($data->rec->stateInfo) && isset($data->rec->stateDateFrom) && isset($data->rec->stateDateTo)) {
             $Date = cls::get('type_Date');
             $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'smartTime');
-            $tpl->append($state, 'userStatus');     
+            $tpl->append($state, 'userStatus');  
+            $tpl->append("statusClass", 'userClass');
         }
         
         // Показваме достъпните папки на колабораторите
