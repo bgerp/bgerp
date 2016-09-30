@@ -992,7 +992,7 @@ class crm_Profiles extends core_Master
     			}
     			
                 if (core_Users::haveRole('no_one', $userId)) {
-                    $attr['style'] .= " text-decoration: underline red;"; 
+                    $attr['class'] .= " no-one";
                 }
     
     			if ($userRec->lastActivityTime) {
