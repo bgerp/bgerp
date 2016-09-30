@@ -371,10 +371,10 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	// Скриване на полето "мярка"
     	$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
-    	arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш реф.'), 'productId');
-    	$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
     	
     	if(!count($recs)) return;
+    	arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш реф.'), 'productId');
+    	$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
     	
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
