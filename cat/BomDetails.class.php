@@ -287,7 +287,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$rQuantity = cat_BomDetails::calcExpr($expr, $params);
     	if($rQuantity === self::CALC_ERROR) {
-    		$style = 'color:red; border:1px dotted red';
+    		$style = 'color:red;';
     	}
     	
     	// Намира контекста и го оцветява
