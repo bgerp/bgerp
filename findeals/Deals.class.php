@@ -240,6 +240,8 @@ class findeals_Deals extends deals_DealBase
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
+    	
+    	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     }
     
     
@@ -738,30 +740,6 @@ class findeals_Deals extends deals_DealBase
     static function getRecTitle($rec, $escaped = TRUE)
     {
 	    return static::recToVerbal($rec, 'detailedName')->detailedName;
-    }
-    	
-    	
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-    	$self = cls::get(__CLASS__);
-    	$self->recTitleTpl = NULL;
-    	 
-    	if (self::fetch($objectId)) {
-    		$detailedName = "<span style='color:red'>" . tr('Нямате права') . "</span>";
-    		if ($self->haveRightFor('single', $objectId)) {
-    			$detailedName = ht::createLink(tr('Връзка'), array($self, 'single', $objectId));
-    		}
-    		
-    		$result = $detailedName;
-    	} else {
-    		$result = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
-    	}
-    	
-    	return $result;
     }
     
     
