@@ -386,7 +386,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 			$query = self::getQuery();
 			$query->where("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}");
 			$query->orderBy('id', 'DESC');
-			self::$cache[$contragentClassId][$contragentId]= array();
 			
 			// Добавя се всеки запис, групиран според типа
 			while($rec = $query->fetch()){
