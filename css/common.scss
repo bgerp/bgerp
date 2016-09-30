@@ -1180,6 +1180,11 @@ a.profile {
 			color: #ff0000;
 		}
 	}
+	&.no-one {
+		text-decoration: underline;
+		-moz-text-decoration-color: red;
+		text-decoration-color: red;
+	}
 }
 /*край на хипервръзки към профилите на потребители*/
 

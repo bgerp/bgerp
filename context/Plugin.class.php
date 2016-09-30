@@ -41,7 +41,7 @@ class context_Plugin extends core_Plugin {
     {
     	if(count($mvc->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
     	count($mvc->buttons) > 3 && Mode::is('screenMode', 'narrow')){
-            $link = ht::createFnBtn("Още", "toggleDisplay('hidden_{$rowId}')", NULL, array('ef_icon'=>'img/16/dots.png', 'class' => "linkWithIcon"));
+            $link = ht::createFnBtn("Още", "toggleDisplay('hidden_{$rowId}'); $(this).remove();", NULL, array('ef_icon'=>'img/16/dots.png', 'class' => "linkWithIcon"));
 
     		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
     		"<!--ET_BEGIN ROW2--><div class='modal-toolbar' data-position='auto' id='Row2_{$rowId}'>[#ROW2#]" .
@@ -50,7 +50,7 @@ class context_Plugin extends core_Plugin {
     		"</div></div>");
     	}
     	else{
-    		$layout = new ET("<div class='clearfix21 toolbar' style='margin-bottom: 8px;'>[#ROW1#][#ROW2#]</div>");
+    		$layout = new ET("<div class='clearfix21 toolbar' style='margin-bottom: 8px;'>[#ROW1#][#ROW2#][#HIDDEN#]</div>");
     	}
    
         return FALSE;
