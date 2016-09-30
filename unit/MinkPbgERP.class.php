@@ -462,7 +462,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Проекти');
         $browser->press('Нов запис');
         $browser->setValue('name', 'Други проекти');
-        $browser->setValue('Бележки', '54');
+        $browser->setValue('Бележки', '55');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
@@ -989,7 +989,7 @@ class unit_MinkPbgERP extends core_Manager {
         // активираме покупката
         $browser->press('Активиране');
         //return  $browser->getHtml();
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 5,92')) {
         } else {
             return $this->reportErr('Грешно ДДС', 'warning');
@@ -1000,25 +1000,27 @@ class unit_MinkPbgERP extends core_Manager {
         }
     
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и осем BGN и 0,68')) {
-        } else {
-            return $this->reportErr('Грешна сума в складова разписка', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Засклаждане');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и осем BGN и 0,68')) {
+        //} else {
+        //    return $this->reportErr('Грешна сума в складова разписка', 'warning');
+        //}
     
         // протокол
-        $browser->press('Приемане');
-        $browser->setValue('template', 'Приемателен протокол за услуги с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Шест BGN и 0,84')) {
-        } else {
-            return $this->reportErr('Грешна сума в протокол за услуги', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Приемане');
+        //$browser->setValue('template', 'Приемателен протокол за услуги с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Шест BGN и 0,84')) {
+        //} else {
+        //    return $this->reportErr('Грешна сума в протокол за услуги', 'warning');
+        //}
         // Фактура
         $browser->press('Вх. фактура');
         $browser->setValue('number', '1176');
@@ -1111,8 +1113,8 @@ class unit_MinkPbgERP extends core_Manager {
          
         // активираме покупката
         $browser->press('Активиране');
-        //return  $browser->getHtml();
-        //$browser->press('Активиране/Контиране');
+        //Автом. избиране
+        $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), 'Discount: EUR 1,30')) {
         } else {
             return $this->reportErr('Грешна отстъпка', 'warning');
@@ -1123,25 +1125,27 @@ class unit_MinkPbgERP extends core_Manager {
         }
     
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и три EUR и 0,90')) {
-        } else {
-            return $this->reportErr('Грешна сума в складова разписка', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и три EUR и 0,90')) {
+        //} else {
+        //    return $this->reportErr('Грешна сума в складова разписка', 'warning');
+        //}
     
         // протокол
-        $browser->press('Приемане');
-        $browser->setValue('template', 'Приемателен протокол за услуги с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Пет EUR и 0,70')) {
-        } else {
-            return $this->reportErr('Грешна сума в протокол за услуги', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Приемане');
+        //$browser->setValue('template', 'Приемателен протокол за услуги с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Пет EUR и 0,70')) {
+        //} else {
+        //    return $this->reportErr('Грешна сума в протокол за услуги', 'warning');
+        //}
     
         // Фактура
         $browser->press('Вх. фактура');
@@ -1317,7 +1321,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // активиране на продажбата
         $browser->press('Активиране');
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
         } else {
@@ -1334,23 +1338,22 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         
         // експедиционно нареждане
-        $browser->press('Експедиране');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Експедиционно нареждане с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и девет BGN и 0,99 ')) {
-        } else {
-            return $this->reportErr('Грешна сума в ЕН', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Експедиране');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Експедиционно нареждане с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и девет BGN и 0,99 ')) {
+        //} else {
+        //    return $this->reportErr('Грешна сума в ЕН', 'warning');
+        //}
              
         // протокол
-        $browser->press('Пр. услуги');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Контиране')) {
-        //  $browser->press('Контиране');
-        //}
+        // Когато няма автом. избиране
+        //$browser->press('Пр. услуги');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
         
         // Фактура
         $browser->press('Фактура');
