@@ -1112,6 +1112,10 @@ a.profile {
       color: #993333; }
     a.profile.contractor.active {
       color: red; }
+  a.profile.no-one {
+    text-decoration: underline;
+    -moz-text-decoration-color: red;
+    text-decoration-color: red; }
 
 /*
  * край на хипервръзки към профилите на потребители

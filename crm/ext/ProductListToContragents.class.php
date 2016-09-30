@@ -159,6 +159,15 @@ class crm_ext_ProductListToContragents extends core_Manager
 					$form->setError('reff', 'Трябва да бъде въведен код');
 				}
 			}
+			
+			if(!$form->gotErrors()){
+				if(!empty($rec->reff)){
+					if($fRec = self::fetch(array("#contragentClassId = {$rec->contragentClassId} AND #contragentId = {$rec->contragentId} AND #productId != {$rec->productId} AND #reff = '[#1#]'", $rec->reff))){
+						$pVerbal = cat_Products::getTitleById($fRec->productId, TRUE);
+						$form->setError('reff', "|*<b>{$pVerbal}</b> |има същия код|*");
+					}
+				}
+			}
 		}
 	}
 	
