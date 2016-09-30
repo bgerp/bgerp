@@ -1189,6 +1189,9 @@ a.profile {
 		-moz-text-decoration-color: red;
 		text-decoration-color: red;
 	}
+	&.profile-state {
+		font-style: italic;
+	}
 }
 /*край на хипервръзки към профилите на потребители*/
 

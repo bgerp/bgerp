@@ -973,7 +973,12 @@ class crm_Profiles extends core_Master
             $link = $title;
             
             $url  = array();
-    	    $attr['class'] .= ' profile';
+            
+            if(self::fetchField($userId,'stateInfo') !== NULL) {
+                $attr['class'] .= ' profile pofile-state';
+            } else {
+    	       $attr['class'] .= ' profile';
+            }
 
     		$profileId = self::getProfileId($userId);
     		if ($profileId) {
@@ -1010,16 +1015,16 @@ class crm_Profiles extends core_Master
     			}
     			
     			$attr['title'] = "|*" . $userRec->names;
-    			
+
     			$link = ht::createLink($title, $url, $warning, $attr);
     		} else {
                 $attr['style'] .= ';color:#999 !important;';
                 $link = ht::createLink($userRec->nick, NULL, NULL, $attr);
             }
-    		
+
     		$cacheArr[$key] = $link;
         }
-        
+
         return $cacheArr[$key];
     }
     
