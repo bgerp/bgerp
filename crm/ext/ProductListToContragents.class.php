@@ -37,7 +37,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	/**
 	 * Кой  може да листва?
 	 */
-	public $canList = 'no_one';
+	public $canList = 'debug';
 	
 	
 	/**
@@ -55,7 +55,7 @@ class crm_ext_ProductListToContragents extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, crm_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Search';
+    public $loadList = 'plg_Modified, crm_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Search,plg_Select';
     
     
     /**
