@@ -218,13 +218,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$rows = &$data->rows;
 		$masterRec = $data->masterData->rec;
 		$firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
-		$listMethod = ($firstDocument->isInstanceOf('sales_Sales')) ? 'getSaleReffByProductId' : (($firstDocument->isInstanceOf('purchase_Purchases')) ? 'getPurchaseReffByProductId' : NULL);
 		
 		// Скриваме полето "мярка"
 		$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
 		
 		if(!count($recs)) return;
-		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш реф.'), 'productId');
+		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
 		$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
 		
 		if(count($data->rows)) {
@@ -235,9 +234,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 				
 				// Показване на вашия реф ако има
-				if(isset($listMethod)){
-					$row->reff = crm_ext_ProductListToContragents::$listMethod($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
-				}
+				$row->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
 				
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";
