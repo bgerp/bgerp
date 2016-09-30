@@ -5279,6 +5279,9 @@ body.narrow {
     z-index: 9999;
     padding: 10px;
     font-size: 0.9em;
+	.timeSpan {
+		color: #ff9 !important;
+	}
 }
 
 .narrow .tooltip {

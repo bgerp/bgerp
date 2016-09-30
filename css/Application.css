@@ -4794,6 +4794,8 @@ only screen and (max-width: 320px) {
   z-index: 9999;
   padding: 10px;
   font-size: 0.9em; }
+  .tooltip .timeSpan {
+    color: #ffff99 !important; }
 
 .narrow .tooltip {
   padding: 5px;
