@@ -113,7 +113,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'info,discount';
+    public $hideListFieldsIfEmpty = 'info,discount,reff';
     
     
     /**
