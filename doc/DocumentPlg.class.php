@@ -308,7 +308,7 @@ class doc_DocumentPlg extends core_Plugin
         if($mvc->haveRightFor('list') && $data->rec->state != 'rejected') { 
         	
         	// По подразбиране бутона всички се показва на втория ред на тулбара
-        	setIfNot($mvc->allBtnToolbarRow, 2);
+        	setIfNot($mvc->allBtnToolbarRow, 3);
         	
         	$title = $mvc->getTitle();
         	$title = tr($title);
@@ -320,7 +320,7 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow},initially=hidden, title=" . tr('Всички') . ' ' . $title);
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title);
 
         }
         
@@ -329,7 +329,7 @@ class doc_DocumentPlg extends core_Plugin
             
             if ($historyCnt) {
                 $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
-                "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png,initially=hidden');
+                "id=btnHistory{$data->rec->containerId}, row=3, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
             }
         }
         
@@ -343,7 +343,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали документа може да бъде разоден обект
         if ($mvc->haveRightFor('forceexpenseitem', $data->rec)) {
         	$data->toolbar->addBtn('Разходен обект', array($mvc, 'forceexpenseitem', $data->rec->id),
-        			"warning=Наистина ли искате да направите документа разходен обект?, row=2,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png,initially=hidden');
+        			"warning=Наистина ли искате да направите документа разходен обект?, row=3,title=" . tr("Маркиране на документа като разходен обект"),  'ef_icon = img/16/pin.png');
         }
         
         if ($data->rec->threadId && ($tRec = doc_Threads::fetch($data->rec->threadId))) {

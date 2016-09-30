@@ -240,7 +240,7 @@ class acc_ArticleDetails extends doc_Detail
                 }
                 
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$caption}->" . $list->rec->name);
+                $form->setField("{$type}Ent{$i}", "silent,removeAndRefreshForm,mandatory,input,caption={$caption}->" . $list->rec->name);
                 
                 // Ако може да се избират приключени пера, сетваме параметър в типа на перата
                 if($masterRec->useCloseItems == 'yes'){
@@ -254,9 +254,7 @@ class acc_ArticleDetails extends doc_Detail
                 	if($cover->haveInterface($list->rec->regInterfaceId)){
                 		if($coverClassId = $cover->getInstance()->getClassId()){
                 			if($itemId = acc_Items::fetchItem($coverClassId, $cover->that)->id){
-                				if($form->cmd !== 'refresh'){
-                					$form->setDefault("{$type}Ent{$i}", $itemId);
-                				}
+                				$form->setDefault("{$type}Ent{$i}", $itemId);
                 			}
                 		}
                 	}
@@ -265,9 +263,7 @@ class acc_ArticleDetails extends doc_Detail
                 	if($firstDoc->haveInterface($list->rec->regInterfaceId)){
                 		if($docClassId = $firstDoc->getInstance()->getClassId()){
                 			if($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id){
-                				if($form->cmd !== 'refresh'){
-                					$form->setDefault("{$type}Ent{$i}", $itemId);
-                				}
+                				$form->setDefault("{$type}Ent{$i}", $itemId);
                 			}
                 		}
                 	}
@@ -276,12 +272,17 @@ class acc_ArticleDetails extends doc_Detail
                 // Ако номенклатурата е размерна и ще може да се въвеждат цени
                 if($list->rec->isDimensional == 'yes' && !$quantityOnly){
                 	
+                	// Инпутване на размерното перо ако е в рекуеста
+                	$item = Request::get("{$type}Ent{$i}", 'acc_type_Item');
+                	$form->setDefault("{$type}Ent{$i}", $item);
+                	
                 	// И перото е попълнено и е от номенклатура валута
                 	if(isset($rec->{"{$type}Ent{$i}"})){
                 		$itemRec = acc_Items::fetch($rec->{"{$type}Ent{$i}"});
                 		
                 		// Ако перото е на валута
                 		if($itemRec->classId == currency_Currencies::getClassId()){
+                			$form->setField("{$type}Ent{$i}", "removeAndRefreshForm={{$type}Price}");
                 			
                 			// Задаваме курса към основната валута за дефолт цена
                 			$rate = currency_CurrencyRates::getRate($masterRec->valior, currency_Currencies::getCodeById($itemRec->objectId), NULL);

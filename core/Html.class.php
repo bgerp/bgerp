@@ -944,7 +944,7 @@ class core_Html
     	
     	$hint = strip_tags(tr($hint));
  
-    	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
+    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
     	$attr = arr::make($attr, TRUE) + array('src' => sbf($iconPath, ''));

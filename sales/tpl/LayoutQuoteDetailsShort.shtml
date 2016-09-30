@@ -35,30 +35,7 @@
         <table class='products-table' style='margin-bottom: 20px; margin-top:10px;'>
         <!--ET_BEGIN totalPlace-->
         [#totalPlace#]
-        <!--ET_BEGIN SUMMARY-->
-        [#SUMMARY#]
-        <tr>
-             <th style='width: 20%;'>|Стойност|*</th>
-             <th style='width: 20%;'>[#discountTitle#] [#discountPercent#] </th>
-             <th style='width: 20%;'>[#netTitle#]</th>
-             <th style='width: 20%;'>|ДДС|* [#vat#]</th>
-             <th style='width: 20%;'>|Общо|*</th>
-        </tr>
-        <tr style='font-weight: bold;'>
-            <td class='centered dark-gray'>[#value#]</td>
-            <td class='centered'><span class='discount'>[#discountValue#]</span></td>
-            <td class='centered dark-gray'>[#neto#]</td>
-            <td class='centered dark-gray'>[#vatAmount#]</td>
-            <td class='centered'>[#total#]</td>
-        </tr>
-        <!--ET_BEGIN sayWords-->
-        <tr>
-            <td colspan="5" class='aright'>
-                |Словом|*: [#sayWords#]    
-            </td>
-        </tr>
-        <!--ET_END sayWords-->
-        <!--ET_END SUMMARY-->
+        [#sales/tpl/QuotationPriceSummary.shtml#]
         <!--ET_END totalPlace-->
     </table>   
     <div class='quotation-detail-add-btn'>

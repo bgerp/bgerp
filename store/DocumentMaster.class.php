@@ -610,4 +610,15 @@ abstract class store_DocumentMaster extends core_Master
     	
     	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
+    
+    
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->originId)){
+    		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
+    	}
+    }
 }

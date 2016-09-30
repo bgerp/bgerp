@@ -250,6 +250,12 @@ class type_Keylist extends core_Type {
                     }
                     
                     $v = type_Varchar::escape($v);
+
+                    list(, $uId)=explode("_", $key);
+                    if($this->info[$uId]) {
+                        $v = "<i>" . $v . "</i>";
+                    }
+
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {

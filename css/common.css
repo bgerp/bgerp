@@ -965,6 +965,9 @@ input.more-btn {
     transition-duration: 0.5s;
     transition-timing-function: ease-in-out; }
 
+.hiddenToolbar {
+  display: none; }
+
   .small .modal-toolbar .linkWithIcon {
     height: auto !important;
     font-size: 1em; }
@@ -1112,6 +1115,12 @@ a.profile {
       color: #993333; }
     a.profile.contractor.active {
       color: red; }
+  a.profile.no-one {
+    text-decoration: underline;
+    -moz-text-decoration-color: red;
+    text-decoration-color: red; }
+  a.profile.profile-state {
+    font-style: italic; }
 
 /*
  * край на хипервръзки към профилите на потребители

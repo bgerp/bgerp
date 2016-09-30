@@ -65,6 +65,14 @@ class distro_Setup extends core_ProtoSetup
     
     
     /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+        array(1.9, 'Документи', 'Дистрибутив', 'distro_Group', 'default', "admin"),
+    );
+    
+    
+    /**
      * Миграция за превръщане от keylist в key поле
      */
     public static function reposToKey()

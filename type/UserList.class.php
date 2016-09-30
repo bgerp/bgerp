@@ -65,7 +65,15 @@ class type_UserList extends type_Keylist
             
             return $this->suggestions;
         }
-        
+
+        // извличане на потребителите с информация
+        $pQuery = crm_Profiles::getQuery();
+        $pQuery->show("id");
+        while($rec = $pQuery->fetch("#stateInfo IS NOT NULL")) {
+            $iUsers[$rec->id] = $rec->id;
+        }
+        $this->info = $iUsers;
+
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип
         if(!haveRole($this->params['rolesForAll'])) {
             $ownRoles = core_Users::getCurrent('roles');

@@ -999,6 +999,10 @@ input.more-btn {
 	}
 }
 
+.hiddenToolbar {
+	display: none;
+}
+
 .small .modal-toolbar{
 	.linkWithIcon {
 		height: auto !important;
@@ -1179,6 +1183,14 @@ a.profile {
 		&.active {
 			color: #ff0000;
 		}
+	}
+	&.no-one {
+		text-decoration: underline;
+		-moz-text-decoration-color: red;
+		text-decoration-color: red;
+	}
+	&.profile-state {
+		font-style: italic;
 	}
 }
 /*край на хипервръзки към профилите на потребители*/

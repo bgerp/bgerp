@@ -401,7 +401,9 @@ class deals_plg_DpInvoice extends core_Plugin
     			$misc = tr("по договор|* №{$firstDoc->that} |от|* {$valior}");
     		}
     		
-    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . $misc . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$colspan1 = isset($fields['reff']) ? 2 : 1;
+    		$colspan = isset($fields['reff']) ? $colspan-1 : $colspan;
+    		$lastRow = new ET("<tr><td colspan={$colspan1}></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . $misc . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	}
     	
     	$lastRow->placeObject($data->dpInfo);
