@@ -50,7 +50,7 @@ class context_Plugin extends core_Plugin {
     		"</div></div>");
     	}
     	else{
-    		$layout = new ET("<div class='clearfix21 toolbar' style='margin-bottom: 8px;'>[#ROW1#][#ROW2#]</div>");
+    		$layout = new ET("<div class='clearfix21 toolbar' style='margin-bottom: 8px;'>[#ROW1#][#ROW2#][#HIDDEN#]</div>");
     	}
    
         return FALSE;
