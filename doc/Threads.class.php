@@ -1531,7 +1531,9 @@ class doc_Threads extends core_Manager
         
         if (is_array($ids)) {
             foreach (array_keys($ids) as $id) {
-                if (!isset($id)) { continue; }
+                if (!is_int($id)) { 
+                    continue; 
+                }
                 self::doUpdateThread($id);
             }
             return;
@@ -1544,6 +1546,8 @@ class doc_Threads extends core_Manager
         // Вземаме записа на треда
         $rec = self::fetch($id, NULL, FALSE);
         
+        if(!$rec) return;
+
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
         
