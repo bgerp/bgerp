@@ -37,7 +37,7 @@ class doc_FolderPlg extends core_Plugin
             // Определя достъпа по подразбиране за новите папки
             setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
-            $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
+            $mvc->FLD('inCharge' , 'user(role=rowerUser)', 'caption=Права->Отговорник,formOrder=10000');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне,formOrder=10002');
             
@@ -242,9 +242,9 @@ class doc_FolderPlg extends core_Plugin
     {
         // Ако оттегляме документа
         if ($action == 'reject' && $rec->folderId && $requiredRoles != 'no_one') {
-         
+            
             // Ако има запис, който не е оттеглен
-            if (doc_Threads::fetch("#folderId = '{$rec->folderId}' AND #state != 'rejected'")) {
+            if (doc_Folders::fetch($rec->folderId)->allThreadsCnt) {
                 
                 // Никой да не може да оттегля папката
                 $requiredRoles = 'no_one';    
