@@ -1020,7 +1020,8 @@ class crm_Companies extends core_Master
     public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
         $query = self::getQuery();
-	    
+	    $query->orderBy("modifiedOn=DESC");
+
         $viewAccess = TRUE;
 	    if ($typeKey->params['restrictViewAccess'] == 'yes') {
 	        $viewAccess = FALSE;
