@@ -275,7 +275,7 @@ class crm_Setup extends core_ProtoSetup
                 
                 $cRec->key = $newKey;
                 core_Settings::save($cRec, NULL, 'IGNORE');
-            } catch (Exception $e) {
+            } catch(ErrorException $e) {
                 
                 continue;
             }

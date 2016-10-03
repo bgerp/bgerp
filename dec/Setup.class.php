@@ -122,7 +122,7 @@ class dec_Setup extends core_ProtoSetup
     			dec_Declarations::Save($rec, 'template');
     		}
     		
-    	} catch (Exception $e) {
+    	} catch (ErrorException $e) {
             reportException($e);
         }
     }

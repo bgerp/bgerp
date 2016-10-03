@@ -366,7 +366,7 @@ class doc_Threads extends core_Manager
                 
                 // Обновяваме нишката
                 self::updateThread($rec->id);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
             }
         }
@@ -458,7 +458,7 @@ class doc_Threads extends core_Manager
                 
                 try {
                     $cRec = doc_Containers::fetch($rec->firstContainerId, '*', FALSE);
-                } catch (Exception $e) {
+                } catch (ErrorException $e) {
                     continue;
                 }
                 
@@ -486,7 +486,7 @@ class doc_Threads extends core_Manager
                     
                     continue;
                 }
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
             }
         }

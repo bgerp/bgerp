@@ -83,7 +83,7 @@ class core_Message extends core_BaseClass
             }
             
             return $tpl;
-        } catch (Exception $e) {
+        } catch(ErrorException $e) {
             $err = new core_exception_Expect("Грешка при рендиране на съобщение за грешка");
             
             $err->class  = 'core_Message';
