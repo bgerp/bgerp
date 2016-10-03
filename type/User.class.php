@@ -30,7 +30,7 @@ class type_User extends type_Key
     function init($params = array())
     {
         setIfNot($params['params']['mvc'], 'core_Users');
-        //setIfNot($params['params']['select'], 'names');
+        setIfNot($params['params']['select'], 'names');
         
         parent::init($params);
         
@@ -57,6 +57,7 @@ class type_User extends type_Key
         }
         
         $part = $this->params['select'];
+        expect($part);
         
         // Вариант 1: Потребителя няма права да вижда екипите
         // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
