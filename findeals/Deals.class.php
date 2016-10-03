@@ -232,6 +232,10 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
     	$this->FLD('contragentId', 'int', 'input=hidden');
     	
+    	$this->FLD('baseAccountId', "acc_type_Account(regInterfaces=none,allowEmpty)", 'silent,caption=Начално салдо->Сметка,input=none,before=description');
+    	$this->FLD('baseAmount', "double(decimals=2, Min=0)", 'caption=Начално салдо->Сума,input=none,before=description');
+    	$this->FLD('baseAmountType', "enum(debit=Дебит,credit=Кредит)", 'caption=Начално салдо->Тип,input=none,before=description');
+    	
     	$this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
     	$this->FLD('secondContragentId', 'int', 'input=none');
     	
@@ -241,10 +245,6 @@ class findeals_Deals extends deals_DealBase
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
     	
-    	$this->FLD('baseAccountId', "acc_type_Account(regInterfaces=none,allowEmpty)", 'silent,caption=Начално салдо->Сметка,input=none');
-    	$this->FLD('baseAmount', "double(decimals=2, Min=0)", 'caption=Начално салдо->Сума,input=none');
-    	$this->FLD('baseAmountType', "enum(debit=Дебит,credit=Кредит)", 'caption=Начално салдо->Тип,input=none');
-	
     	// Индекс
     	$this->setDbIndex('dealManId');
     }
@@ -337,7 +337,7 @@ class findeals_Deals extends deals_DealBase
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
     	
-    	if(haveRole('acc,ceo')){
+    	if($this->haveRightFor('conto')){
     		$form->setField('baseAccountId', 'input');
     		$form->setField('baseAmount', 'input');
     		$form->setField('baseAmountType', 'input');
@@ -423,7 +423,7 @@ class findeals_Deals extends deals_DealBase
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	
     	if(isset($rec->baseAccountId)){
-    		$row->bCurrencyId = $row->baseCurrencyId;
+    		$row->bCurrencyId = $row->currencyId;
     		$row->baseAccountId = acc_Balances::getAccountLink($rec->baseAccountId, NULL, TRUE, TRUE);
     	} else {
     		unset($row->baseAccountId);
@@ -475,6 +475,12 @@ class findeals_Deals extends deals_DealBase
     		
     		// Ако сделката има начално салдо тя не може да приключва други сделки
     		if(isset($rec->baseAccountId)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'clonerec' && isset($rec)){
+    		if(isset($rec->baseAccountId) && !$mvc->haveRightFor('conto')){
     			$res = 'no_one';
     		}
     	}
