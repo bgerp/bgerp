@@ -100,7 +100,7 @@ class crm_ext_ProductListToContragents extends core_Manager
     	$this->FLD('reff', 'varchar(32)', 'caption=Техен код');
 	
     	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId');
-    	$this->setDbIndex('reff');
+    	$this->setDbUnique('reff');
 	}
 	
 	
