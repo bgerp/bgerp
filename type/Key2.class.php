@@ -266,7 +266,9 @@ class type_Key2 extends type_Int
                 'error' => 'Липсва данни за елемента за избор'
             );
         } else {
-
+            
+            $res = array();
+            
             $this->params = $hnd;
 
             $q = trim(Request::get('q'));

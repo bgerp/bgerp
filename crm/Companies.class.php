@@ -1073,7 +1073,9 @@ class crm_Companies extends core_Master
         }
 
         $query->show('id,searchFieldXpr');
-
+        
+        $res = array();
+        
         while($rec = $query->fetch()) {
             $res[$rec->id] = trim($rec->searchFieldXpr);
         }
