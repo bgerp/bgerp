@@ -384,7 +384,7 @@ class unit_MinkPSales extends core_Manager {
         // активиране на продажбата
         $browser->press('Активиране');
         //return $browser->getHtml();
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), '3,69')) {
         } else {
@@ -396,25 +396,27 @@ class unit_MinkPSales extends core_Manager {
         }
     
         // експедиционно нареждане
-        $browser->press('Експедиране');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Експедиционно нареждане с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в ЕН', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Експедиране');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Експедиционно нареждане с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна сума в ЕН', 'warning');
+        //}
          
         // протокол
-        $browser->press('Пр. услуги');
-        $browser->setValue('template', 'Протокол за извършени услуги с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в Протокол за услуга', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Пр. услуги');
+        //$browser->setValue('template', 'Протокол за извършени услуги с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна сума в Протокол за услуга', 'warning');
+        //}
         
         // Фактура
         $browser->press('Фактура');
