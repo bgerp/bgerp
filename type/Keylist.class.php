@@ -293,7 +293,7 @@ class type_Keylist extends core_Type {
 
                     list(, $uId)=explode("_", $key);
                     if($this->info[$uId]) {
-                        $v = "<i>" . $v . "</i>";
+                        $v = "<span class='profile-state'>" . $v . "</span>";
                     }
  
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
