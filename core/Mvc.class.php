@@ -238,6 +238,8 @@ class core_Mvc extends core_FieldSet
                 }
             }
         }
+        
+        if($cache === 'only') return;
 
         if($fields != '*') {
             $query->show($fields);
@@ -304,8 +306,12 @@ class core_Mvc extends core_FieldSet
     static function fetchField($cond, $field = 'id', $cache = TRUE)
     {
         expect($field);
-
-        $rec = static::fetch($cond, $field, $cache);
+        
+        $rec = static::fetch($cond, '*', 'only');
+        
+        if(!$rec) {
+            $rec = static::fetch($cond, $field, $cache);
+        }
 
         return $rec->{$field};
     }
@@ -546,6 +552,56 @@ class core_Mvc extends core_FieldSet
     }
 
 
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit($onlyIds)) {
+            $query->where("#id = $onlyIds");
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+       
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+
+            $q = trim(preg_replace("/[^a-z0-9\p{Ll}]+/ui", ' ', $q));
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '%', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            foreach($qArr as $w) {
+                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+            }
+        }
+ 
+        if($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,' . $titleFld);
+
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->{$titleFld};
+        }
+ 
+        return $res;
+    }
+
+
     /**
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
      * на $class отговарящи на условието where
@@ -733,7 +789,7 @@ class core_Mvc extends core_FieldSet
 
         $rec = new stdClass();
 
-        try {$rec = $me->fetch($id);} catch (Exception $e) {}
+        try {$rec = $me->fetch($id);} catch(ErrorException $e) {}
         
         if(!$rec) return '??????????????';
 		
