@@ -100,7 +100,7 @@ class doclog_Setup extends core_ProtoSetup
                 
                 $threadId = doc_Containers::fetchField($nRec->usedContainerId, 'threadId');
                 doclog_Documents::removeHistoryFromCache($threadId);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 
                 reportException($e);
                 

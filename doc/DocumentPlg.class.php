@@ -473,7 +473,7 @@ class doc_DocumentPlg extends core_Plugin
                 $data->query->where("#state = 'rejected'");
             } else {
                 $data->rejQuery = clone($data->query);
-                $data->query->where("#state != 'rejected' || #state IS NULL");
+                $data->query->where("#state != 'rejected' OR #state IS NULL");
                 $data->rejQuery->where("#state = 'rejected'");
             }
            
@@ -548,7 +548,7 @@ class doc_DocumentPlg extends core_Plugin
         core_Cache::remove($mvc->className, $key);
         
         // Намира контейнера на документа
-        $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+        $containerId = $rec->containerId ? $rec->containerId : $mvc->fetch($rec->id)->containerId;
             
         // Възстановяваме (ако е необходимо) нишката ПРЕДИ да създадем/обновим контейнера
         // Това гарантира, че абонатите на оттеглени нишки все пак ще получат нотификация за
@@ -1083,7 +1083,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $containerRec->folderId;
             
             // Първия запис в threada
-            $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+            $firstContainerId = doc_Threads::fetch($rec->threadId)->firstContainerId;
             
             // Ако копираме първия запис в треда, тогава създаваме нов тред
             if ($firstContainerId == $cloneId) {
@@ -1139,7 +1139,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if($rec->threadId) {
             doc_Threads::requireRightFor('single', $rec->threadId);
-            $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+            $rec->folderId = doc_Threads::fetch($rec->threadId)->folderId;
         }
         
         if(!$rec->folderId) {
@@ -1236,7 +1236,7 @@ class doc_DocumentPlg extends core_Plugin
         } elseif ($rec->threadId) {
             
             // Ако добавяме коментар в нишката
-            $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+            $cid = doc_Threads::fetch($rec->threadId)->firstContainerId;
         }
         
         if (!$data->form->rec->id) {
@@ -1262,7 +1262,8 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
-            $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetchField('folderId');
+            
+            $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetch($data->form->rec->threadId)->folderId;
         	
             if(($mvc->canAddToFolder($folderId) !== FALSE) && $mvc->onlyFirstInThread !== FALSE){
             	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
@@ -1542,8 +1543,8 @@ class doc_DocumentPlg extends core_Plugin
     			} else{
     				
     				// Ако папката на нишката е затворена, не може да се добавят документи
-    				$folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
-    				if(doc_Folders::fetchField($folderId, 'state') == 'closed'){
+                    $folderId = $rec->folderId ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
+    				if(doc_Folders::fetch($folderId)->state == 'closed'){
     					$requiredRoles = 'no_one';
     				}
     			}        
@@ -1556,7 +1557,7 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
-    			} elseif(doc_Folders::fetchField($rec->folderId, 'state') == 'closed') {
+    			} elseif(doc_Folders::fetch($rec->folderId)->state == 'closed') {
     				
     				// Ако папката е затворена не могат да се добавят документи
     				$requiredRoles = 'no_one';
@@ -1607,7 +1608,7 @@ class doc_DocumentPlg extends core_Plugin
         				// е споделена с партньора)
                 		$isVisibleToContractors = colab_Threads::haveRightFor('single', doc_Threads::fetch($oRec->threadId));
                 		
-                		if($isVisibleToContractors && doc_Containers::fetchField($rec->containerId, 'visibleForPartners') == 'yes'){
+                		if($isVisibleToContractors && doc_Containers::fetch($rec->containerId)->visibleForPartners == 'yes'){
                 			
                 			// Тогава позволяваме на контрактора да има достъп до сингъла на този документ
                 			$requiredRoles = 'contractor';
@@ -2435,8 +2436,8 @@ class doc_DocumentPlg extends core_Plugin
         $query = doc_Containers::getQuery();
         
         // Извличане на треда и контейнера на документа
-        $threadId    = $mvc->fetchField($originDocId, 'threadId');
-        $containerId = $mvc->fetchField($originDocId, 'containerId');
+        $threadId    = $mvc->fetch($originDocId)->threadId;
+        $containerId = $mvc->fetch($originDocId)->containerId;
         
         // Намиране на последващите документи в треда (различни от текущия)
         $chainContainers = $query->fetchAll("

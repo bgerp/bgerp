@@ -159,7 +159,7 @@ class email_Fingerprints extends core_Manager
                     $hashStr .= email_Mime::getHeadersFromArr($headersArr, $hVar, '*', FALSE) . '|';
                 }
                 $headerHashArr[$headerHash] = md5($hashStr);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
                 $headerHashArr[$headerHash] = $headerHash;
             }

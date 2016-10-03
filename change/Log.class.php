@@ -111,8 +111,12 @@ class change_Log extends core_Manager
         // Обхождаме масива с полетата
         foreach ((array)$fieldsArr as $field) {
             
-            // Ако modifiedOn
-            if ($oldRec->modifiedOn) {
+            // Ако changeModifiedOn
+            if ($oldRec->changeModifiedOn) {
+                
+                // Използваме него
+                $createdOn = $oldRec->changeModifiedOn;
+            } elseif ($oldRec->modifiedOn) {
                 
                 // Използваме него
                 $createdOn = $oldRec->modifiedOn;
@@ -122,8 +126,12 @@ class change_Log extends core_Manager
                 $createdOn = dt::verbal2Mysql();
             }
             
-            // Ако modifiedBy
-            if ($oldRec->modifiedBy) {
+            // Ако changeModifiedBy
+            if ($oldRec->changeModifiedBy) {
+                
+                // Използваме него
+                $createdBy = $oldRec->changeModifiedBy;
+            } elseif ($oldRec->modifiedBy) {
                 
                 // Използваме него
                 $createdBy = $oldRec->modifiedBy;
@@ -260,8 +268,14 @@ class change_Log extends core_Manager
         // Последната версия на записа
         $docRec = $class->fetch($docId);
         
-        // Ако има дата и потребтел
-        if (isset($docRec->modifiedBy) && isset($docRec->modifiedOn)) {
+        // Ако има дата и потребител
+        if (isset($docRec->changeModifiedBy) && isset($docRec->changeModifiedOn)) {
+        
+            // Вземаме вербалните им стойности
+            $lastVerRow = $class->recToVerbal($docRec, 'changeModifiedBy, changeModifiedOn, -single');
+            $row->createdBy = $lastVerRow->changeModifiedBy;
+            $row->createdOn = $lastVerRow->changeModifiedOn;
+        } elseif (isset($docRec->modifiedBy) && isset($docRec->modifiedOn)) {
             
             // Вземаме вербалните им стойности
             $lastVerRow = $class->recToVerbal($docRec, 'modifiedBy, modifiedOn, -single');
@@ -750,8 +764,8 @@ class change_Log extends core_Manager
                 
                 // Определяме версията от записа в модела
                 $resArr['versionStr'] = static::getVersionStr($rec->version, $rec->subVersion);
-                $resArr['createdOn'] = $rec->modifiedOn;
-                $resArr['createdBy'] = $rec->modifiedBy;
+                $resArr['createdOn'] = $rec->changeModifiedOn ? $rec->changeModifiedOn : $rec->modifiedOn;
+                $resArr['createdBy'] = $rec->changeModifiedBy ? $rec->changeModifiedBy : $rec->modifiedBy;
             }
         }
         

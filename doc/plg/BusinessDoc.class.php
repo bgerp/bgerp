@@ -176,7 +176,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     		// клас и да може да бъде корица на папка
     		if(cls::load($coverId, TRUE)){
     			if(cls::haveInterface('doc_FolderIntf', $coverId)){
-    				 
+    				
     				// Създаване на поле за избор от дадения клас
     				$Class = cls::get($coverId);
     				list($pName, $coverName) = explode('_', $coverId);
@@ -188,8 +188,8 @@ class doc_plg_BusinessDoc extends core_Plugin
                     $mvc->RestrictQueryOnlyFolderForDocuments($query);
                     $query->orderBy('#modifiedOn', 'DESC');
     				$newOptions = array();
-                    
-                    while($rec = $query->fetch()) {
+
+                    while($rec = $query->fetchAndCache()) {
                     	$oRec = (object)array('folderId' => $rec->id);
                     	if($oId = Request::get('originId')){
                     		$oRec->originId = $oId;

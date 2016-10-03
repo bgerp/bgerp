@@ -30,7 +30,7 @@ class type_User extends type_Key
     function init($params = array())
     {
         setIfNot($params['params']['mvc'], 'core_Users');
-        setIfNot($params['params']['select'], 'names');
+        //setIfNot($params['params']['select'], 'names');
         
         parent::init($params);
         
@@ -113,7 +113,13 @@ class type_User extends type_Key
                     if(!$this->options[$key]) {
                         $this->options[$key] = new stdClass();
                     }
-                    $this->options[$key]->title = $uRec->$part;
+
+                    if($part) {
+                        $this->options[$key]->title = $uRec->$part;
+                    } else {
+                        $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
+                    }
+
                     $this->options[$key]->value = $uRec->id;
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
@@ -128,7 +134,7 @@ class type_User extends type_Key
         }
         
         $this->options = parent::prepareOptions();
-        
+       
         return $this->options;
     }
     

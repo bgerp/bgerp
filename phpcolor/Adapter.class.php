@@ -41,7 +41,7 @@ class  phpcolor_Adapter extends core_Mvc
 
         try {
             $myColor = new Color($hexColor);
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             reportException($e);
             self::logErr($e->getMessage() . ' - ' . $hexColor);
             
@@ -80,7 +80,7 @@ class  phpcolor_Adapter extends core_Mvc
  
         try {
     	    $myColor = new Color($hexColor);
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             reportException($e);
             self::logErr($e->getMessage() . ' - ' . $hexColor);
             

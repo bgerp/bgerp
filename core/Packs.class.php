@@ -104,9 +104,9 @@ class core_Packs extends core_Manager
         static $isInstalled = array();
         
         if (!isset($isInstalled[$name])) {
-            $rec = static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name));
+            $rec = static::fetch(array("#name = '[#1#]'", $name));
             
-            if ($rec) {
+            if ($rec && $rec->state == 'active') {
                 $isInstalled[$name] = $rec->id;
             } else {
                 $isInstalled[$name] = FALSE;
@@ -567,7 +567,7 @@ class core_Packs extends core_Manager
             		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
             		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
             	}
-    	    } catch (Exception $e) {
+    	    } catch(ErrorException $e) {
     	        // Възможно е да липсва кода на пакета
     	    }
         }

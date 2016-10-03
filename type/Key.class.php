@@ -414,7 +414,7 @@ class type_Key extends type_Int
             $cacheOpt[$key]['title'] = $v;
             $cacheOpt[$key]['id'] = $vNorm;
         }
-        
+
         core_Cache::set($this->selectOpt, $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
     }
     
@@ -446,7 +446,7 @@ class type_Key extends type_Int
         $conf = core_Packs::getConfig('core');
         
         $maxSuggestions = $this->params['maxSuggestions'] ? $this->params['maxSuggestions'] : $conf->TYPE_KEY_MAX_SUGGESTIONS;
-        
+       
         return $maxSuggestions;
     }
     

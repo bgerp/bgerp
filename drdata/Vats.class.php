@@ -275,7 +275,7 @@ class drdata_Vats extends core_Manager
                 
                 $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
                 @$result = $client->checkVat($params);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
                 $result = new stdClass();
             }
