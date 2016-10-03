@@ -774,6 +774,20 @@ class core_Query extends core_FieldSet
             return $rec;
         }
     }
+
+
+    /**
+     * Същия метод като ->fetch(), но с кеширане на резултата
+     */
+    public function fetchAndCache($cond = NULL)
+    {
+        $rec = $this->fetch($cond);
+        if($rec) {
+            $this->mvc->_cachedRecords[$rec->id . '|*'] =  clone $rec;
+        }
+
+        return $rec;
+    }
     
     
     /**

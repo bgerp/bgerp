@@ -510,6 +510,6 @@ class distro_Group extends core_Master
     static function on_AfterSetupMVC($mvc, &$res)
     {
         //Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', NULL, '104857600', 'user', 'user');
+        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', NULL, '300 MB', 'user', 'user');
     }
 }

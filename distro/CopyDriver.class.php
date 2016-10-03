@@ -268,7 +268,7 @@ class distro_CopyDriver extends core_Mvc
     {
         if ($rec->sourceRepoId) {
             $fileName = $embeder->getFileName($rec);
-            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' "' . $fileName . '" ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
             $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->sourceRepoId, 'name');
             
             if ($rec->newFileId && $rec->newFileName && ($rec->newFileName != $rec->fileName)) {

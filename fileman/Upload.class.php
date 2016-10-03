@@ -97,7 +97,7 @@ class fileman_Upload extends core_Manager
                                     $bucketName = fileman_Buckets::fetchField($bucketId, 'name');
                                     
                                     $fh = fileman::absorb($_FILES[$inputName]['tmp_name'][$id], $bucketName, $_FILES[$inputName]['name'][$id]);
-                                } catch (Exception $e) {
+                                } catch (ErrorException $e) {
                                     reportException($e);
                                     self::logWarning('Грешка при качване на файл: ' . $e->getMessage());
                                 }

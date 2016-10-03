@@ -211,8 +211,38 @@ class core_Users extends core_Manager
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
     }
+
+
+    /**
+     * Премахва масива с потребители и роли
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    {
+        
+        if(!$fields || 
+            in_array('state', $fields = arr::make($fields)) || 
+            in_array('nick', $fields) || 
+            in_array('names', $fields) || 
+            in_array('rolesInput', $fields) || 
+            in_array('roles', $fields)) {
+
+            core_Cache::remove(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID);
+        }
+    }
+
+
+    /**
+     * Изпълнява се след запис/промяна на роля
+     */
+    static function on_AfterDelete($mvc, &$id)
+    {
+        core_Cache::remove(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID);
+    }
+
     
-    
+    const ROLES_WITH_USERS_CACHE_ID = 'USER_ROLES';
+
+
     /**
      * Връща масив от масиви - роли и потребители, които имат съответните роли
      * 
@@ -220,32 +250,28 @@ class core_Users extends core_Manager
      */
     public static function getRolesWithUsers()
     {
-        $type = 'userRoles';
-        $handle = 'userRolesArr';
-        $keepMinute = 1440;
-        $depends = array('core_Roles', 'core_Users');
-        
         // Проверяваме дали записа фигурира в кеша
-        $usersRolesArr = core_Cache::get($type, $handle, $keepMinute, $depends);
-        
-        if ($usersRolesArr !== FALSE) return $usersRolesArr;
+        $usersRolesArr = core_Cache::get(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $keepMinute);
+        if (is_array($usersRolesArr)) return $usersRolesArr;
+
+        $keepMinute = 1440;
         
         $uQuery = core_Users::getQuery();
-//        $uQuery->where("#state != 'blocked'");
-//        $uQuery->where("#state != 'rejected'");
-        
+        $uQuery->orderBy('#nick');
+
         // За всяка роля добавяме потребители, които я имат
-        while ($uRec = $uQuery->fetch()) {
+        while ($uRec = $uQuery->fetchAndCache()) {
             $rolesArr = type_Keylist::toArray($uRec->roles);
             foreach ($rolesArr as $roleId) {
                 $usersRolesArr[0][$uRec->id] = $uRec->id;
                 $usersRolesArr[$roleId][$uRec->id] = $uRec->id;
+                $usersRolesArr['r'][$uRec->id] = (object) array('nick' => type_Nick::normalize($uRec->nick), 'names' => $uRec->names, 'state' => $uRec->state);
             }
         }
         
         // Записваме масива в кеша
-        core_Cache::set($type, $handle, $usersRolesArr, $keepMinute, $depends);
-        
+        core_Cache::set(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $usersRolesArr, $keepMinute);
+       
         return $usersRolesArr;
     }
     
@@ -860,7 +886,7 @@ class core_Users extends core_Manager
      */
     static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
-        if($rec->rolesInput) {
+        if(!$fields || in_array('roles', $fields = arr::make($fields))) {
 
             $rolesArr = keylist::toArray($rec->rolesInput);
             
@@ -955,6 +981,8 @@ class core_Users extends core_Manager
     {
         $Users = cls::get('core_Users');
         
+        expect($part);
+        
         if($Users->isSystemUser) {
             $rec = new stdClass();
             $rec->nick = core_Setup::get('SYSTEM_NICK');
@@ -966,6 +994,7 @@ class core_Users extends core_Manager
             if ($escaped) {
                 $res = core_Users::getVerbal($cRec, $part);    
             } elseif(is_object($cRec)) {
+                
                 $res = $cRec->$part;    
             }
         }

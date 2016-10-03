@@ -250,6 +250,9 @@ class bgerp_Setup extends core_ProtoSetup {
         // Инсталираме плъгина за проверка дали работи cron
         $html .= $Plugins->installPlugin('Check cron', 'bgerp_plg_CheckCronOnLogin', 'core_Users', 'private');
         
+        // Инсталираме плъгина за оцветяване в листови изглед на резултати от търсене
+        $html .= $Plugins->installPlugin('Highlight list search', 'plg_HighlightListSearch', 'core_Manager', 'family');
+      
         $Menu = cls::get('bgerp_Menu');
         
         // Да се изтрият необновените менюта
