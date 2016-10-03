@@ -115,7 +115,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 		
 		if(empty($rec->id)){
 			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, 'canSell,canBuy', NULL, NULL, TRUE);
-			bp($products);
 			$products = array('' => '') + $products;
 		} else {
 			$products = array($rec->productId => cat_Products::getRecTitle(cat_Products::fetch($rec->productId), FALSE));
