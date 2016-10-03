@@ -992,6 +992,12 @@ class core_Users extends core_Manager
             if ($escaped) {
                 $res = core_Users::getVerbal($cRec, $part);    
             } elseif(is_object($cRec)) {
+                
+                $cRecArr = (array) $cRec;
+                if (empty($cRecArr)) {
+                    wp($cRec, Mode::$stack, Mode::$mode);
+                }
+                
                 $res = $cRec->$part;    
             }
         }
