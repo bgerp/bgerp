@@ -994,8 +994,8 @@ class core_Users extends core_Manager
             } elseif(is_object($cRec)) {
                 
                 $cRecArr = (array) $cRec;
-                if (empty($cRecArr)) {
-                    wp($cRec, Mode::$stack, Mode::$mode);
+                if (empty($cRecArr) || !trim($part)) {
+                    wp($cRec, $part, Mode::$stack, Mode::$mode);
                 }
                 
                 $res = $cRec->$part;    
