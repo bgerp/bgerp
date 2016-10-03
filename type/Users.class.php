@@ -122,11 +122,7 @@ class type_Users extends type_Keylist
                 $group->attr = array('class' => 'team', 'style' => 'background-color:#000;color:#fc0');
                 
                 $this->options[$t . ' team'] = $group;
-                
-                // $uQueryCopy = clone($uQuery);
-                
-                // $uQueryCopy->likeKeylist('roles', "|{$t}|");
-              
+                              
                 $teamMembers = '';
                 
                 $haveTeamMembers = FALSE;
