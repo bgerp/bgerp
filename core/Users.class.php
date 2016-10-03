@@ -981,6 +981,8 @@ class core_Users extends core_Manager
     {
         $Users = cls::get('core_Users');
         
+        expect($part);
+        
         if($Users->isSystemUser) {
             $rec = new stdClass();
             $rec->nick = core_Setup::get('SYSTEM_NICK');
@@ -992,11 +994,6 @@ class core_Users extends core_Manager
             if ($escaped) {
                 $res = core_Users::getVerbal($cRec, $part);    
             } elseif(is_object($cRec)) {
-                
-                $cRecArr = (array) $cRec;
-                if (empty($cRecArr) || !trim($part)) {
-                    wp($cRec, $part, Mode::$stack, Mode::$mode);
-                }
                 
                 $res = $cRec->$part;    
             }
