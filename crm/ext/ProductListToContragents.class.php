@@ -37,7 +37,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	/**
 	 * Кой  може да листва?
 	 */
-	public $canList = 'no_one';
+	public $canList = 'debug';
 	
 	
 	/**
@@ -55,7 +55,7 @@ class crm_ext_ProductListToContragents extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, crm_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Search';
+    public $loadList = 'plg_Modified, crm_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Search,plg_Select';
     
     
     /**
@@ -97,11 +97,10 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId,caption=Артикул');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,caption=Опаковка,input=hidden,mandatory');
-    	$this->FLD('type', 'enum(sellable,buyable)', 'caption=За,input=hidden,silent');
     	$this->FLD('reff', 'varchar(32)', 'caption=Техен код');
 	
-    	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId,type');
-    	$this->setDbIndex('reff');
+    	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId');
+    	$this->setDbUnique('reff');
 	}
 	
 	
@@ -113,10 +112,9 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$form = &$data->form;
 		$rec = $form->rec;
 		$mvc->currentTab = ($rec->contragentClassId == crm_Companies::getClassId()) ? 'Фирми' : 'Лица';
-		$meta = ($rec->type == 'sellable') ? 'canSell' : 'canBuy';
 		
 		if(empty($rec->id)){
-			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, $meta, NULL, NULL);
+			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, 'canSell,canBuy', NULL, NULL, TRUE);
 			$products = array('' => '') + $products;
 		} else {
 			$products = array($rec->productId => cat_Products::getRecTitle(cat_Products::fetch($rec->productId), FALSE));
@@ -178,9 +176,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
 	{
 		$rec = $data->form->rec;
-		$singleTitle = $mvc->singleTitle;
-		$singleTitle .= ($rec->type == 'sellable') ? " " . tr('в продажба') : " " . tr('в покупка');
-		$data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $singleTitle, $rec->id, 'в');
+		$data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, 'в');
 	
 		// Махане на бутона запис и нов, ако няма достатъчно записи
 		if(count($data->form->productOptions) <= 1){
@@ -218,7 +214,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 		// Добавяне на бутони
 		if($this->haveRightFor('add', (object)array('contragentClassId' => $data->contragentClassId, 'contragentId' => $data->masterId))){
 			$data->addSellableUrl = array($this, 'add', 'contragentClassId' => $data->contragentClassId, 'contragentId' => $data->masterId, 'type' => 'sellable', 'ret_url' => TRUE);
-			$data->addBuyableUrl = array($this, 'add', 'contragentClassId' => $data->contragentClassId, 'contragentId' => $data->masterId, 'type' => 'buyable', 'ret_url' => TRUE);
 		}
 	}
 	
@@ -256,9 +251,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$this->prepareListFields($data);
 		$data->sellable = new stdClass();
 		$data->sellable->recs = $data->sellable->rows = array();
-		$data->buyable = new stdClass();
-		$data->buyable->recs = $data->buyable->rows = array();
-		$data->sellable->listFields = $data->buyable->listFields = $data->listFields;
+		$data->sellable->listFields = $data->listFields;
 		
 		// Подготовка на форма за филтриране
 		$this->prepareForm($data);
@@ -273,11 +266,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 			plg_Search::applySearch($data->form->rec->search, $sellableQuery);
 		}
 		
-		// Подготовка на заявката
-		$buyableQuery = clone $sellableQuery;
-		$buyableQuery->where("#type = 'buyable'");
-		$sellableQuery->where("#type = 'sellable'");
-		
 		// Подготовка на листваните артикули за продажба
 		$data->sellable->recs = $sellableQuery->fetchAll();
 		$data->sellable->pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
@@ -288,18 +276,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 		foreach ($data->sellable->recs as $sId => $sRec){
 			if(!$data->sellable->pager->isOnPage()) continue;
 			$data->sellable->rows[$sId] = $this->recToVerbal($sRec);
-		}
-		
-		// Подготовка на листваните артикули за покупка
-		$data->buyable->recs = $buyableQuery->fetchAll();
-		$data->buyable->pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-		$data->buyable->pager->itemsCount = count($data->buyable->recs);
-		$data->buyable->pager->setPageVar('b');
-		
-		// За всеки запис, вербализира се, ако трябва да се показва
-		foreach ($data->buyable->recs as $bId => $bRec){
-			if(!$data->buyable->pager->isOnPage()) continue;
-			$data->buyable->rows[$bId] = $this->recToVerbal($bRec);
 		}
 	}
 	
@@ -332,33 +308,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 	
 	
 	/**
-	 * Рендиране на листваните артикули за покупка
-	 * 
-	 * @param core_ET $tpl
-	 * @param stdClass $data
-	 */
-	private function renderBuyableBlock(&$tpl, $data)
-	{
-		// Рендиране на таблицата с артикулите
-		$table = cls::get('core_TableView', array('mvc' => $this));
-		$this->invoke('BeforeRenderListTable', array($tpl, &$data->buyable));
-		$tableTpl = $table->get($data->buyable->rows, $data->buyable->listFields);
-		$tpl->replace($tableTpl, 'BUYABLE');
-		
-		// Редниране на бутона за добавяне
-		if(isset($data->addBuyableUrl)){
-			$btn = ht::createBtn('Артикул', $data->addBuyableUrl, NULL, NULL, 'ef_icon=img/16/shopping.png,title=Добавяне на нов артикул за листване в покупка');
-			$tpl->replace($btn, 'BUYABLE_BTN');
-		}
-		
-		// Рендиране на пейджъра
-		if(isset($data->buyable->pager)){
-			$tpl->append($data->buyable->pager->getHtml(), 'BUYABLE_PAGER');
-		}
-	}
-	
-	
-	/**
 	 * Рендиране на листваните артикули за клиента
 	 * 
 	 * @param stdClass $data
@@ -380,7 +329,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 		
 		// Рендиране на двете таблици за листвани артикули
 		self::renderSellableBlock($tpl, $data);
-		self::renderBuyableBlock($tpl, $data);
 		
 		// Връщане на шаблона
 		return $tpl;
@@ -438,13 +386,11 @@ class crm_ext_ProductListToContragents extends core_Manager
 			$query = self::getQuery();
 			$query->where("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}");
 			$query->orderBy('id', 'DESC');
-			self::$cache[$contragentClassId][$contragentId]['sellable'] = array();
-			self::$cache[$contragentClassId][$contragentId]['buyable'] = array();
 			
 			// Добавя се всеки запис, групиран според типа
 			while($rec = $query->fetch()){
 				$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff);
-				self::$cache[$contragentClassId][$contragentId][$rec->type][$rec->id] = $obj;
+				self::$cache[$contragentClassId][$contragentId][$rec->id] = $obj;
 			}
 		}
 		
@@ -459,18 +405,15 @@ class crm_ext_ProductListToContragents extends core_Manager
 	 * @param mixed $cClass          - ид на клас
 	 * @param int $cId               - ид на контрагента
 	 * @param varchar $reff          - код за търсене
-	 * @param buyable|sellable $type - продаваем или купуваем
 	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
 	 */
-	private static function getProductByReff($cClass, $cId, $reff, $type = 'sellable')
+	public static function getProductByReff($cClass, $cId, $reff)
 	{
 		// Взимане от кеша на листваните артикули
-		expect(in_array($type, array('buyable', 'sellable')));
 		$all = self::getAll($cClass, $cId);
-		$arr = $all[$type];
 		
 		// Оставят се само тези записи, в които се среща кода
-		$res = array_filter($arr, function (&$e) use ($reff) {
+		$res = array_filter($all, function (&$e) use ($reff) {
 			if($e->reff == $reff){
 				return TRUE;
 			}
@@ -494,18 +437,15 @@ class crm_ext_ProductListToContragents extends core_Manager
 	 * @param int $cId               - ид на контрагента
 	 * @param int $productId         - ид на артикул
 	 * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
-	 * @param buyable|sellable $type - продаваем или купуваем
 	 * @return varchar|NULL          - намерения код или NULL
 	 */
-	private static function getReffByProductId($cClass, $cId, $productId, $packagingId = NULL, $type = 'sellable')
+	public static function getReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
 	{
 		// Извличане на всичките листвани артикули
-		expect(in_array($type, array('buyable', 'sellable')));
 		$all = self::getAll($cClass, $cId);
-		$arr = $all[$type];
 		
 		// Намират се записите за търсения артикул
-		$res = array_filter($arr, function (&$e) use ($productId, $packagingId) {
+		$res = array_filter($all, function (&$e) use ($productId, $packagingId) {
 			if(isset($packagingId)){
 				if($e->productId == $productId && $e->packagingId == $packagingId){
 					return TRUE;
@@ -525,65 +465,5 @@ class crm_ext_ProductListToContragents extends core_Manager
 		
 		// Връща се намерения код
 		return $reff;
-	}
-	
-	
-	/**
-	 * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
-	 * се връща първия намерен код
-	 *
-	 * @param mixed $cClass          - ид на клас
-	 * @param int $cId               - ид на контрагента
-	 * @param int $productId         - ид на артикул
-	 * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
-	 * @return varchar|NULL          - намерения код или NULL
-	 */
-	public static function getSaleReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
-	{
-		return self::getReffByProductId($cClass, $cId, $productId, $packagingId, 'sellable');
-	}
-	
-	
-	/**
-	 * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
-	 * се връща първия намерен код
-	 *
-	 * @param mixed $cClass          - ид на клас
-	 * @param int $cId               - ид на контрагента
-	 * @param int $productId         - ид на артикул
-	 * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
-	 * @return varchar|NULL          - намерения код или NULL
-	 */
-	public static function getPurchaseReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
-	{
-		return self::getReffByProductId($cClass, $cId, $productId, $packagingId, 'buyable');
-	}
-	
-	
-	/**
-	 * Помощна ф-я връщаща намерения артикул и опаковка според кода на за продажба
-	 *
-	 * @param mixed $cClass          - ид на клас
-	 * @param int $cId               - ид на контрагента
-	 * @param varchar $reff          - код за търсене
-	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
-	 */
-	public static function getSaleProductByReff($cClass, $cId, $reff)
-	{
-		return self::getProductByReff($cClass, $cId, $reff, 'sellable');
-	}
-	
-	
-	/**
-	 * Помощна ф-я връщаща намерения артикул и опаковка според кода на за покупка
-	 *
-	 * @param mixed $cClass          - ид на клас
-	 * @param int $cId               - ид на контрагента
-	 * @param varchar $reff          - код за търсене
-	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
-	 */
-	public static function getPurchaseProductByReff($cClass, $cId, $reff)
-	{
-		return self::getProductByReff($cClass, $cId, $reff, 'buyable');
 	}
 }

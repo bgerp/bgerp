@@ -81,7 +81,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     	}
     
     	$result->entries = $entries;
-    	// bp($result);
+    	
     	return $result;
     }
 }

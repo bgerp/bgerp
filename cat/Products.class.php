@@ -1186,13 +1186,20 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща продуктите опции с продукти:
-     * 	 Ако е зададен клиент се връщат всички публични + частните за него
-     *   Ако не е зададен клиент се връщат всички активни продукти
-     *
-     * @return array() - масив с опции, подходящ за setOptions на форма
+     * Връща масив с артикули за избор, според подадения контрагент.
+     * Намира всички стандартни + нестандартни артикули (тези само за клиента или споделени към него).
+     * Или ако не е подаден контрагент от всички налични артикули
+     * 
+     * @param mixed $customerClass     - клас на контрагента
+     * @param int|NULL $customerId     - ид на контрагента
+     * @param string $datetime         - към коя дата
+     * @param mixed $hasProperties     - свойства, които да имат артикулите
+     * @param mixed $hasnotProperties  - свойства, които да нямат артикулите
+     * @param int|NULL $limit          - лимит
+     * @param boolean $orHasProperties - Дали трябва да имат всички свойства от зададените или поне едно
+     * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL, $ignoreIds = NULL)
+    public static function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL, $orHasProperties = FALSE)
     {
 		// Само активни артикули
     	$query = static::getQuery();
@@ -1233,8 +1240,16 @@ class cat_Products extends embed_Manager {
     	
     	// За всяко свойство търсим по полето за бързо търсене
     	if(count($metaArr)){
+    		$count = 0;
     		foreach ($metaArr as $meta){
-    			$query->where("#{$meta} = 'yes'");
+    			if($orHasProperties === TRUE){
+    				$or = ($count == 0) ? FALSE : TRUE;
+    			} else {
+    				$or = FALSE;
+    			}
+    			
+    			$query->where("#{$meta} = 'yes'", $or);
+    			$count++;
     		}
     	}
     	

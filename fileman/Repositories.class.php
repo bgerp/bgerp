@@ -847,7 +847,7 @@ class fileman_Repositories extends core_Master
             // RecursiveIteratorIterator::SELF_FIRST - Служи за вземане и на директориите
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath), RecursiveIteratorIterator::SELF_FIRST);
             
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             self::logNotice('Не може да се обходи директорията', $repoRec->id);
             
             return $res;

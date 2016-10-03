@@ -24,16 +24,22 @@ class change_Plugin extends core_Plugin
     {
         // Ако няма добавено поле за версия
         if (!$mvc->fields['version']) {
-            
-            // Добавяме
             $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,autohide,width=100%, spellcheck=no');
         }
         
         // Ако няма добавено поле за подверсия
         if (!$mvc->fields['subVersion']) {
-            
-            // Добавяме
             $mvc->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
+        }
+        
+        // Ако няма добавено поле за промяна на датата
+        if (!$mvc->fields['changeModifiedOn']) {
+            $mvc->FLD('changeModifiedOn', 'datetime(format=smartTime)', 'caption=Промяна->На,input=none,column=none,single=none');
+        }
+        
+        // Ако няма добавено поле за промяна от
+        if (!$mvc->fields['changeModifiedBy']) {
+            $mvc->FLD('changeModifiedBy', 'key(mvc=core_Users)', 'caption=Промяна->От,input=none,column=none,single=none');
         }
     }
     
@@ -220,6 +226,10 @@ class change_Plugin extends core_Plugin
                 
                 // Извикваме фунцкията, за да дадем възможност за добавяне от други хора
                 $mvc->invoke('AfterInputChanges', array($rec, $fRec));
+                
+                // Нулираме ги за да се променят
+                $fRec->changeModifiedBy = NULL;
+                $fRec->changeModifiedOn = NULL;
                 
                 // Записваме промени
                 $mvc->save($fRec);
@@ -672,5 +682,43 @@ class change_Plugin extends core_Plugin
     {
         $nRec->version = 0;
         $nRec->subVersion = 1;
+        $nRec->changeModifiedOn = NULL;
+        $nRec->changeModifiedBy = NULL;
+    }
+    
+    
+    /**
+     * Преди запис на документ
+     *
+     * @param change_Log $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @param NULL|string $fields
+     * @param stdClass|string $mode
+     */
+    public static function on_BeforeSave($mvc, $res, $rec, &$fields = NULL, &$mode = NULL)
+    {
+        if ($fields) {
+            $fieldsArr = arr::make($fields, TRUE);
+            $mustHaveBy = isset($fieldsArr['changeModifiedBy']);
+            $mustHaveOn = isset($fieldsArr['changeModifiedOn']);
+        } else {
+            $mustHaveBy = TRUE;
+            $mustHaveOn = TRUE;
+        }
+        
+        // Определяме кой е създал продажбата
+        if (!isset($rec->changeModifiedBy) && $mustHaveBy) {
+            $rec->changeModifiedBy = Users::getCurrent();
+            
+            if (!$rec->changeModifiedBy) {
+                $rec->changeModifiedBy = core_Users::ANONYMOUS_USER;
+            }
+        }
+        
+        // Записваме момента на създаването
+        if (!isset($rec->changeModifiedOn) && $mustHaveOn) {
+            $rec->changeModifiedOn = dt::verbal2Mysql();
+        }
     }
 }

@@ -658,7 +658,7 @@ class core_Debug
             
             try {
                 $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
-            } catch (Exception $e) {
+            } catch(ErrorException $e) {
                 // Не се прави нищо
             }
             

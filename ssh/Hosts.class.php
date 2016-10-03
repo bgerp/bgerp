@@ -78,7 +78,7 @@ class ssh_Hosts extends core_Master
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
-        $this->FNC('ip', 'varchar(255)', 'caption=IP aдрес, input, mandatory');
+        $this->FNC('ip', 'varchar(255)', 'caption=Адрес, input, mandatory');
         $this->FNC('port', 'int(min=1,max=9999)', 'caption=Порт, input, mandatory');
         $this->FNC('user', 'varchar(255)', 'caption=Потребител, input, mandatory');
         $this->FNC('pass', 'password()', 'caption=Парола, input');

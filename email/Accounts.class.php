@@ -363,7 +363,7 @@ class email_Accounts extends core_Master
                     
                     $form->setWarning('server', $errMsg);
                 }
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
                 $form->setError('server', 'Грешка при свързване');
             }

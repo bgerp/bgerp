@@ -214,9 +214,13 @@ class core_Db extends core_BaseClass
      */
     function query($sqlQuery, $silent = FALSE)
     {
+
+       // if(strpos($sqlQuery, "")) bp();
+
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");
-        
+
+
         $link = $this->connect();
         $this->query = $sqlQuery;
         $dbRes = $link->query($sqlQuery);

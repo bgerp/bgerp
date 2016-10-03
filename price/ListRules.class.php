@@ -212,7 +212,7 @@ class price_ListRules extends core_Detail
     	}
     	
     	if($type == 'discount'){
-            if(!$discount) return FALSE;
+            if(!isset($discount)) return FALSE;
     		expect(cls::get('type_Double')->fromVerbal($discount));
     		if(isset($calculation)){
     			expect(in_array($calculation, array('forward', 'reverse')));
@@ -223,7 +223,7 @@ class price_ListRules extends core_Detail
     	}
     	
     	if($type == 'groupDiscount'){
-            if(!$discount) return FALSE;
+            if(!isset($discount)) return FALSE;
      		expect($gRec = cat_Groups::fetch(cat_Groups::forceGroup($groupName)));
     		$rec->groupId = $gRec->id;
     		$rec->discount = $discount;

@@ -94,7 +94,7 @@ class crm_Profiles extends core_Master
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'userId,personId,stateData=Статус,lastLoginTime=Последно логване';
+    var $listFields = 'userId,personId,lastLoginTime=Последно логване';
     
     
     /**
@@ -474,6 +474,13 @@ class crm_Profiles extends core_Master
         
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
+        
+        if(isset($data->rec->stateInfo) && isset($data->rec->stateDateFrom) && isset($data->rec->stateDateTo)) {
+            $Date = cls::get('type_Date');
+            $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'smartTime');
+            $tpl->append($state, 'userStatus');  
+            $tpl->append("statusClass", 'userClass');
+        }
         
         // Показваме достъпните папки на колабораторите
         if ($data->ColabFolders && $data->ColabFolders->rowsArr) {
@@ -973,7 +980,12 @@ class crm_Profiles extends core_Master
             $link = $title;
             
             $url  = array();
-    	    $attr['class'] .= ' profile';
+            
+            if(self::fetchField($userId,'stateInfo') !== NULL) {
+                $attr['class'] .= ' profile profile-state';
+            } else {
+    	       $attr['class'] .= ' profile';
+            }
 
     		$profileId = self::getProfileId($userId);
     		if ($profileId) {
@@ -1010,16 +1022,16 @@ class crm_Profiles extends core_Master
     			}
     			
     			$attr['title'] = "|*" . $userRec->names;
-    			
+
     			$link = ht::createLink($title, $url, $warning, $attr);
     		} else {
                 $attr['style'] .= ';color:#999 !important;';
                 $link = ht::createLink($userRec->nick, NULL, NULL, $attr);
             }
-    		
+
     		$cacheArr[$key] = $link;
         }
-        
+
         return $cacheArr[$key];
     }
     
@@ -1116,9 +1128,9 @@ class crm_Profiles extends core_Master
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
 
                     if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
-                        $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon, 'class' => 'profile-state'));
-                        $Date = cls::get('type_Date');
-                        $row->stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                        $link  = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+                        $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                        $row->userId = ht::createHint($link, $stateData,'notice');
                     } else {
                         $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                     }

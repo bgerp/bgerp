@@ -756,7 +756,7 @@ class blast_Emails extends core_Master
                         // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
                         // файл със съдържанието на документа в желания формат
                         $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                    } catch (Exception $e) {
+                    } catch(ErrorException $e) {
                         continue;
                     }
                     $docsFhArr += $fhArr;
@@ -1501,7 +1501,7 @@ class blast_Emails extends core_Master
         try {
             // Само имейлите достъпни до потребителя да се показват
             $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
-        } catch (Exception $e) {
+        } catch(ErrorException $e) {
             email_Inboxes::redirect();
             $emailOption = array();
         }

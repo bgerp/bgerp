@@ -57,6 +57,7 @@ class type_User extends type_Key
         }
         
         $part = $this->params['select'];
+        expect($part);
         
         // Вариант 1: Потребителя няма права да вижда екипите
         // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
@@ -113,7 +114,13 @@ class type_User extends type_Key
                     if(!$this->options[$key]) {
                         $this->options[$key] = new stdClass();
                     }
-                    $this->options[$key]->title = $uRec->$part;
+
+                    if($part) {
+                        $this->options[$key]->title = $uRec->$part;
+                    } else {
+                        $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
+                    }
+
                     $this->options[$key]->value = $uRec->id;
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
@@ -128,7 +135,7 @@ class type_User extends type_Key
         }
         
         $this->options = parent::prepareOptions();
-        
+       
         return $this->options;
     }
     
@@ -263,5 +270,19 @@ class type_User extends type_Key
         }
         
         return $arr;
-    } 
+    }
+    
+    
+    /**
+     * Връща възможните стойности за ключа
+     * 
+     * @param string $value
+     * 
+     * @return array
+     */
+    function getAllowedKeyVal($id, $listId = NULL)
+    {
+        
+        return self::getUserFromTeams($id);
+    }
 }

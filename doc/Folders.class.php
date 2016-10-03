@@ -1092,7 +1092,7 @@ class doc_Folders extends core_Master
                 
                 // Обновяваме папката
                 self::updateFolderByContent($rec->id);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
             }
         }
@@ -1141,7 +1141,7 @@ class doc_Folders extends core_Master
                 } else {
                     $mustRepair = TRUE;
                 }
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
                 
                 continue;
@@ -1150,7 +1150,7 @@ class doc_Folders extends core_Master
             if ($mustRepair) {
                 try {
                     $resArr += self::moveToUnsorted($rec);
-                } catch (Exception $e) {
+                } catch (ErrorException $e) {
                     reportException($e);
                 
                     continue;
