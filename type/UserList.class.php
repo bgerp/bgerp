@@ -106,7 +106,9 @@ class type_UserList extends type_Keylist
             // Отваряме всички групи
             $openAllGroups = TRUE;
         }
-        
+
+        $userArr = core_Users::getRolesWithUsers();
+
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
@@ -117,20 +119,17 @@ class type_UserList extends type_Keylist
 
             $this->suggestions[$t . ' team'] = $group;
             
-            $uQuery = core_Users::getQuery();
-            $uQuery->where("#state != 'rejected'");
-            $uQuery->orderBy('nick');
-            
-            $uQuery->likeKeylist('roles', "|{$t}|");
-            
-            $uQuery->likeKeylist('roles', $roles);
-
             $teamMembers = 0;
             
-            while($uRec = $uQuery->fetch()) {
-                
+            foreach($userArr[$t] as $uId) {
+                    
+                $uRec = $userArr['r'][$uId];
+                if ($uRec->state == 'rejected') continue;
+
+                $uRec->id = $uId;
+
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
-                if ($openAllGroups || ($uRec->id == $currUserId)) {
+                if ($openAllGroups || ($uId == $currUserId)) {
                     
                     // Вдигам флага да се отвори групата
                     $group->autoOpen = TRUE;
@@ -139,7 +138,7 @@ class type_UserList extends type_Keylist
                     $haveOpenedGroup=TRUE;
                 }
                 
-                $key = $this->getKey($t, $uRec->id);
+                $key = $this->getKey($t, $uId);
                 if(!isset($this->suggestions[$key])) {
                     $teamMembers++;
                     $this->suggestions[$key] =  html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
