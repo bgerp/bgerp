@@ -337,10 +337,14 @@ class findeals_Deals extends deals_DealBase
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
     	
+    	// Само определени потребители може да задават начално салдо
     	if($this->haveRightFor('conto')){
     		$form->setField('baseAccountId', 'input');
     		$form->setField('baseAmount', 'input');
     		$form->setField('baseAmountType', 'input');
+    		
+    		// Ако е записано в сесията сметка за начално салдо, попълва се
+    		$form->setDefault('baseAccountId', Mode::get('findealCorrespondingAccId'));
     	}
     	
     	return $data;
@@ -958,6 +962,18 @@ class findeals_Deals extends deals_DealBase
     		
     		// Връщаме FALSE за да се стопира оттеглянето на документа
     		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// Ако има избрана сметка за начално салдо, записва се в сесията
+    	if(isset($rec->baseAccountId)){
+    		Mode::setPermanent('findealCorrespondingAccId', $rec->baseAccountId);
     	}
     }
 }
