@@ -349,7 +349,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($data->rec->threadId && ($tRec = doc_Threads::fetch($data->rec->threadId))) {
             if ($tRec->firstContainerId == $data->rec->containerId) {
                 if (log_System::haveRightFor('list')) {
-                    $data->toolbar->addBtn('Логове', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->rec->threadId), 'ef_icon=img/16/memo.png, title=Разглеждане на логовете на нишката, order=19, row=2, initially=hidden');
+                    $data->toolbar->addBtn('Логове', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->rec->threadId), 'ef_icon=img/16/memo.png, title=Разглеждане на логовете на нишката, order=19, row=3');
                 }
             }
         }
