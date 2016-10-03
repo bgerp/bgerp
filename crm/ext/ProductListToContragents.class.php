@@ -114,7 +114,8 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$mvc->currentTab = ($rec->contragentClassId == crm_Companies::getClassId()) ? 'Фирми' : 'Лица';
 		
 		if(empty($rec->id)){
-			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, 'canSell,canBuy', NULL, NULL);
+			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, 'canSell,canBuy', NULL, NULL, TRUE);
+			bp($products);
 			$products = array('' => '') + $products;
 		} else {
 			$products = array($rec->productId => cat_Products::getRecTitle(cat_Products::fetch($rec->productId), FALSE));
