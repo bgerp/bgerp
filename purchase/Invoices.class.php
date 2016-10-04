@@ -116,6 +116,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo,purchaseMaster,manager';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = "3.3|Търговия";
