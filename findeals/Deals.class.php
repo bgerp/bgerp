@@ -529,11 +529,11 @@ class findeals_Deals extends deals_DealBase
     			$r = &$recs[$index];
     			
     			$jRec->amount /= $rec->currencyRate;
-    			if($jRec->debitItem2 == $item->id){
+    			if($jRec->debitItem2 == $item->id && $jRec->debitAccId == $rec->accountId){
     				$r->debitA += $jRec->amount;
     			}
     			
-    			if($jRec->creditItem2 == $item->id){
+    			if($jRec->creditItem2 == $item->id && $jRec->creditAccId == $rec->accountId){
     				$r->creditA += $jRec->amount;
     			}
     		}

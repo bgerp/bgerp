@@ -349,7 +349,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 		
 		foreach ($products as $p){
 			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
-		
+			
 			if($isPurchase){
 				foreach ($p->inStores as $storeId => $arr){
 					if(is_array($arr)){
@@ -360,7 +360,13 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 						$am = $p->quantity;
 					}
 					
-					$allocated = core_Math::roundNumber($p->allocated * ($q / $am));
+					if($am == 0){
+						$delimiter = (count($p->inStores) == 1) ? 1 : 0;
+					} else {
+						$delimiter = $q / $am;
+					}
+					
+					$allocated = core_Math::roundNumber($p->allocated * $delimiter);
 					$creditArr['quantity'] = $sign * $allocated;
 					
 					$entries[] = array('debit' => array('321',

@@ -74,36 +74,72 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
     		$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
     		$result->entries = array_merge($result->entries, $closeEntries);
     	} else {
+    		$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
     		
-    		$dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
-    				array($docRec->contragentClassId, $docRec->contragentId),
-    				array('findeals_Deals', $docRec->id),
-    				array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    				'quantity' =>  abs($amount));
-    		 
-    		if($amount > 0){
-    		
-    			// Ако РС има дебитно салдо
-    			$result->entries[] = array('amount' => $amount,
-    					'debit' => array('6913',
-    							array($docRec->contragentClassId, $docRec->contragentId),
-    							array($firstDoc->className, $firstDoc->that)),
-    					'credit' => $dealArr);
-    		
-    		} else {
-    		
-    			// Ако РС има кредитно салдо
-    			$result->entries[] = array('amount' => abs($amount),
-    					'debit' => $dealArr,
-    					'credit' => array('7913',
-    							array($docRec->contragentClassId, $docRec->contragentId),
-    							array($firstDoc->className, $firstDoc->that))
-    			);
+    		// За всеки случай махат се от записите, тези които са на приключването на покупка
+    		if(isset($rec->id)){
+    			if($thisRec = acc_Journal::fetchByDoc($this->class, $rec->id)){
+    				$nQuery  = acc_JournalDetails::getQuery();
+    				$nQuery->where("#journalId = {$thisRec->id}");
+    				$thisIds = arr::extractValuesFromArray($nQuery->fetchAll(), 'id');
+    				$jRecs = array_diff_key($jRecs, $thisIds);
+    			}
     		}
     		
-    		$result->totalAmount += abs($amount);
+    		$sysId = acc_Accounts::fetchField($docRec->accountId, 'systemId');
+    		$quantities = acc_Balances::getBlQuantities($jRecs, $sysId);
+    		
+    		if(is_array($quantities)){
+    			foreach ($quantities as $index => $obj){
+    				$entry = $this->getCloseEntry($obj->amount, $obj->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
+    				if(count($entry)){
+    					$result->entries = array_merge($result->entries, $entry);
+    				}
+    			}
+    		}
     	}
     	
     	return $result;
+    }
+    
+    
+    /**
+     * Отчитане на извънредните приходи/разходи от сделката
+     *
+     */
+    private function getCloseEntry($amount, $quantity, $index, &$totalAmount, $docRec, $firstDoc)
+    {
+    	$entry = array();
+    
+    	$dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
+    					 array($docRec->contragentClassId, $docRec->contragentId),
+    			         array($firstDoc->className, $docRec->id),
+    			         $index,
+    			        'quantity' => abs($quantity));
+    	
+    	if($amount > 0){
+    		
+    		// Ако РС има дебитно салдо
+    		$entry = array('amount' => $amount,
+    				'debit' => array('6913',
+    						   array($docRec->contragentClassId, $docRec->contragentId),
+    						   array($firstDoc->className, $firstDoc->that)),
+    				'credit' => $dealArr);
+    		
+    	} else {
+    		
+    		// Ако РС има кредитно салдо
+    		$entry = array('amount' => abs($amount),
+    				'debit' => $dealArr,
+    				'credit' => array('7913',
+    							array($docRec->contragentClassId, $docRec->contragentId),
+    							array($firstDoc->className, $firstDoc->that))
+    		);
+    	}
+    		
+    	$totalAmount += abs($amount);
+    	
+    	// Връщане на записа
+    	return array($entry);
     }
 }

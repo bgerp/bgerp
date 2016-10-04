@@ -205,7 +205,6 @@ class price_ListRules extends core_Detail
     			$vat = $listRec->vat;
     		}
     		
-    		expect(cls::get('type_Double')->fromVerbal($price));
     		$rec->currency = $currencyCode;
     		$rec->vat = $vat;
     		$rec->price = $price;
@@ -213,7 +212,7 @@ class price_ListRules extends core_Detail
     	
     	if($type == 'discount'){
             if(!isset($discount)) return FALSE;
-    		expect(cls::get('type_Double')->fromVerbal($discount));
+
     		if(isset($calculation)){
     			expect(in_array($calculation, array('forward', 'reverse')));
     		}

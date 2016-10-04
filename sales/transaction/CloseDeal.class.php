@@ -86,6 +86,17 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     		$conf = core_Packs::getConfig('acc');
     		
     		$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    		
+    		// За всеки случай махат се от записите, тези които са на приключването на покупка
+    		if(isset($rec->id)){
+    			if($thisRec = acc_Journal::fetchByDoc($this->class, $rec->id)){
+    				$nQuery  = acc_JournalDetails::getQuery();
+    				$nQuery->where("#journalId = {$thisRec->id}");
+    				$thisIds = arr::extractValuesFromArray($nQuery->fetchAll(), 'id');
+    				$jRecs = array_diff_key($jRecs, $thisIds);
+    			}
+    		}
+    		
     		$quantities = acc_Balances::getBlQuantities($jRecs, '411');
     		
     		if(is_array($downpaymentAmounts)){
