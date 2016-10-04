@@ -161,7 +161,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     		$costAmount = 0;
     		$row->type = tr('Приход');
     	} elseif($rec->amount < 0){
-    		$costAmount = $rec->amount;
+    		$costAmount = abs($rec->amount);
     		$incomeAmount = 0;
     		$row->type = tr('Разход');
     	}
