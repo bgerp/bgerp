@@ -412,7 +412,7 @@ var comboBoxInited = [];
  * Скрива и показва групите във формите 
  * @param id на групата
  */
-function toggleFormGroup(id) 
+function toggleFormGroup(id)
 {
 	if($('.fs' + id).css('display') == 'none') {
 		$('.fs' + id).fadeIn('slow');
@@ -430,7 +430,7 @@ function toggleFormGroup(id)
 	}
 	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
 	$('.fs-toggle' + id).toggleClass('openToggleRow');
-	
+    setRicheditWidth();
 }
 
 
