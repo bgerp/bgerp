@@ -113,7 +113,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
     
     	$dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
     					 array($docRec->contragentClassId, $docRec->contragentId),
-    			         array('findeals_Deals', $docRec->id),
+    			         array($firstDoc->className, $docRec->id),
     			         $index,
     			        'quantity' => abs($quantity));
     	
