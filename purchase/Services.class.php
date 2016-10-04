@@ -65,10 +65,10 @@ class purchase_Services extends deals_ServiceMaster
 	public $canList = 'ceo, purchase';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo, purchase';
+    /**
+	* Кой може да разглежда сингъла на документите?
+	*/
+    public $canSingle = 'ceo, purchase';
     
     
     /**
@@ -88,7 +88,12 @@ class purchase_Services extends deals_ServiceMaster
      */
     public $canConto = 'ceo, purchase';
     
-    
+    /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo, purchaseMaster, manager';
+
+       
     /**
      * Полета, които ще се показват в листов изглед
      */
