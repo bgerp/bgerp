@@ -104,13 +104,15 @@ class core_QueryCnts extends core_Manager
     {
         foreach($this->queries as $hash => $qCnt) {
             
-            $lastRec = self::getFromChache($query, NULL);
+            $lastRec = self::getFromChache($hash, NULL);
             $cnt = FALSE;
+            
             if($lastRec) {
                 $cnt = $lastRec->cnt;
                 if(time() - $lastRec->time < 60) continue;
             }
             self::set($hash, $cnt);
+            
             $cnt = $qCnt->count();
             self::set($hash, $cnt);
         }
