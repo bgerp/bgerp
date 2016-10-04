@@ -67,7 +67,7 @@ class core_QueryCnts extends core_Manager
     /**
      * Връща кешираната стойност за броя на резултатите в заявката
      */
-    public static function set($query, $cnt)
+    public static function set($query, $cnt, $start = NULL)
     {
         if(is_object($query)) {
             $hash = self::getHash($query);
@@ -76,6 +76,10 @@ class core_QueryCnts extends core_Manager
         }
         
         $data = (object) array('cnt' => $cnt, 'time' => time());
+
+        if($start) {
+            $data->calcTime = $start - $start;
+        }
 
         $res  = core_Cache::set(self::CACHE_PREFIX, $hash, $data, self::CACHE_LIFETIME);
 
@@ -112,9 +116,10 @@ class core_QueryCnts extends core_Manager
                 if(time() - $lastRec->time < 60) continue;
             }
             self::set($hash, $cnt);
-            
+            $start = time();
+
             $cnt = $qCnt->count();
-            self::set($hash, $cnt);
+            self::set($hash, $cnt, $start);
         }
     }
 
