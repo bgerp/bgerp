@@ -270,5 +270,19 @@ class type_User extends type_Key
         }
         
         return $arr;
-    } 
+    }
+    
+    
+    /**
+     * Връща възможните стойности за ключа
+     * 
+     * @param string $value
+     * 
+     * @return array
+     */
+    function getAllowedKeyVal($id, $listId = NULL)
+    {
+        
+        return self::getUserFromTeams($id);
+    }
 }
