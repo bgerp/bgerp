@@ -659,7 +659,7 @@ class distro_Repositories extends core_Master
                 try {
                     $hostConfig = ssh_Hosts::fetchConfig($form->rec->hostId);
                 } catch (core_exception_Expect $e) {
-                    self::logErr($e->getMessage(), $id);
+                    self::logErr($e->getMessage(), $form->rec->id);
                 }
             }
             
