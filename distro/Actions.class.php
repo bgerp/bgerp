@@ -95,6 +95,12 @@ class distro_Actions extends embed_Manager
     
     
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 10;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
