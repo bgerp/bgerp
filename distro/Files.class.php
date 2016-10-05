@@ -143,7 +143,7 @@ class distro_Files extends core_Detail
         $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory, remember=info');
         $this->FLD('name', 'varchar', 'caption=Име, width=100%, input=none');
         $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, width=100%, input=none');
-        $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
+        $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name, select2MinItems=6)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
         $this->FLD('info', 'varchar', 'caption=Информация, width=100%');
         $this->FLD('md5', 'varchar(32)', 'caption=Хеш на файла, width=100%,input=none');
         
