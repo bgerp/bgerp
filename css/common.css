@@ -2365,6 +2365,9 @@ div.richEdit {
   border-bottom: 1px solid rgba(0, 0, 0, 0);
   width: 32em; }
 
+.hiddenFormRow .richEdit textarea {
+  min-height: 100px; }
+
 .wide .richEdit textarea {
   min-width: 310px; }
 
