@@ -216,16 +216,38 @@ class distro_Repositories extends core_Master
         
         $oPath = rtrim($rec->path, '/');
         $oPath .= '/' . $name;
-        $path = escapeshellarg($oPath);
         
-        // TODO - асинхронно
-        $sshObj->exec('mkdir -p ' . $path, $output, $errors);
+        $exec = self::getMkdirExec($repoId, $name);
+        
+        $callBackUrl = toUrl(array(get_called_class(), 'createDir', $rec->id), TRUE);
+        $sshObj->exec($exec, $output, $errors, $callBackUrl);
         
         if ($eTrim = trim($errors)) {
             self::logErr($errors, $rec->id);
         }
         
         return $oPath;
+    }
+    
+    
+    /**
+     * Връща изпълнимия стринг за създаване на директрояита
+     * 
+     * @param integer $repoId
+     * @param string|NULL $name
+     * 
+     * @return FALSE|string
+     */
+    public static function getMkdirExec($repoId, $name)
+    {
+        $rec = self::fetch((int) $repoId);
+        
+        $path = rtrim($rec->path, '/') . '/' . $name;
+        $path = escapeshellarg($path);
+        
+        $exec = 'mkdir -p ' . $path;
+        
+        return $exec;
     }
     
     
@@ -820,5 +842,18 @@ class distro_Repositories extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+    /**
+     * Колбек екшън, която се вика след създаване на директория
+     */
+    function act_CreateDir()
+    {
+        $id = Request::get('id');
+        
+        expect($id);
+        
+        $this->logNotice('Създадена директория', $id);
     }
 }

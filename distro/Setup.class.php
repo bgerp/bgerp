@@ -37,7 +37,7 @@ class distro_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Разпределена група файлове";
+    var $info = "Разпределена файлова група";
     
 	
     /**

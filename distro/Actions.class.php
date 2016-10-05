@@ -2,7 +2,7 @@
 
 
 /**
- * Действия в разпределена група файлове
+ * Действия в разпределена файлова група
  * 
  * @category  bgerp
  * @package   distro
@@ -13,6 +13,13 @@
  */
 class distro_Actions extends embed_Manager
 {
+    
+    
+    /**
+     * Дали да се създаде директория (ако липсва), при пускане на процеси
+     */
+    public $checkAndCreateDir = TRUE;
+    
     
     /**
      * Заглавие
@@ -608,13 +615,21 @@ class distro_Actions extends embed_Manager
                 $driverInst = $mvc->getDriver($rec);
                 if ($driverInst) {
                     $command = $driverInst->getActionStr($rec);
-                
+                    
                     $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
-                
+                    
+                    // Ако преди всяка заявка ще се създава директорията, ако липсва
+                    if ($mvc->checkAndCreateDir) {
+                        $subDirName = distro_Group::getSubDirName($rec->groupId);
+                        $mkDir = distro_Repositories::getMkdirExec($rec->repoId, $subDirName);
+                        
+                        $command = $mkDir . '; ' . $command;
+                    }
+                    
                     if ($errExec) {
                         $command = '(' . $command . ') ' . $errExec;
                     }
-                
+                    
                     $ssh = distro_Repositories::connectToRepo($rec->repoId);
                 
                     if (!$ssh) {
@@ -622,13 +637,13 @@ class distro_Actions extends embed_Manager
                 
                         return ;
                     }
-                
+                    
                     $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), TRUE);
                     
                     $mvc->logDebug("Стартирана команда: {$command}", $rec->id);
                     
                     $ssh->exec($command, $output, $errors, $callBackUrl);
-                
+                    
                     if ($eTrim = trim($errors)) {
                         $mvc->notifyErr($rec);
                         $mvc->logWarning($errors, $rec->id);

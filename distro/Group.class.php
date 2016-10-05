@@ -2,7 +2,7 @@
 
 
 /**
- * Разпределена група файлове
+ * Разпределена файлова група
  * 
  * @category  bgerp
  * @package   distro
@@ -18,13 +18,13 @@ class distro_Group extends core_Master
     /**
      * Заглавие на модела
      */
-    public $title = 'Разпределени групи файлове';
+    public $title = 'Разпределени файлови групи';
     
     
     /**
      * 
      */
-    public $singleTitle = 'Група файлове';
+    public $singleTitle = 'Файлова група';
     
     
     /**
@@ -272,10 +272,10 @@ class distro_Group extends core_Master
                 // Активираме хранилището
                 distro_Repositories::activateRepo($repoId);
                 
-                $handle = $mvc->getSubDirName($rec->id);
+                $subDirName = $mvc->getSubDirName($rec->id);
                 
                 // Създаваме директория в хранилището
-                distro_Repositories::createDir($repoId, $handle);
+                distro_Repositories::createDir($repoId, $subDirName);
             }
         }
     }
@@ -290,8 +290,18 @@ class distro_Group extends core_Master
      */
     public static function getSubDirName($id)
     {
+        $rec = self::fetch($id);
         
-        return self::getHandle($id);
+        $title = $rec->title;
+        
+        $title = STR::utf2ascii($title);
+        $title = preg_replace('/[\W]+/', ' ', $title);
+        
+        $title = trim($title);
+        
+        $subDir = self::getHandle($id) . ' - ' . $title;
+        
+        return $subDir;
     }
     
     
