@@ -154,8 +154,6 @@ class distro_Group extends core_Master
     {
         $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\')', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
-        
-        $this->setDbUnique('title');
     }
     
     
