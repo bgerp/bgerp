@@ -829,7 +829,7 @@ class core_Html
 			unset($attr['ef_icon']);
 		}
 		
-		if(is_array($url) && count($url)){
+		if ($url !== FALSE && (is_string($url) || (is_array($url) && count($url)))) {
 			$link = self::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
 		}
 		
