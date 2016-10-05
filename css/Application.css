@@ -515,7 +515,7 @@ tr.row-removed {
     font-weight: bold;
     border-radius: 5px 5px 0 0; }
     .user-profile .user-title.statusClass {
-      padding-top: 50px; }
+      padding: 54px 20px 6px 132px; }
       .user-profile .user-title.statusClass .timeSpan {
         color: white !important; }
     .user-profile .user-title .linkWithIcon {
@@ -598,6 +598,11 @@ tr.row-removed {
   .narrow .user-profile .fright {
     float: none;
     margin-left: 0; }
+
+.personStatus {
+  color: white !important;
+  margin-top: 5px;
+  display: block; }
 
 /*
  * край на потребителски профил
