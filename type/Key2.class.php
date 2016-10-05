@@ -69,7 +69,6 @@ class type_Key2 extends type_Int
     function fromVerbal_($value)
     {
         if(empty($value)) return NULL;
-        
 
         // Вербалната стойност може да бъде:
         // 1. Число - тогава се третира като ключ към модела
@@ -170,7 +169,6 @@ class type_Key2 extends type_Int
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-
         // Варианти за генериране на селекта
         // 1. Ако има Select2 - винаги използваме неговото рендиане
         // 2. Ако опциите са под MaxSuggestions - показваме обикновен селект
@@ -191,6 +189,16 @@ class type_Key2 extends type_Int
                     $options = arr::combine($currentOpt, $options);
                 }
             }
+        }
+        
+        if($this->params['allowEmpty']) {
+            $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
+                    array('style' => 'color:#777;')));
+            $options = arr::combine($placeHolder, $options);
+        } elseif($attr['placeholder'] && $optionsCnt != 1) {
+            $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' =>
+                    array('style' => 'color:#777;', 'disabled' => 'disabled')));
+            $options = arr::combine($placeHolder, $options);
         }
 
         $this->setFieldWidth($attr, NULL, $options);
