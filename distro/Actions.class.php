@@ -322,6 +322,12 @@ class distro_Actions extends embed_Manager
             
             distro_Files::save($fRec, 'modifiedOn, modifiedBy');
             
+            // Обновяваме и групата
+            $DGroup = cls::get('distro_Group');
+            $DGroup->touchRec($rec->groupId);
+            $gRec = $DGroup->fetch($rec->groupId);
+            doc_Files::saveFile($DGroup, $gRec);
+            
             if ($sudo) {
                 core_Users::exitSudo();
             }

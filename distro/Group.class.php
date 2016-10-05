@@ -399,6 +399,35 @@ class distro_Group extends core_Master
         return $row;
     }
     
+	
+	/**
+	 * Връща прикачените файлове
+     * 
+     * @param object $rec - Запис
+     * 
+     * @return array
+     */
+    function getLinkedFiles($rec)
+    {
+        $resArr = array();
+        
+        if (!$rec->id) return $resArr;
+        
+        $fQuery = distro_Files::getQuery();
+        $fQuery->where(array("#groupId = '[#1#]'", $rec->id));
+        
+        while($dfRec = $fQuery->fetch()) {
+            if (!trim($dfRec->sourceFh)) continue;
+            
+            if ($resArr[$dfRec->sourceFh]) continue;
+            
+            $fRec = fileman_Files::fetchByFh($dfRec->sourceFh);
+            $resArr[$dfRec->sourceFh] = fileman_Files::getVerbal($fRec, 'name');
+        }
+        
+        return $resArr;
+    }
+    
     
     /**
      * Екшън за форсирано обновяване на хранилище
