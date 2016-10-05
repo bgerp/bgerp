@@ -825,11 +825,10 @@ class distro_Files extends core_Detail
                     $file = $data->rows[$id]->sourceFh;
                 } else {
                     $file = $data->rows[$id]->name;
-                    
-                    $subDirName = $mvc->Master->getSubDirName($data->recs[$id]->groupId);
-                    
-                    $file = distro_Repositories::getUrlForFile($repoId, $subDirName, $data->recs[$id]->name);
                 }
+                
+                $subDirName = $mvc->Master->getSubDirName($data->recs[$id]->groupId);
+                $file = distro_Repositories::getUrlForFile($repoId, $subDirName, $data->rows[$id]->name, $file);
                 
                 // Ако няма създаден обект, създаваме такъв
                 if (!$data->rowReposAndFilesArr[$repoId][$id]) {

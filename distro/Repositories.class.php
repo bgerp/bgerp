@@ -350,13 +350,19 @@ class distro_Repositories extends core_Master
      * @param integer $id
      * @param string $subDir
      * @param string $file
+     * @param string|NULL $link
+     * 
      * @return string
      */
-    public static function getUrlForFile($id, $subDir, $file)
+    public static function getUrlForFile($id, $subDir, $file, $link = NULL)
     {
         $rec = self::fetch((int) $id);
         
-        if (!($url = trim($rec->url))) return $file;
+        if (!$link) {
+            $link = $file;
+        }
+        
+        if (!($url = trim($rec->url))) return $link;
         
         $url = rtrim($url, '/');
         
@@ -371,9 +377,7 @@ class distro_Repositories extends core_Master
             $icon = "fileman/icons/default.png";
         }
         
-        $sbfIcon = sbf($icon,"");
-        $link = ht::createLink($file, $url, NULL, array('target'=>'_blank'));
-        $fileStr = "<span class='linkWithIcon' style='background-image:url($sbfIcon);'>{$link}</span>";
+        $fileStr = ht::createLinkRef($link, $url);
         
         return $fileStr;
     }
