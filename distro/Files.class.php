@@ -547,7 +547,7 @@ class distro_Files extends core_Detail
             $nRec->createdOn = $date;
         }
         
-        $this->save($nRec);
+        $this->save($nRec, NULL, 'IGNORE');
         
         return $nRec->id;
     }
