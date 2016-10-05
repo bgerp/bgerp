@@ -461,6 +461,40 @@ class distro_Group extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Използваме заглавието на първия документ в нишката или на originId
+        $rec = $data->form->rec;
+        if (!$rec->id) {
+            
+            $cid = NULL;
+            
+            //Ако имаме originId
+            if ($rec->originId) {
+            
+                $cid = $rec->originId;
+            } elseif ($rec->threadId) {
+            
+                // Ако добавяме коментар в нишката
+                $cid = doc_Threads::fetch($rec->threadId)->firstContainerId;
+            }
+            
+            if (isset($cid)) {
+                $oDoc = doc_Containers::getDocument($cid);
+                $oRow = $oDoc->getDocumentRow();
+                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                $rec->title = html_entity_decode($oRow->recTitle, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+            }
+        }
+    }
+    
+    
+    /**
      * 
      * 
      * @param core_Master $mvc
