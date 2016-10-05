@@ -40,12 +40,6 @@ class distro_Group extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    public $fieldsNotToClone = 'title';
-    
-    
-    /**
      * Кой може да пуска синхронизирането
      */
     public $canSync = 'powerUser';
