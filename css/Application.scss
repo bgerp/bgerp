@@ -1990,16 +1990,16 @@ div.attachments {
 	}
 }
 
-.mejs-container {
+.narrow .mejs-container {
 	width: 100% !important;
 	height: auto !important;
 	padding-top: 57%;
 }
-.mejs-overlay, .mejs-poster {
+.narrow .mejs-overlay, .narrow  .mejs-poster {
 	width: 100% !important;
 	height: 100% !important;
 }
-.mejs-mediaelement video {
+.narrow .mejs-mediaelement video {
 	position: absolute;
 	top: 0;
 	left: 0;
