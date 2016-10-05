@@ -45,7 +45,7 @@ class context_Plugin extends core_Plugin {
 
     		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
     		"<!--ET_BEGIN ROW2--><div class='modal-toolbar' data-position='auto' id='Row2_{$rowId}'>[#ROW2#]" .
-            "<!--ET_BEGIN HIDDEN-->" . $link . "<span id='hidden_{$rowId}' class='hiddenToolbar'>[#HIDDEN#]</div><!--ET_END HIDDEN-->" .
+            "<!--ET_BEGIN HIDDEN--><hr class='separator'>" . $link . "<span id='hidden_{$rowId}' class='hiddenToolbar'>[#HIDDEN#]</div><!--ET_END HIDDEN-->" .
     		"</div><!--ET_END ROW2-->" .
     		"</div></div>");
     	}
