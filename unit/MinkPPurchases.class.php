@@ -368,7 +368,7 @@ class unit_MinkPPurchases extends core_Manager {
         // активиране на Покупката
         $browser->press('Активиране');
         //return $browser->getHtml();
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), 'Отстъпка: BGN 3,69')) {
         } else {
@@ -379,26 +379,25 @@ class unit_MinkPPurchases extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в складова разписка', 'warning');
-            
-        }
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,18')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна сума в складова разписка', 'warning');
+        //}
         
         // протокол
-        $browser->press('Приемане');
-        $browser->setValue('template', 'Приемателен протокол за услуги с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Десет BGN и 0,01')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в протокол за услуги', 'warning');
-        }
+        //$browser->press('Приемане');
+        //$browser->setValue('template', 'Приемателен протокол за услуги с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Десет BGN и 0,01')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна сума в протокол за услуги', 'warning');
+        //}
         
         // Фактура
         $browser->press('Вх. фактура');
@@ -459,7 +458,7 @@ class unit_MinkPPurchases extends core_Manager {
          
         // активиране на Покупката
         $browser->press('Активиране');
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), '3,69')) {
         } else {
@@ -471,26 +470,26 @@ class unit_MinkPPurchases extends core_Manager {
         }    
         
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и три EUR и 0,18')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в складова разписка', 'warning');
-        }
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и три EUR и 0,18')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна сума в складова разписка', 'warning');
+        //}
         
         // протокол
               
-        $browser->press('Приемане');
-        $browser->setValue('template', 'Приемателен протокол за услуги с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Десет EUR и 0,01')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в протокол за услуги', 'warning');
-        }
+        //$browser->press('Приемане');
+        //$browser->setValue('template', 'Приемателен протокол за услуги с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Десет EUR и 0,01')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна сума в протокол за услуги', 'warning');
+        //}
         
         // Фактура
         $browser->press('Вх. фактура');
@@ -637,7 +636,7 @@ class unit_MinkPPurchases extends core_Manager {
         
         // активиране на Покупката
         $browser->press('Активиране');
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), '10,40')) {
         } else {
@@ -649,11 +648,11 @@ class unit_MinkPPurchases extends core_Manager {
         }
     
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
                  
         // Фактура
         $browser->press('Вх. фактура');
@@ -780,7 +779,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // активиране на Покупката
         $browser->press('Активиране');
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), 'Discount: EUR 10,40')) {
         } else {
@@ -792,11 +791,11 @@ class unit_MinkPPurchases extends core_Manager {
         }
     
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
          
         // Фактура
         $browser->press('Вх. фактура');
@@ -925,7 +924,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // активиране на Покупката
         $browser->press('Активиране');
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), 'Discount: EUR 10,40')) {
         } else {
@@ -937,11 +936,11 @@ class unit_MinkPPurchases extends core_Manager {
         }
     
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
          
         // Фактура
         $browser->press('Вх. фактура');
@@ -1322,7 +1321,7 @@ class unit_MinkPPurchases extends core_Manager {
         // активиране на Покупката
         $browser->press('Активиране');
         //return $browser->getHtml();
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 80,00')) {
         } else {
@@ -1337,11 +1336,11 @@ class unit_MinkPPurchases extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Складова разписка с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Складова разписка с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
                
         // Фактура
         $browser->press('Вх. фактура');
