@@ -75,7 +75,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= 'MinkPbgERP ';
         $res .= " 0.".$this->act_DeinstallSelect2();
         $res .= " 1.".$this->act_CreateUser1();
-        //$res .= "  2.".$this->act_CreateUser2();
+        $res .= "  2.".$this->act_CreateUser2();
         $res .= "  3.".$this->act_CreateStore();
         $res .= "  4.".$this->act_CreateBankAcc1();
         $res .= "  5.".$this->act_CreateBankAcc2();
@@ -198,7 +198,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('email', 'u2@abv.bg');
         $browser->setValue('officer', '10');
         //$browser->setValue('Дилър', '79');
-        $browser->setValue('Главен офис', '13');
+        //$browser->setValue('Главен офис', '13');
+        $browser->setValue('Headquarter', '13');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
