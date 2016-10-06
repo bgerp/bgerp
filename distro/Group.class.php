@@ -151,20 +151,6 @@ class distro_Group extends core_Master
     }
     
     
-	/**
-     * Може ли документа да се добави в посочената папка?
-     */
-    public static function canAddToFolder($folderId)
-    {
-        // Ако няма права за добавяне
-        if (!static::haveRightFor('add')) {
-            
-            // Да не може да добавя
-            return FALSE;
-        }
-    }
-    
-    
     /**
      * 
      * @param string $path
