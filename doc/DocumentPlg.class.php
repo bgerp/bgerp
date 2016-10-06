@@ -651,7 +651,7 @@ class doc_DocumentPlg extends core_Plugin
             if(!$userId) {
                 $userId = core_Users::getCurrent();
             }
-            
+
             // Ако текущия потребител няма права за тази папка, или тя не е определена до сега,
             // То 'Unsorted' папката е дефолт папката на потребителя, ако има потребител
             if((!$folderId || !doc_Folders::haveRightFor('single', $folderId)) && $userId) {
@@ -1548,33 +1548,20 @@ class doc_DocumentPlg extends core_Plugin
     					$requiredRoles = 'no_one';
     				}
     			}        
-            } elseif ($rec->folderId || !isset($rec)) {
+            } elseif ($rec->folderId) {
                 
-                $folderId = $rec->folderId;
+                // Ако създаваме нова нишка
                 
-                if (!isset($folderId)) {
+                // Ако няма права за добавяне в папката
+                if($mvc->canAddToFolder($rec->folderId) === FALSE){
                     
-                    static $defFolderArr = array();
-                    
-                    if (!isset($defFolderArr[$userId])) {
-                        $defFolderArr[$userId] = $mvc->getDefaultFolder($userId);
-                    }
-                    
-                    $folderId = $defFolderArr[$userId];
-                }
-                
-                if ($folderId) {
-                    // Ако няма права за добавяне в папката
-                    if ($folderId && $mvc->canAddToFolder($folderId) === FALSE){
-                    
-                        // Никой не може да добавя
-                        $requiredRoles = 'no_one';
-                    } elseif($rec->folderId && doc_Folders::fetch($rec->folderId)->state == 'closed') {
-                    
-                        // Ако папката е затворена не могат да се добавят документи
-                        $requiredRoles = 'no_one';
-                    }
-                }
+                    // Никой не може да добавя
+    				$requiredRoles = 'no_one';
+    			} elseif(doc_Folders::fetch($rec->folderId)->state == 'closed') {
+    				
+    				// Ако папката е затворена не могат да се добавят документи
+    				$requiredRoles = 'no_one';
+    			}
             }
         }
 		
