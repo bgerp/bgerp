@@ -37,7 +37,7 @@ class distro_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Разпределена група файлове";
+    var $info = "Разпределена файлова група";
     
 	
     /**
@@ -61,6 +61,7 @@ class distro_Setup extends core_ProtoSetup
             'distro_AbsorbDriver',
             'distro_ArchiveDriver',
             'migrate::reposToKey',
+            'migrate::syncFiles',
     );
     
     
@@ -105,5 +106,28 @@ class distro_Setup extends core_ProtoSetup
         }
         
         return ;
+    }
+    
+    
+    /**
+     * Миграция за синхронизиране на файловете с новите имена на директориите
+     */
+    public static function syncFiles()
+    {
+        $Files = cls::get('distro_Files');
+        $gQuery = distro_Group::getQuery();
+        
+        while ($gRec = $gQuery->fetch()) {
+            
+            $reposArr = type_Keylist::toArray($gRec->repos);
+            
+            foreach ($reposArr as $repoId) {
+                try {
+                    $res[] = $Files->forceSync($gRec->id, $repoId);
+                } catch (ErrorException $e) {
+                    continue;
+                }
+            }
+        }
     }
 }

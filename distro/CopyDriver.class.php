@@ -119,6 +119,7 @@ class distro_CopyDriver extends core_Mvc
         }
         
         $destFilePath = escapeshellarg($destFilePath);
+        $destFilePath = str_replace(' ', '\\ ', $destFilePath);
         
         $hostParams = distro_Repositories::getHostParams($rec->sourceRepoId);
         

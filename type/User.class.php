@@ -276,11 +276,11 @@ class type_User extends type_Key
     /**
      * Връща възможните стойности за ключа
      * 
-     * @param string $value
+     * @param integer $id
      * 
      * @return array
      */
-    function getAllowedKeyVal($id, $listId = NULL)
+    function getAllowedKeyVal($id)
     {
         
         return self::getUserFromTeams($id);

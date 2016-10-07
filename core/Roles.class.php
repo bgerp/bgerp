@@ -75,7 +75,7 @@ class core_Roles extends core_Manager
     /**
      * 
      */
-    // public $loadList = 'plg_Translate';
+     public $loadList = 'plg_Sorting';
     
     
     /**

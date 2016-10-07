@@ -88,7 +88,7 @@ class trz_Trips extends core_Master
     /**
      * Кой има право да прави начисления
      */
-    public $canChange = 'ceo,trz';
+    public $canChangerec = 'ceo,trz';
     
     
     /**

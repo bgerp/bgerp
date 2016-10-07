@@ -10,7 +10,7 @@
     </div>
     <!--ET_END image-->
     <!--ET_BEGIN userStatus-->
-    <small style="color: #fff !important;">[#userStatus#]</small>
+    <small class="personStatus">[#userStatus#]</small>
     <!--ET_END userStatus-->
 </div>
 <div class="inner-holder">

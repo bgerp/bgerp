@@ -1190,7 +1190,7 @@ a.profile {
 }
 
 .profile-state {
-	text-decoration: underline;
+	text-decoration: underline !important;
 }
 /*край на хипервръзки към профилите на потребители*/
 
@@ -2575,6 +2575,11 @@ div.richEdit {
 	overflow: auto;
 	border-bottom: 1px solid transparent;
 	width: 32em;
+
+}
+
+.hiddenFormRow .richEdit textarea {
+	min-height: 100px;
 }
 
 .wide .richEdit textarea {
