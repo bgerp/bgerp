@@ -291,6 +291,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		// Рендиране на таблицата с артикулите
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$this->invoke('BeforeRenderListTable', array($tpl, &$data->sellable));
+		unset($data->sellable->listFields['_checkboxes']);
 		$tableTpl = $table->get($data->sellable->rows, $data->sellable->listFields);
 		$tpl->replace($tableTpl, 'SELLABLE');
 		

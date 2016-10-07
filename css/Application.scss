@@ -579,7 +579,7 @@ tr.row-removed {
 		font-weight: bold;
 		border-radius: 5px 5px 0 0;
 		&.statusClass {
-			padding-top: 50px;
+			padding:  54px 20px 6px 132px;
 			.timeSpan {
 				color: #FFF !important;
 			}
@@ -680,7 +680,14 @@ tr.row-removed {
 		float: none;
 		margin-left: 0;
 	}
-} 
+}
+
+.personStatus {
+	color: #fff !important;
+	margin-top: 5px;
+	display: block;
+}
+
 /*край на потребителски профил*/
 
 
@@ -1983,16 +1990,16 @@ div.attachments {
 	}
 }
 
-.mejs-container {
+.narrow .mejs-container {
 	width: 100% !important;
 	height: auto !important;
 	padding-top: 57%;
 }
-.mejs-overlay, .mejs-poster {
+.narrow .mejs-overlay, .narrow  .mejs-poster {
 	width: 100% !important;
 	height: 100% !important;
 }
-.mejs-mediaelement video {
+.narrow .mejs-mediaelement video {
 	position: absolute;
 	top: 0;
 	left: 0;

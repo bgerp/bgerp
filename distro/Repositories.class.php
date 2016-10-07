@@ -216,16 +216,38 @@ class distro_Repositories extends core_Master
         
         $oPath = rtrim($rec->path, '/');
         $oPath .= '/' . $name;
-        $path = escapeshellarg($oPath);
         
-        // TODO - асинхронно
-        $sshObj->exec('mkdir -p ' . $path, $output, $errors);
+        $exec = self::getMkdirExec($repoId, $name);
+        
+        $callBackUrl = toUrl(array(get_called_class(), 'createDir', $rec->id), TRUE);
+        $sshObj->exec($exec, $output, $errors, $callBackUrl);
         
         if ($eTrim = trim($errors)) {
             self::logErr($errors, $rec->id);
         }
         
         return $oPath;
+    }
+    
+    
+    /**
+     * Връща изпълнимия стринг за създаване на директрояита
+     * 
+     * @param integer $repoId
+     * @param string|NULL $name
+     * 
+     * @return FALSE|string
+     */
+    public static function getMkdirExec($repoId, $name)
+    {
+        $rec = self::fetch((int) $repoId);
+        
+        $path = rtrim($rec->path, '/') . '/' . $name;
+        $path = escapeshellarg($path);
+        
+        $exec = 'mkdir -p ' . $path;
+        
+        return $exec;
     }
     
     
@@ -328,13 +350,19 @@ class distro_Repositories extends core_Master
      * @param integer $id
      * @param string $subDir
      * @param string $file
+     * @param string|NULL $link
+     * 
      * @return string
      */
-    public static function getUrlForFile($id, $subDir, $file)
+    public static function getUrlForFile($id, $subDir, $file, $link = NULL)
     {
         $rec = self::fetch((int) $id);
         
-        if (!($url = trim($rec->url))) return $file;
+        if (!$link) {
+            $link = $file;
+        }
+        
+        if (!($url = trim($rec->url))) return $link;
         
         $url = rtrim($url, '/');
         
@@ -349,9 +377,7 @@ class distro_Repositories extends core_Master
             $icon = "fileman/icons/default.png";
         }
         
-        $sbfIcon = sbf($icon,"");
-        $link = ht::createLink($file, $url, NULL, array('target'=>'_blank'));
-        $fileStr = "<span class='linkWithIcon' style='background-image:url($sbfIcon);'>{$link}</span>";
+        $fileStr = ht::createLinkRef($link, $url);
         
         return $fileStr;
     }
@@ -659,7 +685,7 @@ class distro_Repositories extends core_Master
                 try {
                     $hostConfig = ssh_Hosts::fetchConfig($form->rec->hostId);
                 } catch (core_exception_Expect $e) {
-                    self::logErr($e->getMessage(), $id);
+                    self::logErr($e->getMessage(), $form->rec->id);
                 }
             }
             
@@ -820,5 +846,18 @@ class distro_Repositories extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+    /**
+     * Колбек екшън, която се вика след създаване на директория
+     */
+    function act_CreateDir()
+    {
+        $id = Request::get('id');
+        
+        expect($id);
+        
+        $this->logNotice('Създадена директория', $id);
     }
 }

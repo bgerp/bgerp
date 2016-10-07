@@ -351,31 +351,40 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
 			
 			if($isPurchase){
-				foreach ($p->inStores as $storeId => $arr){
-					if(is_array($arr)){
-						$q = $arr['amount'];
-						$am = $p->amount;
-					} else {
-						$q = $arr;
-						$am = $p->quantity;
-					}
+				
+				$storesArr = array();
+				foreach ($p->inStores as $storeId => $p2){
+					$q = (is_array($p2)) ? $p2['quantity'] : $p2;
+					$am = (is_array($p2)) ? $p2['amount'] : $p2;
+					$obj = (object)array('productId'       => $p->productId, 
+										 'quantity'        => $q,
+										 'amount'          => $am,
+										 'transportWeight' => $p->transportWeight,
+							             'transportVolume' => $p->transportVolume,
+					);
 					
-					if($am == 0){
-						$delimiter = (count($p->inStores) == 1) ? 1 : 0;
-					} else {
-						$delimiter = $q / $am;
-					}
-					
-					$allocated = core_Math::roundNumber($p->allocated * $delimiter);
+					$storesArr[$storeId] = $obj;
+				}
+				
+				if(count($storesArr) > 1){
+					$errorMsg2 = acc_ValueCorrections::allocateAmount($storesArr, $p->allocated, $allocateBy);
+					if(!empty($errorMsg2)) return $entries;
+				} else {
+					$storesArr[$storeId]->allocated = $p->allocated;
+				}
+				
+				foreach ($storesArr as $storeId2 => $p3){
+					$allocated = core_Math::roundNumber($p3->allocated);
 					$creditArr['quantity'] = $sign * $allocated;
 					
 					$entries[] = array('debit' => array('321',
-													array('store_Stores', $storeId),
-													array('cat_Products', $p->productId),
+													array('store_Stores', $storeId2),
+													array('cat_Products', $p3->productId),
 													'quantity' => 0),
 									   'credit' => $creditArr, 
 							'reason' => 'Корекция на стойност');
 				}
+				
 			} else {
 				$canStore = cat_Products::fetchField($p->productId, 'canStore');
 				$accountSysId = ($canStore == 'yes') ? '701' : '703';
@@ -389,7 +398,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 						'credit' => $creditArr, 'reason' => 'Корекция на стойност');
 			}
 		}
-		 
+		
 		return $entries;
 	}
 }

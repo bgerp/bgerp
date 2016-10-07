@@ -16,7 +16,7 @@ class core_QueryCnts extends core_Manager
     /**
      * Константа за записване в кеша
      */
-    const CACHE_PREFIX = 'pagerCnt';
+    const CACHE_PREFIX = 'pagerCnt2';
 
 
     /**
@@ -44,20 +44,44 @@ class core_QueryCnts extends core_Manager
     /**
      * Връща кешираната стойност за броя на резултатите в заявката
      */
-    public static function getFromChache($query)
+    public static function getFromChache($query, $part = 'cnt')
     {
-        return core_Cache::get(self::CACHE_PREFIX, self::getHash($query));
+        if(is_object($query)) {
+            $hash = self::getHash($query);
+        } else {
+            $hash = $query;
+        }
+
+        $data = core_Cache::get(self::CACHE_PREFIX, $hash);
+        
+        if(!empty($part)) {
+            $res = $data->{$part};
+        } else {
+            $res = $data;
+        }
+
+        return $res;
     }
 
     
     /**
      * Връща кешираната стойност за броя на резултатите в заявката
      */
-    public static function set($query, $cnt)
+    public static function set($query, $cnt, $start = NULL)
     {
-        $hash = self::getHash($query);
+        if(is_object($query)) {
+            $hash = self::getHash($query);
+        } else {
+            $hash = $query;
+        }
+        
+        $data = (object) array('cnt' => $cnt, 'time' => time());
 
-        $res  = core_Cache::set(self::CACHE_PREFIX, $hash, $cnt, self::CACHE_LIFETIME);
+        if($start) {
+            $data->calcTime = time() - $start;
+        }
+
+        $res  = core_Cache::set(self::CACHE_PREFIX, $hash, $data, self::CACHE_LIFETIME);
 
         return $res;
     }
@@ -83,8 +107,19 @@ class core_QueryCnts extends core_Manager
     public function on_Shutdown()
     {
         foreach($this->queries as $hash => $qCnt) {
+            
+            $lastRec = self::getFromChache($hash, NULL);
+            $cnt = FALSE;
+            
+            if($lastRec) {
+                $cnt = $lastRec->cnt;
+                if(time() - $lastRec->time < 60) continue;
+            }
+            self::set($hash, $cnt);
+            
+            $start = time();
             $cnt = $qCnt->count();
-            core_Cache::set(self::CACHE_PREFIX, $hash, $cnt, self::CACHE_LIFETIME);
+            self::set($hash, $cnt, $start);
         }
     }
 

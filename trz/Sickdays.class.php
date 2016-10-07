@@ -118,7 +118,7 @@ class trz_Sickdays extends core_Master
     /**
      * Кой има право да прави начисления
      */
-    public $canChange = 'ceo,trz';
+    public $canChangerec = 'ceo,trz';
 
     public $canEdited = 'ceo,trz';
 
