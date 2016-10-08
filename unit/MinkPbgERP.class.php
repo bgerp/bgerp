@@ -198,7 +198,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('email', 'u2@abv.bg');
         $browser->setValue('officer', '10');
         //$browser->setValue('Дилър', '79');
-        $browser->setValue('Главен офис', '13');
+        //$browser->setValue('Главен офис', '13');
+        $browser->setValue('Headquarter', '13');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
@@ -1454,9 +1455,9 @@ class unit_MinkPbgERP extends core_Manager {
         // активиране на продажбата
         $browser->press('Активиране');
         //return  $browser->getHtml();
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '0,88')) {
+        if(strpos($browser->gettext(), 'Discount: EUR 0,88')) {
         } else {
             return $this->reportErr('Грешна отстъпка', 'warning');
         }
@@ -1466,20 +1467,22 @@ class unit_MinkPbgERP extends core_Manager {
         }
     
         // експедиционно нареждане
-        $browser->press('Експедиране');
-        $browser->setValue('storeId', 'Склад 1');
-        $browser->setValue('template', 'Експедиционно нареждане с цени');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и четири EUR и 0,99')) {
-        } else {
-            return $this->reportErr('Грешна сума в ЕН', 'warning');
-        }
+        // Когато няма автом. избиране
+        //$browser->press('Експедиране');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->setValue('template', 'Експедиционно нареждане с цени');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Двадесет и четири EUR и 0,99')) {
+        //} else {
+        //    return $this->reportErr('Грешна сума в ЕН', 'warning');
+        //}
          
         // протокол
-        $browser->press('Пр. услуги');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
+        // Когато няма автом. избиране
+        //$browser->press('Пр. услуги');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Контиране')) {
         //  $browser->press('Контиране');
         //}

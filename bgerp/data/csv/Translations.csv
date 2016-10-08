@@ -310,7 +310,7 @@ en,Всички покупки,All purchases
 en,Всички полета,All fields
 en,Всички потреби_ec69,All users
 en,Всички продажби,All sales
-en,Всички разпределени групи файлове,All allocated groups of files
+en,Всички разпределени файлови групи,All allocated file groups
 en,Всички сметки,All accounts
 en,Всички стари->н_a927,All oldest->newest
 en,Всички фактури_fe82,All sales invoices
@@ -405,7 +405,7 @@ en,Група A,Group A
 en,Група Б,Group B
 en,Група В,Group C
 en,Група Г,Group D
-en,Група файлове,File List
+en,Файлова група,File group
 en,Група,Group
 en,Група->продукти,Group->products
 en,Група->указател,Group->organizer
@@ -714,12 +714,12 @@ en,Имейли,Emails
 en,Имейлът Ви е до_8006,Your email has been added to the list of informational messages. Do you want to remove it?
 en,Имейлът Ви е пр_a287,Your email has been removed from the list of informational messages. Do you want to add email again?
 en,Имейлът в имет_2b0d0,Email in the name does not match the original
-en,Имейлът ви (задължително)|Your email (required)
+en,Имейлът ви (задължително),Your email (required)
 en,Имейлът,The email
 en,Имена,Names
 en,Именници във в_afabd,Name-day celebrating in Contacts
 en,Именници,Name days
-en,Името ви (задължително)|Your name (required)
+en,Името ви (задължително),Your name (required)
 en,Импорт,Import
 en,Импортиране,Import
 en,Инвентарна книга,Inventory book
@@ -2381,3 +2381,4 @@ en,Намаляване на стойност,Amount reducing
 en,Увеличаване на авансово плащане,Downpayment amount increasing
 en,Намаляване на авансово плащане,Downpayment amount reducing
 en,незабавно,immediately
+en,Ваш номер,Your number

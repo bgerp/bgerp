@@ -478,7 +478,6 @@ tr.row-removed {
   .user-profile .user-title {
     position: relative;
     padding: 70px 20px 10px 132px;
-    font-size: 1.3em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     background: #eaeaea;
         /*
@@ -515,8 +514,14 @@ tr.row-removed {
     color: white;
     font-weight: bold;
     border-radius: 5px 5px 0 0; }
+    .user-profile .user-title.statusClass {
+      padding: 54px 20px 6px 132px; }
+      .user-profile .user-title.statusClass .timeSpan {
+        color: white !important; }
     .user-profile .user-title .linkWithIcon {
       color: white !important; }
+    .user-profile .user-title .user-name {
+      font-size: 1.3em; }
   .user-profile .profile-image > a,
   .user-profile .profile-image div {
     position: absolute;
@@ -593,6 +598,11 @@ tr.row-removed {
   .narrow .user-profile .fright {
     float: none;
     margin-left: 0; }
+
+.personStatus {
+  color: white !important;
+  margin-top: 5px;
+  display: block; }
 
 /*
  * край на потребителски профил
@@ -1733,17 +1743,17 @@ div.attachments {
   .embedded-holder .orig {
     margin-top: 5px; }
 
-.mejs-container {
+.narrow .mejs-container {
   width: 100% !important;
   height: auto !important;
   padding-top: 57%; }
 
-.mejs-overlay,
-.mejs-poster {
+.narrow .mejs-overlay,
+.narrow  .mejs-poster {
   width: 100% !important;
   height: 100% !important; }
 
-.mejs-mediaelement video {
+.narrow .mejs-mediaelement video {
   position: absolute;
   top: 0;
   left: 0;
@@ -4794,6 +4804,8 @@ only screen and (max-width: 320px) {
   z-index: 9999;
   padding: 10px;
   font-size: 0.9em; }
+  .tooltip .timeSpan {
+    color: #ffff99 !important; }
 
 .narrow .tooltip {
   padding: 5px;

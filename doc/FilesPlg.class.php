@@ -107,7 +107,7 @@ class doc_FilesPlg extends core_Plugin
             try {
                 // Документа
                 $doc = doc_Containers::getDocument($fRec->containerId);
-            } catch (Exception $e) {
+            } catch(ErrorException $e) {
             	
                 continue;
             }
@@ -230,7 +230,7 @@ class doc_FilesPlg extends core_Plugin
             try {
                 // Документа
                 $doc = doc_Containers::getDocument($fRec->containerId);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
             
                 continue;
             }
@@ -260,7 +260,7 @@ class doc_FilesPlg extends core_Plugin
                 try {
                     // Първия документ в нишката
                     $docProxy = doc_Containers::getDocument($firstContainerId);
-                } catch (Exception $e) {
+                } catch (ErrorException $e) {
                     
                     continue;
                 }

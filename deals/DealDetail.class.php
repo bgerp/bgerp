@@ -319,7 +319,6 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
-    	$listMethod = ($mvc->Master instanceof sales_Sales) ? 'getSaleReffByProductId' : 'getPurchaseReffByProductId';
     	
     	core_Lg::push($masterRec->tplLang);
     	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
@@ -328,7 +327,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec = $recs[$id];
     		
     		// Показване на вашия реф, ако има
-    		$row->reff = crm_ext_ProductListToContragents::$listMethod($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
+    		$row->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		
@@ -373,7 +372,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
     	
     	if(!count($recs)) return;
-    	arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш реф.'), 'productId');
+    	arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
     	$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
     	
         // Флаг дали има отстъпка

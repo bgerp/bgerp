@@ -500,7 +500,8 @@ class planning_Jobs extends core_Master
     {
     	$self = cls::get(get_called_class());
     	 
-    	return tr($self->singleTitle) . " №{$rec->id}";
+    	$pTitle = cat_Products::getTitleById($rec->productId);
+    	return "Job{$rec->id} - {$pTitle}";
     }
     
     
@@ -516,7 +517,6 @@ class planning_Jobs extends core_Master
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
     	$row->recTitle = $this->getRecTitle($rec);
-    	$row->subTitle = $this->getVerbal($rec, 'productId');
     	
     	return $row;
     }

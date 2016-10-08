@@ -115,7 +115,7 @@ class doc_ExpensesSummary extends core_Manager
         $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
         $data->rows = array();
         $data->recs = self::updateSummary($rec->containerId, $itemRec);
-        
+       
         if(is_array($data->recs)){
         	foreach ($data->recs as $index => $r){
         		$data->rows[$index] = $this->getVerbalRow($r);
@@ -298,6 +298,11 @@ class doc_ExpensesSummary extends core_Manager
     						           'quantity' => ($type == 'corrected') ? $ent->{"creditQuantity"} : $ent->{"debitQuantity"},
     						           'type'     => $type,
     						           'amount'   => $ent->amount,);
+    				
+    				if(is_null($r->amount)){
+    					$r->amount = 0;
+    				}
+    				
     				$arr[] = $r;
     			}
     		}

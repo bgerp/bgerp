@@ -1,6 +1,7 @@
 
-<div class="user-title" >
-    [#name#]
+<div class="user-title [#userClass#]" >
+    <div class="user-name">[#name#]</div>
+
     <!--ET_BEGIN image-->
     <div class="profile-image">
         <div>  
@@ -8,6 +9,9 @@
         </div>
     </div>
     <!--ET_END image-->
+    <!--ET_BEGIN userStatus-->
+    <small class="personStatus">[#userStatus#]</small>
+    <!--ET_END userStatus-->
 </div>
 <div class="inner-holder">
 <!--ET_BEGIN contacts-->

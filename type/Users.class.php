@@ -52,6 +52,8 @@ class type_Users extends type_Keylist
      */
     public function prepareOptions()
     {
+        core_Debug::log('Start user options');
+
         $mvc = cls::get($this->params['mvc']);
         
         $mvc->invoke('BeforePrepareKeyOptions', array(&$this->options, $this));
@@ -97,7 +99,7 @@ class type_Users extends type_Keylist
                 $uQueryCopy = clone($uQuery);
                 $allUsers = '';
                 
-                while($uRec = $uQueryCopy->fetch()) {
+                while($uRec = $uQueryCopy->fetchAndCache()) {  
                     $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
                 }
                 $all->keylist = keylist::normalize("|{$allUsers}|-1|0|");
@@ -109,35 +111,38 @@ class type_Users extends type_Keylist
             
             $teams = keylist::toArray($teams);
             
+            $userArr = core_Users::getRolesWithUsers();
+
+           // bp($res);
+
             foreach($teams as $t) {
                 $group = new stdClass();
-                $tRole = core_Roles::getVerbal($t, 'role');
+                $tRole = core_Roles::fetchById($t);
                 $group->title = tr('Екип') . " \"" . $tRole . "\"";
                 $group->attr = array('class' => 'team', 'style' => 'background-color:#000;color:#fc0');
                 
                 $this->options[$t . ' team'] = $group;
-                
-                $uQueryCopy = clone($uQuery);
-                
-                $uQueryCopy->likeKeylist('roles', "|{$t}|");
-                
+                              
                 $teamMembers = '';
                 
                 $haveTeamMembers = FALSE;
-                
-                while($uRec = $uQueryCopy->fetch()) {
+              
+                foreach($userArr[$t] as $uId) {
                     
+                    $uRec = $userArr['r'][$uId];
+                    $uRec->id = $uId;
+
                     if ($uRec->state != 'rejected') {
-                        $key = $t . '_' . $uRec->id;
+                        $key = $t . '_' . $uId;
                         $this->options[$key] = new stdClass();
-                        $this->options[$key]->title = $uRec->names . " (" . type_Nick::normalize($uRec->nick) . ")";
-                        $this->options[$key]->keylist = '|' . $uRec->id . '|';
+                        $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
+                        $this->options[$key]->keylist = '|' . $uId . '|';
                         $haveTeamMembers = TRUE;
                     } else {
-                        $rejected .= $rejected ? '|' . $uRec->id : $uRec->id;
+                        $rejected .= $rejected ? '|' . $uId : $uId;
                     }
                     
-                    $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
+                    $teamMembers .= $teamMembers ? '|' . $uId : $uId;
                 }
                 
                 if($haveTeamMembers) {
@@ -166,6 +171,8 @@ class type_Users extends type_Keylist
        
         $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
         
+        core_Debug::log('Stop user options');
+
         return $this->options;
     }
     

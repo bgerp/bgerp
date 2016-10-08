@@ -254,40 +254,47 @@ class doc_Files extends core_Manager
         // Името на файла да е линк към singле' a му
         $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
         
-        // Документа
-        $doc = doc_Containers::getDocument($rec->containerId);
+        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
+        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');
         
-        // Полетата на документа във вербален вид
-        $docRow = $doc->getDocumentRow();
-        
-        // Атрибутеите на линка
-        $attr = array();
-        $attr['title'] = $docRow->title;
-        
-        // Документа да е линк към single' а на документа
-        $row->threadId = $doc->getLink(35, $attr);
-        
-        // id' то на контейнера на пъривя документ
-        $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
-        
-        if ($firstContainerId != $rec->containerId) {
-            
-            // Първия документ в нишката
-            $docProxy = doc_Containers::getDocument($firstContainerId);
+        try {
+            // Документа
+            $doc = doc_Containers::getDocument($rec->containerId);
             
             // Полетата на документа във вербален вид
-            $docProxyRow = $docProxy->getDocumentRow();
+            $docRow = $doc->getDocumentRow();
             
             // Атрибутеите на линка
-            $attr['title'] = 'Първи документ|*: ' . $docProxyRow->title;
+            $attr = array();
+            $attr['title'] = $docRow->title;
             
-            // Темата да е линк към single' а на първиа документ документа
-            $firstContainerLink = $docProxy->getLink(35, $attr);
-            $row->threadId = $row->threadId . " « " . $firstContainerLink; 
+            // Документа да е линк към single' а на документа
+            $row->threadId = $doc->getLink(35, $attr);
+        } catch (ErrorException $e) {
+            // Не се прави нищо
         }
-        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
         
-        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');
+        try {
+            // id' то на контейнера на пъривя документ
+            $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+            if ($firstContainerId != $rec->containerId) {
+            
+                // Първия документ в нишката
+                $docProxy = doc_Containers::getDocument($firstContainerId);
+            
+                // Полетата на документа във вербален вид
+                $docProxyRow = $docProxy->getDocumentRow();
+            
+                // Атрибутеите на линка
+                $attr['title'] = 'Първи документ|*: ' . $docProxyRow->title;
+            
+                // Темата да е линк към single' а на първиа документ документа
+                $firstContainerLink = $docProxy->getLink(35, $attr);
+                $row->threadId = $row->threadId . " « " . $firstContainerLink;
+            }
+        } catch (ErrorException $e) {
+            // Не се прави нищо
+        }
     }
     
     
@@ -345,10 +352,14 @@ class doc_Files extends core_Manager
                 $rec = $mvc->fetch($rec);
             }
             
-            $docProxy = doc_Containers::getDocument($rec->containerId);
-            
-            // Ако няма права за сингъла на документа
-            if (!$docProxy->haveRightFor('single')) {
+            try {
+                $docProxy = doc_Containers::getDocument($rec->containerId);
+                
+                // Ако няма права за сингъла на документа
+                if (!$docProxy->haveRightFor('single')) {
+                    $requiredRoles = 'no_one';
+                }
+            } catch (ErrorException $e) {
                 $requiredRoles = 'no_one';
             }
         } 

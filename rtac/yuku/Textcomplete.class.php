@@ -59,7 +59,7 @@ class rtac_yuku_Textcomplete extends core_Manager
         jquery_Jquery::run($tpl, "
         	$('#{$rtId}').textcomplete(
                 {
-                    match: /\B@((\w|\.|[А-Яа-я])*)$/iu,
+                    match: /\B@((\w|\.|[А-Яа-я])*)$/i,
                     index: 1,
                     search: function (term, callback) {
                         getEfae().process({url: rtacObj.shareUsersURL.{$rtId}}, {term:term, roles:rtacObj.shareUserRoles.{$rtId}, rtid: '{$rtId}'}, false);

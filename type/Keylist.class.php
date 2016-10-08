@@ -54,12 +54,19 @@ class type_Keylist extends core_Type {
         if(empty($value)) return NULL;
         
         $vals = explode($value{0}, $value);
-        if($this->params['makeLinks'] && $mvc = $this->params['mvc']) {
-            $mvc = cls::get($mvc);
+        
+        $mvc = cls::get($this->params['mvc']);
+        $div = $value{0};
+        $ids = str_replace($div, ',', trim($value, $div));
+        if($ids) {  
+            $query = $mvc->getQuery();
+            $query->where("#id IN ($ids)");
+            while($query->fetchAndCache()) {}
         }
+
         
         foreach($vals as $v) {
-            if($v) {
+            if($v) { 
                 $name = $this->getVerbal($v);
                 if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
                 	if($this->params['makeLinks'] === 'short'){
@@ -80,7 +87,7 @@ class type_Keylist extends core_Type {
      * Връща вербалната стойност на k
      */
     function getVerbal($k)
-    {
+    {  
         if(! round($k) > 0) return '';
         
         if($this->params['mvc']) {
@@ -158,10 +165,43 @@ class type_Keylist extends core_Type {
         $attrCB['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        $col = $this->params['columns'] ? $this->params['columns'] :
-        min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
-            round(sqrt(max(0, count($this->suggestions) + 1))));
+        // $col = $this->params['columns'] ? $this->params['columns'] :
+        // min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
+        //   round(sqrt(max(0, count($this->suggestions) + 1))));
         
+        if(!$maxChars = $this->params['maxChars']) {
+            $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
+        }
+ 
+        // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
+        $i = 0;
+        foreach($this->suggestions as $key => $v) {
+            if($v->group) {
+                $i = 0;
+                continue;
+            }
+            for($j = 2; $j <= 4; $j++) {
+                $max[$j][$i % $j] = max($max[$j][$i % $j], min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
+                $res[] = type_Key::getOptionTitle($v);
+            }
+            $i++;
+        }
+        
+        $max2 = $max[2][0] + $max[2][1] + 4;
+        $max3 = $max[3][0] + $max[3][1] + $max[3][2] + 8;
+        $max4 = $max[4][0] + $max[4][1] + $max[4][2] + $max[4][3] + 12;
+
+        if($max2 > $maxChars) {
+            $col = 1;
+        } elseif($max3 > $maxChars) {
+            $col = 2;
+        } elseif($max4 > $maxChars) {
+            $col = 3;
+        } else {
+            $col = 4;
+        }
+
+         
         $i = 0; $html = ''; $trOpen = FALSE;
         $j = 0; //за конструиране на row-1,row-2 и т.н.
         
@@ -242,14 +282,20 @@ class type_Keylist extends core_Type {
                     
                     $cb = ht::createElement('input', $attrCB);
                     
-                    if($this->params['maxCaptionLen'] &&  $this->params['maxCaptionLen'] < mb_strlen($v)) {
-                    	$title = " title=" . ht::escapeAttr($v);
-                    	$v = str::limitLen($v, $this->params['maxCaptionLen']);
+                    if(0.9 * $maxChars < mb_strlen($v)) {
+                    	$title = " title=\"" . ht::escapeAttr($v) . "\"";
+                    	$v = str::limitLen($v, $maxChars * 1.08);
                     } else {
                     	$title = "";
                     }
                     
                     $v = type_Varchar::escape($v);
+
+                    list(, $uId)=explode("_", $key);
+                    if($this->info[$uId]) {
+                        $v = "<span class='profile-state'>" . $v . "</span>";
+                    }
+ 
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {

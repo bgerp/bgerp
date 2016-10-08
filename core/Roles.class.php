@@ -75,7 +75,7 @@ class core_Roles extends core_Manager
     /**
      * 
      */
-    public $loadList = 'plg_Translate';
+     public $loadList = 'plg_Sorting';
     
     
     /**
@@ -431,7 +431,7 @@ class core_Roles extends core_Manager
         
         // Изтриваме кеша
         core_Cache::remove('core_Roles', 'allRoles');
-
+        core_Cache::remove(core_Users::ROLES_WITH_USERS_CACHE_ID, core_Users::ROLES_WITH_USERS_CACHE_ID);
     }
 
 

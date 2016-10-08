@@ -1116,9 +1116,10 @@ a.profile {
     a.profile.contractor.active {
       color: red; }
   a.profile.no-one {
-    text-decoration: underline;
-    -moz-text-decoration-color: red;
-    text-decoration-color: red; }
+    font-style: italic; }
+
+.profile-state {
+  text-decoration: underline !important; }
 
 /*
  * край на хипервръзки към профилите на потребители
@@ -2363,6 +2364,9 @@ div.richEdit {
   overflow: auto;
   border-bottom: 1px solid rgba(0, 0, 0, 0);
   width: 32em; }
+
+.hiddenFormRow .richEdit textarea {
+  min-height: 100px; }
 
 .wide .richEdit textarea {
   min-width: 310px; }

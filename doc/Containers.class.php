@@ -1752,7 +1752,7 @@ class doc_Containers extends core_Manager
                     $resArr['updateContainers']++;
                     self::logNotice('Обновяване на контейнера', $rec->id);
                 }
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
             }
         }
@@ -1862,7 +1862,7 @@ class doc_Containers extends core_Manager
                             self::repairDocClass($rec);
                             $resArr['docClass']++;
                         }
-                    } catch (Exception $e) {
+                    } catch (ErrorException $e) {
                         reportException($e);
                         
                         continue;
@@ -1893,7 +1893,7 @@ class doc_Containers extends core_Manager
                     
                     continue;
                 }
-            } catch (Exception $e) {
+            } catch(ErrorException $e) {
                 reportException($e);
             }
         }

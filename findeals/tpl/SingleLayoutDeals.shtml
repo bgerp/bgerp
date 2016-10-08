@@ -42,6 +42,11 @@
                         	<!--ET_BEGIN secondContragentId-->
                         	<br><span style='font-weight:normal'>|Втори контрагент|* : [#secondContragentId#]</span>
                         	<!--ET_END secondContragentId-->
+                        	
+                        	<!--ET_BEGIN baseAccountId-->
+                        	<br><span style='font-weight:normal'>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span></span>
+		        			<br><span style='font-weight:normal'>|От|*: [#baseAccountId#]</span>
+		        			<!--ET_END baseAccountId-->
                         </td>
                     </tr>
                 </table>

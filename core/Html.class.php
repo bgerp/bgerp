@@ -829,7 +829,7 @@ class core_Html
 			unset($attr['ef_icon']);
 		}
 		
-		if(is_array($url) && count($url)){
+		if ($url !== FALSE && (is_string($url) || (is_array($url) && count($url)))) {
 			$link = self::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
 		}
 		
@@ -944,7 +944,7 @@ class core_Html
     	
     	$hint = strip_tags(tr($hint));
  
-    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/16/warning-gray.png' : (($icon == 'error') ? 'img/16/error-gray.png' : $icon));
+    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
     	$attr = arr::make($attr, TRUE) + array('src' => sbf($iconPath, ''));
