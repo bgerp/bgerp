@@ -231,19 +231,25 @@ class bgerp_Recently extends core_Manager
 
     /**
      * Връща кога за последен път потребителя е виждал този документ
+     *
+     * @param bool $isFirstContainerId  дали първият аргумент е ид на първи контейнер в нишка
      */
-    static function getLastDocumentSee($doc, $userId = NULL)
-    {
-        if(is_object($doc)) {
-            $cRec = $doc;
+    static function getLastDocumentSee($doc, $userId = NULL, $isFirstContainerId = FALSE)
+    {   
+        if(!$isFirstContainerId) {
+            if(is_object($doc)) {
+                $cRec = $doc;
+            } else {
+                expect(is_numeric($doc));
+                $cRec = doc_Containers::fetch($doc);
+            }
+
+            if(!$cRec->threadId) return;
+
+            $fid = doc_Threads::getFirstContainerId($cRec->threadId);
         } else {
-            expect(is_numeric($doc));
-            $cRec = doc_Containers::fetch($doc);
+            $fid = $doc;
         }
-
-        if(!$cRec->threadId) return;
-
-        $fid = doc_Threads::getFirstContainerId($cRec->threadId);
 
         if(!$userId) {
             $userId = core_Users::getCurrent();
@@ -605,4 +611,21 @@ class bgerp_Recently extends core_Manager
         
         return $hash;
     }
+
+
+    /**
+     * Изтрива стари записи в bgerp_Recently
+     */
+    function cron_DeleteOldRecently()
+    {
+        $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS')/(24*3600));
+
+        // $res = self::delete("#last < '{$lastRecently}'");
+
+        if($res) {
+
+            return "Бяха изтрити {$res} записа от " . $this->className;
+        }
+    }
+
 }
