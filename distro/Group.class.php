@@ -2,7 +2,7 @@
 
 
 /**
- * Разпределена група файлове
+ * Разпределена файлова група
  * 
  * @category  bgerp
  * @package   distro
@@ -18,13 +18,13 @@ class distro_Group extends core_Master
     /**
      * Заглавие на модела
      */
-    public $title = 'Разпределени групи файлове';
+    public $title = 'Разпределени файлови групи';
     
     
     /**
      * 
      */
-    public $singleTitle = 'Група файлове';
+    public $singleTitle = 'Файлова група';
     
     
     /**
@@ -37,12 +37,6 @@ class distro_Group extends core_Master
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'distro/tpl/SingleLayoutGroup.shtml';
-    
-    
-    /**
-     * Полета, които ще се клонират
-     */
-    public $fieldsNotToClone = 'title';
     
     
     /**
@@ -153,23 +147,7 @@ class distro_Group extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%');
-        $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\')', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
-        
-        $this->setDbUnique('title');
-    }
-    
-    
-	/**
-     * Може ли документа да се добави в посочената папка?
-     */
-    public static function canAddToFolder($folderId)
-    {
-        // Ако няма права за добавяне
-        if (!static::haveRightFor('add')) {
-            
-            // Да не може да добавя
-            return FALSE;
-        }
+        $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
     }
     
     
@@ -272,10 +250,10 @@ class distro_Group extends core_Master
                 // Активираме хранилището
                 distro_Repositories::activateRepo($repoId);
                 
-                $handle = $mvc->getSubDirName($rec->id);
+                $subDirName = $mvc->getSubDirName($rec->id);
                 
                 // Създаваме директория в хранилището
-                distro_Repositories::createDir($repoId, $handle);
+                distro_Repositories::createDir($repoId, $subDirName);
             }
         }
     }
@@ -290,8 +268,18 @@ class distro_Group extends core_Master
      */
     public static function getSubDirName($id)
     {
+        $rec = self::fetch($id);
         
-        return self::getHandle($id);
+        $title = $rec->title;
+        
+        $title = STR::utf2ascii($title);
+        $title = preg_replace('/[\W]+/', ' ', $title);
+        
+        $title = trim($title);
+        
+        $subDir = self::getHandle($id) . ' - ' . $title;
+        
+        return $subDir;
     }
     
     
@@ -389,6 +377,35 @@ class distro_Group extends core_Master
         return $row;
     }
     
+	
+	/**
+	 * Връща прикачените файлове
+     * 
+     * @param object $rec - Запис
+     * 
+     * @return array
+     */
+    function getLinkedFiles($rec)
+    {
+        $resArr = array();
+        
+        if (!$rec->id) return $resArr;
+        
+        $fQuery = distro_Files::getQuery();
+        $fQuery->where(array("#groupId = '[#1#]'", $rec->id));
+        
+        while($dfRec = $fQuery->fetch()) {
+            if (!trim($dfRec->sourceFh)) continue;
+            
+            if ($resArr[$dfRec->sourceFh]) continue;
+            
+            $fRec = fileman_Files::fetchByFh($dfRec->sourceFh);
+            $resArr[$dfRec->sourceFh] = fileman_Files::getVerbal($fRec, 'name');
+        }
+        
+        return $resArr;
+    }
+    
     
     /**
      * Екшън за форсирано обновяване на хранилище
@@ -447,6 +464,40 @@ class distro_Group extends core_Master
         }
         
         return new Redirect($retUrl);
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Използваме заглавието на първия документ в нишката или на originId
+        $rec = $data->form->rec;
+        if (!$rec->id) {
+            
+            $cid = NULL;
+            
+            //Ако имаме originId
+            if ($rec->originId) {
+            
+                $cid = $rec->originId;
+            } elseif ($rec->threadId) {
+            
+                // Ако добавяме коментар в нишката
+                $cid = doc_Threads::fetch($rec->threadId)->firstContainerId;
+            }
+            
+            if (isset($cid)) {
+                $oDoc = doc_Containers::getDocument($cid);
+                $oRow = $oDoc->getDocumentRow();
+                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                $rec->title = html_entity_decode($oRow->recTitle, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+            }
+        }
     }
     
     

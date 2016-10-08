@@ -41,11 +41,11 @@ class context_Plugin extends core_Plugin {
     {
     	if(count($mvc->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
     	count($mvc->buttons) > 3 && Mode::is('screenMode', 'narrow')){
-            $link = ht::createFnBtn("Още", "toggleDisplay('hidden_{$rowId}'); $(this).remove();", NULL, array('ef_icon'=>'img/16/dots.png', 'class' => "linkWithIcon"));
+            $link = ht::createFnBtn("Още", "toggleDisplay('hidden_{$rowId}'); var trigger = $(this).closest('.toolbar-first').find('.more-btn'); $(this).remove(); $(trigger).contextMenu('destroy'); prepareContextMenu(); $(trigger).contextMenu('open'); $(trigger).contextMenu('open');", NULL, array('ef_icon'=>'img/16/dots.png', 'class' => "linkWithIcon"));
 
     		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
     		"<!--ET_BEGIN ROW2--><div class='modal-toolbar' data-position='auto' id='Row2_{$rowId}'>[#ROW2#]" .
-            "<!--ET_BEGIN HIDDEN-->" . $link . "<span id='hidden_{$rowId}' class='hiddenToolbar'>[#HIDDEN#]</div><!--ET_END HIDDEN-->" .
+            "<!--ET_BEGIN HIDDEN--><hr class='separator'>" . $link . "<span id='hidden_{$rowId}' class='hiddenToolbar'>[#HIDDEN#]</div><!--ET_END HIDDEN-->" .
     		"</div><!--ET_END ROW2-->" .
     		"</div></div>");
     	}

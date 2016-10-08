@@ -107,3 +107,8 @@ input.button.more-btn {
   background-position: center !important;
   background-image: url(../../img/16/arrow_down3.png) !important;
 }
+
+.separator {
+  margin: 2px 3px 1px 1px;
+  opacity: 0.4;
+}
