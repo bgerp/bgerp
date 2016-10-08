@@ -841,6 +841,16 @@ class doc_Threads extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if(empty($rec->firstContainerId)) return;
+        
+        static $lastRecently, $cu;
+
+        if(!$lastRecently) {
+            $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS')/(24*3600));
+        }
+ 
+        if(!$cu) {
+            $cu = core_Users::getCurrent();
+        }
 
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
@@ -852,6 +862,17 @@ class doc_Threads extends core_Manager
             if(mb_strlen($docRow->title) > self::maxLenTitle) {
                 $attr['title'] = $docRow->title;
             }
+
+            if($rec->last < $lastRecently) {
+                $attr['class'] .= ' tOld ';
+            } else {
+                if($rec->last > bgerp_Recently::getLastDocumentSee($rec->firstContainerId, NULL, TRUE)) {
+                    $attr['class'] .= ' tUnsighted ';
+                } else {
+                    $attr['class'] .= ' tSighted ';
+                }
+            }
+
             
             $row->onlyTitle = $row->title = ht::createLink(str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
@@ -871,6 +892,7 @@ class doc_Threads extends core_Manager
             }
 
             $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
+
 
         } catch (core_Exception_Expect $expect) {
             $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';

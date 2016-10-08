@@ -4,39 +4,57 @@
 /**
  * FileHandler на логото на фирмата на английски
  */
-defIfNot(BGERP_COMPANY_LOGO_EN, '');
+defIfNot('BGERP_COMPANY_LOGO_EN', '');
 
 
 /**
  * FileHandler на логото на фирмата на български
  */
-defIfNot(BGERP_COMPANY_LOGO, '');
+defIfNot('BGERP_COMPANY_LOGO', '');
 
 
 /**
  * FileHandler на логото на фирмата на английски
  * Генерирано от svg файл
  */
-defIfNot(BGERP_COMPANY_LOGO_SVG_EN, '');
+defIfNot('BGERP_COMPANY_LOGO_SVG_EN', '');
 
 
 /**
  * FileHandler на логото на фирмата на български
  * Генерирано от svg файл
 */
-defIfNot(BGERP_COMPANY_LOGO_SVG, '');
+defIfNot('BGERP_COMPANY_LOGO_SVG', '');
 
 
 /**
  * След колко време, ако не работи крона да бие нотификация
  */
-defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
+defIfNot('BGERP_NON_WORKING_CRON_TIME', 3600);
 
 
 /**
  * Звуков сигнал при нотификация
  */
-defIfNot(BGERP_SOUND_ON_NOTIFICATION, 'scanner');
+defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
+
+
+/**
+ * Колко време да се съхраняват нотификациите
+ */
+defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31104000);
+
+
+/**
+ * Колко време да се съхранява историята за отворени нишки и папки 
+ */
+defIfNot('BGERP_RECENTLY_KEEP_DAYS', 31104000);
+
+
+/**
+ * Звуков сигнал при нотификация
+ */
+defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 
 
 /**
@@ -88,6 +106,11 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
                 
         'BGERP_SOUND_ON_NOTIFICATION' => array ('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
+
+        'BGERP_NOTIFICATION_KEEP_DAYS' => array ('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
+        
+        'BGERP_RECENTLY_KEEP_DAYS' => array ('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
+
      );
     
     
@@ -261,6 +284,28 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= bgerp_Menu::addOnce(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
         
         $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
+
+
+        $rec = new stdClass();
+        $rec->systemId = "DeleteOldRecently";
+        $rec->description = "Изтриване на изтеклите Recently";
+        $rec->controller = "bgerp_Recently";
+        $rec->action = "DeleteOldRecently";
+        $rec->period = 24*60;
+        $rec->timeLimit = 50;
+        $rec->offset = mt_rand(0,300);
+        $html .= core_Cron::addOnce($rec);
+        
+        $rec = new stdClass();
+        $rec->systemId = "DeleteOldNotifications";
+        $rec->description = "Изтриване на изтеклите Notifications";
+        $rec->controller = "bgerp_Notifications";
+        $rec->action = "DeleteOldNotifications";
+        $rec->period = 24*60;
+        $rec->timeLimit = 50;
+        $rec->offset = mt_rand(0,300);
+        $html .= core_Cron::addOnce($rec);
+
         
         $html .= $Menu->repair();
         
