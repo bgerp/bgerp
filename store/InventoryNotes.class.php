@@ -549,7 +549,7 @@ class store_InventoryNotes extends core_Master
     			$groups = cat_Products::fetchField($productId, 'groups');
     			if(count($groups)){
     				// $groups = cat_Groups::getDescendantArray($groups);
-    				$groups = keylist::fromArray($groups);
+    				// $groups = keylist::fromArray($groups);
     				$aRec->groups = $groups;
     			}
     			
