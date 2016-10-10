@@ -2467,12 +2467,13 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
             background-color: #ccc !important;
             border: 1px solid #aaa;
             a {
-                color: #333;
+                text-shadow: none;
+				cursor: pointer;
             }
             &:hover , &.selected {
                 padding: 4px;
+				top: 0 !important;
                 border: 1px solid #bbb;
-                margin: 0 3px 0 0;
                 background-color: #ffffcc !important;
                 a {
                     color: #333;
