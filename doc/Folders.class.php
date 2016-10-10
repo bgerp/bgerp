@@ -61,7 +61,7 @@ class doc_Folders extends core_Master
     /**
      * Кой може да вижда единичния изглед
      */
-    var $canSingle = 'no_one';
+    var $canSingle = 'powerUser';
 
     
     /**
