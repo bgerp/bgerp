@@ -35,7 +35,7 @@ class bgerp_plg_FLB extends core_Plugin
 		
 		// Поле, в които се указват ролите, които могат да контират документи с обекта
 		if(!$mvc->getField($mvc->canActivateRoleFld, FALSE)){
-			$mvc->FLD($mvc->canActivateRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type)', "caption=Контиране на документи->Екипи,after={$mvc->canActivateUserFld}");
+			$mvc->FLD($mvc->canActivateRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Контиране на документи->Екипи,after={$mvc->canActivateUserFld}");
 		}
 		
 		// Поле, в които се указват потребителите, които могат да контират документи с обекта
@@ -45,7 +45,7 @@ class bgerp_plg_FLB extends core_Plugin
 		
 		// Поле, в които се указват rolite, които могат да избират обекта в документи
 		if(!$mvc->getField($mvc->canSelectRoleFld, FALSE)){
-			$mvc->FLD($mvc->canSelectRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type)', "caption=Използване в документи->Екипи,after={$mvc->canSelectUserFld}");
+			$mvc->FLD($mvc->canSelectRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Използване в документи->Екипи,after={$mvc->canSelectUserFld}");
 		}
 		
 		// Трябва да е към корица

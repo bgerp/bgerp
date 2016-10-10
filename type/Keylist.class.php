@@ -384,7 +384,11 @@ class type_Keylist extends core_Type {
             if($where = $this->params['where']) {
                 $query->where("{$where}");
             }
-               
+            
+            if($orderBy = $this->params['orderBy']) {
+                $query->orderBy("#{$orderBy}", NULL, TRUE); 
+            }
+             
             if($select != "*") {
                 $query->show($select)
                 ->show('id')

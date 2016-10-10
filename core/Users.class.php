@@ -198,7 +198,7 @@ class core_Users extends core_Manager
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
         
         
-        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang)', 'caption=Роли');
+        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang, orderBy=orderByRole)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
