@@ -9,12 +9,12 @@
  * @category  bgerp
  * @package   trz
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заплати
  */
-class trz_Payroll extends core_Manager
+class trz_Payroll extends core_Master
 {
     
     
@@ -31,9 +31,15 @@ class trz_Payroll extends core_Manager
     
     
     /**
+     * Детайла, на модела
+     */
+    public $details = 'trz_PayrollDetails';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected,  plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_Printing,  plg_SaveAndNew, 
                     trz_Wrapper';
     
     
@@ -82,7 +88,7 @@ class trz_Payroll extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,periodId, ruleId, personId, amount';
+    public $listFields = 'id,periodId';
     
     
     /**
@@ -92,14 +98,47 @@ class trz_Payroll extends core_Manager
     
     
     /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'periodId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,width=100%');
-    	 $this->FLD('ruleId',    'key(mvc=trz_SalaryRules, select=conditionExpr, allowEmpty=true)', 'caption=Източник,width=100%');
-    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,width=100%');
-    	 $this->FLD('amount',    'double', 'caption=Сума,mandatory,width=100%');
+    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,tdClass=centerCol');
+    }
+
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    { 
+        $data->toolbar->addBtn('Обнови', array(
+                    'trz_PayrollDetails',
+                    'fillData',
+                    'payrollId' => $data->rec->id,
+                    'ret_url' => TRUE
+                ),
+                   array('ef_icon' =>'img/16/arrow_refresh.png',
+                         'title'=>'Създаване на ведомост за периода'));
+
+    }
+
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        $detail = cls::get('trz_PayrollDetails');
+        $detail->fillData($rec);
     }
     
 }
