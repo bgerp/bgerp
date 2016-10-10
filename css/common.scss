@@ -2503,12 +2503,14 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 .narrow div.tab-control.deal-history-tab, .narrow .single-thread .document .tab-top div.alphabet{
 	.tab-row {
         float: none;
-        margin: 0 0 0 3px;
+        margin: 0px;
         clear: both;
     }
     div.tab-row {
         .tab, .tab.selected {
-			padding: 4px 2px 1px !important
+			margin: 1px 2px 1px 0 !important;
+			padding: 3px 2px 3px !important;
+			font-size: 0.65em;
 	    }
     }
     div.tab-page {
