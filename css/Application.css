@@ -871,7 +871,6 @@ div.mobile {
  */
 .groupTitle {
   padding: 0 2px;
-  background: linear-gradient(rgba(255, 255, 255, 0.1), white);
   border-radius: 5px; }
 
 option.team {
