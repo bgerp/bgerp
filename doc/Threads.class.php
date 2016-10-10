@@ -978,8 +978,9 @@ class doc_Threads extends core_Manager
             }
         }
         
-        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, maxSuggestions=20, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'class=w100,mandatory');
-        $exp->OPTIONS("#folderId", "getFolderOpt(#threadId,#dest)", '#dest == "exFolder"');
+        $exp->DEF('#folderId=Папка', 'key2(mvc=doc_Folders, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\', allowEmpty)', 'class=w100,mandatory');
+
+        //$exp->OPTIONS("#folderId", "getFolderOpt(#threadId,#dest)", '#dest == "exFolder"');
 
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
@@ -1783,8 +1784,8 @@ class doc_Threads extends core_Manager
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {
-        
+    {  
+         
         // Бутони за разгледане на всички оттеглени тредове
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
@@ -2316,7 +2317,7 @@ class doc_Threads extends core_Manager
     /**
      * Прави широчината на колонката със заглавието на треда да не се свива под 240px
      */
-    function on_AfterPrepareListFields($mvc, $res, $data)
+    static function on_AfterPrepareListFields($mvc, $res, $data)
     {
         $data->listFields['title'] = "|*<div style='min-width:240px'>|" . $data->listFields['title'] . '|*</div>';
     }
