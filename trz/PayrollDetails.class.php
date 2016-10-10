@@ -305,7 +305,7 @@ class trz_PayrollDetails extends core_Detail
         $exRec = new stdClass();
         $self = cls::get(get_called_class());
         foreach($recs as $rec){
-            $rec->amount = $rec->salary + $rec->sickday + $rec->order + $rec->trip + $rec->bonus + $rec->fines;
+            $rec->amount = $rec->salary + $rec->sickday + $rec->order + $rec->trip + $rec->bonus - $rec->fines;
             // Ако имаме уникален запис го записваме
             // в противен слувай го ъпдейтваме
             if($self->isUnique($rec, $fields, $exRec)) {
