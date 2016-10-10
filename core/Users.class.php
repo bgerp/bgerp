@@ -258,7 +258,9 @@ class core_Users extends core_Manager
         
         $uQuery = core_Users::getQuery();
         $uQuery->orderBy('#nick');
-
+        
+        $usersRolesArr = array();
+        
         // За всяка роля добавяме потребители, които я имат
         while ($uRec = $uQuery->fetchAndCache()) {
             $rolesArr = type_Keylist::toArray($uRec->roles);
