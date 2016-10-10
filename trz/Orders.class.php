@@ -39,7 +39,7 @@ class trz_Orders extends core_Master
      */
     public $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank';
+    				 plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank,change_Plugin';
     
     
     /**
@@ -106,6 +106,12 @@ class trz_Orders extends core_Master
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, trz';
+    
+    /**
+     * Кой има право да прави начисления
+     */
+    public $canChangerec = 'ceo,trz';
+    
   
     /**
      * За плъгина acc_plg_DocumentSummary
@@ -154,7 +160,7 @@ class trz_Orders extends core_Master
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
     	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('isPaid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Вид,maxRadio=2,columns=2,notNull,value=paid');
-    	$this->FLD('amount', 'double', 'caption=Начисления');
+    	$this->FLD('amount', 'double', 'caption=Начисления,input=none, changable');
     }
     
     
