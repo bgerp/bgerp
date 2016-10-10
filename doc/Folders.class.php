@@ -86,12 +86,6 @@ class doc_Folders extends core_Master
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'powerUser';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
     
     
     /**
