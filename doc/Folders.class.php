@@ -55,8 +55,14 @@ class doc_Folders extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'powerUser';
+    var $canWrite = 'no_one';
     
+    
+    /**
+     * Кой може да вижда единичния изглед
+     */
+    var $canSingle = 'no_one';
+
     
     /**
      * Кой може да добавя?
@@ -130,6 +136,17 @@ class doc_Folders extends core_Master
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
         
         $this->setDbUnique('coverId,coverClass');
+    }
+
+
+    /**
+     * Редиректва към съдържанието на папката
+     */
+    public function act_Single()
+    {
+        expect($id = Request::get('id', 'int'));
+
+        return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
     }
     
     
@@ -927,6 +944,7 @@ class doc_Folders extends core_Master
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
+            $params['Ctr'] = 'doc_Threads';
             $link = toUrl($params, $isAbsolute);
 
             // Атрибути на линка
@@ -1495,4 +1513,81 @@ class doc_Folders extends core_Master
     
     	return $options;
     }
+
+
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    { 
+        $query = self::getQuery();
+	    $query->orderBy("last=DESC");
+
+        $viewAccess = TRUE;
+	    if ($typeKey->params['restrictViewAccess'] == 'yes') {
+	        $viewAccess = FALSE;
+	    }
+
+        $me = cls::get('crm_Companies');
+	       
+	    $me->restrictAccess($query, NULL, $viewAccess);
+	    
+        if(!$includeHiddens) {
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+	       
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit($onlyIds)) {
+            $query->where("#id = $onlyIds");
+        }
+
+        if($threadId = $params['moveThread']) {
+            $tRec = doc_Threads::fetch($threadId);
+            expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
+            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->EXT('class', 'core_Classes', 'externalKey=coverClass,externalName=title');
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+       
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '%', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            foreach($qArr as $w) {
+                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+            }
+        }
+ 
+        if($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,searchFieldXpr,class');
+        
+        $res = array();
+        
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = trim($rec->searchFieldXpr) . ' (' . $rec->class . ')';
+        }
+ 
+        return $res;
+    }
+
 }
