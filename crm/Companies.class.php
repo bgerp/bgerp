@@ -1049,7 +1049,7 @@ class crm_Companies extends core_Master
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
 
             $query->where("#id IN ($ids)");
-        } elseif(ctype_digit($onlyIds)) {
+        } elseif(ctype_digit("{$onlyIds}")) {
             $query->where("#id = $onlyIds");
         }
         
