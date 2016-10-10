@@ -123,7 +123,7 @@ class distro_Setup extends core_ProtoSetup
             
             foreach ($reposArr as $repoId) {
                 try {
-                    $res[] = $Files->forceSync($gRec->id, $repoId);
+                    $Files->forceSync($gRec->id, $repoId);
                 } catch (ErrorException $e) {
                     continue;
                 }
