@@ -761,10 +761,8 @@ div.productImage {
 	border-radius: 4px;
 	margin-top: 5px;
 	padding: 1px 5px;
-	color: #333 !important;
 	cursor: pointer;
 	&:hover {
-		color: #000 !important;
 		background-color: #f1f1f1;
 	}
 }
@@ -985,6 +983,8 @@ div.mobile {
 
 .groupTitle {
 	padding: 0 2px;
+    background: linear-gradient(rgba(255,255,255,0.1), white);
+    border-radius:5px;
 }
 
 option.team {
@@ -1341,15 +1341,16 @@ td.portal-date {
 }
 
 a.tUnsighted {
-    color: #007733 !important;
-    text-decoration:underline;
+    font-weight: bold;
+     
+     
     &:hover {
         color: #e70 !important;
     }
 }
 
 a.tOld {
-    color: #666688 !important;
+    color: #666 !important;
     &:hover {
         color: #e70 !important;
     }
@@ -4979,7 +4980,7 @@ body.narrow {
 	.group-link:hover {
 		cursor: default;
 		background-color: #e4e4e4;
-		color: #333 !important;
+		color: #e70 !important;
 	}
 }
 
