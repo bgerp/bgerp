@@ -1350,10 +1350,7 @@ a.tUnsighted {
 }
 
 a.tOld {
-    color: #666 !important;
-    &:hover {
-        color: #e70 !important;
-    }
+	opacity: 0.8;
 }
 
 .listTable .change-selected-version td,
