@@ -54,6 +54,7 @@ class colab_Setup extends core_ProtoSetup
     
     	// Закачане на плъгин за споделяне на папки с партньори към лицата
     	$html .= $Plugins->installPlugin('Споделяне на папки на лица с партньори', 'colab_plg_FolderToPartners', 'crm_Persons', 'private');
+    	$html .= $Plugins->installPlugin('Споделяне системи с партньори', 'colab_plg_FolderToPartners', 'support_Systems', 'private');
     	
     	// 
     	$html .= $Plugins->installPlugin('Настройка на профилите на партньори', 'colab_plg_Settings', 'core_Settings', 'private');

@@ -52,7 +52,8 @@ class colab_Threads extends core_Manager
 	 */
 	var $canRead = 'contractor';
 	
-	
+    var $canNewdoc = 'contractor';
+
 	/**
 	 * Кой има право да чете?
 	 */
@@ -232,6 +233,8 @@ class colab_Threads extends core_Manager
            			$row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
         		}
         		
+                $row->allDocCnt = $row->partnerDocCnt;
+
 				$data->rows[$id] = $row;
 			}
 		}

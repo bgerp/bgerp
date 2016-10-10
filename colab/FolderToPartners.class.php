@@ -89,8 +89,8 @@ class colab_FolderToPartners extends core_Manager
     function description()
     {
         // Информация за нишката
-        $this->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка,silent');
-        $this->FLD('contractorId', 'key(mvc=core_Users,select=names)', 'caption=Потребител,notNull');
+        $this->FLD('folderId', 'key2(mvc=doc_Folders)', 'caption=Папка,silent');
+        $this->FLD('contractorId', 'key(mvc=core_Users,select=names)', 'caption=Потребител,notNull,silent');
          
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
@@ -115,13 +115,9 @@ class colab_FolderToPartners extends core_Manager
 		$options = array();
 		
 		while ($uRec = $uQuery->fetch()){
-			if($folderId){
-				if(!static::fetch("#folderId = {$folderId} && #contractorId = {$uRec->id}")){
-					$options[$uRec->id] = $uRec->names;
-				} 
-			} else {
-				$options[$uRec->id] = $uRec->names;
-			}
+ 	        if(!static::fetch("#contractorId = {$uRec->id}")){
+		        $options[$uRec->id] = $uRec->names;
+		    } 
 		}
 		
 		return $options;
@@ -134,19 +130,27 @@ class colab_FolderToPartners extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {  
         $form = $data->form;
+
+        if($form->rec->contractorId) {
+
+            $form->setReadOnly('contractorId');
+
+
+        } else {
         
-        // Ако няма избрана папка форсираме от данните за контрагента от урл-то
-        if(empty($form->rec->folderId)){
-        	expect($coverClassId = request::get('coverClassId', "key(mvc=core_Classes)"));
-        	$coverName = cls::getClassName($coverClassId);
-        	expect($coverId = request::get('coverId', "key(mvc={$coverName})"));
-        	
-        	$form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
+            // Ако няма избрана папка форсираме от данните за контрагента от урл-то
+            if(empty($form->rec->folderId)){
+                expect($coverClassId = request::get('coverClassId', "key(mvc=core_Classes)"));
+                $coverName = cls::getClassName($coverClassId);
+                expect($coverId = request::get('coverId', "key(mvc={$coverName})"));
+                
+                $form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
+            }
+            
+            $form->setReadOnly('folderId');
+            
+            $form->setOptions('contractorId', self::getContractorOptions($form->rec->folderId));
         }
-        
-        $form->setReadOnly('folderId');
-        
-        $form->setOptions('contractorId', self::getContractorOptions($form->rec->folderId));
     }
 
 
@@ -197,7 +201,7 @@ class colab_FolderToPartners extends core_Manager
     		// Само към папка на контрагент
     		if($rec->folderId){
     			$cover = doc_Folders::getCover($rec->folderId);
-    			if(!$cover->haveInterface('crm_ContragentAccRegIntf')){
+    			if(FALSE && !$cover->haveInterface('crm_ContragentAccRegIntf')){
     				$requiredRoles = 'no_one';
     			} else {
     				// Ако не могат да бъдат избрани контрактори, не може да се добави запис
@@ -273,7 +277,8 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function renderPartners($data, &$tpl)
     {
-		if(!cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)) return;
+		//if(!cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)) return;
+     
 		$me = cls::get(get_called_class());
 		
 		$dTpl = getTplFromFile('colab/tpl/PartnerDetail.shtml');
