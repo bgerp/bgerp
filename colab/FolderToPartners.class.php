@@ -203,12 +203,6 @@ class colab_FolderToPartners extends core_Manager
     			$cover = doc_Folders::getCover($rec->folderId);
     			if(FALSE && !$cover->haveInterface('crm_ContragentAccRegIntf')){
     				$requiredRoles = 'no_one';
-    			} else {
-    				// Ако не могат да бъдат избрани контрактори, не може да се добави запис
-    				$contractors = self::getContractorOptions($rec->folderId);
-    				if(!count($contractors)){
-    					$requiredRoles = 'no_one';
-    				}
     			}
     		}
     	}
