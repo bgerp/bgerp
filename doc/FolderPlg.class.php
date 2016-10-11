@@ -37,7 +37,7 @@ class doc_FolderPlg extends core_Plugin
             // Определя достъпа по подразбиране за новите папки
             setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
-            $mvc->FLD('inCharge' , 'user(role=powerUser, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
+            $mvc->FLD('inCharge' , 'user(role=powerUser )', 'caption=Права->Отговорник,formOrder=10000');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне,formOrder=10002');
             
@@ -290,6 +290,21 @@ class doc_FolderPlg extends core_Plugin
         if (($action == 'viewlogact') && $rec && $requiredRoles != 'no_one') {
             if (!$mvc->haveRightFor('single', $rec, $userId)) {
                 $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
+        if(!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
+            if($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+                if(!$userId) {
+                    $userId = core_Users::getCurrent();
+                }
+                if(!$rec->inCharge) {
+                    $rec = $mvc->fetch($rec->id);
+                }
+                if($userId && $userId != $rec->inCharge) {
+                    $requiredRoles = 'officer';
+                }
             }
         }
     }
