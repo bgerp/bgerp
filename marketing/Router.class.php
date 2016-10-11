@@ -86,12 +86,15 @@ class marketing_Router
 	 */
 	public static function routeByCompanyEmail($email, $inCharge)
 	{
-		$companyId = crm_Companies::fetchField(array("#email LIKE '%[#1#]%'", $email), 'id');
+		$companyRec = crm_Companies::fetch(array("#email LIKE '%[#1#]%'", $email));
 		
-		if($companyId){
-			$rec = (object)array('id' => $companyId, 'inCharge' => $inCharge);
-			
-			return crm_Companies::forceCoverAndFolder($rec);
+		if($companyRec){
+			$emails = type_Emails::toArray($companyRec->email);
+			if(in_array($email, $emails)){
+				$rec = (object)array('id' => $companyRec->id, 'inCharge' => $inCharge);
+					
+				return crm_Companies::forceCoverAndFolder($rec);
+			}
 		}
 		
 		return FALSE;
@@ -107,12 +110,16 @@ class marketing_Router
 	 */
 	public static function routeByPersonEmail($email, $inCharge)
 	{
-		$personId = crm_Persons::fetchField(array("#email LIKE '%[#1#]%'", $email), 'id');
+		$personRec = crm_Persons::fetch(array("#email LIKE '%[#1#]%'", $email));
 		
-		if($personId){
-			$rec = (object)array('id' => $personId, 'inCharge' => $inCharge);
+		if($personRec){
+			$emails = type_Emails::toArray($personRec->email);
 			
-			return crm_Persons::forceCoverAndFolder($rec);
+			if(in_array($email, $emails)){
+				$rec = (object)array('id' => $personRec->id, 'inCharge' => $inCharge);
+					
+				return crm_Persons::forceCoverAndFolder($rec);
+			}
 		}
 		
 		return FALSE;
