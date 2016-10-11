@@ -64,18 +64,24 @@ class type_Keylist extends core_Type {
             while($query->fetchAndCache()) {}
         }
 
-        
         foreach($vals as $v) {
             if($v) { 
                 $name = $this->getVerbal($v);
                 if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
+                	$attr = array();
+                	if(isset($this->params['classLink'])){
+                		$attr = array('class' => $this->params['classLink']);
+                	}
+                	
                 	if($this->params['makeLinks'] === 'short'){
-                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v));
+                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v), FALSE, $attr);
                 	} else {
-                		$name = ht::createLink($name, array($mvc, 'Single', $v));
+                		$name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
                 	}
                 }
-                $res .= ($res ? ", " : '') . $name;
+                
+                $delimeter = (isset($this->params['classLink'])) ? " " : ", ";
+                $res .= ($res ? $delimeter : '') . $name;
             }
         }
         
