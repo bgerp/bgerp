@@ -342,7 +342,4 @@ class trz_PayrollDetails extends core_Detail
         }
 
     }
-    
-
-    
 }
