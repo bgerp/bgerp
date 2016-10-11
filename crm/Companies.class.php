@@ -1026,9 +1026,9 @@ class crm_Companies extends core_Master
     {
         $query = self::getQuery();
 	    $query->orderBy("modifiedOn=DESC");
-
+        
         $viewAccess = TRUE;
-	    if ($typeKey->params['restrictViewAccess'] == 'yes') {
+	    if ($params['restrictViewAccess'] == 'yes') {
 	        $viewAccess = FALSE;
 	    }
 
