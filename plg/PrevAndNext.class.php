@@ -7,10 +7,10 @@
  * и при разглеждането на няколко записа
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -18,7 +18,11 @@
 class plg_PrevAndNext extends core_Plugin
 {
     
-    function on_AfterDescription($mvc)
+	
+	/**
+	 * След описанието на модела
+	 */
+    public static function on_AfterDescription($mvc)
     {
         $mvc->doWithSelected = arr::make($mvc->doWithSelected, TRUE);
         $mvc->doWithSelected['edit'] = 'Редактиране';
@@ -27,13 +31,14 @@ class plg_PrevAndNext extends core_Plugin
         }
     }
 
+    
     /**
      * Промяна на бутоните
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareRetUrl($mvc, $data)
+    public static function on_AfterPrepareRetUrl($mvc, $data)
     {   
         $selKey = static::getModeKey($mvc);
 
@@ -56,7 +61,7 @@ class plg_PrevAndNext extends core_Plugin
     /**
      * Позволява преглед на няколко избрани записа на техните сингли
      */
-    function on_BeforeAction(core_Manager $mvc, &$res, $action)
+    public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if ($action == 'browse') {
         	
@@ -148,7 +153,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareEditForm($mvc, &$res, &$data)
+    public static function on_BeforePrepareEditForm($mvc, &$res, &$data)
     {
         if($sel = Request::get('Selected')) {
 
@@ -162,10 +167,7 @@ class plg_PrevAndNext extends core_Plugin
             
         } 
     }
-
-
-
-
+    
     
     /**
      * Подготовка на формата
@@ -174,7 +176,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $selKey = static::getModeKey($mvc);
         
@@ -219,12 +221,8 @@ class plg_PrevAndNext extends core_Plugin
     
     /**
      * Добавяне на бутони за 'Предишен' и 'Следващ'
-     *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
      */
-    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $selKey = static::getModeKey($mvc);
         
@@ -254,7 +252,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
      	$selKey = static::getModeKey($mvc);
         
@@ -281,7 +279,7 @@ class plg_PrevAndNext extends core_Plugin
     /**
      * Връща ключа за кеша, който се определя от сесията и модела
      */
-    static function getModeKey($mvc) 
+    public static function getModeKey($mvc) 
     {
         return $mvc->className . '_PrevAndNext';
     }
@@ -296,7 +294,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'browse' && $requiredRoles != 'no_one') {
             if(!$mvc->haveRightFor('single', $rec, $userId)) {
