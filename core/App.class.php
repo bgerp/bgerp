@@ -568,7 +568,7 @@ class core_App
         header("Pragma: no-cache");
         
         // Указваме, че ще се връща JSON
-        header('Content-Type: application/json');
+        header('Content-Type: text/json');
         
         // Връщаме резултата в JSON формат
         echo json_encode($resArr);
