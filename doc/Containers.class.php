@@ -1722,7 +1722,7 @@ class doc_Containers extends core_Manager
                     }
                 
                     if (self::save($rec, 'threadId')) {
-                        self::logNotice('Поправеное threadId', $rec->id);
+                        self::logNotice('Поправено threadId', $rec->id);
                         $resArr['threadId']++;
                     }
                 }
