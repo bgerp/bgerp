@@ -258,18 +258,22 @@ class plg_PrevAndNext extends core_Plugin
     {
      	$selKey = static::getModeKey($mvc);
         
-        if(Mode::is($selKey) ) {
-            if (isset($data->buttons->nextId)) {
-                $data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=noicon fright,title = Следващ');
-            } else {
-                $data->toolbar->addBtn('»»»', array(), 'class=btn-disabled noicon fright,disabled,title = Следващ');
-            }
-            
-            if (isset($data->buttons->prevId)) {
-                $data->toolbar->addBtn('«««', array($mvc, 'browse', $data->buttons->prevId), 'class=noicon fright', array('style' => 'margin-left:5px;', 'title' => 'Предишен'));
-            } else {
-                $data->toolbar->addBtn('«««', array(), 'class=btn-disabled noicon fright,disabled', array('style' => 'margin-left:5px;', 'title' => 'Предишен'));
-            }
+        if(Mode::is($selKey)) {
+        	$action = Request::get('Act');
+        	
+        	if($action == 'browse'){
+        		if (isset($data->buttons->nextId)) {
+        			$data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=noicon fright,title = Следващ');
+        		} else {
+        			$data->toolbar->addBtn('»»»', array(), 'class=btn-disabled noicon fright,disabled,title = Следващ');
+        		}
+        		
+        		if (isset($data->buttons->prevId)) {
+        			$data->toolbar->addBtn('«««', array($mvc, 'browse', $data->buttons->prevId), 'class=noicon fright', array('style' => 'margin-left:5px;', 'title' => 'Предишен'));
+        		} else {
+        			$data->toolbar->addBtn('«««', array(), 'class=btn-disabled noicon fright,disabled', array('style' => 'margin-left:5px;', 'title' => 'Предишен'));
+        		}
+        	}
         }
     }
     
