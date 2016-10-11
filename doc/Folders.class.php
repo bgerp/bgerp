@@ -1518,7 +1518,7 @@ class doc_Folders extends core_Master
 	    $query->orderBy("last=DESC");
 
         $viewAccess = TRUE;
-	    if ($typeKey->params['restrictViewAccess'] == 'yes') {
+	    if ($params['restrictViewAccess'] == 'yes') {
 	        $viewAccess = FALSE;
 	    }
 
