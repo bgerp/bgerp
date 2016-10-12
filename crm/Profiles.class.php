@@ -284,13 +284,19 @@ class crm_Profiles extends core_Master
         if(core_Packs::isInstalled('colab')){
         	if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
         		$data->ColabFolders = new stdClass();
+
+                // URL за промяна
+                if(haveRole('admin,ceo,manager')) {
+                    $data->ColabFolders->addUrl = array('colab_FolderToPartners', 'add', 'contractorId' => $data->rec->userId, 'ret_url' => TRUE);
+                }
+
         		$data->ColabFolders->rowsArr = array();
         		$sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
         	
         		$params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
         		foreach ($sharedFolders as $folderId) {
         			$params['folderId'] = $folderId;
-        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getVerbalLink($params)));
+        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getLink($folderId)));
         		}
         	}
         }
@@ -335,7 +341,11 @@ class crm_Profiles extends core_Master
                 $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
                     
                 // Създаме линка
+                $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=Редактиране на потребителски данни');
+                                                     
+                // Създаме линка
                 $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=Редактиране на потребителски данни');  
+
             }
             
             if($data->User->rec->state != 'active') {
@@ -483,16 +493,25 @@ class crm_Profiles extends core_Master
         }
         
         // Показваме достъпните папки на колабораторите
-        if ($data->ColabFolders && $data->ColabFolders->rowsArr) {
+        if ($data->ColabFolders) {
             $colabTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileColabFoldersLayout.shtml')));
             
-            $folderBlockTpl = $colabTpl->getBlock('folders');
-            foreach ((array)$data->ColabFolders->rowsArr as $rows) {
-                
-                $folderBlockTpl->placeObject($rows);
-                $folderBlockTpl->append2Master();
+            if($data->ColabFolders->rowsArr) {
+                $folderBlockTpl = $colabTpl->getBlock('folders');
+                foreach ((array)$data->ColabFolders->rowsArr as $rows) {
+                    
+                    $folderBlockTpl->placeObject($rows);
+                    $folderBlockTpl->append2Master();
+                }
             }
-            
+
+            if($data->ColabFolders->addUrl) {
+                // Иконата за редактиране
+                $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
+                $addLink = ht::createLink($img, $data->ColabFolders->addUrl, NULL, 'title=Споделяне на нова папка');
+                $colabTpl->replace($addLink, 'addColabBtn');
+            }
+
             $tpl->prepend($colabTpl, 'colabFolders');
         }
         

@@ -1527,6 +1527,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+
+        if($requiredRoles == 'no_one') return;
+
         // Ако добавяме
         if ($action == 'add') {
             
@@ -1565,6 +1568,8 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 		
+        if($requiredRoles == 'no_one') return;
+
     	if ($rec->id) {
             $oRec = $mvc->fetch($rec->id);
             
@@ -1607,7 +1612,7 @@ class doc_DocumentPlg extends core_Plugin
                 		// И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
         				// е споделена с партньора)
                 		$isVisibleToContractors = colab_Threads::haveRightFor('single', doc_Threads::fetch($oRec->threadId));
-                		
+             
                 		if($isVisibleToContractors && doc_Containers::fetch($rec->containerId)->visibleForPartners == 'yes'){
                 			
                 			// Тогава позволяваме на контрактора да има достъп до сингъла на този документ
@@ -1723,6 +1728,22 @@ class doc_DocumentPlg extends core_Plugin
         			$requiredRoles = 'no_one';
         		}
         	}
+        }
+        
+        // Потребителите само с ранг ексикютив може да редактират документи, които те са създали
+        if(!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
+            if ($rec->id && ($action == 'edit') || ($action == 'reject')) {
+                if(!$userId) {
+                    $userId = core_Users::getCurrent();
+                }
+                if(!$rec->createdBy) {
+                    $rec = $mvc->fetch($rec->id);
+                }
+                if($userId && $userId != $rec->createdBy) {
+                    $requiredRoles = 'officer';
+                }
+            }
+
         }
     }
     

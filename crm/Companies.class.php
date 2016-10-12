@@ -274,7 +274,7 @@ class crm_Companies extends core_Master
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
                 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\')', 'caption=Групи->Групи,remember,silent,export=Csv');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -516,7 +516,7 @@ class crm_Companies extends core_Master
         	
             $resStr = "Възможно е дублиране със {$sledniteFirmi}|*: <ul>{$similarCompany}</ul>";
         }
-        
+    
         return $resStr;
     }
     
@@ -585,21 +585,26 @@ class crm_Companies extends core_Master
             $emailArr = type_Emails::toArray($rec->email);
             
             if (!empty($emailArr)) {
-                $eQuery = clone $oQuery;
-                
-                $toPrev = FALSE;
                 foreach ($emailArr as $email) {
-                    $eQuery->where(array("#email LIKE '%[#1#]%'", $email), $toPrev);
-                    $toPrev = TRUE;
+                    $folderId = email_Router::route($email, NULL, email_Router::RuleFrom);
+                    
+
+                    if($folderId) {
+                        $fRec = doc_Folders::fetch($folderId);
+                        
+                       // bp($fRec, $folderId, $email, core_Classes::getId('crm_Companies'));
+
+                        if($fRec->coverClass == core_Classes::getId('crm_Companies')) {
+                            $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
+                            $fieldsArr['email'] = 'email';
+                        }
+                    }
                 } 
                 
-                while($similarRec = $eQuery->fetch()) {
-                    $similarsArr[$similarRec->id] = $similarRec;
-                    $fieldsArr['email'] = 'email';
-                }
             }
         }
-        
+       
+
         $fields = implode(',', $fieldsArr);
         
         return $similarsArr;
@@ -1021,9 +1026,9 @@ class crm_Companies extends core_Master
     {
         $query = self::getQuery();
 	    $query->orderBy("modifiedOn=DESC");
-
+        
         $viewAccess = TRUE;
-	    if ($typeKey->params['restrictViewAccess'] == 'yes') {
+	    if ($params['restrictViewAccess'] == 'yes') {
 	        $viewAccess = FALSE;
 	    }
 
@@ -1044,7 +1049,7 @@ class crm_Companies extends core_Master
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
 
             $query->where("#id IN ($ids)");
-        } elseif(ctype_digit($onlyIds)) {
+        } elseif(ctype_digit("{$onlyIds}")) {
             $query->where("#id = $onlyIds");
         }
         
@@ -1055,7 +1060,7 @@ class crm_Companies extends core_Master
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
-            $q = trim(preg_replace("/[^a-z0-9\p{Ll}]+/ui", ' ', $q));
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
             if($strict) {
                 $qArr = array(str_replace(' ', '%', $q));

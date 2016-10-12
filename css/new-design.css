@@ -944,8 +944,6 @@ div.tab-control.alphabet div.tab-row .tab {
   box-shadow: 1px 1px rgba(0, 0, 0, 0.2); }
   div.tab-control.alphabet div.tab-row .tab.selected {
     top: -4px; }
-  div.tab-control.alphabet div.tab-row .tab a {
-    color: #333333 !important; }
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: #111111 !important; }
   div.tab-control.alphabet div.tab-row .tab img {

@@ -84,10 +84,11 @@ class core_Roles extends core_Manager
     function description()
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory,translate');
-        $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\')', 'caption=Наследяване,notNull,');
+        $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\',orderBy=orderByRole)', 'caption=Наследяване,notNull,');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
-        
+        $this->XPR('orderByRole', 'int', "(CASE #type WHEN 'team' THEN 1 WHEN 'rang' THEN 2 WHEN 'job' THEN 3 WHEN 'position' THEN 4 ELSE 5 END)");
+
         $this->setDbUnique('role');
         
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
@@ -230,7 +231,7 @@ class core_Roles extends core_Manager
     {
         $roleQuery = core_Roles::getQuery();
         
-        $roleQuery->orderBy("#role", 'ASC');
+        $roleQuery->orderBy("orderByRole=ASC");
 
         while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
             $res[$roleRec->id] = $roleRec->id;

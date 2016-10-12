@@ -184,7 +184,7 @@ class cms_DefaultTheme extends core_ProtoInner {
            $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
 
-        $css .= "\n    .background-holder {background-color:#{$background};}";
+        $css .= "\n    .background-holder, body {background-color:#{$background} !important;}";
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor};}";
 
         // стилове за меню и футър

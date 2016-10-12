@@ -292,6 +292,21 @@ class doc_FolderPlg extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         }
+        
+        // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
+        if(!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
+            if($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+                if(!$userId) {
+                    $userId = core_Users::getCurrent();
+                }
+                if(!$rec->inCharge) {
+                    $rec = $mvc->fetch($rec->id);
+                }
+                if($userId && $userId != $rec->inCharge) {
+                    $requiredRoles = 'officer';
+                }
+            }
+        }
     }
     
     
