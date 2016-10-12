@@ -565,7 +565,7 @@ class core_Mvc extends core_FieldSet
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
 
             $query->where("#id IN ($ids)");
-        } elseif(ctype_digit($onlyIds)) {
+        } elseif(ctype_digit("{$onlyIds}")) {
             $query->where("#id = $onlyIds");
         }
         
@@ -575,7 +575,7 @@ class core_Mvc extends core_FieldSet
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
-            $q = trim(preg_replace("/[^a-z0-9\p{Ll}]+/ui", ' ', $q));
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
             if($strict) {
                 $qArr = array(str_replace(' ', '%', $q));

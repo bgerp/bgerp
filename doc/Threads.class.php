@@ -841,6 +841,16 @@ class doc_Threads extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if(empty($rec->firstContainerId)) return;
+        
+        static $lastRecently, $cu;
+
+        if(!$lastRecently) {
+            $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS')/(24*3600));
+        }
+ 
+        if(!$cu) {
+            $cu = core_Users::getCurrent();
+        }
 
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
@@ -852,6 +862,17 @@ class doc_Threads extends core_Manager
             if(mb_strlen($docRow->title) > self::maxLenTitle) {
                 $attr['title'] = $docRow->title;
             }
+
+            if($rec->last < $lastRecently) {
+                $attr['class'] .= ' tOld ';
+            } else {
+                if($rec->last > bgerp_Recently::getLastDocumentSee($rec->firstContainerId, NULL, TRUE)) {
+                    $attr['class'] .= ' tUnsighted ';
+                } else {
+                    $attr['class'] .= ' tSighted ';
+                }
+            }
+
             
             $row->onlyTitle = $row->title = ht::createLink(str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
@@ -871,6 +892,7 @@ class doc_Threads extends core_Manager
             }
 
             $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
+
 
         } catch (core_Exception_Expect $expect) {
             $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
@@ -956,8 +978,9 @@ class doc_Threads extends core_Manager
             }
         }
         
-        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, maxSuggestions=20, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'class=w100,mandatory');
-        $exp->OPTIONS("#folderId", "getFolderOpt(#threadId,#dest)", '#dest == "exFolder"');
+        $exp->DEF('#folderId=Папка', 'key2(mvc=doc_Folders, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\', allowEmpty)', 'class=w100,mandatory');
+
+        //$exp->OPTIONS("#folderId", "getFolderOpt(#threadId,#dest)", '#dest == "exFolder"');
 
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
@@ -1546,7 +1569,11 @@ class doc_Threads extends core_Manager
         // Вземаме записа на треда
         $rec = self::fetch($id, NULL, FALSE);
         
-        if(!$rec) return;
+        if (!$rec) {
+        	wp($id);
+        	
+	        return;
+    	}
 
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
@@ -1567,16 +1594,24 @@ class doc_Threads extends core_Manager
             
             // Не броим оттеглените документи
             if($dcRec->state != 'rejected') {
-                $lastDcRec = $dcRec;
                 
+                // Преброяваме всичките документи и задържаме последния
+                $lastDcRec = $dcRec;
+                $rec->allDocCnt++;
+
                 if($dcRec->visibleForPartners == 'yes') {
+                    // Преброяваме партньорските документи и задържаме последния
+                    $lastDcPartnerRec = $dcRec;
                     $rec->partnerDocCnt++;
                 }
-                
-                $rec->allDocCnt++;
             }
         }
         
+        // Ако първия документ не е видим за партньори, то нищо в тази нишка не е видимо за тях
+        if($firstDcRec->visibleForPartners != 'yes') {
+            $rec->partnerDocCnt = 0;
+        }
+
         // Попълваме полето за споделените потребители
         $rec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
 
@@ -1761,8 +1796,8 @@ class doc_Threads extends core_Manager
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {
-        
+    {  
+         
         // Бутони за разгледане на всички оттеглени тредове
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
@@ -2294,7 +2329,7 @@ class doc_Threads extends core_Manager
     /**
      * Прави широчината на колонката със заглавието на треда да не се свива под 240px
      */
-    function on_AfterPrepareListFields($mvc, $res, $data)
+    static function on_AfterPrepareListFields($mvc, $res, $data)
     {
         $data->listFields['title'] = "|*<div style='min-width:240px'>|" . $data->listFields['title'] . '|*</div>';
     }

@@ -236,7 +236,7 @@ class distro_Repositories extends core_Master
      * @param integer $repoId
      * @param string|NULL $name
      * 
-     * @return FALSE|string
+     * @return string
      */
     public static function getMkdirExec($repoId, $name)
     {

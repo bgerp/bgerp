@@ -675,10 +675,8 @@ div.productImage {
   border-radius: 4px;
   margin-top: 5px;
   padding: 1px 5px;
-  color: #333333 !important;
   cursor: pointer; }
   .group-link:hover {
-    color: black !important;
     background-color: #f1f1f1; }
 
 .groupList .small-padding .productGroupInfo {
@@ -872,7 +870,8 @@ div.mobile {
  * край на стилове за CRM
  */
 .groupTitle {
-  padding: 0 2px; }
+  padding: 0 2px;
+  border-radius: 5px; }
 
 option.team {
   background: black;
@@ -1173,6 +1172,14 @@ td.portal-date {
 
 .thread-opened div.attachments .aHeader {
   background-color: #e0f0e0; }
+
+a.tUnsighted {
+  font-weight: bold; }
+  a.tUnsighted:hover {
+    color: #ee7700 !important; }
+
+a.tOld {
+  opacity: 0.8; }
 
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td {
@@ -2156,6 +2163,10 @@ span.sharing-history-title {
 #all #maincontent {
   clear: both;
   background-color: white; }
+
+#all #maincontent .richtext a:hover,
+#all #maincontent .richtext a:visited:hover {
+  color: #ee7700 !important; }
 
 .narrow #all .vertical .formTable {
   padding: 5px; }
@@ -4527,7 +4538,7 @@ only screen and (max-width: 320px) {
   .printing .group-link:hover {
     cursor: default;
     background-color: #e4e4e4;
-    color: #333333 !important; }
+    color: #ee7700 !important; }
 
 .narrow .printing .document {
   width: 850px; }

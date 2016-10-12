@@ -222,6 +222,7 @@ class trz_Trips extends core_Master
         }
     }
     
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -235,14 +236,20 @@ class trz_Trips extends core_Master
         
         $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
         
-        $row->amountRoad = $Double->toVerbal($rec->amountRoad);
-        $row->amountRoad .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        if ($rec->amountRoad) {
+            $row->amountRoad = $Double->toVerbal($rec->amountRoad);
+            $row->amountRoad .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        }
         
-        $row->amountDaily = $Double->toVerbal($rec->amountDaily);
-        $row->amountDaily .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        if ($rec->amountDaily) {
+            $row->amountDaily = $Double->toVerbal($rec->amountDaily);
+            $row->amountDaily .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        }
         
-        $row->amountHouse = $Double->toVerbal($rec->amountHouse);
-        $row->amountHouse .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        if ($rec->amountHouse) {
+            $row->amountHouse = $Double->toVerbal($rec->amountHouse);
+            $row->amountHouse .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        }
         
         if(isset($rec->alternatePerson)) {
             // Ако имаме права да видим визитката

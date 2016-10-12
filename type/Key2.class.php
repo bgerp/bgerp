@@ -75,7 +75,7 @@ class type_Key2 extends type_Int
         // 2. Стринг, съдържащ число в скоби най-накрая. Тогава чизслото най-накрая се третира като ид
         // 3. Друг стринг - тогава той точно трябва да отговаря на title в модела
 
-        if(ctype_digit($value)) {
+        if(ctype_digit("{$value}")) {
             $key = $value;
         } else {
             $key = self::getKeyFromTitle($value);
@@ -86,7 +86,7 @@ class type_Key2 extends type_Int
         } else {
             $resArr = $this->getOptions(1, "\"{$value}", TRUE);
         }
-            
+        
         if(count($resArr) == 1) {
 
             return key($resArr);
@@ -181,7 +181,7 @@ class type_Key2 extends type_Int
  
         $options = $this->getOptions($maxSuggestions);
         
-        if(ctype_digit($value)) {
+        if(ctype_digit("{$value}")) {
             $currentOpt = $this->getOptions(1, '', $value, TRUE);
             $key = reset($currentOpt);
             if($key) {

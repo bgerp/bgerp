@@ -115,7 +115,7 @@ class type_User extends type_Key
                         $this->options[$key] = new stdClass();
                     }
 
-                    if($part) {
+                    if($part && $this->params['useSelectAsTitle']) {
                         $this->options[$key]->title = $uRec->$part;
                     } else {
                         $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";

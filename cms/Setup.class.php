@@ -93,7 +93,7 @@ class cms_Setup extends core_ProtoSetup
 
             'CMS_COPY_ON_SYMBOL_COUNT' => array ('int', 'caption=Добавка при копиране->Брой символи,width=100%'),
 	
-			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role)', 'caption=Добавка при копиране->Изключване за'),
+			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Добавка при копиране->Изключване за'),
 			
 			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
 	);
