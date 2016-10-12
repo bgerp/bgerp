@@ -114,7 +114,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали може да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
-        setIfNot($mvc->canExportdoc, 'powerUser');
+        setIfNot($mvc->canExportdoc, 'user');
         setIfNot($mvc->canForceexpenseitem, 'ceo,acc');
         
         $mvc->setDbIndex('state');
