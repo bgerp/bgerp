@@ -38,6 +38,12 @@ defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 3);
 
 
 /**
+ * Ценова политика по подразбиране
+ */
+defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -146,6 +152,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_DEFAULT_MEASURE_ID'                => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на артикулите->Мярка'),
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
+            'CAT_DEFAULT_PRICELIST'                 => array("key(mvc=price_Lists,select=title,allowEmpty)", 'caption=Ценова политика по подразбиране->Избор,mandatory'),
     );
 
     

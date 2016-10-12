@@ -330,7 +330,7 @@ class price_Lists extends core_Master
         	$form->setOptions('parent', self::getAccessibleOptions());
         	
         	// По дефолт слагаме за частните политики да наследяват дефолт политиката за контрагента, иначе 'Каталог'
-        	$rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : price_ListRules::PRICE_LIST_CATALOG;
+        	$rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : cat_Setup::get('DEFAULT_PRICELIST');
         }  
 
         $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
@@ -452,7 +452,7 @@ class price_Lists extends core_Master
         		$row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, TRUE);
         	}
         	
-        	if($rec->public == 'yes' && $rec->id != price_ListRules::PRICE_LIST_CATALOG){
+        	if($rec->public == 'yes' && $rec->id != cat_Setup::get('DEFAULT_PRICELIST')){
         		$customerCount = count(price_ListToCustomers::getCustomers($rec->id, TRUE));
         		$row->connectedClients = cls::get('type_Int')->toVerbal($customerCount);
         	
