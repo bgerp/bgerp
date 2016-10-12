@@ -222,6 +222,7 @@ class trz_Trips extends core_Master
         }
     }
     
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *

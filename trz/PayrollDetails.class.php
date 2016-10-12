@@ -206,7 +206,7 @@ class trz_PayrollDetails extends core_Detail
         
         while($recSickday = $qSickday->fetch()){
             $debug['sickday'][] = $recSickday;
-            $index = $masterRec->periodId . "|" . $recOrder->personId;
+            $index = $masterRec->periodId . "|" . $recSickday->personId;
         
             if(!array_key_exists($index, $recs)){
                 $recs[$index] =
@@ -342,7 +342,4 @@ class trz_PayrollDetails extends core_Detail
         }
 
     }
-    
-
-    
 }

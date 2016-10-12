@@ -184,17 +184,17 @@ class bgerp_plg_FLB extends core_Plugin
 	{
 		$allowEmpty = (haveRole('ceo')) ? 'allowEmpty' : '';
 		$data->listFilter->view = 'horizontal';
-		$data->listFilter->FLD('user', "user(rolesForAll=ceo|admin,rolesForAll=ceo|manager|admin,{$allowEmpty})", 'caption=Потребител,silent,autoFilter,remember');
-		$data->listFilter->showFields = 'user';
-		$data->listFilter->input('user', 'silent');
+		$data->listFilter->FLD('users', "users(rolesForAll=ceo|admin,rolesForAll=ceo|manager|admin,{$allowEmpty})", 'caption=Потребител,silent,autoFilter,remember');
+		$data->listFilter->showFields = 'users';
+		$data->listFilter->input('users', 'silent');
 		
 		if((!haveRole('ceo'))){
-			$data->listFilter->setDefault('user', core_Users::getCurrent());
+			$data->listFilter->setDefault('users', core_Users::getCurrent());
 		}
 		
 		// Скриване на записите до които няма достъп
-		if($selectedUser = $data->listFilter->rec->user){
-			self::addUserFilterToQuery($mvc, $data->query, $selectedUser);
+		if($selectedUsers = $data->listFilter->rec->users){
+			self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
 		}
 	}
 	
@@ -204,24 +204,42 @@ class bgerp_plg_FLB extends core_Plugin
 	 * 
 	 * @param core_Master $mvc
 	 * @param core_Query $query
-	 * @param int|NULL $userId
+	 * @param int|NULL $users
 	 * @param boolean $onlyActivate
 	 * @return void
 	 */
-	private static function addUserFilterToQuery($mvc, core_Query &$query, $userId = NULL, $onlyActivate = FALSE)
+	private static function addUserFilterToQuery($mvc, core_Query &$query, $users = NULL, $onlyActivate = FALSE)
 	{
-		$userId = ($userId) ? $userId : core_Users::getCurrent();
-		$userRoles = core_Users::fetchField($userId, 'roles');
+		$users = ($users) ? $users : core_Users::getCurrent();
+		$users = (keylist::isKeylist($users)) ? keylist::toArray($users) : arr::make($users);
 		
-		$query->likeKeylist($mvc->canActivateUserFld, $userId);
-		$query->orLikeKeylist($mvc->canActivateRoleFld, $userRoles);
+		$count = 0;
+		$cond = '';
 		
-		if($onlyActivate === FALSE){
-			$query->orLikeKeylist($mvc->canSelectUserFld, $userId);
-			$query->orLikeKeylist($mvc->canSelectRoleFld, $userRoles);
+		foreach ($users as $userId){
+			$beginning = ($count == 0) ? ' ' : " OR ";
+			$userRoles = core_Users::fetchField($userId, 'roles');
+			$cond .= "{$beginning}LOCATE('|{$userId}|', #{$mvc->canActivateUserFld})";
+			
+			$roles = keylist::toArray($userRoles);
+			
+			if($onlyActivate === FALSE){
+				$cond .= " OR LOCATE('|{$userId}|', #{$mvc->canSelectUserFld})";
+			}
+			
+			foreach ($roles as $r){
+				$cond .= " OR LOCATE('|{$r}|', #{$mvc->canActivateRoleFld})";
+				
+				if($onlyActivate === FALSE){
+					$cond .= " OR LOCATE('|{$r}|', #{$mvc->canSelectRoleFld})";
+				}
+			}
+			
+			$cond .= " OR #inCharge = {$userId} ";
+			$count++;
 		}
 		
-		$query->orWhere("#inCharge = {$userId}");
+		$query->where($cond);
 	}
 	
 	

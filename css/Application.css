@@ -2164,6 +2164,10 @@ span.sharing-history-title {
   clear: both;
   background-color: white; }
 
+#all #maincontent .richtext a:hover,
+#all #maincontent .richtext a:visited:hover {
+  color: #ee7700 !important; }
+
 .narrow #all .vertical .formTable {
   padding: 5px; }
 
