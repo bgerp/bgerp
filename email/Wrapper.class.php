@@ -23,7 +23,7 @@ class email_Wrapper extends plg_ProtoWrapper
     function description()
     {
         //Показва таба за постинги, само ако имаме права за листване
-        $this->TAB('email_Outgoings', 'Изходящи', 'ceo, admin, user');
+        $this->TAB('email_Outgoings', 'Изходящи', 'ceo, admin, powerUser');
         
         // Ако имаме права ceo
         // Да е първия таб
@@ -38,7 +38,7 @@ class email_Wrapper extends plg_ProtoWrapper
             $this->TAB('email_Fingerprints', 'Входящи->Отпечатъци', 'admin,email');
         }
         
-        $this->TAB('email_Inboxes', 'Кутии', 'ceo, admin, user');
+        $this->TAB('email_Inboxes', 'Кутии', 'ceo, admin, powerUser');
         $this->TAB('email_Accounts', 'Акаунти', 'admin');
         $this->TAB('email_SendOnTime', 'Отложени', 'debug');
         $this->TAB('email_Filters', 'Рутиране->Потребителски правила', 'admin, debug');
