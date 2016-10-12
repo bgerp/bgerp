@@ -208,7 +208,25 @@ class bgerp_E extends core_Manager
             $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title= ' . tr('Прекратяване на действията'));
         }
         
-        $tpl = $inst->renderWrapping($form->renderHtml());
+        $tpl = $form->renderHtml();
+        
+        // Ако е колаборатор, рендираме неговия врапер
+        $isContractor = FALSE;
+        if (core_Packs::isInstalled('colab')){
+    		if (core_Users::isContractor()) {
+    		    
+    			$inst->load('colab_Wrapper');
+    			$inst->currentTab = 'Нишка';
+    			
+    			$tpl = $inst->renderWrapping($tpl);
+    			
+    			$isContractor = TRUE;
+    		}
+    	}
+    	
+    	if (!$isContractor) {
+    	    $tpl = $inst->renderWrapping($tpl);
+    	}
         
         return $tpl;
     }
