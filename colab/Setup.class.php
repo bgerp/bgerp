@@ -2,6 +2,12 @@
 
 
 /**
+ * Кои документи могат да бъдат създавани от контрактор
+ */
+defIfNot('COLAB_CREATABLE_DOCUMENTS', '');
+
+
+/**
  * Клас 'colab_Setup'
  *
  * Исталиране/деинсталиране на colab
@@ -36,6 +42,20 @@ class colab_Setup extends core_ProtoSetup
         'colab_FolderToPartners',
     	'migrate::migrateVisibleforPartners',
         'colab_DocumentLog'
+    );
+    
+    
+    /**
+     * Кои документи могат да бъдат създавани по дефолт от контрактори
+     */
+    private static $defaultCreatableDocuments = 'sales_Sales,purchase_Purchases';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'COLAB_CREATABLE_DOCUMENTS' => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions"),
     );
     
     
@@ -82,6 +102,44 @@ class colab_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Colab за резолюция на сигнал', 'colab_plg_Document', 'support_Resolutions', 'private');
     	
         return $html;
+    }
+    
+    
+    /**
+     * Помощна функция връщаща всички класове, които са документи
+     */
+    public static function getDocumentOptions()
+    {
+    	$options = core_Classes::getOptionsByInterface('colab_CreateDocumentIntf', 'title');
+    	 
+    	return $options;
+    }
+    
+    
+    /**
+     * Зареждане на начални данни
+     */
+    function loadSetupData($itr = '')
+    {
+    	$config = core_Packs::getConfig('colab');
+    	
+    	if(strlen($config->COLAB_CREATABLE_DOCUMENTS) === 0){
+    		$arr = array();
+    		$defaultCreatableDocuments = arr::make(static::$defaultCreatableDocuments);
+    		foreach ($defaultCreatableDocuments as $docName){
+    			$Doc = cls::get($docName);
+    			if(cls::haveInterface('colab_CreateDocumentIntf', $Doc)){
+    				$classId = $Doc->getClassId();
+    				$arr[$classId] = $classId;
+    			}
+    		}
+    	
+    		// Записват се ид-та на документите, които могат да се създават от контрактори
+    		if(count($arr)){
+    			core_Packs::setConfig('colab', array('COLAB_CREATABLE_DOCUMENTS' => keylist::fromArray($arr)));
+    			$res .= "<li style='color:green'>Задаване на дефолт документи, които могат да се създават от партньори";
+    		}
+    	}
     }
     
     
