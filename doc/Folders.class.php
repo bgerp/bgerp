@@ -379,6 +379,9 @@ class doc_Folders extends core_Master
         $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
+        if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+        	$haveRight = colab_Folders::haveRightFor('single', $rec);
+        }
         
         // Иконката на папката според достъпа и
         $img = static::getIconImg($rec, $haveRight);
@@ -392,7 +395,11 @@ class doc_Folders extends core_Master
         
         if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-            $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            if(!(core_Packs::isInstalled('colab') && core_Users::isContractor())){
+            	$link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            } else {
+            	$link = array('colab_Threads', 'list', 'folderId' => $rec->id);
+            }
             
             // Ако е оттеглен
             if ($rec->state == 'rejected') {

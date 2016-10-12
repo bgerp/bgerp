@@ -280,9 +280,8 @@ class unit_MinkPPayment extends core_Manager {
         }
     }
     
-    /**      ////Да се изключи плащането!
-     * 2.
-     * Проверка състояние плащане - просрочено, метод - на момента, краен срок - Null
+    /** 2.
+     *  Проверка състояние плащане - просрочено, метод - на момента, краен срок - Null
      * Нова продажба на съществуваща фирма с папка
      */
     //http://localhost/unit_MinkPPayment/CreateSaleMomentOverdueNull/
@@ -337,8 +336,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        ////Да се изключи плащането!
-        //$browser->setValue('action_pay', 'pay');
+        // Изключваме плащането
+        $browser->setValue('action_pay', False);
+        $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '203,63')) {
         } else {
@@ -737,6 +737,8 @@ class unit_MinkPPayment extends core_Manager {
         
         // активираме продажбата
         $browser->press('Активиране');
+        // Изключваме плащането
+        $browser->setValue('action_pay', False);
         //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
         ////Да се изключи експедирането!

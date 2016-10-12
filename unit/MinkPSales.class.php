@@ -1960,7 +1960,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPExtraexpenses');
+        $browser->setValue('note', 'MinkPExtraExpenses');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
          
@@ -2046,7 +2046,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPAdvExtraIncome');
+        $browser->setValue('note', 'MinkPAdvExtraExpenses');
         $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
@@ -2127,7 +2127,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
-        //Проверка изв.приход
+        //Проверка изв.разход
         if(strpos($browser->gettext(), 'BGN 0,00 BGN 26,88')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума - извънреден разход', 'warning');
@@ -2162,7 +2162,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPAdvExtraIncome1');
+        $browser->setValue('note', 'MinkPAdvExtraExpenses1');
         $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
@@ -2243,12 +2243,12 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), '38,40 40,32 49,92 49,92')) {
+        if(strpos($browser->gettext(), '38,40 40,32 33,85 49,92')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
-        //Проверка изв.приход
-        if(strpos($browser->gettext(), 'BGN 9,60 BGN 0,00')) {
+        //Проверка изв.разход
+        if(strpos($browser->gettext(), 'BGN 0,00 BGN 6,47')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума - извънреден разход', 'warning');
         }

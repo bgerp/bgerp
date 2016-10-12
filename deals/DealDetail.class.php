@@ -192,6 +192,12 @@ abstract class deals_DealDetail extends doc_Detail
         		$form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
         	}
         }
+        
+        if(core_Users::isContractor()){
+        	$form->setField('packPrice', 'input=none');
+        	$form->setField('tolerance', 'input=none');
+        	$form->setField('discount', 'input=none');
+        }
     }
     
     
@@ -266,7 +272,7 @@ abstract class deals_DealDetail extends doc_Detail
     			
     			$listId = ($masterRec->priceListId) ? $masterRec->priceListId : NULL;
     			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
-    				
+				
     			if (empty($policyInfo->price) && empty($pRec)) {
     				$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
     			} else {

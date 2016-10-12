@@ -101,6 +101,13 @@ class colab_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Colab за сигнали', 'colab_plg_Document', 'support_Issues', 'private');
     	$html .= $Plugins->installPlugin('Colab за резолюция на сигнал', 'colab_plg_Document', 'support_Resolutions', 'private');
     	
+    	$defaultCreatableDocuments = arr::make(static::$defaultCreatableDocuments);
+    	foreach ($defaultCreatableDocuments as $docName){
+    		$Doc = cls::get($docName);
+    		$title = mb_strtolower($Doc->title);
+    		$html .= $Plugins->installPlugin("Colab плъгин за {$title}", 'colab_plg_CreateDocument', $docName, 'private');
+    	}
+    	
         return $html;
     }
     
