@@ -225,7 +225,7 @@ a.menu {
 }
 
 .wrn, .wrn b {
-    color:#251895 !important;
+    color:#aa5500 !important;
     line-height:1.5em;
 }
 
@@ -655,14 +655,19 @@ if($step == 3) {
 
     $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_rewrite', 'mod_deflate');
     
-    $activeApacheModules = apache_get_modules();
     
-    foreach($requiredApacheModules as $module){
-        if(in_array($module, $activeApacheModules)){
-            $log[] = "inf:Наличен Apache модул: <b>`$module`</b>";
-        } else {
-            $log[] = "err:Липсващ Apache модул: <b>`$module`</b>";
+    if(function_exists('apache_get_modules') && 0) {
+        $activeApacheModules = apache_get_modules();
+        
+        foreach($requiredApacheModules as $module){
+            if(in_array($module, $activeApacheModules)){
+                $log[] = "inf:Наличен Apache модул: <b>`$module`</b>";
+            } else {
+                $log[] = "err:Липсващ Apache модул: <b>`$module`</b>";
+            }
         }
+    } else {
+        $log[] = "wrn:Apache не работи с mod-php";
     }
     
     if (!core_Os::isWindows()) {
