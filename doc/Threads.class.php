@@ -1590,16 +1590,24 @@ class doc_Threads extends core_Manager
             
             // Не броим оттеглените документи
             if($dcRec->state != 'rejected') {
-                $lastDcRec = $dcRec;
                 
+                // Преброяваме всичките документи и задържаме последния
+                $lastDcRec = $dcRec;
+                $rec->allDocCnt++;
+
                 if($dcRec->visibleForPartners == 'yes') {
+                    // Преброяваме партньорските документи и задържаме последния
+                    $lastDcPartnerRec = $dcRec;
                     $rec->partnerDocCnt++;
                 }
-                
-                $rec->allDocCnt++;
             }
         }
         
+        // Ако първия документ не е видим за партньори, то нищо в тази нишка не е видимо за тях
+        if($firstDcRec->visibleForPartners != 'yes') {
+            $rec->partnerDocCnt = 0;
+        }
+
         // Попълваме полето за споделените потребители
         $rec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
 
