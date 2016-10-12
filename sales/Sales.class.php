@@ -83,7 +83,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,sales,every_one';
+    public $canEdit = 'ceo,sales';
     
     
     /**

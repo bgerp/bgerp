@@ -417,7 +417,7 @@ class doc_Folders extends core_Master
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $row->title = ht::createElement('span', $attr, $row->title);
         }
-        //bp($row->title);
+        
 		if(cls::load($rec->coverClass, TRUE)){
 			$typeMvc = cls::get($rec->coverClass);
 			
