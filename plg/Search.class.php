@@ -217,13 +217,25 @@ class plg_Search extends core_Plugin
                     $equalTo = "";
                 }
                 
-                $w = static::normalizeText($w, array('*'));
+                $w = trim(static::normalizeText($w, array('*')));
+                $minWordLen = strlen($w);
+ 
+                if(strpos($w, ' ')) {
+                    $mode = '"';
+                    $wArr = explode(' ', $w);
+                    foreach($wArr as $part) {
+                        $partLen = strlen($part);
+                        if($partLen < $minWordLen) {
+                            $minWordLen = $partLen;
+                        }
+                    }
+                }
 
                 if(strpos($w, '*') !== FALSE) {
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if(strlen($w) < 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
+                    if($minWordLen < 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
