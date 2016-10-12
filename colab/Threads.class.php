@@ -133,6 +133,7 @@ class colab_Threads extends core_Manager
 		$data->query->where("#threadId = {$id}");
 		$data->query->where("#visibleForPartners = 'yes'");
 		$data->query->where("#state != 'draft'");
+		$data->query->orderBy('id', 'ASC');
 		
 		$this->prepareTitle($data);
 		
