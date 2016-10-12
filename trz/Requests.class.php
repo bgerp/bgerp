@@ -152,8 +152,8 @@ class trz_Requests extends core_Master
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
-    	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
-    	$this->FLD('leaveTo', 'datetime', 'caption=Считано->До, mandatory');
+    	$this->FLD('leaveFrom', 'datetime (timeSuggestions=00:00)', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveTo', 'datetime (timeSuggestions=23:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
@@ -258,6 +258,12 @@ class trz_Requests extends core_Master
     	$data->form->setSuggestions('useDaysFromYear', $years);
     	$data->form->setDefault('useDaysFromYear', $years[0]);
     	
+    	$time = "". " 00:00";
+    	$time2 = "". " 23:59";
+    	
+    	$data->form->setDefault('leaveFrom', $time);
+    	$data->form->setDefault('leaveTo', $time2);
+
     	$rec = $data->form->rec;
         if($rec->folderId){
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
