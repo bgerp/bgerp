@@ -258,8 +258,8 @@ class trz_Requests extends core_Master
     	$data->form->setSuggestions('useDaysFromYear', $years);
     	$data->form->setDefault('useDaysFromYear', $years[0]);
     	
-    	$time = "". " 00:00";
-    	$time2 = "". " 23:59";
+    	$time = "". " 00:00:00";
+    	$time2 = "". " 23:59:59";
     	
     	$data->form->setDefault('leaveFrom', $time);
     	$data->form->setDefault('leaveTo', $time2);
@@ -365,6 +365,28 @@ class trz_Requests extends core_Master
             
     		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+
+        $s1 = trim(strstr($rec->leaveFrom, " "));
+        $s2 = trim(strstr($rec->leaveTo, " "));
+        
+        if($s1 == "00:00:00" && $s2 == "23:59:00"){
+            $row->leaveFrom = trim(strstr($row->leaveFrom, " ", TRUE));
+            $row->leaveTo = trim(strstr($row->leaveTo, " ", TRUE));
+        }
+
+    
     }
     
     
