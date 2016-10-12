@@ -1569,7 +1569,11 @@ class doc_Threads extends core_Manager
         // Вземаме записа на треда
         $rec = self::fetch($id, NULL, FALSE);
         
-        if(!$rec) return;
+        if (!$rec) {
+        	wp($id);
+        	
+	        return;
+    	}
 
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;

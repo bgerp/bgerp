@@ -469,7 +469,9 @@ class doc_Folders extends core_Master
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
 
-                if(!$rec) {
+                if (!$rec) {
+                    wp($id);
+                    
                     continue;
                 }
                 
@@ -1513,7 +1515,7 @@ class doc_Folders extends core_Master
      * Подготовка на опции за key2
      */
     public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
-    { 
+    {
         $query = self::getQuery();
 	    $query->orderBy("last=DESC");
 
@@ -1583,5 +1585,4 @@ class doc_Folders extends core_Master
  
         return $res;
     }
-
 }
