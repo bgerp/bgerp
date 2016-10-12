@@ -259,7 +259,11 @@ class plg_Search extends core_Plugin
             $q = trim($q);
             
             if($q) {
-                $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
+                if($q{0} == '-' && !strpos($q, ' ')) {
+                    $query->where("LOCATE('" . substr($q, 1) . "', #{$field}) = 0");
+                } else {
+                    $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
+                }
             }
         }
     }
