@@ -737,6 +737,8 @@ class unit_MinkPPayment extends core_Manager {
         
         // активираме продажбата
         $browser->press('Активиране');
+        // Изключваме плащането
+        $browser->setValue('action_pay', False);
         //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
         ////Да се изключи експедирането!
@@ -826,8 +828,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        // Изключваме плащането
-        $browser->setValue('action_pay', False);
         $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), '574,22')) {
         } else {
