@@ -40,7 +40,7 @@ class vislog_Adwords extends core_Manager
     /**
      * Права за писане
      */
-    var $canWrite = 'no_one';
+    var $canWrite = 'admin';
     
     
     /**
@@ -106,6 +106,21 @@ class vislog_Adwords extends core_Manager
         $data->listFilter->input();
         
         $data->query->orderBy("#createdOn=DESC");
+    }
+
+
+    /**
+     * Преобразуване към вербален запис
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if($rec->keywords) {
+            $dkw = urldecode($rec->keywords);
+            if($dkw && mb_strlen($dkw) * 2 < mb_strlen($rec->keywords)) {
+                $rec->keywords = $dkw;
+                $row->keywords = $mvc->getVerbal($rec, 'keywords');
+            }
+        }
     }
 
  
