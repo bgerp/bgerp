@@ -1165,7 +1165,7 @@ class cal_Calendar extends core_Master
         		$allDays++;
         	}
         	
-        	if($hours1 == $hours2) {
+        	if(($hours1 == $hours2) && $dateType->specialDay  != TRUE ) {
         	    $workDays -= 1;
         	}
     	}
