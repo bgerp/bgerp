@@ -172,16 +172,25 @@ class colab_Threads extends core_Manager
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
-		$documents = colab_Setup::get('CREATABLE_DOCUMENTS');
-		$documents = keylist::toArray($documents);
-		if(is_array($documents)){
-			foreach ($documents as $docId){
-				$Doc = cls::get($docId);
-				
-				if($Doc->haveRightFor('add', (object)array('folderId' => $data->folderId))){
-					$data->toolbar->addBtn($Doc->singleTitle, array($Doc, 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE), "ef_icon={$Doc->singleIcon}");
+		if(!Request::get('Rejected')) {
+			$documents = colab_Setup::get('CREATABLE_DOCUMENTS');
+			$documents = keylist::toArray($documents);
+			if(is_array($documents)){
+				foreach ($documents as $docId){
+					$Doc = cls::get($docId);
+			
+					if($Doc->haveRightFor('add', (object)array('folderId' => $data->folderId))){
+						$data->toolbar->addBtn($Doc->singleTitle, array($Doc, 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE), "ef_icon={$Doc->singleIcon}");
+					}
 				}
 			}
+		}
+		
+		doc_Threads::addBinBtnToToolbar($data);
+		
+		if(Request::get('Rejected')) {
+			$data->toolbar->removeBtn('*', 'with_selected');
+			$data->toolbar->addBtn('Всички', array('colab_Threads', 'list', 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
 		}
 	}
 	
@@ -263,6 +272,23 @@ class colab_Threads extends core_Manager
 	
 	
 	/**
+	 * Преди подготовка на данните за табличния изглед правим филтриране
+	 * на записите, които са (или не са) оттеглени и сортираме от нови към стари
+	 */
+	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+	{
+		if(isset($data->query)) {
+            if(Request::get('Rejected')) {
+                $data->query->where("#state = 'rejected'");
+            } else {
+                $data->rejQuery->where("#state = 'rejected'");
+         	    $data->query->where("#state != 'rejected' OR #state IS NULL");
+            }
+        }
+	}
+	
+	
+	/**
 	 * Подготвя формата за филтриране
 	 */
 	function prepareListFilter_($data)
@@ -290,6 +316,7 @@ class colab_Threads extends core_Manager
 		}
 		
 		doc_Threads::applyFilter($data->listFilter->rec, $data->query);
+		$data->rejQuery = clone($data->query);
 	}
 	
 	
@@ -345,11 +372,6 @@ class colab_Threads extends core_Manager
 			} else {
 			    $requiredRoles = 'no_one';
 			}
-			
-			// Ако треда е оттеглен, не може да се гледа от партньора
-			if($rec->state == 'rejected'){
-				$requiredRoles = 'no_one';
-			}
 		}
 		
 		if($requiredRoles != 'no_one'){
@@ -380,7 +402,6 @@ class colab_Threads extends core_Manager
 		
 		$params['where'][] = "#folderId = {$folderId}";
 		$res = $this->Threads->getQuery($params);
-		$res->where("#state != 'rejected'");
 		$res->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
 		$res->EXT('firstDocumentState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
 		$res->where("#visibleForPartners = 'yes' || #createdBy = {$cu}");
