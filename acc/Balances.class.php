@@ -297,8 +297,9 @@ class acc_Balances extends core_Master
             $rec = $exRec;
         }
 
-        // Ако не е валиден го преизчисляваме
-        if(!self::isValid($rec)) {
+        // Ако не е валиден го преизчисляваме, като всяка от 
+        // десетте минути след преизчисляването - пак го преизчисляваме
+        if(!self::isValid($rec, 10)) {
 
             // Днешна дата
             $today = dt::today();
@@ -448,9 +449,9 @@ class acc_Balances extends core_Master
      * @param stdClass $rec - запис на баланса
      * @return boolean - дали е валиден или не
      */
-    public static function isValid($rec)
+    public static function isValid($rec, $calcMinutesAfter = 0)
     {
-        if($rec->lastCalculate && ($rec->lastCalculate >= $rec->lastAlternation)) {
+        if($rec->lastCalculate && (dt::secsBetween($rec->lastCalculate, $rec->lastAlternation) > $calcMinutesAfter * 60)) {
 
             return TRUE;
         }
