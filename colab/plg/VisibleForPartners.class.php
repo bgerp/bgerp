@@ -50,9 +50,13 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $data->form->setField('visibleForPartners', 'input=input');
                     }
                     
-                    // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
-                    if (!$rec->id && core_Users::isContractor($rec->createdBy)) {
-                        $data->form->setDefault('visibleForPartners', 'yes');
+                    if ($rec->originId) {
+                        $dRec = $doc->fetch();
+                        
+                        // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
+                        if (!$rec->id && core_Users::isContractor($dRec->createdBy)) {
+                            $data->form->setDefault('visibleForPartners', 'yes');
+                        }
                     }
                     
                     // Ако няма да се показва на колаборатори по-подразбиране, да е скрито полето
