@@ -32,21 +32,25 @@
         <p><b>|Код по MKB|*:</b> [#icdCode#]</p>
         <!--ET_END icdCode-->
         
-        <!--ET_BEGIN compensation-->
+        
         <br><p><b>|Заплащане|*:</b></p>
         
         <table class="inlineRichTable listTable" style="width:48%">
         	<tr>
+        	    <!--ET_BEGIN compensationEmployer-->
         		<th>|Oт работодателя|*</th>
                 <td class="centered">[#paidByEmployer#]</td>
+                <!--ET_END compensationEmployer-->
             </tr>
 
             <tr>  
+                <!--ET_BEGIN compensationHI-->
             	<th>|Oт НЗК|*</th>
 	            <td class="centered">[#paidByHI#]</td>
+	            <!--ET_END compensationHI-->
 	        </tr>
 	    </table>
-        <!--ET_END compensation-->
+        
         
         <!--ET_BEGIN access-->        
         <br><p><b>|По време на отсъствието ще|*:</b></p>
