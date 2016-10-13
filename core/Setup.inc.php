@@ -656,7 +656,7 @@ if($step == 3) {
     $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_rewrite', 'mod_deflate');
     
     
-    if(function_exists('apache_get_modules') && 0) {
+    if(function_exists('apache_get_modules')) {
         $activeApacheModules = apache_get_modules();
         
         foreach($requiredApacheModules as $module){
