@@ -24,6 +24,7 @@ class colab_plg_CreateDocument extends core_Plugin
 		if(($action == 'add' || $action == 'edit')){
 			$addContractor = FALSE;
 			
+			// Ако документа е от тези, които може да се създават от партньори
 			if(core_Users::isContractor($userId)){
 				$documents = colab_Setup::get('CREATABLE_DOCUMENTS');
 				if(keylist::isIn($mvc->getClassId(), $documents)){
@@ -44,6 +45,7 @@ class colab_plg_CreateDocument extends core_Plugin
 				}
 			}
 			
+			// Добавяне към правата ,че и партньор може да редактира/добавя
 			if($addContractor === TRUE){
 				$property = ucfirst($action);
 				$property = "can{$property}";
