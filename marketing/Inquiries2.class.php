@@ -820,7 +820,7 @@ class marketing_Inquiries2 extends embed_Manager
     		if(empty($rec->quantity1) && empty($rec->quantity2) && empty($rec->quantity3)){
     			
     			// Ако има МОК, потребителя трябва да въведе количество, иначе се приема за еденица
-    			if(isset($rec->moq)){
+    			if($rec->moq > 0){
     				$form->setError('quantity1,quantity2,quantity3', "Не е постигнато минималното количество за поръчка|* <b>{$moqVerbal}</b>");
     			} else {
     				$rec->quantity1 = 1;
@@ -828,7 +828,7 @@ class marketing_Inquiries2 extends embed_Manager
     		}
     		
     		// Ако има минимално количество за поръчка
-    		if(isset($rec->moq)){
+    		if($rec->moq > 0){
     			foreach (range(1, 3) as $i){
     				$quantity = $rec->{"quantity{$i}"};
     				
