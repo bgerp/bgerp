@@ -3249,4 +3249,22 @@ class doc_DocumentPlg extends core_Plugin
     		}
     	}
     }
+    
+    
+    /**
+     * Връща дали документа е видим за партньори
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param integer|stdObject $rec
+     */
+    public static function on_AfterIsVisibleForPartners($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            if ($mvc->visibleForPartners) {
+                $res = TRUE;
+            }
+        }
+    }
 }

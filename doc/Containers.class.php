@@ -666,8 +666,11 @@ class doc_Containers extends core_Manager
             $mustSave = TRUE;
         }
         
+        $docRec = $docMvc->fetch($rec->docId);
+        
         if ($rec->docClass && $rec->docId && !isset($rec->visibleForPartners)) {
-            if ($docMvc->visibleForPartners) {
+            
+            if ($docMvc->isVisibleForPartners($docRec)) {
                 $rec->visibleForPartners = 'yes';
             } else {
                 $rec->visibleForPartners = 'no';
@@ -682,8 +685,6 @@ class doc_Containers extends core_Manager
         // 3. Промяна на папката на документа
         
         $fields = 'state,folderId,threadId,containerId,originId';
-        
-        $docRec = $docMvc->fetch($rec->docId);
         
         if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
             $fields .= ',searchKeywords';
