@@ -1797,7 +1797,7 @@ class doc_Threads extends core_Manager
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {  
-         
+        
         // Бутони за разгледане на всички оттеглени тредове
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
@@ -1814,24 +1814,7 @@ class doc_Threads extends core_Manager
         		if(doc_Folders::haveRightFor('newdoc', $data->folderId)){
         			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
-        		$data->rejQuery->where("#folderId = {$data->folderId}");
-        		$data->rejectedCnt = $data->rejQuery->count();;
-        		 
-        		if($data->rejectedCnt) {
-        			$curUrl = getCurrentUrl();
-        			$curUrl['Rejected'] = 1;
-                    if(isset($data->pager->pageVar)) {
-                        unset($curUrl[$data->pager->pageVar]);
-                    }
-
-                    $data->rejQuery->orderBy('modifiedOn', 'DESC');
-                    $data->rejQuery->limit(1); 
-                    $lastRec = $data->rejQuery->fetch();
-                    $color = dt::getColorByTime($lastRec->modifiedOn);
-
-        			$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
-        			$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
-            	}
+        		self::addBinBtnToToolbar($data);
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
             	$Cover = doc_Folders::getCover($data->folderId);
@@ -1858,6 +1841,35 @@ class doc_Threads extends core_Manager
         if (doc_Folders::canModifySettings($key, $userOrRole)) {
             core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2, 'title'=>'Персонални настройки на папката'));
         }
+    }
+    
+    
+    /**
+     * Добавя бутон за кошче към тулбара
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public static function addBinBtnToToolbar(&$data)
+    {
+    	$data->rejQuery->where("#folderId = {$data->folderId}");
+    	$data->rejectedCnt = $data->rejQuery->count();;
+    	 
+    	if($data->rejectedCnt) {
+    		$curUrl = getCurrentUrl();
+    		$curUrl['Rejected'] = 1;
+    		if(isset($data->pager->pageVar)) {
+    			unset($curUrl[$data->pager->pageVar]);
+    		}
+    	
+    		$data->rejQuery->orderBy('modifiedOn', 'DESC');
+    		$data->rejQuery->limit(1);
+    		$lastRec = $data->rejQuery->fetch();
+    		$color = dt::getColorByTime($lastRec->modifiedOn);
+    	
+    		$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
+    		$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
+    	}
     }
     
     
