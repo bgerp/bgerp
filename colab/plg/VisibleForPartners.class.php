@@ -46,6 +46,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     if (core_Users::isContractor()) {
                         // Ако текущия потребител е контрактор, полето да е скрито
                         $data->form->setField('visibleForPartners', 'input=hidden');
+                        $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
                         $data->form->setField('visibleForPartners', 'input=input');
                     }
@@ -57,8 +58,6 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         if (!$rec->id && core_Users::isContractor($dRec->createdBy)) {
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
-                    } else {
-                        $data->form->setDefault('visibleForPartners', 'yes');
                     }
                     
                     // Ако няма да се показва на колаборатори по-подразбиране, да е скрито полето
