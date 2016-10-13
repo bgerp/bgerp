@@ -38,24 +38,23 @@ class chartjs_Adapter extends  core_Mvc
      */
     static function prepare_($data, $chartType)
     {
-
         $tpl = new ET();
         static $chartCnt;
-        if(!$chartCnt) $orgChartCnt = 0;
-        $chartCnt++;
-        $idChart = 'myChart' . $chartCnt;
-
-        $chart = ht::createElement('canvas',  array('id' => $idChart, "width" => "300", 'height' => '270'), $tpl);
-        $tpl->append("<div class='chartHolder chart-$chartType'>" . $chart . "</div>");
-
-        $tpl->push('chartjs/lib/preparechart.js', 'JS');
-        $tpl->push('chartjs/1.0.2/Chart.min.js', 'JS');
-        $tpl->push('chartjs/lib/numeral.min.js', 'JS');
-        $tpl->push('chartjs/lib/Chart.css', 'CSS');
 
         $data = json_encode($data);
 
-        jquery_Jquery::run($tpl, "prepareChart('$idChart', $data, '$chartType');");
+        $chart = ht::createElement('canvas',  array('class'=> "diagramCanvas", "width" => "700", 'height' => '570', "data-data" => $data, "data-type" => $chartType), $tpl);
+        $tpl->append("<div class='chartHolder chart-$chartType'>" . $chart . "</div>");
+
+        $tpl->push('chartjs/lib/preparechart.js', 'JS');
+        $tpl->push('chartjs/' . chartjs_Setup::get('VERSION') . '/Chart.min.js', 'JS');
+        $tpl->push('chartjs/lib/Chart.css', 'CSS');
+
+
+        $animation = TRUE;
+
+        jquery_Jquery::run($tpl, "prepareChart({$animation});");
+        jquery_Jquery::runAfterAjax($tpl, "prepareChart");
 
         return $tpl;
 	}

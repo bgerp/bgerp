@@ -656,7 +656,6 @@ class thumb_Img
         setIfNot($attr['height'], $this->scaledHeight);
      
         if(log_Browsers::isRetina() && $this->size2x) {
-            bp();
             // За случаите, когато имаме дисплей с по-висока плътност
             $url2x = $this->size2x->getUrl();
             $attr['srcset']   = "{$url2x} 2x";

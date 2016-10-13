@@ -512,7 +512,7 @@ class doc_Containers extends core_Manager
             $row->document = new ET("<h2 style='color:red'>[#1#]</h2><p>[#2#]</p>", tr('Грешка при показването на документа'), $debug);
         }
         
-        $row->created = ucfirst($row->created);
+        $row->created = type_Nick::normalize($row->created);
         
         if ($rec->createdBy > 0) {
         	$row->created = crm_Profiles::createLink($rec->createdBy);
@@ -525,7 +525,7 @@ class doc_Containers extends core_Manager
             } else {
                 $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
             }
-            
+
             if(Mode::is('screenMode', 'narrow')) {
                 $row->created = new ET("<div class='profile-summary'><div class='fleft'><div class='fleft'>[#2#]</div><div class='fleft'><span>[#3#]</span>[#1#]</div></div><div class='fleft'>[#HISTORY#]</div><div class='clearfix21'></div></div>",
                     $mvc->getVerbal($rec, 'createdOn'),
