@@ -251,8 +251,8 @@ class purchase_Purchases extends deals_DealMaster
     {
     	parent::setDealFields($this);
     	$this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
-    	$this->setField('dealerId', 'caption=Наш персонал->Закупчик');
-    	$this->setField('shipmentStoreId', 'caption=Доставка->В склад');
+    	$this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
+    	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor');
     }
     
     
