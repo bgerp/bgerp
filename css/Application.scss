@@ -2666,7 +2666,7 @@ fieldset.sharing-history {
     > .tab-row > .row-holder > .tab {
         float: left;
         z-index: auto !important;
-        margin: 0 .5em 0 0 !important;
+		margin: 1px 0 -1px 2px !important;
         padding: 0 !important;
         border-top: 1px solid #ccc !important;
     }
