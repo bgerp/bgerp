@@ -109,14 +109,23 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $areaCode    = $numberObj->areaCode;
         $number = $numberObj->number;
         
-        $numArr = self::parseNumber("0{$areaCode}{$number}");
-        
-        $sNum = implode('_', $numArr);
+        if($areaCode == '87' || $areaCode == '88' | $areaCode == '89') {
+            $areaCode .= $number{0};
+            $number = substr($number, 1);
+        }
+
+        $numArr = self::parseNumber("{$number}");
+        $sNum = "0{$areaCode}_". implode('_', $numArr);
         
         $tel = ($countryCode == 359) ? 'тел' : 'tel';
         
         $q = "{$countryCode}{$areaCode}{$number} | $tel {$sNum}";
         
+        if(strlen($number) == 6) {
+            $q .= " | 0{$areaCode}_" . substr($number, 0, 2) . '_' . substr($number, 2, 2) . '_' . substr($number, 4, 2);
+        }
+
+        $q = urlencode($q);
         $url = "https://www.google.bg/search?q={$q}";
         
         return $url;
