@@ -1145,9 +1145,9 @@ class cal_Calendar extends core_Master
     	        $nonWorking++;
     	    }
     	    $allDays++;
-    	} else {
-        	while($curDate < dt::addDays(1, $leaveTo)){
-        		
+    	} else { 
+        	while($curDate < $leaveTo){
+        	   
         		$dateType = self::getDayStatus($curDate, 'bg');
         		$testArray [$curDate] = $dateType;
     
