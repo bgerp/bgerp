@@ -17,6 +17,17 @@ class colab_plg_CreateDocument extends core_Plugin
 	
 	
 	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		//setIfNot($mvc->canReject, 'contractor');
+	}
+	
+	
+	/**
 	 * Какви роли са необходими за качване или сваляне?
 	 */
 	public static function on_BeforeGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)

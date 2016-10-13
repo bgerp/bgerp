@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -141,10 +141,20 @@ class acc_plg_Contable extends core_Plugin
         if(haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
         }
+       
+        // Бутон за заявка
+        if($mvc->getPendingOrActivate($rec) == 'pending' && $rec->state == 'draft') {
+        	$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnConto,warning=Наистина ли желаете документът да стане заявка?", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+        }
+        
+        // Бутон за връщане в чернова
+        if($rec->state == 'pending' && haveRole('user')){
+        	$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        }
         
         if ($mvc->haveRightFor('conto', $rec)) {
-            
         	unset($error);
+        	
             // Проверка на счетоводния период, ако има грешка я показваме
             if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
                 $error = ",error={$error}";
@@ -190,7 +200,7 @@ class acc_plg_Contable extends core_Plugin
         // Ако има запис в журнала и потребителя има права за него, слагаме бутон
         $journalRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
         
-        if(($rec->state == 'active' || $rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
+        if(($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending') && acc_Journal::haveRightFor('read') && $journalRec) {
             $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
             $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
         }
@@ -240,7 +250,7 @@ class acc_plg_Contable extends core_Plugin
         if ($action == 'conto') {
             
             // Не може да се контира в състояние, което не е чернова
-            if ($rec->id && $rec->state != 'draft') {
+            if ($rec->id && ($rec->state != 'draft' && $rec->state != 'pending')) {
                 $requiredRoles = 'no_one';
             }
             
@@ -254,6 +264,13 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'every_one';
             }
             
+            // Ако документа трябва да става чакащ не може да се активира
+            if(isset($rec)){
+            	if($mvc->getPendingOrActivate($rec) == 'pending'){
+            		$requiredRoles = 'no_one';
+            	}
+            }
+            
             // Кой може да реконтира документа( изпълнява се след възстановяване на оттеглен документ)
         } elseif($action == 'reconto' && isset($rec)){
             
@@ -261,7 +278,7 @@ class acc_plg_Contable extends core_Plugin
             $requiredRoles = $mvc->getRequiredRoles('restore', $rec);
             
             // Не може да се реконтират само активни и приключени документи
-            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected')) {
+            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending')) {
                 $requiredRoles = 'no_one';
             }
             
@@ -297,17 +314,21 @@ class acc_plg_Contable extends core_Plugin
                 } else {
                     
                     // Ако потребителя не може да контира документа, не може и да го оттегля
-                    if(!haveRole($mvc->getRequiredRoles('conto'))){
-                        $requiredRoles = 'no_one';
+                    if(!(core_Packs::isInstalled('colab') && core_Users::isContractor($userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
+                    	if(!haveRole($mvc->getRequiredRoles('conto'))){
+                    		$requiredRoles = 'no_one';
+                    	}
                     }
                 }
             }
         } elseif ($action == 'restore') {
         	
-            // Ако потребителя не може да контира документа, не може и да го възстановява
-            if(!haveRole($mvc->getRequiredRoles('conto'))){
-                $requiredRoles = 'no_one';
-            }
+        	// Ако потребителя не може да контира документа, не може и да го възстановява
+        	if(!(core_Packs::isInstalled('colab') && core_Users::isContractor($userId) && $rec->createdBy == $userId)){
+        		if(!haveRole($mvc->getRequiredRoles('conto'))){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
             
             if(isset($rec)){
             	
@@ -329,7 +350,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Черновите и оттеглените документи немогат да се коригират
-            if ($rec->state == 'draft' || $rec->state == 'rejected') {
+            if ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending') {
                 $requiredRoles = 'no_one';
             }
             
@@ -352,6 +373,14 @@ class acc_plg_Contable extends core_Plugin
         			$requiredRoles = 'no_one';
         		}
         	}
+        }
+        
+        if($action == 'closewith' && isset($rec)){
+        	
+        	// Ако документа трябва да става чакащ не може да се активира
+            if($mvc->getPendingOrActivate($rec) == 'pending'){
+            	$requiredRoles = 'no_one';
+            }
         }
     }
     
