@@ -827,6 +827,12 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
 	    if($fields['-single']){
+	    	if(core_Users::isContractor()){
+	    		unset($row->closedDocuments);
+	    		unset($row->initiatorId);
+	    		unset($row->dealerId);
+	    	}
+	    	
 	    	if($rec->originId){
 	    		$row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink();
 	    	}
@@ -1131,7 +1137,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$id = Request::get('id', 'int');
     	expect($rec = $this->fetch($id));
     	
-    	if($rec->state != 'draft'){
+    	if($rec->state != 'draft' && $rec->state != 'pending'){
     		return new Redirect(array($this, 'single', $id), '|Договорът вече е активиран');
     	}
     	
@@ -1574,8 +1580,20 @@ abstract class deals_DealMaster extends deals_DealBase
     {
 		// Не може да се клонира ако потребителя няма достъп до папката
     	if($action == 'clonerec' && isset($rec)){
-    		if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
-    			$res = 'no_one';
+    		
+    		// Ако е контрактор може да клонира документите в споделените му папки
+    		if(core_Packs::isInstalled('colab') && core_Users::isContractor($userId)){
+    			$colabFolders = colab_Folders::getSharedFolders($userId);
+    			
+    			if(!in_array($rec->folderId, $colabFolders)){
+    				$res = 'no_one';
+    			}
+    		} else {
+    			
+    			// Ако не е контрактор, трябва да има достъп до папката
+    			if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }
@@ -1707,5 +1725,17 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	return $details;
+    }
+    
+    
+    /**
+     * Дали при активиране документа трябва да стане чакащ или активен
+     * 
+     * @param stdClass $rec
+     * @return pending|activate
+     */
+    public function getPendingOrActivate($rec)
+    {
+    	return (core_Users::isContractor() ? 'pending' : 'activate');
     }
 }

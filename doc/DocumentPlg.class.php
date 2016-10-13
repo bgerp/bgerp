@@ -802,7 +802,15 @@ class doc_DocumentPlg extends core_Plugin
             if (!$res = getRetUrl()) {
             	if($mvc->haveRightFor('single', $rec)){
             		$res = array($mvc, 'single', $id);
-            	} else {
+            	}
+            	
+            	if(core_Packs::isInstalled('colab')){
+            		if(!$res && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
+            			$res = array($mvc, 'single', $id);
+            		}
+            	}
+            	
+            	if(!$res){
             		$res = array('bgerp_Portal', 'show');
             		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
             	}
@@ -856,6 +864,7 @@ class doc_DocumentPlg extends core_Plugin
         	
         	// Създаване на празен запис в кеш таблицата за разходите
         	doc_ExpensesSummary::save((object)array('containerId' => $rec->containerId));
+        	$mvc->logInAct('Документа става разходно перо', $rec);
         	
         	if (!$res = getRetUrl()) {
         		$res = array($mvc, 'single', $id);
@@ -865,6 +874,31 @@ class doc_DocumentPlg extends core_Plugin
         	
         	return FALSE;
         }
+        
+        if($action == 'changepending'){
+        	core_Users::requireRole('user');
+        	expect($id  = Request::get('id', 'int'));
+        	expect($rec = $mvc->fetch($id));
+        	
+        	expect($rec->state == 'draft' || $rec->state == 'pending');
+        	$oldState = $rec->state;
+        	$newState = ($oldState == 'pending') ? 'draft' : 'pending';
+        	$log = ($oldState == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
+        	
+        	$rec->state = $newState;
+        	$rec->brState = $oldState;
+        	
+        	$mvc->save($rec, 'state,brState');
+        	$mvc->logInAct($log, $rec);
+        	
+        	if (!$res = getRetUrl()) {
+        		$res = array($mvc, 'single', $id);
+        	}
+        	 
+        	$res = new Redirect($res);
+        	 
+        	return FALSE;
+    	}
     }
     
     
@@ -1626,7 +1660,13 @@ class doc_DocumentPlg extends core_Plugin
                     	$requiredRoles = 'powerUser';
                     }
                 } else {
-                    $requiredRoles = 'no_one';
+                	if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+                		if($oRec->createdBy != $userId){
+                			$requiredRoles = 'no_one';
+                		} else {
+                			$requiredRoles = 'contractor';
+                		}
+                	}
                 } 
             } elseif ($action == 'single') {
             	
@@ -1722,10 +1762,16 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
-                
-                // Трябва да има права за добавяне за да може да клонира
-                $requiredRoles = 'no_one';
+            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
+            	if(core_Packs::isInstalled('colab') && core_Users::isContractor($userId)){
+            		if(!colab_Threads::haveRightFor('single', $tRec)){
+            			$requiredRoles = 'no_one';
+            		}
+            	} else {
+            		if(!doc_Threads::haveRightFor('single', $tRec)){
+            			$requiredRoles = 'no_one';
+            		}
+            	}
             }
         }
         
@@ -1751,7 +1797,7 @@ class doc_DocumentPlg extends core_Plugin
         	} else {
         		
         		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
-        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed'){
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending'){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -3246,6 +3292,35 @@ class doc_DocumentPlg extends core_Plugin
     		// Оставяме състоянието да се показва само ако не е оттеглено
     		if ($data->rec->state != 'rejected') {
     			unset($data->row->state);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Дали при активиране документа трябва да стане чакащ или активен, метод по подразбиране
+     */
+    public static function on_AfterGetPendingOrActivate($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$res = 'activate';
+    	}
+    }
+
+
+    /**
+     * Връща дали документа е видим за партньори
+     *
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param integer|stdObject $rec
+     */
+    public static function on_AfterIsVisibleForPartners($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	if (!isset($res)) {
+    		if ($mvc->visibleForPartners) {
+    			$res = TRUE;
     		}
     	}
     }

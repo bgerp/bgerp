@@ -48,7 +48,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Кои документи могат да бъдат създавани по дефолт от контрактори
      */
-    private static $defaultCreatableDocuments = 'sales_Sales,purchase_Purchases';
+    private static $defaultCreatableDocuments = 'sales_Sales,purchase_Purchases,doc_Comments,doc_Notes';
     
     
     /**
@@ -100,6 +100,9 @@ class colab_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Colab за експедиционни нареждания', 'colab_plg_Document', 'store_ShipmentOrders', 'private');
     	$html .= $Plugins->installPlugin('Colab за сигнали', 'colab_plg_Document', 'support_Issues', 'private');
     	$html .= $Plugins->installPlugin('Colab за резолюция на сигнал', 'colab_plg_Document', 'support_Resolutions', 'private');
+    	
+    	$html .= $Plugins->installPlugin('Плъгин за споделяне с партьори на коментар', 'colab_plg_VisibleForPartners', 'doc_Comments', 'private');
+    	$html .= $Plugins->installPlugin('Плъгин за споделяне с партьори на бележка', 'colab_plg_VisibleForPartners', 'doc_Notes', 'private');
     	
     	$defaultCreatableDocuments = arr::make(static::$defaultCreatableDocuments);
     	foreach ($defaultCreatableDocuments as $docName){
