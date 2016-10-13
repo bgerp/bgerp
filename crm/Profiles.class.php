@@ -136,7 +136,7 @@ class crm_Profiles extends core_Master
     /**
      * Помощен масив за типовете дни
      */
-    static $map = array('sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    static $map = array('missing'=>'Отсъсъващи','sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
     
     
     /**
@@ -1185,13 +1185,42 @@ class crm_Profiles extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $rec = $data->listFilter->rec;
+
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуска,tripDay=Командировка)', 'width=6em,caption=Отсъстващи,silent,allowEmpty,autoFilter');
+        
     	$data->listFilter->view = 'horizontal';
     	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	$fields = $data->listFilter->input();
     	 
-    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->showFields .= 'search,leave';
         
         $data->query->orderBy("lastTime", "DESC");
+
+        // Ако е избран 'Отсъстващи'
+        switch ($fields->leave) {
+                
+            case 'missing' :
+                
+                $data->query->where("(#stateInfo = 'sickDay') OR (#stateInfo = 'leaveDay') OR (#stateInfo = 'tripDay')");   
+                break;
+            case 'sickDay' :
+                    
+                $data->query->where("#stateInfo = 'sickDay'");
+                break;
+                    
+            case 'leaveDay' :
+                    
+                $data->query->where("#stateInfo = 'leaveDay'");
+                break;
+                    
+            case 'tripDay' :
+                    
+                $data->query->where("#stateInfo = 'tripDay'");
+                break;
+        }
     }
     
     
