@@ -51,4 +51,23 @@ class colab_plg_CreateDocument extends core_Plugin
 			}
 		}
 	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна
+	 */
+	public static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		// Ако не е контрактор 
+		if(!core_Users::isContractor()) return;
+		$form = &$data->form;
+		
+		// Полетата, които не са за контрактор се скриват
+		$hideFields = $form->selectFields("#notChangeableByContractor");
+		if(is_array($hideFields)){
+			foreach ($hideFields as $name => $field){
+				$form->setField($name, 'input=hidden');
+			}
+		}
+	}
 }
