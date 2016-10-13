@@ -1671,7 +1671,7 @@ class doc_DocumentPlg extends core_Plugin
             } elseif ($action == 'single') {
             	
             	// Ако нямаме достъп до нишката
-                if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
+                if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && (($rec->createdBy != $userId) || core_Users::isContractor($rec->createdBy))) {
                    
                 	// Ако е инсталиран пакета 'colab'
                 	if(core_Packs::isInstalled('colab') && $oRec->threadId){
