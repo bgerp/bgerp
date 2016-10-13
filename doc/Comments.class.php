@@ -290,10 +290,20 @@ class doc_Comments extends core_Master
     
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на коментар не променя състоянието на треда
      */
     static function getThreadState($id)
     {
+        $rec = self::fetch($id);
+ 
+        if(haveRole('contractor', $rec->createdBy) && !haveRole('powerUser', $rec->createdBy)) {
+
+            return 'opened';
+
+        } elseif(haveRole('powerUser', $rec->createdBy) && $rec->visibleForPartners == 'yes') {
+ 
+            return 'closed';
+        }
+
         return NULL;
     }
     

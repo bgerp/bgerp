@@ -72,6 +72,11 @@ class colab_plg_VisibleForPartners extends core_Plugin
         if (!$rec->id && !$rec->visibleForPartners) {
             $data->form->setDefault('visibleForPartners', 'no');
         }
+        
+        if(haveRole('contractor') && !haveRole('powerUser')) {
+            $mvc->currentTab = 'Нишка';
+            plg_ProtoWrapper::changeWrapper($mvc, 'colab_Wrapper');
+        }
     }
     
     
