@@ -48,7 +48,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Кои документи могат да бъдат създавани по дефолт от контрактори
      */
-    private static $defaultCreatableDocuments = 'sales_Sales,purchase_Purchases';
+    private static $defaultCreatableDocuments = 'sales_Sales,purchase_Purchases,doc_Comments,doc_Notes';
     
     
     /**

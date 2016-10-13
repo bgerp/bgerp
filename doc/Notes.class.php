@@ -30,7 +30,7 @@ class doc_Notes extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, colab_CreateDocumentIntf';
     
     
     /**
