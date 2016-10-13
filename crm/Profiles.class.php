@@ -136,7 +136,7 @@ class crm_Profiles extends core_Master
     /**
      * Помощен масив за типовете дни
      */
-    static $map = array('missing'=>'Отсъсъващи','sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    static $map = array('missing'=>'Отсъстващи','sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
     
     
     /**
