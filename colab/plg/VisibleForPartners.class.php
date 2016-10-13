@@ -36,7 +36,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $rec = $data->form->rec; 
+        $rec = $data->form->rec;
         if ($rec->folderId) {
             
             // Полето се показва ако е в папката, споделена до колаборатор
@@ -57,6 +57,8 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         if (!$rec->id && core_Users::isContractor($dRec->createdBy)) {
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
+                    } else {
+                        $data->form->setDefault('visibleForPartners', 'yes');
                     }
                     
                     // Ако няма да се показва на колаборатори по-подразбиране, да е скрито полето
@@ -65,6 +67,11 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     }
                 }
             }
+        }
+        
+        // Сетваме стойността, ако не е зададена
+        if (!$rec->id && !$rec->visibleForPartners) {
+            $data->form->setDefault('visibleForPartners', 'no');
         }
     }
     
