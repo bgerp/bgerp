@@ -39,7 +39,7 @@ class colab_plg_CreateDocument extends core_Plugin
 					}
 				} elseif($action == 'add') {
 					$sharedFolders = colab_Folders::getSharedFolders($userId);
-					if(!in_array($rec->folderId, $sharedFolders)){
+					if(!$rec->folderId || !in_array($rec->folderId, $sharedFolders)){
 						$addContractor = FALSE;
 					}
 				}
