@@ -680,7 +680,7 @@ if($step == 3) {
             if (exec('which ' . escapeshellcmd($program))){
                 $log[] = "inf:Налична програма: <b>`$program`</b>";
             } else {
-                $log[] = "wrn:Липсващ програма: <b>`$program`</b>";
+                $log[] = "wrn:Липсваща програма: <b>`$program`</b>";
             }
         }
     }
