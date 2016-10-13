@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   colab
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  */
@@ -20,50 +20,49 @@ class colab_Threads extends core_Manager
 	/**
 	 * Заглавие на мениджъра
 	 */
-	var $title = "Споделени нишки";
+	public $title = "Споделени нишки";
 	
 	
 	/**
 	 * Наименование на единичния обект
 	 */
-	var $singleTitle = "Нишка";
+	public $singleTitle = "Нишка";
 	
 	
 	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	var $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers';
+	public $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers';
 	
 	
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
+    public $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
 	
 	
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	var $searchFields = 'title';
+	public $searchFields = 'title';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	var $canRead = 'contractor';
-	
-    var $canNewdoc = 'contractor';
+	public $canRead = 'contractor';
 
+	
 	/**
 	 * Кой има право да чете?
 	 */
-	var $canSingle = 'contractor';
+	public $canSingle = 'contractor';
 	
 	
 	/**
 	 * Кой има право да листва всички профили?
 	 */
-	var $canList = 'contractor';
+	public $canList = 'contractor';
 	
 	
 	/**
