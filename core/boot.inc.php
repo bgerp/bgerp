@@ -168,7 +168,7 @@ function reportException($e, $update = NULL, $supressShowing = TRUE)
     $breakLine = $e->getLine();
     $stack     = $e->getTrace();
 
-    if ($e instanceOf core_exception_Break) {
+    if (($e instanceOf core_exception_Break) || ($e instanceOf core_exception_Expect)) {
         $dump = $e->getDump();
         $errType = $e->getType();
     }
