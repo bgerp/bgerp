@@ -95,7 +95,7 @@ class type_Nick extends type_Varchar {
     {
         $value = parent::toVerbal($value);
         
-        $value = self::convertValueToNick($value);
+        $value = self::normalize($value);
         
         return $value;
     }
@@ -109,6 +109,7 @@ class type_Nick extends type_Varchar {
     {
         $value = trim($value);
 
+        return $value;
         //Дължина на стринга
         $len = strlen($value);
         

@@ -114,7 +114,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали може да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
-        setIfNot($mvc->canExportdoc, 'powerUser');
+        setIfNot($mvc->canExportdoc, 'user');
         setIfNot($mvc->canForceexpenseitem, 'ceo,acc');
         
         $mvc->setDbIndex('state');
@@ -1063,8 +1063,13 @@ class doc_DocumentPlg extends core_Plugin
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
             
-            //Изискваме да има права
-            doc_Threads::requireRightFor('single', $mvc->threadId);
+            // Изискваме да има права
+            if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+            	colab_Threads::requireRightFor('single', doc_Threads::fetch($mvc->threadId));
+            } else {
+            	doc_Threads::requireRightFor('single', $mvc->threadId);
+            }
+          
         } elseif (Request::get('clone') && ($cloneId = Request::get('cloneId', 'int'))) {
             
             // Ако създаваме копие 
@@ -1138,8 +1143,14 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if($rec->threadId) {
-            doc_Threads::requireRightFor('single', $rec->threadId);
-            $rec->folderId = doc_Threads::fetch($rec->threadId)->folderId;
+        	$threadRec = doc_Threads::fetch($rec->threadId);
+        	if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+        		colab_Threads::requireRightFor('single', $threadRec);
+        	} else {
+        		doc_Threads::requireRightFor('single', $rec->threadId);
+        	}
+            
+            $rec->folderId = $threadRec->folderId;
         }
         
         if(!$rec->folderId) {
@@ -1147,7 +1158,15 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
-        	error('403 Недостъпен ресурс');
+        	if(core_Packs::isInstalled('colab')){
+        		$userId = core_Users::getCurrent();
+        		$colabFolders = colab_Folders::getSharedFolders($userId);
+        		if(!in_array($rec->folderId, $colabFolders)){
+        			error('403 Недостъпен ресурс');
+        		}
+        	} else {
+        		error('403 Недостъпен ресурс');
+        	}
         }
         
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
@@ -1591,7 +1610,15 @@ class doc_DocumentPlg extends core_Plugin
             	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
             	$haveRightForSingle = $mvc->haveRightFor('single', $rec->id, $userId);
             	if(!$haveRightForSingle){
-            		$requiredRoles = 'no_one';
+            		if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+            			if($oRec->createdBy == $userId){
+            				$requiredRoles = 'contractor';
+            			} else {
+            				$requiredRoles = 'no_one';
+            			}
+            		} else {
+            			$requiredRoles = 'no_one';
+            		}
             	}
             } elseif ($action == 'reject'  || $action == 'restore') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {

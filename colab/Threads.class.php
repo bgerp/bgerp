@@ -129,10 +129,11 @@ class colab_Threads extends core_Manager
 		$this->requireRightFor('single', $data->threadRec);
 		
 		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
+		$cu = core_Users::getCurrent();
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
-		$data->query->where("#visibleForPartners = 'yes'");
-		$data->query->where("#state != 'draft'");
+		$data->query->where("#visibleForPartners = 'yes' || #createdBy = {$cu}");
+		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy = {$cu})");
 		$data->query->orderBy('id', 'ASC');
 		
 		$this->prepareTitle($data);
@@ -163,6 +164,25 @@ class colab_Threads extends core_Manager
 		$tpl = $this->renderWrapping($tpl, $data);
 		
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Извиква се след подготовката на toolbar-а за табличния изглед
+	 */
+	public static function on_AfterPrepareListToolbar($mvc, &$data)
+	{
+		$documents = colab_Setup::get('CREATABLE_DOCUMENTS');
+		$documents = keylist::toArray($documents);
+		if(is_array($documents)){
+			foreach ($documents as $docId){
+				$Doc = cls::get($docId);
+				
+				if($Doc->haveRightFor('add', (object)array('folderId' => $data->folderId))){
+					$data->toolbar->addBtn($Doc->singleTitle, array($Doc, 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE), "ef_icon={$Doc->singleIcon}");
+				}
+			}
+		}
 	}
 	
 	
@@ -314,12 +334,12 @@ class colab_Threads extends core_Manager
 			if ($rec->firstContainerId) {
     			// Трябва първия документ в нишката да е видим за партньори
     			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-    			if($firstDocumentIsVisible != 'yes'){
+    			if($firstDocumentIsVisible != 'yes' && $rec->createdBy != $userId){
     				$requiredRoles = 'no_one';
     			} 
     			
     			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
-    			if($firstDocumentState == 'draft'){
+    			if($firstDocumentState == 'draft' && $rec->createdBy != $userId){
     				$requiredRoles = 'no_one';
     			}
 			} else {
@@ -356,14 +376,15 @@ class colab_Threads extends core_Manager
 		}
 		
 		$sharedFolders = cls::get('colab_Folders')->getSharedFolders();
+		$cu = core_Users::getCurrent();
 		
 		$params['where'][] = "#folderId = {$folderId}";
 		$res = $this->Threads->getQuery($params);
 		$res->where("#state != 'rejected'");
 		$res->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
 		$res->EXT('firstDocumentState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
-		$res->where("#visibleForPartners = 'yes'");
-		$res->where("#firstDocumentState != 'draft'");
+		$res->where("#visibleForPartners = 'yes' || #createdBy = {$cu}");
+		$res->where("#firstDocumentState != 'draft' || (#firstDocumentState = 'draft' AND #createdBy = {$cu})");
 		$res->in('folderId', $sharedFolders);
 	
 		return $res;

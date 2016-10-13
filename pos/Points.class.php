@@ -148,7 +148,7 @@ class pos_Points extends core_Master {
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
-    	$data->form->setDefault('policyId', price_ListRules::PRICE_LIST_CATALOG);
+    	$data->form->setDefault('policyId', cat_Setup::get('DEFAULT_PRICELIST'));
     }
     
     

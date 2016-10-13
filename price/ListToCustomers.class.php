@@ -292,7 +292,7 @@ class price_ListToCustomers extends core_Manager
         static::canonizeTime($datetime);
     	
     	$validRec = self::getValidRec($customerClass, $customerId, $datetime);
-    	$listId = ($validRec) ? $validRec->listId : price_ListRules::PRICE_LIST_CATALOG;
+    	$listId = ($validRec) ? $validRec->listId : cat_Setup::get('DEFAULT_PRICELIST');
         
         return $listId;
     }
