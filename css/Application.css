@@ -2331,19 +2331,19 @@ span.sharing-history-title {
 .wide .cmsTopContractor .app-name {
   top: 10%; }
 
-  .foldertabs .tab-row {
+  .foldertabs > .tab-row {
     overflow: hidden;
     width: 100%;
-    margin: 0;
     padding: 0;
+    margin-left: 20px;
     list-style: none; }
-  .foldertabs .tab-row .tab {
+  .foldertabs > .tab-row > .row-holder > .tab {
     float: left;
     z-index: auto !important;
-    margin: 0 0.5em 0 0;
+    margin: 0 0.5em 0 0 !important;
     padding: 0 !important;
     border-top: 1px solid #cccccc !important; }
-  .foldertabs .tab-row .tab .tab-title {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title {
     position: relative;
     background: #dddddd;
     background-image: linear-gradient(to bottom, white, #dddddd);
@@ -2355,16 +2355,16 @@ span.sharing-history-title {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     border-radius: 5px 0 0 0;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4); }
-  .foldertabs .tab-row .tab span.tab-title {
+  .foldertabs > .tab-row > .row-holder > .tab >  span.tab-title {
     color: #cccccc; }
-  .foldertabs .tab-row .tab .tab-title:hover,
-  .foldertabs .tab-row .tab .tab-title:hover::after,
-  .foldertabs .tab-row .tab .tab-title:focus,
-  .foldertabs .tab-row .tab .tab-title:focus::after {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover,
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover::after,
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus,
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus::after {
     background: white; }
-  .foldertabs .tab-row .tab .tab-title:focus {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus {
     outline: 0; }
-  .foldertabs .tab-row .tab .tab-title::after {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title::after {
     content: '';
     position: absolute;
     z-index: 1;
@@ -2377,15 +2377,15 @@ span.sharing-history-title {
     box-shadow: 2px 1px 2px rgba(0, 0, 0, 0.4);
     transform: skew(15deg);
     border-radius: 0 5px 0 0; }
-  .foldertabs .tab-row .tab.selected .tab-title,
-  .foldertabs .tab-row .tab.selected .tab-title::after {
+  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title,
+  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title::after {
     background: white !important;
     z-index: 3; }
-  .foldertabs .tab-row .tab:hover .tab-title,
-  .foldertabs .tab-row .tab:hover .tab-title::after {
+  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title,
+  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title::after {
     background: white;
     z-index: 4; }
-  .foldertabs .tab-page {
+  .foldertabs > .tab-page {
     background: white;
     border-radius: 0 !important;
     z-index: 2;
@@ -2395,6 +2395,8 @@ span.sharing-history-title {
 
 .contractorExtHolder {
   padding: 10px; }
+  .contractorExtHolder .deal-history-tab .tab {
+    margin: 0 5px 0 0 !important; }
 
 .narrow #login-form {
   max-width: 17em !important;

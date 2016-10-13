@@ -2655,23 +2655,23 @@ fieldset.sharing-history {
     top: 10%;
 }
 .foldertabs {
-    .tab-row {
+    > .tab-row {
         overflow: hidden;
         width: 100%;
-        margin: 0;
         padding: 0;
+		margin-left: 20px;
         list-style: none;
     }
 
-    .tab-row .tab {
+    > .tab-row > .row-holder > .tab {
         float: left;
         z-index: auto !important;
-        margin: 0 .5em 0 0;
+        margin: 0 .5em 0 0 !important;
         padding: 0 !important;
         border-top: 1px solid #ccc !important;
     }
 
-    .tab-row .tab .tab-title {
+	> .tab-row > .row-holder > .tab >  .tab-title {
 
         position: relative;
         background: #ddd;
@@ -2685,21 +2685,21 @@ fieldset.sharing-history {
         border-radius: 5px 0 0 0;
         box-shadow: 0 2px 2px rgba(0,0,0,.4);
     }
-    .tab-row .tab span.tab-title {
+	> .tab-row > .row-holder > .tab >  span.tab-title {
         color: #ccc;
     }
-    .tab-row .tab .tab-title:hover,
-    .tab-row .tab .tab-title:hover::after,
-    .tab-row .tab .tab-title:focus,
-    .tab-row .tab .tab-title:focus::after {
+	> .tab-row > .row-holder > .tab >  .tab-title:hover,
+	> .tab-row > .row-holder > .tab >  .tab-title:hover::after,
+	> .tab-row > .row-holder > .tab >  .tab-title:focus,
+	> .tab-row > .row-holder > .tab >  .tab-title:focus::after {
         background: #fff;
     }
 
-    .tab-row .tab .tab-title:focus {
+	> .tab-row > .row-holder > .tab >  .tab-title:focus {
         outline: 0;
     }
 
-    .tab-row .tab .tab-title::after {
+	> .tab-row > .row-holder > .tab >  .tab-title::after {
         content:'';
         position:absolute;
         z-index: 1;
@@ -2715,17 +2715,17 @@ fieldset.sharing-history {
     }
 
 
-    .tab-row .tab.selected .tab-title,
-    .tab-row .tab.selected .tab-title::after {
+	> .tab-row > .row-holder > .tab.selected .tab-title,
+	> .tab-row > .row-holder > .tab.selected .tab-title::after {
         background: #fff !important;
         z-index: 3;
     }
-    .tab-row .tab:hover .tab-title,
-    .tab-row .tab:hover .tab-title::after {
+	> .tab-row > .row-holder > .tab:hover .tab-title,
+	> .tab-row > .row-holder > .tab:hover .tab-title::after {
         background: #fff;
         z-index: 4;
     }
-    .tab-page  {
+    > .tab-page  {
         background: #fff;
         border-radius: 0 !important;
         z-index: 2;
@@ -2737,6 +2737,9 @@ fieldset.sharing-history {
 
 .contractorExtHolder {
     padding: 10px;
+	.deal-history-tab .tab {
+		margin: 0 5px 0 0  !important;
+	}
 }
 
 .narrow #login-form {	   
