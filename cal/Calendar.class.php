@@ -1146,7 +1146,7 @@ class cal_Calendar extends core_Master
     	    }
     	    $allDays++;
     	} else { 
-        	while($curDate < $leaveTo){
+        	while($curDate <= $leaveTo){
         	   
         		$dateType = self::getDayStatus($curDate, 'bg');
         		$testArray [$curDate] = $dateType;
