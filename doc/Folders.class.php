@@ -29,9 +29,15 @@ class doc_Folders extends core_Master
     
     
     /**
+     * 10 секунди време за опресняване на нишката
+     */
+    public $refreshRowsTime = 10000;
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting, plg_RefreshRows';
     
     
     /**
