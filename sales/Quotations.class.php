@@ -650,7 +650,7 @@ class sales_Quotations extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	if($hasTransport === FALSE || $isReadOnlyMode){
+    	if($hasTransport === FALSE || $isReadOnlyMode || core_Users::isContractor()){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     	

@@ -827,7 +827,7 @@ class sales_Sales extends deals_DealMaster
     	core_Lg::push($rec->tplLang);
     	
     	$hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
-    	if(Mode::isReadOnly() || $hasTransport === FALSE){
+    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::isContractor()){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     }
