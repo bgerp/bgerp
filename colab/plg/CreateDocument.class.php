@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   colab
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -62,6 +62,7 @@ class colab_plg_CreateDocument extends core_Plugin
 	{
 		// Ако не е контрактор 
 		if(!core_Users::isContractor()) return;
+		
 		$form = &$data->form;
 		
 		// Полетата, които не са за контрактор се скриват
@@ -83,13 +84,9 @@ class colab_plg_CreateDocument extends core_Plugin
 	
 	
 	/**
-	 * 
-	 * 
-	 * @param core_Mvc $mvc
-	 * @param stdObject $res
-	 * @param stdObject $data
+	 * След подготовка на тулбара на формата
 	 */
-	function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+	public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
 	{
 	    // Контрактора да не може да създава чернова, а директно да активира
 	    if (core_Users::isContractor()) {
@@ -105,7 +102,7 @@ class colab_plg_CreateDocument extends core_Plugin
 	 * @param string|NULL $res
 	 * @param integer $data
 	 */
-	function on_AfterGetThreadState($mvc, &$res, $id)
+	public static function on_AfterGetThreadState($mvc, &$res, $id)
 	{
 	    $rec = $mvc->fetch($id);
 	    
