@@ -26,7 +26,7 @@ class colab_plg_CreateDocument extends core_Plugin
 			
 			// Ако документа е от тези, които може да се създават от партньори
 			if(core_Users::isContractor($userId)){
-				$documents = colab_Setup::get('CREATABLE_DOCUMENTS');
+				$documents = colab_Setup::get('CREATABLE_DOCUMENTS_LIST');
 				if(keylist::isIn($mvc->getClassId(), $documents)){
 					$addContractor = TRUE;
 				}
