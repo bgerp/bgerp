@@ -172,7 +172,7 @@ class colab_Threads extends core_Manager
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
 		if(!Request::get('Rejected')) {
-			$documents = colab_Setup::get('CREATABLE_DOCUMENTS');
+			$documents = colab_Setup::get('CREATABLE_DOCUMENTS_LIST');
 			$documents = keylist::toArray($documents);
 			if(is_array($documents)){
 				foreach ($documents as $docId){
