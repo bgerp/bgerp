@@ -1160,9 +1160,7 @@ class doc_DocumentPlg extends core_Plugin
             // Трябва да имаме достъп до нишката на оригиналния документ
             if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
                 $tRec = doc_Threads::fetch($oRec->threadId);
-                if (!colab_Threads::requireRightFor('single', $tRec)) {
-                    $requiredRoles = 'no_one';
-                }
+                colab_Threads::requireRightFor('single', $tRec)
             } else {
                 doc_Threads::requireRightFor('single', $oRec->threadId);
             }
