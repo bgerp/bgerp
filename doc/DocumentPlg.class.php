@@ -1298,10 +1298,12 @@ class doc_DocumentPlg extends core_Plugin
             // Споделените потребители по подразбиране
             $defaultShared = $mvc->getDefaultShared($rec, $cid);
             
-            if ($defaultShared) {
-                unset($defaultShared[-1]);
-                unset($defaultShared[0]);
-                $data->form->setDefault('sharedUsers', $defaultShared);
+            if (core_Users::isPowerUser()) {
+                if ($defaultShared) {
+                    unset($defaultShared[-1]);
+                    unset($defaultShared[0]);
+                    $data->form->setDefault('sharedUsers', $defaultShared);
+                }
             }
         }
     }
