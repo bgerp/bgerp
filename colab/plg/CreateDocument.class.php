@@ -96,5 +96,24 @@ class colab_plg_CreateDocument extends core_Plugin
 	        $data->form->toolbar->removeBtn('save');
 	    }
 	}
+	
+	
+	/**
+	 * След вземане на състоянието на треда
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param string|NULL $res
+	 * @param integer $data
+	 */
+	function on_AfterGetThreadState($mvc, &$res, $id)
+	{
+	    $rec = $mvc->fetch($id);
+	    
+	    if (core_Users::isContractor($rec->createdBy)) {
+	        $res = 'opened';
+	    } elseif(core_Users::isPowerUser($rec->createdBy) && $rec->visibleForPartners == 'yes') {
+	        $res = 'closed';
+	    }
+	}
 }
 

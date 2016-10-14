@@ -1066,6 +1066,20 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     * 
+     * @param integer $id
+     * 
+     * @return NULL|string
+     */
+    static function getThreadState_($id)
+    {
+        
+        return NULL;
+    }
+    
+    
+    /**
      * След вербализиране на записа
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())

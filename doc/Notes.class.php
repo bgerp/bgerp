@@ -211,20 +211,14 @@ class doc_Notes extends core_Master
 
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
+     * 
+     * @param integer $id
+     * 
+     * @return NULL|string
      */
-    static function getThreadState($id)
+    static function getThreadState_($id)
     {
-        $rec = self::fetch($id);
- 
-        if(haveRole('contractor', $rec->createdBy) && !haveRole('powerUser', $rec->createdBy)) {
-
-            return 'opened';
-
-        } elseif(haveRole('powerUser', $rec->createdBy) && $rec->visibleForPartners == 'yes') {
- 
-            return 'closed';
-        }
-
+        
         return NULL;
     }
     
