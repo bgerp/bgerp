@@ -1732,8 +1732,14 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 } else {
                     
-                    // За останалите, проверяваме за сингъл в нишката
-                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId, $userId);
+                    if (core_Users::isContractor() && $oRec->threadId) {
+                        // За останалите, проверяваме за сингъл в нишката
+                        $tRec = doc_Threads::fetch($oRec->threadId);
+                        $haveRightForClone = colab_Threads::haveRightFor('single', $tRec, $userId);
+                    } else {
+                        // За останалите, проверяваме за сингъл в нишката
+                        $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId, $userId);
+                    }
                     
                     // Ако има права
                     if ($haveRightForClone) {

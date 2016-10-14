@@ -43,7 +43,7 @@ class doc_Comments extends core_Master
     /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    protected $canClone = 'user';
     
     
     /**
