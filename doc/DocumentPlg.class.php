@@ -1732,7 +1732,7 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 } else {
                     
-                    if (core_Users::isContractor() && $oRec->threadId) {
+                    if (core_Users::isContractor() && $oRec->threadId && core_Packs::isInstalled('colab')) {
                         // За останалите, проверяваме за сингъл в нишката
                         $tRec = doc_Threads::fetch($oRec->threadId);
                         $haveRightForClone = colab_Threads::haveRightFor('single', $tRec, $userId);
