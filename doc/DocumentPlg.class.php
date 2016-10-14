@@ -1634,6 +1634,14 @@ class doc_DocumentPlg extends core_Plugin
     				$requiredRoles = 'no_one';
     			}
             }
+            
+            if($requiredRoles != 'no_one'){
+            	if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+            		if(!colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->folderId))){
+            			$requiredRoles = 'no_one';
+            		}
+            	}
+            }
         }
 		
         if($requiredRoles == 'no_one') return;
