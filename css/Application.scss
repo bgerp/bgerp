@@ -2785,6 +2785,12 @@ fieldset.sharing-history {
 		border: solid 1px #bbb;
 		border-radius: 2px;
 	}
+	.vertical .formTitle a {
+		color: #ccc;
+		&:hover {
+			color: #fff;
+		}
+	}
 }
 
 .narrow #login-form {	   

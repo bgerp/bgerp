@@ -2452,6 +2452,10 @@ span.sharing-history-title {
   .contractorExtHolder .select2-container--default .select2-selection--multiple {
     border: solid 1px #bbbbbb;
     border-radius: 2px; }
+  .contractorExtHolder .vertical .formTitle a {
+    color: #cccccc; }
+    .contractorExtHolder .vertical .formTitle a:hover {
+      color: white; }
 
 .narrow #login-form {
   max-width: 17em !important;
