@@ -2453,9 +2453,9 @@ span.sharing-history-title {
     border: solid 1px #bbbbbb;
     border-radius: 2px; }
   .contractorExtHolder .vertical .formTitle a {
-    color: #cccccc; }
+    color: #cccccc !important; }
     .contractorExtHolder .vertical .formTitle a:hover {
-      color: white; }
+      color: white !important; }
   .contractorExtHolder .vertical form[method=post] input[type=submit],
   .contractorExtHolder form[method=post] input:first-child[type=submit] {
     text-shadow: none; }

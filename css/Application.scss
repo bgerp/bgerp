@@ -2786,9 +2786,9 @@ fieldset.sharing-history {
 		border-radius: 2px;
 	}
 	.vertical .formTitle a {
-		color: #ccc;
+		color: #ccc !important;
 		&:hover {
-			color: #fff;
+			color: #fff !important;
 		}
 	}
 	.vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {
