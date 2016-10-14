@@ -2662,8 +2662,11 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->createdBy);
         unset($nRec->modifiedOn);
         unset($nRec->modifiedBy);
-        unset($nRec->state);
         unset($nRec->brState);
+        
+        if (!core_Users::isContractor()) {
+            unset($nRec->state);
+        }
         
         setIfNot($thredId, $nRec->threadId, $rec->threadId);
         setIfNot($containerId, $nRec->containerId, $rec->containerId);
