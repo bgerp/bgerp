@@ -33,12 +33,18 @@ class doc_Threads extends core_Manager
      * Възможности за филтриране на нишките в една папка
      */
     const filterList = 'open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите';
-
-
+    
+    
+    /**
+     * 10 секунди време за опресняване на нишката
+     */
+    public $refreshRowsTime = 10000;
+    
+    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting';
+    var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting, plg_RefreshRows';
     
     
     /**
