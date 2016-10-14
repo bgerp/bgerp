@@ -167,7 +167,7 @@ class backup_Setup extends core_ProtoSetup
     var $configDescription = array (
         
         'BACKUP_PREFIX'   => array ('varchar', 'caption=Имена на архивираните файлове->Префикс'),
-        'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, amazon=S3Amazon, ftp=FTP, rsync=Rsync)', 'caption=Място за съхранение на архива->Тип'),
+        'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, amazon=S3Amazon)', 'caption=Място за съхранение на архива->Тип'),
         'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
         'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
         'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
