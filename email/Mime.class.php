@@ -208,7 +208,15 @@ class email_Mime extends core_BaseClass
     function getLg()
     {
         if(!isset($this->lg)) {
-            $this->lg = i18n_Language::detect($this->textPart, array(EF_DEFAULT_LANGUAGE => 5));
+            $defLg = EF_DEFAULT_LANGUAGE;
+            
+            $defLgArr = array($defLg => 5);
+            
+            if ($defLg != 'en') {
+                $defLgArr['en'] = 3;
+            }
+            
+            $this->lg = i18n_Language::detect($this->textPart, $defLgArr);
         }
 
         return $this->lg;
