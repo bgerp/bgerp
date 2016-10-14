@@ -2487,6 +2487,22 @@ function toggleKeylistGroups(el) {
 }
 
 /**
+ * Скриване/показване на елемент по името на класа му
+ * @param className
+ * @param action
+ */
+function toggleRow(className, action) {
+    var el = document.getElementsByClassName(className);
+
+    if(action == 'show') {
+        $(el).fadeIn('slow');
+    } else if (action == 'hide') {
+        $(el).fadeOut('slow');
+    }
+}
+
+
+/**
  *  намираме прилежащата на елемента група
  */
 function findElementKeylistGroup(el){
