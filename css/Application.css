@@ -2456,6 +2456,9 @@ span.sharing-history-title {
     color: #cccccc; }
     .contractorExtHolder .vertical .formTitle a:hover {
       color: white; }
+  .contractorExtHolder .vertical form[method=post] input[type=submit],
+  .contractorExtHolder form[method=post] input:first-child[type=submit] {
+    text-shadow: none; }
 
 .narrow #login-form {
   max-width: 17em !important;

@@ -2791,6 +2791,9 @@ fieldset.sharing-history {
 			color: #fff;
 		}
 	}
+	.vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {
+		text-shadow: none;
+	}
 }
 
 .narrow #login-form {	   
