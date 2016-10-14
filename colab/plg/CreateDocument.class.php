@@ -71,5 +71,8 @@ class colab_plg_CreateDocument extends core_Plugin
 				$form->setField($name, 'input=hidden');
 			}
 		}
+		
+		$mvc->currentTab = 'Нишка';
+		plg_ProtoWrapper::changeWrapper($mvc, 'colab_Wrapper');
 	}
 }
