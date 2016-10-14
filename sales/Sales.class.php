@@ -1196,4 +1196,19 @@ class sales_Sales extends deals_DealMaster
     	// Връщане на очаквания транспорт
     	return $expectedTransport;
     }
+    
+    
+    /**
+     * Преди записване на клонирания запис
+     * 
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->state);
+    }
 }
