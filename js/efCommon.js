@@ -2493,11 +2493,12 @@ function toggleKeylistGroups(el) {
  */
 function toggleRow(className, action) {
     var el = document.getElementsByClassName(className);
+    var row = $(el).closest('tr');
 
     if(action == 'show') {
-        $(el).fadeIn('slow');
+        $(row).fadeIn('slow');
     } else if (action == 'hide') {
-        $(el).fadeOut('slow');
+        $(row).fadeOut('slow');
     }
 }
 
