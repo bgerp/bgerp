@@ -1053,7 +1053,8 @@ class sales_Quotations extends core_Master
     private function getFilterForm($id)
     {
     	$form = cls::get('core_Form');
-    	$form->title = 'Създаване на продажба от оферта';
+    	
+    	$form->title = 'Създаване на продажба от|* ' . sales_Quotations::getFormTitleLink($id);
     	$form->info = tr('Моля уточнете количествата');
     	$filteredProducts = $this->filterProducts($id);
     	
