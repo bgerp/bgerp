@@ -177,15 +177,15 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('contragentId', 'int', 'input=hidden');
 		
 		// Доставка
-		$mvc->FLD('deliveryTermIdExtended', 'varchar', 'caption=Доставка->Условие,class=w25');
-		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,input=hidden');
+		$mvc->FLD('deliveryTermIdExtended', 'varchar', 'caption=Доставка->Условие,class=w25,notChangeableByContractor');
+		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,input=hidden,notChangeableByContractor');
 		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
-		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
-		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
+		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
+		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад,notChangeableByContractor'); // наш склад, от където се експедира стоката
 		
 		// Плащане
 		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale,notChangeableByContractor');
-		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
+		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor');
 		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
 		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса,notChangeableByContractor');
 		
@@ -196,7 +196,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Допълнително
 		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
 		$mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
-		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
+		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
 		
 		$mvc->FLD('state',
 				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка)',
