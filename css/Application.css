@@ -2459,6 +2459,8 @@ span.sharing-history-title {
   .contractorExtHolder .vertical form[method=post] input[type=submit],
   .contractorExtHolder form[method=post] input:first-child[type=submit] {
     text-shadow: none; }
+  .contractorExtHolder .toolbar-btn {
+    max-width: 16px !important; }
 
 .narrow #login-form {
   max-width: 17em !important;
