@@ -884,6 +884,12 @@ class doc_DocumentPlg extends core_Plugin
         	$rec->brState = $oldState;
         	
         	$mvc->save($rec, 'state,brState');
+        	
+        	// Ако документа е станал чакащ, генерира се събитие
+        	if($newState == 'pending'){
+        		$mvc->invoke('AfterSavePendingDocument', array($rec));
+        	}
+        	
         	$mvc->logInAct($log, $rec);
         	
         	if (!$res = getRetUrl()) {
