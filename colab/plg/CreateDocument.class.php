@@ -80,4 +80,21 @@ class colab_plg_CreateDocument extends core_Plugin
 		    $data->form->setField('sharedUsers', 'input=none');
 		}
 	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param stdObject $res
+	 * @param stdObject $data
+	 */
+	function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+	{
+	    // Контрактора да не може да създава чернова, а директно да активира
+	    if (core_Users::isContractor()) {
+	        $data->form->toolbar->removeBtn('save');
+	    }
+	}
 }
+
