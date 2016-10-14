@@ -544,7 +544,9 @@ class doc_Containers extends core_Manager
                 // визуализиране на обобщена информация от лога
             }
             
-            $row->created->append(doclog_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+            if (core_Users::isPowerUser()) {
+                $row->created->append(doclog_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+            }
         } else {
             
             if (Mode::is('screenMode', 'narrow')) {
