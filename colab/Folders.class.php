@@ -203,6 +203,28 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
+	 * Връща споделените партнори в посочената папка
+	 * 
+	 * @param int $folderId - папка
+	 * @return array $users - споделени партньори
+	 */
+	public static function getSharedUsers($folderId)
+	{
+		$users = array();
+		
+		// Намиране на всички потребители споделени в посочените папки
+		$query = colab_FolderToPartners::getQuery();
+		$query->where(array("#folderId = [#1#]", $folderId));
+		$query->show('contractorId');
+		
+		$all = $query->fetchAll();
+		$users = arr::extractValuesFromArray($all, 'contractorId');
+		
+		return $users;
+	}
+	
+	
+	/**
 	 * Броя на записите
 	 */
 	public static function count($cond = '1=1')
