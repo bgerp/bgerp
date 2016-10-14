@@ -56,6 +56,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         
                         // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
                         if (!$rec->id && core_Users::isContractor($dRec->createdBy)) {
+                            $data->form->setField('visibleForPartners', 'formOrder=0.9');
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
                     }
