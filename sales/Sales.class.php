@@ -123,6 +123,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'contractor';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior, title=Документ, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
