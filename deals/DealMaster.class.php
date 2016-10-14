@@ -160,7 +160,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	protected static function setDealFields($mvc)
 	{
-		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
+		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
 		
 		// Стойности
 		$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
@@ -1737,5 +1737,18 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getPendingOrActivate($rec)
     {
     	return (core_Users::isContractor() ? 'pending' : 'activate');
+    }
+    
+    
+    /**
+     * След като документа става чакащ
+     */
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+    	// Ако потребителя е партньор, то вальора на документа става датата на която е станал чакащ
+    	if(core_Users::isContractor()){
+    		$rec->valior = dt::today();
+    		$mvc->save($rec, 'valior');
+    	}
     }
 }
