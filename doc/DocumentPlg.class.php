@@ -869,15 +869,16 @@ class doc_DocumentPlg extends core_Plugin
         	return FALSE;
         }
         
+    	// Екшън за правене на документ от чернова -> чакащ и обратно
         if($action == 'changepending'){
-        	core_Users::requireRole('user');
+        	$mvc->requireRightFor('pending');
         	expect($id  = Request::get('id', 'int'));
         	expect($rec = $mvc->fetch($id));
+        	$mvc->requireRightFor('pending', $rec);
         	
-        	expect($rec->state == 'draft' || $rec->state == 'pending');
         	$oldState = $rec->state;
         	$newState = ($oldState == 'pending') ? 'draft' : 'pending';
-        	$log = ($oldState == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
+        	$log = ($oldState == 'pending') ? 'Документът се връща в чернова' : 'Документът става на заявка';
         	
         	$rec->state = $newState;
         	$rec->brState = $oldState;
@@ -1823,7 +1824,19 @@ class doc_DocumentPlg extends core_Plugin
                     $requiredRoles = 'officer';
                 }
             }
-
+        }
+        
+        // Ако екшъна е за чакащ документ
+        if($action == 'pending' && isset($rec)){
+        	if($requiredRoles != 'no_one'){
+        		
+        		// Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
+        		if($rec->state != 'pending' && $rec->state != 'draft'){
+        			$requiredRoles = 'no_one';
+        		} elseif(!$mvc->haveRightFor('single', $rec)){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
         }
     }
     

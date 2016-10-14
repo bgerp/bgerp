@@ -38,6 +38,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, FALSE);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
+        setIfNot($mvc->canPending, 'no_one');
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -143,13 +144,12 @@ class acc_plg_Contable extends core_Plugin
         }
        
         // Бутон за заявка
-        if($mvc->getPendingOrActivate($rec) == 'pending' && $rec->state == 'draft') {
-        	$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnConto,warning=Наистина ли желаете документът да стане заявка?", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
-        }
-        
-        // Бутон за връщане в чернова
-        if($rec->state == 'pending' && haveRole('user')){
-        	$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        if($mvc->haveRightFor('pending', $rec)){
+        	if($rec->state != 'pending'){
+        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row=2", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+        	} else{
+        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        	}
         }
         
         if ($mvc->haveRightFor('conto', $rec)) {
