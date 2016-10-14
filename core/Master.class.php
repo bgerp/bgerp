@@ -776,4 +776,33 @@ class core_Master extends core_Manager
     function updateMaster_($id)
     {
     }
+    
+    
+    /**
+     * Линк към мастъра, подходящ за показване във форма
+     * 
+     * @param int $id - ид на записа
+     * @return string $masterTitle - линк заглавие
+     */
+    public function getFormTitleLink($id)
+    {
+    	$masterTitle = $this->getTitleById($id);
+    	 
+    	if (!isset($len)) {
+    		$len = Mode::is('screenMode', 'narrow') ? 32 : 48;
+    	}
+    	 
+    	$masterTitle = str::limitLen($masterTitle, $len);
+    	$masterTitle = str_replace('|', '&#124;', $masterTitle);
+    	
+    	$url = $this->getSingleUrlArray($id);
+    	
+    	if(count($url)) {
+    		$masterTitle = ht::createLink($masterTitle, $url, NULL, array('ef_icon' => $this->singleIcon, 'class' => 'linkInTitle'));
+    	}
+    	
+    	$masterTitle = "<b style='color:#ffffcc;'>{$masterTitle}</b>";
+    	
+    	return $masterTitle;
+    }
 }
