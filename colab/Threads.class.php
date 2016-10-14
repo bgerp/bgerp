@@ -129,10 +129,14 @@ class colab_Threads extends core_Manager
 		
 		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
 		$cu = core_Users::getCurrent();
+		$sharedUsers = colab_Folders::getSharedUsers($data->folderId);
+		$sharedUsers[$cu] = $cu;
+		$sharedUsers = implode(',', $sharedUsers);
+		
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
-		$data->query->where("#visibleForPartners = 'yes' || #createdBy = {$cu}");
-		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy = {$cu})");
+		$data->query->where("#visibleForPartners = 'yes' || #createdBy IN ({$sharedUsers})");
+		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy  IN ({$sharedUsers}))");
 		$data->query->orderBy('id', 'ASC');
 		
 		$this->prepareTitle($data);
@@ -358,14 +362,17 @@ class colab_Threads extends core_Manager
     	    }
 			
 			if ($rec->firstContainerId) {
+				$sharedUsers = colab_Folders::getSharedUsers($rec->folderId);
+				$sharedUsers[$userId] = $userId;
+				
     			// Трябва първия документ в нишката да е видим за партньори
     			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-    			if($firstDocumentIsVisible != 'yes' && $rec->createdBy != $userId){
+    			if($firstDocumentIsVisible != 'yes' && !in_array($rec->createdBy, $sharedUsers)){
     				$requiredRoles = 'no_one';
     			} 
     			
     			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
-    			if($firstDocumentState == 'draft' && $rec->createdBy != $userId){
+    			if($firstDocumentState == 'draft' && !in_array($rec->createdBy, $sharedUsers)){
     				$requiredRoles = 'no_one';
     			}
 			} else {
@@ -396,15 +403,18 @@ class colab_Threads extends core_Manager
 			$folderId = $params['folderId'];
 		}
 		
-		$sharedFolders = cls::get('colab_Folders')->getSharedFolders();
 		$cu = core_Users::getCurrent();
+		$sharedFolders = colab_Folders::getSharedFolders();
+		$sharedUsers = colab_Folders::getSharedUsers($folderId);
+		$sharedUsers[$cu] = $cu;
+		$sharedUsers = implode(',', $sharedUsers);
 		
 		$params['where'][] = "#folderId = {$folderId}";
 		$res = $this->Threads->getQuery($params);
 		$res->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
 		$res->EXT('firstDocumentState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
-		$res->where("#visibleForPartners = 'yes' || #createdBy = {$cu}");
-		$res->where("#firstDocumentState != 'draft' || (#firstDocumentState = 'draft' AND #createdBy = {$cu})");
+		$res->where("#visibleForPartners = 'yes' || #createdBy IN ({$sharedUsers})");
+		$res->where("#firstDocumentState != 'draft' || (#firstDocumentState = 'draft' AND #createdBy IN ({$sharedUsers}))");
 		$res->in('folderId', $sharedFolders);
 	
 		return $res;
