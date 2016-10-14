@@ -974,12 +974,13 @@ class sales_Quotations extends core_Master
     /**
      * Екшън за създаване на заявка от оферта
      */
-    function act_FilterProductsForSale()
+    public function act_FilterProductsForSale()
     {
-    	$this->requireRightFor('add');
+    	sales_Sales::requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active');
+    	sales_Sales::requireRightFor('add', (object)array('folderId' => $rec->folderId));
     	
     	// Подготовка на формата за филтриране на данните
     	$form = $this->getFilterForm($rec->id, $id);
@@ -1032,6 +1033,10 @@ class sales_Quotations extends core_Master
     		return new Redirect(array('sales_Sales', 'single', $sId));
     	}
     
+    	if(core_Users::isContractor()){
+    		plg_ProtoWrapper::changeWrapper($this, 'colab_Wrapper');
+    	}
+    	
     	// Рендираме опаковката
     	return $this->renderWrapping($form->renderHtml());
     }
