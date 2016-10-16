@@ -617,7 +617,7 @@ class core_Form extends core_FieldSet
      * Те се задават чрез обект от клас FieldSet
      */
     function renderFields_()
-    {
+    { 
         // Полетата
         if ($this->showFields) {
             $fields = $this->selectFields("#input != 'hidden'", $this->showFields);
@@ -627,6 +627,17 @@ class core_Form extends core_FieldSet
         
         if (count($fields)) {
             
+            if($this->defOrder) {
+                $this->orderField();
+                $newFields = array();
+                foreach($this->fields as $name => $field) {
+                    if(isset($fields[$name])) {
+                        $newFields[$name] = $fields[$name];
+                    }
+                }
+                $fields = $newFields;
+            }
+
             $i = 1;
             
             foreach ($fields as $name => $field) {
@@ -670,7 +681,8 @@ class core_Form extends core_FieldSet
             
             // Създаваме input - елементите
             foreach($fields as $name => $field) {
-                
+                        
+
                 expect($field->kind, $name, 'Липсващо поле');
 
                 if(Mode::is('staticFormView')) {
@@ -805,7 +817,7 @@ class core_Form extends core_FieldSet
             	}
             }
         }
-        
+
         return $fieldsLayout;
     }
 
@@ -841,6 +853,12 @@ class core_Form extends core_FieldSet
             $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
             foreach ($fields as $name => $field) {
                 
+                if($field->rowStyle) {
+                    $rowStyle = " style=\"" . $field->rowStyle . "\"";
+                } else {
+                    $rowStyle = '';
+                }
+
                 expect($field->kind, $name, 'Липсващо поле');
                 
                 $captionArr = explode('->', ltrim($field->caption, '@'));
@@ -898,11 +916,11 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? (', ' . $fUnit) : '';
 
-                    $fld = new ET("\n<tr{$fsRow}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr class='{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
 
                     if ($emptyRow > 0) {
-                        $tpl->append("\n<tr{$fsRow}><td colspan=2></td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr class='{$fsRow}'><td colspan=2></td></tr>", 'FIELDS');
                     } 
                     
                     if ($headerRow) {
@@ -911,7 +929,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
 
-                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
+                    $fld = new ET("\n<tr class='{$name} {$fsRow}'{$rowStyle}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
                 }
 
                 if($field->inlineTo) {
@@ -928,13 +946,12 @@ class core_Form extends core_FieldSet
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $group) { 
                 if(!$usedGroups[$group] && !Mode::is('javascript', 'no')) {
-                    $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
+                    $tpl->replace(" fs{$id}  hiddenFormRow", "FS_ROW{$id}");
                     $tpl->replace(" class='fs-toggle{$id}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
                     $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
                 } 
             }
         }
-        
 
         return $tpl;
     }

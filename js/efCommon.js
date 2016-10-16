@@ -1,6 +1,21 @@
 var shortURL;
 
 
+function spr(sel) {
+     if(sel.value == 'select') {
+        $("input[name*='from']").closest('tr').fadeIn();
+        $("input[name*='to']").closest('tr').fadeIn();
+        $("input[name*='from']").prop('disabled', false);
+        $("input[name*='to']").prop('disabled', false);
+    } else {
+        $("input[name*='from']").prop('disabled', true);
+        $("input[name*='to']").prop('disabled', true);
+        $("input[name*='from']").closest('tr').fadeOut();
+        $("input[name*='to']").closest('tr').fadeOut();
+    }
+
+}
+
 /**
  * Опитваме се да репортнем JS грешките
  */
@@ -2159,6 +2174,8 @@ function prepareContextHtmlFromAjax() {
         $(this).parent().append(holder);
     });
 }
+
+
 
 
 /**

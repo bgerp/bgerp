@@ -661,14 +661,20 @@ class core_DateTime
     /**
      * Добавя дни към дата
      */
-    static function addDays($days, $date = NULL)
+    static function addDays($days, $date = NULL, $full = TRUE)
     {
         if (!$date) $date = dt::verbal2mysql();
         
         $date = dt::mysql2timestamp($date);
         $date += $days * 24 * 60 * 60;
         
-        return dt::timestamp2Mysql($date);
+        $res = dt::timestamp2Mysql($date);
+
+        if(!$full) {
+            list($res, ) = explode(' ', $res);
+        }
+
+        return $res;
     }
     
     

@@ -63,6 +63,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterFieldUsers, 'createdBy');
         setIfNot($mvc->filterRolesForTeam, 'ceo,manager,admin');
         setIfNot($mvc->filterAutoDate, TRUE);
+        $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
     }
     
     
@@ -184,22 +185,38 @@ class acc_plg_DocumentSummary extends core_Plugin
             if (count($dateRange) == 2) {
                 sort($dateRange);
             }
-            
-            if($dateRange[0]) {
-                $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
-                $data->query->where(array("#{$fromField} >= '[#1#]' OR #{$fromField} IS NULL", $dateRange[0]));
-                
-                if($mvc->filterFieldDateTo){
-                    $data->query->orWhere(array("#{$fromField} IS NULL", $dateRange[0]));
+
+            $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
+            $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
+
+            if($dateRange[0] && $dateRange[1]) {
+                if($fromField) {
+                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#]') OR #{$fromField} IS NULL)";
                 }
-            }
-            
-            if($dateRange[1]) {
-                $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
-                $data->query->where(array("#{$toField} <= '[#1#] 23:59:59' OR #{$toField} IS NULL", $dateRange[1]));
+
+                if($toField) {
+                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#]') OR #{$toField} IS NULL)";
+                }
+
+                $data->query->where(array($where, $dateRange[0], $dateRange[1]));
+
+            } else {
+                if($dateRange[0]) {
+                    
+                    $data->query->where(array("#{$fromField} >= '[#1#]' OR #{$fromField} IS NULL", $dateRange[0]));
+                    
+                    if($mvc->filterFieldDateTo){
+                        $data->query->orWhere(array("#{$fromField} IS NULL", $dateRange[0]));
+                    }
+                }
                 
-                if($mvc->filterFieldDateFrom){
-                    $data->query->orWhere(array("#{$toField} IS NULL", $dateRange[1]));
+                if($dateRange[1]) {
+                    
+                    $data->query->where(array("#{$toField} <= '[#1#] 23:59:59' OR #{$toField} IS NULL", $dateRange[1]));
+                    
+                    if($mvc->filterFieldDateFrom){
+                        $data->query->orWhere(array("#{$toField} IS NULL", $dateRange[1]));
+                    }
                 }
             }
         }
