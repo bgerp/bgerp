@@ -236,8 +236,9 @@ class core_Cron extends core_Manager
         // Ако в момента се извършва инсталация - да не се изпълняват процесите
         $slf = EF_TEMP_PATH . '/setupLog.html';
         if(@file_exists($slf)) {
+            clearstatcache($slf);
             $at = time() - filemtime($slf);
-            if($at >= 0 && $at < 60) {
+            if($at >= 0 && $at < 120) {
                 halt('Cron is not started due to initialisation in last ' . $at . ' sec.');
             } elseif(abs($at) > 36000) {
                 @unlink($slf);
