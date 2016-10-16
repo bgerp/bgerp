@@ -487,7 +487,8 @@ class crm_Profiles extends core_Master
         
         if(isset($data->rec->stateInfo) && isset($data->rec->stateDateFrom) && isset($data->rec->stateDateTo)) {
             $Date = cls::get('type_Date');
-            $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'smartTime');
+            $s = strstr($data->rec->stateDateFrom, ' ', TRUE);
+            $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M');
             $tpl->append($state, 'userStatus');  
             $tpl->append("statusClass", 'userClass');
         }
@@ -1001,7 +1002,7 @@ class crm_Profiles extends core_Master
             $url  = array();
             
             if(self::fetchField($userId,'stateInfo') !== NULL) {
-                $attr['class'] .= ' profile profile-state';
+               $attr['class'] .= ' profile profile-state';
             } else {
     	       $attr['class'] .= ' profile';
             }

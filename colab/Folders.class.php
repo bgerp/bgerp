@@ -28,9 +28,15 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
+	 * 10 секунди време за опресняване на нишката
+	 */
+	public $refreshRowsTime = 10000;
+	
+	
+	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	var $loadList = 'colab_Wrapper,Folders=doc_Folders,plg_RowNumbering,plg_Search';
+	var $loadList = 'colab_Wrapper,Folders=doc_Folders,plg_RowNumbering,plg_Search, plg_RefreshRows';
 	
 	
 	/**

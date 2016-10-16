@@ -30,9 +30,15 @@ class colab_Threads extends core_Manager
 	
 	
 	/**
+	 * 10 секунди време за опресняване на нишката
+	 */
+	public $refreshRowsTime = 10000;
+	
+	
+	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	public $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers';
+	public $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers, doc_ThreadRefreshPlg, plg_RefreshRows';
 	
 	
 	/**
@@ -118,6 +124,7 @@ class colab_Threads extends core_Manager
 		
 		// Създаваме обекта $data
 		$data = new stdClass();
+		$data->action = 'single';
 		$data->listFields = 'created=Създаване,document=Документи';
 		$data->threadId = $id;
 		$data->threadRec = $this->Threads->fetch($id);
@@ -335,12 +342,11 @@ class colab_Threads extends core_Manager
 		}
 		
 		if($action == 'list') {
-		    
+			
     		if (is_null($userId)) {
     	        $requiredRoles = 'no_one';
     	    } else {
         	    $folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
-    			
     			$sharedFolders = colab_Folders::getSharedFolders($userId);
     				
     			if(!in_array($folderId, $sharedFolders)){

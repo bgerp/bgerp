@@ -98,4 +98,16 @@ class colab_plg_VisibleForPartners extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * След подготовка на тулбара на формата
+     */
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	// Контрактора да не може да създава чернова, а директно да активира
+    	if (core_Users::isContractor()) {
+    		$data->form->toolbar->removeBtn('save');
+    	}
+    }
 }

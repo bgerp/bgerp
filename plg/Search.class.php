@@ -235,7 +235,7 @@ class plg_Search extends core_Plugin
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if($minWordLen < 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
+                    if($minWordLen <= 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {

@@ -884,6 +884,12 @@ class doc_DocumentPlg extends core_Plugin
         	$rec->brState = $oldState;
         	
         	$mvc->save($rec, 'state,brState');
+        	
+        	// Ако документа е станал чакащ, генерира се събитие
+        	if($newState == 'pending'){
+        		$mvc->invoke('AfterSavePendingDocument', array($rec));
+        	}
+        	
         	$mvc->logInAct($log, $rec);
         	
         	if (!$res = getRetUrl()) {
@@ -1154,9 +1160,7 @@ class doc_DocumentPlg extends core_Plugin
             // Трябва да имаме достъп до нишката на оригиналния документ
             if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
                 $tRec = doc_Threads::fetch($oRec->threadId);
-                if (!colab_Threads::requireRightFor('single', $tRec)) {
-                    $requiredRoles = 'no_one';
-                }
+                colab_Threads::requireRightFor('single', $tRec);
             } else {
                 doc_Threads::requireRightFor('single', $oRec->threadId);
             }
@@ -1629,6 +1633,14 @@ class doc_DocumentPlg extends core_Plugin
     				// Ако папката е затворена не могат да се добавят документи
     				$requiredRoles = 'no_one';
     			}
+            }
+            
+            if($requiredRoles != 'no_one'){
+            	if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+            		if(!colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->folderId))){
+            			$requiredRoles = 'no_one';
+            		}
+            	}
             }
         }
 		

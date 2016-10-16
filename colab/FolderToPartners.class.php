@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   colab
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -89,7 +89,7 @@ class colab_FolderToPartners extends core_Manager
     function description()
     {
         // Информация за нишката
-        $this->FLD('folderId', 'key2(mvc=doc_Folders)', 'caption=Папка,silent');
+        $this->FLD('folderId', 'key2(mvc=doc_Folders)', 'caption=Папка,silent,input=hidden');
         $this->FLD('contractorId', 'key(mvc=core_Users,select=names)', 'caption=Потребител,notNull,silent');
          
         // Поставяне на уникални индекси
@@ -131,29 +131,31 @@ class colab_FolderToPartners extends core_Manager
     {  
         $form = $data->form;
 
-        if($form->rec->contractorId) {
-
-            $form->setReadOnly('contractorId');
-
-
-        } else {
-        
-            // Ако няма избрана папка форсираме от данните за контрагента от урл-то
-            if(empty($form->rec->folderId)){
-                expect($coverClassId = request::get('coverClassId', "key(mvc=core_Classes)"));
-                $coverName = cls::getClassName($coverClassId);
-                expect($coverId = request::get('coverId', "key(mvc={$coverName})"));
+        // Ако няма избрана папка форсираме от данните за контрагента от урл-то
+        if(empty($form->rec->folderId)){
+             expect($coverClassId = request::get('coverClassId', "key(mvc=core_Classes)"));
+             $coverName = cls::getClassName($coverClassId);
+             expect($coverId = request::get('coverId', "key(mvc={$coverName})"));
                 
-                $form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
-            }
-            
-            $form->setReadOnly('folderId');
-            
-            $form->setOptions('contractorId', self::getContractorOptions($form->rec->folderId));
+             $form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
         }
+            
+        $form->setOptions('contractorId', array('' => '') + self::getContractorOptions($form->rec->folderId));
     }
 
 
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	if(isset($data->form->rec->folderId)){
+    		$Cover = doc_Folders::getCover($data->form->rec->folderId);
+    		$data->form->title = core_Detail::getEditTitle($Cover->getInstance(), $Cover->that, $mvc->singleTitle, $rec->id);
+    	}
+    }
+    
+    
     /**
      * Подготвя данните на партньорите
      */
