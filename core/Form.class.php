@@ -97,6 +97,12 @@ class core_Form extends core_FieldSet
      * @param core_Toolbar
      */
     public $toolbar;
+
+
+    /**
+     * Съобщение за потребителя при редниране на формата
+     */
+    public $info;
     
     
     /**

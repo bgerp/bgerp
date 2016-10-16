@@ -136,7 +136,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-        $html .= $Plugins->repair();
+        $html = $Plugins->repair();
         
         $managers = array(
             'bgerp_Menu',
@@ -322,10 +322,10 @@ class bgerp_Setup extends core_ProtoSetup {
     /**
      * Захранва с начални данни посочените пакети
      * 
-     * @param array $packs    Масив с пакети
-     * @param int   $itr      Номер на итерацията
+     * @param array|string  $packs  Масив с пакети
+     * @param int           $itr    Номер на итерацията
      *
-     * @return array          Грешки
+     * @return array                Грешки
      */
     function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
     {

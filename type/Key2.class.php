@@ -103,7 +103,7 @@ class type_Key2 extends type_Int
     /**
      * Връща опците, съответсващи на избраните параметри
      */
-    public function getOptions($limit = NULL, $query = '', $ids = NULL, $includeHiddens = FALSE)
+    public function getOptions($limit = NULL, $search = '', $ids = NULL, $includeHiddens = FALSE)
     { 
         if(!$this->params['selectSourceArr']) {
             if($this->params['selectSource']) {
@@ -125,7 +125,7 @@ class type_Key2 extends type_Int
         
         expect($this->params['titleFld']);
 
-        $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit,  $query, $ids, $includeHiddens);
+        $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit,  $search, $ids, $includeHiddens);
 
         return $resArr;
     }

@@ -79,9 +79,8 @@ class type_Set extends core_Type {
         $attr['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        $col = $this->params['columns'] ? $this->params['columns'] :
-       min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
-            round(sqrt(max(0, count($this->suggestions) + 1))));
+        $maxChars = $this->params['maxChars'];
+        $col = type_Keylist::getCol($this->suggestions, $maxChars);
 
         if(count($this->suggestions) < 4) {
             $className .= " shrinked";
@@ -119,21 +118,23 @@ class type_Set extends core_Type {
                     	}
                     }
                     
-                    if($this->maxCaptionLen &&  $this->maxCaptionLen < mb_strlen($v)) {
-                    	$title = "title=" . ht::escapeAttr($v);
-                    	$v = str::limitLen($v, $this->maxCaptionLen,  $this->maxCaptionLen, "..");
-                    } else {
-                    	$title = "";
-                    }
-                    
                     // Ако е оказано стойността да е readOnly
                     if(isset($this->readOnly[$key])){
                     	$attr['onclick'] = 'return false;';
                     	$attr['readonly'] = 'readonly';
                     }
                     
+                    if(0.9 * $maxChars < mb_strlen($v)) {
+                    	$title = " title=\"" . ht::escapeAttr($v) . "\"";
+                    	$v = str::limitLen($v, $maxChars * 1.08);
+                    } else {
+                    	$title = "";
+                    }
+                    
+                    $v = type_Varchar::escape($v);
+
                     $cb = ht::createElement('input', $attr);
-                    $cb->append("<label {$title} data-colsInRow='" .$col . "' for=\"" . $attr['id'] . "\">" . tr($v) . "</label>");
+                    $cb->append("<label {$title} data-colsInRow='" . $col . "' for=\"" . $attr['id'] . "\">" . tr($v) . "</label>");
                     
                     // След рендиране на полето, махаме атрибутите за да не се принесат на другите опции
                 	if(isset($this->readOnly[$key])){

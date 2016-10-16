@@ -109,7 +109,7 @@ try {
             
             redirect(array('Index', 'SetupKey' => setupKey()));
 
-        } elseif ((!defined('BGERP_GIT_BRANCH') || BGERP_GIT_BRANCH != 'dev') && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
+        } elseif ($e->isNotInitializedDB() && core_Db::databaseEmpty()) {
  
             // При празна база или грешка в базата редиректваме безусловно към сетъп-а
             redirect(array('Index', 'SetupKey' => setupKey()));

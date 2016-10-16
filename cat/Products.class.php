@@ -1179,7 +1179,7 @@ class cat_Products extends embed_Manager {
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	core_Users::cancelSystemUser();
     	
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     	
     	return $res;
     }

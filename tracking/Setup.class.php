@@ -255,9 +255,9 @@ class tracking_Setup extends core_ProtoSetup
     {
         // Спираме процеса
         if (TRUE === self::Stop()) {
-            $res = "Успешно спрян процес.";
+            $res = "<li class='debug-new'>Успешно спрян процес.</li>";
         } else {
-            $res = "Неуспешно спрян процес.";
+            $res = "<li class='debug-error'>Неуспешно спрян процес.</li>";
         }
         
         // Изтриване на пакета от менюто
