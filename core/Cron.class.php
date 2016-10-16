@@ -232,8 +232,19 @@ class core_Cron extends core_Manager
         if(!in_array($_SERVER['REMOTE_ADDR'], $whitelist)){
             // requireRole('debug,admin');
         }
+        
+        // Ако в момента се извършва инсталация - да не се изпълняват процесите
+        $slf = EF_TEMP_PATH . '/setupLog.html';
+        if(@file_exists($slf)) {
+            $at = time() - filemtime($slf);
+            if($at >= 0 && $at < 60) {
+                halt('Cron is not started due to initialisation in last ' . $at . ' sec.');
+            } elseif(abs($at) > 36000) {
+                @unlink($slf);
+            }
+        }
 
-        header('Cache-Control: no-cache, no-store');
+         header('Cache-Control: no-cache, no-store');
         
         // Отключваме всички процеси, които са в състояние заключено, а от последното
         // им стартиране е изминало повече време от Време-лимита-а
