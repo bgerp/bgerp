@@ -2567,7 +2567,7 @@ class doc_Threads extends core_Manager
                     
                     $doc->delete();
                 } catch (ErrorException $e) {
-                    // Ако възникне грешка не се прави нищо
+                    reportException($e);
                 }
             }
             
