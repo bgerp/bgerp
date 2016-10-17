@@ -2517,17 +2517,16 @@ class doc_Threads extends core_Manager
         
         $query->orderBy('modifiedOn', 'DESC');
         
-        $delCnn = 0;
+        $delCnt = 0;
         while ($rec = $query->fetch()) {
             $cQuery = doc_Containers::getQuery();
             $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
             
-            $query->limit(2);
-            $query->show('id');
+            $cQuery->limit(2);
             
             if ($cQuery->count() != 1) continue ;
             
-            $query->orderBy('createdOn', 'DESC');
+            $cQuery->orderBy('createdOn', 'DESC');
             
             $cRec = $cQuery->fetch();
             
@@ -2537,17 +2536,55 @@ class doc_Threads extends core_Manager
             // Ако документа е използван някъде
             if (doclog_Used::getUsedCount($cRec->id)) continue;
             
+            // Изтриваме записа в модела на документа
+            if ($cRec->docId && $cRec->docClass && cls::load($cRec->docClass, TRUE)) {
+                try {
+                    $doc = doc_Containers::getDocument($cRec->id);
+                    
+                    $delMsg = 'Изтрит оттеглен документ';
+                    
+                    if ($doc->instance instanceof core_Master) {
+                        
+                        $dArr = arr::make($doc->details, TRUE);
+                        
+                        // Изтирваме детайлите за документа
+                        if (!empty($dArr)) {
+                            
+                            $delMsg = 'Изтрит оттеглен документ и детайлите към него';
+                            
+                            foreach ($dArr as $detail) {
+                                if (!cls::load($detail, TRUE)) continue;
+                                
+                                $detailInst = cls::get($detail);
+                                if (!($detailInst->Master instanceof $doc->instance)) continue;
+                                
+                                $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
+                            }
+                        }
+                    }
+                    
+                    $doc->instance->logInfo($delMsg, $doc->that);
+                    
+                    $doc->delete();
+                } catch (ErrorException $e) {
+                    // Ако възникне грешка не се прави нищо
+                }
+            }
+            
             // Изтриваме нишката
-            self::logNotice('Изтрита оттеглена нишка', $rec->id);
+            self::logInfo('Изтрита оттеглена нишка', $rec->id);
             self::delete($rec->id);
             
+            // Изтриваме записа за използвани файлове в папката
+            doc_Files::delete(array("#containerId = '[#1#]'", $cRec->id));
+            
             // Изтриваме документа
-            doc_Containers::logNotice('Изтрит оттеглен документ', $cRec->id);
+            doc_Containers::logInfo('Изтрит оттеглен документ', $cRec->id);
             doc_Containers::delete($cRec->id);
             
-            $delCnn++;
+            $delCnt++;
         }
         
-        return "Изтрити записи: " . $delCnn; 
+        return "Изтрити записи: " . $delCnt; 
     }
 }
