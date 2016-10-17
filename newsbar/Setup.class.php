@@ -76,7 +76,7 @@ class newsbar_Setup extends core_ProtoSetup
     	 
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('newsBar', 'Прикачени файлове в новини', 'png,gif,ico,bmp,jpg,jpeg,image/*', '1MB', 'user', 'newsbar');
+        $html .= $Bucket->createBucket('newsBar', 'Прикачени файлове в новини', 'png,gif,ico,bmp,jpg,jpeg,image/*', '1MB', 'user', 'powerUser');
         
                
         // Зареждаме мениджъра на плъгините
@@ -95,7 +95,7 @@ class newsbar_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }

@@ -136,7 +136,7 @@ class crm_Profiles extends core_Master
     /**
      * Помощен масив за типовете дни
      */
-    static $map = array('sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    static $map = array('missing'=>'Отсъстващи','sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
     
     
     /**
@@ -487,7 +487,8 @@ class crm_Profiles extends core_Master
         
         if(isset($data->rec->stateInfo) && isset($data->rec->stateDateFrom) && isset($data->rec->stateDateTo)) {
             $Date = cls::get('type_Date');
-            $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'smartTime');
+            $s = strstr($data->rec->stateDateFrom, ' ', TRUE);
+            $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M');
             $tpl->append($state, 'userStatus');  
             $tpl->append("statusClass", 'userClass');
         }
@@ -1001,7 +1002,7 @@ class crm_Profiles extends core_Master
             $url  = array();
             
             if(self::fetchField($userId,'stateInfo') !== NULL) {
-                $attr['class'] .= ' profile profile-state';
+               $attr['class'] .= ' profile profile-state';
             } else {
     	       $attr['class'] .= ' profile';
             }
@@ -1185,13 +1186,42 @@ class crm_Profiles extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $rec = $data->listFilter->rec;
+
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуска,tripDay=Командировка)', 'width=6em,caption=Отсъстващи,silent,allowEmpty,autoFilter');
+        
     	$data->listFilter->view = 'horizontal';
     	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	$fields = $data->listFilter->input();
     	 
-    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->showFields .= 'search,leave';
         
         $data->query->orderBy("lastTime", "DESC");
+
+        // Ако е избран 'Отсъстващи'
+        switch ($fields->leave) {
+                
+            case 'missing' :
+                
+                $data->query->where("(#stateInfo = 'sickDay') OR (#stateInfo = 'leaveDay') OR (#stateInfo = 'tripDay')");   
+                break;
+            case 'sickDay' :
+                    
+                $data->query->where("#stateInfo = 'sickDay'");
+                break;
+                    
+            case 'leaveDay' :
+                    
+                $data->query->where("#stateInfo = 'leaveDay'");
+                break;
+                    
+            case 'tripDay' :
+                    
+                $data->query->where("#stateInfo = 'tripDay'");
+                break;
+        }
     }
     
     

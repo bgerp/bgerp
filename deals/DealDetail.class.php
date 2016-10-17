@@ -197,6 +197,9 @@ abstract class deals_DealDetail extends doc_Detail
         	$form->setField('packPrice', 'input=none');
         	$form->setField('tolerance', 'input=none');
         	$form->setField('discount', 'input=none');
+        	
+        	$mvc->currentTab = 'Нишка';
+        	plg_ProtoWrapper::changeWrapper($mvc, 'colab_Wrapper');
         }
     }
     

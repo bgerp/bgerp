@@ -54,8 +54,8 @@ class acc_journal_Entry
     /**
      * Конструктор
      *
-     * @param object|array $debitData дебитната част на реда
-     * @param object|array $creditData кредитната част на реда
+     * @param object|array|null $debitData дебитната част на реда
+     * @param object|array|null $creditData кредитната част на реда
      */
     public function __construct($debitData = NULL, $creditData = NULL)
     {

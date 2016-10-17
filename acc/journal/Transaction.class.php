@@ -1,5 +1,4 @@
 <?php
-use Behat\Mink\Exception\Exception;
 
 /**
  * Клас - 'acc_journal_Transaction'

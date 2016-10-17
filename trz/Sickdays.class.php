@@ -371,10 +371,16 @@ class trz_Sickdays extends core_Master
      */
     protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
     {
-        if(!isset($data->rec->paidByEmployer) || !isset($data->rec->paidByHI)) {
+        if(!isset($data->rec->paidByEmployer)) {
         
-            $tpl->removeBlock('compensation');
+            $tpl->removeBlock('compensationEmployer');
        
+        }
+        
+        if(!isset($data->rec->paidByHI)) {
+        
+            $tpl->removeBlock('compensationHI');
+             
         }
     }
     

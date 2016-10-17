@@ -104,8 +104,8 @@ class plg_PrevAndNext extends core_Plugin
 	        $mvc->requireRightFor('single', $data->rec);
 				
 	        $data->buttons = new stdClass();
-        	$data->buttons->prevId = $this->getNeighbour($mvc, $data->rec, -1);
-        	$data->buttons->nextId = $this->getNeighbour($mvc, $data->rec, +1);
+        	$data->buttons->prevId = self::getNeighbour($mvc, $data->rec, -1);
+        	$data->buttons->nextId = self::getNeighbour($mvc, $data->rec, +1);
         		
 	        // Подготвяме данните за единичния изглед
 		    $mvc->prepareSingle($data);
@@ -128,7 +128,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass $data
      * @param string $dir
      */
-    private function getNeighbour($mvc, $rec, $dir)
+    private static function getNeighbour($mvc, $rec, $dir)
     { 
         $id = $rec->id;
         if(!$id) return;
@@ -213,8 +213,8 @@ class plg_PrevAndNext extends core_Plugin
             $data->prevAndNextIndicator = $pos . '/' . count($selArr);
              
             $data->buttons = new stdClass();
-            $data->buttons->prevId = $this->getNeighbour($mvc, $data->form->rec, -1);
-            $data->buttons->nextId = $this->getNeighbour($mvc, $data->form->rec, +1);
+            $data->buttons->prevId = self::getNeighbour($mvc, $data->form->rec, -1);
+            $data->buttons->nextId = self::getNeighbour($mvc, $data->form->rec, +1);
         }
     }
     

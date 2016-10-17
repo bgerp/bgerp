@@ -109,7 +109,7 @@ try {
             
             redirect(array('Index', 'SetupKey' => setupKey()));
 
-        } elseif ((!defined('BGERP_GIT_BRANCH') || BGERP_GIT_BRANCH != 'dev') && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
+        } elseif ($e->isNotInitializedDB() && core_Db::databaseEmpty()) {
  
             // При празна база или грешка в базата редиректваме безусловно към сетъп-а
             redirect(array('Index', 'SetupKey' => setupKey()));
@@ -168,7 +168,7 @@ function reportException($e, $update = NULL, $supressShowing = TRUE)
     $breakLine = $e->getLine();
     $stack     = $e->getTrace();
 
-    if ($e instanceOf core_exception_Break) {
+    if (($e instanceOf core_exception_Break) || ($e instanceOf core_exception_Expect)) {
         $dump = $e->getDump();
         $errType = $e->getType();
     }

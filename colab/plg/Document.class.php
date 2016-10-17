@@ -44,7 +44,7 @@ class colab_plg_Document extends core_Plugin
                         $isVisible = TRUE;
                     }
                 } else {
-                    if ($invoker->visibleForPartners == 'yes') {
+                    if ($invoker->isVisibleForPartners($rec)) {
                         $isVisible = TRUE;
                     }
                 }

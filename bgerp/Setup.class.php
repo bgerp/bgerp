@@ -136,7 +136,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-        $html .= $Plugins->repair();
+        $html = $Plugins->repair();
         
         $managers = array(
             'bgerp_Menu',
@@ -255,7 +255,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
         $Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
-        $Bucket->createBucket('exportCsv', 'Експортирани CSV-та', 'csv,txt,text,', '10MB', 'user', 'ceo');
+        $Bucket->createBucket('exportCsv', 'Експортирани CSV-та', 'csv,txt,text,', '10MB', 'user', 'powerUser');
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
@@ -322,10 +322,10 @@ class bgerp_Setup extends core_ProtoSetup {
     /**
      * Захранва с начални данни посочените пакети
      * 
-     * @param array $packs    Масив с пакети
-     * @param int   $itr      Номер на итерацията
+     * @param array|string  $packs  Масив с пакети
+     * @param int           $itr    Номер на итерацията
      *
-     * @return array          Грешки
+     * @return array                Грешки
      */
     function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
     {

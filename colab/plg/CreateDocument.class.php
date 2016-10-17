@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   colab
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -24,8 +24,9 @@ class colab_plg_CreateDocument extends core_Plugin
 		if(($action == 'add' || $action == 'edit')){
 			$addContractor = FALSE;
 			
+			// Ако документа е от тези, които може да се създават от партньори
 			if(core_Users::isContractor($userId)){
-				$documents = colab_Setup::get('CREATABLE_DOCUMENTS');
+				$documents = colab_Setup::get('CREATABLE_DOCUMENTS_LIST');
 				if(keylist::isIn($mvc->getClassId(), $documents)){
 					$addContractor = TRUE;
 				}
@@ -38,12 +39,13 @@ class colab_plg_CreateDocument extends core_Plugin
 					}
 				} elseif($action == 'add') {
 					$sharedFolders = colab_Folders::getSharedFolders($userId);
-					if(!in_array($rec->folderId, $sharedFolders)){
+					if(!$rec->folderId || !in_array($rec->folderId, $sharedFolders)){
 						$addContractor = FALSE;
 					}
 				}
 			}
 			
+			// Добавяне към правата ,че и партньор може да редактира/добавя
 			if($addContractor === TRUE){
 				$property = ucfirst($action);
 				$property = "can{$property}";
@@ -60,6 +62,7 @@ class colab_plg_CreateDocument extends core_Plugin
 	{
 		// Ако не е контрактор 
 		if(!core_Users::isContractor()) return;
+		
 		$form = &$data->form;
 		
 		// Полетата, които не са за контрактор се скриват
@@ -69,5 +72,33 @@ class colab_plg_CreateDocument extends core_Plugin
 				$form->setField($name, 'input=hidden');
 			}
 		}
+		
+		$mvc->currentTab = 'Нишка';
+		plg_ProtoWrapper::changeWrapper($mvc, 'colab_Wrapper');
+		
+		// Контракторите да не могат да споделят потребители
+		if (core_Users::isContractor()) {
+		    $data->form->setField('sharedUsers', 'input=none');
+		}
+	}
+	
+	
+	/**
+	 * След вземане на състоянието на треда
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param string|NULL $res
+	 * @param integer $data
+	 */
+	public static function on_AfterGetThreadState($mvc, &$res, $id)
+	{
+	    $rec = $mvc->fetch($id);
+	    
+	    if (core_Users::isContractor($rec->createdBy)) {
+	        $res = 'opened';
+	    } elseif(core_Users::isPowerUser($rec->createdBy) && $rec->visibleForPartners == 'yes') {
+	        $res = 'closed';
+	    }
 	}
 }
+

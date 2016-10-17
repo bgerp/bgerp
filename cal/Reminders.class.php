@@ -333,7 +333,7 @@ class cal_Reminders extends core_Master
     		}
     		
         	if (!$form->gotErrors()){
-        		$form->rec->nextStartTime = $mvc->calcNextStartTime($form->rec);
+        		$form->rec->nextStartTime = $mvc->calcNextStartTime($form->rec,$form->rec->timeStart);
         	}
         } 
         
@@ -863,7 +863,7 @@ class cal_Reminders extends core_Master
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
     	 	 }
-    	 	 $rec->nextStartTime = $this->calcNextStartTime($rec);
+    	 	 $rec->nextStartTime = $this->calcNextStartTime($rec, $rec->timeStart);
     	 	 
     	 	 self::save($rec);
     	 }
@@ -935,7 +935,7 @@ class cal_Reminders extends core_Master
         } else {
             $now = $date;
         }
-        
+
     	// Секундите на днешната дата
     	$nowTs = dt::mysql2timestamp($now) + $rec->timePreviously;
     	
