@@ -1036,12 +1036,23 @@ function prepareContextMenu() {
         	act = 'update';
         }
 
+        var vertAdjust = $(this).outerHeight();
+        var horAdjust = -30;
+
+        if($(el).hasClass("twoColsContext")) {
+            vertAdjust += 2;
+            horAdjust += 1;
+        }
+        if($(el).closest(".contractorExtHolder").length) {
+            horAdjust -= 6;
+        }
+
         $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
             'position': position,
             'sizeStyle': sizeStyle,
-            'verAdjust': $(this).outerHeight(),
-            'horAdjust': - 30
+            'verAdjust': vertAdjust,
+            'horAdjust': horAdjust
         });
     });
 }
@@ -1443,6 +1454,7 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
