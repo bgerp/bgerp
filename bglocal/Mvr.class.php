@@ -110,6 +110,6 @@ class bglocal_Mvr extends core_Manager
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE);
         
         // Записваме в лога вербалното представяне на резултата от импортирането 
-        $res = $cntObj->html;
+        $res .= $cntObj->html;
     }
 }
