@@ -293,8 +293,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
-        		$amount = round($detailRec->amount, 2);
+        		$amount = $detailRec->amount;
         		$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
+        		$amount = round($amount, 2);
         		
 	        	$debitAccId = '321';
 	        		
