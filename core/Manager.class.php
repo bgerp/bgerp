@@ -71,7 +71,7 @@ class core_Manager extends core_Mvc
     /**
      * Кой таб от таб-контрола (ако има) да бъде засветен?
      */
-    var $tabPage = FALSE;
+    var $currentTab = FALSE;
     
     
     /**
