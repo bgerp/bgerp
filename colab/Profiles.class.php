@@ -37,7 +37,7 @@ class colab_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'colab_Wrapper,Profile=crm_Profiles';
+    var $loadList = 'Profile=crm_Profiles';
 
 
     /**
@@ -116,7 +116,7 @@ class colab_Profiles extends core_Master
         $this->requireRightFor('single', $data->rec);
         
         unset($this->Profile->loadList);
-        $this->Profile->load('colab_Wrapper');
+        $this->Profile->load('cms_ExternalWrapper');
         
         // Подготвяме данните за единичния изглед
         $this->Profile->prepareSingle($data);
@@ -182,7 +182,7 @@ class colab_Profiles extends core_Master
         $tpl = $form->renderHtml();
         
         unset($this->Profile->loadList);
-        $this->Profile->load('colab_Wrapper');
+        $this->Profile->load('cms_ExternalWrapper');
         
         $tpl = $this->Profile->renderWrapping($tpl);
         

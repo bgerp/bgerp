@@ -76,7 +76,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
         
         if(core_Users::isContractor()) {
             $mvc->currentTab = 'Нишка';
-            plg_ProtoWrapper::changeWrapper($mvc, 'colab_Wrapper');
+            plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
         }
     }
     

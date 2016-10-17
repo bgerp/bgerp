@@ -36,7 +36,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	var $loadList = 'colab_Wrapper,Folders=doc_Folders,plg_RowNumbering,plg_Search, plg_RefreshRows';
+	var $loadList = 'cms_ExternalWrapper,Folders=doc_Folders,plg_RowNumbering,plg_Search, plg_RefreshRows';
 	
 	
 	/**
