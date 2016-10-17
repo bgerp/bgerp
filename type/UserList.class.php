@@ -180,7 +180,7 @@ class type_UserList extends type_Keylist
     
     
     /**
-     * @param mixed $verbalValue
+     * @param mixed $value
      * 
      * @see type_Keylist::fromVerbal_()
      * 

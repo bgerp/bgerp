@@ -88,7 +88,7 @@ class colab_plg_CreateDocument extends core_Plugin
 	 * 
 	 * @param core_Mvc $mvc
 	 * @param string|NULL $res
-	 * @param integer $data
+	 * @param integer $id
 	 */
 	public static function on_AfterGetThreadState($mvc, &$res, $id)
 	{

@@ -1188,7 +1188,7 @@ class crm_Profiles extends core_Master
     {
         $rec = $data->listFilter->rec;
 
-        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуска,tripDay=Командировка)', 'width=6em,caption=Отсъстващи,silent,allowEmpty,autoFilter');
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуска,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
         
     	$data->listFilter->view = 'horizontal';
     	
