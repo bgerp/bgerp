@@ -116,7 +116,7 @@ class colab_Profiles extends core_Master
         $this->requireRightFor('single', $data->rec);
         
         unset($this->Profile->loadList);
-        $this->Profile->load('cms_ExternalWrapper');
+        $this->load('cms_ExternalWrapper');
         
         // Подготвяме данните за единичния изглед
         $this->Profile->prepareSingle($data);
@@ -128,7 +128,7 @@ class colab_Profiles extends core_Master
         $tpl = $this->Profile->renderSingle($data);
         
         // Опаковаме изгледа
-        $tpl = $this->Profile->renderWrapping($tpl, $data);
+        $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
         $this->Profile->logRead('Виждане', $data->rec->id);
