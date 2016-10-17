@@ -299,9 +299,10 @@ class cat_products_Params extends doc_Detail
     {
         $query = self::getQuery();
         $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
+        $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
         $query->where("#productId = {$data->masterId}");
         $query->where("#classId = {$data->masterClassId}");
-        $query->orderBy('group', 'ASC');
+        $query->orderBy('group,order', 'ASC');
         
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
     	if($data->documentType === 'public'){

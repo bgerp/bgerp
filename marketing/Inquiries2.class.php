@@ -668,7 +668,7 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Дъстояние на нишката
+     * Състояние на нишката
      */
     public static function getThreadState($id)
     {

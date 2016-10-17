@@ -31,7 +31,7 @@ class doc_Comments extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, colab_CreateDocumentIntf';
     
     
     /**
@@ -43,7 +43,7 @@ class doc_Comments extends core_Master
     /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    protected $canClone = 'user';
     
     
     /**
@@ -175,6 +175,7 @@ class doc_Comments extends core_Master
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,input=hidden,reduceText');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Коментар,mandatory');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
     }
     
     
@@ -290,10 +291,14 @@ class doc_Comments extends core_Master
     
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на коментар не променя състоянието на треда
+     * 
+     * @param integer $id
+     * 
+     * @return NULL|string
      */
-    static function getThreadState($id)
+    static function getThreadState_($id)
     {
+        
         return NULL;
     }
     

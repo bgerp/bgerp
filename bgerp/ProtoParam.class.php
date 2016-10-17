@@ -32,7 +32,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'typeExt,driverClass=Тип,state';
+	public $listFields = 'typeExt,order,driverClass=Тип,state';
 	
 	
 	/**
@@ -63,6 +63,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		$mvc->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
 		$mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
 		$mvc->FLD('group', 'varchar(64,ci)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
+		$mvc->FLD('order', 'int', 'caption=Позиция,after=group');
 		
 		$mvc->setDbUnique('name, suffix, group');
 		$mvc->setDbUnique("sysId");
@@ -110,24 +111,6 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		}
 		
 		$data->form->setSuggestions('group', array('' => '') + $params);
-	}
-	
-	
-	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Form $form
-	 */
-	protected static function on_AfterInputEditForm($mvc, &$form)
-	{
-		$rec = &$form->rec;
-		 
-		if($form->isSubmitted()){
-			if(!empty($rec->group)){
-				$rec->group = str::mbUcfirst(mb_strtolower($rec->group));
-			}
-		}
 	}
 	
 	
@@ -185,7 +168,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		if(strlen($where)){
 			$query->where($where);
 		}
-		$query->orderBy('group', 'ASC');
+		$query->orderBy('group,order', 'ASC');
 		
 		$options = array();
 		while($rec = $query->fetch()){

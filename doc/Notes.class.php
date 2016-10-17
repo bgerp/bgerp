@@ -30,7 +30,7 @@ class doc_Notes extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, colab_CreateDocumentIntf';
     
     
     /**
@@ -179,6 +179,7 @@ class doc_Notes extends core_Master
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
     }
     
     
@@ -210,10 +211,14 @@ class doc_Notes extends core_Master
 
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на бележка не променя състоянието на треда
+     * 
+     * @param integer $id
+     * 
+     * @return NULL|string
      */
-    static function getThreadState($id)
+    static function getThreadState_($id)
     {
+        
         return NULL;
     }
     

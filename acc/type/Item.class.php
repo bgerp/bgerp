@@ -135,7 +135,8 @@ class acc_type_Item extends type_Key
     /**
      * Връща възможните стойности за ключа
      * 
-     * @param string $value
+     * @param int $id
+     * @param int $listId
      * 
      * @return array
      */

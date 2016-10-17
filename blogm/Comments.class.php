@@ -432,6 +432,7 @@ class blogm_Comments extends core_Detail {
         $before25m = dt::addSecs(-25*60);
         $before5d = dt::addDays(-5);
         $before14d = dt::addDays(-14);
+        $deleteCnt = $deleteCnt = 0;
 
         // Оттегляме, всички, които по-голям рейтинг от 5 и са на повече от 25 минути или имат по-голям рейтинг от 3 и са от преди повече от 5 дни
         $query = $this->getQuery();
@@ -444,7 +445,7 @@ class blogm_Comments extends core_Detail {
 
         $deleteCnt = $this->delete("#state = 'rejected' AND #createdOn < '{$before14d}'");
         
-        if($cnt) {
+        if($deleteCnt + $deleteCnt) {
             $res = "Бяха оттеглени {$rejectedCnt} и изтрити {$deleteCnt} СПАМ коментара от блога.";
         }
 

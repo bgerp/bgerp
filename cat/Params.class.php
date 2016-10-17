@@ -114,7 +114,7 @@ class cat_Params extends bgerp_ProtoParam
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     	
     	return $res;
     }

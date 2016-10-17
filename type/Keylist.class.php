@@ -171,43 +171,9 @@ class type_Keylist extends core_Type {
         $attrCB['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        // $col = $this->params['columns'] ? $this->params['columns'] :
-        // min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
-        //   round(sqrt(max(0, count($this->suggestions) + 1))));
-        
-        if(!$maxChars = $this->params['maxChars']) {
-            $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
-        }
- 
-        // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
-        $i = 0;
-        foreach($this->suggestions as $key => $v) {
-            if($v->group) {
-                $i = 0;
-                continue;
-            }
-            for($j = 2; $j <= 4; $j++) {
-                $max[$j][$i % $j] = max($max[$j][$i % $j], min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
-                $res[] = type_Key::getOptionTitle($v);
-            }
-            $i++;
-        }
-        
-        $max2 = $max[2][0] + $max[2][1] + 4;
-        $max3 = $max[3][0] + $max[3][1] + $max[3][2] + 8;
-        $max4 = $max[4][0] + $max[4][1] + $max[4][2] + $max[4][3] + 12;
-
-        if($max2 > $maxChars) {
-            $col = 1;
-        } elseif($max3 > $maxChars) {
-            $col = 2;
-        } elseif($max4 > $maxChars) {
-            $col = 3;
-        } else {
-            $col = 4;
-        }
-
-         
+        $maxChars = $this->params['maxChars'];
+        $col = self::getCol($this->suggestions, $maxChars);
+      
         $i = 0; $html = ''; $trOpen = FALSE;
         $j = 0; //за конструиране на row-1,row-2 и т.н.
         
@@ -351,6 +317,52 @@ class type_Keylist extends core_Type {
         jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);
 
         return $tpl;
+    }
+
+
+    /**
+     * Определяне на броя колонки за чексбоксчетата
+     * 
+     * @param array $options    Всички опции
+     * @param int   $maxChars   Максимален брой символи в опция
+     *
+     * @return int              Брой колонки
+     */
+    public static function getCol($options, &$maxChars)
+    {
+        if(!$maxChars) {
+            $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
+        }
+ 
+        // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
+        $i = 0;
+        foreach($options as $key => $v) {
+            if($v->group) {
+                $i = 0;
+                continue;
+            }
+            for($j = 2; $j <= 4; $j++) {
+                $max[$j][$i % $j] = max($max[$j][$i % $j], min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
+                $res[] = type_Key::getOptionTitle($v);
+            }
+            $i++;
+        }
+        
+        $max2 = $max[2][0] + $max[2][1] + 4;
+        $max3 = $max[3][0] + $max[3][1] + $max[3][2] + 8;
+        $max4 = $max[4][0] + $max[4][1] + $max[4][2] + $max[4][3] + 12;
+
+        if($max2 > $maxChars) {
+            $col = 1;
+        } elseif($max3 > $maxChars) {
+            $col = 2;
+        } elseif($max4 > $maxChars) {
+            $col = 3;
+        } else {
+            $col = 4;
+        }
+        
+        return $col;
     }
 
 

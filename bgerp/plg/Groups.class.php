@@ -50,10 +50,6 @@ class bgerp_plg_Groups extends core_Plugin
             
             $selArr = arr::make($rec->Selected);
             
-            if($id) {
-                $selArr[] = $id;
-            }
-            
             setIfNot($groupField, $mvc->groupField, 'groupList');
             
             $groupFieldType = $mvc->getFieldType($groupField);

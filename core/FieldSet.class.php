@@ -171,13 +171,17 @@ class core_FieldSet extends core_BaseClass
         $params = arr::make($params, TRUE);
         $names = arr::make($names, TRUE);
         
-        $params['after'] = explode('|', $params['after']);
-        $params['before'] = explode('|', $params['before']);
+        if($params['after'] && !is_array($params['after'])) {
+            $params['after'] = explode('|', $params['after']);
+        }
+
+        if(isset($params['before']) && !is_array($params['before'])) {
+            $params['before'] = explode('|', $params['before']);
+        } 
         
         $paramsS = $params;
 
         foreach ($names as $name => $caption) {
-
             
             $params = $paramsS;
             
@@ -195,7 +199,6 @@ class core_FieldSet extends core_BaseClass
                 $mustOrder = TRUE;
             }
 
-
             foreach ($params as $member => $value) {
                 // Ако има - задаваме suggestions (предложенията в падащото меню)
                 if($member == 'suggestions') {
@@ -211,7 +214,6 @@ class core_FieldSet extends core_BaseClass
                     $this->fields[$name]->optionsFunc = $value;
                     continue;
                 }
-
                 if($member) {
                     $this->fields[$name]->{$member} = $value;
                 }
@@ -246,12 +248,12 @@ class core_FieldSet extends core_BaseClass
                 $this->lastFroGroup[$group] = $name;
             }
         
-            if((count($params['before']) || count($params['after'])) && $mustOrder) {
+            if((count($params['before']) || count($params['after'])) && $mustOrder) { 
                 $newFields = array();
                 $isSet = FALSE;
                 foreach($this->fields as $exName => $exFld) {
                     
-                    if(in_array($exName, $params['before'])) {
+                    if(is_array($params['before']) && in_array($exName, $params['before'])) {
                         $isSet = TRUE;
                         $newFields[$name] = &$this->fields[$name];
                     }
@@ -260,12 +262,12 @@ class core_FieldSet extends core_BaseClass
                         $newFields[$exName] = &$this->fields[$exName];
                     }
 
-                    if(in_array($exName, $params['after'])) {
+                    if(is_array($params['after']) && in_array($exName, $params['after'])) {
                         $newFields[$name] = &$this->fields[$name];
                         $isSet = TRUE;
                     }
                 }
-                $this->fields = $newFields;
+                $this->fields = $newFields;               
             }
 
 
@@ -278,11 +280,11 @@ class core_FieldSet extends core_BaseClass
                         $second = TRUE;
                         continue;
                     }
-                    if(in_array($name, $exFld->before)) {
+                    if(is_array($exFld->before) && in_array($name, $exFld->before)) {
                         $before[$exName] = &$this->fields[$exName];
                         continue;
                     }
-                    if(in_array($name, $exFld->after)) {
+                    if(is_array($exFld->after) && in_array($name, $exFld->after)) {
                         $after[$exName] = &$this->fields[$exName];
                         continue;
                     }
@@ -299,6 +301,62 @@ class core_FieldSet extends core_BaseClass
                 }
             }
         }
+    }
+
+    
+    /**
+     * Прави подредбата на полетата във формата
+     */
+    public function orderField()
+    {
+
+        foreach($this->fields as $name => $field) {
+            if(isset($field->before)) {
+                $before = arr::make($before);
+                foreach($before as $fName) {
+                    if(isset($this->fields[$fName])) {
+                        $this->fields[$fName]->_insertBefore[] = $name;
+                    }
+                }
+            }
+
+            if(isset($field->after)) {
+                $after = arr::make($after);
+                foreach($after as $fName) {
+                    if(isset($this->fields[$fName])) {
+                        $this->fields[$fName]->_insertAfter[] = $name;
+                    }
+                }
+            }
+        }
+        
+        $newFields = array();
+
+        foreach($this->fields as $name => $field) {
+
+            if(is_array($field->_insertBefore)) {
+                foreach($field->_insertBefore as $fName) {
+                    if(!isset($newField[$fName])) {
+                        $newFields[$fName] = $this->fields[$fName];
+                    }
+                }
+            }
+
+            if(!isset($newField[$name])) {
+                $newFields[$name] = $this->fields[$name];
+            }
+            
+            if(is_array($field->_insertAfter)) {
+                foreach($field->_insertAfter as $fName) {
+                    if(!isset($newField[$fName])) {
+                        $newFields[$fName] = $this->fields[$fName];
+                    }
+                }
+            }
+          
+        }
+
+        $this->fields = $newFields;
     }
     
      
