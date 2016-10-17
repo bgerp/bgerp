@@ -616,7 +616,7 @@ class distro_Files extends core_Detail
 	/**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param core_Mvc $mvc
+     * @param distro_Files $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
@@ -644,7 +644,7 @@ class distro_Files extends core_Detail
 	/**
      * След подготвяне на формата
      *
-     * @param core_Manager $mvc
+     * @param distro_Files $mvc
      * @param stdClass $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)

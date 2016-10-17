@@ -199,7 +199,7 @@ abstract class deals_DealDetail extends doc_Detail
         	$form->setField('discount', 'input=none');
         	
         	$mvc->currentTab = 'Нишка';
-        	plg_ProtoWrapper::changeWrapper($mvc, 'colab_Wrapper');
+        	plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
         }
     }
     

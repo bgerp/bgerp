@@ -634,12 +634,13 @@ class acc_Balances extends core_Master
      * @param string $accsd - Масив от сметки на които ще се изчислява крайното салдо
      * @param enum(debit,credit,NULL) $type - кредното, дебитното или крайното салдо
      * @param string $accFrom - сметки с които може да кореспондира
+     * @params array $items - масив с пера, които трябва да са на посочените позиции
      *
      * @return stdClass $res - обект със следната структура:
      * ->amount - крайното салдо на сметката, ако няма записи е 0
      * ->recs   - тази част от подадените записи, участвали в образуването на салдото
      */
-    public static function getBlAmounts($jRecs, $accs, $type = NULL, $accFrom = NULL)
+    public static function getBlAmounts($jRecs, $accs, $type = NULL, $accFrom = NULL, $items = array())
     {
         $res = new stdClass();
         $res->amount = 0;
@@ -673,6 +674,47 @@ class acc_Balances extends core_Master
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
             if(count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) continue;
+            
+            // Ако има посочени задължителни пера
+            if(count($items) > 0){
+            	$skip = FALSE;
+            	
+            	// За всяко
+            	foreach (range(0, 2) as $i){
+            		
+            		// Ако е сетнато
+            		if(!empty($items[$i])){
+            			$j = $i + 1;
+            			
+            			// И дебитната сметка е от търсените
+            			if(in_array($rec->debitAccId, $newAccArr)){
+            				
+            				// И съответното перо не е като търсеното
+            				if($rec->{"debitItem{$j}"} != $items[$i]) {
+            					
+            					// Ще се пропуска записа
+            					$skip = TRUE;
+            					break;
+            				}
+            				
+            			// И кредитната сметка е от търсените
+            			} elseif(in_array($rec->creditAccId, $newAccArr)){
+            				
+            				// И съответното перо не е като търсеното
+            				if($rec->{"creditItem{$j}"} != $items[$i]){
+            					
+            					// Ще се пропуска записа
+            					$skip = TRUE;
+            					break;
+            				}
+            			}
+            		}
+            	}
+            	
+            	// Ако ще се пропуска, записа не участва в събирането
+            	if($skip === TRUE) continue;
+            }
+            
             
             // Изчисляваме крайното салдо
             if(in_array($rec->debitAccId, $newAccArr)) {

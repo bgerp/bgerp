@@ -2055,7 +2055,7 @@ class cat_Products extends embed_Manager {
     	// Слагаме за обвивка тази за партньорите
     	if(core_Packs::isInstalled('colab')){
     		if(core_Users::isContractor()){
-    			$this->load('colab_Wrapper');
+    			$this->load('cms_ExternalWrapper');
     			$this->currentTab = 'Нишка';
     			
     			$tpl = $this->renderWrapping($tpl);

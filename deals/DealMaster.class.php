@@ -848,7 +848,8 @@ abstract class deals_DealMaster extends deals_DealBase
 	    		}
 	    	}
 	    	
-	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
+	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
+	    	(core_Users::isContractor()) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
@@ -921,6 +922,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			$noInvStr = tr('без фактуриране');
 			
 			$row->username = core_Lg::transliterate($row->username);
+			$row->responsible = core_Lg::transliterate($row->responsible);
+			
 			core_Lg::pop();
 	    }
 	    
@@ -1596,6 +1599,16 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     	}
+    	
+    	// Документа не може да се прави на заявка/чернова ако няма поне един детайл
+    	if($action == 'pending' && isset($rec)){
+    		if($res != 'no_one'){
+    			$Detail = cls::get($mvc->mainDetail);
+    			if(!$Detail->fetch("#{$Detail->masterKey} = {$rec->id}")){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
     
     
@@ -1653,7 +1666,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	if(core_Users::isContractor()){
-    		plg_ProtoWrapper::changeWrapper($this, 'colab_Wrapper');
+    		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
     	return $this->renderWrapping($form->renderHtml());

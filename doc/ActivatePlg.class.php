@@ -19,10 +19,21 @@ class doc_ActivatePlg extends core_Plugin
 {
     
     
+	/**
+	 * Извиква се след описанието на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		setIfNot($mvc->canPending, 'no_one');
+	}
+	
+	
     /**
      * Подготвя полетата threadId и folderId, ако има originId и threadId
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
         $rec = $data->form->rec;
@@ -41,7 +52,7 @@ class doc_ActivatePlg extends core_Plugin
     /**
      * Ако е натиснат бутона 'Активиране" добавя състоянието 'active' в $form->rec
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
         if($form->isSubmitted() && $mvc->className != 'doc_Tasks') {
             if($form->cmd == 'active') {
@@ -69,14 +80,28 @@ class doc_ActivatePlg extends core_Plugin
     /**
      * Добавяме бутон за активиране на всички документи, които са в състояние чернова
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if ($mvc->haveRightFor('activate', $data->rec)) {
+    	$rec = $data->rec;
+    	
+    	// Бутон за заявка
+    	if($mvc->haveRightFor('pending', $rec)){
+    		if($rec->state != 'pending'){
+    			$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+    		} else{
+    			$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+    		}
+    	}
+    	
+    	if ($mvc->haveRightFor('activate', $data->rec)) {
             $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'warning=Наистина ли искате да активирате документа?', 'id=btnActivate,ef_icon = img/16/lightning.png,title=Активиране на документа');
         }
     }
     
     
+    /**
+     * След подготовка на ролите
+     */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'activate') {

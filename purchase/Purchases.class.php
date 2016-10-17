@@ -429,7 +429,7 @@ class purchase_Purchases extends deals_DealMaster
         purchase_transaction_Purchase::clearCache();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         
-        $deliveredAmount = purchase_transaction_Purchase::getDeliveryAmount($entries);
+        $deliveredAmount = purchase_transaction_Purchase::getDeliveryAmount($entries, $rec->id);
         $paidAmount = purchase_transaction_Purchase::getPaidAmount($entries, $rec);
         
         $result->set('agreedDownpayment', $downPayment);

@@ -188,7 +188,7 @@ class oembed_Plugin extends core_Plugin
             }
             
             $cacheRec = array(
-                'url' => $url,
+                'url' => core_String::convertToFixedKey($url, oembed_Cache::URL_MAX_LEN),
                 'html' => $response['html'],
                 'provider' => $api['api'],
                 'expires' => $response['cache_age'],

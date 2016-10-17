@@ -802,7 +802,7 @@ class core_Mvc extends core_FieldSet
      * 
      * 
      * @param integer $id
-     * @param boolean $escape
+     * @param boolean $escaped
      */
     public static function getTitleForId_($id, $escaped = TRUE)
     {
