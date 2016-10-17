@@ -191,6 +191,8 @@ class type_Key2 extends type_Int
             }
         }
         
+        $optionsCnt = count($options);
+        
         if($this->params['allowEmpty']) {
             $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
                     array('style' => 'color:#777;')));
@@ -211,7 +213,7 @@ class type_Key2 extends type_Int
             
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if (count($options) >= $maxSuggestions) {
+            if ($optionsCnt >= $maxSuggestions) {
                 $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
             }
             
@@ -223,7 +225,7 @@ class type_Key2 extends type_Int
             // Добавяме необходимите файлове и стартирам select2
             select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, NULL, $ajaxUrl);
 
-        } elseif(count($options) >= $maxSuggestions && !Mode::is('javascript', 'no')) {
+        } elseif($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';
