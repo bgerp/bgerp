@@ -848,7 +848,8 @@ abstract class deals_DealMaster extends deals_DealBase
 	    		}
 	    	}
 	    	
-	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
+	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
+	    	(core_Users::isContractor()) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
@@ -921,6 +922,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			$noInvStr = tr('без фактуриране');
 			
 			$row->username = core_Lg::transliterate($row->username);
+			$row->responsible = core_Lg::transliterate($row->responsible);
+			
 			core_Lg::pop();
 	    }
 	    
