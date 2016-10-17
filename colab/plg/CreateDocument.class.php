@@ -78,7 +78,9 @@ class colab_plg_CreateDocument extends core_Plugin
 		
 		// Контракторите да не могат да споделят потребители
 		if (core_Users::isContractor()) {
-		    $data->form->setField('sharedUsers', 'input=none');
+			if($mvc->getField('sharedUsers', FALSE)){
+				$data->form->setField('sharedUsers', 'input=none');
+			}
 		}
 	}
 	
