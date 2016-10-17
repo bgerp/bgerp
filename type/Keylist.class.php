@@ -510,7 +510,7 @@ class type_Keylist extends core_Type {
     /**
      * Конвертира стойността от вербална към (int)  
      * 
-     * @param mixed $verbalValue
+     * @param mixed $value
      * 
      * @see core_Type::fromVerbal_()
      * 
