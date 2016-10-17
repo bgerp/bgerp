@@ -30,6 +30,13 @@
             </tr>
             <!--ET_END lastUsedOn-->
             
+            <!--ET_BEGIN order-->
+            <tr>
+                <td class="title-style nowrap">|Подредба в групата|*</td>
+                <td>[#order#]</td>
+            </tr>
+            <!--ET_END order-->
+            
             <!--ET_BEGIN groupParams-->
             [#groupParams#]
             <tr>

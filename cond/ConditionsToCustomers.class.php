@@ -182,8 +182,9 @@ class cond_ConditionsToCustomers extends core_Manager
         
         $query = static::getQuery();
         $query->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
+        $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");
-        $query->orderBy('group', 'ASC');
+        $query->orderBy('group,order', 'ASC');
         
         while($rec = $query->fetch()) {
         	

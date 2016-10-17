@@ -38,7 +38,7 @@ class cond_type_Set extends cond_type_Proto
 	public static function on_AfterPrepareEditForm(cond_type_Proto $Driver, embed_Manager $Embedder, &$data)
 	{
 		if(isset($data->form->rec->lastUsedOn)){
-			$data->form->setReadOnly('options');
+			//$data->form->setReadOnly('options');
 		}
 	}
 	
