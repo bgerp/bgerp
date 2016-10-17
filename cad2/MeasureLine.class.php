@@ -65,10 +65,10 @@ class cad2_MeasureLine  extends cad2_Shape {
         
         $svg->openGroup();
 
-        $A = new cad_Vector($Ax, $Ay);
-        $B = new cad_Vector($Bx, $By);
+        $A = new cad2_Vector($Ax, $Ay);
+        $B = new cad2_Vector($Bx, $By);
         
-        $AB = new cad_Vector($B->x - $A->x, $B->y -$A->y);
+        $AB = new cad2_Vector($B->x - $A->x, $B->y -$A->y);
         
         //ъгъла на линията
         $vectorAngle = $AB->a;
@@ -101,7 +101,7 @@ class cad2_MeasureLine  extends cad2_Shape {
         $svg->lineTo($B1->x, $B1->y, TRUE);
         
         // Текст
-        $ab = new cad_Vector($B1->x - $A1->x, $B1->y - $A1->y);
+        $ab = new cad2_Vector($B1->x - $A1->x, $B1->y - $A1->y);
         $text = $measureText ? $measureText . ' mm' : round($ab->r). ' mm';
 
         $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
