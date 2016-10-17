@@ -151,7 +151,7 @@ class colab_FolderToPartners extends core_Manager
     {
     	if(isset($data->form->rec->folderId)){
     		$Cover = doc_Folders::getCover($data->form->rec->folderId);
-    		$data->form->title = core_Detail::getEditTitle($Cover->getInstance(), $Cover->that, $mvc->singleTitle, $rec->id);
+    		$data->form->title = core_Detail::getEditTitle($Cover->getInstance(), $Cover->that, $mvc->singleTitle, $data->form->rec->id);
     	}
     }
     
