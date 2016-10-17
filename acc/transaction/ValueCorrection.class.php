@@ -370,6 +370,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 					$errorMsg2 = acc_ValueCorrections::allocateAmount($storesArr, $p->allocated, $allocateBy);
 					if(!empty($errorMsg2)) return $entries;
 				} else {
+					$storeId = key($storesArr);
 					$storesArr[$storeId]->allocated = $p->allocated;
 				}
 				
