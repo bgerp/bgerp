@@ -216,7 +216,7 @@ class type_Key2 extends type_Int
             }
             
             $allowClear = FALSE;
-            if ($invoker->params['allowEmpty'] || isset($options[''])) {
+            if ($this->params['allowEmpty'] || isset($options[''])) {
                 $allowClear = TRUE;
             }
             
