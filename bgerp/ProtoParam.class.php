@@ -115,24 +115,6 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	
 	
 	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Form $form
-	 */
-	protected static function on_AfterInputEditForm($mvc, &$form)
-	{
-		$rec = &$form->rec;
-		 
-		if($form->isSubmitted()){
-			if(!empty($rec->group)){
-				$rec->group = str::mbUcfirst(mb_strtolower($rec->group));
-			}
-		}
-	}
-	
-	
-	/**
 	 * Връща ид-то на параметъра по зададен sysId
 	 * 
 	 * @param string $sysId
