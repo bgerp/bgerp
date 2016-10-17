@@ -1599,6 +1599,16 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     	}
+    	
+    	// Документа не може да се прави на заявка/чернова ако няма поне един детайл
+    	if($action == 'pending' && isset($rec)){
+    		if($res != 'no_one'){
+    			$Detail = cls::get($mvc->mainDetail);
+    			if(!$Detail->fetch("#{$Detail->masterKey} = {$rec->id}")){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
     
     
