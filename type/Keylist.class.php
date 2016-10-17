@@ -32,7 +32,15 @@ class type_Keylist extends core_Type {
      * Тук записваме само числа
      */
     public $collation = 'ascii_bin';
-
+    
+    
+    /**
+     * Хендлър на класа
+     *
+     * @var string
+     */
+    public $handler;
+    
 
 	/**
      * Конструктор. Дава възможност за инициализация
