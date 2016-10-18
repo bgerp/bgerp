@@ -361,6 +361,7 @@ class store_Transfers extends core_Master
     
 	/**
      * Връща масив от използваните нестандартни артикули в СР-то
+     * 
      * @param int $id - ид на СР
      * @return param $res - масив с използваните документи
      * 					['class'] - инстанция на документа

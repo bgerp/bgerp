@@ -139,6 +139,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Инстанция на детайла
+     */
+    public $pos_ReceiptDetails;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
