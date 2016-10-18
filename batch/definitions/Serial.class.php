@@ -56,6 +56,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$serials = $this->normalize($value);
 		$serials = $this->makeArray($serials);
 		$count = count($serials);
+		$pattern = '';
 		
 		$errMsg = '|Всички номера трябва да отговарят на формата|*: ';
 		if(!empty($this->rec->prefix)){

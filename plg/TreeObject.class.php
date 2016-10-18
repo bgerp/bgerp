@@ -400,8 +400,8 @@ class plg_TreeObject extends core_Plugin
 	 * има чекнато децата му да са свойства. За да е един обект свойство трябва или да има баща
 	 * и децата му да са свойства или да няма баща
 	 *
-	 * @param string $ids - кейлист на обекти
-	 * @return array - масив със свойства и стойностти
+	 * @param string $keylist - кейлист на обекти
+	 * @return void
 	 */
 	public static function on_AfterGetFeaturesArray($mvc, &$res, $keylist)
 	{
