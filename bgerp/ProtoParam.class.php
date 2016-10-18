@@ -183,7 +183,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	 * Връща типа на параметъра
 	 *
 	 * @param mixed $id - ид или запис на параметър
-	 * @return FALSE|cond_type_Proto - инстанцирания тип или FALSE ако не може да се определи
+	 * @return FALSE|core_Type - инстанцираният тип или FALSE ако не може да се определи
 	 */
 	public static function getTypeInstance($id)
 	{
