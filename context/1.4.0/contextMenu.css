@@ -129,14 +129,13 @@ input.button.more-btn {
 }
 
 .modal-toolbar.twoColsContext.iw-contextMenu {
-  background: #f1f1f1 !important;
+  background: #dddddd !important;
   height: auto;
   width: auto;
   border-radius: 5px;
   moz-border-radius: 5px;
   border: 1px solid #C6C6C6;
   margin-bottom: 2px;
-  border-radius: 0;
   padding: 0 1px;
   max-width: 280px;
   min-width: 150px;
@@ -145,9 +144,10 @@ input.button.more-btn {
 .modal-toolbar.twoColsContext.iw-contextMenu .button {
   margin: 1px 0 !important;
   background-color: #dddddd;
+  border: none !important;
+  box-shadow: none;
   width: 100%;
   color: #333;
-  font-weight: normal;
 }
 
 .modal-toolbar.twoColsContext.iw-contextMenu .button:hover {
