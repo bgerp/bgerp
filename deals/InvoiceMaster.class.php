@@ -394,6 +394,7 @@ abstract class deals_InvoiceMaster extends core_Master
    
    /**
     * Връща масив от използваните нестандартни артикули в фактурата
+    * 
     * @param int $id - ид на фактура
     * @return param $res - масив с използваните документи
     * 					['class'] - инстанция на документа
