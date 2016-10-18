@@ -23,12 +23,12 @@ class cond_ParamTypeIntf extends embed_DriverIntf
 	
 	/**
 	 * Връща инстанция на типа
-	 * 
-	 * @param int $paramId - ид на параметър
+	 *
+	 * @param stdClass $rec - запис
 	 * @return core_Type - готовия тип
 	 */
-	public function getType($paramId)
+	public function getType($rec)
 	{
-		$this->class->getType($paramId);
+		$this->class->getType($rec);
 	}
 }

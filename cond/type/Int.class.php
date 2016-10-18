@@ -38,7 +38,7 @@ class cond_type_Int extends cond_type_Proto
 	/**
 	 * Връща инстанция на типа
 	 *
-	 * @param int $paramId - ид на параметър
+	 * @param stdClass $rec - запис
 	 * @return core_Type - готовия тип
 	 */
 	public function getType($rec)

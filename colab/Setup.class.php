@@ -107,7 +107,7 @@ class colab_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Плъгин за споделяне с партьори на коментар', 'colab_plg_VisibleForPartners', 'doc_Comments', 'private');
     	$html .= $Plugins->installPlugin('Плъгин за споделяне с партьори на бележка', 'colab_plg_VisibleForPartners', 'doc_Notes', 'private');
     	
-    	$defaultCreatableDocuments = arr::make(static::$defaultCreatableDocuments);
+    	$defaultCreatableDocuments = arr::make(self::$defaultCreatableDocuments);
     	
     	foreach ($defaultCreatableDocuments as $docName){
     		$Doc = cls::get($docName);
@@ -133,13 +133,14 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Зареждане на начални данни
      */
-    function loadSetupData($itr = '')
+    function loadSetupData()
     {
     	$config = core_Packs::getConfig('colab');
+    	$res = '';
     	
     	if(strlen($config->COLAB_CREATABLE_DOCUMENTS_LIST) === 0){
     		$arr = array();
-    		$defaultCreatableDocuments = arr::make(static::$defaultCreatableDocuments);
+    		$defaultCreatableDocuments = arr::make(self::$defaultCreatableDocuments);
     		foreach ($defaultCreatableDocuments as $docName){
     			$Doc = cls::get($docName);
     			if(cls::haveInterface('colab_CreateDocumentIntf', $Doc)){
@@ -154,6 +155,8 @@ class colab_Setup extends core_ProtoSetup
     			$res .= "<li style='color:green'>Задаване на дефолт документи, които могат да се създават от партньори";
     		}
     	}
+    	
+    	return $res;
     }
     
     

@@ -106,7 +106,9 @@ class doc_ActivatePlg extends core_Plugin
     {
         if ($action == 'activate') {
             if (!empty($rec->id) && ($rec->state != 'draft' || !$mvc->haveRightFor('edit', $rec))) {
-                $requiredRoles = 'no_one';
+                if($rec->state != 'pending'){
+                	$requiredRoles = 'no_one';
+                }
             } else {
                 
                 $canAction = $action;

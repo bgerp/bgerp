@@ -22,7 +22,7 @@
  * @method getShortHyperlink(boolean $icon = FALSE)
  * @method getSingleUrlArray()
  * @method getClassId()
- * @method getLink(boolean $maxLength, array $attr)
+ * @method getLink(boolean $maxLength = FALSE, array $attr = array())
  * @method getTitleById(boolean $escaped)
  * @method getAggregateDealInfo(int $id)
  */
