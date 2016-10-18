@@ -569,6 +569,8 @@ class eshop_Products extends core_Master
             $cRec = cms_Content::fetch($gRec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
         }
+        
+        $data->form->setOptions('measureId', cat_UoM::getUomOptions());
     }
     
     
