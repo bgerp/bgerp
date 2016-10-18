@@ -6,68 +6,62 @@
  * да има достъп до профила си и да може да го редактира.
  *
  * @category  bgerp
- * @package   colab
+ * @package   cms
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  */
-class colab_Profiles extends core_Master
+class cms_Profiles extends core_Master
 {
     
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'crm_ProfileIntf';
+    public $interfaces = 'crm_ProfileIntf';
 
 	
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Профили";
+    public $title = "Профили";
 
 
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Профил";
+    public $singleTitle = "Профил";
 
     
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'Profile=crm_Profiles';
+    public $loadList = 'Profile=crm_Profiles';
 
 
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    public $canRead = 'user';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'user';
-    
-    
-    /**
-     * Кой има право да листва всички профили?
-     */
-    //var $canList = 'contractor';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има достъп до единичния изглед
      */
-    var $canSingle = 'user';
+    public $canSingle = 'user';
     
     
 	/**

@@ -40,7 +40,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     		//@TODO кошница за уеб магазина
     	}
     	
-    	$this->TAB(array('colab_Profiles', 'Single'), 'Профил', 'user');
+    	$this->TAB(array('cms_Profiles', 'Single'), 'Профил', 'user');
     }
     
     

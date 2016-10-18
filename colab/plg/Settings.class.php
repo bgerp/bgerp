@@ -30,7 +30,7 @@ class colab_plg_Settings extends core_Plugin
         // Ако текущия потребител не е контрактор
         if (!core_Users::isContractor()) return ;
         
-        $cProfiles = cls::get('colab_Profiles');
+        $cProfiles = cls::get('cms_Profiles');
         
         $cProfiles->currentTab = 'Профил';
         
