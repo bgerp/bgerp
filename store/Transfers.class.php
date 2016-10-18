@@ -369,7 +369,7 @@ class store_Transfers extends core_Master
     public function getUsedDocs_($id)
     {
     	$res = array();
-    	$dQuery = $this->store_TransfersDetails->getQuery();
+    	$dQuery = store_TransfersDetails::getQuery();
     	$dQuery->EXT('state', 'store_Transfers', 'externalKey=transferId');
     	$dQuery->where("#transferId = '{$id}'");
     	while($dRec = $dQuery->fetch()){
