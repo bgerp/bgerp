@@ -237,7 +237,7 @@ class crm_ext_Employees extends core_Manager
     		$code = cls::get('type_Varchar')->toVerbal($code);
     		if($noCode === TRUE){
     			$code = "<span class='red'>{$code}</span>";
-    			$code = ht::createHint($code, 'Служителя вече няма код', 'warning');
+    			$code = ht::createHint($code, 'Служителят вече няма код', 'warning');
     		}
     	}
     	

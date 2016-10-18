@@ -38,7 +38,7 @@ class colab_Threads extends core_Manager
 	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	public $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers, doc_ThreadRefreshPlg, plg_RefreshRows';
+	public $loadList = 'cms_ExternalWrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers, doc_ThreadRefreshPlg, plg_RefreshRows';
 	
 	
 	/**

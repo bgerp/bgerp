@@ -58,7 +58,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function canSelectDriver($userId = NULL)
     {
-    	return core_Users::haveRole($this->canSelectDriver, $userId);
+    	$roles = core_Users::isContractor() ? 'contractor' : $this->canSelectDriver;
+    	
+    	return core_Users::haveRole($roles, $userId);
     }
     
     
@@ -379,7 +381,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param double $quantity - количество
 	 * @param datetime $datetime - дата
 	 * @param double $rate  - валутен курс
-	 * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+	 * @param yes|no|separate|export $chargeVat - начин на начисляване на ддс
 	 * @return double|NULL $price  - цена
 	 */
 	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')

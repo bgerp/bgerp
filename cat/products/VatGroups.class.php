@@ -69,7 +69,7 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Работен кеш
      */
-    private static $cache = array();
+    protected static $cache = array();
     
     
     /**

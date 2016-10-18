@@ -50,7 +50,7 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'officer';
+    public $canAdd = 'admin';
     
     
     /**

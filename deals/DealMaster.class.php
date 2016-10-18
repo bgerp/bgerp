@@ -1666,7 +1666,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	if(core_Users::isContractor()){
-    		plg_ProtoWrapper::changeWrapper($this, 'colab_Wrapper');
+    		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
     	return $this->renderWrapping($form->renderHtml());

@@ -362,7 +362,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param cat_BomDetails $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -1075,7 +1075,7 @@ class cat_BomDetails extends doc_Detail
     		
     		// Ако реда е етап, викаме рекурсивно като филтрираме само записите с етап ид-то на етапа
     		if($tRec->type == 'stage'){
-    			static::orderBomDetails($inArr, $outArr, $tRec->id);
+    			self::orderBomDetails($inArr, $outArr, $tRec->id);
     		}
     	}
     }

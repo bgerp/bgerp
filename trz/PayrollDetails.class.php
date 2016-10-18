@@ -308,6 +308,7 @@ class trz_PayrollDetails extends core_Detail
             $rec->amount = $rec->salary + $rec->sickday + $rec->order + $rec->trip + $rec->bonus - $rec->fines;
             // Ако имаме уникален запис го записваме
             // в противен слувай го ъпдейтваме
+            $fields = array();
             if($self->isUnique($rec, $fields, $exRec)) {
                 self::save($rec);
             } else { 

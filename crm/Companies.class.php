@@ -1024,6 +1024,14 @@ class crm_Companies extends core_Master
      */
     public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
+        $ownCountry = self::fetchOurCompany()->country;
+
+        if(core_Lg::getCurrent() == 'bg') {
+            $countryNameField = 'commonNameBg';
+        } else {
+            $countryNameField = 'commonName';
+        }
+
         $query = self::getQuery();
 	    $query->orderBy("modifiedOn=DESC");
         
@@ -1054,8 +1062,8 @@ class crm_Companies extends core_Master
         }
         
         $titleFld = $params['titleFld'];
-        $query->EXT('commonNameBg', 'drdata_Countries', 'externalKey=country');
-        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld}, ' - ', IF((#country = 26) AND  LENGTH(#place) > 0, #place, #commonNameBg))");
+        $query->EXT($countryNameField, 'drdata_Countries', 'externalKey=country');  
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld}, IF(#country = {$ownCountry}, IF(LENGTH(#place), CONCAT(' - ', #place), ''), CONCAT(' - ', #{$countryNameField})))");
        
         if($q) {
             if($q{0} == '"') $strict = TRUE;

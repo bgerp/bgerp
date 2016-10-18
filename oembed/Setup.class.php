@@ -63,7 +63,15 @@ class oembed_Setup extends core_ProtoSetup
            Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly,GoogleDrive)',
     		'caption=Услуги на които по подразбиране се вграждат връзките към тяхно съдържание->Списък')
 
-             );
+     );
+
+    
+    // Инсталиране на мениджърите
+    public $managers = array(
+        'oembed_Cache',
+        'migrate::removeLongUrl',
+    );
+    
     
     /**
      * Инсталиране на пакета
@@ -71,9 +79,6 @@ class oembed_Setup extends core_ProtoSetup
     function install()
     {
         $html = parent::install();
-        
-        $Cache = cls::get('oembed_Cache');
-        $html .= $Cache->setupMVC();
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -86,18 +91,12 @@ class oembed_Setup extends core_ProtoSetup
     }
     
     
-    function deinstall()
+    /**
+     * Миграция за изтриване на дългите линкове
+     */
+    public static function removeLongUrl()
     {
-    	$html = parent::deinstall();
-    	
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
         
-        // Инсталираме плъгина за работа с документи от системата
-        // Замества handle' ите на документите с линк към документа
-        $Plugins->deinstallPlugin('oembed_Plugin');
-        $html .= "<li>Деинсталиране на oembed_Plugin";
-        
-        return $html;
+        return oembed_Cache::delete("CHAR_LENGTH(#url) = 128");
     }
 }
