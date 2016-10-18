@@ -59,7 +59,7 @@ class cms_page_External extends core_page_Active
         $this->push('js/overthrow-detect.js', 'JS');
         
         // Евентуално се кешират страници за не PowerUsers
-        if(($expires = Mode::get('BrowserCacheExpires')) && !haveRole('powerUser')) {
+        if(($expires = Mode::get('BrowserCacheExpires')) && !haveRole('user')) {//bp();
             $this->push('Cache-Control: public', 'HTTP_HEADER');
             $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + $expires) . ' GMT', 'HTTP_HEADER');
             $this->push('-Pragma', 'HTTP_HEADER');
