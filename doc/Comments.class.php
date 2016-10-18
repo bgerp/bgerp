@@ -296,10 +296,19 @@ class doc_Comments extends core_Master
      * 
      * @return NULL|string
      */
-    static function getThreadState_($id)
+    static function getThreadState($id)
     {
-        
-        return NULL;
+	    $rec = self::fetch($id);
+	    
+	    $res = NULL;
+	    
+	    if (core_Users::isContractor($rec->createdBy)) {
+	        $res = 'opened';
+	    } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
+	        $res = 'closed';
+	    }
+	    
+	    return $res;
     }
     
     
