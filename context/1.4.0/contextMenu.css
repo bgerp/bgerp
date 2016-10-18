@@ -146,10 +146,15 @@ input.button.more-btn {
   background-color: #dddddd;
   border: none !important;
   box-shadow: none;
+  text-shadow: none;
   width: 100%;
   color: #333;
 }
 
 .modal-toolbar.twoColsContext.iw-contextMenu .button:hover {
    background-color: #e5e5e5 !important;
+}
+
+.narrow .modal-toolbar.twoColsContext.iw-contextMenu {
+  max-width: 250px;
 }
