@@ -302,10 +302,12 @@ class doc_Comments extends core_Master
 	    
 	    $res = NULL;
 	    
-	    if (core_Users::isContractor($rec->createdBy)) {
-	        $res = 'opened';
-	    } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
-	        $res = 'closed';
+	    if (core_Packs::isInstalled('colab')) {
+	        if (core_Users::isContractor($rec->createdBy)) {
+	            $res = 'opened';
+	        } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
+	            $res = 'closed';
+	        }
 	    }
 	    
 	    return $res;
