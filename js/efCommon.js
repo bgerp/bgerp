@@ -7,6 +7,9 @@ function spr(sel) {
         $("input[name*='to']").closest('tr').fadeIn();
         $("input[name*='from']").prop('disabled', false);
         $("input[name*='to']").prop('disabled', false);
+        $("input[name*='from'], input[name*='to']").addClass('flashElem');
+        $("input[name*='from'], input[name*='to']").css('transition', 'background-color linear 500ms');
+        setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
     } else {
         $("input[name*='from']").prop('disabled', true);
         $("input[name*='to']").prop('disabled', true);
@@ -1969,7 +1972,7 @@ function replaceFormData(frm, data)
     if ( typeof refreshForm.loadedFiles == 'undefined' ) {
         refreshForm.loadedFiles = [];
     }
-    
+    console.log('here');
     var params = frm.serializeArray();
     
 	// Затваря всики select2 елементи
@@ -2513,22 +2516,6 @@ function toggleKeylistGroups(el) {
         element.toggleClass('opened');
     }
 
-}
-
-/**
- * Скриване/показване на елемент по името на класа му
- * @param className
- * @param action
- */
-function toggleRow(className, action) {
-    var el = document.getElementsByClassName(className);
-    var row = $(el).closest('tr');
-
-    if(action == 'show') {
-        $(row).fadeIn('slow');
-    } else if (action == 'hide') {
-        $(row).fadeOut('slow');
-    }
 }
 
 
