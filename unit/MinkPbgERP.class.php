@@ -900,22 +900,21 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('others', 'MinkPTestCreateQuotation');
         //$browser->hasText('Създаване на оферта в');
         $browser->press('Чернова');
-        //return $browser->getHtml();
         // Добавяне на артикул - нестандартен
         $browser->press('Добавяне');
+        //return $browser->getHtml();
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 100);
+        $browser->setValue('packPrice', 2);
+         // Записване на артикула и добавяне на нов
+        $browser->press('Запис и Нов');
+        
         //Несъответствие на линия 120 в /home/pavlina/workspace/bgerp/unit/Browser.class.php
         $browser->setValue('productId', 'Артикул по запитване');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
         $browser->setValue('packPrice', 1);
-        //$browser->setValue('discount', 1);
-        // Записване на артикула и добавяне на нов
-        $browser->press('Запис и Нов');
-        $browser->setValue('productId', 'Чувал голям 50 L');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 100);
-        $browser->setValue('packPrice', 2);
-        //$browser->setValue('discount', 2);
         // Записваме артикула
         $browser->press('Запис');
         // Записване на артикула и добавяне на опционален - услуга
@@ -1050,9 +1049,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '35,52 35,52 35,52 35,52')) {
         } else {
-            return $this->reportErr('Грешно чакащо плащане', 'warning');
+            return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
     }
@@ -1177,9 +1177,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '29,60 29,60 29,60 29,60')) {
         } else {
-            return $this->reportErr('Грешно чакащо плащане', 'warning');
+            return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
     }
@@ -1383,9 +1384,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '43,20 43,20 43,20 43,20')) {
         } else {
-            return $this->reportErr('Грешно чакащо плащане', 'warning');
+            return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
     }  
@@ -1434,7 +1436,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '23');
+        $browser->setValue('packQuantity', '47');
         $browser->setValue('packPrice', '1,12');
         $browser->setValue('discount', 3);
     
@@ -1442,8 +1444,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други услуги');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 10);
-        $browser->setValue('packPrice', 1.1124);
+        $browser->setValue('packQuantity', '010');
+        $browser->setValue('packPrice', '1,0202');
         $browser->setValue('discount', 1);
     
         // Записване на артикула
@@ -1457,11 +1459,11 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Discount: EUR 0,88')) {
+        if(strpos($browser->gettext(), 'Discount: EUR 1,68')) {
         } else {
             return $this->reportErr('Грешна отстъпка', 'warning');
         }
-        if(strpos($browser->gettext(), 'Thirty-six EUR')) {
+        if(strpos($browser->gettext(), 'Sixty-one EUR and 0,16')) {
         } else {
             return $this->reportErr('Грешна обща сума', 'warning');
         }
@@ -1514,12 +1516,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '61,16 61,16 61,16 61,16')) {
         } else {
-            return $this->reportErr('Грешно чакащо плащане', 'warning');
+            return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
     }
+    
     /**
      * 1. Създаване на задача
      */
