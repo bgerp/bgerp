@@ -1972,7 +1972,7 @@ function replaceFormData(frm, data)
     if ( typeof refreshForm.loadedFiles == 'undefined' ) {
         refreshForm.loadedFiles = [];
     }
-    console.log('here');
+    
     var params = frm.serializeArray();
     
 	// Затваря всики select2 елементи
