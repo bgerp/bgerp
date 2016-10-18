@@ -333,7 +333,7 @@ class cal_Reminders extends core_Master
     		}
     		
         	if (!$form->gotErrors()){
-        		$form->rec->nextStartTime = $mvc->calcNextStartTime($form->rec,$form->rec->timeStart);
+        		$form->rec->nextStartTime = $mvc->calcNextStartTime($form->rec);
         	}
         } 
         
@@ -863,7 +863,7 @@ class cal_Reminders extends core_Master
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
     	 	 }
-    	 	 $rec->nextStartTime = $this->calcNextStartTime($rec, $rec->timeStart);
+    	 	 $rec->nextStartTime = $this->calcNextStartTime($rec);
     	 	 
     	 	 self::save($rec);
     	 }
@@ -928,13 +928,10 @@ class cal_Reminders extends core_Master
     /**
      *  Изчислява времето за следващото стартиране на напомнянето. Винаги е дата > от текущата
      */
-    static public function calcNextStartTime($rec, $date=NULL)
+    static public function calcNextStartTime($rec)
     {
-        if(!$date) {
-    	   $now = dt::verbal2mysql();
-        } else {
-            $now = $date;
-        }
+
+    	$now = dt::verbal2mysql();
 
     	// Секундите на днешната дата
     	$nowTs = dt::mysql2timestamp($now) + $rec->timePreviously;
