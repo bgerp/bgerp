@@ -340,6 +340,9 @@ class type_Keylist extends core_Type {
     {
         if(!$maxChars) {
             $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
+            if(count($options) < 6) {
+                $maxChars = $maxChars / 2;
+            }
         }
  
         // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
