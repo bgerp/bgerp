@@ -405,12 +405,12 @@ class cat_Categories extends core_Master
     		$Products = cls::get('cat_Products');
     		
     		$query = cat_Products::getQuery();
-    		if($driverId){
+    		if(isset($driverId)){
     			$query->where("#{$Products->driverClassField} = {$driverId}");
     		}
     		
     		$query->where("#state = 'active' AND #folderId IN ({$catList})");
-    		if($limit){
+    		if(isset($limit)){
     			$query->limit($limit);
     		}
     		

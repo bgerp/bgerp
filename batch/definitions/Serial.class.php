@@ -195,8 +195,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      * 
-     * @param text $value
-     * @return text $value
+     * @param string $value
+     * @return string $value
      */
 	public function normalize($value)
 	{
@@ -210,8 +210,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
      * Денормализира партидата
      * 
-     * @param text $value
-     * @return text $value
+     * @param string $value
+     * @return string $value
      */
 	public function denormalize($value)
 	{

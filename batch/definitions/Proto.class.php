@@ -115,8 +115,8 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      * 
-     * @param text $value
-     * @return text $value
+     * @param string $value
+     * @return string $value
      */
     public function normalize($value)
     {

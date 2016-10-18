@@ -40,7 +40,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 			// При контиране за първи път
 			if(Mode::get('saveTransaction')){
 				if($rec->state == 'draft'){
-					$this->class->sync($rec);
+					store_InventoryNotes::sync($rec);
 				}
 			}
 			

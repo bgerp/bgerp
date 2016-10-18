@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, marketing_InquiryEmbedderIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, marketing_InquiryEmbedderIntf,colab_CreateDocumentIntf';
     
     
     /**
@@ -88,12 +88,6 @@ class marketing_Inquiries2 extends embed_Manager
      * Групиране на документите
      */ 
     public $newBtnGroup = "3.91|Търговия";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,marketing';
     
     
     /**
@@ -172,8 +166,6 @@ class marketing_Inquiries2 extends embed_Manager
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'name'    => 'lastDocUser|clientData',
-    	'email'   => 'lastDocUser|clientData',
     	'tel'     => 'lastDocUser|clientData',
     	'company' => 'lastDocUser|clientData',
     	'country' => 'lastDocUser|clientData|defMethod',
@@ -257,6 +249,13 @@ class marketing_Inquiries2 extends embed_Manager
     	for($i = 1; $i <= $quantityCount; $i++){
     		$fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
     		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption},{$mandatory}");
+    	}
+    	
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	if($cu){
+    		$uRec = core_Users::fetch($cu);
+    		$form->setDefault('name', $uRec->names);
+    		$form->setDefault('email', $uRec->email);
     	}
     }
     
@@ -458,16 +457,6 @@ class marketing_Inquiries2 extends embed_Manager
     		// Име на фирма/лице/име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
-    		//$files = $this->getAttachedFiles($rec, $Driver);
-    		
-    		// Ако има прикачени файлове, добавяме ги
-    		/*if(count($files)){
-	    		foreach ($files as $fh => $name){
-		    		$name = fileman_Files::fetchByFh($fh, 'name');
-		    		$path = fileman_Files::fetchByFh($fh, 'path');
-		    		$PML->AddAttachment($path, $name);
-	    		}
-    		}*/
     		
     		// Адрес на който да се изпрати
     		$PML->AddAddress($emailsTo);

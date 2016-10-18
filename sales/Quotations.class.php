@@ -1034,7 +1034,7 @@ class sales_Quotations extends core_Master
     	}
     
     	if(core_Users::isContractor()){
-    		plg_ProtoWrapper::changeWrapper($this, 'colab_Wrapper');
+    		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
     	// Рендираме опаковката

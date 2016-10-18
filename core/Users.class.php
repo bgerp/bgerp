@@ -250,12 +250,12 @@ class core_Users extends core_Manager
      */
     public static function getRolesWithUsers()
     {
+        $keepMinute = 1440;
+
         // Проверяваме дали записа фигурира в кеша
         $usersRolesArr = core_Cache::get(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $keepMinute);
         if (is_array($usersRolesArr)) return $usersRolesArr;
 
-        $keepMinute = 1440;
-        
         $uQuery = core_Users::getQuery();
         $uQuery->orderBy('#nick');
         

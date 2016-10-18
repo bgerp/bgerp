@@ -32,7 +32,15 @@ class type_Keylist extends core_Type {
      * Тук записваме само числа
      */
     public $collation = 'ascii_bin';
-
+    
+    
+    /**
+     * Хендлър на класа
+     *
+     * @var string
+     */
+    public $handler;
+    
 
 	/**
      * Конструктор. Дава възможност за инициализация
@@ -332,6 +340,9 @@ class type_Keylist extends core_Type {
     {
         if(!$maxChars) {
             $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
+            if(count($options) < 6) {
+                $maxChars = $maxChars / 2;
+            }
         }
  
         // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
@@ -510,7 +521,7 @@ class type_Keylist extends core_Type {
     /**
      * Конвертира стойността от вербална към (int)  
      * 
-     * @param mixed $verbalValue
+     * @param mixed $value
      * 
      * @see core_Type::fromVerbal_()
      * 
@@ -735,8 +746,8 @@ class type_Keylist extends core_Type {
     /**
      * Връща масив с различията между хранилищата
      * 
-     * @param string $fRepos - Първият масив/keylist
-     * @param string $lRepos - Вторият масив/keylist
+     * @param string|array $fArr - Първият масив/keylist
+     * @param string|array $sArr - Вторият масив/keylist
      * @param boolean $useKey - Дали да се използват ключовете за сравнение
      * 
      * @return array $arr - Масив с различията
@@ -744,26 +755,26 @@ class type_Keylist extends core_Type {
      * $arr['delete'] - изтрити от първия
      * $arr['add'] - добавени към първия
      */
-    static function getDiffArr($fRepos, $lRepos, $useKey=FALSE)
+    static function getDiffArr($fArr, $sArr, $useKey=FALSE)
     {
         // Вземаме масива на първия
-        $fReposArr = type_Keylist::toArray($fRepos);
+        $fArr = type_Keylist::toArray($fArr);
         
         // Вземаме масива на втория
-        $lReposArr = type_Keylist::toArray($lRepos);
+        $sArr = type_Keylist::toArray($sArr);
         
         // Ако е сетнат флага
         if ($useKey) {
             
             // Задаваме ключовете, като стойности
-            $fReposArr = array_keys($fReposArr);
-            $lReposArr = array_keys($lReposArr);
+            $fArr = array_keys($fArr);
+            $sArr = array_keys($sArr);
         }
         
         // Изчисляваме различията
-        $arr['same'] = array_intersect($fReposArr, $lReposArr);
-        $arr['delete'] = array_diff($fReposArr, $lReposArr);
-        $arr['add'] = array_diff($lReposArr, $fReposArr);
+        $arr['same'] = array_intersect($fArr, $sArr);
+        $arr['delete'] = array_diff($fArr, $sArr);
+        $arr['add'] = array_diff($sArr, $fArr);
         
         return $arr;
     }

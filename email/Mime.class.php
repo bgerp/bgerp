@@ -819,7 +819,7 @@ class email_Mime extends core_BaseClass
                 $headerStr .= $nl . ' ' . mb_strcut($data, 0, $bPos);
                 $p->headersStr = $headerStr;
                 $p->headersArr = $this->parseHeaders($headerStr);
-                $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
+//                 $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
                 
                 $data = mb_strcut($data, $bPos);
             }

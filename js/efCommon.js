@@ -7,6 +7,9 @@ function spr(sel) {
         $("input[name*='to']").closest('tr').fadeIn();
         $("input[name*='from']").prop('disabled', false);
         $("input[name*='to']").prop('disabled', false);
+        $("input[name*='from'], input[name*='to']").addClass('flashElem');
+        $("input[name*='from'], input[name*='to']").css('transition', 'background-color linear 500ms');
+        setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
     } else {
         $("input[name*='from']").prop('disabled', true);
         $("input[name*='to']").prop('disabled', true);
@@ -1036,12 +1039,23 @@ function prepareContextMenu() {
         	act = 'update';
         }
 
+        var vertAdjust = $(this).outerHeight();
+        var horAdjust = -30;
+
+        if($(el).hasClass("twoColsContext")) {
+            vertAdjust += 2;
+            horAdjust += 1;
+        }
+        if($(el).closest(".contractorExtHolder").length) {
+            horAdjust -= 6;
+        }
+
         $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
             'position': position,
             'sizeStyle': sizeStyle,
-            'verAdjust': $(this).outerHeight(),
-            'horAdjust': - 30
+            'verAdjust': vertAdjust,
+            'horAdjust': horAdjust
         });
     });
 }
@@ -1443,6 +1457,7 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
@@ -2501,22 +2516,6 @@ function toggleKeylistGroups(el) {
         element.toggleClass('opened');
     }
 
-}
-
-/**
- * Скриване/показване на елемент по името на класа му
- * @param className
- * @param action
- */
-function toggleRow(className, action) {
-    var el = document.getElementsByClassName(className);
-    var row = $(el).closest('tr');
-
-    if(action == 'show') {
-        $(row).fadeIn('slow');
-    } else if (action == 'hide') {
-        $(row).fadeOut('slow');
-    }
 }
 
 

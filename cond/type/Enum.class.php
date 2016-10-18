@@ -31,7 +31,7 @@ class cond_type_Enum extends cond_type_Proto
 	/**
 	 * Връща инстанция на типа
 	 *
-	 * @param int $paramId - ид на параметър
+	 * @param stdClass $rec - запис
 	 * @return core_Type - готовия тип
 	 */
 	public function getType($rec)

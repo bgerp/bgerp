@@ -149,7 +149,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 	/**
 	 * Изпълнява се преди оттеглянето на документа
 	 */
-	public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+	public static function on_BeforeReject($mvc, &$res, $id)
 	{
 		$rec = $mvc->fetchRec($id);
 		if($rec->state == 'active'){

@@ -99,6 +99,10 @@
 
 }
 
+.modal-toolbar.iw-contextMenu .button:hover {
+  background-color: #ddd !important;
+}
+
 .narrow .modal-toolbar.iw-contextMenu .button{
   background-image: none !important;
 }
@@ -111,4 +115,46 @@ input.button.more-btn {
 .separator {
   margin: 2px 3px 1px 1px;
   opacity: 0.4;
+}
+
+.context-column {
+  display: table-cell;
+  max-width:150px;
+}
+.sideBorder {
+  padding-left: 1px;
+}
+.twoColsContext.modal-toolbar.iw-contextMenu .button{
+  max-width: 150px;
+}
+
+.modal-toolbar.twoColsContext.iw-contextMenu {
+  background: #dddddd !important;
+  height: auto;
+  width: auto;
+  border-radius: 5px;
+  moz-border-radius: 5px;
+  border: 1px solid #C6C6C6;
+  margin-bottom: 2px;
+  padding: 0 1px;
+  max-width: 280px;
+  min-width: 150px;
+}
+
+.modal-toolbar.twoColsContext.iw-contextMenu .button {
+  margin: 1px 0 !important;
+  background-color: #dddddd;
+  border: none !important;
+  box-shadow: none;
+  text-shadow: none;
+  width: 100%;
+  color: #333;
+}
+
+.modal-toolbar.twoColsContext.iw-contextMenu .button:hover {
+   background-color: #e5e5e5 !important;
+}
+
+.narrow .modal-toolbar.twoColsContext.iw-contextMenu {
+  max-width: 250px;
 }

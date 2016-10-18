@@ -546,7 +546,7 @@ class unit_MinkPSales extends core_Manager {
         }
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPSaleVatFree');
+        $browser->setValue('note', 'MinkPSaleVatFreeAdv');
         $browser->setValue('paymentMethodId', "100% авансово");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         $browser->setValue('chargeVat', 'exempt');
@@ -620,11 +620,9 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
-        }
+        
         //return $browser->getHtml();
+        
     }
     
     /**
@@ -1336,10 +1334,13 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '218,67 218,67 218,67 218,67')) {
         } else {
-            return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
+            return $this->reportErr('Грешни суми в мастера', 'warning');
         }
+        
         //return $browser->getHtml();
     }
     
