@@ -23,7 +23,7 @@ class colab_plg_Settings extends core_Plugin
      * @param mixed $res
      * @param string $action
      */
-    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
+    public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
     {
         if (!$data || !$data->cClass || (!($data->cClass instanceof crm_Profiles))) return ;
         
