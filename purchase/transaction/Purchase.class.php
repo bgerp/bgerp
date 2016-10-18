@@ -340,7 +340,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function clearCache()
     {
-    	self::$cache = NULL;
+    	self::$cache = array();
     }
     
     

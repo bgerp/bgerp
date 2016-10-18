@@ -3246,7 +3246,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param integer $id
      * @param core_Manager $detailMvc
      */
-    static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         // Обновява modified полетата
         $mvc->touchRec($id);

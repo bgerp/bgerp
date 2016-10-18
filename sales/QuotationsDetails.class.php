@@ -897,7 +897,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			
     			// Въведената цена се обръща в основна валута без ддс
     			$dRec->price = $row['right'];
-    			$dRec->price = static::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
+    			$dRec->price = self::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
     		} else {
     			
     			// Ако няма извлича се цената от спецификацията

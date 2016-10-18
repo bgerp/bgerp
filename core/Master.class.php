@@ -36,6 +36,12 @@ class core_Master extends core_Manager
     
     
     /**
+     * Клас на горния таб
+     */
+    public $tabTopClass;
+    
+    
+    /**
      * Изпълнява се след конструирането на мениджъра
      */
     static function on_AfterDescription(core_Master &$mvc)
@@ -743,7 +749,7 @@ class core_Master extends core_Manager
     /**
      * След промяна в детайлите на обект от този клас
      */
-    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
     	if(isset($id)){
     		
@@ -787,10 +793,7 @@ class core_Master extends core_Manager
     public function getFormTitleLink($id)
     {
     	$masterTitle = $this->getTitleById($id);
-    	 
-    	if (!isset($len)) {
-    		$len = Mode::is('screenMode', 'narrow') ? 32 : 48;
-    	}
+    	$len = Mode::is('screenMode', 'narrow') ? 32 : 48;
     	 
     	$masterTitle = str::limitLen($masterTitle, $len);
     	$masterTitle = str_replace('|', '&#124;', $masterTitle);
