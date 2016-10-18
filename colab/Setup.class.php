@@ -41,14 +41,15 @@ class colab_Setup extends core_ProtoSetup
     var $managers = array(
         'colab_FolderToPartners',
     	'migrate::migrateVisibleforPartners',
-        'colab_DocumentLog'
+        'colab_DocumentLog',
+    	'migrate::defaultCreatableDocuments',
     );
     
     
     /**
      * Кои документи могат да бъдат създавани по дефолт от контрактори
      */
-    private static $defaultCreatableDocuments = 'sales_Sales,doc_Comments,doc_Notes';
+    private static $defaultCreatableDocuments = 'sales_Sales,doc_Comments,doc_Notes,marketing_Inquiries2';
     
     
     /**
@@ -107,6 +108,7 @@ class colab_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Плъгин за споделяне с партьори на бележка', 'colab_plg_VisibleForPartners', 'doc_Notes', 'private');
     	
     	$defaultCreatableDocuments = arr::make(static::$defaultCreatableDocuments);
+    	
     	foreach ($defaultCreatableDocuments as $docName){
     		$Doc = cls::get($docName);
     		$title = mb_strtolower($Doc->title);
@@ -175,6 +177,15 @@ class colab_Setup extends core_ProtoSetup
     			$Containers->save($cRec, 'visibleForPartners');
     		}
     	}
+    }
+    
+    
+    /**
+     * Миграция
+     */
+    function defaultCreatableDocuments()
+    {
+    	core_Packs::setConfig('colab', array('COLAB_CREATABLE_DOCUMENTS_LIST' => NULL));
     }
 }
 
