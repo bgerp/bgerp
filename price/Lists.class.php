@@ -416,12 +416,14 @@ class price_Lists extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-    		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
+    		$rec = &$form->rec;
+    		
+    		if(($rec->id) && isset($rec->discountCompared) && $rec->discountCompared == $rec->id){
     			$form->setError('discountCompared', 'Не може да изберете същата политика');
     		}
     		
 	    	if($rec->state == 'draft' || is_null($rec->state)){
-	    		$form->rec->state = 'active';
+	    		$rec->state = 'active';
 	    	}
     	}
     }

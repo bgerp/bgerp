@@ -24,7 +24,12 @@
  * @method getClassId()
  * @method getLink(boolean $maxLength = FALSE, array $attr = array())
  * @method getTitleById(boolean $escaped)
- * @method getAggregateDealInfo(int $id)
+ * @method getAggregateDealInfo()
+ * @method forceCoverAndFolder($bForce = TRUE)
+ * @method getShipmentOperations()
+ * @method getOrigin()
+ * @method getDocumentRow()
+ * @method getIcon()
  */
 class core_ObjectReference
 {

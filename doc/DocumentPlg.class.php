@@ -799,12 +799,12 @@ class doc_DocumentPlg extends core_Plugin
             	}
             	
             	if(core_Packs::isInstalled('colab')){
-            		if(!$res && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
+            		if(empty($res) && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
             			$res = array($mvc, 'single', $id);
             		}
             	}
             	
-            	if(!$res){
+            	if(empty($res)){
             		$res = array('bgerp_Portal', 'show');
             		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
             	}
@@ -3246,7 +3246,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param integer $id
      * @param core_Manager $detailMvc
      */
-    static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         // Обновява modified полетата
         $mvc->touchRec($id);

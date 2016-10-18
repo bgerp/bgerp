@@ -588,7 +588,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	// Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира заданията към артикула
-    	if(($action == 'add' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
+    	if(($action == 'add' || $action == 'delete') && isset($rec) && $res != 'no_one'){
     		if(!cat_Products::haveRightFor('single', $rec->productId)){
     			$res = 'no_one';
     		}
@@ -612,9 +612,9 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Връща масив от използваните документи в даден документ (като цитат или
-     * са включени в детайлите му)
-     * @param int $data - сериализираната дата от документа
+     * Връща масив от използваните документи в даден документ (като цитат или са включени в детайлите му)
+     * 
+     * @param int $id - запис
      * @return param $res - масив с използваните документи
      * 					[class] - инстанция на документа
      * 					[id] - ид на документа
@@ -633,14 +633,14 @@ class planning_Jobs extends core_Master
      * Добавя действие към историята
      * 
      * @param array $history - масив с историята
-     * @param enum(closed,active,rejected,restore,wakeup,stopped,create) $action - действие
+     * @param string $action - действие
      * @param datetime $date - кога
      * @param int $userId - кой
      * @return void
      */
     private static function addToHistory(&$history, $action, $date, $userId, $reason = NULL)
     {
-    	if(!$history){
+    	if(empty($history)){
     		$history = array();
     	}
     	

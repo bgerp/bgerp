@@ -107,10 +107,6 @@ class store_Products extends core_Manager
 
     /**
      * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
      */
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
@@ -255,7 +251,7 @@ class store_Products extends core_Manager
      * Ф-я която ъпдейтва всички записи, които присъстват в модела, 
      * но липсват в баланса
      * 
-     * @param date $date - дата
+     * @param array $array - масив с данни за наличните артикул
      */
     private static function updateMissingProducts($array)
     {
@@ -290,13 +286,13 @@ class store_Products extends core_Manager
     /**
      * Връща всички продукти в склада
      * 
-     * @param int $storeId - ид на склад, ако е NULL взима текущия активен склад
+     * @param NULL|int $storeId - ид на склад, ако е NULL взима текущия активен склад
      * @return array $products
      */
     public static function getProductsInStore($storeId = NULL)
     {
     	// Ако няма склад, взима се текущия
-    	if(!$storeId){
+    	if(!isset($storeId)){
     		$storeId = store_Stores::getCurrent();
     	}
     	

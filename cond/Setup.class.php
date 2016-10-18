@@ -184,8 +184,9 @@ class cond_Setup  extends core_ProtoSetup
         	$Parameters = cls::get('cond_Parameters');
         	$Parameters->setupMvc();
         	
+        	core_Classes::add('cond_type_PaymentMethod');
         	$query = cond_Parameters::getQuery();
-        	$class = core_Classes::getId('cond_type_PaymentMethod');
+        	$class = cond_type_PaymentMethod::getClassId();
         	while($rec = $query->fetch("#driverClass = {$class}")) {
         		$pIds[] = $rec->id;
         	}

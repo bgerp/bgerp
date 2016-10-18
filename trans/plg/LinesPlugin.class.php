@@ -84,7 +84,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 	/**
 	 * Извиква се преди изпълняването на екшън
 	 *
-	 * @param core_Mvc $mvc
+	 * @param core_Manager $mvc
 	 * @param mixed $res
 	 * @param string $action
 	 */
@@ -143,7 +143,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		}
 		
 		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+    	$form->toolbar->addBtn('Отказ', array($mvc, 'single', $id),  'ef_icon = img/16/close16.png');
     		 
     	// Рендиране на формата
     	$res = $form->renderHtml();

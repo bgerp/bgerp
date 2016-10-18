@@ -1034,7 +1034,9 @@ div.rowtools {
 .rowtools .r {
   vertical-align: middle;
   display: table-cell;
-  text-align: right; }
+  text-align: right;
+  position: relative;
+  top: 2px; }
 
 .rowtools .l {
   vertical-align: middle;
@@ -1298,6 +1300,11 @@ table.listTable {
     color: #990000; }
   table.listTable .rowNumColumn {
     width: 1%; }
+
+.detailNumbering {
+  text-align: right;
+  padding-top: 2px;
+  display: block; }
 
 .narrow table.listTable {
   margin-bottom: 12px; }

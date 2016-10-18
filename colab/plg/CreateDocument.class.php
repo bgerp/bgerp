@@ -98,7 +98,7 @@ class colab_plg_CreateDocument extends core_Plugin
 	    
 	    if (core_Users::isContractor($rec->createdBy)) {
 	        $res = 'opened';
-	    } elseif(core_Users::isPowerUser($rec->createdBy) && $rec->visibleForPartners == 'yes') {
+	    } elseif (core_Users::isPowerUser($rec->createdBy) && $mvc->isVisibleForPartners($rec)) {
 	        $res = 'closed';
 	    }
 	}

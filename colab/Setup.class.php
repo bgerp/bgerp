@@ -133,7 +133,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Зареждане на начални данни
      */
-    function loadSetupData()
+    public function loadSetupData($itr = '')
     {
     	$config = core_Packs::getConfig('colab');
     	$res = '';
