@@ -25,6 +25,7 @@
  * @method getLink(boolean $maxLength = FALSE, array $attr = array())
  * @method getTitleById(boolean $escaped)
  * @method getAggregateDealInfo(int $id)
+ * @method forceCoverAndFolder($bForce = TRUE)
  */
 class core_ObjectReference
 {
