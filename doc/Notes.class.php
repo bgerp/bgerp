@@ -218,11 +218,10 @@ class doc_Notes extends core_Master
      */
     static function getThreadState($id)
     {
-	    $rec = self::fetch($id);
-	    
 	    $res = NULL;
 	    
 	    if (core_Packs::isInstalled('colab')) {
+	        $rec = self::fetch($id);
 	        if (core_Users::isContractor($rec->createdBy)) {
 	            $res = 'opened';
 	        } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
