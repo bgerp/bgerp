@@ -799,12 +799,12 @@ class doc_DocumentPlg extends core_Plugin
             	}
             	
             	if(core_Packs::isInstalled('colab')){
-            		if(!$res && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
+            		if(empty($res) && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
             			$res = array($mvc, 'single', $id);
             		}
             	}
             	
-            	if(!$res){
+            	if(empty($res)){
             		$res = array('bgerp_Portal', 'show');
             		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
             	}
