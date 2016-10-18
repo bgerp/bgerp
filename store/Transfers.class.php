@@ -393,8 +393,9 @@ class store_Transfers extends core_Master
     
     /**
      * Помощен метод за показване на документа в транспортните линии
+     * 
      * @param stdClass $rec - запис на документа
-     * @param stdClass $row - вербалния запис
+     * @return stdClass $row - вербалния запис
      */
     private function prepareLineRows($rec)
     {
