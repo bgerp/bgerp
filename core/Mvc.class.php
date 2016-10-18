@@ -34,7 +34,7 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  * @link
  * 
  * @method integer  save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
- * @method bool     haveRightFor(string $action, int|object $id)
+ * @method bool     haveRightFor(string $action, NULL|int|object $id, int|NULL $userId)
  */
 class core_Mvc extends core_FieldSet
 {
