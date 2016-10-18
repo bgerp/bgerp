@@ -1282,7 +1282,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
         // Записваме артикула и добавяме нов - услуга
-        $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Транспорт');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 01);
