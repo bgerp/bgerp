@@ -448,7 +448,7 @@ class doc_DocumentPlg extends core_Plugin
         	    		$folderTitle = doc_Folders::getVerbal($folderRec, 'title');
         	    		$icon = ($folderRec->openThreadsCnt) ? 'img/16/folder-g.png' : 'img/16/folder-y.png';
         	    
-        	    		$row->_rowTools->addLink($folderTitle, array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
+        	    		$row->_rowTools->addLink(tr("Папка"), array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
         	    	}
         	    }
             }
