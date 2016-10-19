@@ -31,6 +31,7 @@ class colab_plg_Settings extends core_Plugin
         if (!core_Users::isContractor()) return ;
         
         $cProfiles = cls::get('cms_Profiles');
+        $cProfiles->load('cms_ExternalWrapper');
         
         $cProfiles->currentTab = 'Профил';
         
