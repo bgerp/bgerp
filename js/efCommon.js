@@ -20,19 +20,6 @@ function spr(sel) {
 }
 
 
-/**
- * Прави елементите с определен клас да станат disabled след зареждането на страницата
- * @param className
- */
-function  disableFieldsAfterLoad(className){
-    setTimeout(function(){
-        var el = document.getElementsByClassName(className);
-        $(el).each(function(){
-            $(this).prop('disabled', true);
-        });
-    }, 1000);
-}
-
 
 /**
  * Опитваме се да репортнем JS грешките
@@ -1660,12 +1647,26 @@ function getAllLiveElements() {
     $('[data-live]').each(function() {
         var text = $(this).attr('data-live');
         var data = text.split("|");
-        var fn = window[data[0]];
+        var el = $(this);
+        $.each( data, function( key, value ) {
+            var fn = window["live_" + value];
+            if (typeof fn === "function") fn.apply(null, el);
+        });
 
-        data[0] = $(this).attr('id');
-        if (typeof fn === "function") fn(data);
     });
 }
+
+
+/**
+ * Прави елементите с определен клас да станат disabled след зареждането на страницата
+ * @param className
+ */
+function  live_disableFieldsAfterLoad(el){
+    setTimeout(function(){
+        $(el).prop('disabled', true);
+    }, 1000);
+}
+
 
 // функция, която взема елементите в контекстното меню от ajax
 function dropMenu(data) {
