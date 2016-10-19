@@ -2321,6 +2321,9 @@ span.sharing-history-title {
     .logoutBlock a:hover {
       opacity: 0.7; }
 
+.narrow .logoutBlock {
+  background: #babacb; }
+
 .cmsTopContractor {
   position: relative; }
 
