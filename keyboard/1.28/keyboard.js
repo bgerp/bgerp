@@ -515,6 +515,7 @@ var VKI_attach, VKI_close;
           keybut.onclick = function() { self.VKI_show(this.elem); };
        elem.VKI_attached = true;
       elem.parentNode.insertBefore(keybut, (elem.dir == "rtl") ? elem : elem.nextSibling);
+
       if (this.VKI_isIE) {
         elem.onclick = elem.onselect = elem.onkeyup = function(e) {
           if ((e || event).type != "keyup" || !this.readOnly)
@@ -540,6 +541,7 @@ var VKI_attach, VKI_close;
     this.VKI_keyboard.id = "keyboardInputMaster";
     this.VKI_keyboard.dir = "ltr";
     this.VKI_keyboard.cellSpacing = this.VKI_keyboard.border = "0";
+
 
     var thead = document.createElement('thead');
 
@@ -627,6 +629,7 @@ var VKI_attach, VKI_close;
         tbody.appendChild(tr);
     this.VKI_keyboard.appendChild(tbody);
 
+
     if (this.VKI_isIE6) {
       this.VKI_iframe = document.createElement('iframe');
       this.VKI_iframe.style.position = "absolute";
@@ -637,11 +640,13 @@ var VKI_attach, VKI_close;
     }
 
 
+
     /* ****************************************************************
      * Build or rebuild the keyboard keys
      *
      */
     this.VKI_buildKeys = function() {
+
       this.VKI_shift = this.VKI_shiftlock = this.VKI_altgr = this.VKI_altgrlock = this.VKI_dead = false;
       this.VKI_deadkeysOn = (this.VKI_layout[this.VKI_kt].DDK) ? false : this.VKI_keyboard.getElementsByTagName('label')[0].getElementsByTagName('input')[0].checked;
 
@@ -793,8 +798,13 @@ var VKI_attach, VKI_close;
         }
         container.appendChild(table);
       }
+
+
+
+
       this.VKI_deadkeysElem.style.display = (!this.VKI_layout[this.VKI_kt].DDK && hasDeadKey) ? "inline" : "none";
     };
+
 
     this.VKI_buildKeys();
     VKI_disableSelection(this.VKI_keyboard);
@@ -914,6 +924,7 @@ var VKI_attach, VKI_close;
 		if( elem.nodeName == "TEXTAREA" ) rightOffset += 20;
 	    if((elemPos[0] + elemWidth - xClick) > rightOffset) return;
 	  }
+
 	  if (this.VKI_target = elem) {
         if (this.VKI_visible != elem) {
           if (this.VKI_isIE) {
@@ -940,6 +951,7 @@ var VKI_attach, VKI_close;
           this.VKI_keyboard.style.top = this.VKI_keyboard.style.right = this.VKI_keyboard.style.bottom = this.VKI_keyboard.style.left = "auto";
           this.VKI_keyboard.style.position = this.VKI_target.keyboardPosition;
 
+
           this.VKI_visible = this.VKI_target;
           this.VKI_position();
           this.VKI_target.focus();
@@ -952,7 +964,11 @@ var VKI_attach, VKI_close;
      * Position the keyboard
      *
      */
+
     this.VKI_position = function() {
+      if(getUserAgent().indexOf('Linux') != -1 && isTouchDevice()) {
+        $('#keyboardInputMaster').addClass('biggerFont');
+      }
       if (self.VKI_visible) {
         var inputElemPos = VKI_findPos(self.VKI_target); 
         self.VKI_keyboard.style.top = inputElemPos[1] - ((self.VKI_target.keyboardPosition == "fixed" && !self.VKI_isIE && !self.VKI_isMoz) ? VKI_scrollDist()[1] : 0) + self.VKI_target.offsetHeight +  3 + "px";
@@ -1040,3 +1056,4 @@ var VKI_attach, VKI_close;
     window.addEventListener('load', VKI_buildKeyboardInputs, false);
   } else if (window.attachEvent)
     window.attachEvent('onload', VKI_buildKeyboardInputs);
+

@@ -91,6 +91,9 @@
   cursor:default;
   min-width:0.75em;
 }
+.biggerFont  tbody tr td div#keyboardInputLayout table tbody tr td{
+  font-size: 1.8em;
+}
 #keyboardInputMaster tbody tr td div#keyboardInputLayout table tbody tr td.last {
   width:99%;
 }

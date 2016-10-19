@@ -122,7 +122,8 @@ class cat_type_Uom extends type_Varchar {
 	{
 		// Ако има запис, конвертира се в удобен вид
         $convObject = new stdClass();
-        expect($baseUnitId = cat_UoM::fetchBySysId($this->params['unit'])->id);
+        $unitRec = cat_UoM::fetchBySysId($this->params['unit']);
+        expect($baseUnitId = cat_UoM::fetchBySysId($unitRec)->id);
         
 		if($value === NULL || $value === ''){
 			$convObject->value = '';
