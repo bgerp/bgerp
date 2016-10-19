@@ -112,7 +112,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canAddacclimits = 'ceo, bankMaster, accMaster';
+    public $canAddacclimits = 'ceo, bankMaster, accMaster,accLimits';
     
     
     /**
