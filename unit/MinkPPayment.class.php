@@ -451,13 +451,11 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Контиране');
     
         // протокол
-        $browser->press('Пр. услуги');
-        $browser->setValue('valior', date('d-m-Y', $valior));
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Контиране')) {
-        //  $browser->press('Контиране');
-        //}
+        //$browser->press('Пр. услуги');
+        //$browser->setValue('valior', date('d-m-Y', $valior));
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
+        
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
@@ -1323,18 +1321,10 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
     
-        // РКО
-        $browser->press('РКО');
-        $browser->setValue('beneficiary', 'Иван Петров');
-        $browser->setValue('amountDeal', '100');
-        $browser->setValue('peroCase', 'КАСА 1');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-    
         // РБД
         $browser->press('РБД');
         $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-        $browser->setValue('amountDeal', '01251,36');
+        $browser->setValue('amountDeal', '0148,07');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
