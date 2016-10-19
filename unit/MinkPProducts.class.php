@@ -145,7 +145,7 @@ class unit_MinkPProducts extends core_Manager {
             
             
         } else {
-            return $this->reportErr('Няма такъв артикул', 'info');
+            return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
         //return $browser->getHtml();
     }
@@ -305,7 +305,7 @@ class unit_MinkPProducts extends core_Manager {
             $browser->press('Контиране');
             $browser->press('Приключване');
         } else {
-        return $this->reportErr('Няма такъв артикул', 'info');
+        return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
         //return $browser->getHtml();
     }
