@@ -37,7 +37,7 @@ class cms_page_External extends core_page_Active
         $this->prepend(cms_Domains::getSeoTitle(), 'PAGE_TITLE');
 
         // Ако е логнат потребител
-        if (haveRole('user')) {
+        if (!core_Users::isContractor()) {
             
             // Абонираме за промяна на броя на нотификациите
             bgerp_Notifications::subscribeCounter($this);

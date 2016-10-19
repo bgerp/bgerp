@@ -333,7 +333,7 @@ class unit_MinkPSales extends core_Manager {
     } 
     
     /**
-     * Продажба - включено ДДС в цените
+     * Продажба - включено ДДС в цените, клониране
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleVatInclude/
@@ -431,7 +431,16 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
         }
+        
+        // Клониране
+        $browser->press('Клониране');
+        $browser->press('Запис');
+        if(strpos($browser->gettext(), 'Ваш реф: MinkPv2')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
+        }    
         //return $browser->getHtml();
+        
     }
        
     /**
@@ -1160,7 +1169,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Minus forty-three USD and 0,15')) {
         } else {
-            return unit_MinkPbgERP::reportErr('сума в КИ - цена', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешна сума в КИ - цена', 'warning');
         }
     
         // Дебитно известие - сума

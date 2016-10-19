@@ -119,6 +119,9 @@ class bgerp_Notifications extends core_Manager
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
         if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
+        // Да не се нотифицира контрактора
+        if (core_Users::isContractor($userId)) return ;
+        
         if(!$priority) {
             $priority = 'normal';
         }
@@ -166,6 +169,9 @@ class bgerp_Notifications extends core_Manager
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
+        
+        // Да не се нотифицира контрактора
+        if (core_Users::isContractor($userId)) return ;
         
         if(empty($userId)) {
             return;

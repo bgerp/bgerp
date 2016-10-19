@@ -154,6 +154,7 @@ class acc_Setup extends core_ProtoSetup
     	array('accJournal'),
     	array('acc', 'accJournal'),
         array('accMaster', 'acc'),
+    	array('accLimits'),
     );
     
     
