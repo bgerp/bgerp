@@ -159,6 +159,7 @@ class acc_BalanceTransfers extends core_Master
 		
 		// Ако е избрана начална сметка
 		if(isset($rec->fromAccount)){
+			$interfaces = array();
 			$accInfo = acc_Accounts::getAccountInfo($rec->fromAccount);
 			
 			// Показваме аналитичностите и

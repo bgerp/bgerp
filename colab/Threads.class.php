@@ -72,6 +72,18 @@ class colab_Threads extends core_Manager
 	
 	
 	/**
+	 * Инстанция на doc_Threads
+	 */
+	public $Threads;
+	
+	
+	/**
+	 * Инстанция на doc_Threads
+	 */
+	public $Containers;
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
