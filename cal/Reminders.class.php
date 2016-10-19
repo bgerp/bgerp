@@ -265,9 +265,9 @@ class cal_Reminders extends core_Master
 
         if ($data->form->rec->threadId) {
             //Добавяме в полето Заглавие отговор на съобщението
-            $titleThread = doc_Threads::getTitleForId($data->form->rec->threadId);
+            $title = doc_Threads::getThreadTitle($data->form->rec->threadId, FALSE);
             $for = tr('|За|*: ');
-            $title = $for . html_entity_decode($titleThread, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+            $title = $for . $title;
               
             $todey = dt::now();
             $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
@@ -314,7 +314,7 @@ class cal_Reminders extends core_Master
     	    if (isset($form->rec->timeStart)) {
         	    if ($form->rec->timeStart < $now){
             		// Добавяме съобщение за грешка
-                    $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
+                   // $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
             	}
     	    } else {
     	        if (!$form->rec->id) {
@@ -857,12 +857,13 @@ class cal_Reminders extends core_Master
     	 	 $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
     	 	 $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
     	 	 
-    	 	 self:: doUsefullyPerformance($rec);
+    	 	 self::doUsefullyPerformance($rec);
     	 	
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
     	 	 }
+    	 	 
     	 	 $rec->nextStartTime = $this->calcNextStartTime($rec);
     	 	 
     	 	 self::save($rec);
@@ -955,7 +956,9 @@ class cal_Reminders extends core_Master
 	        // Типа на повторението е ден или седмица
 	        if($rec->repetitionType == 'days' || $rec->repetitionType == 'weeks'){
 	        	
-	        	if($startTs > $nowTs) $nextStartTime = $startTs; 
+	        	if($startTs > $nowTs) {
+	        	    $nextStartTime = $startTs; 
+	        	}
 	        	// Намираме интервала в секинди
 		    	$intervalTs = self::getSecOfInterval($rec->repetitionEach, $rec->repetitionType);
 		  
@@ -968,8 +971,7 @@ class cal_Reminders extends core_Master
 		    	if($rec->timePreviously !== NULL){
 		    		$nextStartTimePrev = $nextStartTimeTs - $rec->timePreviously;
 		    		$nextStartTime = date("Y-m-d H:i:s", $startTs + $nextStartTimePrev);
-		    		
-		    		return $nextStartTime;
+
 		    	}
 
 		    	return $nextStartTime;
@@ -978,14 +980,14 @@ class cal_Reminders extends core_Master
 	        // Типа на повторението е месец
 	        for ($i = 1; $i <= 10000; $i++){
 	        		
-	        // Масив с час, сек, мин, ден, месец, год ... на Началната дата
-	        $data = getdate($startTs);
-	        	
-	        // Новия месец който търсим е стария месец + ($i * повторението ни)
-	        $newMonth = $data[mon] + ($i * $rec->repetitionEach);
-	        		
-	        // Секундите на новия месец
-	        $newMonthTs = mktime(0, 0, 0, $newMonth, 1, $data[year]);
+    	        // Масив с час, сек, мин, ден, месец, год ... на Началната дата
+    	        $data = getdate($startTs);
+    	        	
+    	        // Новия месец който търсим е стария месец + ($i * повторението ни)
+    	        $newMonth = $data[mon] + ($i * $rec->repetitionEach);
+    	        		
+    	        // Секундите на новия месец
+    	        $newMonthTs = mktime(0, 0, 0, $newMonth, 1, $data[year]);
 	        		
 		        // Търсим съответствие по ден от месеца:
 			    if($rec->repetitionType == 'monthDay' || $rec->repetitionType == 'months'){
@@ -1003,14 +1005,14 @@ class cal_Reminders extends core_Master
 				    $numbMonthDay = date('t', $newMonthTs);
 				        		
 				    // Ако новия ден не присъства в новия месец, то взимаме последния ден от новия месец
-				    if($newDay >= $numbMonthDay) $nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $numbMonthDay, $data[year]));
+				    if($newDay >= $numbMonthDay) {
+				        $nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds], $newMonth, $numbMonthDay, $data[year]));
+				    }
 
-				    if(dt::mysql2timestamp($nextStartTime) < $nowTs) continue;
+				    if($nextStartTime < $now) continue;
 				    
 				    if($rec->timePreviously !== NULL){
 				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds] - $rec->timePreviously, $newMonth, $newDay, $data[year]));
-				    	
-				    	return $nextStartTime;
 				    }
 				    
 				    return $nextStartTime;
@@ -1033,7 +1035,7 @@ class cal_Reminders extends core_Master
 					// Проверки за поредността на деня - 
 					// един ден от седмицата (напр. понеделник) може да има най-много 5 срещания
 					// в дадения месец
-					if ($data[mday] - 7 >= -6 && $data[mday] - 7 <= 0) $monthsWeek = 'first';
+					if ($data[mday] - 7 >= -6 && $data['mday'] - 7 <= 0) $monthsWeek = 'first';
 					elseif($data[mday] - 14 >= -6 && $data[mday] - 14 <= 0) $monthsWeek = 'second'; 
 					elseif($data[mday] - 21 >= -6 && $data[mday] - 21 <= 0) $monthsWeek = 'third'; 
 					        		

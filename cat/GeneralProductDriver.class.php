@@ -55,6 +55,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			
 			if($Embedder instanceof marketing_Inquiries2){
 				$form->setField('inqDescription', 'mandatory');
+				$form->setOptions('measureId', cat_UoM::getUomOptions());
 			}
 		}
 		

@@ -118,6 +118,14 @@ class cms_Profiles extends core_Master
         // Промяна на някой данни, след подготовката на профила
         $this->modifyProfile($data);
         
+        if(core_Users::isContractor()){
+        	unset($data->row->createdOn);
+        	unset($data->row->createdBy);
+        	unset($data->User->row->roles);
+        	unset($data->User->row->modifiedOn);
+        	unset($data->User->row->modifiedBy);
+        }
+        
         // Рендираме изгледа
         $tpl = $this->Profile->renderSingle($data);
         

@@ -28,6 +28,8 @@
  * @method forceCoverAndFolder($bForce = TRUE)
  * @method getShipmentOperations()
  * @method getOrigin()
+ * @method getDocumentRow()
+ * @method getIcon()
  */
 class core_ObjectReference
 {

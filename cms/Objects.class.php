@@ -130,7 +130,7 @@ class cms_Objects extends core_Master
                     $data->form->info = "<div style='background-color:#ffff99;border:solid 1px #ffcc66;padding:10px;margin-bottom:15px;'>Съществуващи публикации:<ul>";
                 }
 
-                $data->form->info .= '<li>' . ht::createLink($exRec->tag, array($this, 'single', $exRec->id)) .  ' [obj=' . $exRec->tag . ']</li>';
+                $data->form->info .= '<li>' . ht::createLink($exRec->tag, array($mvc, 'single', $exRec->id)) .  ' [obj=' . $exRec->tag . ']</li>';
             }
 
             if(!$data->form->info) {

@@ -542,8 +542,8 @@ class acc_Balances extends core_Master
      * Връща масив с количествата групирани по размерната номенклатура на сметките
      *
      * @param array $jRecs - масив с данни от журнала
-     * @param string $accsd - Масив от сметки на които ще се изчислява крайното салдо
-     * @param enum(debit,credit,NULL) $type - кредното, дебитното или крайното салдо
+     * @param string $accs - Масив от сметки на които ще се изчислява крайното салдо
+     * @param string|NULL $type - кредното, дебитното или крайното салдо
      * @param string $accFrom - сметки с които може да кореспондира
      *
      * @return stdClass $res - К-та групирани по размерната номенклатура
@@ -631,8 +631,8 @@ class acc_Balances extends core_Master
      * Връща крайното салдо на дадена сметка, според подадени записи
      *
      * @param array $jRecs - масив с данни от журнала
-     * @param string $accsd - Масив от сметки на които ще се изчислява крайното салдо
-     * @param enum(debit,credit,NULL) $type - кредното, дебитното или крайното салдо
+     * @param string $accs - Масив от сметки на които ще се изчислява крайното салдо
+     * @param string|NULL $type - кредното, дебитното или крайното салдо
      * @param string $accFrom - сметки с които може да кореспондира
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      *

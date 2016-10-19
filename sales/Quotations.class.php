@@ -782,6 +782,7 @@ class sales_Quotations extends core_Master
     
     /**
      * Връща масив от използваните документи в офертата
+     * 
      * @param int $id - ид на оферта
      * @return param $res - масив с използваните документи
      * 					['class'] - Инстанция на документа

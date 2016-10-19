@@ -96,6 +96,12 @@ class hr_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "ceo, hr"),
         );
+
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "hr_reports_LeaveDaysPersons";
     
     
     /**

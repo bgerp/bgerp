@@ -49,6 +49,8 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkPPayment');
         $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPProducts');
+        $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkBom');
         $res .= $inst->act_Run();
         //$inst = cls::get('unit_MinkInv');
@@ -89,23 +91,20 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  13.".$this->act_CreateDepartment1();
         $res .= "  14.".$this->act_CreateDepartment2();
         $res .= "  15.".$this->act_CreateProduct();
-        $res .= "  16.".$this->act_CreateProductBom();
-        $res .= "  17.".$this->act_CreateBom();
-        $res .= "  18.".$this->act_CreateEditPerson();
-        $res .= "  19.".$this->act_CreateCompany();
-        $res .= "  20.".$this->act_EditCompany();
-        $res .= "  21.".$this->act_CreateLocation1();
-        $res .= "  22.".$this->act_CreateLocation2();
-        $res .= "  23.".$this->act_CreateEditCompany();
-        $res .= "  24.".$this->act_CreateInq();
-        $res .= "  25.".$this->act_CreateQuotation();
-        $res .= "  26.".$this->act_CreatePurchase();
-        $res .= "  27.".$this->act_CreatePurchaseC();
-        $res .= "  28.".$this->act_CreatePlanningJob();
-        $res .= "  29.".$this->act_CreateSale();
-        $res .= "  30.".$this->act_CreateTask();
-        $res .= "  31.".$this->act_CreateProductVAT9();
-        $res .= "  32.".$this->act_CreatePersonUSA();
+        $res .= "  16.".$this->act_CreateEditPerson();
+        $res .= "  17.".$this->act_CreateCompany();
+        $res .= "  18.".$this->act_EditCompany();
+        $res .= "  19.".$this->act_CreateLocation1();
+        $res .= "  20.".$this->act_CreateLocation2();
+        $res .= "  21.".$this->act_CreateEditCompany();
+        $res .= "  22.".$this->act_CreateInq();
+        $res .= "  23.".$this->act_CreateQuotation();
+        $res .= "  24.".$this->act_CreatePurchase();
+        $res .= "  25.".$this->act_CreatePurchaseC();
+        $res .= "  26.".$this->act_CreateSale();
+        $res .= "  27.".$this->act_CreateTask();
+        $res .= "  28.".$this->act_CreateProductVAT9();
+        $res .= "  29.".$this->act_CreatePersonUSA();
         
         return $res;
     }
@@ -136,7 +135,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
      
     /**
-     * Select2 трябва да се деактивира - не работи
+     * Деактивиране на Select2 
      */
     //http://localhost/unit_MinkPbgERP/DeinstallSelect2/
     function act_DeinstallSelect2()
@@ -528,7 +527,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 1. Създаване на артикул - продукт с параметри, ако го има - редакция.
+     * 1. Създаване на артикул - продукт с параметри
      */
     //http://localhost/unit_MinkPbgERP/CreateProduct/
     function act_CreateProduct()
@@ -547,112 +546,19 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('info', 'черен');
         $browser->setValue('meta_canBuy', 'canBuy');
         $browser->press('Запис');
-    
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            $browser->click('Продукти');
-            $browser->click('Чувал голям 50 L');
-            $browser->press('Редакция');
-            $browser->setValue('info', 'прозрачен');
-            //$browser->setValue('groups[4]', '4');
-            $browser->press('Запис');
-        } else {
-            $browser->click('Добавяне на нов параметър');
-            $browser->setValue('paramId', 'Дължина');
-            $browser->refresh('Запис');
-            $browser->setValue('paramValue', '50');
-            $browser->press('Запис и Нов');
-            $browser->setValue('paramId', 'Широчина');
-            $browser->refresh('Запис');
-            $browser->setValue('paramValue', '26');
-            $browser->press('Запис');
-        }
+        $browser->click('Добавяне на нов параметър');
+        $browser->setValue('paramId', 'Дължина');
+        $browser->refresh('Запис');
+        $browser->setValue('paramValue', '50');
+        $browser->press('Запис и Нов');
+        $browser->setValue('paramId', 'Широчина');
+        $browser->refresh('Запис');
+        $browser->setValue('paramValue', '26');
+        $browser->press('Запис');
         //return $browser->getHtml();
     }
     
-    /**
-     * 1. Създаване на артикул - продукт през папката. Добавяне на рецепта.
-     */
-    //http://localhost/unit_MinkPbgERP/CreateProductBom/
-    function act_CreateProductBom()
-    {
-        // Логване
-        $browser = $this->SetUp();
-         
-        // Създаване на нов артикул - продукт
-        $browser->click('Каталог');
-        $browser->click('Продукти');
-        $browser->press('Артикул');
-        $browser->setValue('name', 'Плик 7 л');
-        $browser->setValue('code', 'plik7');
-        $browser->setValue('measureId', 'брой');
-        $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            $browser->click('Плик 7 л');
-        }
-        // Добавяне рецепта
-        $browser->click('Рецепти');
-        $browser->click('Добавяне на нова търговска технологична рецепта');
-        //$browser->hasText('Добавяне на търговска рецепта към');
-        $browser->setValue('expenses', '3');
-        $browser->setValue('quantityForPrice', '100');
-        $browser->press('Чернова');
-        $browser->press('Влагане');
-        $browser->setValue('resourceId', 'Друг труд');
-        $browser->setValue('propQuantity', '6');
-        $browser->refresh('Запис');
-        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
-        $browser->press('Запис и Нов');
-        $browser->setValue('resourceId', 'Други суровини и материали');
-        $browser->setValue('propQuantity', '1 + $Начално= 10');
-        $browser->refresh('Запис');
-        $browser->press('Запис');
-        $browser->press('Активиране');
-        //return $browser->getHtml();
-    }
-    
-    /**
-     *2. Създаване на рецепта
-     *
-     */
-    //http://localhost/unit_MinkPbgERP/CreateBom/
-    function act_CreateBom()
-    {
-        // Логване
-        $browser = $this->SetUp();
-         
-        $browser->click('Каталог');
-        $browser->click('Продукти');
-        $browser->click('Чувал голям 50 L');
-        $browser->click('Рецепти');
-        $browser->click('Добавяне на нова търговска технологична рецепта');
-        //$browser->hasText('Добавяне на търговска рецепта към');
-        $browser->setValue('notes', 'CreateBom');
-        $browser->setValue('expenses', '8');
-        $browser->setValue('quantityForPrice', '100');
-        $browser->press('Чернова');
-        $browser->press('Влагане');
-        $browser->setValue('resourceId', 'Други суровини и материали');
-        $browser->setValue('propQuantity', '1,6');
-        $browser->refresh('Запис');
-        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
-        $browser->press('Запис и Нов');
-        //$browser->setValue('resourceId', 'Други консумативи');
-        $browser->setValue('resourceId', 'Други заготовки');
-        $browser->setValue('propQuantity', '1,2634');
-        $browser->refresh('Запис');
-        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
-        $browser->press('Запис и Нов');
-        $browser->setValue('resourceId', 'Друг труд');
-        $browser->setValue('propQuantity', '1 + $Начално= 10');
-        $browser->refresh('Запис');
-        $browser->press('Запис');
-        $browser->press('Активиране');
-        //return $browser->getHtml();
-    }
-    
-    /**
+     /**
      * 3. Създаване на лице
      * Select2 трябва да е деинсталиран
      */
@@ -900,14 +806,14 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('others', 'MinkPTestCreateQuotation');
         //$browser->hasText('Създаване на оферта в');
         $browser->press('Чернова');
-        // Добавяне на артикул - нестандартен
+        // Добавяне на артикул 
         $browser->press('Добавяне');
         //return $browser->getHtml();
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
         $browser->setValue('packPrice', 2);
-         // Записване на артикула и добавяне на нов
+         // Записване на артикула и добавяне на нов - нестандартен
         $browser->press('Запис и Нов');
         
         //Несъответствие на линия 120 в /home/pavlina/workspace/bgerp/unit/Browser.class.php
@@ -1185,81 +1091,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     
-    /**
-     * 4. Създава задание за производство
-     * (Ако има предишно задание, трябва да се приключи)
-     */
-    //http://localhost/unit_MinkPbgERP/CreatePlanningJob/
-    function act_CreatePlanningJob()
-    {
-        // Логване
-        $browser = $this->SetUp();
-    
-        // Избиране на артикул
-        $browser->click('Каталог');
-        $browser->click('Продукти');
-        $Item = "Чувал голям 50 L";
-    
-        if(strpos($browser->gettext(), $Item)) {
-            $browser->click($Item);
-            //Добавяне на задание
-            $browser->click('Задания');
-            //Проверка дали може да се добави - не работи
-            //if(strpos($browser->gettext(), 'Добавяне на ново задание за производство')) {
-            $browser->click('Добавяне на ново задание за производство');
-            $valior=strtotime("+1 Day");
-            $browser->setValue('dueDate', date('d-m-Y', $valior));
-            $browser->setValue('quantity', '1000');
-            $browser->setValue('notes', 'CreatePlanningJob');
-    
-            $browser->press('Чернова');
-            $browser->press('Активиране');
-            //Добавяне на задача
-            $browser->click('Добавяне на нова задача за производство');
-            $browser->setValue('hrdepartmentId', 'Производство');
-            
-            $browser->press('Напред');
-            $browser->setValue('storeId', 'Склад 1');
-            $browser->press('Чернова');
-            
-            //return $browser->gethtml();
-            $browser->press('Активиране');
-            //Произвеждане и влагане
-            //$browser->press('Произвеждане'); -разпознава бутона за приключване в заданието
-            $browser->press('Добавяне на произведен артикул');
-            $browser->setValue('quantity', '1000');
-            $browser->setValue('employees[4]', '4');
-            //$browser->setValue('STD', '4');
-            $browser->press('Запис');
-           
-            $browser->press('Влагане');
-            $browser->setValue('taskProductId', 'Други суровини и материали');
-            $browser->setValue('quantity', '1600');
-            $browser->press('Запис и Нов');
-            //$browser->setValue('taskProductId', 'Други консумативи');
-            $browser->setValue('taskProductId', 'Други заготовки');
-            $browser->setValue('quantity', '1263,4');
-            $browser->press('Запис и Нов');
-            $browser->setValue('taskProductId', 'Друг труд');
-            $browser->setValue('quantity', '1010');
-            $browser->press('Запис');
-            // Приключване на задачата - когато са в една нишка, разпознава бутона за приключване на заданието, защото са с еднакви имена
-            $browser->press('Приключване');
-            //Протокол за производство - в заданието
-            $browser->click('Задание за производство №');
-            
-            //$browser->press('Създаване на протокол за производство от заданието');
-            $browser->press('Произвеждане');
-            $browser->setValue('storeId', 'Склад 1');
-            $browser->setValue('note', 'Test');
-            $browser->press('Чернова');
-            $browser->press('Контиране');
-            $browser->press('Приключване');
-        } else {
-        return $this->reportErr('Няма такъв артикул', 'info');
-        }
-        //return $browser->getHtml();
-    }
+   
     
     /**
      * 2. Нова продажба на съществуваща фирма с папка

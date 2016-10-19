@@ -133,6 +133,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	
 	/**
 	 * Връща масив от използваните нестандартни артикули в протоколa
+	 * 
 	 * @param int $id - ид на протоколa
 	 * @return param $res - масив с използваните документи
 	 * 					['class'] - инстанция на документа
