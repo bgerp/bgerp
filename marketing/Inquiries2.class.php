@@ -252,7 +252,7 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$cu = core_Users::getCurrent('id', FALSE);
-    	if($cu){
+    	if(isset($cu) && !core_Users::isPowerUser()){
     		$uRec = core_Users::fetch($cu);
     		$form->setDefault('name', $uRec->names);
     		$form->setDefault('email', $uRec->email);
