@@ -91,10 +91,10 @@ class core_Cron extends core_Manager
         $this->FLD('description', 'varchar', 'caption=Описание');
         $this->FLD('controller', 'varchar(64)', 'caption=Контролер');
         $this->FLD('action', 'varchar(32)', 'caption=Функция');
-        $this->FLD('period', 'minutes', 'caption=Период (мин)');
-        $this->FLD('offset', 'minutes', 'caption=Отместване (мин)');
-        $this->FLD('delay', 'int', 'caption=Закъснение (s)');
-        $this->FLD('timeLimit', 'int', 'caption=Време-лимит (s)');
+        $this->FLD('period', 'minutes(Min=0, max=600000)', 'caption=Период (мин)');
+        $this->FLD('offset', 'minutes(min=0, max=600000)', 'caption=Отместване (мин)');
+        $this->FLD('delay', 'int(min=0, Max=60)', 'caption=Закъснение (s)');
+        $this->FLD('timeLimit', 'int(min=0, max=10000)', 'caption=Време-лимит (s)');
         $this->FLD('state', 'enum(free=Свободно,locked=Заключено,stopped=Спряно)', 'caption=Състояние,1input=none');
         $this->FLD('lastStart', 'datetime', 'caption=Последно->Стартиране,input=none');
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
@@ -721,6 +721,22 @@ class core_Cron extends core_Manager
         $rec = self::fetch($id);
         
         return $rec->systemId;
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Cron $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            if ($form->rec->offset >= $form->rec->period) {
+                $form->setError('offset', 'Отместването трябвада е по-малко от периода');
+            }
+        }
     }
     
     
