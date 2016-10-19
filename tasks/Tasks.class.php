@@ -31,7 +31,7 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $singleTitle = 'Задача';
     

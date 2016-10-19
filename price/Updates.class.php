@@ -23,7 +23,7 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $singleTitle = 'Обновяване на себестойностите';
     
