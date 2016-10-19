@@ -380,7 +380,6 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        
         if (!$force && (!$rec || ($rec->id < 1))) return FALSE;
         
         return (boolean)(!self::isPowerUser($rec));
@@ -406,11 +405,17 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        $powerUserId = core_Roles::fetchByName('powerUser');
-            
-        $isPowerUser = type_Keylist::isIn($powerUserId, $rec->roles);
+        static $isPowerUserArr = array();
         
-        return (boolean)$isPowerUser;
+        if (!isset($isPowerUserArr[$rec->id])) {
+            $powerUserId = core_Roles::fetchByName('powerUser');
+            
+            type_Keylist::isIn($powerUserId, $rec->roles);
+            
+            $isPowerUserArr[$rec->id] = (boolean)type_Keylist::isIn($powerUserId, $rec->roles);
+        }
+        
+        return $isPowerUserArr[$rec->id];
     }
     
     

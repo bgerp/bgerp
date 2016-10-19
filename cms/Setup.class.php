@@ -136,6 +136,9 @@ class cms_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
+        // Това е с цел да се в таблицата с класовете и да може да се избира по интерфейс
+        $html .= core_Classes::add('cms_page_External');
+        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('gallery_Pictures', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,ico', '6MB', 'user', 'every_one');

@@ -361,7 +361,8 @@ class cat_UoM extends core_Manager
     /**
      * Връща запис отговарящ на име на мерна единица
      * (включва българско, английско или фонетично записване)
-     * @param string $string - дума по която се търси
+     * 
+     * @param string $unit - дума по която се търси
      * @return stdClass $rec - записа отговарящ на сис Ид-то
      */
     public static function fetchBySinonim($unit)

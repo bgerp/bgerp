@@ -41,7 +41,7 @@ class acc_ReportDetails extends core_Manager
     {
         // Роли по подразбиране
         setIfNot($data->masterMvc->canReports, 'ceo');
-        setIfNot($data->masterMvc->canAddacclimits, 'ceo');
+        setIfNot($data->masterMvc->canAddacclimits, 'ceo,accLimits');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, TRUE);
         setIfNot($data->masterMvc->showAccReportsInTab, TRUE);
         
