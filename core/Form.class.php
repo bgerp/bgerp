@@ -935,7 +935,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
 
-                    $fld = new ET("\n<tr class='{$name} {$fsRow}'{$rowStyle}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
+                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
                 }
 
                 if($field->inlineTo) {
