@@ -517,6 +517,17 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(get_called_class());
+    
+    	return $self->getTitle($rec);
+    }
+    
+    
+    /**
      * Връща името на запитването
      */
     private function getTitle($id)
