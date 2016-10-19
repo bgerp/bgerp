@@ -109,7 +109,7 @@ class store_Stores extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canAddacclimits = 'ceo,storeMaster,accMaster';
+    public $canAddacclimits = 'ceo,storeMaster,accMaster,accLimits';
     
     
 	/**

@@ -94,7 +94,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canAddacclimits = 'ceo,storeMaster,accMaster';
+    public $canAddacclimits = 'ceo,storeMaster,accMaster,accLimits';
     
     
     /**
