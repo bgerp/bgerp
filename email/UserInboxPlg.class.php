@@ -157,6 +157,20 @@ class email_UserInboxPlg extends core_Plugin
                             $form->setError('roles1', "Потребителя трябва да има поне една роля за екип!");
                         }
                 }
+                
+                // Ако има инпутнати роли
+                if (count($expandedRoles)) {
+                	
+                	// Проверка дали потребителя ще е едновременно 'buyer' и 'powerUser'
+                	$buyerRoleId = core_Roles::fetchByName('buyer');
+                	$powerUserRoleId = core_Roles::fetchByName('powerUser');
+                	$notAllowedRoleCombination = (in_array($buyerRoleId, $expandedRoles) && in_array($powerUserRoleId, $expandedRoles));
+                	
+                	// Ако е сетва се грешка
+                	if($notAllowedRoleCombination === TRUE){
+                		$form->setError('roles1', "Потребителя не може да е 'powerUser' и 'buyer'!");
+                	}
+                }
             }
             
             //Ако редактираме данните във формата
