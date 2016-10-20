@@ -96,7 +96,7 @@ try {
 
 } catch (Exception  $e) {
     
-    if($e instanceOf core_exception_Db && ($link = $e->getDbLink())) { 
+    if($e instanceof core_exception_Db && ($link = $e->getDbLink())) { 
         
         if(defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
             
@@ -116,25 +116,26 @@ try {
                 redirect(array('Index', 'SetupKey' => setupKey()));
             }
             
-            // Опитваме се да поправим базата
-            $e->repairDB($link);
- 
-            // Ако грешката в свързана с не-инициализиране на базата, поставяме линк, само ако потребителя е админ или е в dev бранч
-            if($e->isNotInitializedDB()) {
-
-                try {
-                    if((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
-                        $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
+            if ($e instanceof core_exception_Db) {
+                // Опитваме се да поправим базата
+                $e->repairDB($link);
+                
+                // Ако грешката в свързана с не-инициализиране на базата, поставяме линк, само ако потребителя е админ или е в dev бранч
+                if($e->isNotInitializedDB()) {
+                
+                    try {
+                        if((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
+                            $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
+                        }
+                    } catch(Exception $e) {
+                        reportException($e);
                     }
-                } catch(Exception $e) {
-                    reportException($e);
                 }
             }
         }
     }
     
     reportException($e, $update, FALSE);
-     
 }
 
 

@@ -23,7 +23,7 @@ class label_Templates extends core_Master
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $singleTitle = 'Шаблон';
     

@@ -122,12 +122,11 @@ class cat_type_Uom extends type_Varchar {
 	{
 		// Ако има запис, конвертира се в удобен вид
         $convObject = new stdClass();
-        $unitRec = cat_UoM::fetchBySysId($this->params['unit']);
-        expect($baseUnitId = cat_UoM::fetchBySysId($unitRec)->id);
+        expect($baseUnitId = cat_UoM::fetchBySysId($this->params['unit'])->id);
         
 		if($value === NULL || $value === ''){
 			$convObject->value = '';
-            $convObject->measure = $unitRec->id;
+            $convObject->measure = $baseUnitId;
 		} elseif (empty($this->error)){
 			$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
 		} else {

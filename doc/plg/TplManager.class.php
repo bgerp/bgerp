@@ -33,7 +33,7 @@ class doc_plg_TplManager extends core_Plugin
         
         // Добавя поле за избор на шаблон, ако няма
         if(empty($mvc->fields['template'])){
-        	$mvc->FLD('template', "key(mvc=doc_TplManager,select=name)", 'caption=Допълнително->Шаблон,notChangeableByContractor');
+        	$mvc->FLD('template', "key(mvc=doc_TplManager,select=name)", 'caption=Допълнително->Изглед,notChangeableByContractor');
         }
     }
     
