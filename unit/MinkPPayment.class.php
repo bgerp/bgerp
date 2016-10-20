@@ -1435,4 +1435,85 @@ class unit_MinkPPayment extends core_Manager {
         }
     }
    
+    /**
+     * 6. Бърза покупка от съществуваща фирма с папка
+     * Проверка количество и цени - изрази
+     * Проверка състояние чакащо плащане - няма (платено)
+     */
+     
+    //http://localhost/unit_MinkPPayment/CreatePurchaseMoment/
+    function act_CreatePurchaseMoment()
+    {
+        // Логваме се
+        $browser = $this->SetUp();
+    
+        //Отваряме папката на фирмата
+        ///////$browser = $this->SetFirm();
+    
+        $browser->click('Визитник');
+        $browser->click('F');
+        //$browser->hasText('Фирма bgErp');
+        $browser->click('Фирма bgErp');
+        $browser->press('Папка');
+        // нова покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Покупка');
+        }
+         
+        //$browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPPaymentPurchaseMoment');
+        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('chargeVat', "Включено ДДС в цените");
+        $browser->press('Чернова');
+        // Записваме черновата на покупката
+        // Добавяме нов артикул
+        // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '008+03*08');//32
+        $browser->setValue('packPrice', '010+3*0,8');//12.4
+        $browser->setValue('discount', 3);
+        // Записваме артикула и добавяме нов - услуга
+        $browser->press('Запис и Нов');
+        $browser->setValue('productId', 'Транспорт');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '1000 / 08-09*08');//53
+        $browser->setValue('packPrice', '100/04-3*0,8');//22,6
+        $browser->setValue('discount', '10,16');
+        // Записваме артикула
+        $browser->press('Запис');
+        // активираме покупката
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Отстъпка: BGN 133,59')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
+        }
+    
+        if(strpos($browser->gettext(), 'Хиляда четиристотин шестдесет и един BGN и 0,01')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
+        
+        // Фактура
+        $browser->press('Вх. фактура');
+        $browser->setValue('number', '276');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
+        }
+    }
+     
 }
