@@ -136,7 +136,7 @@ class email_UserInboxPlg extends core_Plugin
                 $rolesByTypeArr = core_Roles::countRolesByType($expandedRoles);
 
                 if ($rolesByTypeArr['rang'] < 1 && $form->rec->state == 'active') {
-                    $form->setError('roles', "Потребителя трябва да има поне една роля за ранг!");
+                    $form->setError('roles', "Потребителят трябва да има поне една роля за ранг!");
                 }
                 
                 if ($rolesByTypeArr['team'] < 1 && $form->rec->state == 'active') {
@@ -154,7 +154,7 @@ class email_UserInboxPlg extends core_Plugin
                         }
                         
                         if (!$isContractor) {
-                            $form->setError('roles1', "Потребителя трябва да има поне една роля за екип!");
+                            $form->setError('roles1', "Потребителят трябва да има поне една роля за екип!");
                         }
                 }
                 
