@@ -78,7 +78,7 @@ class social_Setup extends core_ProtoSetup
     	 
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('social', 'Прикачени файлове в социални мрежи', 'png,gif,ico,bmp,jpg,jpeg,image/*', '1MB', 'user', 'social');
+        $html .= $Bucket->createBucket('social', 'Прикачени файлове в социални мрежи', 'png,gif,ico,bmp,jpg,jpeg,image/*', '1MB', 'user', 'powerUser');
         
         return $html;
     }
@@ -90,7 +90,7 @@ class social_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }

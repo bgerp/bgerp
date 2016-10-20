@@ -115,7 +115,7 @@ class cat_PriceDetails extends core_Manager
     		$primeCostDate = $validFrom;
     	}
         
-    	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId, NULL, $now, $validFrom);
+    	$catalogCost = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $data->masterId, NULL, $now, $validFrom);
     	if($catalogCost == 0 && !isset($rec->primeCost)){
     		$catalogCost = NULL;
     	}
@@ -232,11 +232,11 @@ class cat_PriceDetails extends core_Manager
     	
     	if(isset($catalogCost)){
     		$type = tr('Политика "Каталог"');
-    		if(price_Lists::haveRightFor('single', price_ListRules::PRICE_LIST_CATALOG)){
-    			$type = ht::createLink($type, array('price_Lists', 'single', price_ListRules::PRICE_LIST_CATALOG));
+    		if(price_Lists::haveRightFor('single', cat_Setup::get('DEFAULT_PRICELIST'))){
+    			$type = ht::createLink($type, array('price_Lists', 'single', cat_Setup::get('DEFAULT_PRICELIST')));
     		}
     		
-    		$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_CATALOG, $catalogCost, TRUE);
+    		$verbPrice = price_Lists::roundPrice(cat_Setup::get('DEFAULT_PRICELIST'), $catalogCost, TRUE);
     		$primeCostRows[] = (object)array('type'       => $type, 
     									     'modifiedOn' => $DateTime->toVerbal($catalogCostDate), 
     										 'price'      => "<b>" . $verbPrice . "</b> {$baseCurrencyCode}", 

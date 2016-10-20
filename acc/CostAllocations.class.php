@@ -30,7 +30,7 @@ class acc_CostAllocations extends core_Manager
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $singleTitle = 'разход';
     

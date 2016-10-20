@@ -39,7 +39,7 @@ class trz_Orders extends core_Master
      */
     public $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank';
+    				 plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank,change_Plugin';
     
     
     /**
@@ -106,6 +106,12 @@ class trz_Orders extends core_Master
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, trz';
+    
+    /**
+     * Кой има право да прави начисления
+     */
+    public $canChangerec = 'ceo,trz';
+    
   
     /**
      * За плъгина acc_plg_DocumentSummary
@@ -154,7 +160,7 @@ class trz_Orders extends core_Master
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
     	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('isPaid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Вид,maxRadio=2,columns=2,notNull,value=paid');
-    	$this->FLD('amount', 'double', 'caption=Начисления');
+    	$this->FLD('amount', 'double', 'caption=Дневна компенсация,input=none, changable,recently');
     }
     
     
@@ -276,6 +282,24 @@ class trz_Orders extends core_Master
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
         
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
+        $row->amount = $Double->toVerbal($rec->amount);
+        
+        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->leaveFrom);
     }
     
     
@@ -433,7 +457,7 @@ class trz_Orders extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $row->title;
+        $row->recTitle = $this->getRecTitle($rec, FALSE);
         
         return $row;
     }
@@ -485,4 +509,19 @@ class trz_Orders extends core_Master
     		$query->where("#groupList LIKE '%|{$sysId}|%'");
     	}
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+         
+        $title = tr('Молба за отпуска  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
+         
+        return $title;
+    }
+    
+    
 }

@@ -25,7 +25,8 @@ class crm_ProfilesPlg extends core_Plugin
      * @param array $fields
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
-    {   
+    {           
+
         // В случаите, когато генерираме html за цел, различна от нормалното 
         // показване на обектите, не правим никаква обработка
         if(Mode::is('text', 'plain') || Mode::is('text', 'xhtml') || Mode::is('printing')) {
@@ -50,11 +51,7 @@ class crm_ProfilesPlg extends core_Plugin
                     if(cls::isSubclass($type->params['mvc'], 'core_Users')) {
                         if($type->params['select'] == 'nick' || !$type->params['select']) { 
                             if(($rec->{$name} > 0) && !strpos($row->{$name}, '<')) {
-                            	if(crm_Profiles::haveRightFor('single', $rec->{$name})){
-                            		$row->{$name} = crm_Profiles::createLink($rec->{$name});
-                            	} else {
-                            		$row->{$name} = crm_Profiles::getVerbal($rec->{$name}, 'userId');
-                            	}
+                                $row->{$name} = crm_Profiles::createLink($rec->{$name});
                             }
                         }
                     }
@@ -76,5 +73,6 @@ class crm_ProfilesPlg extends core_Plugin
                 }
             }
         }
+
     }
 }

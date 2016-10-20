@@ -94,7 +94,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canAddacclimits = 'ceo,storeMaster,accMaster';
+    public $canAddacclimits = 'ceo,storeMaster,accMaster,accLimits';
     
     
     /**
@@ -1179,7 +1179,7 @@ class cat_Products extends embed_Manager {
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	core_Users::cancelSystemUser();
     	
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     	
     	return $res;
     }
@@ -1577,7 +1577,7 @@ class cat_Products extends embed_Manager {
             }
             
             if($meta['canSell']) { 
-                if($rec->price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->id)) {
+                if($rec->price = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $rec->id)) {
                     $vat = self::getVat($rec->id);
                     $rec->price *= (1 + $vat);
                     $row->price = $mvc->getVerbal($rec, 'price');
@@ -1880,7 +1880,7 @@ class cat_Products extends embed_Manager {
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
     	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    		    if (!core_Users::isContractor($userId)) {
+    		    if (!core_Users::haveRole('collaborator', $userId)) {
     		        $res = 'no_one';
     		    }
     		}
@@ -1916,7 +1916,7 @@ class cat_Products extends embed_Manager {
     protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
     	// Ако потребителя е контрактор не показваме детайлите
-    	if(core_Users::isContractor()){
+    	if(core_Users::haveRole('collaborator')){
     		$data->noDetails = TRUE;
     		unset($data->row->meta);
     	}
@@ -2054,8 +2054,8 @@ class cat_Products extends embed_Manager {
     	// Ако е инсталиран пакета за партньори и потребителя е партньор
     	// Слагаме за обвивка тази за партньорите
     	if(core_Packs::isInstalled('colab')){
-    		if(core_Users::isContractor()){
-    			$this->load('colab_Wrapper');
+    		if(core_Users::haveRole('collaborator')){
+    			$this->load('cms_ExternalWrapper');
     			$this->currentTab = 'Нишка';
     			
     			$tpl = $this->renderWrapping($tpl);

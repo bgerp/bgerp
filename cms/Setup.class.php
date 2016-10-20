@@ -93,7 +93,7 @@ class cms_Setup extends core_ProtoSetup
 
             'CMS_COPY_ON_SYMBOL_COUNT' => array ('int', 'caption=Добавка при копиране->Брой символи,width=100%'),
 	
-			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role)', 'caption=Добавка при копиране->Изключване за'),
+			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Добавка при копиране->Изключване за'),
 			
 			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
 	);
@@ -136,6 +136,9 @@ class cms_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
+        // Това е с цел да се в таблицата с класовете и да може да се избира по интерфейс
+        $html .= core_Classes::add('cms_page_External');
+        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('gallery_Pictures', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,ico', '6MB', 'user', 'every_one');
@@ -165,7 +168,7 @@ class cms_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }

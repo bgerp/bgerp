@@ -349,7 +349,7 @@ class label_Media extends core_Manager
     	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
     	
     	// Записваме в лога вербалното представяне на резултата от импортирането
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     
     	return $res;
     }

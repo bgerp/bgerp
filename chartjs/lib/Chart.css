@@ -5,7 +5,7 @@
     position: relative;
 }
 .chart-pie {
-    max-width: 400px;
+    max-width: 700px;
 }
 .chart-bar, .chart-line {
     max-width: 600px;

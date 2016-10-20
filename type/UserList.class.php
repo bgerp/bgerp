@@ -121,7 +121,7 @@ class type_UserList extends type_Keylist
             
             $teamMembers = 0;
             
-            foreach($userArr[$t] as $uId) {
+            foreach((array)$userArr[$t] as $uId) {
                     
                 $uRec = $userArr['r'][$uId];
                 if ($uRec->state == 'rejected') continue;
@@ -180,7 +180,7 @@ class type_UserList extends type_Keylist
     
     
     /**
-     * @param mixed $verbalValue
+     * @param mixed $value
      * 
      * @see type_Keylist::fromVerbal_()
      * 

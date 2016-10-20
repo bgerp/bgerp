@@ -675,10 +675,8 @@ div.productImage {
   border-radius: 4px;
   margin-top: 5px;
   padding: 1px 5px;
-  color: #333333 !important;
   cursor: pointer; }
   .group-link:hover {
-    color: black !important;
     background-color: #f1f1f1; }
 
 .groupList .small-padding .productGroupInfo {
@@ -872,7 +870,8 @@ div.mobile {
  * край на стилове за CRM
  */
 .groupTitle {
-  padding: 0 2px; }
+  padding: 0 2px;
+  border-radius: 5px; }
 
 option.team {
   background: black;
@@ -1173,6 +1172,14 @@ td.portal-date {
 
 .thread-opened div.attachments .aHeader {
   background-color: #e0f0e0; }
+
+a.tUnsighted {
+  font-weight: bold; }
+  a.tUnsighted:hover {
+    color: #ee7700 !important; }
+
+a.tOld {
+  opacity: 0.8; }
 
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td {
@@ -2157,6 +2164,10 @@ span.sharing-history-title {
   clear: both;
   background-color: white; }
 
+#all #maincontent .richtext a:hover,
+#all #maincontent .richtext a:visited:hover {
+  color: #ee7700 !important; }
+
 .narrow #all .vertical .formTable {
   padding: 5px; }
 
@@ -2310,29 +2321,25 @@ span.sharing-history-title {
     .logoutBlock a:hover {
       opacity: 0.7; }
 
+.narrow .logoutBlock {
+  background: #babacb; }
+
 .cmsTopContractor {
-  position: relative;
-  min-height: 180px;
-  background: #cce8fb;
-  background: radial-gradient(#cce8fb, #767bb8);
-  border-bottom: 1px solid #777777; }
+  position: relative; }
 
-.wide .cmsTopContractor .app-name {
-  top: 10%; }
-
-  .foldertabs .tab-row {
+  .foldertabs > .tab-row {
     overflow: hidden;
     width: 100%;
-    margin: 0;
     padding: 0;
+    margin-left: 20px;
     list-style: none; }
-  .foldertabs .tab-row .tab {
+  .foldertabs > .tab-row > .row-holder > .tab {
     float: left;
     z-index: auto !important;
-    margin: 0 0.5em 0 0;
+    margin: 1px 0 -1px 2px !important;
     padding: 0 !important;
     border-top: 1px solid #cccccc !important; }
-  .foldertabs .tab-row .tab .tab-title {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title {
     position: relative;
     background: #dddddd;
     background-image: linear-gradient(to bottom, white, #dddddd);
@@ -2344,16 +2351,16 @@ span.sharing-history-title {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     border-radius: 5px 0 0 0;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4); }
-  .foldertabs .tab-row .tab span.tab-title {
+  .foldertabs > .tab-row > .row-holder > .tab >  span.tab-title {
     color: #cccccc; }
-  .foldertabs .tab-row .tab .tab-title:hover,
-  .foldertabs .tab-row .tab .tab-title:hover::after,
-  .foldertabs .tab-row .tab .tab-title:focus,
-  .foldertabs .tab-row .tab .tab-title:focus::after {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover,
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover::after,
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus,
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus::after {
     background: white; }
-  .foldertabs .tab-row .tab .tab-title:focus {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus {
     outline: 0; }
-  .foldertabs .tab-row .tab .tab-title::after {
+  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title::after {
     content: '';
     position: absolute;
     z-index: 1;
@@ -2366,15 +2373,15 @@ span.sharing-history-title {
     box-shadow: 2px 1px 2px rgba(0, 0, 0, 0.4);
     transform: skew(15deg);
     border-radius: 0 5px 0 0; }
-  .foldertabs .tab-row .tab.selected .tab-title,
-  .foldertabs .tab-row .tab.selected .tab-title::after {
+  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title,
+  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title::after {
     background: white !important;
     z-index: 3; }
-  .foldertabs .tab-row .tab:hover .tab-title,
-  .foldertabs .tab-row .tab:hover .tab-title::after {
+  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title,
+  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title::after {
     background: white;
     z-index: 4; }
-  .foldertabs .tab-page {
+  .foldertabs > .tab-page {
     background: white;
     border-radius: 0 !important;
     z-index: 2;
@@ -2384,6 +2391,72 @@ span.sharing-history-title {
 
 .contractorExtHolder {
   padding: 10px; }
+  .contractorExtHolder .deal-history-tab .tab {
+    margin: 0 5px 0 0 !important; }
+  .contractorExtHolder .textWithIcons span:not(.highlight) {
+    top: 0px !important; }
+    .contractorExtHolder .textWithIcons span:not(.highlight) img {
+      top: -2px;
+      position: relative; }
+  .contractorExtHolder a.button,
+  .contractorExtHolder input[type="button"],
+  .contractorExtHolder input[type="submit"],
+  .contractorExtHolder button {
+    background-position: 4px center !important;
+    padding: 0.34em 5px 0.34em 23px !important;
+    background-repeat: no-repeat !important;
+    background-color: #dddddd;
+    border: 1px solid #bbbbbb !important;
+    -moz-border-radius: 3px !important;
+    -webkit-border-radius: 3px !important;
+    border-radius: 3px !important;
+    color: #333333;
+    font-family: arial;
+    font-weight: bold;
+    text-decoration: none;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #b4b4b4;
+    border-right: 1px solid #dfdfdf;
+    -webkit-box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 0px #f1f1f1; }
+    .contractorExtHolder a.button:hover,
+    .contractorExtHolder input[type="button"]:hover,
+    .contractorExtHolder input[type="submit"]:hover,
+    .contractorExtHolder button:hover {
+      background-color: #e5e5e5; }
+      .contractorExtHolder a.button:hover.btn-disabled,
+      .contractorExtHolder input[type="button"]:hover.btn-disabled,
+      .contractorExtHolder input[type="submit"]:hover.btn-disabled,
+      .contractorExtHolder button:hover.btn-disabled {
+        background-color: #dddddd; }
+  .contractorExtHolder select,
+  .contractorExtHolder input,
+  .contractorExtHolder textarea,
+  .contractorExtHolder .chzn-container-single .chzn-single,
+  .contractorExtHolder .chzn-container-active .chzn-single,
+  .contractorExtHolder .chzn-container-active .chzn-single-with-drop,
+  .contractorExtHolder .staticFormView .formFieldValue {
+    border: solid 1px #bbbbbb;
+    -moz-border-radius: 2px !important;
+    -webkit-border-radius: 2px !important;
+    border-radius: 2px !important;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08); }
+  .contractorExtHolder .select2-container--default .select2-selection--single,
+  .contractorExtHolder .select2-dropdown,
+  .contractorExtHolder .select2-container--default .select2-selection--multiple {
+    border: solid 1px #bbbbbb;
+    border-radius: 2px; }
+  .contractorExtHolder .vertical .formTitle a {
+    color: #cccccc !important; }
+    .contractorExtHolder .vertical .formTitle a:hover {
+      color: white !important; }
+  .contractorExtHolder .vertical form[method=post] input[type=submit],
+  .contractorExtHolder form[method=post] input:first-child[type=submit] {
+    text-shadow: none; }
+  .contractorExtHolder .toolbar-btn {
+    max-width: 16px !important; }
 
 .narrow #login-form {
   max-width: 17em !important;
@@ -4527,7 +4600,7 @@ only screen and (max-width: 320px) {
   .printing .group-link:hover {
     cursor: default;
     background-color: #e4e4e4;
-    color: #333333 !important; }
+    color: #ee7700 !important; }
 
 .narrow .printing .document {
   width: 850px; }

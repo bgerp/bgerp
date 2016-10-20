@@ -32,7 +32,15 @@ class type_Keylist extends core_Type {
      * Тук записваме само числа
      */
     public $collation = 'ascii_bin';
-
+    
+    
+    /**
+     * Хендлър на класа
+     *
+     * @var string
+     */
+    public $handler;
+    
 
 	/**
      * Конструктор. Дава възможност за инициализация
@@ -64,18 +72,24 @@ class type_Keylist extends core_Type {
             while($query->fetchAndCache()) {}
         }
 
-        
         foreach($vals as $v) {
             if($v) { 
                 $name = $this->getVerbal($v);
                 if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
+                	$attr = array();
+                	if(isset($this->params['classLink'])){
+                		$attr = array('class' => $this->params['classLink']);
+                	}
+                	
                 	if($this->params['makeLinks'] === 'short'){
-                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v));
+                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v), FALSE, $attr);
                 	} else {
-                		$name = ht::createLink($name, array($mvc, 'Single', $v));
+                		$name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
                 	}
                 }
-                $res .= ($res ? ", " : '') . $name;
+                
+                $delimeter = (isset($this->params['classLink'])) ? " " : ", ";
+                $res .= ($res ? $delimeter : '') . $name;
             }
         }
         
@@ -165,43 +179,9 @@ class type_Keylist extends core_Type {
         $attrCB['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        // $col = $this->params['columns'] ? $this->params['columns'] :
-        // min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
-        //   round(sqrt(max(0, count($this->suggestions) + 1))));
-        
-        if(!$maxChars = $this->params['maxChars']) {
-            $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
-        }
- 
-        // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
-        $i = 0;
-        foreach($this->suggestions as $key => $v) {
-            if($v->group) {
-                $i = 0;
-                continue;
-            }
-            for($j = 2; $j <= 4; $j++) {
-                $max[$j][$i % $j] = max($max[$j][$i % $j], min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
-                $res[] = type_Key::getOptionTitle($v);
-            }
-            $i++;
-        }
-        
-        $max2 = $max[2][0] + $max[2][1] + 4;
-        $max3 = $max[3][0] + $max[3][1] + $max[3][2] + 8;
-        $max4 = $max[4][0] + $max[4][1] + $max[4][2] + $max[4][3] + 12;
-
-        if($max2 > $maxChars) {
-            $col = 1;
-        } elseif($max3 > $maxChars) {
-            $col = 2;
-        } elseif($max4 > $maxChars) {
-            $col = 3;
-        } else {
-            $col = 4;
-        }
-
-         
+        $maxChars = $this->params['maxChars'];
+        $col = self::getCol($this->suggestions, $maxChars);
+      
         $i = 0; $html = ''; $trOpen = FALSE;
         $j = 0; //за конструиране на row-1,row-2 и т.н.
         
@@ -349,6 +329,55 @@ class type_Keylist extends core_Type {
 
 
     /**
+     * Определяне на броя колонки за чексбоксчетата
+     * 
+     * @param array $options    Всички опции
+     * @param int   $maxChars   Максимален брой символи в опция
+     *
+     * @return int              Брой колонки
+     */
+    public static function getCol($options, &$maxChars)
+    {
+        if(!$maxChars) {
+            $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
+            if(count($options) < 6) {
+                $maxChars = $maxChars / 2;
+            }
+        }
+ 
+        // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
+        $i = 0;
+        foreach($options as $key => $v) {
+            if($v->group) {
+                $i = 0;
+                continue;
+            }
+            for($j = 2; $j <= 4; $j++) {
+                $max[$j][$i % $j] = max($max[$j][$i % $j], min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
+                $res[] = type_Key::getOptionTitle($v);
+            }
+            $i++;
+        }
+        
+        $max2 = $max[2][0] + $max[2][1] + 4;
+        $max3 = $max[3][0] + $max[3][1] + $max[3][2] + 8;
+        $max4 = $max[4][0] + $max[4][1] + $max[4][2] + $max[4][3] + 12;
+
+        if($max2 > $maxChars) {
+            $col = 1;
+        } elseif($max3 > $maxChars) {
+            $col = 2;
+        } elseif($max4 > $maxChars) {
+            $col = 3;
+        } else {
+            $col = 4;
+        }
+        
+        return $col;
+    }
+
+
+    /**
      * Връща масив със всички предложения за този списък
      */
     function getSuggestions()
@@ -384,7 +413,11 @@ class type_Keylist extends core_Type {
             if($where = $this->params['where']) {
                 $query->where("{$where}");
             }
-               
+            
+            if($orderBy = $this->params['orderBy']) {
+                $query->orderBy("#{$orderBy}", NULL, TRUE); 
+            }
+             
             if($select != "*") {
                 $query->show($select)
                 ->show('id')
@@ -488,7 +521,7 @@ class type_Keylist extends core_Type {
     /**
      * Конвертира стойността от вербална към (int)  
      * 
-     * @param mixed $verbalValue
+     * @param mixed $value
      * 
      * @see core_Type::fromVerbal_()
      * 
@@ -713,8 +746,8 @@ class type_Keylist extends core_Type {
     /**
      * Връща масив с различията между хранилищата
      * 
-     * @param string $fRepos - Първият масив/keylist
-     * @param string $lRepos - Вторият масив/keylist
+     * @param string|array $fArr - Първият масив/keylist
+     * @param string|array $sArr - Вторият масив/keylist
      * @param boolean $useKey - Дали да се използват ключовете за сравнение
      * 
      * @return array $arr - Масив с различията
@@ -722,26 +755,26 @@ class type_Keylist extends core_Type {
      * $arr['delete'] - изтрити от първия
      * $arr['add'] - добавени към първия
      */
-    static function getDiffArr($fRepos, $lRepos, $useKey=FALSE)
+    static function getDiffArr($fArr, $sArr, $useKey=FALSE)
     {
         // Вземаме масива на първия
-        $fReposArr = type_Keylist::toArray($fRepos);
+        $fArr = type_Keylist::toArray($fArr);
         
         // Вземаме масива на втория
-        $lReposArr = type_Keylist::toArray($lRepos);
+        $sArr = type_Keylist::toArray($sArr);
         
         // Ако е сетнат флага
         if ($useKey) {
             
             // Задаваме ключовете, като стойности
-            $fReposArr = array_keys($fReposArr);
-            $lReposArr = array_keys($lReposArr);
+            $fArr = array_keys($fArr);
+            $sArr = array_keys($sArr);
         }
         
         // Изчисляваме различията
-        $arr['same'] = array_intersect($fReposArr, $lReposArr);
-        $arr['delete'] = array_diff($fReposArr, $lReposArr);
-        $arr['add'] = array_diff($lReposArr, $fReposArr);
+        $arr['same'] = array_intersect($fArr, $sArr);
+        $arr['delete'] = array_diff($fArr, $sArr);
+        $arr['add'] = array_diff($sArr, $fArr);
         
         return $arr;
     }

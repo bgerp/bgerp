@@ -51,7 +51,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf';
+                          acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf,colab_CreateDocumentIntf';
     
     
     /**
@@ -120,6 +120,12 @@ class sales_Sales extends deals_DealMaster
      * Кой може да го активира?
      */
     public $canConto = 'ceo,sales,acc';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'collaborator,ceo,sales';
     
     
     /**
@@ -265,9 +271,9 @@ class sales_Sales extends deals_DealMaster
     {
         parent::setDealFields($this);
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate');
-        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени');
-        $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
+        $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
     }
     
     
@@ -821,7 +827,7 @@ class sales_Sales extends deals_DealMaster
     	core_Lg::push($rec->tplLang);
     	
     	$hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
-    	if(Mode::isReadOnly() || $hasTransport === FALSE){
+    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::haveRole('collaborator')){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     }
@@ -1060,6 +1066,20 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     * 
+     * @param integer $id
+     * 
+     * @return NULL|string
+     */
+    static function getThreadState_($id)
+    {
+        
+        return NULL;
+    }
+    
+    
+    /**
      * След вербализиране на записа
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -1175,5 +1195,20 @@ class sales_Sales extends deals_DealMaster
     	
     	// Връщане на очаквания транспорт
     	return $expectedTransport;
+    }
+    
+    
+    /**
+     * Преди записване на клонирания запис
+     * 
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->state);
     }
 }

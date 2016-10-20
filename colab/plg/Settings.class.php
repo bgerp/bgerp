@@ -21,20 +21,24 @@ class colab_plg_Settings extends core_Plugin
      * 
      * @param core_Mvc $mvc
      * @param mixed $res
-     * @param string $action
+     * @param core_ET $tpl
+     * @param stdClass $data
      */
-    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
+    public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
         if (!$data || !$data->cClass || (!($data->cClass instanceof crm_Profiles))) return ;
         
         // Ако текущия потребител не е контрактор
-        if (!core_Users::isContractor()) return ;
+        if (!core_Users::haveRole('collaborator', $userId)) return ;
         
-        $cProfiles = cls::get('colab_Profiles');
+        $cProfiles = cls::get('cms_Profiles');
+        $cProfiles->load('cms_ExternalWrapper');
         
         $cProfiles->currentTab = 'Профил';
         
         $res = $cProfiles->renderWrapping($tpl, $data);
+        $res->prepend("<div class = 'contractorExtHolder'>");
+        $res->append("</div>");
         
         return FALSE;
     }

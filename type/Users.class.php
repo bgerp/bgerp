@@ -127,7 +127,7 @@ class type_Users extends type_Keylist
                 
                 $haveTeamMembers = FALSE;
               
-                foreach($userArr[$t] as $uId) {
+                foreach((array)$userArr[$t] as $uId) {
                     
                     $uRec = $userArr['r'][$uId];
                     $uRec->id = $uId;

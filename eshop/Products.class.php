@@ -220,7 +220,7 @@ class eshop_Products extends core_Master
 
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
-            	$title = tr('Изпратете запитване за производство');
+            	$title = tr('Изпратете запитване за') . ' ' . tr($rec->name);
             	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
@@ -569,6 +569,8 @@ class eshop_Products extends core_Master
             $cRec = cms_Content::fetch($gRec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
         }
+        
+        $data->form->setOptions('measureId', cat_UoM::getUomOptions());
     }
     
     

@@ -136,7 +136,7 @@ class email_UserInboxPlg extends core_Plugin
                 $rolesByTypeArr = core_Roles::countRolesByType($expandedRoles);
 
                 if ($rolesByTypeArr['rang'] < 1 && $form->rec->state == 'active') {
-                    $form->setError('roles', "Потребителя трябва да има поне една роля за ранг!");
+                    $form->setError('roles', "Потребителят трябва да има поне една роля за ранг!");
                 }
                 
                 if ($rolesByTypeArr['team'] < 1 && $form->rec->state == 'active') {
@@ -154,8 +154,22 @@ class email_UserInboxPlg extends core_Plugin
                         }
                         
                         if (!$isContractor) {
-                            $form->setError('roles1', "Потребителя трябва да има поне една роля за екип!");
+                            $form->setError('roles1', "Потребителят трябва да има поне една роля за екип!");
                         }
+                }
+                
+                // Ако има инпутнати роли
+                if (count($expandedRoles)) {
+                	
+                	// Проверка дали потребителя ще е едновременно 'buyer' и 'powerUser'
+                	$buyerRoleId = core_Roles::fetchByName('buyer');
+                	$powerUserRoleId = core_Roles::fetchByName('powerUser');
+                	$notAllowedRoleCombination = (in_array($buyerRoleId, $expandedRoles) && in_array($powerUserRoleId, $expandedRoles));
+                	
+                	// Ако е сетва се грешка
+                	if($notAllowedRoleCombination === TRUE){
+                		$form->setError('roles1', "Потребителя не може да е 'powerUser' и 'buyer'!");
+                	}
                 }
             }
             

@@ -209,4 +209,17 @@ class plg_ProtoWrapper extends core_Plugin
             $tpl = $tabs->renderHtml($tpl, $currentMainTab, $hint, $hintBtn);
         }
     }
+
+
+    /**
+     * Заменя първия срещант wrapper на mvc клас с нов
+     */
+    public static function changeWrapper($mvc, $newWrapper)
+    {
+        foreach($mvc->_plugins as $key => $plg) {
+            if(is_a($plg, 'plg_ProtoWrapper')) {
+                $mvc->_plugins[$key] = cls::get($newWrapper);
+            }
+        }
+    }
 }

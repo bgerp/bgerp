@@ -198,7 +198,7 @@ class core_Users extends core_Manager
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
         
         
-        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang)', 'caption=Роли');
+        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang, orderBy=orderByRole)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
@@ -250,15 +250,17 @@ class core_Users extends core_Manager
      */
     public static function getRolesWithUsers()
     {
+        $keepMinute = 1440;
+
         // Проверяваме дали записа фигурира в кеша
         $usersRolesArr = core_Cache::get(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $keepMinute);
         if (is_array($usersRolesArr)) return $usersRolesArr;
 
-        $keepMinute = 1440;
-        
         $uQuery = core_Users::getQuery();
         $uQuery->orderBy('#nick');
-
+        
+        $usersRolesArr = array();
+        
         // За всяка роля добавяме потребители, които я имат
         while ($uRec = $uQuery->fetchAndCache()) {
             $rolesArr = type_Keylist::toArray($uRec->roles);
@@ -378,7 +380,6 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        
         if (!$force && (!$rec || ($rec->id < 1))) return FALSE;
         
         return (boolean)(!self::isPowerUser($rec));
@@ -404,11 +405,17 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        $powerUserId = core_Roles::fetchByName('powerUser');
-            
-        $isPowerUser = type_Keylist::isIn($powerUserId, $rec->roles);
+        static $isPowerUserArr = array();
         
-        return (boolean)$isPowerUser;
+        if (!isset($isPowerUserArr[$rec->id])) {
+            $powerUserId = core_Roles::fetchByName('powerUser');
+            
+            type_Keylist::isIn($powerUserId, $rec->roles);
+            
+            $isPowerUserArr[$rec->id] = (boolean)type_Keylist::isIn($powerUserId, $rec->roles);
+        }
+        
+        return $isPowerUserArr[$rec->id];
     }
     
     

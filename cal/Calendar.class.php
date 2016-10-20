@@ -1134,21 +1134,40 @@ class cal_Calendar extends core_Master
     	$nonWorking = $workDays = $allDays = 0;
     	
     	$curDate = date("Y-m-d H:i:s", strtotime("{$leaveFrom}"));
+    	$date1 = trim(date("Y-m-d", strtotime("{$leaveFrom}")));
+    	$date2 = trim(date("Y-m-d ", strtotime("{$leaveTo}")));  
     	
-    	while($curDate < dt::addDays(1, $leaveTo)){
-    		
-    		$dateType = self::getDayStatus($curDate, 'bg');
-    		$testArray [$curDate] = $dateType;
+    	$hours1 = trim(date("H:i:s", strtotime("{$leaveFrom}")));
+    	$hours2 = trim(date("H:i:s", strtotime("{$leaveTo}")));  
+    	
+    	if ($date1 == $date2){
+    	    $date1Type = self::getDayStatus($date1, 'bg');
+    	    if($date1Type->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
+    	        $workDays++;
+    	    } else {
+    	        $nonWorking++;
+    	    }
+    	    $allDays++;
+    	} else { 
+        	while($curDate <= $leaveTo){
 
-    		if($dateType->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
-    			$workDays++;
-    		} else {
-    		    $nonWorking++;
-    		}
-    		    		
-    		$curDate = dt::addDays(1, $curDate); 
-    		
-    		$allDays++;
+        		$dateType = self::getDayStatus($curDate, 'bg');
+        		$testArray [$curDate] = $dateType;
+    
+        		if($dateType->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
+        			$workDays++;
+        		} else {
+        		    $nonWorking++;
+        		}
+        		    		
+        		$curDate = dt::addDays(1, $curDate); 
+        		
+        		$allDays++;
+        	}
+        	
+        	if(($hours1 == $hours2) && $dateType->specialDay  != TRUE ) {
+        	    $workDays -= 1;
+        	}
     	}
 
     	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays, 'testArray'=>$testArray);

@@ -23,7 +23,7 @@ class label_Labels extends core_Master
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $singleTitle = 'Етикет';
     
@@ -213,9 +213,12 @@ class label_Labels extends core_Master
         label_TemplateFormats::addFieldForTemplate($data->form, $templateId);
         
         // Обхождаме масива
-        foreach ((array)$dataArr as $fieldName) {
-        	$oFieldName = $fieldName;
+        foreach ((array)$dataArr as $fieldName => $value) {
+            $oFieldName = $fieldName;
             $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
+        	
+            // Добавяме данните от записите
+            $data->form->rec->$fieldName = $value;
             
             // Стойностите, които идват от интерфейса не се очаква да ги попълва потребителя
             if ($data->form->rec->objId && $data->form->rec->classId) {

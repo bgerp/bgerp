@@ -26,7 +26,12 @@ class doc_ThreadRefreshPlg extends core_Plugin
     function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
     {
         // Ако не се листва, да не се изпълнява
-        if($data->action != 'list') return;
+        if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            if ($data->action != 'single') return ;
+        } elseif($data->action != 'list') {
+            
+            return ;
+        }
         
         // Ако не се вика по AJAX
         if (!Request::get('ajax_mode')) {
@@ -86,7 +91,12 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $threadId = Request::get('threadId', 'int');
         
-        doc_Threads::requireRightFor('single', $threadId);
+        if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            $tRec = doc_Threads::fetch($threadId);
+            colab_Threads::requireRightFor('single', $tRec);
+        } else {
+            doc_Threads::requireRightFor('single', $threadId);
+        }
         
         $hitTime = Request::get('hitTime');
         

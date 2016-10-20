@@ -266,7 +266,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	// Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
     	$Contragent = cls::get($data->rec->contragentClassId);
-    	if(!$Contragent->haveRightFor('single', $rec->contragentId)) return;
+    	if(!$Contragent->haveRightFor('single', $data->rec->contragentId)) return;
     	if(!haveRole($Contragent->canReports)) return;
     	
     	$snapshot = $data->rec->snapshot;

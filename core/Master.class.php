@@ -36,6 +36,12 @@ class core_Master extends core_Manager
     
     
     /**
+     * Клас на горния таб
+     */
+    public $tabTopClass;
+    
+    
+    /**
      * Изпълнява се след конструирането на мениджъра
      */
     static function on_AfterDescription(core_Master &$mvc)
@@ -743,7 +749,7 @@ class core_Master extends core_Manager
     /**
      * След промяна в детайлите на обект от този клас
      */
-    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
     	if(isset($id)){
     		
@@ -775,5 +781,31 @@ class core_Master extends core_Manager
      */
     function updateMaster_($id)
     {
+    }
+    
+    
+    /**
+     * Линк към мастъра, подходящ за показване във форма
+     * 
+     * @param int $id - ид на записа
+     * @return string $masterTitle - линк заглавие
+     */
+    public function getFormTitleLink($id)
+    {
+    	$masterTitle = $this->getTitleById($id);
+    	$len = Mode::is('screenMode', 'narrow') ? 32 : 48;
+    	 
+    	$masterTitle = str::limitLen($masterTitle, $len);
+    	$masterTitle = str_replace('|', '&#124;', $masterTitle);
+    	
+    	$url = $this->getSingleUrlArray($id);
+    	
+    	if(count($url)) {
+    		$masterTitle = ht::createLink($masterTitle, $url, NULL, array('ef_icon' => $this->singleIcon, 'class' => 'linkInTitle'));
+    	}
+    	
+    	$masterTitle = "<b style='color:#ffffcc;'>{$masterTitle}</b>";
+    	
+    	return $masterTitle;
     }
 }

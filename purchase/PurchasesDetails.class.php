@@ -57,19 +57,19 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, purchase';
+    public $canDelete = 'ceo, purchase, collaborator';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, purchase';
+    public $canEdit = 'ceo, purchase, collaborator';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, purchase';
+    public $canAdd = 'ceo, purchase, collaborator';
     
     
     /**
@@ -119,5 +119,22 @@ class purchase_PurchasesDetails extends deals_DealDetail
     public static function on_AfterInputEditForm($mvc, $form)
     {
     	parent::inputDocForm($mvc, $form);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
+    		
+    		if(core_Users::isPowerUser($userId)){
+    			 
+    			if(!haveRole('ceo,purchase')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
     }
 }

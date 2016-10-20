@@ -846,6 +846,8 @@ class blast_ListDetails extends doc_Detail
         
         $cQuery->where("#state != 'rejected' AND #groupList like '%|{$groupId}|%'");
         
+        $csv = array();
+
         while($cRec = $cQuery->fetch()) {
             $rCsv = '';
             

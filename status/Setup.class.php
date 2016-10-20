@@ -102,7 +102,7 @@ class status_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $html = bgerp_Menu::remove($this);
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -110,6 +110,6 @@ class status_Setup extends core_ProtoSetup
         $Plugins->deinstallPlugin('status_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'status_Plugin'";
         
-        return $res;
+        return $html;
     }
 }

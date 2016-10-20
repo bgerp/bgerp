@@ -114,7 +114,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали може да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
-        setIfNot($mvc->canExportdoc, 'powerUser');
+        setIfNot($mvc->canExportdoc, 'user');
         setIfNot($mvc->canForceexpenseitem, 'ceo,acc');
         
         $mvc->setDbIndex('state');
@@ -234,6 +234,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
+        $retUrl = array($mvc, 'single', $data->rec->id);
+        
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
             $data->toolbar->addBtn('Оттегляне', array(
                     $mvc,
@@ -255,21 +257,15 @@ class doc_DocumentPlg extends core_Plugin
         
         //Бутон за добавяне на коментар 
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
-            
-            if (isset($data->rec->threadId) && doc_Threads::haveRightFor('single', $data->rec->threadId)) {
-                
-                $retUrl = array($mvc, 'single', $data->rec->id);
-                
-                if(doc_Comments::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
-                	// Бутон за създаване на коментар
-                	$data->toolbar->addBtn('Коментар', array(
-                			'doc_Comments',
-                			'add',
-                			'originId' => $data->rec->containerId,
-                			'ret_url'=>$retUrl
-                	),
-                			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
-                }
+            if(isset($data->rec->threadId) && doc_Comments::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId, 'folderId' => $data->rec->folderId))){
+            	// Бутон за създаване на коментар
+            	$data->toolbar->addBtn('Коментар', array(
+            			'doc_Comments',
+            			'add',
+            			'originId' => $data->rec->containerId,
+            			'ret_url'=> $retUrl
+            	),
+            			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
             }
         } else {
             //TODO да се "премахне" и оптимизира
@@ -287,8 +283,6 @@ class doc_DocumentPlg extends core_Plugin
                 // Ако имаме права за клониране
                 if ($mvc->haveRightFor('clone', $data->rec->id)) {
                     
-                    $retUrl = array($mvc, 'single', $data->rec->id);
-                
                     if($mvc->haveRightFor('add', (object)array('cloneId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
                     	
                     	// Бутон за клониране
@@ -324,7 +318,7 @@ class doc_DocumentPlg extends core_Plugin
 
         }
         
-        if ($mvc->haveRightFor('single', $data->rec) && !core_Users::isContractor()) {
+        if ($mvc->haveRightFor('single', $data->rec) && !core_Users::haveRole('collaborator')) {
             $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
             
             if ($historyCnt) {
@@ -454,7 +448,7 @@ class doc_DocumentPlg extends core_Plugin
         	    		$folderTitle = doc_Folders::getVerbal($folderRec, 'title');
         	    		$icon = ($folderRec->openThreadsCnt) ? 'img/16/folder-g.png' : 'img/16/folder-y.png';
         	    
-        	    		$row->_rowTools->addLink($folderTitle, array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
+        	    		$row->_rowTools->addLink(tr("Папка"), array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
         	    	}
         	    }
             }
@@ -755,7 +749,7 @@ class doc_DocumentPlg extends core_Plugin
                 	bgerp_Notifications::clear($customUrl);
                 	
                 	// Ако е инсталиран пакета за работа в партньори
-                	if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+                	if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
                 		
                 		// И нишката може да бъде видяна от партньора
                 		$threadRec = doc_Threads::fetch($rec->threadId);
@@ -802,7 +796,15 @@ class doc_DocumentPlg extends core_Plugin
             if (!$res = getRetUrl()) {
             	if($mvc->haveRightFor('single', $rec)){
             		$res = array($mvc, 'single', $id);
-            	} else {
+            	}
+            	
+            	if(core_Packs::isInstalled('colab')){
+            		if(empty($res) && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
+            			$res = array($mvc, 'single', $id);
+            		}
+            	}
+            	
+            	if(empty($res)){
             		$res = array('bgerp_Portal', 'show');
             		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
             	}
@@ -856,6 +858,7 @@ class doc_DocumentPlg extends core_Plugin
         	
         	// Създаване на празен запис в кеш таблицата за разходите
         	doc_ExpensesSummary::save((object)array('containerId' => $rec->containerId));
+        	$mvc->logInAct('Документа става разходно перо', $rec);
         	
         	if (!$res = getRetUrl()) {
         		$res = array($mvc, 'single', $id);
@@ -865,6 +868,38 @@ class doc_DocumentPlg extends core_Plugin
         	
         	return FALSE;
         }
+        
+    	// Екшън за правене на документ от чернова -> чакащ и обратно
+        if($action == 'changepending'){
+        	$mvc->requireRightFor('pending');
+        	expect($id  = Request::get('id', 'int'));
+        	expect($rec = $mvc->fetch($id));
+        	$mvc->requireRightFor('pending', $rec);
+        	
+        	$oldState = $rec->state;
+        	$newState = ($oldState == 'pending') ? 'draft' : 'pending';
+        	$log = ($oldState == 'pending') ? 'Документът се връща в чернова' : 'Документът става на заявка';
+        	
+        	$rec->state = $newState;
+        	$rec->brState = $oldState;
+        	
+        	$mvc->save($rec, 'state,brState');
+        	
+        	// Ако документа е станал чакащ, генерира се събитие
+        	if($newState == 'pending'){
+        		$mvc->invoke('AfterSavePendingDocument', array($rec));
+        	}
+        	
+        	$mvc->logInAct($log, $rec);
+        	
+        	if (!$res = getRetUrl()) {
+        		$res = array($mvc, 'single', $id);
+        	}
+        	 
+        	$res = new Redirect($res);
+        	 
+        	return FALSE;
+    	}
     }
     
     
@@ -1063,8 +1098,13 @@ class doc_DocumentPlg extends core_Plugin
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
             
-            //Изискваме да има права
-            doc_Threads::requireRightFor('single', $mvc->threadId);
+            // Изискваме да има права
+            if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+            	colab_Threads::requireRightFor('single', doc_Threads::fetch($mvc->threadId));
+            } else {
+            	doc_Threads::requireRightFor('single', $mvc->threadId);
+            }
+          
         } elseif (Request::get('clone') && ($cloneId = Request::get('cloneId', 'int'))) {
             
             // Ако създаваме копие 
@@ -1118,7 +1158,12 @@ class doc_DocumentPlg extends core_Plugin
             expect($oRec = doc_Containers::fetch($rec->originId));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
-            doc_Threads::requireRightFor('single', $oRec->threadId);
+            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+                $tRec = doc_Threads::fetch($oRec->threadId);
+                colab_Threads::requireRightFor('single', $tRec);
+            } else {
+                doc_Threads::requireRightFor('single', $oRec->threadId);
+            }
             
             $rec->threadId = $oRec->threadId;
             $rec->folderId = $oRec->folderId;
@@ -1138,8 +1183,14 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if($rec->threadId) {
-            doc_Threads::requireRightFor('single', $rec->threadId);
-            $rec->folderId = doc_Threads::fetch($rec->threadId)->folderId;
+        	$threadRec = doc_Threads::fetch($rec->threadId);
+        	if (core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+        		colab_Threads::requireRightFor('single', $threadRec);
+        	} else {
+        		doc_Threads::requireRightFor('single', $rec->threadId);
+        	}
+            
+            $rec->folderId = $threadRec->folderId;
         }
         
         if(!$rec->folderId) {
@@ -1147,7 +1198,15 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
-        	error('403 Недостъпен ресурс');
+        	if(core_Packs::isInstalled('colab')){
+        		$userId = core_Users::getCurrent();
+        		$colabFolders = colab_Folders::getSharedFolders($userId);
+        		if(!in_array($rec->folderId, $colabFolders)){
+        			error('403 Недостъпен ресурс');
+        		}
+        	} else {
+        		error('403 Недостъпен ресурс');
+        	}
         }
         
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
@@ -1243,10 +1302,12 @@ class doc_DocumentPlg extends core_Plugin
             // Споделените потребители по подразбиране
             $defaultShared = $mvc->getDefaultShared($rec, $cid);
             
-            if ($defaultShared) {
-                unset($defaultShared[-1]);
-                unset($defaultShared[0]);
-                $data->form->setDefault('sharedUsers', $defaultShared);
+            if (core_Users::isPowerUser()) {
+                if ($defaultShared) {
+                    unset($defaultShared[-1]);
+                    unset($defaultShared[0]);
+                    $data->form->setDefault('sharedUsers', $defaultShared);
+                }
             }
         }
     }
@@ -1527,6 +1588,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+
+        if($requiredRoles == 'no_one') return;
+
         // Ако добавяме
         if ($action == 'add') {
             
@@ -1539,7 +1603,14 @@ class doc_DocumentPlg extends core_Plugin
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
     			} elseif(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    				$requiredRoles = 'no_one';
+    			    if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+    			        $tRec = doc_Threads::fetch($rec->threadId);
+    			        if (!colab_Threads::haveRightFor('single', $tRec)) {
+    			            $requiredRoles = 'no_one';
+    			        }
+    			    } else {
+    			        $requiredRoles = 'no_one';
+    			    }
     			} else{
     				
     				// Ако папката на нишката е затворена, не може да се добавят документи
@@ -1547,7 +1618,7 @@ class doc_DocumentPlg extends core_Plugin
     				if(doc_Folders::fetch($folderId)->state == 'closed'){
     					$requiredRoles = 'no_one';
     				}
-    			}        
+    			}
             } elseif ($rec->folderId) {
                 
                 // Ако създаваме нова нишка
@@ -1563,8 +1634,18 @@ class doc_DocumentPlg extends core_Plugin
     				$requiredRoles = 'no_one';
     			}
             }
+            
+            if($requiredRoles != 'no_one'){
+            	if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            		if(!colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->folderId))){
+            			$requiredRoles = 'no_one';
+            		}
+            	}
+            }
         }
 		
+        if($requiredRoles == 'no_one') return;
+
     	if ($rec->id) {
             $oRec = $mvc->fetch($rec->id);
             
@@ -1586,7 +1667,15 @@ class doc_DocumentPlg extends core_Plugin
             	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
             	$haveRightForSingle = $mvc->haveRightFor('single', $rec->id, $userId);
             	if(!$haveRightForSingle){
-            		$requiredRoles = 'no_one';
+            		if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+            			if($oRec->createdBy == $userId){
+            				$requiredRoles = 'collaborator';
+            			} else {
+            				$requiredRoles = 'no_one';
+            			}
+            		} else {
+            			$requiredRoles = 'no_one';
+            		}
             	}
             } elseif ($action == 'reject'  || $action == 'restore') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
@@ -1594,24 +1683,30 @@ class doc_DocumentPlg extends core_Plugin
                     	$requiredRoles = 'powerUser';
                     }
                 } else {
-                    $requiredRoles = 'no_one';
+                	if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)){
+                		if($oRec->createdBy != $userId){
+                			$requiredRoles = 'no_one';
+                		} else {
+                			$requiredRoles = 'collaborator';
+                		}
+                	}
                 } 
             } elseif ($action == 'single') {
             	
             	// Ако нямаме достъп до нишката
-                if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
-                   
+                if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && (($rec->createdBy != $userId) || core_Users::haveRole('collaborator', $rec->createdBy))) {
+                    
                 	// Ако е инсталиран пакета 'colab'
                 	if(core_Packs::isInstalled('colab') && $oRec->threadId){
                 		
                 		// И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
         				// е споделена с партньора)
                 		$isVisibleToContractors = colab_Threads::haveRightFor('single', doc_Threads::fetch($oRec->threadId));
-                		
+                        
                 		if($isVisibleToContractors && doc_Containers::fetch($rec->containerId)->visibleForPartners == 'yes'){
                 			
                 			// Тогава позволяваме на контрактора да има достъп до сингъла на този документ
-                			$requiredRoles = 'contractor';
+                			$requiredRoles = 'collaborator';
                 		} else {
                 			$requiredRoles = 'no_one';
                 		}
@@ -1623,7 +1718,6 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'powerUser';
                     }
                 }
-                
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
@@ -1650,8 +1744,14 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 } else {
                     
-                    // За останалите, проверяваме за сингъл в нишката
-                    $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId, $userId);
+                    if (core_Users::haveRole('collaborator') && $oRec->threadId && core_Packs::isInstalled('colab')) {
+                        // За останалите, проверяваме за сингъл в нишката
+                        $tRec = doc_Threads::fetch($oRec->threadId);
+                        $haveRightForClone = colab_Threads::haveRightFor('single', $tRec, $userId);
+                    } else {
+                        // За останалите, проверяваме за сингъл в нишката
+                        $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId, $userId);
+                    }
                     
                     // Ако има права
                     if ($haveRightForClone) {
@@ -1690,10 +1790,16 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
-                
-                // Трябва да има права за добавяне за да може да клонира
-                $requiredRoles = 'no_one';
+            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
+            	if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)){
+            		if(!colab_Threads::haveRightFor('single', $tRec)){
+            			$requiredRoles = 'no_one';
+            		}
+            	} else {
+            		if(!doc_Threads::haveRightFor('single', $tRec)){
+            			$requiredRoles = 'no_one';
+            		}
+            	}
             }
         }
         
@@ -1719,7 +1825,35 @@ class doc_DocumentPlg extends core_Plugin
         	} else {
         		
         		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
-        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed'){
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending'){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
+        }
+        
+        // Потребителите само с ранг ексикютив може да редактират документи, които те са създали
+        if(!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
+            if ($rec->id && ($action == 'edit') || ($action == 'reject')) {
+                if(!$userId) {
+                    $userId = core_Users::getCurrent();
+                }
+                if(!$rec->createdBy) {
+                    $rec = $mvc->fetch($rec->id);
+                }
+                if($userId && $userId != $rec->createdBy) {
+                    $requiredRoles = 'officer';
+                }
+            }
+        }
+        
+        // Ако екшъна е за чакащ документ
+        if($action == 'pending' && isset($rec)){
+        	if($requiredRoles != 'no_one'){
+        		
+        		// Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
+        		if($rec->state != 'pending' && $rec->state != 'draft'){
+        			$requiredRoles = 'no_one';
+        		} elseif(!$mvc->haveRightFor('single', $rec)){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -2540,8 +2674,11 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->createdBy);
         unset($nRec->modifiedOn);
         unset($nRec->modifiedBy);
-        unset($nRec->state);
         unset($nRec->brState);
+        
+        if (!core_Users::haveRole('collaborator')) {
+            unset($nRec->state);
+        }
         
         setIfNot($thredId, $nRec->threadId, $rec->threadId);
         setIfNot($containerId, $nRec->containerId, $rec->containerId);
@@ -3109,7 +3246,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param integer $id
      * @param core_Manager $detailMvc
      */
-    static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         // Обновява modified полетата
         $mvc->touchRec($id);
@@ -3198,6 +3335,35 @@ class doc_DocumentPlg extends core_Plugin
     		// Оставяме състоянието да се показва само ако не е оттеглено
     		if ($data->rec->state != 'rejected') {
     			unset($data->row->state);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Дали при активиране документа трябва да стане чакащ или активен, метод по подразбиране
+     */
+    public static function on_AfterGetPendingOrActivate($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$res = 'activate';
+    	}
+    }
+
+
+    /**
+     * Връща дали документа е видим за партньори
+     *
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param integer|stdObject $rec
+     */
+    public static function on_AfterIsVisibleForPartners($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	if (!isset($res)) {
+    		if ($mvc->visibleForPartners) {
+    			$res = TRUE;
     		}
     	}
     }

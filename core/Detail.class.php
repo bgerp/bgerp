@@ -282,28 +282,13 @@ class core_Detail extends core_Manager
     	if(!$preposition){
     		$preposition = 'към';
     	}
-    	
-    	$MasterMvc = cls::get($master);
-    	$masterTitle = $MasterMvc->getTitleById($masterId);
-    	
-    	if (!isset($len)) {
-    	    $len = Mode::is('screenMode', 'narrow') ? 32 : 48;
-    	}
-    	
-    	$masterTitle = str::limitLen($masterTitle, $len);
-    	$masterTitle = str_replace('|', '&#124;', $masterTitle);
-    	
-    	$url = $MasterMvc->getSingleUrlArray($masterId);
-    	if(count($url)) {
-    		$masterTitle = ht::createLink($masterTitle, $url, NULL, array('ef_icon' => $MasterMvc->singleIcon, 'class' => 'linkInTitle'));
-    	}
     	 
     	if ($singleTitle) {
     		$single = ' на| ' . mb_strtolower($singleTitle);
     	}
     	 
     	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
-    	$title .= "|* <b style='color:#ffffcc;'>" . $masterTitle . "</b>";
+    	$title .= "|* " . cls::get($master)->getFormTitleLink($masterId);
     	
     	return $title;
     }

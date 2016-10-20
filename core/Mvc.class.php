@@ -33,7 +33,8 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  * @since     v 0.1
  * @link
  * 
- * @method integer save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
+ * @method integer  save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
+ * @method bool     haveRightFor(string $action, NULL|int|object $id, int|NULL $userId)
  */
 class core_Mvc extends core_FieldSet
 {
@@ -565,7 +566,7 @@ class core_Mvc extends core_FieldSet
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
 
             $query->where("#id IN ($ids)");
-        } elseif(ctype_digit($onlyIds)) {
+        } elseif(ctype_digit("{$onlyIds}")) {
             $query->where("#id = $onlyIds");
         }
         
@@ -575,7 +576,7 @@ class core_Mvc extends core_FieldSet
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
-            $q = trim(preg_replace("/[^a-z0-9\p{Ll}]+/ui", ' ', $q));
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
             if($strict) {
                 $qArr = array(str_replace(' ', '%', $q));
@@ -801,7 +802,7 @@ class core_Mvc extends core_FieldSet
      * 
      * 
      * @param integer $id
-     * @param boolean $escape
+     * @param boolean $escaped
      */
     public static function getTitleForId_($id, $escaped = TRUE)
     {

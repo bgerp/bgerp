@@ -102,7 +102,7 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $title = 'Детайли на баланса';
     

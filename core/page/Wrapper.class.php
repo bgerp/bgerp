@@ -25,20 +25,11 @@ class core_page_Wrapper extends core_BaseClass {
         // Определяме каква да е темата обвивката на страницата
         if (!($tplName = Mode::get('wrapper'))) {
             if(Mode::is('printing')) {
-                $tplName =  'page_Print';
+                $tplName = 'page_Print';
             } elseif(haveRole('admin,ceo,manager,officer,executive')) {
                 $tplName = 'core_page_Internal';
             } else {
-                if(core_Users::getCurrent('id', FALSE)){
-                    if(core_Users::isContractor()){
-                        $tplName = 'cms_page_Contractor';
-                    } else {
-                        $tplName = 'cms_page_External';
-                    }
-                } else {
-                    $tplName = 'cms_page_External';
-                }
-
+                $tplName = 'cms_page_External';
             }
         }
         

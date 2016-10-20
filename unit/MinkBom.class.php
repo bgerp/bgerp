@@ -40,7 +40,7 @@ class unit_MinkBom extends core_Manager
         $res .= $this->act_CreateStage2();
         $res .= $this->act_CreateTestBom();
         $res .= $this->act_CreateCompany();
-        $res .= $this->act_CreateStore();
+        //$res .= $this->act_CreateStore();
         $res .= $this->act_CreatePurchase();
         $res .= $this->act_CreateBomStage1();
         $res .= $this->act_CreateBomStage2();
@@ -593,7 +593,7 @@ class unit_MinkBom extends core_Manager
         $browser->press('Запис');
         // активираме покупката
         $browser->press('Активиране');
-        //$browser->press('Активиране/Контиране');
+        $browser->press('Активиране/Контиране');
              
         if(strpos($browser->gettext(), '257,12')) {
         } else {
@@ -606,10 +606,10 @@ class unit_MinkBom extends core_Manager
         }
         
         // Складова разписка
-        $browser->press('Засклаждане');
-        $browser->setValue('storeId', 'Склад 2');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
+        //$browser->press('Засклаждане');
+        //$browser->setValue('storeId', 'Склад 1');
+        //$browser->press('Чернова');
+        //$browser->press('Контиране');
     }
     
     /**

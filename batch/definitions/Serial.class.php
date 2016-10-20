@@ -56,6 +56,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$serials = $this->normalize($value);
 		$serials = $this->makeArray($serials);
 		$count = count($serials);
+		$pattern = '';
 		
 		$errMsg = '|Всички номера трябва да отговарят на формата|*: ';
 		if(!empty($this->rec->prefix)){
@@ -174,11 +175,11 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param cat_ProductDriver $Driver
+	 * @param batch_definitions_Proto $Driver
 	 * @param embed_Manager $Embedder
 	 * @param stdClass $form
 	 */
-	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+	public static function on_AfterInputEditForm(batch_definitions_Proto $Driver, embed_Manager $Embedder, &$form)
 	{
 		$rec = &$form->rec;
 		
@@ -195,8 +196,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      * 
-     * @param text $value
-     * @return text $value
+     * @param string $value
+     * @return string $value
      */
 	public function normalize($value)
 	{
@@ -210,8 +211,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
      * Денормализира партидата
      * 
-     * @param text $value
-     * @return text $value
+     * @param string $value
+     * @return string $value
      */
 	public function denormalize($value)
 	{

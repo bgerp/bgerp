@@ -438,10 +438,9 @@ class acc_Accounts extends core_Manager
         // Импортираме данните от CSV файла. 
         // Ако той не е променян - няма да се импортират повторно 
         $cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
-        $res = '';
         
         // Записваме в лога вербалното представяне на резултата от импортирането 
-        $res .= $cntObj->html;
+        $res = $cntObj->html;
         
         return $res;
     }

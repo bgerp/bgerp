@@ -162,7 +162,7 @@ abstract class deals_DealBase extends core_Master
     	// Ако няма документи с които може да се затвори или е чернова не може да се приключи с друга сделка
     	if($action == 'closewith' && isset($rec)){
     		$options = $mvc->getDealsToCloseWith($rec);
-    		if(!count($options) || $rec->state != 'draft'){
+    		if(!count($options) || ($rec->state != 'draft' && $rec->state != 'pending')){
     			$res = 'no_one';
     		}
     	}
@@ -299,7 +299,7 @@ abstract class deals_DealBase extends core_Master
     	core_App::setTimeLimit(2000);
     	$id = Request::get('id', 'int');
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'draft');
+    	expect($rec->state == 'draft' || $rec->state == 'pending');
     
     	// Трябва потребителя да може да контира
     	$this->requireRightFor('conto', $rec);

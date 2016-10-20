@@ -119,8 +119,9 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Форсираме сериен номер
 	 * 
-	 * @param int $id - ид 
+	 * @param int $taskId     - ид 
 	 * @param number $labelNo - номер на етикета
+	 * @param int $productId  - ид на артикул
 	 * @return int - намерения сериен номер
 	 */
 	public static function force($taskId, $labelNo = 0, $productId)

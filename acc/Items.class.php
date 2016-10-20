@@ -117,7 +117,7 @@ class acc_Items extends core_Manager
      * Кеш на уникален индекс
      */
     protected $unique = 0;
-    
+
     
     /**
      * Описание на модела (таблицата)

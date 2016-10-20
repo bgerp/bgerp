@@ -351,7 +351,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Добавяме посочения номер в модела като вътрешен
      * 
-     * @param array $numbersArr - Масив с номерата, които ще добавяме - tel, fax, mobile
+     * @param array $numbers - Масив с номерата, които ще добавяме - tel, fax, mobile
      * @param int $classId - id на класа
      * @param int $docId - id на документа
      */
@@ -819,7 +819,7 @@ class callcenter_Numbers extends core_Manager
         $retUrl = getRetUrl();
         
         // Ако няма URL, създаваме
-        if (!$retUrl) {
+        if (empty($retUrl)) {
             $retUrl = array('callcenter_Numbers', 'list');
         }
         

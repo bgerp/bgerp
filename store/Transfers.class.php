@@ -361,6 +361,7 @@ class store_Transfers extends core_Master
     
 	/**
      * Връща масив от използваните нестандартни артикули в СР-то
+     * 
      * @param int $id - ид на СР
      * @return param $res - масив с използваните документи
      * 					['class'] - инстанция на документа
@@ -369,7 +370,7 @@ class store_Transfers extends core_Master
     public function getUsedDocs_($id)
     {
     	$res = array();
-    	$dQuery = $this->store_TransfersDetails->getQuery();
+    	$dQuery = store_TransfersDetails::getQuery();
     	$dQuery->EXT('state', 'store_Transfers', 'externalKey=transferId');
     	$dQuery->where("#transferId = '{$id}'");
     	while($dRec = $dQuery->fetch()){
@@ -393,8 +394,9 @@ class store_Transfers extends core_Master
     
     /**
      * Помощен метод за показване на документа в транспортните линии
+     * 
      * @param stdClass $rec - запис на документа
-     * @param stdClass $row - вербалния запис
+     * @return stdClass $row - вербалния запис
      */
     private function prepareLineRows($rec)
     {

@@ -116,8 +116,13 @@
 
 .blogm-comment-form input {
 	padding:3px;
+	width: 300px;
 }
 
+.blogm-comment-form textarea {
+	padding:3px;
+	width: 600px;
+}
 .blogm-category-row {
 	margin-top:5px;
 }

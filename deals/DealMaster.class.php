@@ -160,7 +160,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	protected static function setDealFields($mvc)
 	{
-		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
+		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
 		
 		// Стойности
 		$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
@@ -177,29 +177,29 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('contragentId', 'int', 'input=hidden');
 		
 		// Доставка
-		$mvc->FLD('deliveryTermIdExtended', 'varchar', 'caption=Доставка->Условие,class=w25');
-		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,input=hidden');
+		$mvc->FLD('deliveryTermIdExtended', 'varchar', 'caption=Доставка->Условие,class=w25,notChangeableByContractor');
+		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,input=hidden,notChangeableByContractor');
 		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
-		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
-		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
+		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
+		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад,notChangeableByContractor'); // наш склад, от където се експедира стоката
 		
 		// Плащане
-		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
-		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
+		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale,notChangeableByContractor');
+		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor');
 		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
-		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
+		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса,notChangeableByContractor');
 		
 		// Наш персонал
-		$mvc->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор');
-		$mvc->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Наш персонал->Търговец');
+		$mvc->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор,notChangeableByContractor');
+		$mvc->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Наш персонал->Търговец,notChangeableByContractor');
 		
 		// Допълнително
-		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС');
-		$mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2');
-		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
+		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
+		$mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
+		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
 		
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)',
+				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка)',
 				'caption=Статус, input=none'
 		);
 		
@@ -827,6 +827,12 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
 	    if($fields['-single']){
+	    	if(core_Users::haveRole('collaborator')){
+	    		unset($row->closedDocuments);
+	    		unset($row->initiatorId);
+	    		unset($row->dealerId);
+	    	}
+	    	
 	    	if($rec->originId){
 	    		$row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink();
 	    	}
@@ -842,7 +848,8 @@ abstract class deals_DealMaster extends deals_DealBase
 	    		}
 	    	}
 	    	
-	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
+	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
+	    	(core_Users::haveRole('collaborator')) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
@@ -915,6 +922,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			$noInvStr = tr('без фактуриране');
 			
 			$row->username = core_Lg::transliterate($row->username);
+			$row->responsible = core_Lg::transliterate($row->responsible);
+			
 			core_Lg::pop();
 	    }
 	    
@@ -1131,7 +1140,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$id = Request::get('id', 'int');
     	expect($rec = $this->fetch($id));
     	
-    	if($rec->state != 'draft'){
+    	if($rec->state != 'draft' && $rec->state != 'pending'){
     		return new Redirect(array($this, 'single', $id), '|Договорът вече е активиран');
     	}
     	
@@ -1574,8 +1583,32 @@ abstract class deals_DealMaster extends deals_DealBase
     {
 		// Не може да се клонира ако потребителя няма достъп до папката
     	if($action == 'clonerec' && isset($rec)){
-    		if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
-    			$res = 'no_one';
+    		
+    		// Ако е контрактор може да клонира документите в споделените му папки
+    		if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)){
+    			$colabFolders = colab_Folders::getSharedFolders($userId);
+    			
+    			if(!in_array($rec->folderId, $colabFolders)){
+    				$res = 'no_one';
+    			}
+    		} else {
+    			
+    			// Ако не е контрактор, трябва да има достъп до папката
+    			if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	// Документа не може да се прави на заявка/чернова ако няма поне един детайл
+    	if($action == 'pending' && isset($rec)){
+    		if($res != 'no_one'){
+    			$Detail = cls::get($mvc->mainDetail);
+    			if(!$Detail->fetch("#{$Detail->masterKey} = {$rec->id}")){
+    				$res = 'no_one';
+    			} elseif(core_Users::isPowerUser($userId) && $rec->state == 'draft'){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }
@@ -1595,7 +1628,9 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$options = array();
     	while($rec = $query->fetch()){
-    		$options[$rec->id] = $this->getTitleById($rec->id, TRUE);
+    		if($this->haveRightFor('single', $rec)){
+    			$options[$rec->id] = $this->getTitleById($rec->id, TRUE);
+    		}
     	}
     	
     	$retUrl = getRetUrl();
@@ -1631,6 +1666,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
     	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	if(core_Users::haveRole('collaborator', $userId)){
+    		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+    	}
     	
     	return $this->renderWrapping($form->renderHtml());
     }
@@ -1707,5 +1746,30 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	return $details;
+    }
+    
+    
+    /**
+     * Дали при активиране документа трябва да стане чакащ или активен
+     * 
+     * @param stdClass $rec
+     * @return pending|activate
+     */
+    public function getPendingOrActivate($rec)
+    {
+    	return (core_Users::haveRole('collaborator') ? 'pending' : 'activate');
+    }
+    
+    
+    /**
+     * След като документа става чакащ
+     */
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+    	// Ако потребителя е партньор, то вальора на документа става датата на която е станал чакащ
+    	if(core_Users::haveRole('collaborator', $userId)){
+    		$rec->valior = dt::today();
+    		$mvc->save($rec, 'valior');
+    	}
     }
 }

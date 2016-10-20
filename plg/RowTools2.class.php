@@ -189,6 +189,10 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
+        $data->listFields = arr::make($data->listFields, TRUE);
+
+        unset($data->listFields['_rowTools']);
+
         if (!is_array($data->rows) || empty($data->rows)) return ;
         
         $mustShow = FALSE;

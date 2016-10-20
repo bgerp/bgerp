@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, marketing_InquiryEmbedderIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, marketing_InquiryEmbedderIntf,colab_CreateDocumentIntf';
     
     
     /**
@@ -88,12 +88,6 @@ class marketing_Inquiries2 extends embed_Manager
      * Групиране на документите
      */ 
     public $newBtnGroup = "3.91|Търговия";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,marketing';
     
     
     /**
@@ -172,8 +166,6 @@ class marketing_Inquiries2 extends embed_Manager
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'name'    => 'lastDocUser|clientData',
-    	'email'   => 'lastDocUser|clientData',
     	'tel'     => 'lastDocUser|clientData',
     	'company' => 'lastDocUser|clientData',
     	'country' => 'lastDocUser|clientData|defMethod',
@@ -195,9 +187,9 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,mandatory,hint=Вашето име,contragentDataField=person,formOrder=50');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51,contragentDataField=countryId');
-    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име,contragentDataField=person,formOrder=50,mandatory');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=51,contragentDataField=countryId,mandatory');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл,formOrder=52,mandatory');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
@@ -257,6 +249,24 @@ class marketing_Inquiries2 extends embed_Manager
     	for($i = 1; $i <= $quantityCount; $i++){
     		$fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
     		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption},{$mandatory}");
+    	}
+    	
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	if(isset($cu) && !core_Users::isPowerUser()){
+    		$uRec = core_Users::fetch($cu);
+    		$form->setDefault('name', $uRec->names);
+    		$form->setDefault('email', $uRec->email);
+    	}
+    	
+    	$hide = (isset($cu) && core_Users::haveRole('collaborator', $cu)) ? TRUE : FALSE;
+    	
+    	$contactFields = $this->selectFields("#class == 'contactData'");
+    	if(is_array($contactFields)){
+    		foreach ($contactFields as $name => $value){
+    			if($hide === TRUE){
+    				$form->setField($name, 'input=hidden');
+    			}
+    		}
     	}
     }
     
@@ -322,9 +332,15 @@ class marketing_Inquiries2 extends embed_Manager
     	if($Driver = $mvc->getDriver($rec->id)){
     		$measureId = $Driver->getDefaultUomId();
     	}
+    	
+    	if(isset($rec->measureId)){
+    		$measureId = $rec->measureId;
+    	}
+    	
     	if(!$measureId){
     		$measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
     	}
+    	
     	if(!$measureId){
     		$measureId = cat_UoM::fetchBySinonim('pcs')->id;
     	}
@@ -458,16 +474,6 @@ class marketing_Inquiries2 extends embed_Manager
     		// Име на фирма/лице/име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
-    		//$files = $this->getAttachedFiles($rec, $Driver);
-    		
-    		// Ако има прикачени файлове, добавяме ги
-    		/*if(count($files)){
-	    		foreach ($files as $fh => $name){
-		    		$name = fileman_Files::fetchByFh($fh, 'name');
-		    		$path = fileman_Files::fetchByFh($fh, 'path');
-		    		$PML->AddAttachment($path, $name);
-	    		}
-    		}*/
     		
     		// Адрес на който да се изпрати
     		$PML->AddAddress($emailsTo);
@@ -524,6 +530,17 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(get_called_class());
+    
+    	return $self->getTitle($rec);
     }
     
     
@@ -668,7 +685,7 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Дъстояние на нишката
+     * Състояние на нишката
      */
     public static function getThreadState($id)
     {
@@ -820,7 +837,7 @@ class marketing_Inquiries2 extends embed_Manager
     		if(empty($rec->quantity1) && empty($rec->quantity2) && empty($rec->quantity3)){
     			
     			// Ако има МОК, потребителя трябва да въведе количество, иначе се приема за еденица
-    			if(isset($rec->moq)){
+    			if($rec->moq > 0){
     				$form->setError('quantity1,quantity2,quantity3', "Не е постигнато минималното количество за поръчка|* <b>{$moqVerbal}</b>");
     			} else {
     				$rec->quantity1 = 1;
@@ -828,7 +845,7 @@ class marketing_Inquiries2 extends embed_Manager
     		}
     		
     		// Ако има минимално количество за поръчка
-    		if(isset($rec->moq)){
+    		if($rec->moq > 0){
     			foreach (range(1, 3) as $i){
     				$quantity = $rec->{"quantity{$i}"};
     				
@@ -882,9 +899,12 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->setDefault('name', $personRec->name);
     	}
     	 
-    	// Ако няма потребител, но има бискйвитка зареждаме данни от нея
+    	// Ако няма потребител, но има бисквитка зареждаме данни от нея
     	if(!$cu){
     		$this->setFormDefaultFromCookie($form);
+    		//$form->setField('name', 'mandatory');
+    		//$form->setField('country', 'mandatory');
+    		//$form->setField('email', 'mandatory');
     	}
     	 
     	return $form;

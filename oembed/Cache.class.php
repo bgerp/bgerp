@@ -1,6 +1,14 @@
 <?php
 class oembed_Cache extends core_Manager
 {
+    
+    
+    /**
+     * Дължина на полето URL в модела
+     */
+    const URL_MAX_LEN = 128;
+    
+    
     /**
      * Плъгини за зареждане
      */
@@ -63,7 +71,7 @@ class oembed_Cache extends core_Manager
      */
     function description()
     {
-        $this->FLD('url' , 'varchar(128)', 'caption=URL');
+        $this->FLD('url' , 'varchar(' . self::URL_MAX_LEN . ')', 'caption=URL');
         $this->FLD('html' , 'text', 'caption=HTML за вграждане');
         $this->FLD('provider' , 'varchar(255)', 'caption=Източник');
         
@@ -76,6 +84,8 @@ class oembed_Cache extends core_Manager
     
     public static function getCachedHtml($url)
     {
+        $url = core_String::convertToFixedKey($url, self::URL_MAX_LEN);
+        
         $rec = static::fetch(array("#url = '[#1#]'", $url));
         
         if ($rec) {

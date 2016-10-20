@@ -55,6 +55,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			
 			if($Embedder instanceof marketing_Inquiries2){
 				$form->setField('inqDescription', 'mandatory');
+				$form->setOptions('measureId', cat_UoM::getUomOptions());
 			}
 		}
 		
@@ -68,7 +69,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 				
 				// Всеки дефолтен параметър го добавяме към формата
 				$paramRec = cat_Params::fetch($id);
-				$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},categoryParams,before=meta");
+				$name = cat_Params::getVerbal($paramRec, 'name');
+				if(isset($paramRec->group)){
+					$group = cat_Params::getVerbal($paramRec, 'group');
+					$caption = "Параметри: {$group}->{$name}";
+				} else {
+					$caption = "Параметри->{$name}";
+				}
+				
+				$form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,before=meta");
 				$form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id));
 				
 				// Ако параметъра има суфикс, добавяме го след полето

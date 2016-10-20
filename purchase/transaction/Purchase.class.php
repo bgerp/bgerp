@@ -293,8 +293,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
-        		$amount = round($detailRec->amount, 2);
+        		$amount = $detailRec->amount;
         		$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
+        		$amount = round($amount, 2);
         		
 	        	$debitAccId = '321';
 	        		
@@ -339,7 +340,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function clearCache()
     {
-    	self::$cache = NULL;
+    	self::$cache = array();
     }
     
     
@@ -384,11 +385,13 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Колко е доставено по сделката
      */
-    public static function getDeliveryAmount($jRecs)
+    public static function getDeliveryAmount($jRecs, $id)
     {
-    	$delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit')->amount;
+    	$itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
+    	
+    	$delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', NULL, array(NULL, $itemId, NULL))->amount;
     	$delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912')->amount;
-    
+    	
     	return $delivered;
     }
     

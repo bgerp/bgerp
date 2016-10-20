@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
  * $Id: index.php,v 1.1 2008/06/30 15:16:07 milen Exp $
  */

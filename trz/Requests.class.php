@@ -138,12 +138,13 @@ class trz_Requests extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "5.2|Човешки ресурси"; 
+
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * Кой може да го прави документа чакащ/чернова?
      */
-  //  var $rowToolsField = 'id';
-
+    public $canPending = 'powerUser';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -152,8 +153,8 @@ class trz_Requests extends core_Master
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
-    	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
-    	$this->FLD('leaveTo', 'datetime', 'caption=Считано->До, mandatory');
+    	$this->FLD('leaveFrom', 'datetime (timeSuggestions=00:00)', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveTo', 'datetime (timeSuggestions=23:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
@@ -202,6 +203,20 @@ class trz_Requests extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateRequestsToCalendar($rec->id);
+    	
+    	$subscribedArr = keylist::toArray($rec->sharedUsers);
+    	if(count($subscribedArr)) {
+    	    foreach($subscribedArr as $userId) {
+    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+    	            $rec->message  = self::getVerbal($rec, 'personId'). "| добави |* \"" . self::getRecTitle($rec) . "\"";
+    	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+    	            $rec->customUrl = array('trz_Requests', 'single',  $rec->id);
+    	            $rec->priority = 0;
+    	
+    	            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+    	        }
+    	    }
+    	}
     }
  
     
@@ -244,6 +259,12 @@ class trz_Requests extends core_Master
     	$data->form->setSuggestions('useDaysFromYear', $years);
     	$data->form->setDefault('useDaysFromYear', $years[0]);
     	
+    	$time = "". " 00:00:00";
+    	$time2 = "". " 23:59:59";
+    	
+    	$data->form->setDefault('leaveFrom', $time);
+    	$data->form->setDefault('leaveTo', $time2);
+
     	$rec = $data->form->rec;
         if($rec->folderId){
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
@@ -345,6 +366,28 @@ class trz_Requests extends core_Master
             
     		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+
+        $s1 = trim(strstr($rec->leaveFrom, " "));
+        $s2 = trim(strstr($rec->leaveTo, " "));
+        
+        if($s1 == "00:00:00" && $s2 == "23:59:00"){
+            $row->leaveFrom = trim(strstr($row->leaveFrom, " ", TRUE));
+            $row->leaveTo = trim(strstr($row->leaveTo, " ", TRUE));
+        }
+
+    
     }
     
     
@@ -483,7 +526,7 @@ class trz_Requests extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $row->title;
+        $row->recTitle = $this->getRecTitle($rec, FALSE);
         
         return $row;
     }
@@ -518,6 +561,19 @@ class trz_Requests extends core_Master
         } else {
             $query->where("#coverId = -2");
         }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+         
+        $title = tr('Молба за отпуска  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
+         
+        return $title;
     }
     
 }

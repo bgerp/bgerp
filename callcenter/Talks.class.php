@@ -96,7 +96,7 @@ class callcenter_Talks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
+    var $loadList = 'plg_SelectPeriod,callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
     
 
     /**
@@ -1416,7 +1416,7 @@ class callcenter_Talks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'number, usersSearch, dialStatusType, from, to';
+        $data->listFilter->showFields .= ($data->listFilter->showFields ? ',':'') . 'number, usersSearch, dialStatusType, from, to';
         
         // Инпутваме заявката
         $data->listFilter->input('number, usersSearch, dialStatusType, from, to', 'silent');

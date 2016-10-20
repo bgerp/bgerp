@@ -74,17 +74,46 @@ class cal_Setup extends core_ProtoSetup
             array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', "powerUser, admin"),
         );
 
+
+
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+        array(
+            'systemId' => "StartReminders",
+            'description' => "Известяване за стартирани напомняния",
+            'controller' => "cal_Reminders",
+            'action' =>"SendNotifications",
+            'period' => 1,
+            'offset' => 0,
+        ),
+        
+        array(
+            'systemId' => "UpdateRemindersToCal",
+            'description' => "Обновяване на напомнянията в календара",
+            'controller' => "cal_Reminders",
+            'action' => "UpdateCalendarEvents",
+            'period' => 90,
+            'offset' => 0,
+        )
+    );
+    
     
     /**
-     * Път до js файла
+     * Инсталиране на пакета
      */
-//    var $commonJS = 'cal/js/mouseEvent.js';
+    function install()
+    {
+        $html = parent::install();
     
+        //Създаваме, кофа, където ще държим всички прикачени файлове на напомнянията
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', NULL, '104857600', 'user', 'user');
     
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'cal/tpl/style.css';
+        return $html;
+    }
+    
    
     /**
      * Деинсталиране
@@ -92,7 +121,7 @@ class cal_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }

@@ -29,9 +29,15 @@ class doc_Folders extends core_Master
     
     
     /**
+     * 10 секунди време за опресняване на нишката
+     */
+    public $refreshRowsTime = 10000;
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting, plg_RefreshRows';
     
     
     /**
@@ -55,8 +61,14 @@ class doc_Folders extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'powerUser';
+    var $canWrite = 'no_one';
     
+    
+    /**
+     * Кой може да вижда единичния изглед
+     */
+    var $canSingle = 'powerUser';
+
     
     /**
      * Кой може да добавя?
@@ -80,12 +92,6 @@ class doc_Folders extends core_Master
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'powerUser';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
     
     
     /**
@@ -130,6 +136,17 @@ class doc_Folders extends core_Master
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
         
         $this->setDbUnique('coverId,coverClass');
+    }
+
+
+    /**
+     * Редиректва към съдържанието на папката
+     */
+    public function act_Single()
+    {
+        expect($id = Request::get('id', 'int'));
+
+        return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
     }
     
     
@@ -368,6 +385,9 @@ class doc_Folders extends core_Master
         $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
+        if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+        	$haveRight = colab_Folders::haveRightFor('single', $rec);
+        }
         
         // Иконката на папката според достъпа и
         $img = static::getIconImg($rec, $haveRight);
@@ -381,7 +401,11 @@ class doc_Folders extends core_Master
         
         if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-            $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator'))){
+            	$link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            } else {
+            	$link = array('colab_Threads', 'list', 'folderId' => $rec->id);
+            }
             
             // Ако е оттеглен
             if ($rec->state == 'rejected') {
@@ -458,7 +482,9 @@ class doc_Folders extends core_Master
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
 
-                if(!$rec) {
+                if (!$rec) {
+                    wp($id);
+                    
                     continue;
                 }
                 
@@ -900,7 +926,7 @@ class doc_Folders extends core_Master
         $haveRight = static::haveRightFor('single', $rec);
         
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
-            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Folders::haveRightFor('single', $rec);
             }
         }
@@ -927,6 +953,7 @@ class doc_Folders extends core_Master
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
+            $params['Ctr'] = 'doc_Threads';
             $link = toUrl($params, $isAbsolute);
 
             // Атрибути на линка
@@ -1494,5 +1521,81 @@ class doc_Folders extends core_Master
     	}
     
     	return $options;
+    }
+
+
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+	    $query->orderBy("last=DESC");
+
+        $viewAccess = TRUE;
+	    if ($params['restrictViewAccess'] == 'yes') {
+	        $viewAccess = FALSE;
+	    }
+
+        $me = cls::get('crm_Companies');
+	       
+	    $me->restrictAccess($query, NULL, $viewAccess);
+	    
+        if(!$includeHiddens) {
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+	       
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+
+        if($threadId = $params['moveThread']) {
+            $tRec = doc_Threads::fetch($threadId);
+            expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
+            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->EXT('class', 'core_Classes', 'externalKey=coverClass,externalName=title');
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+       
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '%', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            foreach($qArr as $w) {
+                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+            }
+        }
+ 
+        if($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,searchFieldXpr,class');
+        
+        $res = array();
+        
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = trim($rec->searchFieldXpr) . ' (' . $rec->class . ')';
+        }
+ 
+        return $res;
     }
 }

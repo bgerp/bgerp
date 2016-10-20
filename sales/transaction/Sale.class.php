@@ -395,7 +395,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 	 */
 	public static function clearCache()
 	{
-		self::$cache = NULL;
+		self::$cache = array();
 	}
 	
 	

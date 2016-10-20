@@ -464,7 +464,7 @@ class hr_Departments extends core_Master
     	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
     	
     	// Записваме в лога вербалното представяне на резултата от импортирането
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     	
     	return $res;
     }

@@ -47,15 +47,7 @@ class spcheck_Setup extends core_ProtoSetup
     var $managers = array(
         'spcheck_Dictionary',
     );
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    var $menuItems = array(
-            array(3.87, 'Производство', 'Речник', 'spcheck_Dictionary', 'default', "powerUser")
-        );
-    
+        
     
     /**
      * Инсталиране на пакета

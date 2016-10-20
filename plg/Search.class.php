@@ -217,13 +217,25 @@ class plg_Search extends core_Plugin
                     $equalTo = "";
                 }
                 
-                $w = static::normalizeText($w, array('*'));
+                $w = trim(static::normalizeText($w, array('*')));
+                $minWordLen = strlen($w);
+ 
+                if(strpos($w, ' ')) {
+                    $mode = '"';
+                    $wArr = explode(' ', $w);
+                    foreach($wArr as $part) {
+                        $partLen = strlen($part);
+                        if($partLen < $minWordLen) {
+                            $minWordLen = $partLen;
+                        }
+                    }
+                }
 
                 if(strpos($w, '*') !== FALSE) {
                     $w = str_replace('*', '%', $w);
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if(strlen($w) < 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
+                    if($minWordLen <= 4 || !empty($query->mvc->dbEngine) || $limit > 0) {
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
@@ -247,7 +259,11 @@ class plg_Search extends core_Plugin
             $q = trim($q);
             
             if($q) {
-                $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
+                if($q{0} == '-' && !strpos($q, ' ')) {
+                    $query->where("LOCATE('" . substr($q, 1) . "', #{$field}) = 0");
+                } else {
+                    $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
+                }
             }
         }
     }

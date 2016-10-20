@@ -355,23 +355,19 @@ class core_App
     public static function shutdown($sendOutput = TRUE)
     {
         
-        if (!isDebug() && $sendOutput) {
-            self::flushAndClose();
-        } else {
-            ob_flush();
-            flush();
-        }
-
-
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
         if (session_id()) session_write_close();
 
+
+        if (!isDebug() && $sendOutput) {
+            self::flushAndClose();
+        }
  
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
         
-        // Проверяваме състоянието на системата и ако се налага репорва
+        // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
         
         // Излизаме със зададения статус
@@ -458,8 +454,12 @@ class core_App
         }
             
         // Изпращаме съдържанието на изходния буфер
-        ob_end_flush();
-        flush();
+        if(function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            ob_end_flush();
+            flush();
+        }
     }
 
 

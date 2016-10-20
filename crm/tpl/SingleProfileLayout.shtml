@@ -19,7 +19,7 @@
             <!--ET_BEGIN colabFolders-->
             <fieldset class="detail-info">
 	             <legend class="groupTitle">
-	                 |Достъпни папки|*
+	                 |Достъпни папки|* [#addColabBtn#]
 	             </legend>
                 [#colabFolders#]
             </fieldset>    

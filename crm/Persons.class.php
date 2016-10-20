@@ -160,7 +160,7 @@ class crm_Persons extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    var $canAddacclimits = 'ceo,salesMaster,purchaseMaster,accMaster';
+    var $canAddacclimits = 'ceo,salesMaster,purchaseMaster,accMaster,accLimits';
     
 	
 	/**
@@ -282,7 +282,7 @@ class crm_Persons extends core_Master
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото,export=Csv');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')', 'caption=Групи->Групи,remember,silent,export=Csv');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');

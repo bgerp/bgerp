@@ -512,7 +512,7 @@ class doc_Containers extends core_Manager
             $row->document = new ET("<h2 style='color:red'>[#1#]</h2><p>[#2#]</p>", tr('Грешка при показването на документа'), $debug);
         }
         
-        $row->created = ucfirst($row->created);
+        $row->created = type_Nick::normalize($row->created);
         
         if ($rec->createdBy > 0) {
         	$row->created = crm_Profiles::createLink($rec->createdBy);
@@ -525,7 +525,7 @@ class doc_Containers extends core_Manager
             } else {
                 $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
             }
-            
+
             if(Mode::is('screenMode', 'narrow')) {
                 $row->created = new ET("<div class='profile-summary'><div class='fleft'><div class='fleft'>[#2#]</div><div class='fleft'><span>[#3#]</span>[#1#]</div></div><div class='fleft'>[#HISTORY#]</div><div class='clearfix21'></div></div>",
                     $mvc->getVerbal($rec, 'createdOn'),
@@ -544,7 +544,9 @@ class doc_Containers extends core_Manager
                 // визуализиране на обобщена информация от лога
             }
             
-            $row->created->append(doclog_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+            if (core_Users::isPowerUser()) {
+                $row->created->append(doclog_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+            }
         } else {
             
             if (Mode::is('screenMode', 'narrow')) {
@@ -666,8 +668,11 @@ class doc_Containers extends core_Manager
             $mustSave = TRUE;
         }
         
+        $docRec = $docMvc->fetch($rec->docId);
+        
         if ($rec->docClass && $rec->docId && !isset($rec->visibleForPartners)) {
-            if ($docMvc->visibleForPartners) {
+            
+            if ($docMvc->isVisibleForPartners($docRec)) {
                 $rec->visibleForPartners = 'yes';
             } else {
                 $rec->visibleForPartners = 'no';
@@ -682,8 +687,6 @@ class doc_Containers extends core_Manager
         // 3. Промяна на папката на документа
         
         $fields = 'state,folderId,threadId,containerId,originId';
-        
-        $docRec = $docMvc->fetch($rec->docId);
         
         if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
             $fields .= ',searchKeywords';
@@ -1722,7 +1725,7 @@ class doc_Containers extends core_Manager
                     }
                 
                     if (self::save($rec, 'threadId')) {
-                        self::logNotice('Поправеное threadId', $rec->id);
+                        self::logNotice('Поправено threadId', $rec->id);
                         $resArr['threadId']++;
                     }
                 }

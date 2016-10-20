@@ -55,10 +55,13 @@ class type_Key2 extends type_Int
         
         $resArr = $this->getOptions(1, '', $value);
         
+        $res = NULL;
+        
         if(count($resArr)) {
             $res = reset($resArr);
+            $res = core_Type::escape($res);
         }
-
+        
         return $res;
     }
     
@@ -75,7 +78,7 @@ class type_Key2 extends type_Int
         // 2. Стринг, съдържащ число в скоби най-накрая. Тогава чизслото най-накрая се третира като ид
         // 3. Друг стринг - тогава той точно трябва да отговаря на title в модела
 
-        if(ctype_digit($value)) {
+        if(ctype_digit("{$value}")) {
             $key = $value;
         } else {
             $key = self::getKeyFromTitle($value);
@@ -86,7 +89,7 @@ class type_Key2 extends type_Int
         } else {
             $resArr = $this->getOptions(1, "\"{$value}", TRUE);
         }
-            
+        
         if(count($resArr) == 1) {
 
             return key($resArr);
@@ -103,7 +106,7 @@ class type_Key2 extends type_Int
     /**
      * Връща опците, съответсващи на избраните параметри
      */
-    public function getOptions($limit = NULL, $query = '', $ids = NULL, $includeHiddens = FALSE)
+    public function getOptions($limit = NULL, $search = '', $ids = NULL, $includeHiddens = FALSE)
     { 
         if(!$this->params['selectSourceArr']) {
             if($this->params['selectSource']) {
@@ -125,7 +128,7 @@ class type_Key2 extends type_Int
         
         expect($this->params['titleFld']);
 
-        $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit,  $query, $ids, $includeHiddens);
+        $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit,  $search, $ids, $includeHiddens);
 
         return $resArr;
     }
@@ -181,7 +184,7 @@ class type_Key2 extends type_Int
  
         $options = $this->getOptions($maxSuggestions);
         
-        if(ctype_digit($value)) {
+        if(ctype_digit("{$value}")) {
             $currentOpt = $this->getOptions(1, '', $value, TRUE);
             $key = reset($currentOpt);
             if($key) {
@@ -190,6 +193,8 @@ class type_Key2 extends type_Int
                 }
             }
         }
+        
+        $optionsCnt = count($options);
         
         if($this->params['allowEmpty']) {
             $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
@@ -211,19 +216,19 @@ class type_Key2 extends type_Int
             
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if (count($options) >= $maxSuggestions) {
+            if ($optionsCnt >= $maxSuggestions) {
                 $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
             }
             
             $allowClear = FALSE;
-            if ($invoker->params['allowEmpty'] || isset($options[''])) {
+            if ($this->params['allowEmpty'] || isset($options[''])) {
                 $allowClear = TRUE;
             }
             
             // Добавяме необходимите файлове и стартирам select2
             select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, NULL, $ajaxUrl);
 
-        } elseif(count($options) >= $maxSuggestions && !Mode::is('javascript', 'no')) {
+        } elseif($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';

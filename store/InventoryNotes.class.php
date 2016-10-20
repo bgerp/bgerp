@@ -512,7 +512,9 @@ class store_InventoryNotes extends core_Master
     private function getProductsFromBalance($rec)
     {
     	$res = array();
-    	$rGroup = keylist::toArray($rec->groups);
+    	$rGroup = cat_Groups::getDescendantArray($rec->groups);
+    	$rGroup = keylist::toArray($rGroup);
+    	
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
@@ -548,8 +550,6 @@ class store_InventoryNotes extends core_Master
     			
     			$groups = cat_Products::fetchField($productId, 'groups');
     			if(count($groups)){
-    				// $groups = cat_Groups::getDescendantArray($groups);
-    				// $groups = keylist::fromArray($groups);
     				$aRec->groups = $groups;
     			}
     			

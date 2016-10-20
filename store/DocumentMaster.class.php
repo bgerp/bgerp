@@ -381,7 +381,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Връща масив от използваните нестандартни артикули в документа
      * 
-     * @param int $id - ид на dokumenta
+     * @param int $id - ид на документа
      * @return param $res - масив с използваните документи
      * 					['class'] - инстанция на документа
      * 					['id'] - ид на документа
@@ -425,8 +425,9 @@ abstract class store_DocumentMaster extends core_Master
 
     /**
      * Помощен метод за показване на документа в транспортните линии
+     * 
      * @param stdClass $rec - запис на документа
-     * @param stdClass $row - вербалния запис
+     * @return stdClass $row - вербалния запис
      */
     private function prepareLineRows(&$rec)
     {

@@ -235,6 +235,7 @@ class thumb_Img
      */
     function getAsString()
     {
+
         if(!$this->imgAsString) { 
             switch($this->sourceType) {
                 case 'url':  
@@ -334,42 +335,43 @@ class thumb_Img
      * Задаваме височината и широчината
      */
     function setWidthAndHeight()
-    {
+    {  
         // Ако не са зададени
         if(!$this->width || !$this->height) {
-            if(!$this->imgAsString) {
+            
+            if(!$this->gdRes) {
+                if($this->sourceType == 'string') {
+                    $this->gdRes = @imagecreatefromstring($this->source);
+                } elseif($this->sourceType == 'gdRes') {
+                    $this->gdRes = $this->source;
+                }
+            }
 
-                if(!$this->gdRes) {
-                    if($this->sourceType == 'string') {
-                        $this->gdRes = @imagecreatefromstring($this->source);
-                    } elseif($this->sourceType == 'gdRes') {
-                        $this->gdRes = $this->source;
-                    }
+            if($this->gdRes) {
+                $this->width  = imagesx($this->gdRes);
+                $this->height = imagesy($this->gdRes);
+            } else {
+                switch($this->sourceType) {
+                    case 'url':
+                    case 'path':  
+                        $uri = $this->source;
+                        break;
+                    case 'fileman':
+                        $uri = fileman_Files::fetchByFh($this->source, 'path');
+                        break;
+                    default:
+                        expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
                 }
 
-                if($this->gdRes) {
-                    $this->width  = imagesx($gdRes);
-                    $this->height = imagesy($gdRes);
-                } else {
-                    switch($this->sourceType) {
-                        case 'url':
-                        case 'path':  
-                            $uri = $this->source;
-                            break;
-                        case 'fileman':
-                            $uri = fileman_Files::fetchByFh($this->source, 'path');
-                            break;
-                        default:
-                            expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
-                    }
+                expect($uri);
+                if (is_readable($uri)) {
+                    $fimg = new thumb_FastImageSize($uri);
 
-                    expect($uri);
-                    if (is_readable($uri)) {
-                        $fimg = new thumb_FastImageSize($uri);
-                        list($this->width, $this->height) = $fimg->getSize();
-                    } else {
-                        log_Data::logWarning("Няма достъп до файла: " . $uri);
-                    }
+                  
+
+                    list($this->width, $this->height) = $fimg->getSize();
+                } else {
+                    log_Data::logWarning("Няма достъп до файла: " . $uri);
                 }
             }
         }
@@ -574,6 +576,10 @@ class thumb_Img
      */
     protected function saveThumb()
     {
+        // ToDo: Ако картинката е зададена като файл, размерите и съответстват на изходните, няма ротация и форматите са едни и същи,
+        // можем да направим само копиране на файла, вместо да минаваме през GD
+
+ 
         if($gdRes = $this->getGdRes()) {
             
             $path = $this->getThumbPath();
