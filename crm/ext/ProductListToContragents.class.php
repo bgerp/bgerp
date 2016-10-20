@@ -65,7 +65,7 @@ class crm_ext_ProductListToContragents extends core_Manager
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $singleTitle = 'Артикул за листване';
     

@@ -59,7 +59,7 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
-	 * Еденично заглавие
+	 * Единично заглавие
 	 */
 	public $singleTitle = 'Задача за производство';
 	
