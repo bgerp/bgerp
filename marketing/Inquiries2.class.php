@@ -332,9 +332,15 @@ class marketing_Inquiries2 extends embed_Manager
     	if($Driver = $mvc->getDriver($rec->id)){
     		$measureId = $Driver->getDefaultUomId();
     	}
+    	
+    	if(isset($rec->measureId)){
+    		$measureId = $rec->measureId;
+    	}
+    	
     	if(!$measureId){
     		$measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
     	}
+    	
     	if(!$measureId){
     		$measureId = cat_UoM::fetchBySinonim('pcs')->id;
     	}
