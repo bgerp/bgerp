@@ -70,7 +70,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canEdit = 'ceo, sales, contractor';
+    public $canEdit = 'ceo, sales, collaborator';
     
     
     /**
@@ -78,7 +78,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canAdd = 'ceo, sales, contractor';
+    public $canAdd = 'ceo, sales, collaborator';
     
     
     /**
@@ -86,7 +86,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'ceo, sales, contractor';
+    public $canDelete = 'ceo, sales, collaborator';
     
     
     /**
@@ -217,7 +217,7 @@ class sales_SalesDetails extends deals_DealDetail
     		
     		// Ако в артикула има срок на доставка, показва се полето
     		$term = cat_Products::getParams($rec->productId, 'term');
-    		if(!empty($term) && !core_Users::isContractor()){
+    		if(!empty($term) && !core_Users::haveRole('collaborator')){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){
     				$form->setDefault('term', $term);
@@ -326,8 +326,8 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
-    		if(!core_Users::isContractor($userId)){
-    			
+    		
+    		if(core_Users::isPowerUser()){
     			if(!haveRole('ceo,sales')){
     				$requiredRoles = 'no_one';
     			}

@@ -282,7 +282,7 @@ class crm_Profiles extends core_Master
         // Ако потребителя е контрактор и текущия е супер потребите
         // Показваме папките, в които е споделен
         if(core_Packs::isInstalled('colab')){
-        	if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
+        	if (core_Users::haveRole('collaborator', $data->rec->userId) && core_Users::isPowerUser()) {
         		$data->ColabFolders = new stdClass();
 
                 // URL за промяна
@@ -853,8 +853,8 @@ class crm_Profiles extends core_Master
         // Само ако досега визитката не е имала inCharge, променения потребител и става отговорник
         if(!$person->inCharge) {
         	
-        	// Ако създадения потребител е contractor и няма powerUser
-        	if(core_Users::haveRole('contractor', $user->id) && !core_Users::haveRole('powerUser', $user->id)){
+        	// Ако създадения потребител е collaborator и няма powerUser
+        	if(core_Users::haveRole('collaborator', $user->id) && !core_Users::haveRole('powerUser', $user->id)){
         		
         		// За отговорник стават първия админ/ceo
         		$person->inCharge  = doc_FolderPlg::getDefaultInCharge();
@@ -1014,7 +1014,7 @@ class crm_Profiles extends core_Master
     				$url  = static::getUrl($userId);
     			} 
     			
-    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none') as $role) {
+    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none', 'buyer') as $role) {
                     if($role == 'none') {
                         $attr['style'] .= ";color:#333;"; break;
                     }

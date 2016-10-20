@@ -258,7 +258,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->setDefault('email', $uRec->email);
     	}
     	
-    	$hide = (isset($cu) && core_Users::isContractor($cu)) ? TRUE : FALSE;
+    	$hide = (isset($cu) && core_Users::haveRole('collaborator', $cu)) ? TRUE : FALSE;
     	
     	$contactFields = $this->selectFields("#class == 'contactData'");
     	if(is_array($contactFields)){
@@ -332,9 +332,15 @@ class marketing_Inquiries2 extends embed_Manager
     	if($Driver = $mvc->getDriver($rec->id)){
     		$measureId = $Driver->getDefaultUomId();
     	}
+    	
+    	if(isset($rec->measureId)){
+    		$measureId = $rec->measureId;
+    	}
+    	
     	if(!$measureId){
     		$measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
     	}
+    	
     	if(!$measureId){
     		$measureId = cat_UoM::fetchBySinonim('pcs')->id;
     	}

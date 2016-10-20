@@ -184,11 +184,10 @@ class marketing_Router
 		}
 		
 		if($person = $query->fetch()){
-			
 			try{
 				expect($person, $person);
 			} catch(core_exception_Expect $e){
-				$e->logError();
+				reportException($e);
 			}
 			
 			return crm_Persons::forceCoverAndFolder((object)array('id' => $person->id, 'inCharge' => $inCharge));

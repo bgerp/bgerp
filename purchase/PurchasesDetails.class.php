@@ -57,19 +57,19 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, purchase, contractor';
+    public $canDelete = 'ceo, purchase, collaborator';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, purchase, contractor';
+    public $canEdit = 'ceo, purchase, collaborator';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, purchase, contractor';
+    public $canAdd = 'ceo, purchase, collaborator';
     
     
     /**
@@ -129,7 +129,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     {
     	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
     		
-    		if(!core_Users::isContractor($userId)){
+    		if(core_Users::isPowerUser($userId)){
     			 
     			if(!haveRole('ceo,purchase')){
     				$requiredRoles = 'no_one';

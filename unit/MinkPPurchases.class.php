@@ -1110,7 +1110,7 @@ class unit_MinkPPurchases extends core_Manager {
         //Проверка на статистиката
         if(strpos($browser->gettext(), '248,91 248,91 248,91 248,91')) {
         } else {
-            return $this->reportErr('Грешни суми в мастера', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
     }

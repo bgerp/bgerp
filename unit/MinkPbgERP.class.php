@@ -105,6 +105,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  27.".$this->act_CreateTask();
         $res .= "  28.".$this->act_CreateProductVAT9();
         $res .= "  29.".$this->act_CreatePersonUSA();
+        $res .= "  30.".$this->act_EditCms();
         
         return $res;
     }
@@ -198,7 +199,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('officer', '10');
         //$browser->setValue('Дилър', '79');
         //$browser->setValue('Главен офис', '13');
-        $browser->setValue('Headquarter', '13');
+        $browser->setValue('Headquarter', '15');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
@@ -222,7 +223,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Складове"');
         $browser->setValue('name', 'Склад 1');
-        $browser->setValue('chiefs_13_1', '13_1');
+        $browser->setValue('chiefs_15_1', '15_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -250,7 +251,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
         $browser->setValue('iban', '#BG11CREX92603114548401');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('operators_13_1', '13_1');
+        $browser->setValue('operators_15_1', '15_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -282,7 +283,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('iban', '#BG33UNCR70001519562303');
         $browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('operators_13_1', '13_1');
+        $browser->setValue('operators_15_1', '15_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -309,7 +310,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Фирмени каси"');
         $browser->setValue('name', 'КАСА 1');
-        $browser->setValue('cashiers_13_1', '13_1');
+        $browser->setValue('cashiers_15_1', '15_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -513,7 +514,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Производство');
         $browser->setValue('parentId', 'Завод');
-        $browser->setValue('shared_13_2', '13_2');
+        $browser->setValue('shared_15_2', '15_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -998,7 +999,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('template', "Purchase contract");
         //return $browser->getHtml();
         $browser->press('Чернова');
-    
+        
         // Записваме черновата на покупката
         // Добавяме артикул
         $browser->press('Артикул');
@@ -1442,5 +1443,25 @@ class unit_MinkPbgERP extends core_Manager {
         // Създаване на папка на лицето
         $browser->press('Папка');
         //return $browser->getHtml();
-    }  
+    }
+    
+    /**
+     * 1. Cms - настройки
+     */
+    //http://localhost/unit_MinkPbgERP/EditCms/
+    function act_EditCms()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Админ');
+        $browser->click('Пакети');
+        $browser->setValue('search', 'cms');
+        $browser->press('Филтрирай');
+        $browser->click('Настройки');
+        if (strpos($browser->getText(),"Стандартна публична страница")){
+        } else {
+            return $this->reportErr('Липсва избор за Класове', 'warning');
+        }
+    }
+    
 }

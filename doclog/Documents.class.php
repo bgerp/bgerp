@@ -2253,7 +2253,7 @@ class doclog_Documents extends core_Manager
                 if ($data->containerId) {
                     $document = doc_Containers::getDocument($data->containerId);
                 }
-                if($document->haveRightFor('single') && !core_Users::isContractor()){
+                if($document->haveRightFor('single') && !core_Users::haveRole('collaborator')){
                     $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
                 }
             } catch (core_exception_Expect $e) {

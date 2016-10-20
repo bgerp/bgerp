@@ -37,7 +37,7 @@ class cms_page_External extends core_page_Active
         $this->prepend(cms_Domains::getSeoTitle(), 'PAGE_TITLE');
 
         // Ако е логнат потребител
-        if (!core_Users::isContractor()) {
+        if (!core_Users::haveRole('buyer')) {
             
             // Абонираме за промяна на броя на нотификациите
             bgerp_Notifications::subscribeCounter($this);
@@ -54,12 +54,11 @@ class cms_page_External extends core_page_Active
         }
         
         $this->push('cms/css/Wide.css', 'CSS');
-       // $this->push('cms/css/Modern.css', 'CSS');
 
         $this->push('js/overthrow-detect.js', 'JS');
         
         // Евентуално се кешират страници за не PowerUsers
-        if(($expires = Mode::get('BrowserCacheExpires')) && !haveRole('user')) {//bp();
+        if(($expires = Mode::get('BrowserCacheExpires')) && !haveRole('user')) {
             $this->push('Cache-Control: public', 'HTTP_HEADER');
             $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + $expires) . ' GMT', 'HTTP_HEADER');
             $this->push('-Pragma', 'HTTP_HEADER');
@@ -70,7 +69,6 @@ class cms_page_External extends core_page_Active
 
         $pageTpl = getFileContent('cms/tpl/Page.shtml');
                 
-        //$pageTpl = getFileContent('cms/tpl/PageModern.shtml');
         if(isDebug() && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';
         }
@@ -96,7 +94,7 @@ class cms_page_External extends core_page_Active
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
         
         // Ако е логнат потребител, който не е powerUser
-        if(core_Users::getCurrent() && !core_Users::isPowerUser()){
+        if(core_Users::haveRole('buyer') && !core_Users::isPowerUser()){
         	$this->placeExternalUserData();
         }
     }
@@ -124,7 +122,6 @@ class cms_page_External extends core_page_Active
     {
         // Генерираме хедъра и Линка към хедъра
         $invoker->appendOnce(cms_Feeds::generateHeaders(), 'HEAD');
-        //$invoker->replace(cms_Feeds::generateFeedLink(), 'FEED');
         
         if (!Mode::get('lastNotificationTime')) {
             Mode::setPermanent('lastNotificationTime', time());    
@@ -133,5 +130,4 @@ class cms_page_External extends core_page_Active
         // Добавяне на включвания външен код
         cms_Includes::insert($invoker);
     }
-
 }
