@@ -193,7 +193,7 @@ abstract class deals_DealDetail extends doc_Detail
         	}
         }
         
-        if(core_Users::isContractor()){
+        if(core_Users::haveRole('collaborator') && !core_Users::haveRole('powerUser')){
         	$form->setField('packPrice', 'input=none');
         	$form->setField('tolerance', 'input=none');
         	$form->setField('discount', 'input=none');

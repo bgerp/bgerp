@@ -314,7 +314,7 @@ class acc_plg_Contable extends core_Plugin
                 } else {
                     
                     // Ако потребителя не може да контира документа, не може и да го оттегля
-                    if(!(core_Packs::isInstalled('colab') && core_Users::isContractor($userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
+                    if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
                     	if(!haveRole($mvc->getRequiredRoles('conto'))){
                     		$requiredRoles = 'no_one';
                     	}
@@ -324,7 +324,7 @@ class acc_plg_Contable extends core_Plugin
         } elseif ($action == 'restore') {
         	
         	// Ако потребителя не може да контира документа, не може и да го възстановява
-        	if(!(core_Packs::isInstalled('colab') && core_Users::isContractor($userId) && $rec->createdBy == $userId)){
+        	if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId) && $rec->createdBy == $userId)){
         		if(!haveRole($mvc->getRequiredRoles('conto'))){
         			$requiredRoles = 'no_one';
         		}

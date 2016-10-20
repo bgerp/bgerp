@@ -25,7 +25,7 @@ class colab_plg_CreateDocument extends core_Plugin
 			$addContractor = FALSE;
 			
 			// Ако документа е от тези, които може да се създават от партньори
-			if(core_Users::isContractor($userId)){
+			if(core_Users::haveRole('collaborator', $userId)){
 				$documents = colab_Setup::get('CREATABLE_DOCUMENTS_LIST');
 				if(keylist::isIn($mvc->getClassId(), $documents)){
 					$addContractor = TRUE;
@@ -49,7 +49,7 @@ class colab_plg_CreateDocument extends core_Plugin
 			if($addContractor === TRUE){
 				$property = ucfirst($action);
 				$property = "can{$property}";
-				$mvc->{$property} .= ",contractor";
+				$mvc->{$property} .= ",collaborator";
 			}
 		}
 	}
@@ -61,7 +61,7 @@ class colab_plg_CreateDocument extends core_Plugin
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		// Ако не е контрактор 
-		if(!core_Users::isContractor()) return;
+		if(!core_Users::haveRole('collaborator')) return;
 		
 		$form = &$data->form;
 		
@@ -77,7 +77,7 @@ class colab_plg_CreateDocument extends core_Plugin
 		plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
 		
 		// Контракторите да не могат да споделят потребители
-		if (core_Users::isContractor()) {
+		if (core_Users::haveRole('collaborator')) {
 			if($mvc->getField('sharedUsers', FALSE)){
 				$data->form->setField('sharedUsers', 'input=none');
 			}
@@ -96,7 +96,7 @@ class colab_plg_CreateDocument extends core_Plugin
 	{
 	    $rec = $mvc->fetch($id);
 	    
-	    if (core_Users::isContractor($rec->createdBy)) {
+	    if (core_Users::haveRole('collaborator', $rec->createdBy)) {
 	        $res = 'opened';
 	    } elseif (core_Users::isPowerUser($rec->createdBy) && $mvc->isVisibleForPartners($rec)) {
 	        $res = 'closed';
