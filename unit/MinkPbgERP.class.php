@@ -105,6 +105,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  27.".$this->act_CreateTask();
         $res .= "  28.".$this->act_CreateProductVAT9();
         $res .= "  29.".$this->act_CreatePersonUSA();
+        $res .= "  30.".$this->act_EditCms();
         
         return $res;
     }
@@ -998,7 +999,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('template', "Purchase contract");
         //return $browser->getHtml();
         $browser->press('Чернова');
-    
+        
         // Записваме черновата на покупката
         // Добавяме артикул
         $browser->press('Артикул');
@@ -1442,5 +1443,25 @@ class unit_MinkPbgERP extends core_Manager {
         // Създаване на папка на лицето
         $browser->press('Папка');
         //return $browser->getHtml();
-    }  
+    }
+    
+    /**
+     * 1. Cms - настройки
+     */
+    //http://localhost/unit_MinkPbgERP/EditCms/
+    function act_EditCms()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Админ');
+        $browser->click('Пакети');
+        $browser->setValue('search', 'cms');
+        $browser->press('Филтрирай');
+        $browser->click('Настройки');
+        if (strpos($browser->getText(),"Стандартна публична страница")){
+        } else {
+            return $this->reportErr('Липсва избор за Класове', 'warning');
+        }
+    }
+    
 }
