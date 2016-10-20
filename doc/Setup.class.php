@@ -258,6 +258,10 @@ class doc_Setup extends core_ProtoSetup
             $html .= core_Roles::addOnce($role, $inherit, 'rang');
         }
         
+        // Роли за потребители от външната част
+        $html .= core_Roles::addOnce('buyer', 'contractor', 'rang');
+        $html .= core_Roles::addOnce('collaborator', 'buyer', 'rang');
+        
         // Ако няма нито една роля за екип, добавяме екип за главна квартира
         $newTeam = FALSE;
         
