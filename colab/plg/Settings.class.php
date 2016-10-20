@@ -37,6 +37,8 @@ class colab_plg_Settings extends core_Plugin
         $cProfiles->currentTab = 'Профил';
         
         $res = $cProfiles->renderWrapping($tpl, $data);
+        $res->prepend("<div class = 'contractorExtHolder'>");
+        $res->append("</div>");
         
         return FALSE;
     }
