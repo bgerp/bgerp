@@ -54,7 +54,7 @@ class bgerp_Portal extends core_Manager
     {
         // Ако е инсталиран пакета за партньори
     	// И текущия потребител е контрактор, но не е powerUser
-    	if(core_Users::isContractor()){
+    	if(core_Users::haveRole('buyer', $userId) && !core_Users::haveRole('powerUser', $userId)){
         		
     		// Редирект към профила на партньора
     		return new Redirect(array('cms_Profiles', 'single'));

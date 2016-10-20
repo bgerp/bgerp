@@ -258,7 +258,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->setDefault('email', $uRec->email);
     	}
     	
-    	$hide = (isset($cu) && core_Users::isContractor($cu)) ? TRUE : FALSE;
+    	$hide = (isset($cu) && core_Users::haveRole('collaborator', $cu)) ? TRUE : FALSE;
     	
     	$contactFields = $this->selectFields("#class == 'contactData'");
     	if(is_array($contactFields)){

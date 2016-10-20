@@ -827,7 +827,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
 	    if($fields['-single']){
-	    	if(core_Users::isContractor()){
+	    	if(core_Users::haveRole('collaborator')){
 	    		unset($row->closedDocuments);
 	    		unset($row->initiatorId);
 	    		unset($row->dealerId);
@@ -849,7 +849,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	}
 	    	
 	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
-	    	(core_Users::isContractor()) ? $row->responsible = $cuNames : $row->username = $cuNames;
+	    	(core_Users::haveRole('collaborator')) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
@@ -1585,7 +1585,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($action == 'clonerec' && isset($rec)){
     		
     		// Ако е контрактор може да клонира документите в споделените му папки
-    		if(core_Packs::isInstalled('colab') && core_Users::isContractor($userId)){
+    		if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)){
     			$colabFolders = colab_Folders::getSharedFolders($userId);
     			
     			if(!in_array($rec->folderId, $colabFolders)){
@@ -1665,7 +1665,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
-    	if(core_Users::isContractor()){
+    	if(core_Users::haveRole('collaborator', $userId)){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
@@ -1755,7 +1755,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public function getPendingOrActivate($rec)
     {
-    	return (core_Users::isContractor() ? 'pending' : 'activate');
+    	return (core_Users::haveRole('collaborator') ? 'pending' : 'activate');
     }
     
     
@@ -1765,7 +1765,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
     	// Ако потребителя е партньор, то вальора на документа става датата на която е станал чакащ
-    	if(core_Users::isContractor()){
+    	if(core_Users::haveRole('collaborator', $userId)){
     		$rec->valior = dt::today();
     		$mvc->save($rec, 'valior');
     	}

@@ -120,7 +120,7 @@ class bgerp_Notifications extends core_Manager
         if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
         // Да не се нотифицира контрактора
-        if (core_Users::isContractor($userId)) return ;
+        if (core_Users::haveRole('buyer', $userId) && !core_Users::haveRole('powerUser', $userId)) return ;
         
         if(!$priority) {
             $priority = 'normal';
@@ -171,7 +171,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         // Да не се нотифицира контрактора
-        if (core_Users::isContractor($userId)) return ;
+        if (core_Users::haveRole('buyer', $userId) && !core_Users::haveRole('powerUser', $userId)) return ;
         
         if(empty($userId)) {
             return;

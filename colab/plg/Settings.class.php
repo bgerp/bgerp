@@ -29,7 +29,7 @@ class colab_plg_Settings extends core_Plugin
         if (!$data || !$data->cClass || (!($data->cClass instanceof crm_Profiles))) return ;
         
         // Ако текущия потребител не е контрактор
-        if (!core_Users::isContractor()) return ;
+        if (!core_Users::haveRole('collaborator', $userId)) return ;
         
         $cProfiles = cls::get('cms_Profiles');
         $cProfiles->load('cms_ExternalWrapper');
