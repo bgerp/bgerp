@@ -170,12 +170,13 @@ class bgerp_Notifications extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
-        // Да не се нотифицира контрактора
-        if (core_Users::haveRole('buyer', $userId) && !core_Users::haveRole('powerUser', $userId)) return ;
-        
         if(empty($userId)) {
             return;
         }
+
+        // Да не се нотифицира контрактора
+        if ($userId != '*' && core_Users::haveRole('buyer', $userId) && !core_Users::haveRole('powerUser', $userId)) return ;
+        
         $url = toUrl($urlArr, 'local', FALSE);
         $query = bgerp_Notifications::getQuery();
         
