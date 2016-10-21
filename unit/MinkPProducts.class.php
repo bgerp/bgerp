@@ -26,8 +26,7 @@ class unit_MinkPProducts extends core_Manager {
         }
         
         $res = '';
-        $res .= "<br>".'MinkPPayment';
-        $res .= 'MinkPProducts ';
+        $res .= "<br>".'MinkPProducts';
         $res .= "  1.".$this->act_EditProduct();
         $res .= "  2.".$this->act_AddProductPrice();
         $res .= "  3.".$this->act_CreateProductBom();
