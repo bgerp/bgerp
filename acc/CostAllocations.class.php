@@ -146,7 +146,7 @@ class acc_CostAllocations extends core_Manager
 		expect($success, $success);
 			
 		// Нотифициране на потребителя
-		$msg = "Реконтиране на|* #{$origin->getHandle()} |{$success}|";
+		$msg = "Реконтиране на|* #{$origin->getHandle()}";
 		core_Statuses::newStatus($msg);
 		
 		return $success;
