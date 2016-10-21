@@ -373,10 +373,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Колко е платеното по сделка
      */
-    public static function getBlAmount($jRecs)
+    public static function getBlAmount($jRecs, $id)
     {
-    	$paid = acc_Balances::getBlAmounts($jRecs, '401')->amount;
-    	$paid += acc_Balances::getBlAmounts($jRecs, '402')->amount;
+    	$itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
+    	$paid = acc_Balances::getBlAmounts($jRecs, '401', NULL, NULL, array(NULL, $itemId, NULL))->amount;
+    	$paid += acc_Balances::getBlAmounts($jRecs, '402', NULL, NULL, array(NULL, $itemId, NULL))->amount;
     	
     	return $paid;
     }
