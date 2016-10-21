@@ -32,6 +32,7 @@ class unit_MinkPProducts extends core_Manager {
         $res .= "  3.".$this->act_CreateProductBom();
         $res .= "  4.".$this->act_CreateBom();
         $res .= "  5.".$this->act_CreatePlanningJob();
+        $res .= "  6.".$this->act_CreateCloning();
         return $res;
     }
     
@@ -290,5 +291,32 @@ class unit_MinkPProducts extends core_Manager {
         }
         //return $browser->getHtml();
     }
-     
+ 
+    /**
+     * 1. Клониране на артикул
+     */
+    //http://localhost/unit_MinkPProducts/CreateCloning/
+    function act_CreateCloning()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        $browser->click('Каталог');
+        // търсене
+        $browser->setValue('search', 'Чувал');
+        $browser->press('Филтрирай');
+        //$browser->click('Продукти');
+        $browser->click('Чувал голям 50 L');
+        $browser->press('Клониране');
+        $browser->setValue('code', 'smet40');
+        $browser->setValue('name', 'Чувал голям 40 L');
+        $browser->setValue('paramcat1', '40');
+        $browser->press('Запис');
+        if(strpos($browser->gettext(), 'Чувал голям 40 L')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
+        } 
+        //return $browser->getHtml();
+    }
+    
 }

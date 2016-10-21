@@ -39,6 +39,7 @@ class unit_MinkPPayment extends core_Manager {
         $res .= "  12.".$this->act_CreatePurchaseWait();
         $res .= "  13.".$this->act_CreatePurchaseOverpaid();
         $res .= "  14.".$this->act_CreatePurchase3();
+        $res .= "  14.".$this->act_CreatePurchaseMoment();
            
         return $res;
     }
