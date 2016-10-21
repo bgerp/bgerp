@@ -383,7 +383,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 													array('cat_Products', $p3->productId),
 													'quantity' => 0),
 									   'credit' => $creditArr, 
-							'reason' => 'Корекция на стойност');
+							'reason' => 'Разпределяне на разходи');
 				}
 				
 			} else {
@@ -396,7 +396,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 								array($dealRec->contragentClassId, $dealRec->contragentId),
 								$expenseItemId, array('cat_Products', $p->productId),
 								'quantity' => 0),
-						'credit' => $creditArr, 'reason' => 'Корекция на стойност');
+						'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
 			}
 		}
 		
