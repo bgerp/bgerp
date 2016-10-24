@@ -135,6 +135,12 @@ class frame_Reports extends core_Embedder
     
     
     /**
+     * Кои полета да не се клонират
+     */
+    public $fieldsNotToClone = 'source,filter,data';
+    
+    
+    /**
      * Как се казва полето за данните от формата на драйвъра
      */
     public $innerFormField = 'filter';

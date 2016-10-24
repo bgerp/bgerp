@@ -21,27 +21,18 @@ class unit_MinkPProducts extends core_Manager {
     //http://localhost/unit_MinkPProducts/Run/
     public function act_Run()
     {
-//         try {
-            
-//         } catch (Exception $e) {
-//             self::reportErr($e->getMessage());
-//         }
         if (!TEST_MODE) {
             return;
         }
         
         $res = '';
-        $res .= 'MinkPProducts ';
+        $res .= "<br>".'MinkPProducts';
         $res .= "  1.".$this->act_EditProduct();
         $res .= "  2.".$this->act_AddProductPrice();
         $res .= "  3.".$this->act_CreateProductBom();
         $res .= "  4.".$this->act_CreateBom();
         $res .= "  5.".$this->act_CreatePlanningJob();
-       
-        
-        //$res .= "  31.".$this->act_CreateProductVAT9();
-        //$res .= "  32.".$this->act_CreatePersonUSA();
-        
+        $res .= "  6.".$this->act_CreateCloning();
         return $res;
     }
     
@@ -100,7 +91,7 @@ class unit_MinkPProducts extends core_Manager {
     
         if(strpos($browser->gettext(), $Item)) {
             $browser->click($Item);
-           
+            
             //Добавяне на група
             $browser->click('Промяна на групите на артикула');
             $browser->setValue('Ценова група » A', 13);
@@ -121,11 +112,12 @@ class unit_MinkPProducts extends core_Manager {
             //Добавяне на лимит
             $browser->click('Добавяне на ново ограничение на перото');
             $browser->setValue('accountId', '321. Суровини, материали, продукция, стоки');
+            $browser->refresh('Запис');
             $browser->setValue('limitDuration', '1 год.');
             $browser->setValue('limitQuantity', '100');
             $browser->setValue('item1', 'Склад 1 (1 st)');
-            $browser->setValue('sharedUsers[13_1]', '13_1');
-            //$browser->setValue('Екип "Headquarter"', checked);
+            //Екип "Headquarter"
+            $browser->setValue('sharedUsers[15_1]', '15_1');
             $browser->press('Запис');
             
             //Добавяне на себестойност
@@ -142,14 +134,11 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('likeProductId', 'Други продукти (products)');
             $browser->press('Запис');
             
-            
-            
         } else {
-            return $this->reportErr('Няма такъв артикул', 'info');
+            return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
         //return $browser->getHtml();
     }
-    
     
     /**
      * 3. Създаване на артикул - продукт през папката. Добавяне на рецепта.
@@ -196,7 +185,6 @@ class unit_MinkPProducts extends core_Manager {
     
     /**
      * 4. Създаване на рецепта
-     *
      */
     //http://localhost/unit_MinkPProducts/CreateBom/
     function act_CreateBom()
@@ -266,26 +254,20 @@ class unit_MinkPProducts extends core_Manager {
             //Добавяне на задача
             $browser->click('Добавяне на нова задача за производство');
             $browser->setValue('hrdepartmentId', 'Производство');
-            
             $browser->press('Напред');
             $browser->setValue('storeId', 'Склад 1');
             $browser->press('Чернова');
-            
-            //return $browser->gethtml();
             $browser->press('Активиране');
             //Произвеждане и влагане
             //$browser->press('Произвеждане'); -разпознава бутона за приключване в заданието
             $browser->press('Добавяне на произведен артикул');
             $browser->setValue('quantity', '1000');
             $browser->setValue('employees[4]', '4');
-            //$browser->setValue('STD', '4');
             $browser->press('Запис');
-           
             $browser->press('Влагане');
             $browser->setValue('taskProductId', 'Други суровини и материали');
             $browser->setValue('quantity', '1600');
             $browser->press('Запис и Нов');
-            //$browser->setValue('taskProductId', 'Други консумативи');
             $browser->setValue('taskProductId', 'Други заготовки');
             $browser->setValue('quantity', '1263,4');
             $browser->press('Запис и Нов');
@@ -305,14 +287,36 @@ class unit_MinkPProducts extends core_Manager {
             $browser->press('Контиране');
             $browser->press('Приключване');
         } else {
-        return $this->reportErr('Няма такъв артикул', 'info');
+        return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
         //return $browser->getHtml();
     }
+ 
+    /**
+     * 1. Клониране на артикул
+     */
+    //http://localhost/unit_MinkPProducts/CreateCloning/
+    function act_CreateCloning()
+    {
+        // Логване
+        $browser = $this->SetUp();
     
-    
-    
-    
-    
+        $browser->click('Каталог');
+        // търсене
+        $browser->setValue('search', 'Чувал');
+        $browser->press('Филтрирай');
+        //$browser->click('Продукти');
+        $browser->click('Чувал голям 50 L');
+        $browser->press('Клониране');
+        $browser->setValue('code', 'smet40');
+        $browser->setValue('name', 'Чувал голям 40 L');
+        $browser->setValue('paramcat1', '40');
+        $browser->press('Запис');
+        if(strpos($browser->gettext(), 'Чувал голям 40 L')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
+        } 
+        //return $browser->getHtml();
+    }
     
 }

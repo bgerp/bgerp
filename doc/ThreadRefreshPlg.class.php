@@ -26,7 +26,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
     function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
     {
         // Ако не се листва, да не се изпълнява
-        if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+        if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
             if ($data->action != 'single') return ;
         } elseif($data->action != 'list') {
             
@@ -91,7 +91,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $threadId = Request::get('threadId', 'int');
         
-        if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+        if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
             $tRec = doc_Threads::fetch($threadId);
             colab_Threads::requireRightFor('single', $tRec);
         } else {

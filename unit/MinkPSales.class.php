@@ -1347,7 +1347,7 @@ class unit_MinkPSales extends core_Manager {
         //Проверка на статистиката
         if(strpos($browser->gettext(), '218,67 218,67 218,67 218,67')) {
         } else {
-            return $this->reportErr('Грешни суми в мастера', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
         
         //return $browser->getHtml();

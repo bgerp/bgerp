@@ -1270,6 +1270,11 @@ a.profile {
     }
 }
 
+.state-template {
+	background-color: #A1AEFF;
+	background-color: rgba(165, 170, 255, 0.7);
+}
+
 .document .state-rejected.state, .document .state-rejected.state a {
 	color: #444 !important;
 	text-decoration: none !important;

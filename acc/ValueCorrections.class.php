@@ -392,7 +392,7 @@ class acc_ValueCorrections extends core_Master
     		
     		// Вземаме всички заскладени артикули
     		$entries = purchase_transaction_Purchase::getEntries($firstDoc->that);
-    		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, '321', TRUE);
+    		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, $firstDoc->that, '321', TRUE);
     	} else {
     		
     		// Иначе няма

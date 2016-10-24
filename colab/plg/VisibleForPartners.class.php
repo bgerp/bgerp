@@ -43,7 +43,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
             // Ако няма originId или ако originId е към документ, който е видим от колаборатор
             if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $rec->folderId))) {
                 if (!$rec->originId || ($doc = doc_Containers::getDocument($rec->originId)) && ($doc->isVisibleForPartners())) {
-                    if (core_Users::isContractor()) {
+                    if (core_Users::haveRole('collaborator')) {
                         // Ако текущия потребител е контрактор, полето да е скрито
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
@@ -55,7 +55,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $dRec = $doc->fetch();
                         
                         // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
-                        if (!$rec->id && core_Users::isContractor($dRec->createdBy)) {
+                        if (!$rec->id && core_Users::haveRole('collaborator', $dRec->createdBy)) {
                             $data->form->setField('visibleForPartners', 'formOrder=0.9');
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
@@ -74,7 +74,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
             $data->form->setDefault('visibleForPartners', 'no');
         }
         
-        if(core_Users::isContractor()) {
+        if(core_Users::haveRole('collaborator')) {
             $mvc->currentTab = 'Нишка';
             plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
         }
@@ -106,7 +106,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Контрактора да не може да създава чернова, а директно да активира
-    	if (core_Users::isContractor()) {
+    	if (core_Users::haveRole('collaborator', $userId)) {
     		$data->form->toolbar->removeBtn('save');
     	}
     }

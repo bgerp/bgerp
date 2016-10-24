@@ -39,7 +39,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'indTime,totalTime';
+    public $hideListFieldsIfEmpty = 'indTime,totalTime,storeId';
     
     
     /**
@@ -168,14 +168,17 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		}
     	}
     	
-    	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
-    	
     	if(isset($rec->productId)){
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
     		
     		$productInfo = cat_Products::getProductInfo($rec->productId);
+    		if(!isset($productInfo->meta['canStore'])){
+    			$form->setField('storeId', "input=none");
+    		} else {
+    			$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
+    		}
     	} else {
     		$form->setField('packagingId', 'input=hidden');
     	}
@@ -238,7 +241,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		$rec = $data->recs[$id];
     		
     		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    		if(isset($rec->storeId)){
+    			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    		}
     		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	}

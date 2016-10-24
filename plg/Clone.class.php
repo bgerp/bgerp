@@ -295,44 +295,40 @@ class plg_Clone extends core_Plugin
     
     
     /**
-     * След клониране на записа
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec  - клонирания запис
-     * @param stdClass $nRec - новия запис
+     * Метод клониращ детайлите
      */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    public static function cloneDetails($mvc, $rec, $nRec)
     {
     	// Ако има изброени детайли за клониране
     	if(isset($mvc->cloneDetailes)){
-    		
+    	
     		$details = arr::make($mvc->cloneDetailes, TRUE);
     		if(count($details)){
     			$notClones = FALSE;
-    			
+    			 
     			// За всеки от тях
     			foreach ($details as $det){
     				$Detail = cls::get($det);
     				if(!isset($Detail->masterKey)) continue;
-    				
+    	
     				if(method_exists($Detail, 'cloneDetails')){
     					$Detail->cloneDetails($rec->id, $nRec->id);
     				} else {
-
+    	
     					// Клонираме записа и го свързваме към новия запис
     					$query = $Detail->getQuery();
     					$query->where("#{$Detail->masterKey} = {$rec->id}");
     					$query->orderBy('id', "ASC");
     					$details = $query->fetchAll();
-    					
+    						
     					if(is_array($details)){
     						foreach($details as $dRec){
     							$oldRec = clone $dRec;
     							$dRec->{$Detail->masterKey} = $nRec->id;
     							unset($dRec->id);
-    								
+    	
     							$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
-    								
+    	
     							if($Detail->isUnique($dRec, $fields)){
     									
     								// Записваме клонирания детайл
@@ -345,12 +341,25 @@ class plg_Clone extends core_Plugin
     					}
     				}
     			}
-    			
+    			 
     			// Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
     			if($notClones) {
     				core_Statuses::newStatus('Някои от детайлите не бяха клонирани, защото са уникални', 'warning');
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * След клониране на записа
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	self::cloneDetails($mvc, $rec, $nRec);
     }
 }

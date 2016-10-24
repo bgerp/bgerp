@@ -436,7 +436,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($entries));
         $result->set('amountPaid', $paidAmount);
         $result->set('deliveryAmount', $deliveredAmount);
-        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries));
+        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries, $rec->id));
         
         // Опитваме се да намерим очакваното плащане
         $expectedPayment = NULL;
@@ -514,7 +514,7 @@ class purchase_Purchases extends deals_DealMaster
         $agreed = deals_Helper::normalizeProducts(array($agreed));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries));
+        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries, $rec->id));
     }
     
     

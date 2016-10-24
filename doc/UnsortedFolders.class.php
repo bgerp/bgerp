@@ -478,7 +478,7 @@ class doc_UnsortedFolders extends core_Master
         $resTask = array();
         while ($recContainers = $queryContainers->fetch()) {
         	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'pending' OR #state = 'active' OR #state = 'closed')");
-        	
+        	$recs = array();
         	// заявка към таблицата на Задачите
         	while ($recTask = $queryTasks->fetch()) {
         
@@ -530,7 +530,7 @@ class doc_UnsortedFolders extends core_Master
 	    		    		);
 	    		    	    
 
-	        		$recs = array();
+	        		
 		    		$recs[$recTask->id] = $recTask;
 		    		$forTask = (object) array('recs' => $recs);
 		    		$i++;
@@ -542,7 +542,7 @@ class doc_UnsortedFolders extends core_Master
 	
 		$params = $others->otherParams;
 		$header = $others->headerInfo;
-        
+
 		$cntResTask = count($resTask);
 		
     	for ($i = 0; $i <= ($cntResTask); $i++){

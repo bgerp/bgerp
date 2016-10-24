@@ -118,7 +118,7 @@ class cms_Profiles extends core_Master
         // Промяна на някой данни, след подготовката на профила
         $this->modifyProfile($data);
         
-        if(core_Users::isContractor()){
+        if(core_Users::haveRole('collaborator')){
         	unset($data->row->createdOn);
         	unset($data->row->createdBy);
         	unset($data->User->row->roles);
@@ -184,9 +184,9 @@ class cms_Profiles extends core_Master
         $tpl = $form->renderHtml();
         
         unset($this->Profile->loadList);
-        $this->Profile->load('cms_ExternalWrapper');
+        $this->load('cms_ExternalWrapper');
         
-        $tpl = $this->Profile->renderWrapping($tpl);
+        $tpl = $this->renderWrapping($tpl);
         
         return $tpl;
     }

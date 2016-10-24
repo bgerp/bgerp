@@ -110,7 +110,7 @@ class deals_OpenDeals extends core_Manager {
     	$data->listFilter->FNC('sState', 'enum(pending=Чакащи,all=Всички)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
     	
-    	$data->listFilter->showFields = 'search,from,to';
+    	$data->listFilter->showFields = 'search,selectPeriod,from,to';
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
     		$data->listFilter->setDefault('sState', 'pending');
