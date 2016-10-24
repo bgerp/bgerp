@@ -2108,9 +2108,9 @@ class doc_Containers extends core_Manager
                                 $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})";
                             }
                         }
-                        
-                        $clsInst->delete($dRec->id);
+
                         $clsInst->logInfo($delMsg, $dRec->id);
+                        $clsInst->delete($dRec->id);
                         $resArr['del_cnt']++;
                     } catch (ErrorException $e) {
                         reportException($e);
