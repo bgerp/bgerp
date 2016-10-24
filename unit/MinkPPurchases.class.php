@@ -1414,7 +1414,7 @@ class unit_MinkPPurchases extends core_Manager {
         // протокол
         $browser->press('Разходен обект');
         
-        //Покупка 2
+        //Покупка 2 - услуги
         //Отваряне папката на фирмата
         $browser = $this->SetFirm();
         
@@ -1426,9 +1426,10 @@ class unit_MinkPPurchases extends core_Manager {
             $browser->press('Покупка');
         }
          
-        $browser->setValue('note', 'MinkPPurchaseExpense');
+        $browser->setValue('note', 'MinkPPurchaseService');
         $browser->setValue('paymentMethodId', "На момента");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        $browser->setValue('template', 'Договор за покупка на услуга');
         // Записване черновата на Покупката
         $browser->press('Чернова');
         
@@ -1438,7 +1439,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '100');
-        /////////////////////////////
+        /////Разход за ...///////////
         $browser->setValue('expenseItemId', '91.17');
         
         // Записване на артикула
@@ -1446,16 +1447,15 @@ class unit_MinkPPurchases extends core_Manager {
         
         // активиране на Покупката
         $browser->press('Активиране');
-        //return $browser->getHtml();
         //$browser->setValue('action_pay', False);
         $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
-        ////////////////////////////
+        ///Проверка в разходния обект и фактуриране...//////////
         $browser->click('16 pur');
         //return $browser->getHtml();
         // Фактура в покупка 1
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '918');
+        $browser->setValue('number', '18');
         $browser->press('Чернова');
         $browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 36,88')) {
@@ -1463,5 +1463,6 @@ class unit_MinkPPurchases extends core_Manager {
         //    return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         //}
         //return $browser->getHtml();
-    }   
+    }
+    
 }
