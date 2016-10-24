@@ -1667,7 +1667,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
-    	if(core_Users::haveRole('collaborator', $userId)){
+    	if(core_Users::haveRole('collaborator')){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
@@ -1767,7 +1767,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
     	// Ако потребителя е партньор, то вальора на документа става датата на която е станал чакащ
-    	if(core_Users::haveRole('collaborator', $userId)){
+    	if(core_Users::haveRole('collaborator')){
     		$rec->valior = dt::today();
     		$mvc->save($rec, 'valior');
     	}
