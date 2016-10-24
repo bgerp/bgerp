@@ -203,20 +203,6 @@ class trz_Requests extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateRequestsToCalendar($rec->id);
-    	
-    	$subscribedArr = keylist::toArray($rec->sharedUsers);
-    	if(count($subscribedArr)) {
-    	    foreach($subscribedArr as $userId) {
-    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-    	            $rec->message  = self::getVerbal($rec, 'personId'). "| добави |* \"" . self::getRecTitle($rec) . "\"";
-    	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-    	            $rec->customUrl = array('trz_Requests', 'single',  $rec->id);
-    	            $rec->priority = 0;
-    	
-    	            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-    	        }
-    	    }
-    	}
     }
  
     
@@ -381,8 +367,8 @@ class trz_Requests extends core_Master
 
         $s1 = trim(strstr($rec->leaveFrom, " "));
         $s2 = trim(strstr($rec->leaveTo, " "));
-        
-        if($s1 == "00:00:00" && $s2 == "23:59:00"){
+
+        if(($s1 == "00:00:00" && $s2 == "23:59:00") || ($s1 == "00:00:00" && $s2 == "23:59:59") ){ 
             $row->leaveFrom = trim(strstr($row->leaveFrom, " ", TRUE));
             $row->leaveTo = trim(strstr($row->leaveTo, " ", TRUE));
         }
