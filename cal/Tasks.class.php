@@ -197,6 +197,14 @@ class cal_Tasks extends core_Master
         'onEnd' => array('По края', 'timeEnd=По края'),
         'noStartEnd' => array('Без начало и край', 'noStartEnd=Без начало и край'),
     );
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd';
 
 
     /**
