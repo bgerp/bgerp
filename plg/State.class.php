@@ -40,7 +40,7 @@ class plg_State extends core_Plugin
                   rejected=Оттеглен,
                   stopped=Спрян,
                   wakeup=Събуден,
-                  free=Освободен)',
+                  free=Освободен,template=Шаблон)',
                 'caption=Състояние,column=none,input=none');
         }
 
