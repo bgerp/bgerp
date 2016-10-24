@@ -46,7 +46,7 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
-			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено)', 'caption=Състояние, input=none');
+			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
 		}
 		
 		if(isset($mvc->demandReasonChangeState)){
