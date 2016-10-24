@@ -176,6 +176,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		$form->setDefault('packagingId', key($packs));
     		
     		$productInfo = cat_Products::getProductInfo($rec->productId);
+    		if(!isset($productInfo->meta['canStore'])){
+    			$form->setField('storeId', "input=none");
+    		}
     	} else {
     		$form->setField('packagingId', 'input=hidden');
     	}
