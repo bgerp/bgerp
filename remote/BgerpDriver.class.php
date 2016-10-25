@@ -334,11 +334,14 @@ class remote_BgerpDriver extends core_Mvc
             if($rec->data->lKeyCC && $rec->data->rId) {
                 
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications');
-                 
+                
+                // Прескачаме, ако липсва отговор на въпроса
+                if($nCnt === NULL) continue;;
+
                 $nUrl = array($this, 'Autologin', $rec->id);
                 $userId = $rec->userId;
 
-                if($nCnt) {
+                if($nCnt > 0) {
                     if($nCnt == 1) {
                         $nCnt = '|едно ново известие|*';
                     } else {
@@ -551,11 +554,13 @@ class remote_BgerpDriver extends core_Mvc
     {
         $url = self::prepareQuestionUrl($auth, $ctr, $act, $args);
 
-        $res = file_get_contents($url);
-        
-        $params = self::decode($auth, $res, 'answer');
- 
-        return $params['result'];
+        $res = @file_get_contents($url);
+
+        if($res) {
+            $params = self::decode($auth, $res, 'answer');
+     
+            return $params['result'];
+        }
     }
     
 
