@@ -237,6 +237,8 @@ abstract class deals_ManifactureMaster extends core_Master
     {
     	// Записваме документа за да му се обновят полетата
     	$rec = $this->fetchRec($id);
-    	$this->save($rec);
+    	if ($rec !== FALSE) {
+    	    $this->save($rec);
+    	}
     }
 }

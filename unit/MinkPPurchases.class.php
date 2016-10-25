@@ -1356,4 +1356,113 @@ class unit_MinkPPurchases extends core_Manager {
         //return $browser->getHtml();
     }
     
+    /**
+     * Покупка 1 - разходен обект, покупка 2 - разходи
+     */
+     
+    //http://localhost/unit_MinkPPurchases/CreatePurchaseExpense/
+    function act_CreatePurchaseExpense()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+    
+        // нова Покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Покупка');
+        }
+         
+        $browser->setValue('note', 'MinkPPurchaseExpense');
+        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        // Записване черновата на Покупката
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '23');
+        $browser->setValue('packPrice', '1,12');
+        // Записване артикула и добавяне нов
+        $browser->press('Запис и Нов');
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 10);
+        $browser->setValue('packPrice', 1.1124);
+        // Записване на артикула
+        $browser->press('Запис');
+    
+        // активиране на Покупката
+        $browser->press('Активиране');
+        //return $browser->getHtml();
+        $browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Четиридесет и четири BGN и 0,25')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
+    
+        // Когато няма автом. избиране
+        // Складова разписка
+        // протокол
+        $browser->press('Разходен обект');
+        
+        //Покупка 2 - услуги
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+        
+        // нова Покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Покупка');
+        }
+         
+        $browser->setValue('note', 'MinkPPurchaseService');
+        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        $browser->setValue('template', 'Договор за покупка на услуга');
+        // Записване черновата на Покупката
+        $browser->press('Чернова');
+        
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Транспорт');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '1');
+        $browser->setValue('packPrice', '100');
+        /////Разход за ...///////////
+        $browser->setValue('expenseItemId', '91.17');
+        
+        // Записване на артикула
+        $browser->press('Запис');
+        
+        // активиране на Покупката
+        $browser->press('Активиране');
+        //$browser->setValue('action_pay', False);
+        $browser->setValue('action_ship', 'ship');
+        $browser->press('Активиране/Контиране');
+        ///Проверка в разходния обект и фактуриране...//////////
+        $browser->click('16 pur');
+        //return $browser->getHtml();
+        // Фактура в покупка 1
+        $browser->press('Вх. фактура');
+        $browser->setValue('number', '18');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 36,88')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
+        //}
+        //return $browser->getHtml();
+    }
+    
 }

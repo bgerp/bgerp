@@ -83,6 +83,7 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
+        $positionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
         
         $form->setOptions('orderField', array("", "ent1{$positionId}" => "Контрагент",
         "baseAmount" => "Начално салдо",

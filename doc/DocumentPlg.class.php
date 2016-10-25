@@ -38,7 +38,8 @@ class doc_DocumentPlg extends core_Plugin
         'rejected' => 'Оттеглено',
         'stopped'  => 'Спряно',
         'wakeup'   => 'Събудено',
-        'free'     => 'Освободено');
+        'free'     => 'Освободено',
+        'template' => 'Шаблон');
     
     
     /**
@@ -1851,7 +1852,7 @@ class doc_DocumentPlg extends core_Plugin
         	} else {
         		
         		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
-        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending'){
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'template'){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -3392,5 +3393,15 @@ class doc_DocumentPlg extends core_Plugin
     			$res = TRUE;
     		}
     	}
+    }
+    
+    
+    /**
+     * Метод по подразбиране на детайлите за клониране
+     */
+    public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
+    {
+    	// Добавяме артикулите към детайлите за клониране
+    	$res = arr::make($mvc->cloneDetailes, TRUE);
     }
 }

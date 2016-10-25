@@ -742,7 +742,7 @@ class core_Cron extends core_Manager
     {
         if ($form->isSubmitted()) {
             if ($form->rec->offset >= $form->rec->period) {
-                $form->setError('offset', 'Отместването трябвада е по-малко от периода');
+                $form->setError('offset', 'Отместването трябва да е по-малко от периода');
             }
         }
     }

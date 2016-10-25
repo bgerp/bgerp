@@ -2550,7 +2550,7 @@ class doc_Threads extends core_Manager
                         // Изтирваме детайлите за документа
                         if (!empty($dArr)) {
                             
-                            $delMsg = 'Изтрит оттеглен документ и детайлите към него';
+                            $delDetCnt = 0;
                             
                             foreach ($dArr as $detail) {
                                 if (!cls::load($detail, TRUE)) continue;
@@ -2558,8 +2558,12 @@ class doc_Threads extends core_Manager
                                 $detailInst = cls::get($detail);
                                 if (!($detailInst->Master instanceof $doc->instance)) continue;
                                 
-                                $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
+                                if ($detailInst->masterKey) {
+                                    $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
+                                }
                             }
+                            
+                            $delMsg = "Изтрит оттеглен документ и детайлите към него ({$delDetCnt})";
                         }
                     }
                     
