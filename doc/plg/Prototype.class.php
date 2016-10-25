@@ -41,7 +41,7 @@ class doc_plg_Prototype extends core_Plugin
 		$mvc->declareInterface('doc_PrototypeSourceIntf');
 		
 		$after = ($mvc instanceof embed_Manager) ? $mvc->driverClassField : (($mvc instanceof core_Embedder) ? $mvc->driverClassField : 'id');
-		$mvc->FLD('prototypeId', "int", "caption=Шаблон,forceField,input=hidden,silent,removeAndRefreshForm=chargeVat,after={$after}");
+		$mvc->FLD('prototypeId', "int", "caption=Шаблон,forceField,input=none,silent,removeAndRefreshForm=chargeVat,after={$after}");
 	}
 	
 	
