@@ -2110,8 +2110,8 @@ class doc_Containers extends core_Manager
                         }
 
                         $clsInst->logInfo($delMsg, $dRec->id);
-                        $clsInst->delete($dRec->id);
                         $resArr['del_cnt']++;
+                        $clsInst->delete($dRec->id);
                     } catch (ErrorException $e) {
                         reportException($e);
                     }
