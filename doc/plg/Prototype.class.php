@@ -39,7 +39,9 @@ class doc_plg_Prototype extends core_Plugin
 	public static function on_AfterDescription(&$mvc)
 	{
 		$mvc->declareInterface('doc_PrototypeSourceIntf');
-		$mvc->FLD('prototypeId', "int", "caption=Шаблон,forceField,input=hidden,silent,removeAndRefreshForm=chargeVat,after=id");
+		
+		$after = ($mvc instanceof embed_Manager) ? $mvc->driverClassField : (($mvc instanceof core_Embedder) ? $mvc->driverClassField : 'id');
+		$mvc->FLD('prototypeId', "int", "caption=Шаблон,forceField,input=hidden,silent,removeAndRefreshForm=chargeVat,after={$after}");
 	}
 	
 	
@@ -78,12 +80,10 @@ class doc_plg_Prototype extends core_Plugin
 		if($mvc instanceof embed_Manager){
 			if(isset($form->rec->{$mvc->driverClassField})){
 				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->driverClassField});
-				$form->setField('prototypeId', "after={$mvc->driverClassField}");
 			}
 		} elseif($mvc instanceof core_Embedder){
 			if(isset($form->rec->{$mvc->innerClassField})){
 				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->innerClassField});
-				$form->setField('prototypeId', "after={$mvc->innerClassField}");
 			}
 		} else{
 			$prototypes = doc_Prototypes::getPrototypes($mvc);
