@@ -167,6 +167,12 @@ defIfNot('CORE_FIRST_ADMIN', '');
 
 
 /**
+ * Свиване на секцията за споделяне
+ */
+defIfNot('CORE_AUTOHIDE_SHARED_USERS', 100);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -261,6 +267,9 @@ class core_Setup extends core_ProtoSetup {
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
         
            'CORE_MIN_ALIGN_DIGITS' => array('int', 'caption=Минимален брой видими нули при подравняване->Брой'),
+           
+           'CORE_AUTOHIDE_SHARED_USERS' => array ('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
+               
     );
     
     
