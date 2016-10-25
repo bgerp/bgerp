@@ -3394,4 +3394,14 @@ class doc_DocumentPlg extends core_Plugin
     		}
     	}
     }
+    
+    
+    /**
+     * Метод по подразбиране на детайлите за клониране
+     */
+    public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
+    {
+    	// Добавяме артикулите към детайлите за клониране
+    	$res = arr::make($mvc->cloneDetailes, TRUE);
+    }
 }
