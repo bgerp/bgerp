@@ -112,10 +112,11 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-	 * (@see plg_Clone)
-	 */
-	public $cloneDetailes = 'planning_ReturnNoteDetails';
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * 
+     * @see plg_Clone
+     */
+	public $cloneDetails = 'planning_ReturnNoteDetails';
 	
 	
 	/**

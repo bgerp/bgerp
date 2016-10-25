@@ -132,9 +132,10 @@ class sales_Quotations extends core_Master
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-     * (@see plg_Clone)
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'sales_QuotationsDetails';
+    public $cloneDetails = 'sales_QuotationsDetails';
     
     
     /**

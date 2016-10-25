@@ -254,9 +254,10 @@ class sales_Sales extends deals_DealMaster
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-     * (@see plg_Clone)
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'sales_SalesDetails';
+    public $cloneDetails = 'sales_SalesDetails';
     
     
     /**

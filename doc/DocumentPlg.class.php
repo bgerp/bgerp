@@ -3403,6 +3403,6 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
     {
     	// Добавяме артикулите към детайлите за клониране
-    	$res = arr::make($mvc->cloneDetailes, TRUE);
+    	$res = arr::make($mvc->cloneDetails, TRUE);
     }
 }

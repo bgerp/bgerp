@@ -44,9 +44,10 @@ class acc_Articles extends core_Master
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-     * (@see plg_Clone)
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'acc_ArticleDetails';
+    public $cloneDetails = 'acc_ArticleDetails';
     
     
     /**

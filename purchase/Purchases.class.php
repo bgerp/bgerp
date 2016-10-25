@@ -187,9 +187,10 @@ class purchase_Purchases extends deals_DealMaster
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-     * (@see plg_Clone)
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'purchase_PurchasesDetails';
+    public $cloneDetails = 'purchase_PurchasesDetails';
     
     
     /**
