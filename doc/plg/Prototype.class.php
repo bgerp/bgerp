@@ -31,6 +31,10 @@ class doc_plg_Prototype extends core_Plugin
 			                           'searchKeywords', 
 			                           'lastUsedOn',
 									   'prototypeId', 
+									   'version',
+									   'subVersion', 
+									   'changeModifiedOn', 
+			                           'changeModifiedBy',
 			                           'brState');
 	
 	
