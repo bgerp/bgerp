@@ -1,5 +1,5 @@
 <?php
-
+defIfNot('EF_TIMEZONE', 'Europe/Sofia');
 
 /**
  * Клас 'cal_Tasks' - Документ - задача
@@ -1455,6 +1455,9 @@ class cal_Tasks extends core_Master
      */
     static function renderGanttTimeType($data)
     {
+        // Сетваме времевата зона
+        date_default_timezone_set('UTC');
+        
     	$ganttType = Request::get('View');
     	
     	$url = self::getNextGanttType($ganttType);
@@ -1483,7 +1486,9 @@ class cal_Tasks extends core_Master
     		
     	// ако периода на таблицата е по-голям от година
     		case 'Years': 
-    	   	 	
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е година/месец
 	    		$otherParams['mainHeaderCaption'] = tr('година');
 	    		$otherParams['subHeaderCaption'] = tr('месеци');
@@ -1521,7 +1526,9 @@ class cal_Tasks extends core_Master
     		
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour4' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -1559,6 +1566,8 @@ class cal_Tasks extends core_Master
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour6' :
     		
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -1595,7 +1604,9 @@ class cal_Tasks extends core_Master
     		
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -1632,7 +1643,9 @@ class cal_Tasks extends core_Master
    		
     		// ако периода на таблицата е в рамките на седмица - месец
     		case 'WeekDay' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е седмица/ден
 	    		$otherParams['mainHeaderCaption'] = tr('седмица');
 	    		$otherParams['subHeaderCaption'] = tr('ден');
@@ -1675,7 +1688,9 @@ class cal_Tasks extends core_Master
             
     	   // ако периода на таблицата е в рамките на месец - ден
     		case 'Months' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е месец/ден
 	    		$otherParams['mainHeaderCaption'] = tr('месец');
 	    		$otherParams['subHeaderCaption'] = tr('ден');
@@ -1696,7 +1711,7 @@ class cal_Tasks extends core_Master
 	    		$toDate = dt::addDays(3, $endTasksTime[0]). " 23:59:59"; 
 	            
 	    		// генерираме номерата на седмиците между началото и края
-	    		while ($curDate < $toDate){
+	    		while ($curDate <= $toDate){
 	    		    $color = cal_Calendar::getColorOfDay($curDate);
 	    			$curDateExplode =  explode("-", $curDate);
 	    			$w = dt::getMonth($curDateExplode[1], 'F') . " " . $curDateExplode[0];
@@ -1713,12 +1728,14 @@ class cal_Tasks extends core_Master
 	    		foreach ($res as $headerArr) {
 	    			$headerInfo[] = $headerArr;
 	    		}
-    		
+
     		break; 
     	  
     	   // ако периода на таблицата е в рамките на година - седмици
     		case 'YearWeek' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е месец/седмица
 	    		$otherParams['mainHeaderCaption'] = tr('година');
 	    		$otherParams['subHeaderCaption'] = tr('седмица');
