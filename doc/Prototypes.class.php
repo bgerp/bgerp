@@ -92,7 +92,7 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
-    	$this->setDbUnique('classId,docId,title');
+    	$this->setDbUnique('classId,title');
     	$this->setDbUnique('originId');
     	$this->setDbUnique('classId,docId');
     	$this->setDbIndex('classId,docId,driverClassId');
