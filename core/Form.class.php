@@ -673,7 +673,7 @@ class core_Form extends core_FieldSet
             	if($field->hideIfOne) {
             	    
                     if ($field->type instanceof type_Key) {
-                        $options = $field->type->prepareOptions();
+                        $field->type->prepareOptions();
                     }
                     
                     $options = $field->options;
