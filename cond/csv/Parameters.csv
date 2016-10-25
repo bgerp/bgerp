@@ -10,3 +10,5 @@
 Общи условия (английски),cond_type_Text,commonConditionPurEng,Покупка
 Други условия към фактура,cond_type_Text,invoiceText
 Очаквано тегло на доставка (кг),cond_type_Double,calcShippingWeight,,,0
+Склад,cond_type_Store,defaultStoreSale,Продажба
+Склад,cond_type_Store,defaultStorePurchase,Покупка

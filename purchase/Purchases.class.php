@@ -169,6 +169,7 @@ class purchase_Purchases extends deals_DealMaster
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|defMethod',
+    	'shipmentStoreId' 	 => 'clientCondition',
     );
     
     
@@ -252,7 +253,7 @@ class purchase_Purchases extends deals_DealMaster
     	parent::setDealFields($this);
     	$this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
     	$this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
-    	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor');
+    	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
     }
     
     
