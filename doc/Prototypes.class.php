@@ -38,7 +38,7 @@ class doc_Prototypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "docId,title,driverClassId,sharedWithRoles,sharedWithUsers,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
