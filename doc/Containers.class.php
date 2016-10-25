@@ -2268,6 +2268,7 @@ class doc_Containers extends core_Manager
             	$doc = static::getDocument($rec);
             	$doc->reject();
             	
+            	doc_Prototypes::sync($rec->id);
             	doc_HiddenContainers::showOrHideDocument($rec->id, TRUE);
             } catch(core_exception_Expect $e){
             	continue;
@@ -2316,6 +2317,7 @@ class doc_Containers extends core_Manager
         			$doc = static::getDocument($rec);
         			$doc->restore();
         			
+        			doc_Prototypes::sync($rec->id);
         			doc_HiddenContainers::showOrHideDocument($rec->id, NULL);
         		} catch(core_exception_Expect $e){
         			continue;
