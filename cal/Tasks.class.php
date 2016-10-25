@@ -1,5 +1,4 @@
 <?php
-defIfNot('EF_TIMEZONE', 'Europe/Sofia');
 
 /**
  * Клас 'cal_Tasks' - Документ - задача
