@@ -119,6 +119,8 @@ class doc_Prototypes extends core_Manager
     					$requiredRoles = 'no_one';
     				} elseif(acc_Journal::fetchByDoc($doc->getClassId(), $doc->that)){
     					$requiredRoles = 'no_one';
+    				} elseif($doc->fetchField('state') != 'draft'){
+    					$requiredRoles = 'no_one';
     				}
     			}
     		} else {
