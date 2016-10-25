@@ -37,7 +37,7 @@ class acc_Articles extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Clone, plg_Printing, doc_plg_HidePrices,
+    public $loadList = 'plg_RowTools2, plg_Clone, plg_Printing, doc_plg_HidePrices,doc_plg_Prototype,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
     
@@ -153,7 +153,7 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон)', 'caption=Състояние,input=none');
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
     
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
