@@ -25,6 +25,7 @@ class doc_plg_Prototype extends core_Plugin
 							           'containerId', 
 									   'createdBy', 
 							           'createdOn', 
+			                           'originId',
 			                           'modifiedBy', 
 			                           'modifiedOn', 
 			                           'searchKeywords', 
