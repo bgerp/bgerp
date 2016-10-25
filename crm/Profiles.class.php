@@ -1390,7 +1390,7 @@ class crm_Profiles extends core_Master
                 if ($typeInst instanceof type_Enum) {
                     $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
                     $isEnum = TRUE;
-                } elseif ($typeInst instanceof type_Key) {
+                } elseif (($typeInst instanceof type_Key) || ($typeInst instanceof type_Key2)) {
                     $isKey = TRUE;
                 }
                 

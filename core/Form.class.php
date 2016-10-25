@@ -218,7 +218,7 @@ class core_Form extends core_FieldSet
             }
             
             // Правим проверка, дали избраната стойност е от множеството
-            if (is_array($options) && !is_a($type, 'type_Key')) {
+            if (is_array($options) && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2')) {
                 // Не могат да се селектират неща които не са опции  
                 if ((!isset($options[$value]) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
@@ -354,7 +354,7 @@ class core_Form extends core_FieldSet
             }
         
             // Правим проверка, дали избраната стойност е от множеството
-            if (is_array($options) && !is_a($type, 'type_Key')) {
+            if (is_array($options) && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2')) {
                 // Не могат да се селектират неща които не са опции
                 if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
@@ -671,10 +671,18 @@ class core_Form extends core_FieldSet
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
             	if($field->hideIfOne) {
-                    if($field->type instanceof type_Key) {
-                        $field->type->prepareOptions();
+            	    
+                    if ($field->type instanceof type_Key) {
+                        $options = $field->type->prepareOptions();
                     }
-	                if((isset($field->options) && count($field->options) == 1)) {
+                    
+                    $options = $field->options;
+                    
+                    if (($field->type instanceof type_Key2) && (!isset($options) || empty($options))) {
+                        $options = $field->type->getOptions();
+                    }
+                    
+	                if((isset($options) && count($options) == 1)) {
 	                	unset($fields[$name]);
 	                } elseif(isset($field->type->options) && count($field->type->options) == 1) {
 	                	unset($fields[$name]);
@@ -684,11 +692,9 @@ class core_Form extends core_FieldSet
 
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             
-            
             // Създаваме input - елементите
             foreach($fields as $name => $field) {
-                        
-
+                
                 expect($field->kind, $name, 'Липсващо поле');
 
                 if(Mode::is('staticFormView')) {
@@ -792,7 +798,7 @@ class core_Form extends core_FieldSet
                 }
 
                 // Рендиране на select или input полето
-                if ((count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
+                if ((count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
