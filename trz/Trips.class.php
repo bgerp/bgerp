@@ -214,8 +214,9 @@ class trz_Trips extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $rec = $data->form->rec;
-        
-        if ($rec->folderId && doc_Folders::fetch($rec->folderId)->coverClass == core_Classes::getClassId('crm_Persons')) {
+        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+
+        if ($rec->folderId && $folderClass == 'crm_Persons') {
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
         }

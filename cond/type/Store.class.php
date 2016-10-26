@@ -20,12 +20,38 @@ class cond_type_Store extends cond_type_Proto
 	/**
 	 * Връща инстанция на типа
 	 *
-	 * @param stdClass $rec - запис
-	 * @return core_Type - готовия тип
+	 * @param stdClass $rec      - запис на параметъра
+	 * @param NULL|string $value - стойност
+	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec)
+	public function getType($rec, $value = NULL)
 	{
 		$Type = core_Type::getByName("key(mvc=store_Stores,select=name,allowEmpty)");
+		
+		$sQuery = store_Stores::getQuery();
+		$sQuery->where("#state != 'rejected'");
+		$sQuery->show('name');
+		
+		if(!haveRole('ceo')){
+			bgerp_plg_FLB::addUserFilterToQuery('store_Stores', $sQuery);
+		}
+		
+		$options = $sQuery->fetchAll();
+		
+		// Ако я има стойноста но я няма в опциите, добавя се
+		if(isset($value)){
+			if(!array_key_exists($value, $options)){
+				$options[$value] = $value;
+			}
+		}
+		
+		if(is_array($options)){
+			foreach ($options as $id => &$opt){
+				$opt = store_Stores::getVerbal($id, 'name');
+			}
+		}
+		
+		$Type->options = $options;
 		
 		return $Type;
 	}
