@@ -849,7 +849,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	}
 	    	
 	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
-	    	(core_Users::haveRole('collaborator')) ? $row->responsible = $cuNames : $row->username = $cuNames;
+	    	(core_Users::haveRole('collaborator', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
