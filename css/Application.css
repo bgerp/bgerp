@@ -3818,13 +3818,13 @@ only screen and (max-width: 1200px) {
     border-radius: 0; }
 
   .document {
-    min-width: 48em; } }
+    min-width: 40em; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
   .document {
     max-width: 40em;
-    min-width: 40em; }
+    min-width: 30em; }
 
   .wide .app-name {
     font-size: 6.4em; } }
