@@ -199,7 +199,7 @@ class acc_Items extends core_Manager
         		
         		// Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
         		$mvc->unique ++;
-        		$unique = $mvc->unique . rand();
+        		$unique = $mvc->unique . rand(1, 10000);
         		
         		$id = (is_object($rec)) ? $rec->id : $rec;
         		$tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');

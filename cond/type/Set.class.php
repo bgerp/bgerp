@@ -31,12 +31,22 @@ class cond_type_Set extends cond_type_Proto
 	/**
 	 * Връща инстанция на типа
 	 *
-	 * @param stdClass $rec - запис
-	 * @return core_Type - готовия тип
+	 * @param stdClass $rec      - запис на параметъра
+	 * @param NULL|string $value - стойност
+	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec)
+	public function getType($rec, $value = NULL)
 	{
 		$options = static::text2options($rec->options);
+		
+		// Ако има подадена стойност и тя не е в опциите, добавя се
+		if(isset($value)){
+			$value = trim($value);
+			if(!array_key_exists($value, $options)){
+				$options[$value] = $value;
+			}
+		}
+		
 		$options = arr::fromArray($options);
 		
 		$Type = core_Type::getByName("set($options)");

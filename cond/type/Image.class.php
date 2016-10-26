@@ -20,10 +20,11 @@ class cond_type_Image extends cond_type_Proto
 	/**
 	 * Връща инстанция на типа
 	 *
-	 * @param stdClass $rec - запис
-	 * @return core_Type - готовия тип
+	 * @param stdClass $rec      - запис на параметъра
+	 * @param NULL|string $value - стойност
+	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec)
+	public function getType($rec, $value = NULL)
 	{
 		$Type = core_Type::getByName('fileman_FileType(bucket=pictures)');
 	
