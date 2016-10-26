@@ -304,21 +304,25 @@ class cms_Setup extends core_ProtoSetup
      */
     public function updateSearchKeywords()
     {   
-        $mvcArr = array('eshop_Products', 'cms_Articles', 'blogm_Articles');
-        
-        foreach($mvcArr as $mvc) {
-            
-            if (!cls::load($mvc, TRUE)) continue ;
-            
-            $Inst = cls::get($mvc);
-            
-            if (!$Inst->db->tableExists($Inst->dbTableName)) continue ;
-            
-            $query = $mvc::getQuery();
-            while($rec = $query->fetch()){
-                $mvc::save($rec, 'searchKeywords');
-            }
+        try {
+        	$mvcArr = array('eshop_Products', 'cms_Articles', 'blogm_Articles');
+        	
+        	foreach($mvcArr as $mvc) {
+        	
+        		if (!cls::load($mvc, TRUE)) continue ;
+        	
+        		$Inst = cls::get($mvc);
+        		$Inst->setupMvc();
+        		
+        		if (!$Inst->db->tableExists($Inst->dbTableName)) continue ;
+        	
+        		$query = $mvc::getQuery();
+        		while($rec = $query->fetch()){
+        			$mvc::save($rec, 'searchKeywords');
+        		}
+        	}
+        } catch(core_exception_Expect $e){
+        	reportException($e);
         }
     }
-
 }
