@@ -116,6 +116,9 @@
                             [#deliveryBlock#]
                             <li>|Доставка|*: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> |до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                             <!--ET_END deliveryBlock-->
+                            <!--ET_BEGIN commonCondition-->
+                            <li>[#commonCondition#]</li>
+                            <!--ET_END commonCondition-->
                         </ol>
                     </div>
                 </td>

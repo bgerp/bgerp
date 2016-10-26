@@ -628,4 +628,16 @@ class purchase_Purchases extends deals_DealMaster
     	// Отново вкарваме езика на шаблона в сесията
     	core_Lg::push($data->rec->tplLang);
     }
+    
+    
+    /**
+     * След вербализиране на записа
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionPur" : "commonConditionPurEng";
+    	if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    		$row->commonCondition = cls::get('type_Varchar')->toVerbal($cond);
+    	}
+    }
 }
