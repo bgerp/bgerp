@@ -4206,11 +4206,15 @@ body.narrow {
 	.wide #all, .wide #cmsTop, .wide #cmsTop img {
 		border-radius: 0;
 	}
+	.document {
+		min-width: 48em;
+	}
 }
 
 @media handheld , only screen and (max-width: 1024px) {
     .document{
-        max-width: 52.5em;
+        max-width: 40em;
+		min-width: 40em;
     }
     .wide .app-name {
          font-size: 6.4em;
