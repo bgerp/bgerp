@@ -1093,11 +1093,6 @@ class sales_Sales extends deals_DealMaster
     		}
     	}
     	
-    	$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-    	if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-    		$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
-    	}
-    	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     		
     		if(!Mode::isReadOnly()){
@@ -1119,6 +1114,12 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	if(isset($fields['-single'])){
+    		
+    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    		}
+    		
     		$row->transportCurrencyId = $row->currencyId;
     		$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
     		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
