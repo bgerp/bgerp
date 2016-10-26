@@ -33,9 +33,16 @@ class spcheck_Plugin extends core_Plugin
     {
         if (Mode::isReadOnly()) return ;
         
-        if ($data->rec && $data->rec->state != 'draft') return ;
+        // Чернова документите и документите, които са променяни последните 10 мин може да се проверяват
+        $date = ($data->rec->modifiedOn) ? $data->rec->modifiedOn : $data->rec->createdOn;
+        $spcheckInterval = ($mvc->spcheckInterval) ? $mvc->spcheckInterval : 600; // 10 мин
+        if ($data->rec && (($data->rec->state != 'draft') && (dt::secsBetween(dt::now(), $date) >= $spcheckInterval))) return ;
         
-        if ($data->rec && ($data->rec->createdBy != core_Users::getCurrent())) return ;
+        // Документите създадени/редактирани от текущия потребител мога да се проверяват
+        $cu = core_Users::getCurrent();
+        if ($data->rec && ($data->rec->createdBy != $cu && ($data->rec->modifiedBy != $cu))) return ;
+
+        if (!core_Users::isPowerUser($cu)) return ;
         
         if (!cls::haveInterface('doc_DocumentIntf', $mvc)) return ;
         
