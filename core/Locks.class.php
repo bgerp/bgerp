@@ -117,7 +117,7 @@ class core_Locks extends core_Manager
         }
         
         // Извличаме записа съответстващ на заключването, от модела
-        $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId), NULL, FALSE);
+        $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId), '*', FALSE);
         
         // Създаваме празен запис, ако не съществува такъв за обекта
         if(!$rec) {
@@ -130,13 +130,16 @@ class core_Locks extends core_Manager
             $rec->lockExpire = $lockExpire;
             $rec->objectId = $objectId;
             $rec->user = core_Users::getCurrent();
-            $Locks->save($rec);
-            $Locks->locks[$objectId] = $rec;
             
-            // Дали да се изтрие преди излизане от хита - за асинхронни процеси
-            $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
-            
-            return TRUE;
+            // Ако възникне дублиран запис
+            if ($Locks->save($rec, NULL, 'IGNORE')) {
+                $Locks->locks[$objectId] = $rec;
+                
+                // Дали да се изтрие преди излизане от хита - за асинхронни процеси
+                $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
+                
+                return TRUE;
+            }
         }
         
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
