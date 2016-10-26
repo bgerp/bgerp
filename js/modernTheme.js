@@ -89,6 +89,8 @@ function render_setThreadElemWidth() {
 
 
 function setMaxWidth() {
+	if($('body').hasClass('narrow')) return;
+
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - $('.wide-profile-info').width();
 	if(contentWidth < $('.listTable').first().width()){
