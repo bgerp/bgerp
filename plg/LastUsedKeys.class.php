@@ -32,7 +32,7 @@ class plg_LastUsedKeys extends core_Plugin
         // той се съставя, като се обхождат всички ключови полета
         if(empty($mvc->lastUsedKeys)) {
             foreach($mvc->fields as $name => $field) {
-                if(($field->type instanceof type_Key) || ($field->type instanceof type_Keylist)) {
+                if(($field->type instanceof type_Key) || ($field->type instanceof type_Key2) || ($field->type instanceof type_Keylist)) {
                     $mvc->lastUsedKeys[] = $name;
                 }
             }
@@ -46,7 +46,7 @@ class plg_LastUsedKeys extends core_Plugin
                     'Полето в lastUsedFields не принадлежи на модела',
                     $field);
                 expect(($mvc->fields[$field]->type instanceof type_Key) ||
-                    ($mvc->fields[$field]->type instanceof type_Keylist),
+                    ($mvc->fields[$field]->type instanceof type_Keylist) || (($mvc->fields[$field]->type instanceof type_Key2)),
                     'Полето в lastUsedFields не е key или keylist',
                     $field);
             }
@@ -59,7 +59,7 @@ class plg_LastUsedKeys extends core_Plugin
         
         foreach($mvc->lastUsedKeys as $field) {
             if($rec->{$field}) {
-                if($mvc->fields[$field]->type instanceof type_Key) {
+                if (($mvc->fields[$field]->type instanceof type_Key) || ($mvc->fields[$field]->type instanceof type_Key2)) {
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);
                     
                     if($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {

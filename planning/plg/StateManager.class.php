@@ -46,7 +46,7 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
-			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено)', 'caption=Състояние, input=none');
+			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
 		}
 		
 		if(isset($mvc->demandReasonChangeState)){
@@ -149,7 +149,7 @@ class planning_plg_StateManager extends core_Plugin
 				case 'activateagain':
 	
 					// Дали може да бъде активирана отново, след като е било променено състоянието
-					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'pending'){
+					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'pending' || $rec->state == 'template'){
 						$requiredRoles = 'no_one';
 					}
 					break;

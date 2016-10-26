@@ -273,7 +273,7 @@ class price_ProductCosts extends core_Manager
     				// от документите от вида "Корекция на стойност". В обикновените записи имаше приложени
     				// само корекциите от документа когато той е към същата сделка. Когато е към друга не се вземаха
     				// затова трябваше да се добавят ръчно към записите
-    				$purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries);
+    				$purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries, $purRec->requestId);
     			}
     			
     			// Намираме какво е експедирано по сделката

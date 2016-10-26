@@ -40,8 +40,8 @@ class plg_State extends core_Plugin
                   rejected=Оттеглен,
                   stopped=Спрян,
                   wakeup=Събуден,
-                  free=Освободен)',
-                'caption=Състояние,column=none,input=none');
+                  free=Освободен,template=Шаблон)',
+                 'caption=Състояние,column=none,input=none');
         }
 
         foreach($mvc->fields['state']->type->options as $state => $verbal) {

@@ -51,9 +51,11 @@ class store_Transfers extends core_Master
 
     
     /**
-     * Детайли за клониране
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'store_TransfersDetails';
+    public $cloneDetails = 'store_TransfersDetails';
     
     
     /**

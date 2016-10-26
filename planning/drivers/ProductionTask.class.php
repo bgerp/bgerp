@@ -444,12 +444,20 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	unset($nRec->totalWeight);
     	unset($nRec->systemId);
-    	
-    	// Добавяме артикулите към детайлите за клониране
-    	$cloneDetails = $Embedder->cloneDetailes;
-    	$cloneDetails = arr::make($cloneDetails, TRUE);
-    	$cloneDetails['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
-    	$Embedder->cloneDetailes = implode(',', $cloneDetails);
+    }
+    
+    
+    /**
+     * След определяне на детайлите за клониране
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param array $details
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetDetailsToClone(tasks_BaseDriver $Driver, embed_Manager &$Embedder, &$details, $rec)
+    {
+    	$details['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
     }
     
     

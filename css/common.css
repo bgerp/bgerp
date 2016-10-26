@@ -1204,6 +1204,10 @@ a.profile {
     color: #999999 !important;
     text-decoration: none !important; }
 
+.state-template {
+  background-color: #a1aeff;
+  background-color: rgba(165, 170, 255, 0.7); }
+
 .document .state-rejected.state,
 .document .state-rejected.state a {
   color: #444444 !important;

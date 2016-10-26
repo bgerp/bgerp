@@ -106,6 +106,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  28.".$this->act_CreateProductVAT9();
         $res .= "  29.".$this->act_CreatePersonUSA();
         $res .= "  30.".$this->act_EditCms();
+        $res .= "  31.".$this->act_CreateSupplier();
         
         return $res;
     }
@@ -118,6 +119,16 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->start('http://localhost/');
         //$browser->start('http://' . $_SERVER['HTTP_HOST']);
         
+        
+        //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите')) {
+       
+        //$browser->click('☒ Ако приемате лиценза по-долу, може да продължите »');
+        //$browser->click('Продължаване без обновяване »');
+        //$browser->click('✓ Всичко е наред. Продължете с инициализирането »');
+        //$browser->click('Стартиране инициализация »');
+        //$browser->click('Стартиране bgERP »');
+        //$browser->click('Вход');
+        //}
         if(strpos($browser->gettext(), 'Първоначална регистрация на администратор')) {
         //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp  
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -126,7 +137,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('names', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('email', 'bgerp@experta.bg');
             $browser->press('Запис');
-        }     
+        }    
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -364,12 +375,17 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         $browser->setValue('driverClass', 'Символи');
         $browser->refresh('Запис');
-        $browser->setValue('name', 'Състояние');
+        $browser->setValue('group', 'Състояние');
+        $browser->setValue('name', 'Външен вид');
         $browser->setValue('lenght', '15'); 
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на параметър', 'info');
+        }
+        if (strpos($browser->getText(),"Състояние » Външен вид")){
+        }   else {
+            return $this->reportErr('Неуспешно добавяне на параметър', 'info');
         }
         //return $browser->getHtml();
     }
@@ -783,6 +799,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
+        $browser->press('Оферта');
         //return $browser->getHtml();
     }
     
@@ -808,7 +825,9 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Създаване на оферта в');
         $browser->press('Чернова');
         // Добавяне на артикул 
+              
         $browser->press('Добавяне');
+        //Несъответствие на линия 120 в /home/pavlina/workspace/bgerp/unit/Browser.class.php
         //return $browser->getHtml();
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
@@ -817,7 +836,6 @@ class unit_MinkPbgERP extends core_Manager {
          // Записване на артикула и добавяне на нов - нестандартен
         $browser->press('Запис и Нов');
         
-        //Несъответствие на линия 120 в /home/pavlina/workspace/bgerp/unit/Browser.class.php
         $browser->setValue('productId', 'Артикул по запитване');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
@@ -1463,5 +1481,29 @@ class unit_MinkPbgERP extends core_Manager {
             return $this->reportErr('Липсва избор за Класове', 'warning');
         }
     }
+    /**
+     * 1. Създаване на фирма-доставчик 
+     */
+    //http://localhost/unit_MinkBom/CreateSupplier/
+    function act_CreateSupplier()
+    {
+        // Логване
+        $browser = $this->SetUp();
     
+        // Създаване на нова фирма
+        $browser->click('Визитник');
+        $browser->press('Нова фирма');
+        $browser->setValue('name', 'Фирма доставчик');
+        $browser->setValue('place', 'Смолян');
+        $browser->setValue('pCode', '6400');
+        $browser->setValue('address', 'ул.Родопи, №3');
+        $browser->setValue('fax', '0301111111');
+        $browser->setValue('tel', '0301211111');
+        $browser->setValue('uicId', '102223519');
+        $browser->setValue('Доставчици', '2');
+        $browser->press('Запис');
+        // Създаване на папка на новата фирма
+        //$browser->press('Папка');
+        //return $browser->getHtml();
+    }  
 }

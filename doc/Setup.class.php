@@ -195,6 +195,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_DocumentCache',
     	'doc_Likes',
     	'doc_ExpensesSummary',
+    	'doc_Prototypes',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
