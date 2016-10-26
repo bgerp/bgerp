@@ -75,12 +75,13 @@ abstract class cond_type_Proto extends core_BaseClass
     
     
     /**
-     * Връща инстанция на типа
-     *
-     * @param int $paramId - ид на параметър
-     * @return core_Type - готовия тип
-     */
-    public function getType($paramId)
+	 * Връща инстанция на типа
+	 *
+	 * @param stdClass $rec      - запис на параметъра
+	 * @param NULL|string $value - стойност
+	 * @return core_Type         - готовия тип
+	 */
+	public function getType($rec, $value = NULL)
     {
     	if(isset($this->baseType)){
     		$type = cls::get($this->baseType);
