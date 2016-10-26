@@ -106,6 +106,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  28.".$this->act_CreateProductVAT9();
         $res .= "  29.".$this->act_CreatePersonUSA();
         $res .= "  30.".$this->act_EditCms();
+        $res .= "  31.".$this->act_CreateSupplier();
         
         return $res;
     }
@@ -1480,5 +1481,29 @@ class unit_MinkPbgERP extends core_Manager {
             return $this->reportErr('Липсва избор за Класове', 'warning');
         }
     }
+    /**
+     * 1. Създаване на фирма-доставчик 
+     */
+    //http://localhost/unit_MinkBom/CreateSupplier/
+    function act_CreateSupplier()
+    {
+        // Логване
+        $browser = $this->SetUp();
     
+        // Създаване на нова фирма
+        $browser->click('Визитник');
+        $browser->press('Нова фирма');
+        $browser->setValue('name', 'Фирма доставчик');
+        $browser->setValue('place', 'Смолян');
+        $browser->setValue('pCode', '6400');
+        $browser->setValue('address', 'ул.Родопи, №3');
+        $browser->setValue('fax', '0301111111');
+        $browser->setValue('tel', '0301211111');
+        $browser->setValue('uicId', '102223519');
+        $browser->setValue('Доставчици', '2');
+        $browser->press('Запис');
+        // Създаване на папка на новата фирма
+        //$browser->press('Папка');
+        //return $browser->getHtml();
+    }  
 }

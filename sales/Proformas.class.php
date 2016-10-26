@@ -62,9 +62,11 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Детайли за клониране
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'sales_ProformaDetails' ;
+    public $cloneDetails = 'sales_ProformaDetails' ;
     
     
     /**

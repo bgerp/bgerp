@@ -111,7 +111,7 @@ class plg_ExportCsv extends core_Plugin
             		foreach($data->listFields as $field => $caption) {
             			$type = $mvc->fields[$field]->type;
             	
-            			if ($type instanceof type_Key) {
+            			if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
             				$value = $mvc->getVerbal($rec, $field);
             			} else {
             				$value = $rec->{$field};

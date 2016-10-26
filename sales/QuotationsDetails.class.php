@@ -756,6 +756,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Закачане на JS
         $tpl->push('sales/js/ResizeQuoteTable.js', 'JS');
         jquery_Jquery::run($tpl, "resizeQuoteTable();");
+		jquery_Jquery::runAfterAjax($tpl, "resizeQuoteTable");
         
     	return $tpl;
     }

@@ -35,7 +35,7 @@ function initElements() {
 
     var cookie = getCookie('menuInfo');
 
-	if(cookie == null && viewportWidth > 1264 && !isTouchDevice()) {
+	if(cookie == null && viewportWidth > 1280 && !isTouchDevice()) {
 		$('.btn-menu-left ').click();
 		if(viewportWidth > 1604){
 			$('.btn-menu-right ').click();
@@ -89,12 +89,14 @@ function render_setThreadElemWidth() {
 
 
 function setMaxWidth() {
+	if($('body').hasClass('narrow')) return;
+
 	var viewportWidth = $(window).width();
-	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
+	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - $('.wide-profile-info').width();
 	if(contentWidth < $('.listTable').first().width()){
         $('#packWrapper, .listBlock').width(contentWidth);
+		$('.listRows > .listTable > tbody > tr > td:last-child').css('min-width', 0);
         $('.document').css('width', contentWidth - 3);
-		$('.document').css('min-width', contentWidth - 3);
         $('.document .scrolling-holder').addClass('overflow-scroll');
     }
 }

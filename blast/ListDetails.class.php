@@ -855,7 +855,7 @@ class blast_ListDetails extends doc_Detail
                 
                 $type = $mvc->getFieldType($field);
                 
-                if ($type instanceof type_Key) {
+                if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                     $value = $mvc->getVerbal($cRec, $field);
                 } elseif ($type instanceof type_Varchar) {
                     $value = $cRec->{$field};

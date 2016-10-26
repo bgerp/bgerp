@@ -783,6 +783,7 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
+                    doc_Prototypes::sync($rec->containerId);
                     doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
                     $mvc->logInAct('Оттегляне', $rec);
                 }
@@ -3402,6 +3403,6 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
     {
     	// Добавяме артикулите към детайлите за клониране
-    	$res = arr::make($mvc->cloneDetailes, TRUE);
+    	$res = arr::make($mvc->cloneDetails, TRUE);
     }
 }

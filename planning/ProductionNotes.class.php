@@ -125,10 +125,11 @@ class planning_ProductionNotes extends planning_ProductionDocument
 	
 	
 	/**
-	 * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-	 * (@see plg_Clone)
-	 */
-	public $cloneDetailes = 'planning_ProductionNoteDetails';
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * 
+     * @see plg_Clone
+     */
+	public $cloneDetails = 'planning_ProductionNoteDetails';
 	
 	
 	/**

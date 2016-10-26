@@ -36,6 +36,7 @@ class unit_MinkPPurchases extends core_Manager {
         $res .= "  12.".$this->act_CreatePurchaseAdvPaymentInclVAT();
         $res .= "  13.".$this->act_CreatePurchaseAdvPaymentSep();
         $res .= "  14.".$this->act_CreatePurchaseDifVAT();
+        $res .= "  14.".$this->act_CreatePurchaseExpense();
         return $res;
     }
        
@@ -1366,10 +1367,14 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Логване
         $browser = $this->SetUp();
-    
+        //Отваряме папката на фирмата
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = 'Фирма доставчик';
+        $browser->click($Company);
+        $browser->press('Папка');
+        
         //Отваряне папката на фирмата
-        $browser = $this->SetFirm();
-    
         // нова Покупка - проверка има ли бутон
         if(strpos($browser->gettext(), 'Покупка')) {
             $browser->press('Покупка');
@@ -1414,6 +1419,19 @@ class unit_MinkPPurchases extends core_Manager {
         // протокол
         $browser->press('Разходен обект');
         
+        //ID на перото
+        $browser->click('Настройки');
+        $browser->click('Пера');
+        $browser->setValue('listId', 'Сделки');
+        $browser->setValue('search', 'Доставчик');
+        $browser->press('Филтрирай');
+        $browser->click('Информация за перото');
+        
+       
+        $purId = "128";
+        ///////$purid - да се зареди ID "quiet aright"
+        $purId = $purId .'.17';
+        
         //Покупка 2 - услуги
         //Отваряне папката на фирмата
         $browser = $this->SetFirm();
@@ -1439,9 +1457,11 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '100');
-        /////Разход за ...///////////
-        $browser->setValue('expenseItemId', '91.17');
         
+        $browser->setValue('expenseItemId', $purId);
+        //грешка!
+        //$browser->setValue('allocationBy', 'По стойност');
+        //$browser->refresh('Запис');
         // Записване на артикула
         $browser->press('Запис');
         
@@ -1451,11 +1471,11 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
         ///Проверка в разходния обект и фактуриране...//////////
-        $browser->click('16 pur');
+        $browser->click('67 pur');
         //return $browser->getHtml();
         // Фактура в покупка 1
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '18');
+        $browser->setValue('number', '5418');
         $browser->press('Чернова');
         $browser->press('Контиране');
         //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 36,88')) {

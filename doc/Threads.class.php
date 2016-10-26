@@ -1953,9 +1953,9 @@ class doc_Threads extends core_Manager
 
         if($action == 'single') {
             if(doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
-                $res = 'user';
+                $res = 'powerUser';
             } elseif(keylist::isIn($userId, $rec->shared)) {
-                $res = 'user';
+                $res = 'powerUser';
             } else {
                 $res = 'no_one';
             }
@@ -2590,5 +2590,19 @@ class doc_Threads extends core_Manager
         }
         
         return "Изтрити записи: " . $delCnt; 
+    }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        doc_Folders::getContentHash_($status);
     }
 }

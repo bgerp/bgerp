@@ -33,7 +33,7 @@ class trz_Trips extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trz_Wrapper, doc_DocumentPlg, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, trz_Wrapper, doc_DocumentPlg,doc_plg_TransferDoc, acc_plg_DocumentSummary,
     				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank,change_Plugin';
     
     
@@ -141,6 +141,18 @@ class trz_Trips extends core_Master
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    public $onlyFirstInThread = TRUE;
+    
+    
+    /**
+     * По кое поле ще се премества документа
+     */
+    public $transferFolderField = 'personId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -156,8 +168,9 @@ class trz_Trips extends core_Master
     	$this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни,input=none, changable');
     	$this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни,input=none, changable');
     	$this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
+
     	
-    	$this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители,mandatory');
+    	$this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -201,8 +214,9 @@ class trz_Trips extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $rec = $data->form->rec;
-        
-        if ($rec->folderId) {
+        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+
+        if ($rec->folderId && $folderClass == 'crm_Persons') {
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
         }
@@ -415,21 +429,6 @@ class trz_Trips extends core_Master
         
         return $row;
     }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param $threadId int ид на нишката
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Добавяме тези документи само в персонални папки
-        $threadRec = doc_Threads::fetch($threadId);
-
-        return self::canAddToFolder($threadRec->folderId);
-    }
 
     
     /**
@@ -444,7 +443,7 @@ class trz_Trips extends core_Master
     	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
     	
     	// Ако не е папка проект или контрагент, не може да се добави
-    	if ($coverClassName != 'crm_persons') return FALSE;
+    	if ($coverClassName != 'crm_persons' && $coverClassName != 'doc_unsortedfolders') return FALSE;
     }
     
     
@@ -454,7 +453,7 @@ class trz_Trips extends core_Master
      */
     public static function getAllowedFolders()
     {
-    	return array('crm_PersonAccRegIntf');
+    	return array('crm_PersonAccRegIntf', 'folderClass' => 'doc_UnsortedFolders');
     }
     
     

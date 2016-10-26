@@ -38,7 +38,7 @@ class doc_Prototypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "docId,title,driverClassId,sharedWithRoles,sharedWithUsers,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
@@ -92,7 +92,7 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
-    	$this->setDbUnique('classId,docId,title');
+    	$this->setDbUnique('classId,title');
     	$this->setDbUnique('originId');
     	$this->setDbUnique('classId,docId');
     	$this->setDbIndex('classId,docId,driverClassId');
@@ -118,6 +118,8 @@ class doc_Prototypes extends core_Manager
     				if($mvc->fetch("#originId = {$rec->originId}")){
     					$requiredRoles = 'no_one';
     				} elseif(acc_Journal::fetchByDoc($doc->getClassId(), $doc->that)){
+    					$requiredRoles = 'no_one';
+    				} elseif($doc->fetchField('state') != 'draft'){
     					$requiredRoles = 'no_one';
     				}
     			}

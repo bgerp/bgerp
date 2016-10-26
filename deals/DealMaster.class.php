@@ -316,14 +316,18 @@ abstract class deals_DealMaster extends deals_DealBase
         $abbr{0} = strtoupper($abbr{0});
 
         $date = dt::mysql2verbal($rec->valior, 'd.m.year'); 
-
-        $crm = cls::get($rec->contragentClassId);
-        $cRec =  $crm->getContragentData($rec->contragentId);
         
-        $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
+        if(isset($rec->contragentClassId) && isset($rec->contragentId)){
+        	$crm = cls::get($rec->contragentClassId);
+        	$cRec =  $crm->getContragentData($rec->contragentId);
+        	
+        	$contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
+        } else {
+        	$contragent = tr("Проблем при показването");
+        }
         
         if($escaped) {
-            $contragent = type_Varchar::escape($contragent);
+        	$contragent = type_Varchar::escape($contragent);
         }
 
     	return "{$abbr}{$rec->id}/{$date} {$contragent}";
@@ -849,7 +853,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	}
 	    	
 	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
-	    	(core_Users::haveRole('collaborator')) ? $row->responsible = $cuNames : $row->username = $cuNames;
+	    	(core_Users::haveRole('collaborator', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){

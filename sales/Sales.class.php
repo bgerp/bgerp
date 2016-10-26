@@ -191,6 +191,7 @@ class sales_Sales extends deals_DealMaster
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|defMethod',
+    	'shipmentStoreId' 	 => 'clientCondition',
     );
     
     
@@ -253,9 +254,10 @@ class sales_Sales extends deals_DealMaster
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-     * (@see plg_Clone)
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'sales_SalesDetails';
+    public $cloneDetails = 'sales_SalesDetails';
     
     
     /**
@@ -274,6 +276,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
+    	$this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
     }
     
     
@@ -505,7 +508,7 @@ class sales_Sales extends deals_DealMaster
      */
     private function prepareFiscPrinterData($rec)
     {
-    	$dQuery = $this->sales_SalesDetails->getQuery();
+    	$dQuery = sales_SalesDetails::getQuery();
     	$dQuery->where("#saleId = {$rec->id}");
     	
     	$data = (object)array('products' => array(), 'payments' => array());
@@ -1090,11 +1093,6 @@ class sales_Sales extends deals_DealMaster
     		}
     	}
     	
-    	$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-    	if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-    		$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
-    	}
-    	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     		
     		if(!Mode::isReadOnly()){
@@ -1116,6 +1114,12 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	if(isset($fields['-single'])){
+    		
+    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    		}
+    		
     		$row->transportCurrencyId = $row->currencyId;
     		$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
     		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
