@@ -208,13 +208,16 @@ class bgerp_plg_FLB extends core_Plugin
 	 * @param boolean $onlyActivate
 	 * @return void
 	 */
-	private static function addUserFilterToQuery($mvc, core_Query &$query, $users = NULL, $onlyActivate = FALSE)
+	public static function addUserFilterToQuery($mvc, core_Query &$query, $users = NULL, $onlyActivate = FALSE)
 	{
 		$users = ($users) ? $users : core_Users::getCurrent();
 		$users = (keylist::isKeylist($users)) ? keylist::toArray($users) : arr::make($users);
 		
 		$count = 0;
 		$cond = '';
+		
+		$mvc = cls::get($mvc);
+		expect($mvc->hasPlugin('bgerp_plg_FLB'));
 		
 		foreach ($users as $userId){
 			$beginning = ($count == 0) ? ' ' : " OR ";
