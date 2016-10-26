@@ -508,7 +508,7 @@ class sales_Sales extends deals_DealMaster
      */
     private function prepareFiscPrinterData($rec)
     {
-    	$dQuery = $this->sales_SalesDetails->getQuery();
+    	$dQuery = sales_SalesDetails::getQuery();
     	$dQuery->where("#saleId = {$rec->id}");
     	
     	$data = (object)array('products' => array(), 'payments' => array());
