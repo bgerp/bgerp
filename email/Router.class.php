@@ -296,7 +296,9 @@ class email_Router extends core_Manager
      */
     static function removeRules($objectType, $objectId)
     {
-        static::delete("#objectType = '{$objectType}' AND #objectId = {$objectId}");
+        if ($objectType && $objectId) {
+            static::delete(array("#objectType = '[#1#]' AND #objectId = '[#2#]'", $objectType, $objectId));
+        }
     }
     
     

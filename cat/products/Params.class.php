@@ -335,6 +335,8 @@ class cat_products_Params extends doc_Detail
         		} elseif($rec->classId == cat_Products::getClassId()){
         			$requiredRoles = 'cat,ceo';
         		}
+        		
+        		
         	}
         }
        
@@ -347,10 +349,10 @@ class cat_products_Params extends doc_Detail
         		}
         	}
         	
-        	if($rec->classId == cat_Products::getClassId()){
-        		$pRec = cat_Products::fetch($rec->productId);
+        	if(isset($rec->classId)){
+        		$pRec = cls::get($rec->classId)->fetch($rec->productId);
         		
-        		if($action == 'add'){
+        		if($action == 'add' && $rec->classId == cat_Products::getClassId()){
         			if($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
         			
         				// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул

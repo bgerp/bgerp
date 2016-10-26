@@ -51,7 +51,7 @@ class bgerp_BaseImporter extends core_Manager {
         foreach($Dfields as $name => $fld){
             if($fld->input != 'none' && $fld->input != 'hidden' &&
                 $fld->kind != 'FNC' && !($fld->type instanceof type_Enum) &&
-                !($fld->type instanceof type_Key) && !($fld->type instanceof type_KeyList)){
+                !($fld->type instanceof type_Key) && !($fld->type instanceof type_Key2) && !($fld->type instanceof type_KeyList)){
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
         }

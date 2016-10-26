@@ -245,7 +245,7 @@ class core_Cron extends core_Manager
             }
         }
 
-         header('Cache-Control: no-cache, no-store');
+        header('Cache-Control: no-cache, no-store');
         
         // Отключваме всички процеси, които са в състояние заключено, а от последното
         // им стартиране е изминало повече време от Време-лимита-а
@@ -260,7 +260,7 @@ class core_Cron extends core_Manager
             $this->logWarning("Отключен процес, започнал в " . $rec->lastStart, $rec->id, 7);
         }
         
-        // Коя е текущата секинда?
+        // Коя е текущата секунда?
         $timeStamp = time();
         
         // Добавяме отместването във времето за timezone
@@ -301,6 +301,12 @@ class core_Cron extends core_Manager
                 // echo "NO";
             }
         }
+
+        $Os = cls::get('core_Os');
+        $apacheProc = $Os->countApacheProc();
+        $this->logInfo("Има ({$apacheProc}) стартирани процеси на Apache", NULL, 7);
+
+        $this->logThenStop("Стартирани са {$i} процеса", NULL, 'info');
     }
     
     
@@ -427,7 +433,9 @@ class core_Cron extends core_Manager
     function logThenStop($msg, $id = NULL, $type = 'info')
     {
         log_System::add(get_called_class(), $msg, $id, $type, 7);
-        echo(core_Debug::getLog());
+        if(haveRole('admin,debug')) {
+            echo(core_Debug::getLog());
+        }
         shutdown();
     }
     
@@ -734,7 +742,7 @@ class core_Cron extends core_Manager
     {
         if ($form->isSubmitted()) {
             if ($form->rec->offset >= $form->rec->period) {
-                $form->setError('offset', 'Отместването трябвада е по-малко от периода');
+                $form->setError('offset', 'Отместването трябва да е по-малко от периода');
             }
         }
     }

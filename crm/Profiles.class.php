@@ -858,9 +858,6 @@ class crm_Profiles extends core_Master
         		
         		// За отговорник стават първия админ/ceo
         		$person->inCharge  = doc_FolderPlg::getDefaultInCharge();
-        		
-        		// Визитката се споделя до лицето
-        		$person->shared = keylist::addKey('', $user->id);
         	} else {
         		
         		// Ако е powerUse Лицето става отговорник на папката си
@@ -1390,7 +1387,7 @@ class crm_Profiles extends core_Master
                 if ($typeInst instanceof type_Enum) {
                     $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
                     $isEnum = TRUE;
-                } elseif ($typeInst instanceof type_Key) {
+                } elseif (($typeInst instanceof type_Key) || ($typeInst instanceof type_Key2)) {
                     $isKey = TRUE;
                 }
                 

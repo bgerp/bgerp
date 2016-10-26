@@ -27,7 +27,7 @@ class doc_SharablePlg extends core_Plugin
         
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('sharedUsers', FALSE)) {
-            $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,autohide');
+            $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
         }
         // Поле за първите виждания на документа от потребителите с които той е споделен
         if (!$mvc->getField('sharedViews', FALSE)) {
@@ -251,7 +251,27 @@ class doc_SharablePlg extends core_Plugin
             // Да има само 2 колони
             $data->form->setField('sharedUsers', array('maxColumns' => 2));    
         }
-         
+        
+        // изчисляваме колко са потребителите със съответните роли
+        $roles = $data->form->getField('sharedUsers')->type->params['roles'];
+
+        $roles = core_Roles::getRolesAsKeylist($roles);
+
+        $roles = keylist::toArray($roles);
+        
+        $allUsers = core_Users::getRolesWithUsers();
+        $users = array();
+
+        foreach($roles as $rId) {
+            if(is_array($allUsers[$rId])) {
+                $users += $allUsers[$rId];
+            }
+        }
+   
+        if(count($users) > core_Setup::get('AUTOHIDE_SHARED_USERS')) {
+            $data->form->setField('sharedUsers', 'autohide');    
+        }
+
         if(isset($mvc->shareUserRoles)){
         	$sharedRoles = arr::make($mvc->shareUserRoles, TRUE);
         	$sharedRoles = implode(',', $sharedRoles);

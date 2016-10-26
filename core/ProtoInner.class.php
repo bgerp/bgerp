@@ -119,4 +119,18 @@ class core_ProtoInner extends core_BaseClass {
     public function alterSearchKeywords(&$keywords)
     {
     }
+    
+    
+    /**
+     * Кои са полетата на драйвера
+     *
+     * @param array
+     */
+    public function getDriverFields()
+    {
+    	$form = cls::get('core_Form');
+    	$this->addEmbeddedFields($form);
+    	
+    	return arr::make(array_keys($form->selectFields()), TRUE);
+    }
 }

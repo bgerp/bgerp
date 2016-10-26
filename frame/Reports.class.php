@@ -23,7 +23,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_plg_Prototype,doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
                       
     
     /**
@@ -132,6 +132,12 @@ class frame_Reports extends core_Embedder
      * Как се казва полето за избор на вътрешния клас
      */
     public $innerClassField = 'source';
+    
+    
+    /**
+     * Кои полета да не се клонират
+     */
+    public $fieldsNotToClone = 'source,filter,data';
     
     
     /**

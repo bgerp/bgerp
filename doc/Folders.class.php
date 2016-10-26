@@ -1190,6 +1190,162 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Поправка на структурата на кориците
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repairCover($from = NULL, $to = NULL, $delay = 10)
+    {
+        $resArr = array();
+        
+        // Изкючваме логването
+        $isLoging = core_Debug::$isLogging;
+        core_Debug::$isLogging = FALSE;
+        
+        // Всички документи, които имат интерфейса
+        $clsArr = core_Classes::getOptionsByInterface('doc_FolderIntf', 'name');
+        
+        $fArr = array();
+        
+        foreach ($clsArr as $clsId => $clsName) {
+            
+            if ($clsName == 'doc_Folders') continue;
+            
+            if (!cls::load($clsName, TRUE)) continue ;
+            
+            $coverInst = cls::get($clsName);
+            $coverId = core_Classes::getId($coverInst);
+            
+            $cQuery = $coverInst->getQuery();
+            
+            // Подготвяме данните за търсене
+            self::prepareRepairDateQuery($cQuery, $from, $to, $delay);
+            
+            $cQuery->where("#folderId IS NOT NULL AND #folderId != ''");
+            
+            while ($cRec = $cQuery->fetch()) {
+                
+                if (!$cRec->folderId) continue;
+                
+                // Премахва повтарящите се folderId
+                if ($fArr[$cRec->folderId]) {
+                    
+                    // Избираме най-добрият запис
+                    $cPoints = self::getPointsForRec($cRec);
+                    $aPoints = self::getPointsForRec($fArr[$cRec->folderId]['rec']);
+                    
+                    if ($cPoints == $aPoints) {
+                        if ($cRec->lastUsedOn > $fArr[$cRec->folderId]['rec']->lastUsedOn) {
+                            $cPoints++;
+                        }
+                    }
+                    
+                    try {
+                        // Нулираме folderId на записа с по-малко точки
+                        if ($aPoints > $cPoints) {
+                            $cRec->folderId = NULL;
+                            $coverInst->save($cRec, 'folderId');
+                            $coverInst->logNotice('Нулирано повтарящо се "folderId"', $cRec->id);
+                        } else {
+                            $sInst = cls::get($fArr[$cRec->folderId]['cls']);
+                            $fArr[$cRec->folderId]['rec']->folderId = NULL;
+                            $sInst->logNotice('Нулирано повтарящо се "folderId"', $fArr[$cRec->folderId]['rec']->id);
+                            $sInst->save($fArr[$cRec->folderId]['rec'], 'folderId');
+                        
+                            // Добавяме новите стойности в масива
+                            $fArr[$cRec->folderId]['cls'] = $clsName;
+                            $fArr[$cRec->folderId]['rec'] = $cRec;
+                        }
+                        $resArr['folderId']++;
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    }
+                } else {
+                    $fArr[$cRec->folderId]['cls'] = $clsName;
+                    $fArr[$cRec->folderId]['rec'] = $cRec;
+                }
+                
+                // Ако ще се проверяват всички записи
+                if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+                    
+                    $fRec = FALSE;
+                    if ($cRec->folderId) {
+                        $fRec = doc_Folders::fetch($cRec->folderId, '*', FALSE);
+                    }
+                    
+                    // Ако няма такава папка
+                    if (!$fRec) {
+                        try {
+                            $cRec->folderId = NULL;
+                            $coverInst->save($cRec, 'folderId');
+                            $coverInst->logNotice('Нулирано грешно "folderId"', $cRec->id);
+                            $resArr['folderId']++;
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
+                    } else {
+                        
+                        // Ако корицата не отговаря с данните на папката
+                        if ($fRec->coverClass != $coverId || $fRec->coverId != $cRec->id) {
+                            
+                            $newFolderId = doc_Folders::fetchField(array("#coverClass = '[#1#]' AND #coverId = '[#2#]'", $coverId, $cRec->id), 'id', FALSE);
+                            
+                            try {
+                                if ($newFolderId) {
+                                    $cRec->folderId = $newFolderId;
+                                    $coverInst->save($cRec, 'folderId');
+                                    $coverInst->logNotice('Променено грешно "folderId"', $cRec->id);
+                                    $resArr['folderId']++;
+                                } else {
+                                    $fRec->coverClass = $coverId;
+                                    $fRec->coverId = $cRec->id;
+                                    self::save($fRec, 'coverClass, coverId', 'IGNORE');
+                                    self::logNotice('Промене coverClass и coverId', $fRec->id);
+                                    $resArr['coverId']++;
+                                }
+                            } catch (ErrorException $e) {
+                                reportException($e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Опитва се да извлече точки за записа
+     * 
+     * @param stdObject $rec
+     * 
+     * @return number
+     */
+    protected static function getPointsForRec($rec)
+    {
+        $points = 0;
+        
+        $points = strlen($rec->searchKeywords);
+        
+        if ($rec->state == 'rejected') {
+            $points -= 1000;
+        }
+        
+        if (!$rec->lastUsedOn) {
+            $points -= 100;
+        }
+        
+        return $points;
+    }
+    
+    
+    /**
      * Прави миграция на папките към несортирани. Използва се при поправка на документите.
      * 
      * @param stdObject $rec

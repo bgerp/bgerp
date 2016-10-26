@@ -169,6 +169,7 @@ class purchase_Purchases extends deals_DealMaster
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|defMethod',
+    	'shipmentStoreId' 	 => 'clientCondition',
     );
     
     
@@ -186,9 +187,10 @@ class purchase_Purchases extends deals_DealMaster
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-     * (@see plg_Clone)
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'purchase_PurchasesDetails';
+    public $cloneDetails = 'purchase_PurchasesDetails';
     
     
     /**
@@ -252,7 +254,7 @@ class purchase_Purchases extends deals_DealMaster
     	parent::setDealFields($this);
     	$this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
     	$this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
-    	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor');
+    	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
     }
     
     
@@ -514,7 +516,7 @@ class purchase_Purchases extends deals_DealMaster
         $agreed = deals_Helper::normalizeProducts(array($agreed));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries));
+        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries, $rec->id));
     }
     
     

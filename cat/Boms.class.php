@@ -72,9 +72,10 @@ class cat_Boms extends core_Master
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-     * (@see plg_Clone)
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'cat_BomDetails';
+    public $cloneDetails = 'cat_BomDetails';
     
     
     /**

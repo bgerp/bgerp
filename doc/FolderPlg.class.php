@@ -895,7 +895,9 @@ class doc_FolderPlg extends core_Plugin
     		
     		// Ако имаме достъп до корицата и тя наследява core_Master пренасочваме към сингъла
     		if(doc_Folders::haveRightToObject($data->form->rec) && $mvc instanceof core_Master){
-    			$data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+                if(is_array($data->retUrl) && (strtolower($data->retUrl[1]) == 'list' || strtolower($data->retUrl[1]) == 'list')) {
+    			    $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+                }
     		} else {
     			
     			// Ако нямаме достъп, пренасочваме към списъчния изглед
