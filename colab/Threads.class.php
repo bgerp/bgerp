@@ -458,6 +458,6 @@ class colab_Threads extends core_Manager
      */
     public static function getContentHash_(&$status)
     {
-        doc_Folders::getContentHash_($status);
+        doc_Threads::getContentHash_($status);
     }
 }
