@@ -28,8 +28,6 @@ class doc_plg_TransferDoc extends core_Plugin
         $transferFolderField = $mvc->transferFolderField;
         // кое поле ще изпозлваме за преместване
         $newFolderField = $mvc->getField($transferFolderField);
-        
-        if(doc_Threads::getFirstDocument($rec->threadId)) return;
 
         // новото Mvc
         $newCoverMvc = cls::get($newFolderField->type->params['mvc']);
