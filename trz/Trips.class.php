@@ -428,21 +428,6 @@ class trz_Trips extends core_Master
         
         return $row;
     }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param $threadId int ид на нишката
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Добавяме тези документи само в персонални папки
-        $threadRec = doc_Threads::fetch($threadId);
-
-        return self::canAddToFolder($threadRec->folderId);
-    }
 
     
     /**
