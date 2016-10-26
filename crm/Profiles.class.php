@@ -858,9 +858,6 @@ class crm_Profiles extends core_Master
         		
         		// За отговорник стават първия админ/ceo
         		$person->inCharge  = doc_FolderPlg::getDefaultInCharge();
-        		
-        		// Визитката се споделя до лицето
-        		$person->shared = keylist::addKey('', $user->id);
         	} else {
         		
         		// Ако е powerUse Лицето става отговорник на папката си
