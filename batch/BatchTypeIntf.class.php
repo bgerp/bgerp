@@ -94,4 +94,13 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
     	return $this->class->makeArray($value);
     }
+    
+    
+    /**
+     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
+     *
+     * @return string
+     */
+    public function getAutoValueConst()
+    {
 }

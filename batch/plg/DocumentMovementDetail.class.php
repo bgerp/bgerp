@@ -61,10 +61,6 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				
-				if(!isset($rec->id)){
-					$form->setDefault('batch', $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}));
-				}
-				
 				if(!empty($rec->batch)){
 					$rec->batch = $BatchClass->denormalize($rec->batch);
 				}
@@ -105,10 +101,34 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if(!empty($rec->batch)){
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if(is_object($BatchClass)){
-				$rec->batch = $BatchClass->normalize($rec->batch);
+				if($rec->batch != $BatchClass->getAutoValueConst()){
+					$rec->batch = $BatchClass->normalize($rec->batch);
+				}
 			}
 		} else {
 			$rec->batch = NULL;
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		// След запис ако партидата е за автоматично обновяване, обновява се
+		if(!empty($rec->batch)){
+			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+			if(is_object($BatchClass)){
+				if($rec->batch == $BatchClass->getAutoValueConst()){
+					$rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey});
+					$mvc->save_($rec, 'batch');
+				}
+			}
 		}
 	}
 	

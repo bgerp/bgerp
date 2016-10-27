@@ -67,6 +67,8 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
+		if($value == $this->getAutoValueConst()) return TRUE;
+		
 		// Карта
 		$map = array();
 		$map['m'] = "(?'month'[0-9]{2})";
@@ -143,5 +145,32 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		}
 		
 		return cls::get('type_Html')->toVerbal($value);
+	}
+	
+	
+	/**
+	 * Проверява дали стойността е невалидна
+	 *
+	 * @return core_Type - инстанция на тип
+	 */
+	public function getBatchClassType()
+	{
+		$Type = parent::getBatchClassType();
+	
+		$autoConst = $this->getAutoValueConst();
+		$Type->suggestions = array('' => '', $autoConst => $autoConst);
+	
+		return $Type;
+	}
+	
+	
+	/**
+     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
+     *
+     * @return string
+     */
+    public function getAutoValueConst()
+    {
+		return $this->rec->format;
 	}
 }
