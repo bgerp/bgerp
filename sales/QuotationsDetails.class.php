@@ -438,11 +438,6 @@ class sales_QuotationsDetails extends doc_Detail {
     				}
     			}
     			
-    			// Ако във формата са открити грешки, занулаваме вече изчислените полета, да не се показват
-    			if($form->gotErrors()){
-    				unset($rec->packPrice, $rec->packQuantity, $rec->quantity, $rec->price, $rec->discount);
-    			}
-    			
     			$rec->vatPercent = $vat;
     		}
     		

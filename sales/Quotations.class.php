@@ -536,7 +536,7 @@ class sales_Quotations extends core_Master
     					$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
     					$packPrice = $leftTransportCost * $rec->currencyRate;
     				
-    					$url = array('sales_QuotationsDetails', 'add', 'quotationId' => $rec->id, 'productId' => 23, 'packPrice' => $packPrice, 'ret_url' => TRUE);
+    					$url = array('sales_QuotationsDetails', 'add', 'quotationId' => $rec->id, 'productId' => $transportId, 'packPrice' => $packPrice, 'optional' => 'no','ret_url' => TRUE);
     					$link = ht::createLink('Добавяне', $url, FALSE, array('ef_icon' => 'img/16/lorry_go.png', "style" => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
     					$row->btnTransport = $link->getContent();
     				
