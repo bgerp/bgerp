@@ -165,7 +165,7 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td><!--ET_BEGIN username--><span class="sign_names nowrap">/ [#username#] /</span><!--ET_END username--></td>
+                            <td><span class="sign_names nowrap"><!--ET_BEGIN username-->/ [#username#] /<!--ET_END username--></span></td>
                         </tr>
                     </table>
                 </td>
