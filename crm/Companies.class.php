@@ -220,7 +220,7 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     var $singleLayoutFile = 'crm/tpl/SingleCompanyLayout.shtml';
     

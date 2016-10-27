@@ -48,13 +48,13 @@ class cash_Rko extends cash_Document
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'cash/tpl/Rko.shtml';
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFileNarrow = 'cash/tpl/RkoNarrow.shtml';
     

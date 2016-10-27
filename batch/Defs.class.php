@@ -71,7 +71,7 @@ class batch_Defs extends embed_Manager {
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'batch/tpl/SingleLayoutDefs.shtml';
     

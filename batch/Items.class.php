@@ -77,7 +77,7 @@ class batch_Items extends core_Master {
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'batch/tpl/SingleLayoutItem.shtml';
     

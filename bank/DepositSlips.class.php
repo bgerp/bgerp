@@ -55,7 +55,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'bank/tpl/SingleDepositSlip.shtml';
     
