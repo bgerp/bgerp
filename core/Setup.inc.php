@@ -65,9 +65,16 @@ else {
 	$protocol = 'http://';
 }
 
-// Собственото URL
-$selfUri = "{$protocol}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+if($username = $_SERVER['PHP_AUTH_USER']) {
+    $password = $_SERVER['PHP_AUTH_PW'];
+    $auth = $username . ':' . $password . '@';
+} else {
+    $auth = '';
+}
 
+// Собственото URL
+$selfUri = "{$protocol}{$auth}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+ 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
 $nextUrl = addParams($selfUri, array('step' => $step+1));
@@ -826,7 +833,7 @@ if($step == 4) {
     }
 }
 
-if($step == 5) {
+if($step == 5) {  
     $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
 }
 
@@ -1521,7 +1528,7 @@ function addParams($url, $newParams)
     }
     
     if (isset($purl["user"])) {
-        $res .= $purl["user"];
+        $res .= $purl["user"] . ':';
         $res .= $purl["pass"];
         $res .= "@";
     }

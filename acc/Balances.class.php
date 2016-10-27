@@ -451,7 +451,14 @@ class acc_Balances extends core_Master
      */
     public static function isValid($rec, $calcMinutesAfter = 0)
     {
-        if($rec->lastCalculate && (dt::secsBetween($rec->lastCalculate, $rec->lastAlternation) > $calcMinutesAfter * 60)) {
+        // Ако балансът никога не е калкулиран, значи не е валиден
+        if(empty($rec->lastCalculate)) return FALSE;
+
+        // Ако нямаме никакви записи за периода, значи всичко е ОК
+        if(empty($rec->lastAlternation)) return TRUE;
+        
+        // Ако последното изчисляване е $calcMinutesAfter и повече след последната промяна на журнала за периода, значи баланса е валиден
+        if(dt::secsBetween($rec->lastCalculate, $rec->lastAlternation) > $calcMinutesAfter * 60) {
 
             return TRUE;
         }

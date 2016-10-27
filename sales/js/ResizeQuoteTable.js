@@ -23,3 +23,7 @@ function resizeQuoteTable() {
 		 });
 	});
 }
+
+function render_resizeQuoteTable(){
+	resizeQuoteTable();
+}

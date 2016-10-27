@@ -2591,4 +2591,18 @@ class doc_Threads extends core_Manager
         
         return "Изтрити записи: " . $delCnt; 
     }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        doc_Folders::getContentHash_($status);
+    }
 }

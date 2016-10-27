@@ -224,8 +224,24 @@ class plg_Select extends core_Plugin
         
         $tpl->prepend("\n<form action='{$url}'>\n");
     }
-
-
+    
+    
+    /**
+     * Функция по подразбиране, за връщане на хеша на резултата
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param string $status
+     * @param object $data
+     */
+    function on_BeforeGetContentHash($mvc, &$res, &$status)
+    {
+        $status = trim($status);
+        
+        $status = preg_replace('/^\<form action=.*?\>/i', '', $status, 1);
+    }
+    
+    
 	/**
 	 * Добавя бутон "С избраните"
 	 */

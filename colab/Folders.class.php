@@ -163,6 +163,12 @@ class colab_Folders extends core_Manager
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
+		// Ако пакета 'colab' не е инсталиран, никой не може нищо
+		if(!core_Packs::isInstalled('colab')){
+			$requiredRoles = 'no_one';
+			return;
+		}
+		
 		if($action == 'list'){
 			$sharedFolders = self::getSharedFolders($userId);
 			
@@ -256,4 +262,18 @@ class colab_Folders extends core_Manager
 		
 		$data->title = "|Папките на|* <span style='color:green'>{$names} ({$nick})</span>";
 	}
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        doc_Folders::getContentHash_($status);
+    }
 }

@@ -110,6 +110,24 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if($form->isSubmitted()){
+    		if(strpos($rec->codeName, ':') !== FALSE){
+    			$form->setError('codeName', 'Кода не може да съдържа|* "<b>:</b>"');
+    		}
+    	}
+    }
+    
+    
+    /**
      * Връща имплементация на драйвера за изчисляване на транспортната себестойност
      * 
      * @param mixed $id - ид, запис или NULL
@@ -183,10 +201,10 @@ class cond_DeliveryTerms extends core_Master
     public static function getTermCodeId($code)
     {
     	// Разделяме въведения стринг на интервали
-    	$params = explode(' ', $code);
+    	$params = explode(':', $code);
     	
     	// Кода трябва да е в първите символи
-    	$foundCode = $params[0];
+    	$foundCode = trim($params[0]);
     	
     	// Ако няма запис с намерения код, връщаме FALSE
     	$rec = static::fetch(array("#codeName = '[#1#]'", $foundCode));
