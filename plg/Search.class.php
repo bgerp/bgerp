@@ -198,6 +198,7 @@ class plg_Search extends core_Plugin
                 
                 if($w{0} == '*') {
                     $wТ = substr($w, 1);
+                    $wТ = trim($wТ);
                     if(!$wТ) continue;
                     $wordBegin = '';
                 } 
