@@ -347,6 +347,12 @@ class colab_Threads extends core_Manager
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
+		// Ако пакета 'colab' не е инсталиран, никой не може нищо
+		if(!core_Packs::isInstalled('colab')){
+			$requiredRoles = 'no_one';
+			return;
+		}
+		
 		if($action == 'list' && isset($rec->folderId)) {
 			if($rec->folderState == 'rejected'){
 				$requiredRoles = 'no_one';
