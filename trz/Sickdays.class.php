@@ -230,6 +230,8 @@ class trz_Sickdays extends core_Master
         if ($rec->folderId && $folderClass == 'crm_Persons') {
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
+	        
+	        $data->form->fields['sharedUsers']->mandatory = 'mandatory';
         } 
     }
     
