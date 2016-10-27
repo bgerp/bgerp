@@ -740,8 +740,6 @@ class core_Cron extends core_Manager
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-//         Закъснение (s) - delay
-//Време-лимит - timeLimit
         if ($form->isSubmitted()) {
             if ($form->rec->offset >= $form->rec->period) {
                 $form->setError('offset', 'Отместването трябва да е по-малко от периода');
