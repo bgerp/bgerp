@@ -1819,15 +1819,20 @@ class doc_DocumentPlg extends core_Plugin
             
             // Трябва да има права за добавяне
             if (!$mvc->haveRightFor('add', $cRec, $userId)) {
-            	if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)){
-            		if(!colab_Threads::haveRightFor('single', $tRec)){
-            			$requiredRoles = 'no_one';
-            		}
-            	} else {
-            		if(!doc_Threads::haveRightFor('single', $tRec)){
-            			$requiredRoles = 'no_one';
-            		}
-            	}
+                $requiredRoles = 'no_one';
+            }
+            
+            // Ако няма сингъл достъп до нишката пак да няма права
+            if ($requiredRoles != 'no_one') {
+                if (core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)) {
+                    if (!colab_Threads::haveRightFor('single', $tRec)){
+                        $requiredRoles = 'no_one';
+                    }
+                } else {
+                    if (!doc_Threads::haveRightFor('single', $tRec)){
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
         }
         
