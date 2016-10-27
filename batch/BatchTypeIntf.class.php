@@ -103,4 +103,6 @@ class batch_BatchTypeIntf extends embed_DriverIntf
      */
     public function getAutoValueConst()
     {
+    	return $this->class->getAutoValueConst();
+    }
 }
