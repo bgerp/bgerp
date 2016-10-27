@@ -257,34 +257,10 @@ class cams_Records extends core_Master
         $data->width = $params->width;
         $data->height = $params->height;
         
-        // След колко секунди, очакваме клипа да бъде конвертиран?
-        if(isset($rec->playedOn)) {
-            $secondsToEnd = dt::mysql2timestamp($rec->playedOn) +
-            $conf->CAMS_CLIP_TO_FLV_DURATION - time();
-            
-            // Времето може да бъде само положително
-            $secondsToEnd = $secondsToEnd > 0 ? $secondsToEnd : 0;
-        } else {
-            $secondsToEnd = NULL;
-        }
-        
-        if(!file_exists($fp->mp4File)) {
-            if(!$secondsToEnd) {
-                // Стартираме конвертирането на видеото към mp4, ако това все още не е направено
-                $this->convertToMp4($fp->videoFile, $fp->mp4File);
-                $this->logInfo('Конвертиране към MP4', $rec->id);
-                $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
-            }
-            
-            if($secondsToEnd === NULL) {
-                $this->logErr('Правенo е конвертиране, но MP4 файлът не се е появил', $rec->id);
-                $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
-            }
-        } else {
-            if($secondsToEnd === NULL) {
-                $this->logWarning('Има MP4 файл, без да е конвертиран', $rec->id);
-                $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
-            }
+        if(!file_exists($fp->mp4File) && !self::isRecordConverting($fp->mp4File)) {
+            // Стартираме конвертирането на видеото към mp4, ако това все още не е направено
+            $this->convertToMp4($fp->videoFile, $fp->mp4File);
+            $this->logInfo('Конвертиране към MP4', $rec->id);
         }
         
         $row = $this->recToVerbal($rec);
@@ -325,24 +301,49 @@ class cams_Records extends core_Master
     function renderSingle_($data, $tpl = NULL)
     {
 
-        $data->playerTpl = mejs_Adapter::createVideo(   $data->url,
-                                                        array('poster' => $data->image,'width' => $data->width, 'height' => $data->height),
-                                                        'url');
-
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
             <div class="video-rec" style="display:table">
                 <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
                 [#playerTpl#]
+                <div>[#convertProgress#]</div>
             </div>
         ');
     
         $data->toolbar = $data->toolbar->renderHtml();
-    
+
+        if ($this->isRecordConverting(basename($data->url))) {
+            $data->playerTpl = "<img src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
+            $data->convertProgress = "Конвертиране ...";
+            $tpl->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
+        } else {
+            $data->playerTpl = mejs_Adapter::createVideo(   $data->url,
+                                                            array(  'poster' => $data->image,
+                                                                'width' => $data->width,
+                                                                'height' => $data->height),
+                                                            'url');
+        }
+        
         // Поставяме стойностите на плейсхолдърите
         $tpl->placeObject($data);
     
         return $tpl;
+    }
+    
+    /**
+     *  Дали записа е в процес на транскодиране
+     *  
+     *  @return boolean
+     */
+    private static function isRecordConverting($mp4File) {
+        // Ако файлa е заключен за транскодиране => има процес
+        $mp4File = basename($mp4File); 
+        if (core_Locks::isLocked($mp4File)) {
+
+          return TRUE;
+        }
+        
+        return FALSE;
     }
     
     
@@ -351,14 +352,55 @@ class cams_Records extends core_Master
      */
     function convertToMp4($mp4Path, $mp4File)
     {
-        $cmd = "ffmpeg -i $mp4Path -vcodec h264 -acodec aac -strict -2 $mp4File < /dev/null > /dev/null 2>&1 &";
         
-        $out = exec($cmd);
+        core_Locks::get(basename($mp4File), 300, 0, FALSE);
         
-        $this->logDebug("cmd = {$cmd}");
-        $this->logDebug("out = {$out}");
+        $cmdTmpl = "ffmpeg -i [#INPUTF#] -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]";
+        $Script = cls::get('fconv_Script');
         
-        return $out;
+        // Инстанция на класа
+        $me = get_called_class();
+        
+        // Параметри необходими за конвертирането
+        $params = array(
+            'mp4File' => $mp4File,
+            'callBack' => $me . '::afterConvert',
+            'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+        );
+        $Script->setFile('INPUTF', $mp4Path);
+        $Script->setFile('OUTPUTF', $mp4File);
+        $Script->lineExec($cmdTmpl);
+        
+        $Script->callBack($params['callBack']);
+        
+        $Script->params = $params;
+        
+        // Стартираме скрипта Aсинхронно
+        if ($Script->run($params['asynch']) === FALSE) {
+            $this->logError("Грешка при пускане на прекодиране на видео");
+            // Добавяме съобщение
+            status_Messages::newStatus('|Грешка при транскодиране на MP4', 'error');
+        } else {
+            // Добавяме съобщение
+            status_Messages::newStatus('|Стартирано е транскодиране на MP4', 'success');
+        }
+        
+    }
+    
+    /**
+     * Изпълнява се след приключване на обработката
+     * 
+     * @param fconv_Script $script - Обект с данните
+     * 
+     * @param boolean  - TRUE - за да изтрие tmp скрипта и файловете
+     */
+    function afterConvert($script)
+    {
+        copy ($script->tempDir . basename($script->params['mp4File']), $script->params['mp4File']);
+        core_Locks::release(basename($script->params['mp4File']));
+        
+        return TRUE;
     }
     
     

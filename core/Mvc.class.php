@@ -266,41 +266,27 @@ class core_Mvc extends core_FieldSet
     
     
     /**
-    
      * Малко по-гъвкава вариация на fetch()
-    
      *
-    
      * Ако първия аргумент е запис, просто го връща. В противен случай вика fetch()
-    
      *
-    
      * @param mixed $id ст-ст на първичен ключ, SQL условие или обект
-    
      * @param mixed $fields @see self::fetch()
-    
      * @param bool $cache @see self::fetch()
-    
+     * 
      * @return stdClass
-    
      */
-    
     public static function fetchRec($id, $fields = '*', $cache = TRUE)
-   
     {
-        
         $rec = $id;
-
         if (!is_object($rec)) {
             $rec = static::fetch($id, $fields, $cache);
         }
-
         
         return $rec;
-   
     }
     
-
+    
     /**
      * Връща поле от посочен запис от модела. Ако конд е цяло число, то cond се смята за #id
      */

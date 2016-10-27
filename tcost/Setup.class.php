@@ -146,15 +146,21 @@ class tcost_Setup extends core_ProtoSetup
      */
     public function addFeeCurrencies()
     {
-    	$Fees = cls::get('tcost_Fees');
-    	$Fees->setupMVC();
-    	
-    	$currencyId = acc_Periods::getBaseCurrencyCode();
-    	$query = $Fees->getQuery();
-    	$query->where("#currencyId IS NULL");
-    	while($rec = $query->fetch()){
-    		$rec->currencyId = $currencyId;
-    		$Fees->save($rec, 'currencyId');
+    	if(cls::load('tcost_Fees', TRUE)){
+    		try{
+    			$Fees = cls::get('tcost_Fees');
+    			$Fees->setupMVC();
+    			 
+    			$currencyId = acc_Periods::getBaseCurrencyCode();
+    			$query = $Fees->getQuery();
+    			$query->where("#currencyId IS NULL");
+    			while($rec = $query->fetch()){
+    				$rec->currencyId = $currencyId;
+    				$Fees->save($rec, 'currencyId');
+    			}
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
     	}
     }
 }

@@ -262,20 +262,6 @@ class trz_Sickdays extends core_Master
     {
     	$mvc->updateSickdaysToCalendar($rec->id);
     	$mvc->updateSickdaysToCustomSchedules($rec->id);	
-    	
-    	$subscribedArr = keylist::toArray($rec->sharedUsers);
-    	if(count($subscribedArr)) {
-    	    foreach($subscribedArr as $userId) {
-    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-    	            $rec->message  = self::getVerbal($rec, 'personId'). "| добави |* \"" . self::getRecTitle($rec) . "\"";
-    	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-    	            $rec->customUrl = array('trz_Sickdays', 'single',  $rec->id);
-    	            $rec->priority = 0;
-    	            
-    	            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-    	        }
-    	    }
-    	}
     }
     
     

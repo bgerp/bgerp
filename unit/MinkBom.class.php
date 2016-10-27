@@ -39,7 +39,6 @@ class unit_MinkBom extends core_Manager
         $res .= $this->act_CreateStage1();
         $res .= $this->act_CreateStage2();
         $res .= $this->act_CreateTestBom();
-        $res .= $this->act_CreateCompany();
         //$res .= $this->act_CreateStore();
         $res .= $this->act_CreatePurchase();
         $res .= $this->act_CreateBomStage1();
@@ -479,36 +478,7 @@ class unit_MinkBom extends core_Manager
         }
     }
     
-    /**
-     * 15. Създаване на фирма-доставчик и папка към нея, допуска дублиране 
-     * Select2 трябва да е деинсталиран
-     */
-    //http://localhost/unit_MinkBom/CreateCompany/
-    function act_CreateCompany()
-    {
-        // Логване
-        $browser = $this->SetUp();
     
-        // Създаване на нова фирма
-        $browser->click('Визитник');
-        $browser->press('Нова фирма');
-        $browser->setValue('name', 'Фирма доставчик');
-        $browser->setValue('place', 'Смолян');
-        $browser->setValue('pCode', '6400');
-        $browser->setValue('address', 'ул.родопи, №3');
-        $browser->setValue('fax', '0301111111');
-        $browser->setValue('tel', '0301211111');
-        $browser->setValue('vatId', 'BG102223519');
-        $browser->setValue('Доставчици', '2');
-        $browser->press('Запис');
-        if (strpos($browser->getText(),"Предупреждение:")){
-            $browser->setValue('Ignore', 1);
-            $browser->press('Запис');
-        }
-        // Създаване на папка на новата фирма
-        //$browser->press('Папка');
-        //return $browser->getHtml();
-    } 
     
     /**
      * 16. Създаване на склад

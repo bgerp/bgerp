@@ -975,10 +975,17 @@ class core_App
             
             $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
             
-            if(defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
-                $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;             
+            if($username = $_SERVER['PHP_AUTH_USER']) {
+                $password = $_SERVER['PHP_AUTH_PW'];
+                $auth = $username . ':' . $password . '@';
             } else {
-                $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . $dirName;                           
+                $auth = '';
+            }
+ 
+            if(defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                $boot = $protocol . "://" . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;             
+            } else {
+                $boot = $protocol . "://" . $auth . $_SERVER['HTTP_HOST'] . $dirName;                           
             }
             
         } else {

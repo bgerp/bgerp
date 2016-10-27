@@ -248,7 +248,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	for($i = 1; $i <= $quantityCount; $i++){
     		$fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
-    		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption},{$mandatory}");
+    		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption}");
     	}
     	
     	$cu = core_Users::getCurrent('id', FALSE);

@@ -140,7 +140,7 @@ class cat_products_Params extends doc_Detail
     		$row->group = cat_Params::getVerbal($paramRec, 'group');
     	}
     	
-    	if($ParamType = cat_Params::getTypeInstance($paramRec)){
+    	if($ParamType = cat_Params::getTypeInstance($paramRec, $rec->paramValue)){
     		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
     	}
     	
@@ -176,7 +176,7 @@ class cat_products_Params extends doc_Detail
         	if($Driver = cat_Params::getDriver($form->rec->paramId)){
         		$form->setField('paramValue', 'input');
         		$pRec = cat_Params::fetch($form->rec->paramId);
-        		if($Type = $Driver->getType($pRec)){
+        		if($Type = $Driver->getType($pRec, $form->rec->paramValue)){
         			$form->setFieldType('paramValue', $Type);
         			
         			if(!empty($pRec->suffix)){
@@ -335,6 +335,8 @@ class cat_products_Params extends doc_Detail
         		} elseif($rec->classId == cat_Products::getClassId()){
         			$requiredRoles = 'cat,ceo';
         		}
+        		
+        		
         	}
         }
        
@@ -347,10 +349,10 @@ class cat_products_Params extends doc_Detail
         		}
         	}
         	
-        	if($rec->classId == cat_Products::getClassId()){
-        		$pRec = cat_Products::fetch($rec->productId);
+        	if(isset($rec->classId)){
+        		$pRec = cls::get($rec->classId)->fetch($rec->productId);
         		
-        		if($action == 'add'){
+        		if($action == 'add' && $rec->classId == cat_Products::getClassId()){
         			if($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
         			
         				// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул

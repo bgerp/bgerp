@@ -38,7 +38,8 @@ class doc_DocumentPlg extends core_Plugin
         'rejected' => 'Оттеглено',
         'stopped'  => 'Спряно',
         'wakeup'   => 'Събудено',
-        'free'     => 'Освободено');
+        'free'     => 'Освободено',
+        'template' => 'Шаблон');
     
     
     /**
@@ -782,6 +783,7 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
+                    doc_Prototypes::sync($rec->containerId);
                     doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
                     $mvc->logInAct('Оттегляне', $rec);
                 }
@@ -1084,6 +1086,32 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
     
+    
+    /**
+     * Ако в Request са зададени coverId и coverClass, а $folderId липсва,
+     * Тогава форсира папката на посочената корица и записва в Request id-то й
+     *
+     * @param   core_Mvc      $mvc
+     * @param   std_Class     $res
+     * @param   std_Class     $data
+     *
+     * @return  bool
+     */
+    static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+        if(!Request::get('folderId') && ($coverClass = Request::get('coverClass')) && ($coverId = Request::get('coverId', 'int'))) {
+
+            $cMvc = cls::get($coverClass);
+            expect(is_a($cMvc, 'core_Mvc'), $cMvc);
+            expect($cRec = $cMvc->fetch($coverId));
+            $cMvc->requireRightFor('single', $cRec);
+            $folderId = $cMvc->forceCoverAndFolder($cRec);
+
+            Request::push(array('folderId' => $folderId));
+        }
+    }
+
+
     
     /**
      * Подготвя полетата threadId и folderId, ако има originId и threadId
@@ -1825,7 +1853,7 @@ class doc_DocumentPlg extends core_Plugin
         	} else {
         		
         		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
-        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending'){
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'template'){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -3366,5 +3394,15 @@ class doc_DocumentPlg extends core_Plugin
     			$res = TRUE;
     		}
     	}
+    }
+    
+    
+    /**
+     * Метод по подразбиране на детайлите за клониране
+     */
+    public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
+    {
+    	// Добавяме артикулите към детайлите за клониране
+    	$res = arr::make($mvc->cloneDetails, TRUE);
     }
 }

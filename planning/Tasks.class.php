@@ -49,7 +49,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_plg_BusinessDoc,doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
+	public $loadList = 'doc_plg_BusinessDoc,doc_plg_Prototype,doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
 	
 	
 	/**
@@ -102,6 +102,9 @@ class planning_Tasks extends tasks_Tasks
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$rec = &$data->form->rec;
+		if(isset($rec->systemId)){
+			$data->form->setField('prototypeId', 'input=none');
+		}
 		
 		if(empty($rec->id)){
 			if($folderId = Request::get('folderId', 'key(mvc=doc_Folders)')){
@@ -236,7 +239,7 @@ class planning_Tasks extends tasks_Tasks
 	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		if(core_Packs::isInstalled('label')){
-			if (($data->rec->state != 'rejected' && $data->rec->state != 'draft') && label_Labels::haveRightFor('add')){
+			if (($data->rec->state != 'rejected' && $data->rec->state != 'draft' && $data->rec->state != 'template') && label_Labels::haveRightFor('add')){
 				
 				$tQuery = label_Templates::getQuery();
 				$tQuery->where("#classId = '{$mvc->getClassId()}' AND #state != 'rejected'");

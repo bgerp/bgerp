@@ -120,7 +120,7 @@ class cond_ConditionsToCustomers extends core_Manager
         	if($Driver = cond_Parameters::getDriver($form->rec->conditionId)){
         		$form->setField('value', 'input');
         		$pRec = cond_Parameters::fetch($form->rec->conditionId);
-        		if($Type = $Driver->getType($pRec)){
+        		if($Type = $Driver->getType($pRec, $form->rec->value)){
         			$form->setFieldType('value', $Type);
         		}
         	} else {
@@ -217,7 +217,7 @@ class cond_ConditionsToCustomers extends core_Manager
     		$row->group = cond_Parameters::getVerbal($paramRec, 'group');
     	}
     	
-    	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
+    	if($ParamType = cond_Parameters::getTypeInstance($paramRec, $rec->value)){
     		$row->value = $ParamType->toVerbal(trim($rec->value));
     		if(!empty($paramRec->suffix)){
     			$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));

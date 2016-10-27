@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate';
+	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId';
 	
 	
 	/**
@@ -316,14 +316,18 @@ abstract class deals_DealMaster extends deals_DealBase
         $abbr{0} = strtoupper($abbr{0});
 
         $date = dt::mysql2verbal($rec->valior, 'd.m.year'); 
-
-        $crm = cls::get($rec->contragentClassId);
-        $cRec =  $crm->getContragentData($rec->contragentId);
         
-        $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
+        if(isset($rec->contragentClassId) && isset($rec->contragentId)){
+        	$crm = cls::get($rec->contragentClassId);
+        	$cRec =  $crm->getContragentData($rec->contragentId);
+        	
+        	$contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
+        } else {
+        	$contragent = tr("Проблем при показването");
+        }
         
         if($escaped) {
-            $contragent = type_Varchar::escape($contragent);
+        	$contragent = type_Varchar::escape($contragent);
         }
 
     	return "{$abbr}{$rec->id}/{$date} {$contragent}";
@@ -849,7 +853,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	}
 	    	
 	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
-	    	(core_Users::haveRole('collaborator')) ? $row->responsible = $cuNames : $row->username = $cuNames;
+	    	(core_Users::haveRole('collaborator', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
@@ -1667,7 +1671,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
-    	if(core_Users::haveRole('collaborator', $userId)){
+    	if(core_Users::haveRole('collaborator')){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
@@ -1767,7 +1771,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
     	// Ако потребителя е партньор, то вальора на документа става датата на която е станал чакащ
-    	if(core_Users::haveRole('collaborator', $userId)){
+    	if(core_Users::haveRole('collaborator')){
     		$rec->valior = dt::today();
     		$mvc->save($rec, 'valior');
     	}

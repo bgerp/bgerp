@@ -280,7 +280,7 @@ class csv_Lib
                 }
                 
                 Mode::push('text', 'plain');
-                if ($type instanceof type_Key) {
+                if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof type_Keylist) {
                     $value = $type->toVerbal($rec->{$name});

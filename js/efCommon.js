@@ -1957,7 +1957,11 @@ function refreshForm(form, removeFields) {
 	if (typeof removeFields == 'undefined') {
 		var filteredParams = params;
 	} else {
-		var filteredParams = params.filter(function(e){ return $.inArray(e.name, removeFields) == -1});
+		var filteredParams = params.filter(function(e){
+				var name = /[^/[]*/.exec(e.name)[0];
+			
+				return $.inArray(name, removeFields) == -1
+			});
 	}
 
 	var serialized = $.param(filteredParams);

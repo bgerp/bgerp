@@ -464,21 +464,23 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 
     	    
     	    if(count($recs)) { 
-    	        
-    	        // Подготвяме страницирането
-    	        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
-    	        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
-    	        $data->Pager = $pager;
-    	        $data->Pager->itemsCount = count($recs);
-
+    	        if(!Mode::is('printing')) {
+        	        // Подготвяме страницирането
+        	        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        	        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        	        $data->Pager = $pager;
+        	        $data->Pager->itemsCount = count($recs);
+    	        }
     	        // За всеки запис
     	        foreach ($recs as $id=>$rec){ 
     	            if (is_array($rec)) {
 
     		            foreach($rec as $is=>&$r) {
     		                $r->id = $id + 1;
-    		                // Ако не е за текущата страница не го показваме
-    		                if(!$data->Pager->isOnPage()) continue;
+    		                if(!Mode::is('printing')) {
+        		                // Ако не е за текущата страница не го показваме
+        		                if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
+    		                }
     		             
     		                // Вербално представяне на записа
     		                $data->rows[] = $mvc->getVerbalRec($r, $data);
@@ -486,8 +488,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		        } else {
     		            $rec->id = $id + 1;
 
-        			    // Ако не е за текущата страница не го показваме
-        			    if(!$data->Pager->isOnPage()) continue;
+    		                if(!Mode::is('printing')) {
+        		                // Ако не е за текущата страница не го показваме
+        		                if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
+    		                }
         			
         			    // Вербално представяне на записа
         			    $data->rows[] = $mvc->getVerbalRec($rec, $data);

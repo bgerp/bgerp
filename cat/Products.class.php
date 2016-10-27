@@ -340,7 +340,7 @@ class cat_Products extends embed_Manager {
     	
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->driverClassField)){
-    		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=proto|measureId|meta");
+    		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=proto|measureId|meta|groups");
             if(!$rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $rec->{$driverField})) {
                 
             	$protoProducts = cat_Categories::getProtoOptions($drvId);

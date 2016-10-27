@@ -77,7 +77,7 @@ class email_Incomings extends core_Master
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id';
+    var $fetchFieldsBeforeDelete = 'id, containerId, fromEml';
     
     
     /**
@@ -1628,12 +1628,14 @@ class email_Incomings extends core_Master
         //
         
         /* @var $query core_Query */
-        $query = static::getQuery();
-        $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
-        $query->orderBy('createdOn', 'DESC');
-        $query->limit(3);     // 3 писма
-        while ($mrec = $query->fetch()) {
-            static::makeRouterRules($mrec);
+        if ($rec->fromEml) {
+            $query = static::getQuery();
+            $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
+            $query->orderBy('createdOn', 'DESC');
+            $query->limit(3);     // 3 писма
+            while ($mrec = $query->fetch()) {
+                static::makeRouterRules($mrec);
+            }
         }
     }
     

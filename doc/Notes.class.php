@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -102,7 +102,7 @@ class doc_Notes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
+    var $loadList = 'doc_Wrapper, doc_SharablePlg,doc_plg_Prototype, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     

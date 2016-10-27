@@ -1953,9 +1953,9 @@ class doc_Threads extends core_Manager
 
         if($action == 'single') {
             if(doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
-                $res = 'user';
+                $res = 'powerUser';
             } elseif(keylist::isIn($userId, $rec->shared)) {
-                $res = 'user';
+                $res = 'powerUser';
             } else {
                 $res = 'no_one';
             }
@@ -2550,7 +2550,7 @@ class doc_Threads extends core_Manager
                         // Изтирваме детайлите за документа
                         if (!empty($dArr)) {
                             
-                            $delMsg = 'Изтрит оттеглен документ и детайлите към него';
+                            $delDetCnt = 0;
                             
                             foreach ($dArr as $detail) {
                                 if (!cls::load($detail, TRUE)) continue;
@@ -2558,8 +2558,12 @@ class doc_Threads extends core_Manager
                                 $detailInst = cls::get($detail);
                                 if (!($detailInst->Master instanceof $doc->instance)) continue;
                                 
-                                $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
+                                if ($detailInst->masterKey) {
+                                    $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
+                                }
                             }
+                            
+                            $delMsg = "Изтрит оттеглен документ и детайлите към него ({$delDetCnt})";
                         }
                     }
                     
@@ -2586,5 +2590,19 @@ class doc_Threads extends core_Manager
         }
         
         return "Изтрити записи: " . $delCnt; 
+    }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        doc_Folders::getContentHash_($status);
     }
 }

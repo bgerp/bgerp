@@ -130,10 +130,11 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-	 * (@see plg_Clone)
-	 */
-	public $cloneDetailes = 'planning_ConsumptionNoteDetails';
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * 
+     * @see plg_Clone
+     */
+	public $cloneDetails = 'planning_ConsumptionNoteDetails';
 	
 	
 	/**

@@ -438,11 +438,6 @@ class sales_QuotationsDetails extends doc_Detail {
     				}
     			}
     			
-    			// Ако във формата са открити грешки, занулаваме вече изчислените полета, да не се показват
-    			if($form->gotErrors()){
-    				unset($rec->packPrice, $rec->packQuantity, $rec->quantity, $rec->price, $rec->discount);
-    			}
-    			
     			$rec->vatPercent = $vat;
     		}
     		
@@ -756,6 +751,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Закачане на JS
         $tpl->push('sales/js/ResizeQuoteTable.js', 'JS');
         jquery_Jquery::run($tpl, "resizeQuoteTable();");
+		jquery_Jquery::runAfterAjax($tpl, "resizeQuoteTable");
         
     	return $tpl;
     }
