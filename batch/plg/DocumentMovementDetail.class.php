@@ -57,7 +57,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
 				$form->setField('batch', 'input');
-				$suggestions = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
+				$options = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
 				
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				
@@ -66,8 +66,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				}
 				
 				if($mvc->Master->batchMovementDocument == 'out'){
-					if(count($suggestions)){
-						$form->setSuggestions('batch', array('' => '') + $suggestions);
+					if(count($options)){
+						$form->setOptions('batch', array('' => '') + $options);
+					} else {
+						$form->setField('batch', 'input=none');
 					}
 				}
 			} else {
