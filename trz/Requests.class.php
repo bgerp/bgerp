@@ -37,7 +37,7 @@ class trz_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trz_Wrapper, 
+    public $loadList = 'plg_RowTools2, trz_Wrapper, doc_plg_TransferDoc,
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank';
     
@@ -147,6 +147,18 @@ class trz_Requests extends core_Master
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    public $onlyFirstInThread = TRUE;
+    
+    
+    /**
+     * По кое поле ще се премества документа
+     */
+    public $transferFolderField = 'personId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -163,7 +175,7 @@ class trz_Requests extends core_Master
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
     	// Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители,mandatory');
+        $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -252,7 +264,9 @@ class trz_Requests extends core_Master
     	$data->form->setDefault('leaveTo', $time2);
 
     	$rec = $data->form->rec;
-        if($rec->folderId){
+    	$folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+
+        if ($rec->folderId && $folderClass == 'crm_Persons') {
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
         }
@@ -482,7 +496,7 @@ class trz_Requests extends core_Master
     	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
     	
     	// Ако не е папка проект или контрагент, не може да се добави
-    	if ($coverClassName != 'crm_persons') return FALSE;
+    	if ($coverClassName != 'crm_persons' && $coverClassName != 'doc_unsortedfolders') return FALSE;
     	
     }
     
@@ -524,7 +538,7 @@ class trz_Requests extends core_Master
      */
     public static function getAllowedFolders()
     {
-    	return array('crm_PersonAccRegIntf');
+    	return array('crm_PersonAccRegIntf', 'folderClass' => 'doc_UnsortedFolders');
     }
     
     /**
