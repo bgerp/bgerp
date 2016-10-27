@@ -2171,6 +2171,9 @@ span.sharing-history-title {
 .narrow #all .vertical .formTable {
   padding: 5px; }
 
+.filterForm #filter {
+  padding-left: 20px !important; }
+
 /*
  * край на външни стилове за ширина
  */
