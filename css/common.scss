@@ -1088,7 +1088,11 @@ div.rowtools {
 	position: relative;
 	top: 2px;
 }
- 
+
+th .rowtools .r {
+	top: 0px;
+}
+
 .rowtools .l {
 	vertical-align: middle;
 	display: table-cell;
