@@ -103,7 +103,7 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'acc/tpl/SingleLayoutValueCorrections.shtml';
     

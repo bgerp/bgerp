@@ -76,7 +76,7 @@ class cat_ProductTplCache extends core_Master
 	
 	
 	/**
-	 * Файл с шаблон за единичен изглед на статия
+	 * Файл с шаблон за единичен изглед
 	 */
 	public $singleLayoutFile = 'cat/tpl/SingleLayoutTplCache.shtml';
 	

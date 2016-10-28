@@ -31,7 +31,7 @@ class spcheck_Plugin extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (Mode::isReadOnly()) return ;
+        if (Mode::isReadOnly() || Mode::is('text', 'plain')) return ;
         
         // Чернова документите и документите, които са променяни последните 10 мин може да се проверяват
         $date = ($data->rec->modifiedOn) ? $data->rec->modifiedOn : $data->rec->createdOn;

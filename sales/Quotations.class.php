@@ -145,6 +145,12 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Кой може да клонира
+     */
+    public $canClonerec = 'ceo, sales';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(

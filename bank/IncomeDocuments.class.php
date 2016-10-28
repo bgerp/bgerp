@@ -47,7 +47,7 @@ class bank_IncomeDocuments extends bank_Document
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'bank/tpl/SingleIncomeDocument.shtml';
     

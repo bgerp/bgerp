@@ -181,11 +181,8 @@ class cms_Profiles extends core_Master
 			}
         }
         
+        plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
         $tpl = $form->renderHtml();
-        
-        unset($this->Profile->loadList);
-        $this->load('cms_ExternalWrapper');
-        
         $tpl = $this->renderWrapping($tpl);
         
         return $tpl;

@@ -31,19 +31,13 @@ class batch_Defs extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, batch_Wrapper, plg_Modified';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified';
     
     
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'tools=Пулт,productId,driverClass=Тип,modifiedOn,modifiedBy';
-    
-    
-    /**
-     * Поле за показване на пулта за редакция
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'productId,driverClass=Тип,modifiedOn,modifiedBy';
     
     
     /**
@@ -74,6 +68,12 @@ class batch_Defs extends embed_Manager {
      * Кой може да пише?
      */
     public $canWrite = 'batch, ceo';
+    
+    
+    /**
+     * Файл с шаблон за единичен изглед
+     */
+    public $singleLayoutFile = 'batch/tpl/SingleLayoutDefs.shtml';
     
     
     /**

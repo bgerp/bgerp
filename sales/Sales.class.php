@@ -161,7 +161,7 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
     
