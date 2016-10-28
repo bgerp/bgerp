@@ -162,7 +162,7 @@ class batch_Defs extends embed_Manager {
     		$batch = self::getBatchArray($productId, $batch);
     		
     		foreach ($batch as $key => &$b){
-    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			if(!Mode::isReadOnly() && haveRole('powerUser')){
     				if(!haveRole('batch,ceo')){
     					Request::setProtected('batch');
     				}
