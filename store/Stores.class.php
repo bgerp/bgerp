@@ -356,7 +356,7 @@ class store_Stores extends core_Master
     {
     	if($fields['-single']){
     		if($rec->locationId){
-    			$row->locationId = crm_Locations::getHyperLink($rec->locationId);
+    			$row->locationId = crm_Locations::getHyperLink($rec->locationId, TRUE);
     		}
     	}
     }

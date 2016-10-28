@@ -1206,7 +1206,7 @@ class core_Html
             $id++;
             $name = $attr['name'] ? $attr['name'] : 'autoElement';
             $name = str_replace(array('[', ']'), array('_', '_'), $name);
-            $attr['id'] = $name . $id;
+            $attr['id'] = $name . rand(1000, 9999) . '_' .$id;
         }
     }
 

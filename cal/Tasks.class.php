@@ -519,6 +519,17 @@ class cal_Tasks extends core_Master
         if ($data->rec->state == 'active' || $data->rec->state == 'pending') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
             $data->toolbar->removeBtn('btnActivate');
+           
+            if ($mvc->haveRightFor('stop', $data->rec)) {
+                $data->toolbar->addBtn('Затваряне', array(
+                    $mvc,
+                    'Stop',
+                    $data->rec->id
+                ),
+                    array('ef_icon'=>'img/16/gray-close.png',
+                        'title'=>'Затваряне на задачата'
+                    ));
+            }
         }
 
         if ($data->rec->state == 'draft' || $data->rec->state == 'pending') {
@@ -606,6 +617,16 @@ class cal_Tasks extends core_Master
             if ($rec->id) {
                 if (!cal_Tasks::haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if ($action == 'stop') {
+            if ($rec->id) {
+                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
+                    if($rec->state !== 'active') {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -2348,5 +2369,37 @@ class cal_Tasks extends core_Master
         unset($nRec->workingTime);
         unset($nRec->timeCalc);
         $nRec->notifySent = 'no';
+    }
+    
+    
+    /**
+     * Екшън за спиране
+     */
+    function act_Stop()
+    {
+        //Права за работа с екшън-а
+        requireRole('powerUser');
+         
+        //Очакваме да има такъв запис
+        expect($id = Request::get('id', 'int'));
+    
+        expect($rec = $this->fetch($id));
+    
+        //Очакваме потребителя да има права за спиране
+        $this->haveRightFor('stop', $rec);
+         
+        $link = array('cal_Tasks', 'single', $rec->id);
+        $now = dt::now();
+        
+        //Променяме статуса на спрян
+        $recUpd = new stdClass();
+        $recUpd->id = $rec->id;
+        $recUpd->state = 'closed';
+        $recUpd->timeClosed = $now;
+    
+        cal_Tasks::save($recUpd);
+         
+        // Редиректваме
+        return new Redirect($link, "|Успешно затворихте задачата");
     }
 }

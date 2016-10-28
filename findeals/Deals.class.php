@@ -125,7 +125,7 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'findeals/tpl/SingleLayoutDeals.shtml';
     

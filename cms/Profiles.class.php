@@ -37,7 +37,7 @@ class cms_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'Profile=crm_Profiles';
+    public $loadList = 'Profile=crm_Profiles,cms_ExternalWrapper';
 
 
     /**
@@ -49,7 +49,7 @@ class cms_Profiles extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'user';
+    public $canRead = 'buyer';
     
     
     /**
@@ -61,7 +61,7 @@ class cms_Profiles extends core_Master
     /**
      * Кой има достъп до единичния изглед
      */
-    public $canSingle = 'user';
+    public $canSingle = 'buyer';
     
     
 	/**
@@ -70,7 +70,7 @@ class cms_Profiles extends core_Master
     function act_Default()
     {
         // Изискваме да е логнат потребител
-        requireRole('user');
+        requireRole('buyer');
         
         // Редиректваме
         return new Redirect(array($this, 'Single'));
@@ -108,9 +108,6 @@ class cms_Profiles extends core_Master
        
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);
-        
-        unset($this->Profile->loadList);
-        $this->load('cms_ExternalWrapper');
         
         // Подготвяме данните за единичния изглед
         $this->Profile->prepareSingle($data);
@@ -161,7 +158,7 @@ class cms_Profiles extends core_Master
      */
     public function act_ChangePassword()
     {
-    	requireRole('user');
+    	requireRole('buyer');
 
         $form = $this->Profile->prepareChangePassword();
         $form->input();
@@ -182,10 +179,6 @@ class cms_Profiles extends core_Master
         }
         
         $tpl = $form->renderHtml();
-        
-        unset($this->Profile->loadList);
-        $this->load('cms_ExternalWrapper');
-        
         $tpl = $this->renderWrapping($tpl);
         
         return $tpl;

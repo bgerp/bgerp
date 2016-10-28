@@ -116,7 +116,7 @@ class cash_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     var $singleLayoutFile = 'bank/tpl/SingleInternalMoneyTransfer.shtml';
     

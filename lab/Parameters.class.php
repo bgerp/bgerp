@@ -93,12 +93,6 @@ class lab_Parameters extends core_Master
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
-     */
-    //var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.shtml';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()

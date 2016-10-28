@@ -1428,7 +1428,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->click('Информация за перото');
         
        
-        $purId = "128";
+        $purId = "57";
         ///////$purid - да се зареди ID "quiet aright"
         $purId = $purId .'.17';
         
@@ -1471,17 +1471,26 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
         ///Проверка в разходния обект и фактуриране...//////////
-        $browser->click('67 pur');
+        $browser->click('16 pur');
         //return $browser->getHtml();
         // Фактура в покупка 1
         $browser->press('Вх. фактура');
         $browser->setValue('number', '5418');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 36,88')) {
-        //} else {
-        //    return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
-        //}
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 36,88')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
+        }
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '44,25 44,25 44,25 44,25')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
+        if(strpos($browser->gettext(), '0,00 0,00 0,00 0,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
         //return $browser->getHtml();
     }
     
