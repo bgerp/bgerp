@@ -386,6 +386,7 @@ class core_page_InternalModern extends core_page_Active
         
         $val = '';
         if ($search = Request::get('search')) {
+            $search = str_replace("'", '"', $search);
             $val = "value='{$search}'";
         }
         
