@@ -306,6 +306,8 @@ class tcost_Calcs extends core_Manager
      */
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
     {
+    	if(!haveRole('powerUser')) return $amountRow;
+    	
     	if($amountFee == tcost_CostCalcIntf::CALC_ERROR){
     		
     		return ht::createHint($amountRow, 'Скритият транспорт, не може да бъде изчислен', 'warning', FALSE);
