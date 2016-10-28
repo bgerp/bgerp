@@ -809,7 +809,7 @@ class core_Packs extends core_Manager
             $rec = $this->fetch("#name = '{$pack}'");
         }
         
-        if ($force || empty($rec) || ($rec->version != $setup->version)) {
+        if ($force || empty($rec) || ($rec->version != $setup->version) || (!$force && $rec->state != 'active')) {
             
             // Форсираме системния потребител
             core_Users::forceSystemUser();
