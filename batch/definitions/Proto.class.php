@@ -98,7 +98,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function getBatchClassType()
     {
-    	$Type = core_Type::getByName('varchar');
+    	$Type = core_Type::getByName('varchar(30)');
 
     	return $Type;
     }
