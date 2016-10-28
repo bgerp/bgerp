@@ -130,7 +130,7 @@ class tcost_Calcs extends core_Manager
     	$res = array('totalFee' => $totalFee);
     	
     	if($totalFee != tcost_CostCalcIntf::CALC_ERROR){
-    		$res['singleFee'] = round($totalFee / $quantity, 6);
+    		$res['singleFee'] = $totalFee / $quantity;
     	}
     	
     	return $res;
