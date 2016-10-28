@@ -45,7 +45,7 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 			if(is_object($BatchClass)){
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 			} else {
-				$form->setField('batch', 'input=none');
+				$form->setField('batch', 'input=none,class=w50');
 				unset($rec->batch);
 			}
 		}
