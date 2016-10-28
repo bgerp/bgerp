@@ -361,4 +361,14 @@ class plg_Clone extends core_Plugin
     	
     	self::cloneDetails($Details, $rec->id, $nRec->id);
     }
+    
+    
+    /**
+     * Метод по подразбиране на детайлите за клониране
+     */
+    public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
+    {
+    	// Добавяме артикулите към детайлите за клониране
+    	$res = arr::make($mvc->cloneDetails, TRUE);
+    }
 }
