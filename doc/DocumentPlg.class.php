@@ -1359,7 +1359,11 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        $data->form->toolbar->renameBtn('save', 'Чернова');
+        if(haveRole('powerUser')){
+        	$data->form->toolbar->renameBtn('save', 'Чернова');
+        } else {
+        	$data->form->toolbar->renameBtn('save', 'Запис');
+        }
     }
 
     
