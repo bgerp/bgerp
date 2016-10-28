@@ -21,44 +21,48 @@ class doc_plg_TransferDoc extends core_Plugin
 	
 	
 	/**
-     * След създаването на документа
-     */
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		// Ако има уточнено поле към което да се трансферира, проверка дали е валидно
+		if(isset($mvc->transferFolderField)){
+			expect($Type = $mvc->getFieldType($mvc->transferFolderField));
+			expect($Type instanceof type_Key);
+			
+			// Полето трябва да е от тип ключ към корица на папка
+			$typeMvc = $mvc->getFieldTypeParam($mvc->transferFolderField, 'mvc');
+			expect(cls::haveInterface('doc_FolderIntf', $typeMvc));
+		}
+	}
+	
+	
+	/**
+	 * Ако в документа няма код, който да рутира документа до папка/тред,
+	 * долния код, рутира документа до "Несортирани - [заглавие на класа]"
+	 */
+	protected static function on_BeforeRoute($mvc, &$res, $rec)
+	{
+		// Ако е събмитнато поле към което да се трансферира
+		if(isset($rec->{$mvc->transferFolderField})) {
+			$coverId = $rec->{$mvc->transferFolderField};
+			
+			// Форсира се папката на обекта, документа ще се създаде там
+			$CoverMvc = cls::get($mvc->getFieldTypeParam($mvc->transferFolderField, 'mvc'));
+			$rec->folderId = $CoverMvc->forceCoverAndFolder($coverId);
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
 	public static function on_AfterCreate($mvc, $rec)
-    {
-        $transferFolderField = $mvc->transferFolderField;
-        // кое поле ще изпозлваме за преместване
-        $newFolderField = $mvc->getField($transferFolderField);
-
-        // новото Mvc
-        $newCoverMvc = cls::get($newFolderField->type->params['mvc']);
-       
-        if($rec->{$transferFolderField}) {
-            
-            // Форсираме папка на проект
-            $newCoverRec = $newCoverMvc::fetch($rec->{$transferFolderField});
-            $newFolderId = $newCoverMvc::forceCoverAndFolder($newCoverRec);
-
-            // подменяме ид-то на папката на документа с ид-то на папката на човека
-            $rec->folderId = $newFolderId;
-        
-            // Споделяме текущия потребител в нишката на документа
-            $cu = core_Users::getCurrent();
-            doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
-            $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cu);
-            
-            $mvc::save($rec,'folderId, sharedUsers');
-            
-            // подменяме ид на папката в контейнера
-            $cRec = doc_Containers::fetch($rec->containerId);
-            $cRec->folderId = $newFolderId;
-            
-            doc_Containers::save($cRec, 'folderId');
-            
-            // подменяме ид на папката в треда
-            $tRec = doc_Threads::fetch($rec->threadId);
-            $tRec->folderId = $newFolderId;
-     
-            doc_Threads::save($tRec, 'folderId');
-        }
-    }
+	{
+		// Споделяме текущия потребител със нишката на документа, за всеки случай
+		$cu = core_Users::getCurrent();
+		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+	}
 }

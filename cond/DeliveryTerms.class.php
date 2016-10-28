@@ -256,11 +256,7 @@ class cond_DeliveryTerms extends core_Master
     	
     	$adress = trim(strip_tags($adress));
     	if(!empty($adress)){
-    		if($deliveryCode == 'DDP'){
-    			$deliveryCode .= " {$adress}";
-    		} else {
-    			$deliveryCode .= " ({$adress})";
-    		}
+    		$deliveryCode .= ": {$adress}";
     	}
     	
     	return $deliveryCode;

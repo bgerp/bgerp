@@ -111,13 +111,13 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
     

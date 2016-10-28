@@ -77,7 +77,7 @@ class batch_Items extends core_Master {
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'batch/tpl/SingleLayoutItem.shtml';
     
@@ -166,6 +166,15 @@ class batch_Items extends core_Master {
     	
     	if(isset($fields['-single'])){
     		$row->state = $mvc->getFieldType('state')->toVerbal($rec->state);
+    	}
+    	
+    	if(batch_Movements::haveRightFor('list')){
+    		$link = array('batch_Movements', 'list', 'batch' => $rec->batch);
+    		if(isset($fields['-list'])){
+    			$link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
+    		}
+    		
+    		$row->batch = ht::createLink($row->batch, $link);
     	}
     }
     

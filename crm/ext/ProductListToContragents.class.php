@@ -228,6 +228,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	{
 		// Подготвяме формата за филтър по склад
         $form = cls::get('core_Form');
+        $form->class = 'filterForm';
         
         $form->FLD("search", 'varchar', 'placeholder=Търсене,silent');
         $form->view = 'horizontal';

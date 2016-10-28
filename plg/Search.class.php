@@ -197,8 +197,9 @@ class plg_Search extends core_Plugin
                 }  
                 
                 if($w{0} == '*') {
-                    $w = substr($w, 1);
-                    if(!$w) continue;
+                    $wТ = substr($w, 1);
+                    $wТ = trim($wТ);
+                    if(!$wТ) continue;
                     $wordBegin = '';
                 } 
                 
@@ -219,7 +220,7 @@ class plg_Search extends core_Plugin
                 
                 $w = trim(static::normalizeText($w, array('*')));
                 $minWordLen = strlen($w);
- 
+                
                 if(strpos($w, ' ')) {
                     $mode = '"';
                     $wArr = explode(' ', $w);
@@ -233,6 +234,7 @@ class plg_Search extends core_Plugin
 
                 if(strpos($w, '*') !== FALSE) {
                     $w = str_replace('*', '%', $w);
+                    $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
                     if($minWordLen <= 4 || !empty($query->mvc->dbEngine) || $limit > 0) {

@@ -117,7 +117,7 @@ class frame_Reports extends core_Embedder
 
 
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'frame/tpl/SingleLayoutReport.shtml';
 

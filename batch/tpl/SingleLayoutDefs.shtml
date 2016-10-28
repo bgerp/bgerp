@@ -1,0 +1,37 @@
+<div class='singleView'>
+    [#SingleToolbar#]
+    <div class="no-cover">
+       <h2 style="padding:5px 2px;" class=" [#STATE_CLASS#]"> |Дефиниция на партида на артикул|*</h2>
+       <fieldset class="detail-info">
+            <legend class="groupTitle">|Информация|*</legend>
+            <div class="groupList">
+                <table>
+                	<tr><td class="quiet">|Артикул|*:</td> <td>[#productId#]</td></tr>
+                	<tr><td class="quiet">|Тип|*:</td> <td>[#driverClass#]</td></tr>
+                	
+                	<!--ET_BEGIN format-->
+                	<tr><td class="quiet">|Формат|*:</td> <td>[#format#]</td></tr>
+                	<!--ET_END format-->
+                	
+                	<!--ET_BEGIN time-->
+                	<tr><td class="quiet">|Срок до|*:</td> <td>[#time#]</td></tr>
+                	<!--ET_END time-->
+                	
+                	<!--ET_BEGIN numbers-->
+                	<tr><td class="quiet">|Цифри|*:</td> <td>[#numbers#]</td></tr>
+                	<!--ET_END numbers-->
+                	
+                	<!--ET_BEGIN prefix-->
+                	<tr><td class="quiet">|Представка|*:</td> <td>[#prefix#]</td></tr>
+                	<!--ET_END prefix-->
+                	
+                	<!--ET_BEGIN suffix-->
+                	<tr><td class="quiet">|Наставка|*:</td> <td>[#suffix#]</td></tr>
+                	<!--ET_END suffix-->
+                	
+                	<tr><td colspan='2' class="quiet">|Модифицирано от|* [#modifiedBy#] |на|* [#modifiedOn#]</td></tr>
+                </table>
+            </div>
+       </fieldset>
+	</div>
+</div>
