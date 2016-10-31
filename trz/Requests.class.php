@@ -270,7 +270,10 @@ class trz_Requests extends core_Master
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
 	        
-	        $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+	        $cu = core_Users::getCurrent();
+	        if(!haveRole('ceo,trz,hr', $cu)) {
+	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+	        }
         }
     }
     
