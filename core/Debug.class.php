@@ -412,14 +412,19 @@ class core_Debug
     public static function getCodeAround($file, $line, $range = 4)
     {
         if(strpos($file, "eval()'d") !== FALSE) return;
-
-        $source = file_get_contents($file);
-
+		
+        $code = "";
+        
+        if (!$file) return $code;
+        
+        $source = @file_get_contents($file);
+                
+        if (!$source) return $code;
+        
         $lines = explode("\n", $source);
-
+        
         $from = max($line - $range-1, 0);
         $to   = min($line + $range, count($lines));
-        $code = "";
         $padding = strlen($to);
         for($i = $from; $i < $to; $i++) {
             $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
@@ -431,7 +436,7 @@ class core_Debug
                 str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
             $code .= $l;
         }
-         
+        
         return $code;
     }
 
