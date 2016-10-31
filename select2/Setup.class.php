@@ -23,7 +23,7 @@ defIfNot('SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT', 5);
  * 
  * 
  * @category  vendors
- * @package   chosen
+ * @package   select2
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
@@ -83,11 +83,6 @@ class select2_Setup extends core_ProtoSetup {
     function install()
     {
         $html = '';
-        
-        if (core_Packs::isInstalled('chosen')) {
-            $packs = cls::get('core_Packs');
-            $html .= $packs->deinstall('chosen');
-        }
         
     	$html .= parent::install();
     	

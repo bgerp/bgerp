@@ -50,7 +50,7 @@ class planning_plg_StateManager extends core_Plugin
 		}
 		
 		if (!$mvc->fields['timeClosed']) {
-			$mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
+			$mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворено на,input=none');
 		}
 		
 		if(isset($mvc->demandReasonChangeState)){
