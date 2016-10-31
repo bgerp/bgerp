@@ -48,6 +48,12 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	
 	
 	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	public $hideListFieldsIfEmpty = 'order';
+	
+	
+	/**
 	 * Добавя задължителни полета към модела
 	 * 
 	 * @param bgerp_ProtoParam $mvc

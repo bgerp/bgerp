@@ -121,7 +121,7 @@ class pos_Receipts extends core_Master {
 	
 	
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'pos/tpl/SingleLayoutReceipt.shtml';
     

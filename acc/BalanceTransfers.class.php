@@ -116,7 +116,7 @@ class acc_BalanceTransfers extends core_Master
 	
 	
 	/**
-	 * Файл с шаблон за единичен изглед на статия
+	 * Файл с шаблон за единичен изглед
 	 */
 	public $singleLayoutFile = 'acc/tpl/SingleLayoutBalanceTransfer.shtml';
 	

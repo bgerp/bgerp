@@ -107,7 +107,12 @@ class colab_plg_VisibleForPartners extends core_Plugin
     {
     	// Контрактора да не може да създава чернова, а директно да активира
     	if (core_Users::haveRole('collaborator')) {
-    		$data->form->toolbar->removeBtn('save');
+    		
+    		if($data->form->toolbar->hasBtn('activate')){
+    			$data->form->toolbar->removeBtn('save');
+    			$data->form->toolbar->removeBtn('active');
+    			$data->form->toolbar->addSbBtn('Запис', 'active', 'id=activate,order=0.1, ef_icon = img/16/disk.png', 'title=Запис на документа');
+    		}
     	}
     }
 }

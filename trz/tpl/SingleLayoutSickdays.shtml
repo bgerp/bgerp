@@ -31,13 +31,11 @@
         <!--ET_BEGIN icdCode-->
         <p><b>|Код по MKB|*:</b> [#icdCode#]</p>
         <!--ET_END icdCode-->
-        
-        
-        <br><p><b>|Заплащане|*:</b></p>
-        
+
         <table class="inlineRichTable listTable" style="width:48%">
         	<tr>
         	    <!--ET_BEGIN compensationEmployer-->
+                <br><p><b>|Заплащане|*:</b></p>
         		<th>|Oт работодателя|*</th>
                 <td class="centered">[#paidByEmployer#]</td>
                 <!--ET_END compensationEmployer-->

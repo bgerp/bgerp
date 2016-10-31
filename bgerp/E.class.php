@@ -215,9 +215,8 @@ class bgerp_E extends core_Manager
         if (core_Packs::isInstalled('colab')){
     		if (core_Users::haveRole('collaborator')) {
     		    
-    			$inst->load('cms_ExternalWrapper');
     			$inst->currentTab = 'Нишка';
-    			
+    			plg_ProtoWrapper::changeWrapper($inst, 'cms_ExternalWrapper');
     			$tpl = $inst->renderWrapping($tpl);
     			
     			$isContractor = TRUE;

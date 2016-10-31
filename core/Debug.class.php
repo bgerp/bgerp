@@ -313,7 +313,7 @@ class core_Debug
                 $file = self::getEditLink($frame['file']);
                 $file =  $file . ' : ' . $line;
                 if($rUrl = self::getGithubSourceUrl($frame['file'], $frame['line'])) {
-                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png', '"', TRUE));
+                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, '//bgerp.com/sbf/bgerp/img/16/github.png');
                 } 
             } else {
                 $githubLink = '';
@@ -680,7 +680,7 @@ class core_Debug
             $contex['EF_TIMEZONE'] = EF_TIMEZONE;
             
             $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
-            $contex['BGERP_LAST_STABLE_VERSION'] = '16.24-Ком';
+            $contex['BGERP_LAST_STABLE_VERSION'] = '16.44-Паскал';
         }
         
         $state = array( 'errType'   => $errType, 

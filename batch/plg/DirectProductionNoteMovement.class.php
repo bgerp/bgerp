@@ -44,11 +44,8 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 			
 			if(is_object($BatchClass)){
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				if(!isset($rec->id)){
-					$form->setDefault('batch', $BatchClass->getAutoValue($mvc, $rec));
-				}
 			} else {
-				$form->setField('batch', 'input=none');
+				$form->setField('batch', 'input=none,class=w50');
 				unset($rec->batch);
 			}
 		}
@@ -81,6 +78,47 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 			// Ако не е въведена партида, сетваме грешка
 			if(empty($data->rec->batch) && $data->rec->state == 'draft'){
 				$data->row->productId = ht::createHint($data->row->productId, 'Не е въведен партиден номер', 'warning');
+			}
+		}
+	}
+	
+	
+	/**
+	 * Преди запис на документ
+	 */
+	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		// Нормализираме полето за партидата
+		if(!empty($rec->batch)){
+			$BatchClass = batch_Defs::getBatchDef($rec->productId);
+			if(is_object($BatchClass)){
+				if($rec->batch != $BatchClass->getAutoValueConst()){
+					$rec->batch = $BatchClass->normalize($rec->batch);
+				}
+			}
+		} else {
+			$rec->batch = NULL;
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		// След запис ако партидата е за автоматично обновяване, обновява се
+		if(!empty($rec->batch)){
+			$BatchClass = batch_Defs::getBatchDef($rec->productId);
+			if(is_object($BatchClass)){
+				if($rec->batch == $BatchClass->getAutoValueConst()){
+					$rec->batch = $BatchClass->getAutoValue($mvc, $rec->id);
+					$mvc->save_($rec, 'batch');
+				}
 			}
 		}
 	}
