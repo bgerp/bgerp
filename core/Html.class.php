@@ -128,6 +128,7 @@ class core_Html
             
             $suffix = '_cs';
             list($l, $r) = explode('[', $id);
+            $r = rtrim($r, ']');
             $selectId = $l . $suffix . $r;
 
             if ($attr['ajaxAutoRefreshOptions']) {
@@ -152,7 +153,7 @@ class core_Html
             jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", TRUE);
 
             $attr['id'] = $selectId;
-            $name = $attr['name'] = $selectId;
+            $name = $attr['name'] = $attr['name'] . $suffix;
 
             // Долното кара да не работи селекта в firefox-mobile, но е добре за  
             // декстоп-браузърите, когато се работи с tab за превключване на полетата
