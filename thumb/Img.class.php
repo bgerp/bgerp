@@ -366,9 +366,6 @@ class thumb_Img
                 expect($uri);
                 if (is_readable($uri)) {
                     $fimg = new thumb_FastImageSize($uri);
-
-                  
-
                     list($this->width, $this->height) = $fimg->getSize();
                 } else {
                     log_Data::logWarning("Няма достъп до файла: " . $uri);
@@ -403,18 +400,25 @@ class thumb_Img
                 case 'url':
                 case 'path':
                     $this->format = fileman_Files::getExt($this->source);
+                    $uri = $this->source;
                 break;
                 case 'fileman':
                     $this->format = fileman_Files::getExt(fileman_Files::fetchByFh($this->source, 'name'));
+                    $uri = fileman_Files::fetchByFh($this->source, 'path');
                 break;
             }
 
-            if($this->format == 'jpeg') {
-                $this->format = 'jpg';
-            }
+            // Ако от името не можем да опрределим формата - пробваме съдържанието
+            if(!in_array($this->format, array('png', 'jpg', 'gif', 'jpeg'))) {
+                if(strlen($uri) && is_readable($uri)) {
+                    $fimg = new thumb_FastImageSize($uri);
+                    $this->format = $fimg->getType();
+                }
 
-            if(!in_array($this->format, array('png', 'jpg', 'gif'))) {
-                $this->format = 'png';
+            }
+            
+            if($this->format == 'jpeg' || empty($this->format)) {
+                $this->format = 'jpg';
             }
         }
 
