@@ -222,24 +222,22 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->fields['departmentId']->caption = 'Отдел';
-        $data->listFilter->fields['professionId']->caption = 'Професия';
-        $data->listFilter->fields['departmentId']->mandatory = NULL;
-        $data->listFilter->fields['positionId']->mandatory = NULL;
-            
+        $data->listFilter->FNC('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'width=6em,caption=Отдел,silent');
+        $data->listFilter->FNC('profession', 'key(mvc=hr_Professions,select=name,allowEmpty)', 'width=6em,caption=Професия,silent');
+
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields .= ' ,departmentId, professionId';
+        $data->listFilter->showFields .= ' ,department, profession';
             
         $data->listFilter->input();
             
         if($filterRec = $data->listFilter->rec){
-        	if($filterRec->departmentId){
-            	$data->query->where(array("#departmentId = '[#1#]'", $filterRec->departmentId));
+        	if($filterRec->department){
+            	$data->query->where(array("#departmentId = '[#1#]'", $filterRec->department));
             }
                 
-            if($filterRec->positionId){
-            	$data->query->where(array("#positionId = '[#1#]'", $filterRec->positionId));
+            if($filterRec->profession){
+            	$data->query->where(array("#professionId = '[#1#]'", $filterRec->profession));
             }
         }
     }
