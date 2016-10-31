@@ -179,12 +179,12 @@ class trz_Orders extends core_Master
 	        	$department = $employeeContractDetails->departmentId;
 	        	
 	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-	        	if($schedule){
+	        	if($schedule == FALSE){
 	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
 	        	} else {
 	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        	}
-	        }else{
+	        } else{
         	
 	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        }
