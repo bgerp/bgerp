@@ -30,7 +30,7 @@ class type_User extends type_Key
     function init($params = array())
     {
         setIfNot($params['params']['mvc'], 'core_Users');
-        setIfNot($params['params']['select'], 'names');
+        setIfNot($params['params']['select'], 'nick');
         
         parent::init($params);
         
