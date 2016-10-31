@@ -521,13 +521,13 @@ class cal_Tasks extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if ($data->rec->state == 'active' || $data->rec->state == 'pending') {
-            $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
-            $data->toolbar->removeBtn('btnActivate');
+        if(cal_TaskProgresses::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
+        	$data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
         }
-
-        if ($data->rec->state == 'draft' || $data->rec->state == 'pending') {
-            $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
+       
+        if(cal_TaskConditions::haveRightFor('add', (object)array('baseId' => $data->rec->id))){
+        	//if ($data->rec->state == 'draft' || $data->rec->state == 'pending') {
+        	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
 
         // ако имаме зададена продължителност
