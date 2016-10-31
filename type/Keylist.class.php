@@ -180,7 +180,7 @@ class type_Keylist extends core_Type {
         
         // Определяме броя на колоните, ако не са зададени.
         $maxChars = $this->params['maxChars'];
-        $col = self::getCol($this->suggestions, $maxChars);
+        $col = self::getCol((array)$this->suggestions, $maxChars);
       
         $i = 0; $html = ''; $trOpen = FALSE;
         $j = 0; //за конструиране на row-1,row-2 и т.н.
@@ -338,6 +338,7 @@ class type_Keylist extends core_Type {
      */
     public static function getCol($options, &$maxChars)
     {
+        $options = (array)$options;
         if(!$maxChars) {
             $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
             if(count($options) < 6) {
@@ -398,6 +399,10 @@ class type_Keylist extends core_Type {
     public function prepareSuggestions()
     {
         $mvc = cls::get($this->params['mvc']);
+        
+        if (!isset($this->suggestions)) {
+            $this->suggestions = array();
+        }
         
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
         
