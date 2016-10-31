@@ -64,5 +64,8 @@ class doc_plg_TransferDoc extends core_Plugin
 		// Споделяме текущия потребител със нишката на документа, за всеки случай
 		$cu = core_Users::getCurrent();
 		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cu);
+
+		$mvc::save($rec,'sharedUsers');
 	}
 }
