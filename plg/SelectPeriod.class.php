@@ -183,6 +183,9 @@ class plg_SelectPeriod extends core_Plugin
     {
         $opt = array();
         
+        // Всички
+        $opt['gr0'] = (object) array('title' => tr('Всички'));
+        
         // Ден
         $opt['gr1'] = (object) array('title' => tr('Ден'), 'group' => TRUE);
         $opt['today'] = tr('Днес');
