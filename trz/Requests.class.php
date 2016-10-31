@@ -295,7 +295,7 @@ class trz_Requests extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
     	// Ако се опитваме да направим заповед за отпуска
 	    if($action == 'order'){ 
