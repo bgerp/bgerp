@@ -178,7 +178,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Folders = cls::get('doc_Folders');
         
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,select2,help,toast,minify,rtac,hljs,pixlr,tnef";
+            $packs .= ",avatar,keyboard,statuses,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,select2,help,toast,minify,rtac,hljs,pixlr,tnef";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
