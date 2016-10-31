@@ -937,7 +937,11 @@ if ($step == 'setup') {
         
         // Изтриваме Log-a - ако има нещо в него
         if (!empty($setupLog)) {
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+            do {
+                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+                if($res !== FALSE) break;
+                usleep(1000);
+            } while($i++ < 100);
         }
         
         $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));

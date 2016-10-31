@@ -38,7 +38,7 @@ class trz_Sickdays extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trz_Wrapper, doc_DocumentPlg,acc_plg_DocumentSummary,doc_plg_TransferDoc, 
-    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank,change_Plugin';
+    				 doc_ActivatePlg, plg_Printing,doc_SharablePlg,bgerp_plg_Blank,change_Plugin';
     
     
     /**
@@ -231,7 +231,10 @@ class trz_Sickdays extends core_Master
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
 	        
-	        $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+            $cu = core_Users::getCurrent();
+	        if(!haveRole('ceo,trz,hr', $cu)) {
+	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+	        }
         } 
     }
     
@@ -266,7 +269,7 @@ class trz_Sickdays extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
 
     }

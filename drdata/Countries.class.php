@@ -214,7 +214,7 @@ class drdata_Countries extends core_Manager {
      * Изпълнява се преди запис в модела
      * Премахва не-цифровите символи в кода
      */
-    static function on_BeforeSave($mvc, $id, $rec)
+    static function on_BeforeImportRec($mvc, $rec)
     {
         $rec->telCode = preg_replace('/[^0-9]+/', '', $rec->telCode);
     }
@@ -437,7 +437,7 @@ class drdata_Countries extends core_Manager {
         
         // Импортираме данните от CSV файла. 
         // Ако той не е променян - няма да се импортират повторно
-        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
 
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;

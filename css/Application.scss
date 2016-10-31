@@ -4748,6 +4748,8 @@ body.narrow {
 @media print{
 	.document{
         width: 100%;
+		max-width: 1200px;
+		padding: 0px !important;
 	}
 	.no-print {
 	   display: none;
@@ -4950,12 +4952,11 @@ body.narrow {
 		border: none;
 		background: #ffffff;
 		@include no-shadow();
-	    margin: 10px 0 20px 1px;
+	    margin: 10px 0 20px 0px;
 	    padding: 2px;
 		float: none;
 		min-width: 0;
 		max-width: 840px;
-
 	}
 	.no-print {
        display: none;
