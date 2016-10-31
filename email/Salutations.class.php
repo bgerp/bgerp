@@ -305,7 +305,7 @@ class email_Salutations extends core_Manager
         
         // Намираме обръщенито
         preg_match($pattern, $text, $matche);
-
+ 
         // Тримваме и връщаме текста
         return trim($matche['allText']);
     }
@@ -346,7 +346,7 @@ class email_Salutations extends core_Manager
                 self::$salutationsPattern = FALSE;
             }
         }
-        
+      
         // Връщаме резултата
         return self::$salutationsPattern;
     }
@@ -358,10 +358,10 @@ class email_Salutations extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Документа
-        $doc = doc_Containers::getDocument($rec->containerId);
-        
         try {
+            // Документа
+            $doc = doc_Containers::getDocument($rec->containerId);
+            
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
             
