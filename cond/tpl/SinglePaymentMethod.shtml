@@ -32,9 +32,11 @@
         <fieldset class="detail-info">
             <legend class="groupTitle">|Балансово плащане|*</legend>
             <ul>
+            	<!--ET_BEGIN eventBalancePayment-->
                <li class="info">
                     <span class="gray-title">|Събитие|*: </span> [#eventBalancePayment#]
                 </li>
+                <!--ET_END eventBalancePayment-->
                 <li class="info">
                     <span class="gray-title">|Срок|*: </span> [#timeBalancePayment#]
                 </li>
