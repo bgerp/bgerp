@@ -4332,7 +4332,9 @@ only screen and (max-width: 320px) {
  */
 @media print {
   .document {
-    width: 100%; }
+    width: 100%;
+    max-width: 1200px;
+    padding: 0px !important; }
 
   .no-print {
     display: none; }
@@ -4536,7 +4538,7 @@ only screen and (max-width: 320px) {
     -moz-box-shadow: none;
     -webkit-box-shadow: none;
     box-shadow: none;
-    margin: 10px 0 20px 1px;
+    margin: 10px 0 20px 0px;
     padding: 2px;
     float: none;
     min-width: 0;
