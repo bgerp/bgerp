@@ -333,11 +333,7 @@ class core_Setup extends core_ProtoSetup {
             );
             
             foreach($filesToCopy as $src => $dest) {
-                if(copy($src, $dest)) {
-                    $html .= "<li  class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-                } else {
-                    $html .= "<li  class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-                }
+                $html .= self::addUniqLines($src, $dest);
             }
         }
 
@@ -346,9 +342,9 @@ class core_Setup extends core_ProtoSetup {
         if(!file_exists($dest)) {
             $src = getFullPath('img/favicon.ico');
             if(copy($src, $dest)) {
-                $html .= "<li  class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                $html .= "<li class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
             } else {
-                $html .= "<li  class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                $html .= "<li class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
             }
         }
 
@@ -637,5 +633,57 @@ class core_Setup extends core_ProtoSetup {
             
             $Inst->db->query("UPDATE {$Inst->dbTableName} SET {$searchField} = REPLACE({$searchField}, '*', '')");
         }
+    }
+
+
+    /**
+     * Копира линиите от файла $src в $dest, които не се съдържат в него
+     */
+    public static function addUniqLines($src, $dest)
+    {
+        $emptyDest = FALSE;
+        if(!file_exists($dest)) {
+            if(file_put_contents($dest, '') === FALSE) {
+                return "<li class=\"debug-error\">Не може да бъде създаден файла: <b>{$dest}</b></li>";
+            }
+            $emptyDest = TRUE;
+        }
+        if(!is_writable($dest)) {
+            return "<li class=\"debug-error\">Не може да се записва във файла: <b>{$dest}</b></li>";
+        }
+
+        if(!is_readable($src)) {
+            return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$src}</b></li>";
+        }
+        
+        if(!is_readable($dest)) {
+            return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$dest}</b></li>";
+        }
+     
+        $exFile = file_get_contents($dest);
+
+        $lines = file_get_contents($src);
+
+        $lines = explode("\n", $lines);
+        
+        $flagChange = FALSE;
+        $newLines = 0;
+        foreach($lines as $l) {
+            $l = rtrim($l);
+            if((strlen($l) == 0 && $flagChange) || (strlen($l) > 0 && stripos($exFile, $l) === FALSE)) {
+                file_put_contents($dest, ($emptyDest ? '' : "\n") . $l, FILE_APPEND);
+                $flagChange = TRUE;
+                $emptyDest  = FALSE;
+                $newLines++;
+            }
+        }
+
+        if($newLines > 0) {
+            $res = "<li class=\"debug-new\">Във файла <b>{$dest}</b> са копирани {$newLines} линии от файла <b>{$src}</b></li>";
+        } else {
+            $res = "<li class=\"debug-info\">Във файла <b>{$dest}</b> не са копирани линии от файла <b>{$src}</b></li>";
+        }
+
+        return $res;
     }
 }
