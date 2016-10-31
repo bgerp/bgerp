@@ -60,7 +60,6 @@ class tcost_Setup extends core_ProtoSetup
             'tcost_Zones',
             'tcost_Fees',
     		'tcost_Calcs',
-    		'migrate::addFeeCurrencies',
         );
 
         

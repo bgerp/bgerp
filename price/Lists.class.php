@@ -465,14 +465,16 @@ class price_Lists extends core_Master
         		}
         	}
         	
-        	if(isset($rec->defaultSurcharge)){
-        		if($rec->defaultSurcharge < 0){
-        			$row->discountType = 'Отстъпка';
-        			$rec->defaultSurcharge = abs($rec->defaultSurcharge);
-        			$row->defaultSurcharge = $mvc->getFieldType('defaultSurcharge')->toVerbal($rec->defaultSurcharge);
-        		} else {
-        			$row->discountType = 'Надценка';
-        		}
+        	if($rec->defaultSurcharge < 0){
+        		$row->discountType = 'Отстъпка';
+        		$rec->defaultSurcharge = abs($rec->defaultSurcharge);
+        		$row->defaultSurcharge = $mvc->getFieldType('defaultSurcharge')->toVerbal($rec->defaultSurcharge);
+        	} else {
+        		$row->discountType = 'Надценка';
+        	}
+        	
+        	if(!isset($rec->defaultSurcharge)){
+        		$row->defaultSurcharge = ht::createHint(tr('Няма'), 'Тази ценова политика няма надценка/отстъпка по подразбиране и затова само изрично посочените артикули и групи от артикули ще имат цени', 'warning');
         	}
         	
         	$row->currency = "<span class='cCode'>{$row->currency}</span>";

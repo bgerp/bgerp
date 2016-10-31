@@ -39,7 +39,7 @@ class trz_Orders extends core_Master
      */
     public $loadList = 'plg_RowTools, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing, doc_plg_BusinessDoc,bgerp_plg_Blank,change_Plugin';
+    				 plg_Printing,bgerp_plg_Blank,change_Plugin';
     
     
     /**
@@ -179,12 +179,12 @@ class trz_Orders extends core_Master
 	        	$department = $employeeContractDetails->departmentId;
 	        	
 	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-	        	if($schedule){
+	        	if($schedule == FALSE){
 	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
 	        	} else {
 	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        	}
-	        }else{
+	        } else{
         	
 	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        }
@@ -300,6 +300,17 @@ class trz_Orders extends core_Master
         $row->amount = $Double->toVerbal($rec->amount);
         
         $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->leaveFrom);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if(!empty($data->toolbar->buttons['btnAdd'])){
+            $data->toolbar->removeBtn('btnAdd');
+        }
     }
     
     

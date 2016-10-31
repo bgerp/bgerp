@@ -116,6 +116,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
                         OR
     	               (#stateDateFrom IS NOT NULL AND #stateDateTo IS NOT NULL AND #stateDateFrom <= '{$data->rec->to}' AND #stateDateTo >= '{$data->rec->to}')");
 
+    	$recs = array();
     	while($rec = $query->fetch()){ 
             $index = $rec->userId;
     	    $recs[$index] =

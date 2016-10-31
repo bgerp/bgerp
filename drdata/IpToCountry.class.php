@@ -59,12 +59,9 @@ class drdata_IpToCountry extends core_Manager {
             1 => 'maxIp',
             4 => 'country2'
         );
-        
-        // Удължаваме времето за мак. изпълнение
-        set_time_limit(240);
 
         // Импортираме данните
-        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
 
         $res .= $cntObj->html;
  

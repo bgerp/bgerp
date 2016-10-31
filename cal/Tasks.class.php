@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -31,7 +31,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, cal_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, 
+    public $loadList = 'plg_RowTools, cal_Wrapper, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
     				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone';
 
 
@@ -84,6 +84,12 @@ class cal_Tasks extends core_Master
 
 
     /**
+     * Кой може да променя състоянието?
+     */
+    public $canChangestate = 'powerUser';
+    
+    
+    /**
      * Кой има право да го чете?
      */
     public $canRead = 'powerUser';
@@ -120,21 +126,9 @@ class cal_Tasks extends core_Master
 
 
     /**
-     *
+     * Кой има достъп до сингъла
      */
     public $canSingle = 'powerUser';
-
-
-    /**
-     * Кой има право да приключва?
-     */
-    public $canChangeTaskState = 'powerUser';
-
-
-    /**
-     * Кой има право да затваря задачите?
-     */
-    public $canClose = 'powerUser';
 
 
     /**
@@ -166,17 +160,28 @@ class cal_Tasks extends core_Master
      */
     public $newBtnGroup = "1.3|Общи";
 
-    static $view = array(
-        'WeekHour' => 1,
-        'WeekHour4' => 2,
-        'WeekHour6' => 3,
-        'WeekDay' => 4,
-        'Months' => 5,
-        'YearWeek' => 6,
-        'Years' => 7,
-    );
+    
+    /**
+     * Изгледи
+     */
+    public static $view = array('WeekHour'  => 1,
+    							'WeekHour4' => 2,
+    							'WeekHour6' => 3,
+    							'WeekDay'   => 4,
+    							'Months'    => 5,
+    							'YearWeek'  => 6,
+    							'Years'     => 7,);
 
+    
+    /**
+     * Поле за филтър по дата - начало
+     */
     public $filterFieldDateFrom = 'timeStart';
+
+    
+    /**
+     * Поле за филтър по дата - край
+     */
     public $filterFieldDateTo = 'timeEnd';
     
     
@@ -436,7 +441,7 @@ class cal_Tasks extends core_Master
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         $cu = core_Users::getCurrent();
         $rec = $form->rec;
@@ -514,22 +519,11 @@ class cal_Tasks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($data->rec->state == 'active' || $data->rec->state == 'pending') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
             $data->toolbar->removeBtn('btnActivate');
-           
-            if ($mvc->haveRightFor('stop', $data->rec)) {
-                $data->toolbar->addBtn('Затваряне', array(
-                    $mvc,
-                    'Stop',
-                    $data->rec->id
-                ),
-                    array('ef_icon'=>'img/16/gray-close.png',
-                        'title'=>'Затваряне на задачата'
-                    ));
-            }
         }
 
         if ($data->rec->state == 'draft' || $data->rec->state == 'pending') {
@@ -567,6 +561,7 @@ class cal_Tasks extends core_Master
         }
     }
 
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -575,6 +570,7 @@ class cal_Tasks extends core_Master
         $mvc->updateTaskToCalendar($rec->id);
     }
 
+    
     /**
      * След изтриване на запис
      */
@@ -597,19 +593,13 @@ class cal_Tasks extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
         if ($action == 'postpone') {
             if ($rec->id) {
                 if ($rec->state !== 'active' || (!$rec->timeStart)) {
                     $requiredRoles = 'no_one';
-                }  /*else {
-	                if(!haveRole('ceo') || ($userId !== $rec->createdBy) &&
-	                !keylist::isIn($userId, $rec->sharedUsers)) { 
-	                	
-	                	$requiredRoles = 'no_one';
-	                }
-	            }*/
+                }
             }
         }
 
@@ -621,13 +611,11 @@ class cal_Tasks extends core_Master
             }
         }
         
-        if ($action == 'stop') {
+        if ($action == 'changestate') {
             if ($rec->id) {
-                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
-                    if($rec->state !== 'active') {
-                        $requiredRoles = 'no_one';
-                    }
-                }
+                if (!$mvc->haveRightFor('single', $rec->id, $userId)) {
+                    $requiredRoles = 'no_one';
+               }
             }
         }
     }
@@ -649,7 +637,7 @@ class cal_Tasks extends core_Master
 
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
-        // bp($canActivate,self::calculateExpectationTime($rec), $rec);
+        
         if ($now >= $canActivate && $canActivate !== NULL) {
 
             $rec->timeCalc = $canActivate->calcTime;
@@ -851,27 +839,6 @@ class cal_Tasks extends core_Master
 	        		              ");
             }
         }
-    }
-
-
-    /**
-     * Ако няма записи не вади таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    static function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-
-        if (Mode::is('listTasks', 'by') || Mode::is('listTasks', 'to')) {
-
-            // return FALSE;
-        }
-        // bp($data);
-        //$data->query->orderBy("id=DESC");
-        //bp();
-
     }
 
 
@@ -2153,27 +2120,6 @@ class cal_Tasks extends core_Master
 	    
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
-
-    }
-        
-    static function act_Test()
-    {
-    	 // Обикаляме по всички чакащи задачи 
-       $query = $this->getQuery();
-       $query->where("#state = 'pending'");
-       
-	   $activatedTasks = array ();
-	   $now = dt::verbal2mysql();
-       
-	   while ($rec = $query->fetch()) { 
- 
-	   	   // изчисляваме очакваните времена
-	   	
-	   		//bp($rec->expectationTimeEnd, $rec);
-	       if($rec->id == 24){
-		  	self::calculateExpectationTime($rec);
-	       }
-	   }
     }
     
     
@@ -2184,9 +2130,8 @@ class cal_Tasks extends core_Master
      * @param stdClass $rec
      * @param stdClass $recCond
      */
-    static public function calculateTimeToStart ($rec, $recCond)
+    static public function calculateTimeToStart($rec, $recCond)
     {
-    	
     	// времето от което зависи новата задача е началото на зависимата задача
     	// "timeCalc"
     	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
@@ -2346,10 +2291,6 @@ class cal_Tasks extends core_Master
         	unset($resArr['expectationTimeStart']);
         	unset($resArr['expectationTimeEnd']);
         }
-        
-        if ($row->timeClosed) {
-            $resArr['timeClosed'] =  array('name' => tr('Приключено на'), 'val' =>"[#timeClosed#]");
-        }
     }
     
     
@@ -2369,37 +2310,5 @@ class cal_Tasks extends core_Master
         unset($nRec->workingTime);
         unset($nRec->timeCalc);
         $nRec->notifySent = 'no';
-    }
-    
-    
-    /**
-     * Екшън за спиране
-     */
-    function act_Stop()
-    {
-        //Права за работа с екшън-а
-        requireRole('powerUser');
-         
-        //Очакваме да има такъв запис
-        expect($id = Request::get('id', 'int'));
-    
-        expect($rec = $this->fetch($id));
-    
-        //Очакваме потребителя да има права за спиране
-        $this->haveRightFor('stop', $rec);
-         
-        $link = array('cal_Tasks', 'single', $rec->id);
-        $now = dt::now();
-        
-        //Променяме статуса на спрян
-        $recUpd = new stdClass();
-        $recUpd->id = $rec->id;
-        $recUpd->state = 'closed';
-        $recUpd->timeClosed = $now;
-    
-        cal_Tasks::save($recUpd);
-         
-        // Редиректваме
-        return new Redirect($link, "|Успешно затворихте задачата");
     }
 }

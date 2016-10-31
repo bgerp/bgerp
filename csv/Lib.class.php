@@ -20,7 +20,7 @@ class csv_Lib
     /**
      * Импортира CSV файл в указания модел
      */
-    static function import($mvc, $file, $fields = array(), $defaults = array(), $format = array())
+    static function import($mvc, $file, $fields = array(), $defaults = array(), $format = array(), $isLarge = FALSE)
     {   
         // Дефолт стойностите за форматирането по подразбиране
         setIfNot($format['length'], 0);
@@ -65,13 +65,20 @@ class csv_Lib
                 foreach($fields as $i => $f) {
                     $rec->{$f} = $data[$i];
                 }
-                
+          
                 if ($mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) continue ;
 				
                 // Ако таблицата се попълва от нулата, само се добавят редове
-                if($fromZero) {
-                    $mvc->save($rec);
+                if($fromZero && $isLarge) {
+                    if(!isset($recs)) {
+                        $recs = array();
+                    }
+                    $recs[] = $rec;
                     $res->created++;
+                    if(count($recs) > 2000) {
+                        $mvc->saveArray($recs, NULL, TRUE);
+                        $recs = array();
+                    }
                     continue;
                 }
                 
@@ -107,6 +114,10 @@ class csv_Lib
                 }
             }
         }
+
+        if(count($recs)) {
+            $mvc->saveArray($recs, NULL, TRUE);
+        }
             
         fclose($handle);
 
@@ -119,7 +130,7 @@ class csv_Lib
     /**
      * Функция, която импортира еднократно даден csv файл в даден модел
      */
-    static function importOnce($mvc, $file, $fields = array(), $defaults = array(), $format = array(), $delete = FALSE)
+    static function importOnce($mvc, $file, $fields = array(), $defaults = array(), $format = array(), $delete = FALSE, $isLarge = FALSE)
     {
         // Пътя до файла с данните
         $filePath = getFullPath($file);
@@ -150,7 +161,7 @@ class csv_Lib
                 $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`");
             }
             
-            $cntObj = self::import($mvc, $file, $fields, $defaults, $format);
+            $cntObj = self::import($mvc, $file, $fields, $defaults, $format, $isLarge);
             
             // Записваме в конфигурацията хеша на последния приложен csv файл
             core_Packs::setConfig($pack, array($param => $hash));
@@ -169,6 +180,16 @@ class csv_Lib
     static function importOnceFromZero($mvc, $file, $fields = array(), $defaults = array(), $format = array())
     {
         return self::importOnce($mvc, $file, $fields, $defaults, $format, TRUE);
+    }
+    
+    
+    /**
+     * Импортира съдържанието на посочения CSV файл, когато той е променян
+     * Преди импортирането изпразва таблицата, 
+     */
+    static function largeImportOnceFromZero($mvc, $file, $fields = array(), $defaults = array(), $format = array())
+    {
+        return self::importOnce($mvc, $file, $fields, $defaults, $format, TRUE, TRUE);
     }
 
 

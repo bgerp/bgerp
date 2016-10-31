@@ -137,6 +137,9 @@ class cond_Parameters extends bgerp_ProtoParam
      */
     public static function getParameter($cClass, $cId, $conditionSysId)
     {
+    	// Ако няма клас и ид на документ да не връща нищо
+    	if(!isset($cClass) && !isset($cId)) return;
+    	
     	expect($Class = cls::get($cClass));
     	expect($Class::fetch($cId));
     	expect($condId = self::fetchIdBySysId($conditionSysId));

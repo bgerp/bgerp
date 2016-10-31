@@ -39,7 +39,7 @@ class trz_Requests extends core_Master
      */
     public $loadList = 'plg_RowTools2, trz_Wrapper, doc_plg_TransferDoc,
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing, doc_plg_BusinessDoc,doc_SharablePlg,bgerp_plg_Blank';
+    				 plg_Printing,doc_SharablePlg,bgerp_plg_Blank';
     
     
     /**
@@ -270,7 +270,10 @@ class trz_Requests extends core_Master
 	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
 	        $data->form->setReadonly('personId');
 	        
-	        $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+	        $cu = core_Users::getCurrent();
+	        if(!haveRole('ceo,trz,hr', $cu)) {
+	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+	        }
         }
     }
     
@@ -295,7 +298,7 @@ class trz_Requests extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
     	// Ако се опитваме да направим заповед за отпуска
 	    if($action == 'order'){ 
