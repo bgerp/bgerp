@@ -443,6 +443,8 @@ class crm_ext_ProductListToContragents extends core_Manager
 	 */
 	public static function getReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
 	{
+		if(!isset($cClass) && !isset($cId)) return NULL;
+		
 		// Извличане на всичките листвани артикули
 		$all = self::getAll($cClass, $cId);
 		
