@@ -167,7 +167,7 @@ class bgerp_Setup extends core_ProtoSetup {
                   email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cash,bank,
                   budget,tcost,purchase,accda,permanent,sens2,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
-                  callcenter,social,hyphen,distro,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
+                  callcenter,social,hyphen,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {
