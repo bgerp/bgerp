@@ -242,8 +242,15 @@ class planning_plg_StateManager extends core_Plugin
     			break;
     		}
     	
+    		// Ако ще активираме: запалваме събитие, че ще активираме
+    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
+    		if($action == 'activate'){
+    			$mvc->invoke('BeforeActivation', array(&$rec));
+    			$saveFields = NULL;
+    		}
+    		
     		// Обновяваме състоянието и старото състояние
-    		if($mvc->save($rec, 'brState,state,modifiedOn,modifiedBy,timeClosed')){
+    		if($mvc->save($rec, $saveFields)){
     			$mvc->logWrite($logAction, $rec->id);
     			$mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
     		}
