@@ -526,7 +526,6 @@ class cal_Tasks extends core_Master
         }
        
         if(cal_TaskConditions::haveRightFor('add', (object)array('baseId' => $data->rec->id))){
-        	//if ($data->rec->state == 'draft' || $data->rec->state == 'pending') {
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
 
@@ -539,6 +538,7 @@ class cal_Tasks extends core_Master
         } else {
             $taskEnd = $data->rec->timeEnd;
         }
+        
         // изчислява продължителността в секунди
         $durations = dt::mysql2timestamp($taskEnd) - dt::mysql2timestamp($data->rec->timeStart);
 
