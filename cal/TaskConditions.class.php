@@ -241,7 +241,7 @@ class cal_TaskConditions extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
     	
     	if ($rec->id) {

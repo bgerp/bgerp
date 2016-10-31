@@ -113,7 +113,7 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
         
         // Колко дни след дадено събитие да е балансовото плащане?
-        $this->FLD('eventBalancePayment', 'enum(invDate=Датата на фактурата||Invoice date,
+        $this->FLD('eventBalancePayment', 'enum(,invDate=Датата на фактурата||Invoice date,
                                                invEndOfMonth=След краят на месеца на фактурата||After the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
@@ -302,6 +302,7 @@ class cond_PaymentMethods extends core_Master
             6 => 'timeBalancePayment',
             7 => 'discountPercent',
             8 => 'discountPeriod',
+    		9 => 'type',
         );
             
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);

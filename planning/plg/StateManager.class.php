@@ -49,6 +49,10 @@ class planning_plg_StateManager extends core_Plugin
 			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
 		}
 		
+		if (!$mvc->fields['timeClosed']) {
+			$mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
+		}
+		
 		if(isset($mvc->demandReasonChangeState)){
 			$mvc->demandReasonChangeState = arr::make($mvc->demandReasonChangeState, TRUE);
 		}
@@ -212,6 +216,7 @@ class planning_plg_StateManager extends core_Plugin
     			case 'close':
     				$rec->brState = $rec->state;
     				$rec->state = 'closed';
+    				$rec->timeClosed = dt::now();
     				$logAction = 'Приключване';
     				break;
     			case 'stop':
@@ -237,8 +242,15 @@ class planning_plg_StateManager extends core_Plugin
     			break;
     		}
     	
+    		// Ако ще активираме: запалваме събитие, че ще активираме
+    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
+    		if($action == 'activate'){
+    			$mvc->invoke('BeforeActivation', array(&$rec));
+    			$saveFields = NULL;
+    		}
+    		
     		// Обновяваме състоянието и старото състояние
-    		if($mvc->save($rec, 'brState,state,modifiedOn,modifiedBy')){
+    		if($mvc->save($rec, $saveFields)){
     			$mvc->logWrite($logAction, $rec->id);
     			$mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
     		}
@@ -320,5 +332,21 @@ class planning_plg_StateManager extends core_Plugin
 		$res = $mvc->renderWrapping($res);
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * След подготовка на сингъла
+	 */
+	public static function on_AfterPrepareSingle($mvc, &$res, $data)
+	{
+		$rec = &$data->rec;
+		$row = &$data->row;
+		
+		if($rec->state == 'stopped' || $rec->state == 'closed') {
+			$tpl = new ET(tr(' от [#user#] на [#date#]'));
+			$dateChanged = ($rec->state == 'closed') ? $rec->timeClosed : $rec->modifiedOn;
+			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
+		}
 	}
 }

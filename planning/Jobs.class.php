@@ -454,11 +454,6 @@ class planning_Jobs extends core_Master
     		$lg = core_Lg::getCurrent();
     		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal', $lg);
     		
-    		if($rec->state == 'stopped' || $rec->state == 'closed') {
-    			$tpl = new ET(tr(' от [#user#] на [#date#]'));
-    			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
-    		}
-    		
     		if(isset($rec->departments)){
     			
     			$row->departments = '';
