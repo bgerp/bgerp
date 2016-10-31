@@ -788,7 +788,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
 		}
 		
-		$row->deliveryTermId = (isset($rec->deliveryTermIdExtended)) ? $mvc->getFieldType('deliveryTermIdExtended')->toVerbal($rec->deliveryTermIdExtended) : $row->deliveryTermId;
+		$row->deliveryTermId = (isset($rec->deliveryTermIdExtended)) ? $mvc->getFieldType('deliveryTermIdExtended')->toVerbal(str_replace(':', ' ', $rec->deliveryTermIdExtended)) : $row->deliveryTermId;
 		$actions = type_Set::toArray($rec->contoActions);
 		
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
@@ -822,11 +822,11 @@ abstract class deals_DealMaster extends deals_DealBase
         	$row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
         }
 	    
-    	if($rec->dealerId){
+    	if(isset($rec->dealerId)){
     		$row->dealerId = crm_Profiles::createLink($rec->dealerId, $row->dealerId);
     	}
     	
-    	if($rec->initiatorId){
+    	if(isset($rec->initiatorId)){
     		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId, $row->initiatorId);
     	}
     	
@@ -911,14 +911,14 @@ abstract class deals_DealMaster extends deals_DealBase
 			if(isset($actions['ship'])){
 				$row->isDelivered .= mb_strtoupper(tr('доставено'));
 				if($rec->state == 'rejected') {
-					$row->isDelivered = "<span class='quet'>{$row->isDelivered}</span>";
+					$row->isDelivered = "<span class='quiet'>{$row->isDelivered}</span>";
 				}
 			}
 			
 			if(isset($actions['pay'])){
 				$row->isPaid .= mb_strtoupper(tr('платено'));
 				if($rec->state == 'rejected') {
-					$row->isPaid = "<span class='quet'>{$row->isPaid}</span>";
+					$row->isPaid = "<span class='quiet'>{$row->isPaid}</span>";
 				}
 			}
 			
