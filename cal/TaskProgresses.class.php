@@ -277,4 +277,33 @@ class cal_TaskProgresses extends core_Detail
        
         cal_Tasks::save($tRec);
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    {
+    	if($action == 'add'){
+    		if(empty($rec->taskId)){
+    			$requiredRoles = 'no_one';
+    		} else {
+    			if($requiredRoles == 'no_one') return;
+    			
+    			// Проверка дали потребителя има достъп до задачата и дали е в позволено състояние за добавяне на прогрес
+    			$taskState = cal_Tasks::fetchField($rec->taskId, 'state');
+    			if($taskState != 'active' && $taskState != 'pending' && $taskState != 'wakeup'){
+    				$requiredRoles = 'no_one';
+    			} elseif(!cal_Tasks::haveRightFor('single', $rec->taskId)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    }
 }

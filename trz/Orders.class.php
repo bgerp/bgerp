@@ -297,9 +297,11 @@ class trz_Orders extends core_Master
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
 
-        $row->amount = $Double->toVerbal($rec->amount);
-        
-        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->leaveFrom);
+        if($rec->amount) {
+            $row->amount = $Double->toVerbal($rec->amount);
+            
+            $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->leaveFrom);
+        }
     }
     
     

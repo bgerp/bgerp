@@ -323,6 +323,12 @@ class doc_ExpensesSummary extends core_Manager
     		
     		// Ако има и коригиращи записи, добавят се след тях
     		if(count($foundArr)){
+    			
+    			// Преразпределяне на сумата спрямо тази, която е разпределена (не искаме усреднената сума)
+    			foreach ($foundArr as &$f1){
+    				$f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
+    			}
+    			
     			$notDistributed = array_diff_key($notDistributed, $foundArr);
     			$res = array_merge($res, $foundArr);
     		}

@@ -967,7 +967,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
        
             }
             
-            if($this->innerState->summary) {
+            if($this->innerState->summary &&  ($this->getReportLayout()->isPlaceholderExists('ROW_AFTER') || 
+                                               $this->getReportLayout()->isPlaceholderExists('ROW_BEFORE'))) { 
                 $afterRow = 'ОБЩО';
     
                 $rec = $this->prepareEmbeddedData($this->innerState->recs)->summary;
