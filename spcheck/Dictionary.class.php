@@ -198,8 +198,9 @@ class spcheck_Dictionary extends core_Manager
      * 
      * @param string $out
      * @param integer $len
+     * @param string $lastTag
      */
-    public static function getWord(&$out, $len)
+    public static function getWord(&$out, $len, $lastTag)
     {
         $w = substr($out, $len);
         
@@ -207,6 +208,13 @@ class spcheck_Dictionary extends core_Manager
         
         if (mb_strlen($w) <= self::$minLen) {
             $check = FALSE;
+        }
+        
+        // Ако в обграждащия таг има class=no-spell-check
+        if ($check && $lastTag) {
+            if (preg_match('/class\s*=\s*("|\')\s*(.+?|"|\')no-spell-check/i', $lastTag)) {
+                $check = FALSE;
+            }
         }
         
         // Игнорираме думи, които отговарят на шаблоните ни
@@ -220,7 +228,6 @@ class spcheck_Dictionary extends core_Manager
         }
         
         if ($check) {
-            
             // Опитваме се да не проверяваме имената
             if (preg_match('/^\p{Lu}/u', $w)) {
                 $l = $len-1;
