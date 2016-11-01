@@ -71,7 +71,7 @@ class planning_plg_StateManager extends core_Plugin
 		
 		// Добавяне на бутон за приключване
 		if($mvc->haveRightFor('close', $rec)){
-			$attr = array('ef_icon' => "img/16/lightbulb_off.png", 'title' => "Приключване на документа", 'warning' => "Сигурни ли сте, че искате да приключите документа", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/gray-close.png", 'title' => "Приключване на документа", 'warning' => "Сигурни ли сте, че искате да приключите документа", 'order' => 30);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['close'])){
 				unset($attr['warning']);
 			}
@@ -81,17 +81,17 @@ class planning_plg_StateManager extends core_Plugin
 		 
 		// Добавяне на бутон за спиране
 		if($mvc->haveRightFor('stop', $rec)){
-			$attr = array('ef_icon' => "img/16/control_pause.png", 'title' => "Спиране на документа",'warning' => "Сигурни ли сте, че искате да спрете документа", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/control_pause.png", 'title' => "Спиране на документа",'warning' => "Сигурни ли сте, че искате да спрете документа", 'order' => 30, 'row' => 2);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['stop'])){
 				unset($attr['warning']);
 			}
 			
-			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE),  $attr);
+			$data->toolbar->addBtn("Пауза", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE),  $attr);
 		}
 		 
 		// Добавяне на бутон за събуждане
 		if($mvc->haveRightFor('wakeup', $rec)){
-			$attr = array('ef_icon' => "img/16/lightbulb.png", 'title' => "Събуждане на документа",'warning' => "Сигурни ли сте, че искате да събудите документа", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/lightbulb.png", 'title' => "Събуждане на документа",'warning' => "Сигурни ли сте, че искате да събудите документа", 'order' => 30, 'row' => 3);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['wakeup'])){
 				unset($attr['warning']);
 			}
@@ -131,8 +131,8 @@ class planning_plg_StateManager extends core_Plugin
 			switch($action){
 				case 'close':
 	
-					// Само активните и събудените могат да бъдат приключени
-					if($rec->state != 'active' && $rec->state != 'wakeup'){
+					// Само активните, събудените и спрените могат да бъдат приключени
+					if($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped'){
 						$requiredRoles = 'no_one';
 					}
 					break;
