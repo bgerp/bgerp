@@ -2536,57 +2536,72 @@ class doc_Threads extends core_Manager
             // Ако документа е използван някъде
             if (doclog_Used::getUsedCount($cRec->id)) continue;
             
+            $delFlag = FALSE;
+            
             // Изтриваме записа в модела на документа
             if ($cRec->docId && $cRec->docClass && cls::load($cRec->docClass, TRUE)) {
                 try {
                     $doc = doc_Containers::getDocument($cRec->id);
                     
-                    $delMsg = 'Изтрит оттеглен документ';
-                    
-                    if ($doc->instance instanceof core_Master) {
-                        
-                        $dArr = arr::make($doc->details, TRUE);
-                        
-                        // Изтирваме детайлите за документа
-                        if (!empty($dArr)) {
-                            
-                            $delDetCnt = 0;
-                            
-                            foreach ($dArr as $detail) {
-                                if (!cls::load($detail, TRUE)) continue;
-                                
-                                $detailInst = cls::get($detail);
-                                if (!($detailInst->Master instanceof $doc->instance)) continue;
-                                
-                                if ($detailInst->masterKey) {
-                                    $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
-                                }
-                            }
-                            
-                            $delMsg = "Изтрит оттеглен документ и детайлите към него ({$delDetCnt})";
-                        }
+                    // Да не може да се изтриват всички документи
+                    if ($doc && $doc->deleteThreadAndDoc) {
+                        $delFlag = TRUE;
                     }
-                    
-                    $doc->instance->logInfo($delMsg, $doc->that);
-                    
-                    $doc->delete();
                 } catch (ErrorException $e) {
                     reportException($e);
                 }
+                
+                if ($delFlag) {
+                    try {
+                        $delMsg = 'Изтрит оттеглен документ';
+                    	
+                        if ($doc->instance instanceof core_Master) {
+                    	
+                            $dArr = arr::make($doc->details, TRUE);
+                    		
+                            // Изтирваме детайлите за документа
+                            if (!empty($dArr)) {
+                    		
+                                $delDetCnt = 0;
+                    			
+                                foreach ($dArr as $detail) {
+                                    if (!cls::load($detail, TRUE)) continue;
+                    				
+                                    $detailInst = cls::get($detail);
+                                    if (!($detailInst->Master instanceof $doc->instance)) continue;
+                    				
+                                    if ($detailInst->masterKey) {
+                                        $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
+                                    }
+                                }
+                    			
+                                $delMsg = "Изтрит оттеглен документ и детайлите към него ({$delDetCnt})";
+                            }
+                        }
+                    	
+                        $doc->instance->logInfo($delMsg, $doc->that);
+                    
+                        $doc->delete();
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    } 
+                }
             }
             
-            // Изтриваме нишката
-            self::logInfo('Изтрита оттеглена нишка', $rec->id);
-            self::delete($rec->id);
-            
-            // Изтриваме записа за използвани файлове в папката
-            doc_Files::delete(array("#containerId = '[#1#]'", $cRec->id));
-            
-            // Изтриваме документа
-            doc_Containers::logInfo('Изтрит оттеглен документ', $cRec->id);
-            doc_Containers::delete($cRec->id);
-            
-            $delCnt++;
+            if ($delFlag) {
+                // Изтриваме нишката
+                self::logInfo('Изтрита оттеглена нишка', $rec->id);
+                self::delete($rec->id);
+                
+                // Изтриваме записа за използвани файлове в папката
+                doc_Files::delete(array("#containerId = '[#1#]'", $cRec->id));
+                
+                // Изтриваме документа
+                doc_Containers::logInfo('Изтрит оттеглен документ', $cRec->id);
+                doc_Containers::delete($cRec->id);
+                
+                $delCnt++;
+            }
         }
         
         return "Изтрити записи: " . $delCnt; 
