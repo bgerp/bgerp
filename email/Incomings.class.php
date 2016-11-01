@@ -173,6 +173,14 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Дали да може да се изтрива документа от документната система
+     * 
+     * @see doc_Threads
+     */
+    public $deleteThreadAndDoc = TRUE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()

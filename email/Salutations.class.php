@@ -99,7 +99,7 @@ class email_Salutations extends core_Manager
         if (!$eRec->threadId || !$eRec->folderId || !$eRec->containerId) return ;
         
         // За чернови документи да не се записва
-        if ($eRec->state == 'draft') return ;
+//         if ($eRec->state == 'draft') return ;
         
         // Вземаме обръщенито в текстовата част
         $salutation = self::getSalutations($eRec->body);
@@ -122,6 +122,25 @@ class email_Salutations extends core_Manager
         $nRec->state = $eRec->state;
         
         self::save($nRec, NULL, 'UPDATE');
+    }
+    
+    
+    /**
+     * Връща потребителя, за обръщението в контейнера
+     * 
+     * @param integer $cId
+     * 
+     * @return FALSE|int
+     */
+    public static function getUserId($cId)
+    {
+        if (!$cId) return FALSE;
+        
+        $rec = self::fetch(array("#containerId = '[#1#]'", $cId));
+        
+        if (!$rec) return FALSE;
+        
+        return $rec->userId;
     }
     
     

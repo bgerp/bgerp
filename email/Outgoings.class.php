@@ -1264,8 +1264,13 @@ class email_Outgoings extends core_Master
             $nRec = clone($rec);
         }
         
-        // Записваме обръщението в модела
-        email_Salutations::add($nRec);
+        // Обръщението да се записва за
+        $salUserId = email_Salutations::getUserId($nRec->containerId);
+        
+        if ($salUserId === FALSE || ($salUserId == core_Users::getCurrent())) {
+            // Записваме обръщението в модела
+            email_Salutations::add($nRec);
+        }
         
         // Ако препащме имейла
         if (($rec->forward == 'yes') && $rec->originId) {

@@ -459,6 +459,10 @@ class cal_Tasks extends core_Master
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
                 $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
             }
+            
+            if ($rec->timeStart && $rec->timeEnd && $rec->timeDuration) {
+                $form->setError('timeEnd,timeStart,timeDuration', 'Не може задачата да има едновременно начало, продължителност и край. Попълнете само две от тях');
+            }
 
             // при активиране на задачата
             if ($rec->state == 'active') {
@@ -529,18 +533,33 @@ class cal_Tasks extends core_Master
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
 
+        if($data->rec->timeEnd) {
+            $taskEnd = $data->rec->timeEnd;
+        } else {
+            $taskEnd = dt::now();
+        }
+        
+        if($data->rec->timeStart) {
+            $taskStart = $data->rec->timeStart;
+        } else {
+            $taskStart = dt::now();
+        }
+        
         // ако имаме зададена продължителност
         if ($data->rec->timeDuration) {
 
-            // то изчисляваме края на задачата
-            // като към началото добавяме продължителността
-            $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration);
-        } else {
-            $taskEnd = $data->rec->timeEnd;
-        }
-        
-        // изчислява продължителността в секунди
-        $durations = dt::mysql2timestamp($taskEnd) - dt::mysql2timestamp($data->rec->timeStart);
+            if(!$data->rec->timeEnd) {
+                // то изчисляваме края на задачата
+                // като към началото добавяме продължителността
+                $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration);
+            } 
+            
+            if(!$data->rec->timeStart) {
+                // то изчисляваме началото на задачата
+                // като от края на задачата вадим продължителността
+                $taskStart = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeEnd) - $data->rec->timeDuration);
+            } 
+        } 
 
         // ако имаме бутон "Активиране"
         if (isset($data->toolbar->buttons['Активиране'])) {
@@ -550,8 +569,8 @@ class cal_Tasks extends core_Master
 
             // при следните условия
             $query->likeKeylist('sharedUsers', $data->rec->sharedUsers);
-            $query->where("#timeEnd >= '{$data->rec->timeStart}' AND #timeStart <= '{$taskEnd}'");
-            $query->where("#timeDuration >= '{$durations}' AND #timeStart <= '{$taskEnd}'");
+            $query->where("('{$taskStart}' > #timeStart AND #timeStart < '{$taskEnd}') OR ('{$taskStart}' > #timeEnd AND #timeEnd < '{$taskEnd}')");
+         
 
             // и намерим такъв запис
             if ($query->fetch()) {
