@@ -2840,9 +2840,9 @@ div.richtext ol ol ol {
       margin-bottom: 0.3em !important; }
 
 .richtext-message a[href] {
-  color: inherit !important; }
+  color: inherit !important;
+  border-bottom: 1px solid; }
   .richtext-message a[href]:hover {
-    border-bottom: 1px solid;
     text-decoration: none; }
 
 .richtext > .richtext-message:last-of-type {
