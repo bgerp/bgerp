@@ -92,7 +92,7 @@ class thumb_Img
     
     
     /**
-     * @var string Графичен формат на резултатното изображение: png, jpg или gif
+     * @var string|FALSE Графичен формат на резултатното изображение: png, jpg или gif
      */
     protected $format; 
     
