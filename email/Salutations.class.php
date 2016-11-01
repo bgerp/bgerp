@@ -368,7 +368,7 @@ class email_Salutations extends core_Manager
             // Документа да е линк към single' а на документа
             $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), array($doc->className, 'single', $doc->that), NULL);
         } catch(core_exception_Expect $e) {
-            $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+            $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->containerId . "</span>";
         }
 
         try {
@@ -378,7 +378,7 @@ class email_Salutations extends core_Manager
             // Вземаме линка към папката
             $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
         } catch(core_exception_Expect $e) {
-            $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+            $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->folderId . "</span>";
         }
     }
     
