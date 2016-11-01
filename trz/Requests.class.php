@@ -278,8 +278,9 @@ class trz_Requests extends core_Master
         
         // Искаме да филтрираме само групата "Служители"
         $employeesId = crm_Groups::getIdFromSysId('employees');
+        $pQuery = crm_Persons::getQuery();
         
-        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
+        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%' AND #state = 'active'", 'id')) {
             $list = implode(',', array_keys($employees));
         }
         
