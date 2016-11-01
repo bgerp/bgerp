@@ -193,16 +193,13 @@ class trz_Trips extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields .= ', personId';
-        
-        $data->listFilter->input('personId', 'silent');
+    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
+        $data->listFilter->input('employeeId', 'silent');
         
     	if($filterRec = $data->listFilter->rec){
-        	if($filterRec->personId){
-        		$data->query->where(array("#personId = '[#1#]'", $filterRec->personId));
+        	if($filterRec->employeeId){
+        		$data->query->where(array("#personId = '[#1#]'", $filterRec->employeeId));
         	}
     	}
     }

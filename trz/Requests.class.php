@@ -228,20 +228,24 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=paid');
+    	$data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
+    	$data->listFilter->input('employeeId', 'silent');
+    	
     	$data->listFilter->fields['paid']->caption = 'Вид'; 
 
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields .= ', personId, paid';
+        $data->listFilter->showFields .= ', employeeId, paid';
         
-        $data->listFilter->input('personId, paid', 'silent');
+        $data->listFilter->input('employeeId, paid', 'silent');
         
      	if($data->listFilter->rec->paid) {
     		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
     	}
 
-    	if($data->listFilter->rec->personId) {
-    		$data->query->where("#personId = '{$data->listFilter->rec->personId}'");
+    	if($data->listFilter->rec->employeeId) {
+    		$data->query->where("#personId = '{$data->listFilter->rec->employeeId}'");
     	}
     }
 
