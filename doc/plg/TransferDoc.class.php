@@ -40,6 +40,20 @@ class doc_plg_TransferDoc extends core_Plugin
 	
 	
 	/**
+	 * Преди запис на документ
+	 */
+	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		if(empty($rec->id)){
+			if($mvc->getField('sharedUsers', FALSE)){
+				$cu = core_Users::getCurrent();
+				$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cu);
+			}
+		}
+	}
+	
+	
+	/**
 	 * Ако в документа няма код, който да рутира документа до папка/тред,
 	 * долния код, рутира документа до "Несортирани - [заглавие на класа]"
 	 */
@@ -64,8 +78,5 @@ class doc_plg_TransferDoc extends core_Plugin
 		// Споделяме текущия потребител със нишката на документа, за всеки случай
 		$cu = core_Users::getCurrent();
 		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
-		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cu);
-
-		$mvc::save($rec,'sharedUsers');
 	}
 }
