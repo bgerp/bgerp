@@ -2841,7 +2841,7 @@ div.richtext ol ol ol {
 
 .richtext-message a[href] {
   color: inherit;
-  border-bottom: 1px dashed; }
+  border-bottom: 1px solid; }
   .richtext-message a[href]:hover {
     border-bottom: 1px solid;
     text-decoration: none; }
