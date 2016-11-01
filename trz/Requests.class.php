@@ -164,7 +164,7 @@ class trz_Requests extends core_Master
     public function description()
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
     	$this->FLD('leaveFrom', 'datetime (timeSuggestions=00:00)', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime (timeSuggestions=23:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
@@ -174,6 +174,7 @@ class trz_Requests extends core_Master
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
+    	
     	// Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
     }
@@ -227,20 +228,24 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=paid');
+    	$data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
+    	$data->listFilter->input('employeeId', 'silent');
+    	
     	$data->listFilter->fields['paid']->caption = 'Вид'; 
 
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields .= ', personId, paid';
+        $data->listFilter->showFields .= ', employeeId, paid';
         
-        $data->listFilter->input('personId, paid', 'silent');
+        $data->listFilter->input('employeeId, paid', 'silent');
         
      	if($data->listFilter->rec->paid) {
     		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
     	}
 
-    	if($data->listFilter->rec->personId) {
-    		$data->query->where("#personId = '{$data->listFilter->rec->personId}'");
+    	if($data->listFilter->rec->employeeId) {
+    		$data->query->where("#personId = '{$data->listFilter->rec->employeeId}'");
     	}
     }
 
@@ -250,29 +255,38 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
     	for($i = 0; $i < 5; $i++){
     		$years[] = $nowYear - $i;
     	}
-    	$data->form->setSuggestions('useDaysFromYear', $years);
-    	$data->form->setDefault('useDaysFromYear', $years[0]);
+    	$form->setSuggestions('useDaysFromYear', $years);
+    	$form->setDefault('useDaysFromYear', $years[0]);
     	
     	$time = "". " 00:00:00";
     	$time2 = "". " 23:59:59";
     	
-    	$data->form->setDefault('leaveFrom', $time);
-    	$data->form->setDefault('leaveTo', $time2);
+    	$form->setDefault('leaveFrom', $time);
+    	$form->setDefault('leaveTo', $time2);
 
-    	$rec = $data->form->rec;
+    	// Намират се всички служители
+    	$employees = crm_Persons::getEmployeesOptions();
+    	if(count($employees)){
+    		$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+    	} else {
+    		redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
+    	}
+    	
     	$folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
-	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
-	        $data->form->setReadonly('personId');
-	        
-	        $cu = core_Users::getCurrent();
-	        if(!haveRole('ceo,trz,hr', $cu)) {
-	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+        if($rec->folderId && $folderClass == 'crm_Persons') {
+        	$form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $form->setReadonly('personId');
+
+	        if(!haveRole('ceo,trz,hr')) {
+	        	$form->setField('sharedUsers', 'mandatory');
 	        }
         }
     }
@@ -472,23 +486,8 @@ class trz_Requests extends core_Master
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
+
     
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param $threadId int ид на нишката
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Добавяме тези документи само в персонални папки
-        $threadRec = doc_Threads::fetch($threadId);
-
-        return self::canAddToFolder($threadRec->folderId);
-    }
-
-
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка 
@@ -497,14 +496,20 @@ class trz_Requests extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Името на класа
-    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-    	
-    	// Ако не е папка проект или контрагент, не може да се добави
-    	if ($coverClassName != 'crm_persons' && $coverClassName != 'doc_unsortedfolders') return FALSE;
-    	
+        $Cover = doc_Folders::getCover($folderId);
+        
+        // Трябва да е в папка на лице или на проект
+        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') return FALSE;
+        
+        // Ако е в папка на лице, лицето трябва да е в група служители
+        if($Cover->className == 'crm_Persons'){
+        	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+        	$personGroups = $Cover->fetchField('groupList');
+        	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        return TRUE;
     }
-    
 
     
     /**
