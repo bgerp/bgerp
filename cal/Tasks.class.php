@@ -535,10 +535,14 @@ class cal_Tasks extends core_Master
 
         if($data->rec->timeEnd) {
             $taskEnd = $data->rec->timeEnd;
+        } else {
+            $taskEnd = dt::now();
         }
         
         if($data->rec->timeStart) {
             $taskStart = $data->rec->timeStart;
+        } else {
+            $taskStart = dt::now();
         }
         
         // ако имаме зададена продължителност
@@ -565,7 +569,7 @@ class cal_Tasks extends core_Master
 
             // при следните условия
             $query->likeKeylist('sharedUsers', $data->rec->sharedUsers);
-            $query->where("   ('{$taskStart}' > #timeStart AND #timeStart < '{$taskEnd}') OR ('{$taskStart}' > #timeEnd AND #timeEnd < '{$taskEnd}')");
+            $query->where("('{$taskStart}' > #timeStart AND #timeStart < '{$taskEnd}') OR ('{$taskStart}' > #timeEnd AND #timeEnd < '{$taskEnd}')");
          
 
             // и намерим такъв запис
