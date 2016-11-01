@@ -164,7 +164,7 @@ class trz_Requests extends core_Master
     public function description()
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
     	$this->FLD('leaveFrom', 'datetime (timeSuggestions=00:00)', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime (timeSuggestions=23:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
