@@ -472,23 +472,8 @@ class trz_Requests extends core_Master
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
+
     
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param $threadId int ид на нишката
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Добавяме тези документи само в персонални папки
-        $threadRec = doc_Threads::fetch($threadId);
-
-        return self::canAddToFolder($threadRec->folderId);
-    }
-
-
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка 
