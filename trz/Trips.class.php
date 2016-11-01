@@ -214,6 +214,20 @@ class trz_Trips extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $rec = $data->form->rec;
+        
+        $pQuery = crm_Persons::getQuery();
+        
+        // Искаме да филтрираме само групата "Служители"
+        $employeesId = crm_Groups::getIdFromSysId('employees');
+        
+        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
+            $list = implode(',', array_keys($employees));
+        }
+        
+        if (!$list) {
+            redirect(array('crm_Persons', 'list', 'listId'=>$list->rec->id), FALSE, "|Липсва избор за служител|*");
+        }
+        
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if ($rec->folderId && $folderClass == 'crm_Persons') {

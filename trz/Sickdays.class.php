@@ -257,6 +257,17 @@ class trz_Sickdays extends core_Master
         }
         
     	$rec = $form->rec;
+    	
+    	// Искаме да филтрираме само групата "Служители"
+    	$employeesId = crm_Groups::getIdFromSysId('employees');
+    	
+    	if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
+    	    $list = implode(',', array_keys($employees));
+    	}
+    	
+    	if (!$list) {
+    	    redirect(array('crm_Persons', 'list', 'listId'=>$list->rec->id), FALSE, "|Липсва избор за служител|*");
+    	}
     }
     
     
