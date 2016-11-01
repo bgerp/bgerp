@@ -68,7 +68,7 @@ class type_Richtext extends type_Blob
     /**
      * Заместител на [bQuote=???]
      */
-    const BQUOTE_DIV_BEGIN = "<div class='richtext-quote'>";
+    const BQUOTE_DIV_BEGIN = "<div class='richtext-quote no-spell-check'>";
     
     
 	/**
@@ -782,10 +782,10 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $res = "<pre class='rich-text code{$classLg}'><code>[#{$place}#]</code></pre>" . $end; 
+            $res = "<pre class='rich-text code{$classLg} no-spell-check'><code>[#{$place}#]</code></pre>" . $end; 
         } else {
            // $code = str_replace("\n", "<br>", $code);
-            $res = "<pre class='rich-text'>[#{$place}#]</pre>" . $end;
+            $res = "<pre class='rich-text no-spell-check'>[#{$place}#]</pre>" . $end;
         }
         
         $this->_htmlBoard[$place] = rtrim($code);
@@ -898,7 +898,7 @@ class type_Richtext extends type_Blob
         if(!strlen($code)) return $match[0];
         
         // Добавяме кода в блок
-        $code1 = "<span class='oneLineCode'>{$code}</span>";
+        $code1 = "<span class='oneLineCode no-spell-check'>{$code}</span>";
         
         // Доабавяме в масива
         $this->_htmlBoard[$place] = $code1;
@@ -1042,10 +1042,10 @@ class type_Richtext extends type_Blob
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
 
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon no-spell-check\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
 
         } else {
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out no-spell-check\">[#{$titlePlace}#]</a>";
         }
         
         return $link;
@@ -1218,7 +1218,7 @@ class type_Richtext extends type_Blob
             
             $title = type_Varchar::escape($title);
             
-            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
+            $link = "<a href=\"{$url}\" target='_blank' class='out no-spell-check'>{$title}</a>";
         }
         
         $place = $this->getPlace();
