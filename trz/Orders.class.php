@@ -153,7 +153,7 @@ class trz_Orders extends core_Master
      */
     public function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,mandatory');
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
