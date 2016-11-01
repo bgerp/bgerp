@@ -213,30 +213,25 @@ class trz_Trips extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $rec = $data->form->rec;
+    	$form = &$data->form;
+    	$rec = $form->rec;
         
-        $pQuery = crm_Persons::getQuery();
-        
-        // Искаме да филтрираме само групата "Служители"
-        $employeesId = crm_Groups::getIdFromSysId('employees');
-        
-        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%' AND #state = 'active'", 'id')) {
-            $list = implode(',', array_keys($employees));
-        }
-        
-        if (!$list) {
-            redirect(array('crm_Persons', 'list', 'listId'=>$list->rec->id), FALSE, "|Липсва избор за служител|*");
+        // Намират се всички служители
+        $employees = crm_Persons::getEmployeesOptions();
+        if(count($employees)){
+        	$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+        } else {
+        	redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
         }
         
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if ($rec->folderId && $folderClass == 'crm_Persons') {
-	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
-	        $data->form->setReadonly('personId');
+	        $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $form->setReadonly('personId');
 
-            $cu = core_Users::getCurrent();
-	        if(!haveRole('ceo,trz,hr', $cu)) {
-	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+	        if(!haveRole('ceo,trz,hr')) {
+	        	$form->setField('sharedUsers', 'mandatory');
 	        }
         }
     }
@@ -288,7 +283,6 @@ class trz_Trips extends core_Master
         if(!isset($data->rec->amountRoad) || !isset($data->rec->amountDaily) || !isset($data->rec->amountHouse)  ) {
     
             $tpl->removeBlock('compensation');
-             
         }
     }
     
@@ -458,11 +452,19 @@ class trz_Trips extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Името на класа
-    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-    	
-    	// Ако не е папка проект или контрагент, не може да се добави
-    	if ($coverClassName != 'crm_persons' && $coverClassName != 'doc_unsortedfolders') return FALSE;
+        $Cover = doc_Folders::getCover($folderId);
+        
+        // Трябва да е в папка на лице или на проект
+        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') return FALSE;
+        
+        // Ако е в папка на лице, лицето трябва да е в група служители
+        if($Cover->className == 'crm_Persons'){
+        	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+        	$personGroups = $Cover->fetchField('groupList');
+        	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        return TRUE;
     }
     
     
