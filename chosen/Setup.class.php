@@ -53,6 +53,12 @@ class chosen_Setup extends core_ProtoSetup {
     
     
     /**
+     * 
+     */
+    public $deprecated = TRUE;
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
