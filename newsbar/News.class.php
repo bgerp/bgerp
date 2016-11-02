@@ -72,7 +72,7 @@ class newsbar_News extends core_Master
     {
 		$this->FLD('news', 'richtext(rows=2)', 'caption=Новина,mandatory');
 		$this->FLD('startTime', 'datetime', 'caption=Показване на новината->Начало, mandatory');
-		$this->FLD('endTime', 'datetime', 'caption=Показване на новината->Край,mandatory');
+		$this->FLD('endTime', 'datetime(defaultTime=23:59:59)', 'caption=Показване на новината->Край,mandatory');
         $this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
 		$this->FLD('color', 'color_Type', 'caption=Фон->Цвят,unit=rgb');
 		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Непрозрачност');

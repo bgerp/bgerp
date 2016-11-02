@@ -124,7 +124,7 @@ class type_Datetime extends type_Date {
 
         $time = trim($value['t']);
 
-        if(!strlen($time)) {
+        if(!strlen($time) && strlen($value['d'])) {
             $time = $this->params['defaultTime'];
         }
 
