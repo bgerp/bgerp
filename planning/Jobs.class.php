@@ -264,7 +264,7 @@ class planning_Jobs extends core_Master
     	
     	// Подаване на формата на драйвера на артикула, ако иска да добавя полета
     	$Driver = cat_Products::getDriver($rec->productId);
-    	$Driver->addJobFields($form);
+    	$Driver->addJobFields($rec->productId, $form);
     	
     	// Попълване на полетата с данните от драйвера
     	$driverFields = self::getFieldsFromProductDriver($rec->productId);
@@ -326,7 +326,7 @@ class planning_Jobs extends core_Master
     			$field1 = explode('->', $field1);
     			$field1 = (count($field1) == 2) ? $field1[1] : $field1[0];
     			
-    			$block->placeArray(array('value' => $productFields[$field]->type->toVerbal($value), 'field' => $field1));
+    			$block->placeArray(array('value' => $productFields[$field]->type->toVerbal($value), 'field' => tr($field1)));
     			$block->removePlaces();
     			$tpl->append($block, 'ADDITIONAL');
     		}
@@ -984,7 +984,7 @@ class planning_Jobs extends core_Master
     {
     	$form = cls::get('core_Form');
     	if($driver = cat_Products::getDriver($productId)){
-    		$driver->addJobFields($form);
+    		$driver->addJobFields($productId, $form);
     	}
     	
     	return $form->selectFields();
