@@ -265,9 +265,7 @@ class trz_Sickdays extends core_Master
         	
         	// Размяна, ако периодите са объркани
         	if(isset($form->rec->startDate) && isset($form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
-        	    $mid = $form->rec->startDate;
-        	    $form->rec->startDate = $form->rec->toDate;
-        	    $form->rec->toDate = $mid;
+        	    $form->setError('startDate, toDate', "Началната дата трябва да е по-малка от крайната");
         	}
         }
     }
@@ -582,16 +580,6 @@ class trz_Sickdays extends core_Master
         $row->recTitle = $this->getRecTitle($rec, FALSE);
         
         return $row;
-    }
-
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_PersonAccRegIntf', 'folderClass' => 'doc_UnsortedFolders');
     }
 
     

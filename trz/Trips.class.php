@@ -214,9 +214,7 @@ class trz_Trips extends core_Master
         if ($form->isSubmitted()) { 
             // Размяна, ако периодите са объркани
             if(isset($form->rec->startDate) && isset($form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
-                $mid = strstr($form->rec->startDate, " ", TRUE);
-                $form->rec->startDate = strstr($form->rec->toDate, " ", TRUE) . " 00:00:00";
-                $form->rec->toDate = $mid . " 23:59:59";
+                $form->setError('startDate, toDate', "Началната дата трябва да е по-малка от крайната");
             }
         } 
     }
@@ -479,16 +477,6 @@ class trz_Trips extends core_Master
         }
         
         return TRUE;
-    }
-    
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_PersonAccRegIntf', 'folderClass' => 'doc_UnsortedFolders');
     }
 
     
