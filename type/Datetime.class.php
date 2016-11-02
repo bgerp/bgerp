@@ -72,6 +72,7 @@ class type_Datetime extends type_Date {
         $input->append('&nbsp;');
         
         $attr['value'] = $time;
+        $attr['autocomplete'] = "off";
         $attr['style'] .= ';vertical-align:top; max-width:4em;';
         unset($attr['id']);
         

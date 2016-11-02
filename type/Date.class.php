@@ -99,6 +99,7 @@ class type_Date extends core_Type {
             $value = $attr['value'];
         }
 
+        $attr['autocomplete'] = "off";
         setIfNot($attr['type'], 'text');
         setIfNot($this->params['width'], 8);
 
