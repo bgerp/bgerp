@@ -88,8 +88,8 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  10.".$this->act_CreatePackage();
         $res .= "  11.".$this->act_CreateGroup();
         $res .= "  12.".$this->act_CreateProject();
-        $res .= "  13.".$this->act_CreateDepartment1();
-        $res .= "  14.".$this->act_CreateDepartment2();
+        //$res .= "  13.".$this->act_CreateDepartment1();
+        //$res .= "  14.".$this->act_CreateDepartment2();
         $res .= "  15.".$this->act_CreateProduct();
         $res .= "  16.".$this->act_CreateEditPerson();
         $res .= "  17.".$this->act_CreateCompany();
@@ -98,7 +98,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  20.".$this->act_CreateLocation2();
         $res .= "  21.".$this->act_CreateEditCompany();
         $res .= "  22.".$this->act_CreateInq();
-        $res .= "  23.".$this->act_CreateQuotation();
+        //$res .= "  23.".$this->act_CreateQuotation();
         $res .= "  24.".$this->act_CreatePurchase();
         $res .= "  25.".$this->act_CreatePurchaseC();
         $res .= "  26.".$this->act_CreateSale();
@@ -501,6 +501,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('HR');
         $browser->click('Структура');
         $browser->press('Нов запис');
+        //return $browser->getHtml();
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Завод');
         $browser->press('Запис');
@@ -588,7 +589,7 @@ class unit_MinkPbgERP extends core_Manager {
         // Създаване на лице
         $browser->click('Визитник');
         $browser->click('Лица');
-        $person = "Стела Донева";
+        $person = "Стела Донева 4";
         if(strpos($browser->gettext(), $person)) {
             //има такова лице - редакция
             $browser->click($person);
@@ -886,7 +887,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
-        $browser->setValue('deliveryTermIdExtended2', 'EXW');
+        $browser->setValue('deliveryTermIdExtended', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -1008,7 +1009,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
-        $browser->setValue('deliveryTermIdExtended2', 'EXW');
+        $browser->setValue('deliveryTermIdExtended', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
@@ -1484,7 +1485,7 @@ class unit_MinkPbgERP extends core_Manager {
     /**
      * 1. Създаване на фирма-доставчик 
      */
-    //http://localhost/unit_MinkBom/CreateSupplier/
+    //http://localhost/unit_MinkPbgERP/CreateSupplier/
     function act_CreateSupplier()
     {
         // Логване

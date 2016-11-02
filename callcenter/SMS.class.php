@@ -182,17 +182,9 @@ class callcenter_SMS extends core_Master
         // Ако не е зададена услига
         if (!isset($service)) {
             
-            // Използваме услугата от конфигурацията
-            $service = $conf->CALLCENTER_SMS_SERVICE;
+            $service = self::getDefaultService();
         }
 
-        if(!$service) {
-            $servicesOpt = core_Classes::getOptionsByInterface('callcenter_SentSMSIntf');
-            if(is_array($servicesOpt) && count($servicesOpt)) {
-                $service = key($servicesOpt);
-            }
-        }
-        
         // Очакваме да има избрана някаква услуга
         expect($service, 'Не е зададена услуга за изпращане');
         
@@ -267,6 +259,34 @@ class callcenter_SMS extends core_Master
     
     
     /**
+     * Връща услугата за изпращане на съобщения
+     * 
+     * @param boolean $log
+     * 
+     * @return NULL|integer
+     */
+    public static function getDefaultService($log = TRUE)
+    {
+        // Използваме услугата от конфигурацията
+        $service = callcenter_Setup::get('SMS_SERVICE');
+        
+        if(!$service) {
+            $servicesOpt = core_Classes::getOptionsByInterface('callcenter_SentSMSIntf');
+            if (is_array($servicesOpt) && !empty($servicesOpt)) {
+                reset($servicesOpt);
+                $service = key($servicesOpt);
+            }
+        }
+        
+        if (!$service && $log) {
+            self::logWarning('Няма нито една налична услуга за изпращане на SMS');
+        }
+        
+        return $service;
+    }
+    
+    
+    /**
      * Проверява дали може да се изпрати даденото съобщение
      * 
      * @param string|array $message
@@ -286,7 +306,7 @@ class callcenter_SMS extends core_Master
             $conf = core_Packs::getConfig('callcenter');
             
             // Използваме услугата от конфигурацията
-            $service = $conf->CALLCENTER_SMS_SERVICE;
+            $service = self::getDefaultService();
             
             // Очакваме да има избрана някаква услуга
             expect($service, 'Не е зададена услуга за изпращане');
@@ -461,7 +481,7 @@ class callcenter_SMS extends core_Master
         
         // Данните от конфигурацията
         $conf = core_Packs::getConfig('callcenter');
-        $service = $conf->CALLCENTER_SMS_SERVICE;
+        $service = self::getDefaultService();
         $sender = $conf->CALLCENTER_SMS_SENDER;
         
         // Ако е зададена услуга

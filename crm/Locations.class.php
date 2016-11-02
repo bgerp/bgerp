@@ -286,6 +286,9 @@ class crm_Locations extends core_Master {
     	$mvc->routes->changeState($id);
     	
     	$mvc->updatedRecs[$id] = $rec;
+    	
+    	// Трябва да е тук, за да може да сработят on_ShutDown процесите
+    	$mvc->updateNumbers($rec);
     }
     
     
@@ -599,7 +602,6 @@ class crm_Locations extends core_Master {
         if(!empty($mvc->updatedRecs)) {
             foreach((array)$mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
-                $mvc->updateNumbers($rec);
             }
         }
     }
