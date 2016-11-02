@@ -820,10 +820,122 @@ class crm_Groups extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        if (blast_Emails::haveRightFor('add') && ($data->rec->companiesCnt || $data->rec->personsCnt)) {
+        if ($data->rec->companiesCnt || $data->rec->personsCnt) {
+            if (blast_Emails::haveRightFor('add')) {
+                $data->toolbar->addBtn('Циркулярен имейл', array($mvc, 'choseBlast', $data->rec->id, 'class' => 'blast_Emails', 'ret_url' => TRUE), 'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+            }
             
-            $data->toolbar->addBtn('Циркулярен имейл', array($mvc, 'choseBlast', $data->rec->id, 'class' => 'blast_Emails', 'ret_url' => TRUE), 'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+            if (callcenter_SMS::haveRightFor('send')) {
+                $data->toolbar->addBtn('Циркулярен SMS', array($mvc, 'blastSms', $data->rec->id, 'ret_url' => TRUE), 'id=btnSms','ef_icon = img/16/sms.png,title=Създаване на циркулярен SMS');
+            }
         }
+    }
+    
+    
+    /**
+     * Екшън за избор на типа на циркулярен имейл за група
+     */
+    function act_blastSms()
+    {
+        $id = Request::get('id', 'int');
+        
+        $this->requireRightFor('single');
+        
+        $rec = $this->fetch($id);
+        
+        expect($rec);
+        
+        $this->requireRightFor('single', $rec);
+        
+        callcenter_SMS::requireRightFor('send');
+        
+        $groupChoiseArr = $this->getGroupsChoise($id, FALSE, FALSE);
+        expect($groupChoiseArr);
+        
+        foreach ($groupChoiseArr as &$groupName) {
+            $groupName = str::mbUcfirst($groupName);
+        }
+        
+        $form = cls::get('core_Form');
+        $form->title = "Изпращане на циркулярни SMS-и";
+         
+        $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
+        $form->FNC('message', 'text', 'caption=Съобщение,mandatory,silent,input=input');
+        
+        $form->setOptions('type', $groupChoiseArr);
+         
+        $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        
+        $form->input();
+        
+        $retUrl = getRetUrl($retUrl);
+        
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $id);
+        }
+        
+        if ($form->isSubmitted()) {
+            $pArr = $this->getPresonalizationArr($form->rec->type);
+            
+            if (empty($pArr)) return new Redirect($retUrl, '|Няма данни за изпращане');
+            
+            $sendCnt = 0;
+            
+            foreach ($pArr as $pId => $p) {
+                $tel = '';
+                if (trim($p['mobile'])) {
+                    $tel .= $p['mobile'];
+                }
+                
+                if (trim($p['tel'])) {
+                    $tel .= $tel ? ', ' : '';
+                    $tel .= $p['tel'];
+                }
+                
+                if (!trim($tel)) continue;
+                
+                $Phones = cls::get('drdata_Phones');
+                $code = '359';
+                $parsedTel = $Phones->parseTel($tel, $code);
+                
+                if (empty($parsedTel)) continue;
+                
+                $mobileNum = '';
+                foreach ($parsedTel as $t) {
+                    if (!$t->mobile) continue;
+                    
+                    $mobileNum = '00' . $t->countryCode . $t->areaCode . $t->number;
+                    
+                    break;
+                }
+                
+                if (!$mobileNum) continue;
+                
+                $sended = NULL;
+                try {
+                    $message = $form->rec->message;
+                    $message = str::utf2ascii($message);
+                    $sended = callcenter_SMS::sendSmart($mobileNum, $message);
+                } catch (ErrorException $e) {
+                    $this->logWarning('Грешка при изпращане на масово съобщение: ' . $e->getMessage());
+                }
+                
+                if ($sended) $sendCnt++;
+            }
+            
+            if ($sended) {
+                $msg = "|Изпратени съобщения|*: {$sendCnt}";
+            } else {
+                $msg = "|Не е изпратено нито едно съобщение";
+            }
+            
+            return new Redirect($retUrl, $msg);
+        }
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+         
+        return $tpl;
     }
     
     
