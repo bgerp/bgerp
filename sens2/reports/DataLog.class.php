@@ -55,7 +55,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('from', 'datetime', 'caption=От,mandatory');
-    	$form->FLD('to', 'datetime', 'caption=До,mandatory');
+    	$form->FLD('to', 'datetime(defaultTime=23:59:59)', 'caption=До,mandatory');
     	$form->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title)', 'caption=Сензори,mandatory');
     	
     	$form->FLD('orderField', "enum(,time=Време,indicatorId=Индикатор,value=Стойност)", 'caption=Подредба->По,formOrder=110000');

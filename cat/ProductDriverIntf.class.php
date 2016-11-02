@@ -235,4 +235,16 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getPreview($rec, $size, $maxSize);
 	}
+	
+	
+	/**
+	 * Добавя полетата на заданието за производство на артикула
+	 *
+	 * @param int $id                 - ид на артикул
+	 * @param core_Fieldset $fieldset - форма на задание
+	 */
+	public function addJobFields($id, core_Fieldset &$fieldset)
+	{
+		return $this->class->addJobFields($id, $fieldset);
+	}
 }
