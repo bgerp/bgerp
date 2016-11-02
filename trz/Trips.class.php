@@ -213,12 +213,12 @@ class trz_Trips extends core_Master
 
         if ($form->isSubmitted()) { 
             // Размяна, ако периодите са объркани
-            if(isset($form->rec->startDate) && isset($form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) { 
-                $mid = $form->rec->startDate;
-                $form->rec->startDate = $form->rec->toDate;
-                $form->rec->toDate = $mid;
+            if(isset($form->rec->startDate) && isset($form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
+                $mid = strstr($form->rec->startDate, " ", TRUE);
+                $form->rec->startDate = strstr($form->rec->toDate, " ", TRUE) . " 00:00:00";
+                $form->rec->toDate = $mid . " 23:59:59";
             }
-        }
+        } 
     }
     
     
