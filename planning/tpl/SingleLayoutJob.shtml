@@ -124,6 +124,19 @@
            </td>
       </tr>
       
+      <!--ET_BEGIN ADDITIONAL-->
+      <th colspan="2" class='job-head'>|Допълнително|*</th>
+      [#ADDITIONAL#]
+      <!--ET_BEGIN ADDITIONAL_VALUE-->
+      [#ADDITIONAL_VALUE#]
+       <tr>
+          <td class='quiet' style='text-align: left'>[#field#]:</td>
+          <td>[#value#]</td>
+      </tr>
+      <!--ET_END ADDITIONAL_VALUE-->
+     
+      <!--ET_END ADDITIONAL-->
+      
       <!--ET_BEGIN notes-->
       <tr>
            <th colspan="2" class='job-head'>

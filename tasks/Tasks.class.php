@@ -279,7 +279,7 @@ class tasks_Tasks extends embed_Manager
     		}
     		
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-    			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
+    			$form->setError('timeEnd', 'Крайният срок трябва да е след началото на задачата');
     		}
     		
     		if(!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)){

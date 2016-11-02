@@ -415,4 +415,16 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
+	
+	
+	/**
+	 * Добавя полетата на заданието за производство на артикула
+	 *
+	 * @param int $id                 - ид на артикул
+	 * @param core_Fieldset $fieldset - форма на задание
+	 */
+	public function addJobFields($id, core_Fieldset &$fieldset)
+	{
+	
+	}
 }
