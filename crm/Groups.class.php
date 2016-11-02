@@ -860,7 +860,7 @@ class crm_Groups extends core_Master
         $form->title = "Изпращане на циркулярни SMS-и";
          
         $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
-        $form->FNC('message', 'text', 'caption=Съобщение,mandatory,silent,input=input');
+        $form->FNC('message', 'text(160)', 'caption=Съобщение,mandatory,silent,input=input');
         
         $form->setOptions('type', $groupChoiseArr);
          
