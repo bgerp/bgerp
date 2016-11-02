@@ -180,7 +180,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function description()
     {
-    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,silent,input=hidden,refreshForm,placeholder=Популярни продукти");
+    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти");
     	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
     	
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
@@ -731,7 +731,7 @@ class marketing_Inquiries2 extends embed_Manager
     			$form->setDefault('proto', key($proto));
     			$form->setField('proto', 'input=hidden');
     		} else {
-    			$form->setField('proto', 'input,caption=Прототип||Prototype,placeholder=Артикули,groupByDiv=»');
+    			$form->setField('proto', 'input,caption=Шаблон,placeholder=Артикули,groupByDiv=»');
     		}
     	} else {
     		$form->setField('proto', 'input=none');

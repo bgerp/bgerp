@@ -23,10 +23,12 @@ class trz_Orders extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf';
     
+    
     /**
      * Заглавие
      */
     public $title = 'Заповеди';
+    
     
      /**
      * Заглавие в единствено число
@@ -46,13 +48,8 @@ class trz_Orders extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, isPaid, amount';
-    
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    //public $searchFields = 'description';
 
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -63,7 +60,6 @@ class trz_Orders extends core_Master
      * Поле в което да се показва иконата за единичен изглед
      */
     public $rowToolsSingleField = 'personId';
-    
     
     
     /**
@@ -93,7 +89,7 @@ class trz_Orders extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, trz';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -107,6 +103,7 @@ class trz_Orders extends core_Master
      */
     public $canDelete = 'ceo, trz';
     
+    
     /**
      * Кой има право да прави начисления
      */
@@ -119,11 +116,13 @@ class trz_Orders extends core_Master
     public $filterFieldDateFrom = 'leaveFrom';
     public $filterFieldDateTo = 'leaveTo';
     
+    
     /**
      * Enter description here ...
      */
     public $canOrders = 'ceo, trz';
 
+    
     /**
      * Шаблон за единичния изглед
      */
@@ -190,7 +189,6 @@ class trz_Orders extends core_Master
 	        }
 	    	$rec->leaveDays = $days->workDays;
         }
-
     }
 
     
@@ -258,17 +256,7 @@ class trz_Orders extends core_Master
 	        $data->form->setReadonly('personId');
         }
     }
-      
-    
-    /**
-     * Проверява и допълва въведените данни от 'edit' формата
-     */
-    public static function on_AfterInputEditForm($mvc, $form)
-    {
-    	$rec = $form->rec;
 
-    }
-    
     
 	/**
      * След подготовка на тулбара на единичен изглед.
@@ -281,7 +269,6 @@ class trz_Orders extends core_Master
         if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
-        
     }
     
     
@@ -412,39 +399,7 @@ class trz_Orders extends core_Master
     {
         $mvc->updateOrdersToCustomSchedules($rec->id);
     }
-    
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param $threadId int ид на нишката
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Добавяме тези документи само в персонални папки
-        $threadRec = doc_Threads::fetch($threadId);
 
-        return self::canAddToFolder($threadRec->folderId);
-    }
-
-
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка 
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-       // Името на класа
-    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-    	
-    	// Ако не е папка проект или контрагент, не може да се добави
-    	if ($coverClassName != 'crm_persons') return FALSE;
-    }
-    
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
@@ -474,55 +429,7 @@ class trz_Orders extends core_Master
         
         return $row;
     }
-    
 
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_PersonAccRegIntf');
-    }
-    
-    
-    /**
-     * Метод филтриращ заявка към doc_Folders
-     * Добавя условия в заявката, така, че да останат само тези папки, 
-     * в които може да бъде добавен документ от типа на $mvc
-     * 
-     * @param core_Query $query   Заявка към doc_Folders
-     */
-    function restrictQueryOnlyFolderForDocuments($query)
-    {
-    	$pQuery = crm_Persons::getQuery();
-        
-        // Искаме да филтрираме само групата "Служители"
-        $sysId = crm_Groups::getIdFromSysId('employees');
-
-        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$sysId|%'", 'id')) {
-            $list = implode(',', array_keys($employees));
-            $query->where("#coverId IN ({$list})");
-        } else {
-            $query->where("#coverId = -2");
-        }
-    }
-
-	/**
-     * Преди да се подготвят опциите на кориците, ако
-     */
-    public static function getCoverOptions($coverClass)
-    {
-    	
-    	if($coverClass instanceof crm_Persons){
-    		
-    		// Искаме да филтрираме само групата "Служители"
-    		$sysId = crm_Groups::getIdFromSysId('employees');
-    	
-    		$query->where("#groupList LIKE '%|{$sysId}|%'");
-    	}
-    }
-    
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -535,6 +442,4 @@ class trz_Orders extends core_Master
          
         return $title;
     }
-    
-    
 }
