@@ -35,6 +35,9 @@ class type_Datetime extends type_Date {
     {
         parent::init($params);
         $this->dt = cls::get('type_Date', $params);
+        if(!isset($this->params['defaultTime'])) {
+            $this->params['defaultTime'] = '00:00:00';
+        }
     }
     
     
@@ -59,12 +62,17 @@ class type_Datetime extends type_Date {
                 }
             }
         }
+
+        if(strlen($time) && strpos($this->params['defaultTime'], $time) === 0) {
+            $time = '';
+        }
         
         $attr['value'] = $date;
         $input = $this->dt->renderInput($name . '[d]', NULL, $attr);
         $input->append('&nbsp;');
         
         $attr['value'] = $time;
+        $attr['autocomplete'] = "off";
         $attr['style'] .= ';vertical-align:top; max-width:4em;';
         unset($attr['id']);
         
@@ -114,17 +122,23 @@ class type_Datetime extends type_Date {
             $value['d'] = date('d-m-Y');
         }
 
-        $val1 = trim(trim($value['d']) . ' ' . trim($value['t']));
+        $time = trim($value['t']);
+
+        if(!strlen($time)) {
+            $time = $this->params['defaultTime'];
+        }
+
+        $val1 = trim(trim($value['d']) . ' ' . $time);
         
+         
+        // if(strpos($this->params['defaultTime'], '59')) bp($val1, $this, $time);
+
         if(!$val1) return NULL;
 
         $val2 = dt::verbal2mysql($val1);
          
         if($val2) {
-            if(!trim($value['t'])) {
-                $val2 = str_replace(' 00:00:00', '', $val2);
-            }
-
+ 
             if($val2 < '1970-01-01 02:00:00' || $val2 > '2038-01-01 00:00:00') {
                 $this->error = "Извън UNIX ерата|*: <B>1970 - 2038</B>";
                 
@@ -139,7 +153,27 @@ class type_Datetime extends type_Date {
         }
     }
     
-    
+    /**
+     * Преобразуване от вътрешно представяне към вербална стойност
+     */
+    function toVerbal($value, $useFormat = TRUE)
+    {
+    	list($d, $t) = explode(' ', $value);
+
+        $sf = $this->timePart;
+        
+        if($t == $this->params['defaultTime']) {
+            $this->timePart = '';
+        }
+    	
+        $res = parent::toVerbal($value, $useFormat);
+
+        $this->timePart = $sf;
+
+        return $res;
+    }
+
+
     /**
      * Връща стойността по подразбиране за съответния тип
      */
