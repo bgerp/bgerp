@@ -133,7 +133,7 @@ class trz_Sickdays extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Sick";
+    public $abbr = "Sck";
     
     
     /**

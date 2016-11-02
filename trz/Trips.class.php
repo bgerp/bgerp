@@ -131,7 +131,7 @@ class trz_Trips extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Trip";
+    public $abbr = "Trp";
     
     
     /**
