@@ -205,6 +205,7 @@ class planning_Jobs extends core_Master
     	
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители');
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
+    	$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('productId');
     }
@@ -260,6 +261,18 @@ class planning_Jobs extends core_Master
     	if(haveRole('planning,ceo') && empty($rec->id)){
     		$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
     	}
+    	
+    	// Подаване на формата на драйвера на артикула, ако иска да добавя полета
+    	$Driver = cat_Products::getDriver($rec->productId);
+    	$Driver->addJobFields($rec->productId, $form);
+    	
+    	// Попълване на полетата с данните от драйвера
+    	$driverFields = self::getFieldsFromProductDriver($rec->productId);
+    	foreach ($driverFields as $name => $f){
+    		if(isset($rec->additionalFields[$name])){
+    			$rec->{$name} = $rec->additionalFields[$name];
+    		}
+    	}
     }
     
     
@@ -295,6 +308,27 @@ class planning_Jobs extends core_Master
     			$clone->placeObject($hRow);
     			$clone->removeBlocks();
     			$clone->append2master();
+    		}
+    	}
+    	
+    	// Ако има записани допълнителни полета от артикула
+    	if(is_array($data->rec->additionalFields)){
+    		$productFields = self::getFieldsFromProductDriver($data->rec->productId);
+    		
+    		// Добавяне на допълнителните полета от артикула
+    		foreach ($data->rec->additionalFields as $field => $value){
+    			if(!isset($value) || $value === '') continue;
+    			if(!isset($productFields[$field])) continue;
+    			
+    			// Рендират се
+    			$block = clone $tpl->getBlock('ADDITIONAL_VALUE');
+    			$field1 = $productFields[$field]->caption;
+    			$field1 = explode('->', $field1);
+    			$field1 = (count($field1) == 2) ? $field1[1] : $field1[0];
+    			
+    			$block->placeArray(array('value' => $productFields[$field]->type->toVerbal($value), 'field' => tr($field1)));
+    			$block->removePlaces();
+    			$tpl->append($block, 'ADDITIONAL');
     		}
     	}
     }
@@ -916,5 +950,43 @@ class planning_Jobs extends core_Master
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	$productFields = self::getFieldsFromProductDriver($rec->productId);
+    	$rec->additionalFields = array();
+    	
+    	// Вкарване на записите специфични от драйвера в блоб поле
+    	if(is_array($productFields)){
+    		foreach ($productFields as $name => $field){
+    			if(isset($rec->{$name})){
+    				$rec->additionalFields[$name] = $rec->{$name};
+    			}
+    		}
+    	}
+    	
+    	$rec->additionalFields = count($rec->additionalFields) ? $rec->additionalFields : NULL;
+    }
+    
+    
+    /**
+     * Ф-я връщаща полетата специфични за артикула от драйвера
+     * 
+     * @param int $productId
+     * @return array
+     */
+    private static function getFieldsFromProductDriver($productId)
+    {
+    	$form = cls::get('core_Form');
+    	if($driver = cat_Products::getDriver($productId)){
+    		$driver->addJobFields($productId, $form);
+    	}
+    	
+    	return $form->selectFields();
     }
 }
