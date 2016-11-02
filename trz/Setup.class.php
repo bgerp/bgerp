@@ -45,6 +45,8 @@ class trz_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+            'trz_Payroll',
+            'trz_PayrollDetails',
             'trz_SalaryPayroll',
 		    'trz_SalaryIndicators',
 		    'trz_SalaryRules',

@@ -215,6 +215,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     {
     	core_App::setTimeLimit(300);
     	$data = new stdClass();
+    	
     	$data->summary = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
     	$data->summaryNew = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
     	$data->summaryAll = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0,
@@ -225,9 +226,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$data->recsAll = array();
     	$form = $this->innerForm;
 
-    	$date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare);
+    	$date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare); 
     	$data->toOld = $date->to;
     	$data->fromOld = $date->from;
+    	$data->contragent = $form->ent1Id;
+    	$data->compare = $form->compare;
 
     	$data->groupBy = array();
     	foreach (range(1, 6) as $i){
@@ -241,174 +244,27 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	unset($data->groupBy[0]);
     	
     	$this->prepareListFields($data);
-    	
-    	$jQuery = acc_JournalDetails::getQuery();
-    	
+
     	if (!is_null($data->fromOld) && !is_null($data->toOld)) {
+    	    $jQuery = acc_JournalDetails::getQuery();
     	    $jQueryNew = clone $jQuery;
     	    $newForm = clone $form;
-    	    
+    	
     	    $newForm->from = $data->fromOld;
     	    $newForm->to = $data->toOld;
-    	    
+    	     
     	    // Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
     	    $this->prepareFilterQuery($jQueryNew, $newForm);
-    	    // За всеки запис добавяме го към намерените резултати
-    	    $recsNew = $jQueryNew->fetchAll();
-            $allItemsNew = array();
-            
-            if(is_array($recsNew)){ 
-                // проверяваме имали избрано групиране по свойство което не е името на перото
-                $groupByFeaturesNew = FALSE;
-                foreach (range(1, 3) as $i){
-                    $groupByFeaturesNew = $groupByFeaturesNew || !empty($newForm->{"feat{$i}"});
-                } 
-                
-                // Ако има
-                if($groupByFeaturesNew === TRUE){
-                     
-                    // Намираме всички пера участващи в заявката
-                    foreach ($recsNew as $recNew1){ 
-                        foreach(array('debit', 'credit') as $typeNew){
-                            foreach (range(1, 3) as $iNew){
-                                if($itemNew = $recNew1->{"{$typeNew}Item{$iNew}"}){
-                                    $allItemsNew[$itemNew] = $itemNew;
-                                }
-                            }
-                        }
-                    }
-                     
-                    // Извличаме им свойствата
-                    $featuresNew = acc_Features::getFeaturesByItems($allItemsNew);
-                } else {
-                    $featuresNew = array();
-                }
-            }
+    	
+    	    $data->recsNew = $this->prepareData($this,$data, $jQueryNew, $newForm, $data->recsNew, 'New');
     	} 
-    	if (count($recsNew)){
-        	foreach ($recsNew as $jRecNew){
-        	    $this->addEntry($newForm->baseAccountId, $jRecNew, $data, $newForm->groupBy, $newForm, $featuresNew, $data->recsNew);
-      
-        	}
-        }
-    
-    	if(count($data->recsNew)){
-    	    // За всеки запис
-    	    foreach ($data->recsNew as &$recNew){
-    	         
-    	        // Изчисляваме окончателния остатък (дебит - кредит)
-    	        $recNew->blQuantity = $recNew->debitQuantity - $recNew->creditQuantity;
-    	        $recNew->blAmount = $recNew->debitAmount - $recNew->creditAmount;
-    	         
-    	        foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fldNew){
-    	        				$data->summaryNew->{$fldNew} += $recNew->{$fldNew};
-    	        				$data->summaryAll->{$fldNew."New"} += $recNew->{$fldNew};
-    	        }
-    	         
-    	        // Проверка дали сумата и к-то са еднакви
-    	        if($recNew->blQuantity != $recNew->blAmount){
-    	        				$data->hasSameAmountsNew = FALSE;
-    	        }
-    	        
-    	        foreach ($data->recsNew as &$recNew1){
-    	            $fldNew = ($newForm->side == 'credit') ? 'creditAmount' : (($newForm->side == 'debit') ? 'debitAmount' : 'blAmount');
-    	            @$recNew1->delta = round($recNew1->{$fldNew} / $data->summaryNew->${fldNew}, 5);
-    	            @$recNew1->delta = cls::get('type_Percent')->toVerbal($recNew1->delta);
-    	        }
-    	    }
-    	}
-
-    	// Ако не се групира по размерна сметка, не показваме количества
-    	if(count($data->groupBy)){
-    	    $data->hasDimensionalNew = FALSE;
-    	    foreach ($data->groupBy as $grIdNew){
-    	        if(acc_Lists::fetchField($grIdNew, 'isDimensional') == 'yes'){
-    	            $data->hasDimensionalNew = TRUE;
-    	        }
-    	    }
-    	}
-    	
-    	// Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
-    	$this->prepareFilterQuery($jQuery, $form);
-    	
-    	// За всеки запис добавяме го към намерените резултати
-    	$recs = $jQuery->fetchAll();
-    	$allItems = array();
-    	
-    	if(is_array($recs)){
-    		
-    		// проверяваме имали избрано групиране по свойство което не е името на перото
-    		$groupByFeatures = FALSE;
-    		foreach (range(1, 3) as $i){
-    			$groupByFeatures = $groupByFeatures || !empty($form->{"feat{$i}"});
-    		}
-    		
-    		// Ако има
-    		if($groupByFeatures === TRUE){
-    			
-    			// Намираме всички пера участващи в заявката
-    			foreach ($recs as $rec1){
-    				foreach(array('debit', 'credit') as $type){
-    					foreach (range(1, 3) as $i){
-    						if($item = $rec1->{"{$type}Item{$i}"}){
-    							$allItems[$item] = $item;
-    						}
-    					}
-    				}
-    			}
-    			
-    			// Извличаме им свойствата
-    			$features = acc_Features::getFeaturesByItems($allItems);
-    		} else {
-    			$features = array();
-    		}
-    	}
-    	
-    	foreach ($recs as $jRec){
-    		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
-    	}
-        
-    	$id = 1;
-    	// Ако има намерени записи
-    	if(count($data->recs)){ 
     	    
-    		// За всеки запис
-    		foreach ($data->recs as &$rec){
-    		    $rec->id = 1;
-    			// Изчисляваме окончателния остатък (дебит - кредит)
-    			$rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
-    			$rec->blAmount = $rec->debitAmount - $rec->creditAmount;
-    			
-    			foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    				$data->summary->{$fld} += $rec->{$fld};
-    				$data->summaryAll->{$fld} += $rec->{$fld};
-    			}
-    			
-    			// Проверка дали сумата и к-то са еднакви
-    			if($rec->blQuantity != $rec->blAmount){
-    				$data->hasSameAmounts = FALSE;
-    			}
-    			
-    			$rec->id = $id++;
-    		}
-    		
-    		foreach ($data->recs as &$rec1){
-    			$fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
-    			@$rec1->delta = round($rec1->{$fld} / $data->summary->${fld}, 5);
-    			@$rec1->delta = cls::get('type_Percent')->toVerbal($rec1->delta);
-    		}
-
-    	}
-    	
-    	// Ако не се групира по размерна сметка, не показваме количества
-    	if(count($data->groupBy)){
-    		$data->hasDimensional = FALSE;
-    		foreach ($data->groupBy as $grId){
-    			if(acc_Lists::fetchField($grId, 'isDimensional') == 'yes'){
-    				$data->hasDimensional = TRUE;
-    			}
-    		}
-    	}
+    	$jQuery = acc_JournalDetails::getQuery();
+        
+        // Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
+        $this->prepareFilterQuery($jQuery, $form);
+        	
+        $data->recs = $this->prepareData($this,$data, $jQuery, $form, $data->recs, '');
     
 		// Обработваме обобщената информация
     	$this->prepareSummary($data);
@@ -417,9 +273,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 
     	    foreach ($data->recs as $id => $r) {
 
-    	            if(!array_key_exists($id, $data->recsAll)){
-    	                 
-    	                $data->recsAll[$id] =
+    	       if(!array_key_exists($id, $data->recsAll)){
+    	           $data->recsAll[$id] =
+
     	                (object) array (    	                
         	                'item1' => $r->item1,
         	                'item2' => $r->item2,
@@ -433,12 +289,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	                    'creditAmount' => $r->creditAmount,
         	                'blQuantity' => $r->blQuantity,
         	                'blAmount' => $r->blAmount,
-        	                'delta' => $r->delta,
-      
-    	                );
-    	            } 
+        	                'delta' => $r->delta,);
+    	       } 
     	    }
-   
+    
     	    foreach ($data->recsNew as $idNew => $rNew) {   
                 if(!array_key_exists($idNew, $data->recsAll)){
     	                 
@@ -460,11 +314,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	               );      
                 } else {
     	            $obj = &$data->recsAll[$idNew];
-    	            $obj->item1 = $rNew->item1;
+    	            /*$obj->item1 = $rNew->item1;
     	            $obj->item2 = $rNew->item2;
     	            $obj->item3 = $rNew->item3;
     	            $obj->item4 = $rNew->item4;
-    	            $obj->item5 = $rNew->item5;
+    	            $obj->item5 = $rNew->item5;*/
     	            $obj->valiorNew = $rNew->valiors;
     	            $obj->debitQuantityNew = $rNew->debitQuantity;
     	            $obj->debitAmountNew = $rNew->debitAmount;
@@ -482,6 +336,106 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     
     
     /**
+     * Помощна функция, която ще направи резултатния sdtClass
+     * 
+     * 
+     * @param mvc $mvc
+     * @param stdClass $data
+     * @param query $query
+     * @param stdClass $form
+     * @param stdClass $res
+     * @param string $type
+     * 
+     * @return stdClass
+     */
+    public static function prepareData($mvc,$data, $query, $form,$res, $sufix)
+    {
+        // За всеки запис добавяме го към намерените резултати
+        $recs = $query->fetchAll();
+        $allItems = array();
+        
+        if(is_array($recs)){
+        
+            // проверяваме имали избрано групиране по свойство което не е името на перото
+            $groupByFeatures = FALSE;
+            foreach (range(1, 3) as $i){
+                $groupByFeatures = $groupByFeatures || !empty($form->{"feat{$i}"});
+            }
+        
+            // Ако има
+            if($groupByFeatures === TRUE){
+        
+                // Намираме всички пера участващи в заявката
+                foreach ($recs as $rec1){
+                    foreach(array('debit', 'credit') as $type){
+                        foreach (range(1, 3) as $i){
+                            if($item = $rec1->{"{$type}Item{$i}"}){
+                                $allItems[$item] = $item;
+                            }
+                        }
+                    }
+                }
+        
+                // Извличаме им свойствата
+                $features = acc_Features::getFeaturesByItems($allItems);
+            } else {
+                $features = array();
+            }
+        }
+        
+        foreach ($recs as $jRec){
+            $mvc->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $res);
+        }
+
+        // Ако има намерени записи
+        if(count($res)){
+        
+            // За всеки запис
+            foreach ($res as &$rec){
+        
+                // Изчисляваме окончателния остатък (дебит - кредит)
+                $rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
+                $rec->blAmount = $rec->debitAmount - $rec->creditAmount;
+        
+                foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+
+                    $data->{"summary{$sufix}"}->{$fld} += $rec->{$fld};
+                    $data->summaryAll->{$fld.$sufix} += $rec->{$fld};
+                }
+        
+                // Проверка дали сумата и к-то са еднакви
+                if($rec->blQuantity != $rec->blAmount){
+                    $data->hasSameAmounts = FALSE;
+                }
+            }
+        
+            foreach ($res as &$rec1){
+                $fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
+                if(!empty($data->{"summary{$sufix}"}->{$fld})){
+                	$rec1->delta = round($rec1->{$fld} / $data->{"summary{$sufix}"}->{$fld}, 5);
+                } else {
+                	$rec1->delta = 0;
+                }
+                
+                $rec1->delta = cls::get('type_Percent')->toVerbal($rec1->delta);
+            }
+        }
+        
+        // Ако не се групира по размерна сметка, не показваме количества
+        if(count($data->groupBy)){
+            $data->hasDimensional = FALSE;
+            foreach ($data->groupBy as $grId){
+                if(acc_Lists::fetchField($grId, 'isDimensional') == 'yes'){
+                    $data->hasDimensional = TRUE;
+                }
+            }
+        }
+
+        return $res;
+    }
+    
+    
+    /**
      * След подготовката на показването на информацията
      */
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
@@ -490,16 +444,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 
     	// Ако има намерени записи
     	if(count($data->recs)){
-    		
-    		// Подготвяме страницирането
-    		$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
-    		$pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
-    		$data->Pager = $pager;
-    		$data->Pager->itemsCount = count($data->recs);
-    		
+
     		// Ако има избрано поле за сортиране, сортираме по него
     		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
-    	
+    		
+    		if(is_array($data->recsAll)) {
+    		    arr::order($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+    		}
+
     	    if ($mvc->innerForm->compare != 'no') {
     	        if (count($data->recsAll)) {
                     foreach ($data->recsAll as $recsAll) {
@@ -507,25 +459,45 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     }
     	        }
     	    } else { 
-    	        foreach ($data->recs as $recs) { 
-    	
-    	           $recs = $data->recs;
-    	        }
+    	        $recs = $data->recs;
     	    }
 
-    	  if(count($recs)) {
-    		// За всеки запис
-    		foreach ($recs as $id=>&$rec){
+    	    
+    	    if(count($recs)) { 
+    	        if(!Mode::is('printing')) {
+        	        // Подготвяме страницирането
+        	        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        	        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        	        $data->Pager = $pager;
+        	        $data->Pager->itemsCount = count($recs);
+    	        }
+    	        // За всеки запис
+    	        foreach ($recs as $id=>$rec){ 
+    	            if (is_array($rec)) {
 
-    	        $rec->id = $id + 1;
+    		            foreach($rec as $is=>&$r) {
+    		                $r->id = $id + 1;
+    		                if(!Mode::is('printing')) {
+        		                // Ако не е за текущата страница не го показваме
+        		                if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
+    		                }
+    		             
+    		                // Вербално представяне на записа
+    		                $data->rows[] = $mvc->getVerbalRec($r, $data);
+    		            }
+    		        } else {
+    		            $rec->id = $id + 1;
 
-    			// Ако не е за текущата страница не го показваме
-    			if(!$data->Pager->isOnPage()) continue;
-    			
-    			// Вербално представяне на записа
-    			$data->rows[] = $mvc->getVerbalRec($rec, $data);
-    		}
-    	  }
+    		                if(!Mode::is('printing')) {
+        		                // Ако не е за текущата страница не го показваме
+        		                if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
+    		                }
+        			
+        			    // Вербално представяне на записа
+        			    $data->rows[] = $mvc->getVerbalRec($rec, $data);
+    		        }
+    	        }
+    	    }
     	}
     }
     
@@ -562,6 +534,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} else {
     	    $tpl->placeObject($data->summary);
     	    $tpl->removeBlock('summeryAll');
+    	}
+    	
+    	if($data->contragent) {
+    	   $tpl->replace(acc_Items::getVerbal($data->contragent, 'titleLink'), 'contragent');
     	}
     	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
 
@@ -906,7 +882,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	if(count($innerState->rows)){
     		foreach ($innerState->rows as $row){
     			foreach (array('debitAmount', 'debitQuantity','creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld){
-    				unset($row->$fld);
+    				unset($row->{$fld});
     			}
     		}
     	}
@@ -991,7 +967,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
        
             }
             
-            if($this->innerState->summary) {
+            if($this->innerState->summary &&  ($this->getReportLayout()->isPlaceholderExists('ROW_AFTER') || 
+                                               $this->getReportLayout()->isPlaceholderExists('ROW_BEFORE'))) { 
                 $afterRow = 'ОБЩО';
     
                 $rec = $this->prepareEmbeddedData($this->innerState->recs)->summary;

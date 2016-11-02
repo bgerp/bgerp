@@ -145,10 +145,26 @@ class plg_RefreshRows extends core_Plugin
             
             $divId = Request::get('divId');
             
+            // Масив с добавения CSS
+            $cssArr = array();
+            $allCssArr = (array)$tpl->getArray('CSS');
+            $allCssArr = array_unique($allCssArr);
+            foreach ($allCssArr as $css) {
+                $cssArr[] = page_Html::getFileForAppend($css);
+            }
+            
+            // Масив с добавения JS
+            $jsArr = array();
+            $allJsArr = (array)$tpl->getArray('JS');
+            $allJsArr = array_unique($allJsArr);
+            foreach ($allJsArr as $js) {
+                $jsArr[] = page_Html::getFileForAppend($js);
+            }
+            
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE);
+            $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE, 'css' => $cssArr, 'js' => $jsArr);
             
             $res = array($resObj);
             
@@ -156,6 +172,25 @@ class plg_RefreshRows extends core_Plugin
             $resObjReload = new stdClass();
             $resObjReload->func = 'forceReloadAfterBack';
             $res[] = $resObjReload;
+            
+            jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
+            
+            // Стойности на плейсхолдера
+            $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
+            
+            // Добавя всички функции в масива, които ще се виката
+            if (!empty($runAfterAjaxArr)) {
+            
+                // Да няма повтарящи се функции
+                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+            
+                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                    $jqResObj = new stdClass();
+                    $jqResObj->func = $runAfterAjax;
+            
+                    $res[] = $jqResObj;
+                }
+            }
         }
         
         return FALSE;
@@ -256,6 +291,8 @@ class plg_RefreshRows extends core_Plugin
             
             // Рендираме общия лейаут
             $tpl = $mvc->renderListLayout($data);
+            
+            setIfNot($data->listTableMvc, clone $mvc);
             
             // Попълваме таблицата с редовете
             $tpl->append($mvc->renderListTable($data), 'ListTable');

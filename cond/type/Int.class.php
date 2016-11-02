@@ -38,20 +38,21 @@ class cond_type_Int extends cond_type_Proto
 	/**
 	 * Връща инстанция на типа
 	 *
-	 * @param int $paramId - ид на параметър
-	 * @return core_Type - готовия тип
+	 * @param stdClass $rec      - запис на параметъра
+	 * @param NULL|string $value - стойност
+	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec)
+	public function getType($rec, $value = NULL)
 	{
 		$Type = parent::getType($rec);
 		$params = array();
 	
 		if(isset($rec->min)){
-			$params['Min'] = $rec->min;
+			$params['min'] = $rec->min;
 		}
 	
 		if(isset($rec->max)){
-			$params['Max'] = $rec->max;
+			$params['max'] = $rec->max;
 		}
 	
 		if(count($params)){

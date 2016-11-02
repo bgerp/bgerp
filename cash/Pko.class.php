@@ -48,13 +48,13 @@ class cash_Pko extends cash_Document
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'cash/tpl/Pko.shtml';
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFileNarrow = 'cash/tpl/PkoNarrow.shtml';
 
@@ -79,6 +79,7 @@ class cash_Pko extends cash_Document
     	// Зареждаме полетата от бащата
     	parent::getFields($this);
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
+    	$this->FLD('paymentType', 'enum(cash=В брой,card=С карта)', 'caption=Допълнително->Плащане', 'notNull,value=cash');
     }
 
     

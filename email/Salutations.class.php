@@ -99,7 +99,7 @@ class email_Salutations extends core_Manager
         if (!$eRec->threadId || !$eRec->folderId || !$eRec->containerId) return ;
         
         // За чернови документи да не се записва
-        if ($eRec->state == 'draft') return ;
+//         if ($eRec->state == 'draft') return ;
         
         // Вземаме обръщенито в текстовата част
         $salutation = self::getSalutations($eRec->body);
@@ -122,6 +122,25 @@ class email_Salutations extends core_Manager
         $nRec->state = $eRec->state;
         
         self::save($nRec, NULL, 'UPDATE');
+    }
+    
+    
+    /**
+     * Връща потребителя, за обръщението в контейнера
+     * 
+     * @param integer $cId
+     * 
+     * @return FALSE|int
+     */
+    public static function getUserId($cId)
+    {
+        if (!$cId) return FALSE;
+        
+        $rec = self::fetch(array("#containerId = '[#1#]'", $cId));
+        
+        if (!$rec) return FALSE;
+        
+        return $rec->userId;
     }
     
     
@@ -305,7 +324,7 @@ class email_Salutations extends core_Manager
         
         // Намираме обръщенито
         preg_match($pattern, $text, $matche);
-
+ 
         // Тримваме и връщаме текста
         return trim($matche['allText']);
     }
@@ -346,7 +365,7 @@ class email_Salutations extends core_Manager
                 self::$salutationsPattern = FALSE;
             }
         }
-        
+      
         // Връщаме резултата
         return self::$salutationsPattern;
     }
@@ -358,17 +377,17 @@ class email_Salutations extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Документа
-        $doc = doc_Containers::getDocument($rec->containerId);
-        
         try {
+            // Документа
+            $doc = doc_Containers::getDocument($rec->containerId);
+            
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
             
             // Документа да е линк към single' а на документа
             $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), array($doc->className, 'single', $doc->that), NULL);
         } catch(core_exception_Expect $e) {
-            $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+            $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->containerId . "</span>";
         }
 
         try {
@@ -378,7 +397,7 @@ class email_Salutations extends core_Manager
             // Вземаме линка към папката
             $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
         } catch(core_exception_Expect $e) {
-            $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+            $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->folderId . "</span>";
         }
     }
     

@@ -15,7 +15,8 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassCommentNode extends SassNode {
+class SassCommentNode extends SassNode
+{
   const NODE_IDENTIFIER = '/';
   const MATCH = '%^/\*\s*?(.*?)\s*?(\*/)?$%s';
   const COMMENT = 1;
@@ -24,24 +25,27 @@ class SassCommentNode extends SassNode {
 
   /**
    * SassCommentNode constructor.
-   * @param object source token
-   * @return CommentNode
+   * @param object $token source token
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token);
     preg_match(self::MATCH, $token->source, $matches);
     $this->value = $matches[self::COMMENT];
   }
 
-  protected function getValue() {
+  protected function getValue()
+  {
     return $this->value;
   }
 
   /**
    * Parse this node.
+   * @param mixed $context
    * @return array the parsed node - an empty array
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     return array($this);
   }
 
@@ -49,16 +53,18 @@ class SassCommentNode extends SassNode {
    * Render this node.
    * @return string the rendered node
    */
-  public function render() {
+  public function render()
+  {
     return $this->renderer->renderComment($this);
   }
 
   /**
    * Returns a value indicating if the token represents this type of node.
-   * @param object token
+   * @param object $token token
    * @return boolean true if the token represents this type of node, false if not
    */
-  public static function isa($token) {
+  public static function isa($token)
+  {
     return $token->source[0] === self::NODE_IDENTIFIER;
   }
 }

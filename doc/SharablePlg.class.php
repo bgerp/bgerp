@@ -251,7 +251,27 @@ class doc_SharablePlg extends core_Plugin
             // Да има само 2 колони
             $data->form->setField('sharedUsers', array('maxColumns' => 2));    
         }
-         
+        
+        // изчисляваме колко са потребителите със съответните роли
+        $roles = $data->form->getField('sharedUsers')->type->params['roles'];
+
+        $roles = core_Roles::getRolesAsKeylist($roles);
+
+        $roles = keylist::toArray($roles);
+        
+        $allUsers = core_Users::getRolesWithUsers();
+        $users = array();
+
+        foreach($roles as $rId) {
+            if(is_array($allUsers[$rId])) {
+                $users += $allUsers[$rId];
+            }
+        }
+   
+        if(count($users) > core_Setup::get('AUTOHIDE_SHARED_USERS')) {
+            $data->form->setField('sharedUsers', 'autohide');    
+        }
+
         if(isset($mvc->shareUserRoles)){
         	$sharedRoles = arr::make($mvc->shareUserRoles, TRUE);
         	$sharedRoles = implode(',', $sharedRoles);
@@ -354,5 +374,21 @@ class doc_SharablePlg extends core_Plugin
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Преди записване на клонирания запис
+     * 
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // Премахваме ненужните полета
+        unset($nRec->sharedViews);
     }
 }

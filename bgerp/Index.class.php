@@ -31,7 +31,7 @@ class bgerp_Index extends core_Manager
                 return new Redirect(array('bgerp_Portal', 'Show'));
             } else {
                 
-                return new Redirect(array('colab_Profiles', 'Single'));
+                return new Redirect(array('cms_Profiles', 'Single'));
             }
         } else {
             

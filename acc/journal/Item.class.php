@@ -79,6 +79,11 @@ class acc_journal_Item
         if (is_numeric($iface)) {
             acc_journal_Exception::expect($iface = core_Interfaces::fetchField($iface, 'name'), 'Липсващ интерфейс');
         }
+       
+        // Ако перото е системно (класа му е acc_Items) то винаги отговаря на интерфейса
+        if($this->classId == acc_Items::getClassId()){
+        	return TRUE;
+        }
         
         return cls::haveInterface($iface, $this->classId);
     }

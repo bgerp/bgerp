@@ -112,9 +112,9 @@ class page_Html extends core_ET {
         
         // Вземане на времето на бездействие в съответния таб
         static::idleTimerJs($tpl);
-       
-        $tpl->push('context/lib/contextMenu.css', "CSS");
-        $tpl->push('context/lib/contextMenu.js', "JS");
+
+        $tpl->push('context/'.  context_Setup::get('VERSION') . '/contextMenu.css', "CSS");
+        $tpl->push('context/'.  context_Setup::get('VERSION') . '/contextMenu.js', "JS");
         
         jquery_Jquery::run($tpl, "getContextMenuFromAjax();", TRUE);
         jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
@@ -124,6 +124,13 @@ class page_Html extends core_ET {
         jquery_Jquery::run($tpl, 'smartCenter();');
         jquery_Jquery::run($tpl, 'showTooltip();');
         jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
+        
+        $url = json_encode(toUrl(array('bgerp_A', 'wp'), 'local'));
+        $tpl->appendOnce("var wpUrl = {$url};", 'SCRIPTS');
+        
+        if (Mode::is('screenMode', 'narrow')) {
+            jquery_Jquery::run($tpl, "detectScrollAndWp();");
+        }
         
         return $tpl;
     }
@@ -186,22 +193,42 @@ class page_Html extends core_ET {
       
         if(is_array($files->css)) {
             foreach($files->css as $file) {
-                if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '', $absolute);
-                }
+                $file = $this->getFileForAppend($file, $absolute);
+                
                 $files->invoker->appendOnce("\n@import url(\"{$file}\");", "STYLE_IMPORT", TRUE); 
             }
         }
         
         if(is_array($files->js)) {
             foreach($files->js as $file) {
-                if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '', $absolute);
-                }
+                $file = $this->getFileForAppend($file, $absolute);
+                
                 $files->invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
         } 
+    }
+    
+    
+    /**
+     * Връща файла за добавя. Ако е от системата минава през sbf.
+     * Ако е външен линк, не го променя
+     * 
+     * @param string $filePath
+     * @param NULL|boolean $absolute
+     * 
+     * @return string
+     */
+    public static function getFileForAppend($filePath, $absolute = NULL)
+    {
+        if(preg_match('#^[^/]*//#', $filePath)) return $filePath;
         
+        if (!isset($absolute)) {
+            $absolute = (boolean)(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
+        }
+        
+        $filePath = sbf($filePath, '', $absolute);
+        
+        return $filePath;
     }
     
     

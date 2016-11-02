@@ -96,7 +96,8 @@ abstract class deals_DealBase extends core_Master
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
 				
 				// Добавяме контрагента като перо, ако не е
-				$Cover->forceItem('contractors');
+				$listId = acc_Lists::fetchBySystemId('contractors')->id;
+				acc_Items::force($Cover->getClassId(), $Cover->that, $listId);
 			}
 		}
 	}
@@ -161,7 +162,7 @@ abstract class deals_DealBase extends core_Master
     	// Ако няма документи с които може да се затвори или е чернова не може да се приключи с друга сделка
     	if($action == 'closewith' && isset($rec)){
     		$options = $mvc->getDealsToCloseWith($rec);
-    		if(!count($options) || $rec->state != 'draft'){
+    		if(!count($options) || ($rec->state != 'draft' && $rec->state != 'pending')){
     			$res = 'no_one';
     		}
     	}
@@ -298,7 +299,7 @@ abstract class deals_DealBase extends core_Master
     	core_App::setTimeLimit(2000);
     	$id = Request::get('id', 'int');
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'draft');
+    	expect($rec->state == 'draft' || $rec->state == 'pending');
     
     	// Трябва потребителя да може да контира
     	$this->requireRightFor('conto', $rec);
@@ -710,7 +711,7 @@ abstract class deals_DealBase extends core_Master
     	
     	foreach ($report as $id =>  $r) { 
         	foreach (array('shipQuantity', 'bQuantity') as $fld){
-        	    $r->$fld =  $Double->toVerbal($r->$fld);
+        	    $r->{$fld} =  $Double->toVerbal($r->{$fld});
         	}
 
         	if($r->bQuantity > 0){
@@ -808,7 +809,7 @@ abstract class deals_DealBase extends core_Master
     				}
     				 
     				foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld){
-    					$obj->$fld = "<span style='float:right'>" . $Double->toVerbal($ent->$fld) . "</span>";
+    					$obj->{$fld} = "<span style='float:right'>" . $Double->toVerbal($ent->{$fld}) . "</span>";
     				}
     				 
     				$history[] = $obj;

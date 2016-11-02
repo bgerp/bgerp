@@ -125,6 +125,12 @@ class doc_plg_Close extends core_Plugin
     	$mvc->save($rec);
     	$mvc->logWrite($action, $rec->id);
     	
-    	redirect(array($mvc, 'single', $rec->id));
+    	$retUrl = getRetUrl();
+    	
+    	if (empty($retUrl)) {
+    	    $retUrl = array($mvc, 'single', $rec->id);
+    	}
+    	
+    	redirect($retUrl);
     }
 }

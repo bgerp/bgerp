@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -19,92 +19,92 @@ class pos_Points extends core_Master {
     /**
      * Заглавие
      */
-    var $title = "Точки на продажба";
+    public $title = "Точки на продажба";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,
                      pos_Wrapper, plg_Sorting, plg_Printing, plg_Current,plg_State, plg_Modified';
 
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "POS";
+    public $singleTitle = "POS";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name, caseId, storeId';
+    public $listFields = 'name, caseId, storeId';
     
     
    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo, pos';
+    public $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canWrite = 'ceo, posMaster';
+    public $canWrite = 'ceo, posMaster';
     
     
     /**
      * Кой може да пише
      */
-    var $canCreatenewfolder = 'ceo, pos';
+    public $canCreatenewfolder = 'ceo, pos';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, pos';
+	public $canList = 'ceo, pos';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,pos';
+	public $canSingle = 'ceo,pos';
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/cash-register-icon.png';
+    public $singleIcon = 'img/16/cash-register-icon.png';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin, pos';
+    public $canReject = 'admin, pos';
     
 
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
-    var $singleLayoutFile = 'pos/tpl/SinglePointLayout.shtml';
+    public $singleLayoutFile = 'pos/tpl/SinglePointLayout.shtml';
 	
 	
     /**
 	* Кой може да селектира?
 	*/
-	var $canSelect = 'ceo, pos';
+	public $canSelect = 'ceo, pos';
 	
 	
     /**
 	 * Кой може да селектира всички записи
 	 */
-	var $canSelectAll = 'ceo, posMaster';
+	public $canSelectAll = 'ceo, posMaster';
 	
 	
 	/**
@@ -129,7 +129,7 @@ class pos_Points extends core_Master {
     /**
      * Създава дефолт контрагент за обекта, ако той вече няма създаден
      */
-    public static function on_AfterSave($mvc, &$id, $rec)
+    protected static function on_AfterSave($mvc, &$id, $rec)
     {
     	if(!static::defaultContragent($id)) {
 	    	$defaultContragent = new stdClass();
@@ -146,9 +146,9 @@ class pos_Points extends core_Master {
     /**
      * Подготовка на формата за добавяне
      */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
-    	$data->form->setDefault('policyId', price_ListRules::PRICE_LIST_CATALOG);
+    	$data->form->setDefault('policyId', cat_Setup::get('DEFAULT_PRICELIST'));
     }
     
     
@@ -174,7 +174,7 @@ class pos_Points extends core_Master {
 	/**
      * След подготовка на тулбара на единичен изглед.
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
     	
@@ -211,7 +211,7 @@ class pos_Points extends core_Master {
     /**
      * Обработка по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
     	unset($row->currentPlg);
     	
@@ -250,5 +250,39 @@ class pos_Points extends core_Master {
 				cash_Cases::selectCurrent($rec->caseId);
 			}
 		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'select' && isset($rec)){
+			if(!self::canSelectPos($rec, $userId)){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
+	
+	
+	/**
+	 * Може ли потребителя да избере точката на продажба.
+	 * Може само ако има права да избира касата и склада в точката
+	 * 
+	 * @param mixed $rec          - ид или запис
+	 * @param string|NULL $userId - потребител, NULL за текущия
+	 * @return boolean $res       - може ли да избира точката на продажба    
+	 */
+	public static function canSelectPos($rec, $userId = NULL)
+	{
+		$userId = (isset($userId)) ? $userId : core_Users::getCurrent();
+		
+		$rec = static::fetchRec($rec);
+		$canActivateStore = bgerp_plg_FLB::canUse('store_Stores', $rec->storeId, $userId);
+		$canActivateCase = bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId, $userId);
+		$res = ($canActivateStore === TRUE && $canActivateCase === TRUE);
+		
+		return $res;
 	}
 }

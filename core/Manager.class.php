@@ -70,8 +70,10 @@ class core_Manager extends core_Mvc
     
     /**
      * Кой таб от таб-контрола (ако има) да бъде засветен?
+     * 
+     * @var string|FALSE
      */
-    var $tabPage = FALSE;
+    var $currentTab = FALSE;
     
     
     /**
@@ -328,8 +330,8 @@ class core_Manager extends core_Mvc
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
-            $this->prepareRetUrl($data);
-            
+            $this->prepareRetUrl($data, $id);
+      
             // Редиректваме към предварително установения адрес
             return new Redirect($data->retUrl);
         } else {
@@ -362,8 +364,9 @@ class core_Manager extends core_Mvc
      */
     function prepareEditTitle_($data)
     {
+    	setIfNot($data->title, $this->title);
     	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
-    			"|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
+    			"|*" . ($this->title ? ' |в|* ' . '"' . tr($data->title) . '"' : '');
     }
     
     
@@ -562,10 +565,10 @@ class core_Manager extends core_Mvc
         }
         
         // Извличаме редовете
-        while ($rec = $data->query->fetch()) {
+        while ($rec = $data->query->fetchAndCache()) {
             $data->recs[$rec->id] = $rec;
         }
-        
+    
         return $data;
     }
     
@@ -641,10 +644,10 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Podgotwq адреса за връщане след добавяне/редактиране
+     * Подготвя адреса за връщане след добавяне/редактиране
      */
-    function prepareRetUrl_($data)
-    {
+    function prepareRetUrl_($data, $id = NULL)
+    { 
         if (getRetUrl()) {
             
             $data->retUrl = getRetUrl();
@@ -659,9 +662,31 @@ class core_Manager extends core_Mvc
                 $data->retUrl = array($this, 'list');
             }
         }
-        
+
+        $idPlaceholder = self::getUrlPlaceholder('id');
+
+        if($id && is_array($data->retUrl)) {
+            foreach($data->retUrl as $key => $value) {
+                if($value == $idPlaceholder) {
+                    $data->retUrl[$key] = $id;
+                }
+            }
+        }
+ 
         return $data;
     }
+
+
+    /**
+     * Връща плейсхолдър за стойността на id
+     */
+    public static function getUrlPlaceholder($paramName)
+    {
+        $placeholder = str::addHash($paramName . '_placeholder', 6, 'id');
+        
+        return $placeholder;
+    }
+      
     
     /****************************************************************************************
      *                                                                                      *

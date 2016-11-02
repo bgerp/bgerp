@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
@@ -17,8 +18,6 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  * ID на нашата фирма
  */
 defIfNot('BGERP_OWN_COMPANY_ID', 1);
-
-
 
 
 /**
@@ -88,16 +87,19 @@ class crm_Setup extends core_ProtoSetup
             'crm_Groups',
             'crm_Companies',
             'crm_Persons',
+    		'crm_ext_ProductListToContragents',
             'crm_ext_IdCards',
             'crm_Personalization',
             'crm_ext_CourtReg',
+    		'crm_ext_Employees',
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',
             'migrate::movePersonalizationData',
             'migrate::addCountryToCompaniesAndPersons',
             'migrate::updateSettingsKey',
-            'migrate::updateGroupFoldersToUnsorted'
+            'migrate::updateGroupFoldersToUnsorted',
+            'migrate::updateLocationType',
         );
     
 
@@ -164,7 +166,7 @@ class crm_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
@@ -273,7 +275,7 @@ class crm_Setup extends core_ProtoSetup
                 
                 $cRec->key = $newKey;
                 core_Settings::save($cRec, NULL, 'IGNORE');
-            } catch (Exception $e) {
+            } catch(ErrorException $e) {
                 
                 continue;
             }
@@ -329,5 +331,32 @@ class crm_Setup extends core_ProtoSetup
             $unsortedRec->folderId = $rec->id;
             $Unsorted->save($unsortedRec, 'folderId');
         }
+    }
+
+
+    /**
+     * Миграция за обновяване типа на локациите
+     */
+    public static function updateLocationType()
+    {
+        $types = array( 'correspondence' => 'За кореспонденция',
+                        'headquoter' => 'Главна квартира',
+                        'shipping' => 'За получаване на пратки',
+                        'office' => 'Офис',
+                        'shop' => 'Магазин',
+                        'storage' => 'Склад',
+                        'factory' => 'Фабрика',
+                        'other' => 'Друг');
+
+        $query = crm_Locations::getQuery();
+        while($rec = $query->fetch()) {
+            if($type = $types[$rec->type]) {
+                $rec->type = $type;
+                crm_Locations::save($rec, 'type');
+                $upd++;
+            }
+        }
+
+        return "Обновени са {$upd} типа на локации";
     }
 }

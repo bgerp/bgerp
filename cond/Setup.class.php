@@ -65,7 +65,7 @@ class cond_Setup  extends core_ProtoSetup
     		'migrate::removePayment',
     		'migrate::deleteOldPaymentTime1',
     		'migrate::deleteParams2',
-
+            'migrate::deleteOldPaymentMethods',
         );
 
         
@@ -86,7 +86,7 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod";
+    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store";
     
     
 	/**
@@ -108,6 +108,10 @@ class cond_Setup  extends core_ProtoSetup
 		// Замества handle' ите на документите с линк към документа
 		$html .= $Plugins->installPlugin('Плъгин за пасажи в RichEdit', 'cond_RichTextPlg', 'type_Richtext', 'private');
 
+		// Кофа за файлове от тип параметър
+		$Bucket = cls::get('fileman_Buckets');
+		$Bucket->createBucket('paramFiles', 'Прикачени файлови параметри', NULL, '1GB', 'user', 'user');
+		
     	return $html;
     }
     
@@ -118,7 +122,7 @@ class cond_Setup  extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
@@ -157,7 +161,65 @@ class cond_Setup  extends core_ProtoSetup
     	}
     }
     
+
+    /**
+     * Изтрива старите начини на плащания
+     */
+    function deleteOldPaymentMethods()
+    {
+        $res = array();
+
+        try{
+        	foreach(array('sales_Sales', 'sales_Quotations', 'sales_SaleRequests', 'purchase_Purchases') as $class) {
+        		$class = cls::get($class);
+        		$class->setupMvc();
+        		
+        		$query = $class::getQuery();
+        		$query->show('paymentMethodId');
+        		while($rec = $query->fetch()) {
+        			$res[$rec->paymentMethodId] = TRUE;
+        		}
+        	}
+        	
+        	$Parameters = cls::get('cond_Parameters');
+        	$Parameters->setupMvc();
+        	
+        	core_Classes::add('cond_type_PaymentMethod');
+        	$query = cond_Parameters::getQuery();
+        	$class = cond_type_PaymentMethod::getClassId();
+        	while($rec = $query->fetch("#driverClass = {$class}")) {
+        		$pIds[] = $rec->id;
+        	}
+        	if(is_array($pIds)) {
+        		$pIds = implode(',', $pIds);
+        		$cQuery = cond_ConditionsToCustomers::getQuery();
+        		while($rec = $cQuery->fetch("#conditionId IN ($pIds)")) {
+        			$res[$rec->value] = TRUE;
+        		}
+        	}
+        	
+        	$query = cond_PaymentMethods::getQuery();
+        	
+        	while($rec = $query->fetch()) {
+        		if($rec->state != 'active' && $rec->state != 'closed') {
+        			if($res[$rec->id]) {
+        				$rec->state = 'closed';
+        				cond_PaymentMethods::save($rec);
+        				$closed++;
+        			} else {
+        				cond_PaymentMethods::delete($rec->id);
+        				$deleted++;
+        			}
+        		}
+        	}
+        } catch(core_exception_Expect $e){
+        	reportException($e);
+        }
+
+        return "Изтрити са $deleted метода на плащане и са затворени $closed";
+    }
     
+
     /**
      * Изтрива параметри
      */

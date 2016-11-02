@@ -141,7 +141,7 @@ class blogm_Setup extends core_ProtoSetup
         }
         
         $Bucket = cls::get('fileman_Buckets');
-        $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
+        $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'every_one', 'every_one');
 
 		// Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('blogm_DefaultTheme');
@@ -179,7 +179,7 @@ class blogm_Setup extends core_ProtoSetup
 	function deinstall()
 	{
 		// Изтриване на пакета от менюто
-		$res .= bgerp_Menu::remove($this);
+		$res = bgerp_Menu::remove($this);
 
 		return $res;
 	}

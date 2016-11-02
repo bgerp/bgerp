@@ -102,6 +102,27 @@ class cat_products_SharedInFolders extends core_Manager
     
     
     /**
+     * Клонира споделените папки от един артикул на друг
+     * 
+     * @param int $fromProductId  - ид на артикула от който ще се клонира
+     * @param int $toProductId    - ид на артикула, към който ще се клонира
+     * @return int|NULL           - ид на клонриания запис, или NULL ако няма
+     */
+    public static function cloneFolders($fromProductId, $toProductId)
+    {
+    	$query = self::getQuery();
+    	$query->where(array("#productId = [#1#]", $fromProductId));
+    	$query->orderBy('id', "DESC");
+    	
+    	while($rec = $query->fetch()){
+    		unset($rec->id);
+    		$rec->productId = $toProductId;
+    		self::save($rec);
+    	}
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -142,7 +163,8 @@ class cat_products_SharedInFolders extends core_Manager
     {
     	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$productRec = cat_Products::fetch($rec->productId);
-    		if($productRec->isPublic == 'yes' && $action != 'delete'){
+    		$folders = cat_Categories::getProtoFolders();
+    		if($productRec->isPublic == 'yes' && !in_array($productRec->folderId, $folders) && $action != 'delete'){
     			$requiredRoles = 'no_one';
     		} elseif($productRec->state == 'rejected' || $productRec->state == 'closed') {
     			$requiredRoles = 'no_one';
@@ -157,7 +179,11 @@ class cat_products_SharedInFolders extends core_Manager
     public function prepareShared($data)
     {
     	$masterRec = $data->masterData->rec;
-    	if($masterRec->isPublic == 'yes' && !self::fetch("#productId = {$masterRec->id}")){
+    	
+    	$folders = cat_Categories::getProtoFolders();
+    	$data->isProto = in_array($masterRec->folderId, $folders);
+    	
+    	if(($masterRec->isPublic == 'yes' && !$data->isProto) && !self::fetch("#productId = {$masterRec->id}")){
     		$data->hide = TRUE;
     		return;
     	}
@@ -166,7 +192,9 @@ class cat_products_SharedInFolders extends core_Manager
     	$data->Tab = 'top';
     	
     	$data->recs = $data->rows = array();
-    	$data->recs[0] = (object)array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id); 
+    	if($data->isProto !== TRUE){
+    		$data->recs[0] = (object)array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id);
+    	}
     	$query = self::getQuery();
     	$query->where("#productId = {$masterRec->id}");
     	while($rec = $query->fetch()){
@@ -206,8 +234,12 @@ class cat_products_SharedInFolders extends core_Manager
     	}
     	
     	if($data->masterData->rec->isPublic == 'yes'){
-			$tpl->append("<div><b>" . tr('Артикулът е стандартен и е достъпен във всички папки.') . "</b></div>", 'content');
-			$tpl->append("<div><i><small>" . tr('Като частен е бил споделен в папките на:') . "</small></i></div>", 'content');
+    		if($data->isProto === TRUE){
+    			$tpl->append("<div style='margin-bottom:5px'><b>" . tr('Създадените на база прототипа артикули, ще са споделени в папките на') . "</b></div>", 'content');
+    		} else {
+    			$tpl->append("<div><b>" . tr('Артикулът е стандартен и е достъпен във всички папки.') . "</b></div>", 'content');
+    			$tpl->append("<div style='margin-bottom:5px'><i><small>" . tr('Като частен е бил споделен в папките на:') . "</small></i></div>", 'content');
+    		}
     	}
     	
     	if(is_array($data->rows)){

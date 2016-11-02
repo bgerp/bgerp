@@ -104,8 +104,13 @@ class doc_FilesPlg extends core_Plugin
             $threadLink = '';
             $folderLink = '';
             
-            // Документа
-            $doc = doc_Containers::getDocument($fRec->containerId);
+            try {
+                // Документа
+                $doc = doc_Containers::getDocument($fRec->containerId);
+            } catch(ErrorException $e) {
+            	
+                continue;
+            }
             
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
@@ -121,13 +126,18 @@ class doc_FilesPlg extends core_Plugin
             // id' то на контейнера на пъривя документ
             $firstContainerId = doc_Threads::fetchField($fRec->threadId, 'firstContainerId');
             
-            if ($firstContainerId != $fRec->containerId) {
+            if ($firstContainerId && ($firstContainerId != $fRec->containerId)) {
                 
                 // Ако има първи контейнер
                 if (!$threadArr[$fRec->threadId]) {
                     
-                    // Първия документ в нишката
-                    $docProxy = doc_Containers::getDocument($firstContainerId);
+                    try {
+                        // Първия документ в нишката
+                        $docProxy = doc_Containers::getDocument($firstContainerId);
+                    } catch (Exception $e) {
+                    
+                        continue;
+                    }
                     
                     // Полетата на документа във вербален вид
                     $docProxyRow = $docProxy->getDocumentRow();
@@ -217,8 +227,13 @@ class doc_FilesPlg extends core_Plugin
             // Ако нямаме права за листване на записа продължаваме
             if (!doc_Files::haveRightFor('list', $fRec)) continue;
             
-            // Документа
-            $doc = doc_Containers::getDocument($fRec->containerId);
+            try {
+                // Документа
+                $doc = doc_Containers::getDocument($fRec->containerId);
+            } catch (ErrorException $e) {
+            
+                continue;
+            }
             
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
@@ -242,8 +257,13 @@ class doc_FilesPlg extends core_Plugin
             // Ако има първи контейнер и не е равен на съответния контейнер
             if (($firstContainerId) && ($firstContainerId != $fRec->containerId)) {
                 
-                // Първия документ в нишката
-                $docProxy = doc_Containers::getDocument($firstContainerId);
+                try {
+                    // Първия документ в нишката
+                    $docProxy = doc_Containers::getDocument($firstContainerId);
+                } catch (ErrorException $e) {
+                    
+                    continue;
+                }
                 
                 // Полетата на документа във вербален вид
                 $docProxyRow = $docProxy->getDocumentRow();

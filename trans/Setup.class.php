@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Период, на който крона ще затваря миналите Линии и ще генерира нови
  */
@@ -51,9 +52,6 @@ class trans_Setup extends core_ProtoSetup
     var $managers = array(
             'trans_Vehicles',
     		'trans_Lines',
-            'trans_FeeZones',
-            'trans_Zones',
-            'trans_Fees'
         );
 
         

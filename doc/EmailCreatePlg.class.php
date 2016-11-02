@@ -40,7 +40,9 @@ class doc_EmailCreatePlg extends core_Plugin
         
         setIfNot($emailButtonText, 'Имейл');
         
-        if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected') && email_Outgoings::haveRightFor('add')) {
+        setIfNot($mvc->canEmailDraft, FALSE);
+        
+        if (($data->rec->state != 'draft' || $mvc->canEmailDraft) && ($data->rec->state != 'rejected') && email_Outgoings::haveRightFor('add')) {
             $retUrl = array($mvc, 'single', $data->rec->id);
             
             if(email_Outgoings::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){

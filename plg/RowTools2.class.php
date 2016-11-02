@@ -23,7 +23,7 @@ class plg_RowTools2 extends core_Plugin
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
-    {   
+    {
         static $titleDD;
         if(!$titleDD) {
             $titleDD = tr('Отваряне');
@@ -189,6 +189,10 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
+        $data->listFields = arr::make($data->listFields, TRUE);
+
+        unset($data->listFields['_rowTools']);
+
         if (!is_array($data->rows) || empty($data->rows)) return ;
         
         $mustShow = FALSE;

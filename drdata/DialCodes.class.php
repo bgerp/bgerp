@@ -55,7 +55,7 @@ class drdata_DialCodes extends core_Manager {
     /**
      * Изчистване на данните преди запис
      */
-    function on_BeforeSave($mvc, $id, &$rec)
+    function on_BeforeImportRec($mvc, $rec)
     {
         $rec->areaCode = trim($rec->areaCode);
     }
@@ -76,7 +76,7 @@ class drdata_DialCodes extends core_Manager {
         $format = array('delimiter' => '|');
         
         // Импорт на данните
-        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields, NULL, $format);        
+        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields, NULL, $format);        
 
         $res .= $cntObj->html;
     }

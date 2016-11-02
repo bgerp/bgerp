@@ -2,14 +2,14 @@
 
 
 /**
- * Прокси на 'colab_Threads' позволяващ на партньор в роля 'contractor' да има достъп до нишките в споделените
+ * Прокси на 'colab_Threads' позволяващ на партньор в роля 'collaborator' да има достъп до нишките в споделените
  * му папки, ако първия документ в нишката е видим за партньори, и папката е спдоелена към партньора той може да
  * види нишката. При Отваряне на нишката вижда само тези документи, които са видими за партньори
  *
  * @category  bgerp
  * @package   colab
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.12
  */
@@ -20,49 +20,67 @@ class colab_Threads extends core_Manager
 	/**
 	 * Заглавие на мениджъра
 	 */
-	var $title = "Споделени нишки";
+	public $title = "Споделени нишки";
 	
 	
 	/**
 	 * Наименование на единичния обект
 	 */
-	var $singleTitle = "Нишка";
+	public $singleTitle = "Нишка";
+	
+	
+	/**
+	 * 10 секунди време за опресняване на нишката
+	 */
+	public $refreshRowsTime = 10000;
 	
 	
 	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	var $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers';
+	public $loadList = 'cms_ExternalWrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers, doc_ThreadRefreshPlg, plg_RefreshRows';
 	
 	
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
+    public $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
 	
 	
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	var $searchFields = 'title';
+	public $searchFields = 'title';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	var $canRead = 'contractor';
-	
+	public $canRead = 'collaborator';
+
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	var $canSingle = 'contractor';
+	public $canSingle = 'collaborator';
 	
 	
 	/**
 	 * Кой има право да листва всички профили?
 	 */
-	var $canList = 'contractor';
+	public $canList = 'collaborator';
+	
+	
+	/**
+	 * Инстанция на doc_Threads
+	 */
+	public $Threads;
+	
+	
+	/**
+	 * Инстанция на doc_Threads
+	 */
+	public $Containers;
 	
 	
 	/**
@@ -118,6 +136,7 @@ class colab_Threads extends core_Manager
 		
 		// Създаваме обекта $data
 		$data = new stdClass();
+		$data->action = 'single';
 		$data->listFields = 'created=Създаване,document=Документи';
 		$data->threadId = $id;
 		$data->threadRec = $this->Threads->fetch($id);
@@ -128,10 +147,16 @@ class colab_Threads extends core_Manager
 		$this->requireRightFor('single', $data->threadRec);
 		
 		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
+		$cu = core_Users::getCurrent();
+		$sharedUsers = colab_Folders::getSharedUsers($data->folderId);
+		$sharedUsers[$cu] = $cu;
+		$sharedUsers = implode(',', $sharedUsers);
+		
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
-		$data->query->where("#visibleForPartners = 'yes'");
-		$data->query->where("#state != 'draft'");
+		$data->query->where("#visibleForPartners = 'yes' || #createdBy IN ({$sharedUsers})");
+		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy  IN ({$sharedUsers}))");
+		$data->query->orderBy('id', 'ASC');
 		
 		$this->prepareTitle($data);
 		
@@ -161,6 +186,34 @@ class colab_Threads extends core_Manager
 		$tpl = $this->renderWrapping($tpl, $data);
 		
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Извиква се след подготовката на toolbar-а за табличния изглед
+	 */
+	public static function on_AfterPrepareListToolbar($mvc, &$data)
+	{
+		if(!Request::get('Rejected')) {
+			$documents = colab_Setup::get('CREATABLE_DOCUMENTS_LIST');
+			$documents = keylist::toArray($documents);
+			if(is_array($documents)){
+				foreach ($documents as $docId){
+					$Doc = cls::get($docId);
+			
+					if($Doc->haveRightFor('add', (object)array('folderId' => $data->folderId))){
+						$data->toolbar->addBtn($Doc->singleTitle, array($Doc, 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE), "ef_icon={$Doc->singleIcon}");
+					}
+				}
+			}
+		}
+		
+		doc_Threads::addBinBtnToToolbar($data);
+		
+		if(Request::get('Rejected')) {
+			$data->toolbar->removeBtn('*', 'with_selected');
+			$data->toolbar->addBtn('Всички', array('colab_Threads', 'list', 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
+		}
 	}
 	
 	
@@ -232,9 +285,28 @@ class colab_Threads extends core_Manager
            			$row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
         		}
         		
+                $row->allDocCnt = $row->partnerDocCnt;
+
 				$data->rows[$id] = $row;
 			}
 		}
+	}
+	
+	
+	/**
+	 * Преди подготовка на данните за табличния изглед правим филтриране
+	 * на записите, които са (или не са) оттеглени и сортираме от нови към стари
+	 */
+	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+	{
+		if(isset($data->query)) {
+            if(Request::get('Rejected')) {
+                $data->query->where("#state = 'rejected'");
+            } else {
+                $data->rejQuery->where("#state = 'rejected'");
+         	    $data->query->where("#state != 'rejected' OR #state IS NULL");
+            }
+        }
 	}
 	
 	
@@ -247,7 +319,7 @@ class colab_Threads extends core_Manager
 		
 		$data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
 		$data->listFilter->setField('folderId', 'input=hidden,silent');
-		$data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)',
+		$data->listFilter->FNC('order', 'enum(' . doc_Threads::filterList . ')',
 				'allowEmpty,caption=Подредба,input,silent,autoFilter');
 		$data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
 		
@@ -266,6 +338,7 @@ class colab_Threads extends core_Manager
 		}
 		
 		doc_Threads::applyFilter($data->listFilter->rec, $data->query);
+		$data->rejQuery = clone($data->query);
 	}
 	
 	
@@ -274,6 +347,12 @@ class colab_Threads extends core_Manager
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
+		// Ако пакета 'colab' не е инсталиран, никой не може нищо
+		if(!core_Packs::isInstalled('colab')){
+			$requiredRoles = 'no_one';
+			return;
+		}
+		
 		if($action == 'list' && isset($rec->folderId)) {
 			if($rec->folderState == 'rejected'){
 				$requiredRoles = 'no_one';
@@ -281,12 +360,11 @@ class colab_Threads extends core_Manager
 		}
 		
 		if($action == 'list') {
-		    
+			
     		if (is_null($userId)) {
     	        $requiredRoles = 'no_one';
     	    } else {
         	    $folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
-    			
     			$sharedFolders = colab_Folders::getSharedFolders($userId);
     				
     			if(!in_array($folderId, $sharedFolders)){
@@ -308,30 +386,28 @@ class colab_Threads extends core_Manager
     	    }
 			
 			if ($rec->firstContainerId) {
+				$sharedUsers = colab_Folders::getSharedUsers($rec->folderId);
+				$sharedUsers[$userId] = $userId;
+				
     			// Трябва първия документ в нишката да е видим за партньори
     			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-    			if($firstDocumentIsVisible != 'yes'){
+    			if($firstDocumentIsVisible != 'yes' && !in_array($rec->createdBy, $sharedUsers)){
     				$requiredRoles = 'no_one';
     			} 
     			
     			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
-    			if($firstDocumentState == 'draft'){
+    			if($firstDocumentState == 'draft' && !in_array($rec->createdBy, $sharedUsers)){
     				$requiredRoles = 'no_one';
     			}
 			} else {
 			    $requiredRoles = 'no_one';
-			}
-			
-			// Ако треда е оттеглен, не може да се гледа от партньора
-			if($rec->state == 'rejected'){
-				$requiredRoles = 'no_one';
 			}
 		}
 		
 		if($requiredRoles != 'no_one'){
 			
 			// Ако потребителя няма роля партньор, не му е работата тук
-			if(!core_Users::isContractor()){
+			if(!core_Users::haveRole('collaborator', $userId)){
 				$requiredRoles = 'no_one';
 			}
 		}
@@ -351,15 +427,18 @@ class colab_Threads extends core_Manager
 			$folderId = $params['folderId'];
 		}
 		
-		$sharedFolders = cls::get('colab_Folders')->getSharedFolders();
+		$cu = core_Users::getCurrent();
+		$sharedFolders = colab_Folders::getSharedFolders();
+		$sharedUsers = colab_Folders::getSharedUsers($folderId);
+		$sharedUsers[$cu] = $cu;
+		$sharedUsers = implode(',', $sharedUsers);
 		
 		$params['where'][] = "#folderId = {$folderId}";
 		$res = $this->Threads->getQuery($params);
-		$res->where("#state != 'rejected'");
 		$res->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
 		$res->EXT('firstDocumentState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
-		$res->where("#visibleForPartners = 'yes'");
-		$res->where("#firstDocumentState != 'draft'");
+		$res->where("#visibleForPartners = 'yes' || #createdBy IN ({$sharedUsers})");
+		$res->where("#firstDocumentState != 'draft' || (#firstDocumentState = 'draft' AND #createdBy IN ({$sharedUsers}))");
 		$res->in('folderId', $sharedFolders);
 	
 		return $res;
@@ -373,4 +452,18 @@ class colab_Threads extends core_Manager
 	{
 		$mvc->prepareTitle($data);
 	}
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        doc_Threads::getContentHash_($status);
+    }
 }

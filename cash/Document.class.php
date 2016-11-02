@@ -199,7 +199,12 @@ abstract class cash_Document extends deals_PaymentDocument
     	$form->setDefault('currencyId', $cId);
     	
     	if($expectedPayment = $dealInfo->get('expectedPayment')){
-    		$amount = $expectedPayment / $dealInfo->get('rate');
+    		if(isset($form->rec->originId) && isset($form->rec->amountDeal)){
+    			$expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
+    		}
+    		 
+    		$amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+    		
     		if($form->rec->currencyId == $form->rec->dealCurrencyId){
     			$form->setDefault('amount', $amount);
     		}
@@ -471,9 +476,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	$row->title = $mvc->getLink($rec->id, 0);
     	
     	if($fields['-single']){
-    
-    		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-    		$row->contragentAddress = $contragent->getFullAdress();
     		
     		if($rec->dealCurrencyId != $rec->currencyId){
     			$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
@@ -502,10 +504,10 @@ abstract class cash_Document extends deals_PaymentDocument
     		$row->amountVerbal = str::mbUcfirst($amountVerbal);
     		 
     		// Вземаме данните за нашата фирма
-    		$ownCompanyData = crm_Companies::fetchOwnCompany();
-    		$Companies = cls::get('crm_Companies');
-    		$row->organisation = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    		$row->organisationAddress = $Companies->getFullAdress($ownCompanyData->companyId);
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+    		foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld){
+    			$row->{$fld} = $headerInfo[$fld];
+    		}
     
     		// Извличаме имената на създателя на документа (касиера)
     		$cashierRec = core_Users::fetch($rec->createdBy);

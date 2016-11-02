@@ -192,14 +192,16 @@ class blogm_Articles extends core_Master {
     /**
      * След обновяването на коментарите, обновяваме информацията в статията
      */
-    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {  
         if($detailMvc->className == 'blogm_Comments') {
             $queryC = $detailMvc->getQuery();
             $queryC->where("#articleId = {$id} AND #state = 'active'");
             $rec = $mvc->fetch($id);
-            $rec->commentsCnt = $queryC->count(); 
-            $mvc->save($rec);
+            if(is_object($rec)){
+            	$rec->commentsCnt = $queryC->count();
+            	$mvc->save($rec);
+            }
         }
     }
 	
@@ -643,11 +645,6 @@ class blogm_Articles extends core_Master {
             }
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
         }
-
-        if($data->q) {
-        	plg_Search::applySearch($data->q, $data->query);
-            vislog_History::add("Търсене в блога: {$q}");
-        }
         
         if($data->archive) {  
             $data->query->where("#createdOn LIKE '{$data->archiveY}-{$data->archiveM}-%'");
@@ -703,13 +700,18 @@ class blogm_Articles extends core_Master {
         // Определяне на титлата
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
-            $data->title = "<b style='color:#666;'>" . tr('Търсене във всички статии') . "</b>";
-            if(!count($data->rows)) {
-   			    $data->descr = "<p><b style='color:#666;'>" . tr('Няма резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
-            } else {
-			    $data->descr = "<p><b style='color:#666;'>" . tr('Резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
-            }
+            
+            $domainId = cms_Domains::getPublicDomain('id');
+            $clsId = core_Classes::getId('blogm_Articles');
 
+            $cRec = cms_Content::fetch("#domainId = {$domainId} AND #source = {$clsId}");
+
+            $data->descr = cms_Content::renderSearchResults($cRec->id, $data->q);
+            vislog_History::add("Търсене в блога: {$data->q}");
+
+            $data->title = NULL;
+            $data->rows = array();
+    
 		} elseif( isset($data->archive)) {  
    			$data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
         } elseif(isset($data->category)) {
@@ -718,7 +720,7 @@ class blogm_Articles extends core_Master {
                 error('404 Липсваща категория', array("Липсва категория:  {$data->category}"));
             }
 
-   			$data->title = tr('Статии в') .  '&nbsp;"<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+   			$data->title = tr('Статии в') .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
             if(!count($data->rows)) {
                 $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';
@@ -1072,6 +1074,68 @@ class blogm_Articles extends core_Master {
 
         return $url;
     }
+
+
+    /**
+     * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
+     */
+    static function getSearchResults($menuId, $q, $maxResults = 15)
+    { 
+        $res = array();
+
+        $cRec = cms_Content::fetch($menuId);
+        
+        $gQuery = blogm_Categories::getQuery();
+        $groupsArr = array();
+        while($gRec = $gQuery->fetch("#domainId = {$cRec->domainId}")) {
+            $groupsArr[$gRec->id] = $gRec;
+        }
+
+        $queryM = self::getQuery();
+        $queryM->where("#state = 'active'");
+        $queryM->likeKeylist('categories', keylist::fromArray($groupsArr));
+        $queryM->limit($maxResults);
+        $queryM->orderBy('modifiedOn=DESC');
+
+        $query = clone($queryM);
+        plg_Search::applySearch($q, $query, NULL, 5, 64);
+
+        while($r = $query->fetch()) {
+            $title = $r->title;
+            $url = self::getUrl($r);
+            $url['q'] = $q;
+
+            $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+        }
+        
+        if(count($res) < $maxResults) {
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query, NULL, 9);
+            while($r = $query->fetch()) {
+                $title = $r->title;
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
+        }
+
+        if(count($res) < $maxResults) {
+            $query = clone($queryM);
+            plg_Search::applySearch($q, $query, NULL, 3);
+            while($r = $query->fetch()) {
+                $title = $r->title;
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+            }
+        }
+      
+ 
+        return $res; 
+    }
+
 
     
     /**

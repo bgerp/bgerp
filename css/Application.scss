@@ -322,6 +322,7 @@ div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
 	max-width: 720px;
+	min-width: 540px;
 	margin-top: 10px;
 	line-height: 1.2em;
 	position: relative;
@@ -564,7 +565,7 @@ tr.row-removed {
 	.user-title {
 		position: relative;
 		padding: 70px 20px 10px 132px;
-		font-size: 1.3em;
+
 		text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
 		background: rgb(234,234,234); /* Old browsers */
 		background: -moz-linear-gradient(top, rgba(234,234,234,1) 0%, rgba(97,97,98,1) 100%); /* FF3.6+ */
@@ -577,9 +578,18 @@ tr.row-removed {
 		color: #fff;
 		font-weight: bold;
 		border-radius: 5px 5px 0 0;
+		&.statusClass {
+			padding:  54px 20px 6px 132px;
+			.timeSpan {
+				color: #FFF !important;
+			}
+		}
 		.linkWithIcon {
             color: #fff !important;
         }
+		.user-name {
+			font-size: 1.3em;
+		}
 	}
    .profile-image > a, .profile-image div {
 		position: absolute;
@@ -670,7 +680,14 @@ tr.row-removed {
 		float: none;
 		margin-left: 0;
 	}
-} 
+}
+
+.personStatus {
+	color: #fff !important;
+	margin-top: 5px;
+	display: block;
+}
+
 /*край на потребителски профил*/
 
 
@@ -734,6 +751,19 @@ div.productImage {
 	}
 	.anchor-arrow {
 	   margin-top: -3px;
+	}
+}
+
+.group-link {
+	font-size: 0.8em;
+	background-color: #e4e4e4;
+	border: 1px solid #aaa;
+	border-radius: 4px;
+	margin-top: 5px;
+	padding: 1px 5px;
+	cursor: pointer;
+	&:hover {
+		background-color: #f1f1f1;
 	}
 }
 
@@ -950,6 +980,11 @@ div.mobile {
 }
 
 /*край на стилове за CRM*/
+
+.groupTitle {
+	padding: 0 2px;
+    border-radius:5px;
+}
 
 option.team {
 	background: black;
@@ -1269,7 +1304,6 @@ td.portal-date {
 /*тредове*/
 .single-thread > .listRows > .listTable > tbody > tr > td {
 	padding: 9px;
-	max-width: 56em;
 }
 
 .doc_Containers table.listTable td {
@@ -1305,6 +1339,19 @@ td.portal-date {
 	background-color: #e0f0e0;
 }
 
+a.tUnsighted {
+    font-weight: bold;
+     
+     
+    &:hover {
+        color: #e70 !important;
+    }
+}
+
+a.tOld {
+	opacity: 0.8;
+}
+
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td{
 	background-color: #fed7d6;
@@ -1315,7 +1362,7 @@ td.portal-date {
 .document {
 	width: 100%;
     min-width: 50em;
-    max-width: 56em;
+    max-width: 60em;
 	border: solid 1px $gray4;
 	background: #ffffff;
 	@include border-radius(5px);
@@ -1513,9 +1560,13 @@ td.portal-date {
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 	display: inline;
 	float: none;
-	.liked, .disliked {
+	.liked, .disliked, .linkWithIcon {
 		position: relative;
-		top: 3px;
+		top: 2px;
+		margin-left: 0;
+	}
+	.document-settings .linkWithIcon, .eyeIcon {
+		margin-right: 5px;
 	}
 }
 
@@ -1531,13 +1582,6 @@ td.portal-date {
 .narrow .docBgIcon {
 	font-size: 0.9em;
 	padding-right: 20px;
-}
-
-.narrow .document-settings {
-    position: absolute;
-    right: 2px;
-    top:50%;
-    margin-top: -10px;
 }
 
 .narrow .document-settings-left span {
@@ -1677,6 +1721,13 @@ pre.document {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
     zoom: 1;
 	background: rgba(200, 200, 200, 0.3);
+	span.timeSpan {
+		white-space: nowrap;
+	}
+	.linkWithIcon {
+		margin-bottom: 0;
+	}
+
 }
 
 .antetkaCell {
@@ -1925,16 +1976,17 @@ div.attachments {
 
 
 /*стилове за responsive дизайн на вградени ресурси*/
-.embedded-holder{
-	img{
+.embedded-holder {
+	img {
 		max-width: 100%;
 		height: auto;
 	}
+
 	.embedded {
 		position: relative;
 		padding-bottom: 56.25%;
 		padding-top: 30px;
-		height: 0; 
+		height: 0;
 		overflow: hidden;
 		embed, object, iframe, > a > img {
 			position: absolute;
@@ -1949,6 +2001,26 @@ div.attachments {
 		margin-top: 5px;
 	}
 }
+
+.narrow .mejs-container {
+	width: 100% !important;
+	height: auto !important;
+	padding-top: 57%;
+}
+.narrow .mejs-overlay, .narrow  .mejs-poster {
+	width: 100% !important;
+	height: 100% !important;
+}
+.narrow .mejs-mediaelement video {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100% !important;
+	height: 100% !important;
+}
+
 /*край на стилове за responsive дизайн на вградени ресурси*/
 
 
@@ -2261,6 +2333,9 @@ ul.history {
         &.export b {
 			background-color: #37f;
 		}
+		&.expenseSummary b {
+			background-color: orange;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
@@ -2398,9 +2473,18 @@ fieldset.sharing-history {
     background-color:white;
 }
 
+#all #maincontent .richtext a:hover, #all #maincontent .richtext a:visited:hover {
+	color: #ee7700 !important;
+}
+
 .narrow #all .vertical .formTable{
     padding: 5px;
 }
+
+.filterForm #filter {
+	padding-left: 20px !important;
+}
+
 /*край на външни стилове за ширина*/
 .background-holder {
 	padding: 0;
@@ -2528,26 +2612,22 @@ fieldset.sharing-history {
 	margin-top: 7px;
 }
 
-.drawing {
-	float: right;
+.wide .eprod-form {
+	display: table-row;
+	.drawing, .vertical {
+		display: table-cell;
+		vertical-align: top;
+	}
+}
+
+.wide .drawing img {
 	max-width: 380px;
-	img {
-		max-width: 380px;
-	}
 }
 
-@media handheld , only screen and (max-width: 1600px) {
-	.sidemenu-push-toright.sidemenu-push-toleft .drawing{
-		float: none;
-	}
+.narrow .drawing img{
+	width: 100%;
+	max-width: 460px !important;
 }
-
-@media handheld , only screen and (max-width: 1400px) {
-	.sidemenu-push .drawing{
-		float: none;
-	}
-}
-
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;
@@ -2568,35 +2648,32 @@ fieldset.sharing-history {
     }
 }
 
-.cmsTopContractor {
-    position: relative;
-    min-height: 180px;
-    background: #cce8fb;
-    background: radial-gradient(#cce8fb, #767BB8);
-    border-bottom: 1px solid #777;
+.narrow .logoutBlock {
+	background: #BABACB;
 }
 
-.wide .cmsTopContractor .app-name {
-    top: 10%;
+.cmsTopContractor {
+    position: relative;
 }
+
 .foldertabs {
-    .tab-row {
+    > .tab-row {
         overflow: hidden;
         width: 100%;
-        margin: 0;
         padding: 0;
+		margin-left: 20px;
         list-style: none;
     }
 
-    .tab-row .tab {
+    > .tab-row > .row-holder > .tab {
         float: left;
         z-index: auto !important;
-        margin: 0 .5em 0 0;
+		margin: 1px 0 -1px 2px !important;
         padding: 0 !important;
         border-top: 1px solid #ccc !important;
     }
 
-    .tab-row .tab .tab-title {
+	> .tab-row > .row-holder > .tab >  .tab-title {
 
         position: relative;
         background: #ddd;
@@ -2610,21 +2687,21 @@ fieldset.sharing-history {
         border-radius: 5px 0 0 0;
         box-shadow: 0 2px 2px rgba(0,0,0,.4);
     }
-    .tab-row .tab span.tab-title {
+	> .tab-row > .row-holder > .tab >  span.tab-title {
         color: #ccc;
     }
-    .tab-row .tab .tab-title:hover,
-    .tab-row .tab .tab-title:hover::after,
-    .tab-row .tab .tab-title:focus,
-    .tab-row .tab .tab-title:focus::after {
+	> .tab-row > .row-holder > .tab >  .tab-title:hover,
+	> .tab-row > .row-holder > .tab >  .tab-title:hover::after,
+	> .tab-row > .row-holder > .tab >  .tab-title:focus,
+	> .tab-row > .row-holder > .tab >  .tab-title:focus::after {
         background: #fff;
     }
 
-    .tab-row .tab .tab-title:focus {
+	> .tab-row > .row-holder > .tab >  .tab-title:focus {
         outline: 0;
     }
 
-    .tab-row .tab .tab-title::after {
+	> .tab-row > .row-holder > .tab >  .tab-title::after {
         content:'';
         position:absolute;
         z-index: 1;
@@ -2640,17 +2717,17 @@ fieldset.sharing-history {
     }
 
 
-    .tab-row .tab.selected .tab-title,
-    .tab-row .tab.selected .tab-title::after {
+	> .tab-row > .row-holder > .tab.selected .tab-title,
+	> .tab-row > .row-holder > .tab.selected .tab-title::after {
         background: #fff !important;
         z-index: 3;
     }
-    .tab-row .tab:hover .tab-title,
-    .tab-row .tab:hover .tab-title::after {
+	> .tab-row > .row-holder > .tab:hover .tab-title,
+	> .tab-row > .row-holder > .tab:hover .tab-title::after {
         background: #fff;
         z-index: 4;
     }
-    .tab-page  {
+    > .tab-page  {
         background: #fff;
         border-radius: 0 !important;
         z-index: 2;
@@ -2662,6 +2739,66 @@ fieldset.sharing-history {
 
 .contractorExtHolder {
     padding: 10px;
+	.deal-history-tab .tab {
+		margin: 0 5px 0 0  !important;
+	}
+	.textWithIcons span:not(.highlight) {
+		top: 0px !important;
+		img {
+			top: -2px;
+			position: relative;
+		}
+	}
+	a.button, input[type="button"], input[type="submit"], button {
+		background-position: 4px center !important;
+		padding: 0.34em 5px 0.34em 23px !important;
+		background-repeat: no-repeat !important;
+		background-color: #dddddd;
+		border: 1px solid #bbbbbb !important;
+		-moz-border-radius: 3px !important;
+		-webkit-border-radius: 3px !important;
+		border-radius: 3px !important;
+		color: #333333;
+		font-family: arial;
+		font-weight: bold;
+		text-decoration: none;
+		border-right: 1px solid #dfdfdf;
+		border-bottom: 1px solid #b4b4b4;
+		border-right: 1px solid #dfdfdf;
+		-webkit-box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.8);
+		box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.8);
+		text-shadow: 0 1px 0px #f1f1f1;
+		&:hover {
+			background-color: #e5e5e5;
+			&.btn-disabled {
+				background-color: #dddddd;
+			}
+		}
+	}
+	select, input, textarea, .chzn-container-single .chzn-single, .chzn-container-active .chzn-single, .chzn-container-active .chzn-single-with-drop, .staticFormView .formFieldValue {
+		border: solid 1px #bbb;
+		-moz-border-radius: 2px !important;
+		-webkit-border-radius: 2px !important;
+		border-radius: 2px !important;
+		-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .08);
+		box-shadow: inset 0 1px 1px rgba(0, 0, 0, .08);
+	}
+	.select2-container--default .select2-selection--single, .select2-dropdown, .select2-container--default .select2-selection--multiple {
+		border: solid 1px #bbb;
+		border-radius: 2px;
+	}
+	.vertical .formTitle a {
+		color: #ccc !important;
+		&:hover {
+			color: #fff !important;
+		}
+	}
+	.vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {
+		text-shadow: none;
+	}
+	.toolbar-btn{
+		max-width: 16px !important;
+	}
 }
 
 .narrow #login-form {	   
@@ -4068,32 +4205,26 @@ body.narrow {
 }
 
 @media handheld, only screen and (max-width: 1200px) {
-    .wide .app-name {
-         font-size: 7.5em;
-    }
-    .wide #all, .wide #cmsTop, .wide #cmsTop img{
-       border-radius: 0;
-    }
-    .drawing {
-		max-width: 350px;
+	.wide .app-name {
+		font-size: 7.5em;
 	}
-}
-@media handheld, only screen and (max-width: 1100px) {
-    .drawing {
-		max-width: 270px;
+	.wide #all, .wide #cmsTop, .wide #cmsTop img {
+		border-radius: 0;
 	}
+	.document {
+		min-width: 40em;
+	}
+	.
 }
+
 @media handheld , only screen and (max-width: 1024px) {
     .document{
-        max-width: 52.5em;
+        max-width: 40em;
+		min-width: 30em;
     }
     .wide .app-name {
          font-size: 6.4em;
     }
-    .drawing {
-		max-width: 500px;
-		float: none;
-	}
 }
 
 /* Mobile */
@@ -4587,6 +4718,12 @@ body.narrow {
     .listTable td {
         vertical-align: top !important;
     }
+	.extState {
+		font-weight: bold;
+		margin-bottom: 10px;
+		font-size: 1.1em;
+		text-transform: uppercase;
+	}
 }
  
 .wide .external .vertical .formTable {
@@ -4611,6 +4748,8 @@ body.narrow {
 @media print{
 	.document{
         width: 100%;
+		max-width: 1200px;
+		padding: 0px !important;
 	}
 	.no-print {
 	   display: none;
@@ -4792,6 +4931,9 @@ body.narrow {
     .printVisible {
 	    display: block;
 	}
+	thead {
+		display:table-row-group;
+	}
 }
 
 .printing {
@@ -4810,12 +4952,11 @@ body.narrow {
 		border: none;
 		background: #ffffff;
 		@include no-shadow();
-	    margin: 10px 0 20px 1px;
+	    margin: 10px 0 20px 0px;
 	    padding: 2px;
 		float: none;
 		min-width: 0;
 		max-width: 840px;
-
 	}
 	.no-print {
        display: none;
@@ -4904,6 +5045,11 @@ body.narrow {
     .header-state {
         display: none;
     }
+	.group-link:hover {
+		cursor: default;
+		background-color: #e4e4e4;
+		color: #e70 !important;
+	}
 }
 
 .narrow .printing .document{
@@ -5233,6 +5379,9 @@ body.narrow {
     z-index: 9999;
     padding: 10px;
     font-size: 0.9em;
+	.timeSpan {
+		color: #ff9 !important;
+	}
 }
 
 .narrow .tooltip {

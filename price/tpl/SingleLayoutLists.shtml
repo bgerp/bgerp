@@ -1,13 +1,8 @@
-<div class="singleView">
-    [#SingleToolbar#]
-    <h2> <b style="color:green;">[#SingleTitle#]</b></h2>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
     <table class="styled-table" style='min-width:300px'>
-        <tr>
-            <td class="title-style">№</td>
-            <td>[#id#]</td>
-        </tr>
-        <tr>
-            <td class="title-style">|Наименование|*</td>
+    	<tr>
+            <td class="title-style">|Заглавие|*</td>
             <td>[#title#]</td>
         </tr>
         <!--ET_BEGIN parent-->
@@ -16,6 +11,14 @@
             <td>[#parent#]</td>
         </tr>
         <!--ET_END parent-->
+        
+        <!--ET_BEGIN defaultSurcharge-->
+        <tr>
+            <td class="title-style">|[#discountType#] по подразбиране|*</td>
+            <td>[#defaultSurcharge#]</td>
+        </tr>
+        <!--ET_END defaultSurcharge-->
+        
         <!--ET_BEGIN public-->
         <tr>
             <td class="title-style">|Публичен|*</td>
@@ -40,45 +43,42 @@
             <td>[#discountCompared#]</td>
         </tr>
         <!--ET_END discountCompared-->
-        <!--ET_BEGIN employersCnt-->
-    <!--ET_BEGIN clientInfo-->
-    [#clientInfo#]
+    	<!--ET_BEGIN clientInfo-->
+    		[#clientInfo#]
         <tr>
             <th colspan="2" style='padding-top: 15px;'>|Прикрепяне|*</th>
         </tr>
-        <tr>
-            <td class="title-style">|Клиент|*</td>
-            <td>[#customer#]</td>
-        </tr>
+        <!--ET_BEGIN validFrom-->
         <tr>
             <td class="title-style">|В сила от|*</td>
             <td>[#validFrom#]</td>
         </tr>
-        <!--ET_END employersCnt-->
-    
+        <!--ET_END validFrom-->
     <!--ET_END clientInfo-->
     <!--ET_BEGIN roundingPrecisionTable-->
     [#roundingPrecisionTable#]
         <tr>
             <th colspan="2" style='padding-top: 15px;'>|Закръгляне|*</th>
         </tr>
-        <!--ET_BEGIN roundingPrecision-->
+        <!--ET_BEGIN significantDigits-->
         <tr>
-            <td class="title-style">|Десетични знаци|*</td>
-            <td>[#roundingPrecision#]</td>
+            <td class="title-style">|Значещи цифри|*</td>
+            <td>[#significantDigits#]</td>
         </tr>
-        <!--ET_END roundingPrecision-->
-        <!--ET_BEGIN roundingOffset-->
+        <!--ET_END significantDigits-->
+        <!--ET_BEGIN minDecimals-->
         <tr>
-            <td class="title-style">|Отместване|*</td>
-            <td>[#roundingOffset#]</td>
+            <td class="title-style">|Мин. цифри|*</td>
+            <td>[#minDecimals#]</td>
         </tr>
-        <!--ET_END roundingOffset-->
+        <!--ET_END minDecimals-->
     <!--ET_END roundingPrecisionTable-->
+    
+     <!--ET_BEGIN connectedClients-->
+        <tr>
+            <td class="title-style" style='vertical-align:top'>|Свързани клиенти|*</td>
+            <td>[#connectedClients#]</td>
+        </tr>
+        <!--ET_END connectedClients-->
     </table>
-    <div><span class="title-style">|Създаване|*: </span>[#createdBy#], [#createdOn#]</div>
-    <br>
-    <div class='scrolling-holder'>
-        [#DETAILS#]
-    </div>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

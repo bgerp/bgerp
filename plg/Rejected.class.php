@@ -21,7 +21,7 @@ class plg_Rejected extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public static function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
         $mvc->FLD('state', 'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
@@ -44,7 +44,7 @@ class plg_Rejected extends core_Plugin
     /**
      * Добавя бутон за оттегляне
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec)) {
             $data->toolbar->addBtn('Оттегляне', array(
@@ -72,11 +72,8 @@ class plg_Rejected extends core_Plugin
     /**
      * Добавя бутон за показване на оттеглените записи
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {   
-        if(!$mvc->haveRightFor('restore') && !$mvc->haveRightFor('reject')) {
-            return;
-        }
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', "ef_icon = img/16/application_view_list.png,title=Всички " . mb_strtolower($mvc->title));
@@ -159,7 +156,7 @@ class plg_Rejected extends core_Plugin
      *
      * @return core_Redirect
      */
-    function on_BeforeAction(core_Manager $mvc, &$res, $action)
+    public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if ($action == 'reject') {
             expect(Request::isConfirmed());
@@ -200,7 +197,7 @@ class plg_Rejected extends core_Plugin
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id) {
             if($action == 'delete' && $rec->lastUsedOn) {
@@ -244,7 +241,7 @@ class plg_Rejected extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     { 
         
         // Добавяме скрито полето за оттегляне
@@ -276,10 +273,9 @@ class plg_Rejected extends core_Plugin
                 $data->query->where("#state = 'rejected'");
             } else {
                 $data->rejQuery = clone($data->query);
-                $data->query->where("#state != 'rejected' || #state IS NULL");
+                $data->query->where("#state != 'rejected' OR #state IS NULL");
                 $data->rejQuery->where("#state = 'rejected'");
             }
         }
     }
-
 }

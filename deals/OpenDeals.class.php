@@ -79,6 +79,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
+        $this->setDbIndex('valior');
     }
 	
 	
@@ -109,7 +110,7 @@ class deals_OpenDeals extends core_Manager {
     	$data->listFilter->FNC('sState', 'enum(pending=Чакащи,all=Всички)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
     	
-    	$data->listFilter->showFields = 'search,from,to';
+    	$data->listFilter->showFields = 'search,selectPeriod,from,to';
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
     		$data->listFilter->setDefault('sState', 'pending');
@@ -215,9 +216,9 @@ class deals_OpenDeals extends core_Manager {
 	    	foreach (array('Deal', 'Paid', 'Delivered') as $name){
 	    		$field = "amount{$name}";
 		    	
-	    		$row->$field = $mvc->getFieldType($field)->toVerbal($rec->$field / $docRec->currencyRate);
-		    	if(empty($rec->$field)){
-		    		$row->$field = "<span class='quiet'>{$row->$field}</span>";
+	    		$row->{$field} = $mvc->getFieldType($field)->toVerbal($rec->{$field} / $docRec->currencyRate);
+		    	if(empty($rec->{$field})){
+		    		$row->{$field} = "<span class='quiet'>{$row->{$field}}</span>";
 		    	}
 	    	}
 	    	

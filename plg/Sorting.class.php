@@ -27,7 +27,7 @@ class plg_Sorting extends core_Plugin
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    public static function on_AfterPrepareListFields($mvc, $data)
     {
         if($sort = Request::get('Sort')) {
             
@@ -43,10 +43,24 @@ class plg_Sorting extends core_Plugin
             foreach($data->listFields as $f => $caption) {
                 
                 if(empty($caption)) continue;
-                
+
                 if($mvc->fields[$f]) {
                     if($mvc->fields[$f]->sortingLike) {
                         $dbField = $mvc->fields[$f]->sortingLike;
+                    } elseif($mvc->fields[$f]->kind != 'FNC' && is_a($mvc->fields[$f]->type, 'type_Key')) {
+                        $type = $mvc->fields[$f]->type;
+                        if(($kField = $type->params['select']) && ($kMvc = $type->params['mvc'])) {
+                            $dbField = $f . '_' . 'sort';
+                        } else {
+                            continue;
+                        }
+                    } elseif($mvc->fields[$f]->kind != 'FNC' && is_a($mvc->fields[$f]->type, 'type_Key2')) {
+                        $type = $mvc->fields[$f]->type;
+                        if(($kField = $type->params['titleFld']) && ($kMvc = $type->params['mvc'])) {
+                            $dbField = $f . '_' . 'sort';
+                        } else {
+                            continue;
+                        }
                     } elseif($mvc->fields[$f]->kind != 'FNC' && !is_a($mvc->fields[$f]->type, 'type_Keylist') ) {
                         $dbField = $f;
                     } else {
@@ -58,9 +72,15 @@ class plg_Sorting extends core_Plugin
                             $data->plg_Sorting->fields[$f] = 'none';
                         } elseif ($direction == 'up') {
                             $data->plg_Sorting->fields[$f] = 'up';
+                            if(strpos($dbField, '_sort')) {
+                                $data->query->EXT($dbField, $kMvc, "externalName={$kField},externalKey={$f}");
+                            }
                             $data->query->orderBy("#{$dbField}", 'ASC');
                         } elseif ($direction == 'down') {
                             $data->plg_Sorting->fields[$f] = 'down';
+                            if(strpos($dbField, '_sort')) {
+                                $data->query->EXT($dbField, $kMvc, "externalName={$kField},externalKey={$f}");
+                            }
                             $data->query->orderBy("#{$dbField}", 'DESC');
                         } else {
                             error('@Неправилно сортиране', $field);
@@ -75,7 +95,7 @@ class plg_Sorting extends core_Plugin
     /**
      * Извиква се след рендирането на таблицата от табличния изглед
      */
-    function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
         	
@@ -125,11 +145,13 @@ class plg_Sorting extends core_Plugin
                 }
                  
                 if(isset($mvc->fields[$field]) && $mvc->fields[$field]->type->getTdClass() == 'rightCol') {
+                	$lastF = ltrim($lastF, '|*');
                     $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
                     " width='16' height='16' alt='sort' class='sortBtn'></a>" . "<div class='l'>|{$lastF}|*</div></div>";  
                 } else {
+                	$lastF = ltrim($lastF, '|*');
                     $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .

@@ -38,13 +38,21 @@ class cond_type_Component extends cond_type_Proto
 	/**
 	 * Връща инстанция на типа
 	 *
-	 * @param int $paramId - ид на параметър
-	 * @return core_Type - готовия тип
+	 * @param stdClass $rec      - запис на параметъра
+	 * @param NULL|string $value - стойност
+	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec)
-	{
+	public function getType($rec, $value = NULL)
+    {
 		$Type = core_Type::getByName("key(mvc=cat_Products,select=name,allowEmpty)");
 		$options = keylist::toArray($rec->products);
+		
+		if(isset($value)){
+			if(!array_key_exists($value, $options)){
+				$options[$value] = $value;
+			}
+		}
+		
 		if(is_array($options)){
 			foreach ($options as $id => &$opt){
 				$opt = cat_Products::getTitleById($id, FALSE);

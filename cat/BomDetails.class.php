@@ -151,6 +151,9 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
     	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=Количество,input=none,tdClass=accCell');
     	$this->FLD("coefficient", 'double', 'input=none');
+    	
+    	$this->setDbIndex('parentId');
+    	$this->setDbIndex('resourceId');
     }
 
 
@@ -284,14 +287,14 @@ class cat_BomDetails extends doc_Detail
     {
     	$rQuantity = cat_BomDetails::calcExpr($expr, $params);
     	if($rQuantity === self::CALC_ERROR) {
-    		$style = 'color:red; border:1px dotted red';
+    		$style = 'color:red;';
     	}
     	
     	// Намира контекста и го оцветява
     	$context = array();
     	if(is_array($params)){
     		foreach ($params as $var => $val){
-    			if($value !== self::CALC_ERROR && $var != '$T') {
+    			if($val !== self::CALC_ERROR && $var != '$T') {
     				$Double = cls::get('type_Double', array('params' => array('smartRound' => TRUE)));
     				$context[$var] = "<span style='color:blue' title='{$Double->toVerbal($val)}'>{$var}</span>";
     			} else {
@@ -359,7 +362,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param cat_BomDetails $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -776,7 +779,7 @@ class cat_BomDetails extends doc_Detail
 			$res[$rec->resourceId . "|" . $rec->packagingId] = $obj;
 			
 			if($rec->type != 'stage'){
-				static::getComponents($rec->resourceId, $res);
+				self::getComponents($rec->resourceId, $res);
 			}
 			$this->getDescendents($rec->id, $res);
 		}
@@ -847,7 +850,7 @@ class cat_BomDetails extends doc_Detail
     	if(!count($data->recs)) return;
     	
     	// Подреждаме детайлите
-    	static::orderBomDetails($data->recs, $outArr);
+    	self::orderBomDetails($data->recs, $outArr);
     	$data->recs = $outArr;
     }
     
@@ -857,13 +860,19 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-		if(is_array($data->recs)){
+    	$hasSameQuantities = TRUE;
+    	
+    	if(is_array($data->recs)){
 			foreach ($data->recs as $id => &$rec){
 				if($rec->parentId){
 					if($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR){
 						$rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
 						$data->recs[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
 					}
+				}
+				
+				if($rec->rowQuantity != $rec->propQuantity){
+					$hasSameQuantities = FALSE;
 				}
 			}
     	}
@@ -872,6 +881,7 @@ class cat_BomDetails extends doc_Detail
     	if($hasSameQuantities === TRUE){
     		unset($data->listFields['propQuantity']);
     	}
+    	
     	unset($data->listFields['coefficient']);
     }
     
@@ -1065,7 +1075,7 @@ class cat_BomDetails extends doc_Detail
     		
     		// Ако реда е етап, викаме рекурсивно като филтрираме само записите с етап ид-то на етапа
     		if($tRec->type == 'stage'){
-    			static::orderBomDetails($inArr, $outArr, $tRec->id);
+    			self::orderBomDetails($inArr, $outArr, $tRec->id);
     		}
     	}
     }

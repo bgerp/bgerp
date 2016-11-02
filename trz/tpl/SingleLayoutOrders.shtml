@@ -5,6 +5,9 @@
     <br>
     <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, 
         |считано от|* <b>[#leaveFrom#]</b> |г|*. |до|* <b>[#leaveTo#]</b> |г|*.
+        <!--ET_BEGIN amount-->
+        <br/><br/>|Дневна компенсация|*: <b>[#amount#]</b><span class='cCode'>[#baseCurrencyId#]</span>
+        <!--ET_END amount-->
     </p>
     <br>
     <table style='width:100%'>

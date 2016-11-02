@@ -198,7 +198,7 @@ class core_Users extends core_Manager
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
         
         
-        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang)', 'caption=Роли');
+        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang, orderBy=orderByRole)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
@@ -211,8 +211,38 @@ class core_Users extends core_Manager
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
     }
+
+
+    /**
+     * Премахва масива с потребители и роли
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    {
+        
+        if(!$fields || 
+            in_array('state', $fields = arr::make($fields)) || 
+            in_array('nick', $fields) || 
+            in_array('names', $fields) || 
+            in_array('rolesInput', $fields) || 
+            in_array('roles', $fields)) {
+
+            core_Cache::remove(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID);
+        }
+    }
+
+
+    /**
+     * Изпълнява се след запис/промяна на роля
+     */
+    static function on_AfterDelete($mvc, &$id)
+    {
+        core_Cache::remove(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID);
+    }
+
     
-    
+    const ROLES_WITH_USERS_CACHE_ID = 'USER_ROLES';
+
+
     /**
      * Връща масив от масиви - роли и потребители, които имат съответните роли
      * 
@@ -220,32 +250,30 @@ class core_Users extends core_Manager
      */
     public static function getRolesWithUsers()
     {
-        $type = 'userRoles';
-        $handle = 'userRolesArr';
         $keepMinute = 1440;
-        $depends = array('core_Roles', 'core_Users');
-        
+
         // Проверяваме дали записа фигурира в кеша
-        $usersRolesArr = core_Cache::get($type, $handle, $keepMinute, $depends);
-        
-        if ($usersRolesArr !== FALSE) return $usersRolesArr;
-        
+        $usersRolesArr = core_Cache::get(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $keepMinute);
+        if (is_array($usersRolesArr)) return $usersRolesArr;
+
         $uQuery = core_Users::getQuery();
-//        $uQuery->where("#state != 'blocked'");
-//        $uQuery->where("#state != 'rejected'");
+        $uQuery->orderBy('#nick');
+        
+        $usersRolesArr = array();
         
         // За всяка роля добавяме потребители, които я имат
-        while ($uRec = $uQuery->fetch()) {
+        while ($uRec = $uQuery->fetchAndCache()) {
             $rolesArr = type_Keylist::toArray($uRec->roles);
             foreach ($rolesArr as $roleId) {
                 $usersRolesArr[0][$uRec->id] = $uRec->id;
                 $usersRolesArr[$roleId][$uRec->id] = $uRec->id;
+                $usersRolesArr['r'][$uRec->id] = (object) array('nick' => type_Nick::normalize($uRec->nick), 'names' => $uRec->names, 'state' => $uRec->state);
             }
         }
         
         // Записваме масива в кеша
-        core_Cache::set($type, $handle, $usersRolesArr, $keepMinute, $depends);
-        
+        core_Cache::set(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $usersRolesArr, $keepMinute);
+       
         return $usersRolesArr;
     }
     
@@ -285,8 +313,10 @@ class core_Users extends core_Manager
             
             // Ако е зададен ник
             if ($nick) {
-                $nick = strtolower($nick);
+                $nick = mb_strtolower($nick);
                 $query->where(array("LOWER(#nick) LIKE '[#1#]%'", $nick));
+                $query->orWhere(array("LOWER(#names) LIKE '[#1#]%'", $nick));
+                $query->orWhere(array("LOWER(#names) LIKE '% [#1#]%'", $nick));
             }
             
             // Ако е зададено ограничение
@@ -350,7 +380,6 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        
         if (!$force && (!$rec || ($rec->id < 1))) return FALSE;
         
         return (boolean)(!self::isPowerUser($rec));
@@ -376,11 +405,17 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        $powerUserId = core_Roles::fetchByName('powerUser');
-            
-        $isPowerUser = type_Keylist::isIn($powerUserId, $rec->roles);
+        static $isPowerUserArr = array();
         
-        return (boolean)$isPowerUser;
+        if (!isset($isPowerUserArr[$rec->id])) {
+            $powerUserId = core_Roles::fetchByName('powerUser');
+            
+            type_Keylist::isIn($powerUserId, $rec->roles);
+            
+            $isPowerUserArr[$rec->id] = (boolean)type_Keylist::isIn($powerUserId, $rec->roles);
+        }
+        
+        return $isPowerUserArr[$rec->id];
     }
     
     
@@ -693,8 +728,16 @@ class core_Users extends core_Manager
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLoginMsg($inputs, 'missing_password');
                     core_LoginLog::add('reject', $userRec->id, $inputs->time);
-                } elseif ($userRec->state == 'blocked') {
-                    $form->setError('nick', 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
+                } elseif ($userRec->state == 'blocked') { 
+                    if(type_Ip::isLocal()) {
+                        Request::setProtected('userId');
+                        $url = array('core_Users', 'unblocklocal', 'userId' => $userRec->id);
+                        $url = toUrl($url);
+                        $msg = 'Този потребител е блокиран|*.<br>|Може да го активирате от тук:|* <a href="' . $url . '">[*]</a>';
+                    } else {
+                        $msg = 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.';
+                    }
+                    $form->setError('nick', $msg);
                     $this->logLoginMsg($inputs, 'blocked_user');
                     core_LoginLog::add('block', $userRec->id, $inputs->time);
                 } elseif ($userRec->state == 'draft') {
@@ -850,7 +893,7 @@ class core_Users extends core_Manager
      */
     static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
-        if($rec->rolesInput) {
+        if(!$fields || in_array('roles', $fields = arr::make($fields))) {
 
             $rolesArr = keylist::toArray($rec->rolesInput);
             
@@ -920,7 +963,7 @@ class core_Users extends core_Manager
         if(($cond == self::SYSTEM_USER) && is_numeric($cond)) {
             $res = (object) array(
                                 'id' => self::SYSTEM_USER,
-                                'nick' => '@system',
+                                'nick' => core_Setup::get('SYSTEM_NICK'),
                                 'state' => 'active',
                                 'names' => tr('Системата')
                             );
@@ -945,9 +988,11 @@ class core_Users extends core_Manager
     {
         $Users = cls::get('core_Users');
         
+        expect($part);
+        
         if($Users->isSystemUser) {
             $rec = new stdClass();
-            $rec->nick = '@system';
+            $rec->nick = core_Setup::get('SYSTEM_NICK');
             $rec->id = -1;
             $rec->state = 'active';
             $res = $rec->{$part};
@@ -956,6 +1001,7 @@ class core_Users extends core_Manager
             if ($escaped) {
                 $res = core_Users::getVerbal($cRec, $part);    
             } elseif(is_object($cRec)) {
+                
                 $res = $cRec->$part;    
             }
         }
@@ -1070,7 +1116,7 @@ class core_Users extends core_Manager
             $userRec->maxIdleTime = 0;
         } else {
             // Дали нямаме дублирано ползване?
-            if ($userRec->lastLoginIp != $Users->getRealIpAddr() &&
+            if ( $userRec->lastLoginIp != $Users->getRealIpAddr() &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
                 dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 
@@ -1855,6 +1901,14 @@ class core_Users extends core_Manager
      */
     static function getFirstAdmin()
     {
+        $fAdmin = core_Setup::get('FIRST_ADMIN');
+        $fAdmin = trim($fAdmin);
+        
+        if ($fAdmin) {
+            
+            return $fAdmin;
+        }
+        
         $Roles = cls::get('core_Roles');
         $adminId = $Roles->fetchByName('admin');
         
@@ -1942,7 +1996,7 @@ class core_Users extends core_Manager
         } elseif($userId == -1) {
             
             // Ако е сустемния потребител
-            $nick = "@system" ;
+            $nick = core_Setup::get('SYSTEM_NICK');
         } else {
             
             // Ако е непознат потребител

@@ -198,8 +198,10 @@ class cms_Content extends core_Manager
         $query->orderBy('#order');
 
         $data->domainId = cms_Domains::getPublicDomain('id');
-
-        $data->items = $query->fetchAll("#state = 'active' AND #domainId = {$data->domainId}");  
+        
+        if($data->domainId) {
+            $data->items = $query->fetchAll("#state = 'active' AND #domainId = {$data->domainId}");
+        }
     }
 
     
@@ -538,10 +540,12 @@ class cms_Content extends core_Manager
     /**
      * Връща опциите от менюто, които отговарят на текущия домейн и клас
      */
-    public static function getMenuOpt($class)
+    public static function getMenuOpt($class, $domainId = NULL)
     {   
         $classId = core_Classes::getId($class);
-        $domainId = cms_Domains::getPublicDomain('id');  
+        if(!$domainId) {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
         $query = self::getQuery();
         $query->orderBy('#order');
         while($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {  
@@ -633,6 +637,51 @@ class cms_Content extends core_Manager
         if($rec->seoKeywords) {
             $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords)))), 'META_KEYWORDS');
         }
+    }
+
+
+    public static function renderSearchResults($menuId, $q)
+    {
+        //$q = Request::get('q');
+        //$menuId = Request::get('menuId', 'int');
+        
+
+        $query = self::getQuery();
+        $query->orderBy('order');
+
+        if($menuId) {
+            $rec = self::fetch($menuId);
+            $domainId = $rec->domainId;
+        } else {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
+        
+        $query->where("#domainId = {$domainId} AND #id != {$menuId}");
+
+        $res = array();
+                
+        do {
+            if(!$rec->source) continue;  
+            $cls = cls::get($rec->source);
+      
+            if(cls::existsMethod($cls, 'getSearchResults')) {
+                $res = $cls->getSearchResults($rec->id, $q);
+                if(count($res)) {
+                    $html .= "<h2>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->menu) . "</strong></h2>";
+                    $html .= "<ul>";
+                    foreach($res as $o) {
+                        $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . "</li>";
+                    }
+                    $html .= "</ul>";
+                }
+            }
+        } while($rec = $query->fetch());
+
+        $res = new ET("<h1>Търсене на \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h1><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+        
+        plg_Search::highlight($res, $q, 'results');
+        
+        return  $res;
     }
 
  }

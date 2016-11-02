@@ -1,12 +1,13 @@
 <?php
 
 
+
 /**
  * 
  * 
  * @category  bgerp
  * @package   label
- * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -22,6 +23,18 @@ class label_SequenceIntf
     
     
     /**
+     * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
+     * 
+     * @param integer $id
+     * @return array
+     */
+    public function getLabelPlaceholders($id)
+    {
+    	return $this->class->getLabelPlaceholders($id);
+    }
+    
+    
+    /**
      * Връща масив с данни за плейсхолдърите на етикет
      * 
      * @param integer $id
@@ -29,9 +42,8 @@ class label_SequenceIntf
      * 
      * @return array
      */
-    public function  getLabelData($id, $labelNo)
+    public function getLabelData($id, $labelNo)
     {
-        
         return $this->class->getLabelData($id, $labelNo);
     }
     
@@ -46,7 +58,6 @@ class label_SequenceIntf
      */
     public function getEstimateCnt($id, &$allowSkip)
     {
-        
         return $this->class->getEstimateCnt($id, $allowSkip);
     }
 }

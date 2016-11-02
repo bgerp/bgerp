@@ -318,6 +318,9 @@ class embed_Manager extends core_Master
                 case 'aftercreate':
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
+                case 'aftergetdetailstoclone':
+                	$driverClass = $args[1]->{$this->driverClassField};
+                	break;
             }
 
             // Ако има избран драйвер

@@ -61,7 +61,7 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'migrate::migrateDrivers1'
+    		'migrate::migrateDrivers1',
         );
 
         
@@ -108,7 +108,7 @@ class eshop_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
@@ -128,4 +128,6 @@ class eshop_Setup extends core_ProtoSetup
     		eshop_Products::save($pRec, 'coDriver');
     	}
     }
+
+
 }

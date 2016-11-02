@@ -2,10 +2,9 @@
     [#SingleToolbar#]
     <div class="info-table">
         <h2>[#SingleTitle#]</h2>
-        <fieldset class="detail-info">
-            <legend class="groupTitle">|Описание|*</legend>
-            [#description#]
-        </fieldset>
+        <!--ET_BEGIN type-->
+        <div>|Вид|*: [#type#]</div>
+        <!--ET_END type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Авансово плащане|*</legend>
             <ul>
@@ -15,7 +14,7 @@
             </ul>
         </fieldset>
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Плащане преди експедиция|*</legend>
+            <legend class="groupTitle">|Плащане при готовност преди експедиция|*</legend>
             <ul>
                 <li class="info">
                     <span class="gray-title">|Дял|*: </span> [#paymentBeforeShipping#]
@@ -31,12 +30,30 @@
             </ul>
         </fieldset>
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Плащане след фактуриране|*</legend>
+            <legend class="groupTitle">|Балансово плащане|*</legend>
             <ul>
+            	<!--ET_BEGIN eventBalancePayment-->
+               <li class="info">
+                    <span class="gray-title">|Събитие|*: </span> [#eventBalancePayment#]
+                </li>
+                <!--ET_END eventBalancePayment-->
                 <li class="info">
                     <span class="gray-title">|Срок|*: </span> [#timeBalancePayment#]
                 </li>
             </ul>
         </fieldset>
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Отстъпка за предсрочно плащане|*</legend>
+            <ul>
+               <li class="info">
+                    <span class="gray-title">|Процент|*: </span> [#discountPercent#]
+                </li>
+                <li class="info">
+                    <span class="gray-title">|Период|*: </span> [#discountPeriod#]
+                </li>
+            </ul>
+        </fieldset>
+
     </div>
 </div>

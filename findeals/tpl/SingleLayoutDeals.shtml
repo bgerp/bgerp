@@ -38,10 +38,15 @@
                         <td class = 'nowrap'>[#debitAmount#] </td>
                         <td class = 'nowrap'>[#creditAmount#]</td>
                         <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;width:1%'>
-                        	<span style='font-weight:normal'>|Контрагент|* : [#contragentName#]</span>
+                        	<span style='font-weight:normal'>[#contragentCaption#] : [#contragentName#]</span>
                         	<!--ET_BEGIN secondContragentId-->
                         	<br><span style='font-weight:normal'>|Втори контрагент|* : [#secondContragentId#]</span>
                         	<!--ET_END secondContragentId-->
+                        	
+                        	<!--ET_BEGIN baseAccountId-->
+                        	<br><span style='font-weight:normal'>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span></span>
+		        			<br><span style='font-weight:normal'>|От|*: [#baseAccountId#]</span>
+		        			<!--ET_END baseAccountId-->
                         </td>
                     </tr>
                 </table>
@@ -77,10 +82,10 @@
 		        </tr>
 		        <!--ET_END closedDocuments-->
 		    </table>
-		    <!--ET_BEGIN DETAILS-->
-		    [#DETAILS#]
-		    <!--ET_END DETAILS-->
+		    <!--ET_BEGIN HISTORY-->
+		    [#HISTORY#]
+		    <!--ET_END HISTORY-->
 		    [#PAGER#]
         </div>
     </div>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -39,6 +39,12 @@ defIfNot('EF_ROUND_SIGNIFICANT_DIGITS', '6');
 
 
 /**
+ * Минимален брой видими нули при подравняване
+ */
+defIfNot('CORE_MIN_ALIGN_DIGITS', 2);
+
+
+/**
  * @todo Чака за документация...
  */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
@@ -148,6 +154,23 @@ defIfNot('CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM', 'no');
 defIfNot('CORE_RESET_PASSWORD_FROM_LOGIN_FORM', 'yes');
 
 
+/**
+ * Ник на системния потребител
+ */
+defIfNot('CORE_SYSTEM_NICK', '@system');
+
+
+/**
+ * Потребителя, който ще се използва за първи администратор в системата
+ */
+defIfNot('CORE_FIRST_ADMIN', '');
+
+
+/**
+ * Свиване на секцията за споделяне
+ */
+defIfNot('CORE_AUTOHIDE_SHARED_USERS', 100);
+
 
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
@@ -214,7 +237,11 @@ class core_Setup extends core_ProtoSetup {
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
     
            'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
-           
+            
+           'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Ник на системния потребител->Ник'),
+            
+           'CORE_FIRST_ADMIN'   => array ('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
+       
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
       
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
@@ -238,7 +265,12 @@ class core_Setup extends core_ProtoSetup {
            'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
            
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-        );
+        
+           'CORE_MIN_ALIGN_DIGITS' => array('int', 'caption=Минимален брой видими нули при подравняване->Брой'),
+           
+           'CORE_AUTOHIDE_SHARED_USERS' => array ('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
+               
+    );
     
     
     /**
@@ -266,7 +298,8 @@ class core_Setup extends core_ProtoSetup {
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
         'migrate::clearApcCache3',
-        'migrate::removeFalseTranslate'
+        'migrate::removeFalseTranslate',
+        'migrate::repairSearchKeywords'
     );
     
     
@@ -300,11 +333,7 @@ class core_Setup extends core_ProtoSetup {
             );
             
             foreach($filesToCopy as $src => $dest) {
-                if(copy($src, $dest)) {
-                    $html .= "<li  class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-                } else {
-                    $html .= "<li  class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-                }
+                $html .= self::addUniqLines($src, $dest);
             }
         }
 
@@ -313,9 +342,9 @@ class core_Setup extends core_ProtoSetup {
         if(!file_exists($dest)) {
             $src = getFullPath('img/favicon.ico');
             if(copy($src, $dest)) {
-                $html .= "<li  class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                $html .= "<li class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
             } else {
-                $html .= "<li  class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                $html .= "<li class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
             }
         }
 
@@ -564,5 +593,97 @@ class core_Setup extends core_ProtoSetup {
     {
         return $res;
     }
+    
+    
+    /**
+     * Премахва всички * от полетата за търсене
+     */
+    public static function repairSearchKeywords()
+    {
+        // Вземаме инстанция на core_Interfaces
+        $Interfaces = cls::get('core_Interfaces');
+    
+        // id' то на интерфейса
+        $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
+        
+        $query = core_Classes::getQuery();
+        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
+        
+        while ($rec = $query->fetch()) {
+            
+            if (!cls::load($rec->name, TRUE)) continue;
+            
+            $Inst = cls::get($rec->name);
+            
+            // Ако няма таблица
+            if (!$Inst || !$Inst->db) continue;
+            
+            // Ако таблицата не съществува в модела
+            if (!$Inst->db->tableExists($Inst->dbTableName)) continue ;
+            
+            // Ако полето не съществува в таблицата
+            $sk = str::phpToMysqlName('searchKeywords');
+            if (!$Inst->db->isFieldExists($Inst->dbTableName, $sk)) continue ;
+            
+            $plugins = arr::make($Inst->loadList, TRUE);
+            
+            if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) continue;
+            
+            $searchField = str::phpToMysqlName('searchKeywords');
+            
+            $Inst->db->query("UPDATE {$Inst->dbTableName} SET {$searchField} = REPLACE({$searchField}, '*', '')");
+        }
+    }
 
+
+    /**
+     * Копира линиите от файла $src в $dest, които не се съдържат в него
+     */
+    public static function addUniqLines($src, $dest)
+    {
+        $emptyDest = FALSE;
+        if(!file_exists($dest)) {
+            if(file_put_contents($dest, '') === FALSE) {
+                return "<li class=\"debug-error\">Не може да бъде създаден файла: <b>{$dest}</b></li>";
+            }
+            $emptyDest = TRUE;
+        }
+        if(!is_writable($dest)) {
+            return "<li class=\"debug-error\">Не може да се записва във файла: <b>{$dest}</b></li>";
+        }
+
+        if(!is_readable($src)) {
+            return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$src}</b></li>";
+        }
+        
+        if(!is_readable($dest)) {
+            return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$dest}</b></li>";
+        }
+     
+        $exFile = file_get_contents($dest);
+
+        $lines = file_get_contents($src);
+
+        $lines = explode("\n", $lines);
+        
+        $flagChange = FALSE;
+        $newLines = 0;
+        foreach($lines as $l) {
+            $l = rtrim($l);
+            if((strlen($l) == 0 && $flagChange) || (strlen($l) > 0 && stripos($exFile, $l) === FALSE)) {
+                file_put_contents($dest, ($emptyDest ? '' : "\n") . $l, FILE_APPEND);
+                $flagChange = TRUE;
+                $emptyDest  = FALSE;
+                $newLines++;
+            }
+        }
+
+        if($newLines > 0) {
+            $res = "<li class=\"debug-new\">Във файла <b>{$dest}</b> са копирани {$newLines} линии от файла <b>{$src}</b></li>";
+        } else {
+            $res = "<li class=\"debug-info\">Във файла <b>{$dest}</b> не са копирани линии от файла <b>{$src}</b></li>";
+        }
+
+        return $res;
+    }
 }

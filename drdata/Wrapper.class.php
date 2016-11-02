@@ -29,10 +29,11 @@ class drdata_Wrapper extends plg_ProtoWrapper
         $this->TAB('drdata_Languages', 'Езици', 'admin');
         $this->TAB('drdata_Domains', 'Домейни', 'debug');
         $this->TAB('drdata_IpToCountry', 'IP-to-Country', 'debug');
-        $this->TAB('drdata_DialCodes', 'Тел. кодове', 'admin');
+        $this->TAB('drdata_DialCodes', 'Тел. кодове', 'admin'); 
         $this->TAB('drdata_Vats', 'ЗДДС №', 'admin');
-       
-        
+        $this->TAB('drdata_PhoneCache', 'T. Кеш', 'debug');
+
+         
         $this->title = 'Адресни данни';
         $this->title = 'Система « Адресни данни';
         Mode::set('menuPage', 'Адресни данни:Система');

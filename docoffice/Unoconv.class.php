@@ -110,8 +110,12 @@ class docoffice_Unoconv extends core_Manager
         // Увеличаваме броя на направените конвертирания с единица
         docoffice_Office::increaseConvertCount();
 
+        $Script->setCheckProgramsArr($unoconv);
         // Стартираме скрипта синхронно
-        $Script->run($params['asynch']);
+        if ($Script->run($params['asynch']) === FALSE) {
+            $params['type'] = 'jpg';
+            fileman_Indexes::createError($params);
+        }
     }
     
     

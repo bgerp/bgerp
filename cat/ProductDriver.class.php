@@ -58,7 +58,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function canSelectDriver($userId = NULL)
     {
-    	return core_Users::haveRole($this->canSelectDriver, $userId);
+    	$roles = core_Users::haveRole('collaborator', $userId) ? 'collaborator' : $this->canSelectDriver;
+    	
+    	return core_Users::haveRole($roles, $userId);
     }
     
     
@@ -104,13 +106,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 					
 				// Ако е 'hidden' и има зададена стойност, правим полето скрито
 				if($display === 'hidden'){
-					if(!is_null($form->rec->$name)){
+					if(!is_null($form->rec->{$name})){
 						$form->setField($name, 'input=hidden');
 					}
 				} elseif($display === 'readOnly'){
 			
 					// Ако е 'readOnly' и има зададена стойност, правим го 'само за четене'
-					if(!is_null($form->rec->$name)){
+					if(!is_null($form->rec->{$name})){
 						$form->setReadOnly($name);
 					}
 				}
@@ -152,14 +154,14 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $classId - ид на ембедъра
-	 * @param string $id   - ид на записа
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
-	 * @return mixed - стойност или FALSE ако няма
+	 * @param string $id     - ид на записа
+	 * @param string $name   - име на параметъра, или NULL ако искаме всички
+	 * @param boolean $verbal - дали да са вербални стойностите
+	 * @return array - стойност или FALSE ако няма
 	 */
-	public function getParams($classId, $id, $name = NULL)
+	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
-		return FALSE;
+		return array();
 	}
 	
 	
@@ -379,7 +381,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param double $quantity - количество
 	 * @param datetime $datetime - дата
 	 * @param double $rate  - валутен курс
-	 * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+	 * @param yes|no|separate|export $chargeVat - начин на начисляване на ддс
 	 * @return double|NULL $price  - цена
 	 */
 	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
@@ -398,5 +400,31 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function getDefaultBatchDef($id)
 	{
 		return NULL;
+	}
+	
+	
+	/**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $rec - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Добавя полетата на заданието за производство на артикула
+	 *
+	 * @param int $id                 - ид на артикул
+	 * @param core_Fieldset $fieldset - форма на задание
+	 */
+	public function addJobFields($id, core_Fieldset &$fieldset)
+	{
+	
 	}
 }

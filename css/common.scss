@@ -431,10 +431,16 @@ input[type="search"] {
 }
 
 /**
+ хак за смяна на цвета на плейсхолдърите в IE11
+*/
+input:-ms-input-placeholder {
+	color: #999;
+}
+
+/**
  * Remove inner padding and search cancel button in Safari 5 and Chrome
  * on OS X.
  */
-
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {
     -webkit-appearance: none;
@@ -447,6 +453,8 @@ input[type="search"]::-webkit-search-decoration {
 	display:block;
 	position:relative;
 	height:1.5em;
+	border-radius: 5px;
+	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
 
 #simpleSearch.forumSearch .button {
@@ -470,7 +478,6 @@ input[type="search"]::-webkit-search-decoration {
 	outline:none;
 	height:1.2em;
 	box-shadow: none;
-	font-size:0.95em;
  	width:90%;
 	padding:0px;
 	padding-left:0.2em;
@@ -776,6 +783,10 @@ a.button, input[type="button"], input[type="submit"], button {
     -webkit-appearance: none;	  
 }
 
+a.button {
+	box-sizing: border-box;
+}
+
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button { 
 	padding: 0.3em 0.4em;
     font-family: Tahoma, Arial, sans-serif;
@@ -988,6 +999,10 @@ input.more-btn {
 	}
 }
 
+.hiddenToolbar {
+	display: none;
+}
+
 .small .modal-toolbar{
 	.linkWithIcon {
 		height: auto !important;
@@ -1039,6 +1054,10 @@ a.more-btn {
  	padding: 0.1em;
 }
 
+.narrow .docBgIcon {
+	background-position: 3px 5px;
+}
+
 .wide .icon { 
 	display: inline-block;
 	height: 16px;
@@ -1059,15 +1078,21 @@ a.more-btn {
 /*бутони с инструменти*/
 div.rowtools { 
 	display: inline;
-	width: 100%; 
+	width: 100%;
 }
  
 .rowtools .r {
 	vertical-align: middle;
 	display: table-cell;
 	text-align: right;
+	position: relative;
+	top: 2px;
 }
- 
+
+th .rowtools .r {
+	top: 0px;
+}
+
 .rowtools .l {
 	vertical-align: middle;
 	display: table-cell;
@@ -1107,6 +1132,11 @@ a {
 	font-weight: bold;
 	border-bottom: solid 1px #ccc;
 	padding: 2px;
+}
+
+.err-word {
+	border-bottom: 1px dashed #ff6566;
+	display: inline-block;
 }
 /* край на общи стилове за линковете */
 
@@ -1160,6 +1190,13 @@ a.profile {
 			color: #ff0000;
 		}
 	}
+	&.no-one {
+		font-style: italic;
+	}
+}
+
+.profile-state {
+	text-decoration: underline !important;
 }
 /*край на хипервръзки към профилите на потребители*/
 
@@ -1235,6 +1272,11 @@ a.profile {
         color: #999 !important;
         text-decoration: none !important;
     }
+}
+
+.state-template {
+	background-color: #A1AEFF;
+	background-color: rgba(165, 170, 255, 0.7);
 }
 
 .document .state-rejected.state, .document .state-rejected.state a {
@@ -1336,6 +1378,13 @@ table.listTable {
 		width: 1%;
 	}
 }
+
+.detailNumbering {
+	text-align:right;
+	padding-top: 2px;
+	display: block;
+}
+
 .narrow table.listTable {
 	margin-bottom: 12px;
 }
@@ -1403,6 +1452,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .wide table.listAction {
     min-width:760px;
+	width: 100%;
 }
 
 .wide .user-profile .remote_Authorizations table.listAction {
@@ -1964,11 +2014,14 @@ table.keylist {
 		}
 	}
 	&.shrinked:not(.keylist-wide) {
-	   width: auto !important;
 	   td {
 	       padding-right: 20px;
 	   }
 	}
+}
+
+.wide table.keylist.shrinked:not(.keylist-wide) {
+	width: auto !important;
 }
 
 .narrow table.keylist{
@@ -2432,12 +2485,13 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
             background-color: #ccc !important;
             border: 1px solid #aaa;
             a {
-                color: #333;
+                text-shadow: none;
+				cursor: pointer;
             }
             &:hover , &.selected {
                 padding: 4px;
+				top: 0 !important;
                 border: 1px solid #bbb;
-                margin: 0 3px 0 0;
                 background-color: #ffffcc !important;
                 a {
                     color: #333;
@@ -2467,12 +2521,14 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 .narrow div.tab-control.deal-history-tab, .narrow .single-thread .document .tab-top div.alphabet{
 	.tab-row {
         float: none;
-        margin: 0 0 0 3px;
+        margin: 0px;
         clear: both;
     }
     div.tab-row {
         .tab, .tab.selected {
-	         padding: 2px !important;
+			margin: 1px 2px 1px 0 !important;
+			padding: 3px 2px 3px !important;
+			font-size: 0.65em;
 	    }
     }
     div.tab-page {
@@ -2540,6 +2596,11 @@ div.richEdit {
 	overflow: auto;
 	border-bottom: 1px solid transparent;
 	width: 32em;
+
+}
+
+.hiddenFormRow .richEdit textarea {
+	min-height: 100px;
 }
 
 .wide .richEdit textarea {
@@ -3058,10 +3119,9 @@ div.richtext ol ol ol {
 }
 
 .richtext-message a[href] {
-	color: inherit;
-	border-bottom: 1px dashed;
+	color: inherit !important;
+	border-bottom: 1px solid;
 	&:hover{
-		  border-bottom: 1px solid;
 		  text-decoration: none;
 	}
 }

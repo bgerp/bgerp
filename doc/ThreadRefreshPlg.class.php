@@ -26,7 +26,12 @@ class doc_ThreadRefreshPlg extends core_Plugin
     function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
     {
         // Ако не се листва, да не се изпълнява
-        if($data->action != 'list') return;
+        if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            if ($data->action != 'single') return ;
+        } elseif($data->action != 'list') {
+            
+            return ;
+        }
         
         // Ако не се вика по AJAX
         if (!Request::get('ajax_mode')) {
@@ -86,14 +91,29 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $threadId = Request::get('threadId', 'int');
         
-        doc_Threads::requireRightFor('single', $threadId);
-
-        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . Request::get('hitTime');
+        if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            $tRec = doc_Threads::fetch($threadId);
+            colab_Threads::requireRightFor('single', $tRec);
+        } else {
+            doc_Threads::requireRightFor('single', $threadId);
+        }
+        
+        $hitTime = Request::get('hitTime');
+        
+        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . $hitTime;
         
         $lastSend = Mode::get($threadLastSendName);
         
         if(!$lastSend) {
-            $lastSend = dt::verbal2mysql();
+            
+            if ($hitTime) {
+                $lastSend = dt::timestamp2Mysql($hitTime);
+            }
+            
+            if (!$lastSend) {
+                $lastSend = dt::verbal2mysql();
+            }
+            
             Mode::setPermanent($threadLastSendName, $lastSend);
         }
         
@@ -128,10 +148,26 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Вземаме съдържанието на шаблона
         $content = static::getContent($tpl);
         
+        // Масив с добавения CSS
+        $cssArr = array();
+        $allCssArr = (array)$tpl->getArray('CSS');
+        $allCssArr = array_unique($allCssArr);
+        foreach ($allCssArr as $css) {
+            $cssArr[] = page_Html::getFileForAppend($css);
+        }
+        
+        // Масив с добавения JS
+        $jsArr = array();
+        $allJsArr = (array)$tpl->getArray('JS');
+        $allJsArr = array_unique($allJsArr);
+        foreach ($allJsArr as $js) {
+            $jsArr[] = page_Html::getFileForAppend($js);
+        }
+        
         // Добавяме резултата
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id'=>'rowsContainer', 'html' => $content, 'replace' => TRUE);
+        $resObj->arg = array('id'=>'rowsContainer', 'html' => $content, 'replace' => TRUE, 'css' => $cssArr, 'js' => $jsArr);
         
         $resStatus[] = $resObj;
         
@@ -146,7 +182,9 @@ class doc_ThreadRefreshPlg extends core_Plugin
         jquery_Jquery::runAfterAjax($tpl, 'sumOfChildrenWidth');
         jquery_Jquery::runAfterAjax($tpl, 'editCopiedTextBeforePaste');
         jquery_Jquery::runAfterAjax($tpl, 'removeNarrowScroll');
-        
+        jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
+        jquery_Jquery::runAfterAjax($tpl, 'setThreadElemWidth');
+
         // Стойности на плейсхолдера
         $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
         

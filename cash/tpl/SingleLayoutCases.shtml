@@ -11,10 +11,6 @@
                             <td class='dt'>|Номер|*:</td>
                             <td> [#id#]</td>
                         </tr>
-                        <tr>
-                            <td class='dt'>|Касиери|*:</td>
-                            <td> <b>[#cashiers#]</b></td>
-                        </tr>
                         <!--ET_BEGIN creation-->
                         <tr>
                             [#creation#]
@@ -26,6 +22,48 @@
                     </table>
                 </div>
             </fieldset>
+            
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Кой може да контира документи, в които е избрана касата|*</legend>
+                <div class="groupList">
+                    <table>
+                        <tr>
+                            <td class='dt'>|Потребители|*:</td>
+                            <td>[#cashiers#]</td>
+                        </tr>
+                        <!--ET_BEGIN activateRoles-->
+                        <tr>
+                            <td class='dt'>|Екипи|*:</td>
+                            <td>[#activateRoles#]</td>
+                        </tr>
+                        <!--ET_END activateRoles-->
+                    </table>
+                </div>
+            </fieldset>
+            
+            <!--ET_BEGIN SELECT_FIELD-->
+            [#SELECT_FIELD#]
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Кой може да избира касата в документи|*</legend>
+                <div class="groupList">
+                    <table>
+                    	<!--ET_BEGIN selectUsers-->
+                        <tr>
+                            <td class='dt'>|Потребители|*:</td>
+                            <td>[#selectUsers#]</td>
+                        </tr>
+                        <!--ET_END selectUsers-->
+                        <!--ET_BEGIN selectRoles-->
+                        <tr>
+                            <td class='dt'>|Екипи|*:</td>
+                            <td>[#selectRoles#]</td>
+                        </tr>
+                        <!--ET_END selectRoles-->
+                    </table>
+                </div>
+            </fieldset>
+            <!--ET_END SELECT_FIELD-->
+            
             [#DETAILS#]
             <div style="clear:both;"></div>
         </div>

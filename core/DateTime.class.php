@@ -275,6 +275,13 @@ class core_DateTime
      */
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = NULL, $callRecursive = TRUE)
     {
+        $noTime = FALSE;
+
+        if ($mask == 'smartDate') {
+            $mask = 'smartTime';
+            $noTime = TRUE;
+        }
+
         // Опцията "относително време" да не работи в абсолутен или печатен режим
         if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf')) {
             if($mask == 'smartTime') {
@@ -337,6 +344,10 @@ class core_DateTime
                 $yesterday = dt::mysql2verbal(dt::addDays(-1), "d M", 'en', FALSE, FALSE);
                 $tomorrow = dt::mysql2verbal(dt::addDays(1), "d M", 'en', FALSE, FALSE);
             }
+        }
+
+        if($noTime) {
+            $mask = str_replace(' H:i', '', $mask);
         }
         
         if (($year == $yearNow)) {
@@ -661,14 +672,20 @@ class core_DateTime
     /**
      * Добавя дни към дата
      */
-    static function addDays($days, $date = NULL)
+    static function addDays($days, $date = NULL, $full = TRUE)
     {
         if (!$date) $date = dt::verbal2mysql();
         
         $date = dt::mysql2timestamp($date);
         $date += $days * 24 * 60 * 60;
         
-        return dt::timestamp2Mysql($date);
+        $res = dt::timestamp2Mysql($date);
+
+        if(!$full) {
+            list($res, ) = explode(' ', $res);
+        }
+
+        return $res;
     }
     
     

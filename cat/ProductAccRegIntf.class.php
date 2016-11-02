@@ -112,11 +112,11 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
+     * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
      * 
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
-     * @return double - теглото на еденица от продукта
+     * @return double - теглото на единица от продукта
      */
 	public function getWeight($productId, $packagingId = NULL)
     {
@@ -128,22 +128,23 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
-	 * @param string $id   - ид на записа
+	 * @param string $id     - ид на записа
+	 * @param string $name   - име на параметъра, или NULL ако искаме всички
+	 * @param boolean $verbal - дали да са вербални стойностите
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-    public function getParams($id, $name = NULL)
+    public function getParams($id, $name = NULL, $verbal = FALSE)
     {
-    	return $this->class->getParams($id, $name);
+    	return $this->class->getParams($id, $name, $verbal);
     }
     
     
     /**
-     * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
+     * Връща обема на единица от продукта, ако е в опаковка връща нейния обем
      * 
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
-     * @return double - теглото на еденица от продукта
+     * @return double - теглото на единица от продукта
      */
 	public function getVolume($productId, $packagingId = NULL)
     {

@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'sales_SalesDetails'
  *
@@ -67,7 +70,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canEdit = 'ceo, sales';
+    public $canEdit = 'ceo, sales, collaborator';
     
     
     /**
@@ -75,7 +78,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canAdd = 'ceo, sales';
+    public $canAdd = 'ceo, sales, collaborator';
     
     
     /**
@@ -83,7 +86,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'ceo, sales';
+    public $canDelete = 'ceo, sales, collaborator';
     
     
     /**
@@ -92,6 +95,12 @@ class sales_SalesDetails extends deals_DealDetail
      * @var string|array
      */
     public $canImport = 'ceo, sales';
+    
+    
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'saleId';
     
     
     /**
@@ -128,8 +137,8 @@ class sales_SalesDetails extends deals_DealDetail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::getDealDetailFields($this);
-        
         $this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,input=none');
+		$this->setField('packPrice', 'silent');
     }
     
     
@@ -139,9 +148,10 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
+    	$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	if(isset($rec->productId)){
     		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
+    		$masterStore = $masterRec->shipmentStoreId;
     		
     		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
     			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
@@ -150,6 +160,13 @@ class sales_SalesDetails extends deals_DealDetail
     	}
     	
     	parent::inputDocForm($mvc, $form);
+    	
+    	// След събмит
+    	if($form->isSubmitted()){
+    		
+    		// Подготовка на сумата на транспорта, ако има
+    		tcost_Calcs::prepareFee($rec, $form, $masterRec);
+    	}
     }
     
     
@@ -161,13 +178,14 @@ class sales_SalesDetails extends deals_DealDetail
     	$rows = &$data->rows;
     	
     	if(!count($data->recs)) return;
-    	 
+    	$masterRec = $data->masterData->rec;
+    	
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     			
-    		if($storeId = $data->masterData->rec->shipmentStoreId){
-    			if(isset($pInfo->meta['canStore']) && $data->masterData->rec->state == 'draft'){
+    		if($storeId = $masterRec->shipmentStoreId){
+    			if(isset($pInfo->meta['canStore']) && $masterRec->state == 'draft'){
     				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     				if(strlen($warning)){
     					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
@@ -178,6 +196,11 @@ class sales_SalesDetails extends deals_DealDetail
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     		}
+    		
+    		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
+    		$fee = tcost_Calcs::get($mvc->Master, $rec->saleId, $rec->id)->fee;
+    		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+    		$row->amount = tcost_Calcs::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     	}
     }
     
@@ -192,8 +215,9 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		
+    		// Ако в артикула има срок на доставка, показва се полето
     		$term = cat_Products::getParams($rec->productId, 'term');
-    		if(!empty($term)){
+    		if(!empty($term) && !core_Users::haveRole('collaborator')){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){
     				$form->setDefault('term', $term);
@@ -254,6 +278,60 @@ class sales_SalesDetails extends deals_DealDetail
     		$row->ROW_ATTR['class'] = "state-{$jobRec->state}";
     	
     		return $row;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	// Преди клониране клонира се и сумата на цената на транспорта
+    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id)->fee;
+    	if(isset($fee)){
+    		$rec->fee = $fee;
+    		$rec->syncFee = TRUE;
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Синхронизиране на сумата на транспорта
+    	if($rec->syncFee === TRUE){
+    		tcost_Calcs::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee);
+    	}
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	// Инвалидиране на изчисления транспорт, ако има
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		tcost_Calcs::sync($mvc->Master, $rec->saleId, $rec->id, NULL);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
+    		
+    		if(core_Users::isPowerUser()){
+    			if(!haveRole('ceo,sales')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
 }

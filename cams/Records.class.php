@@ -15,15 +15,15 @@ defIfNot('CAMS_IMAGES_PATH', EF_UPLOADS_PATH . "/cams/images");
 
 
 /**
- * Директория за flv файловете
+ * Директория за mp4 файловете
  */
-defIfNot('SBF_CAMS_FLV_DIR', "_cams/flv");
+defIfNot('SBF_CAMS_MP4_DIR', "_cams/mp4");
 
 
 /**
- * Път до директория, където ще се записват flv файловете
+ * Път до директория, където ще се записват конвертираните MP4 файлове
  */
-defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH . '/' . SBF_CAMS_FLV_DIR);
+defIfNot('SBF_CAMS_MP4_PATH', EF_SBF_PATH . '/' . SBF_CAMS_MP4_DIR);
 
 
 /**
@@ -146,15 +146,15 @@ class cams_Records extends core_Master
         // Flash Video File за записа
         $hash = substr(md5(EF_SALT . $baseName), 0, 6);
         
-        $fp->flvFile = SBF_CAMS_FLV_PATH . "/{$baseName}_{$hash}.flv";
+        $fp->mp4File = SBF_CAMS_MP4_PATH . "/{$baseName}_{$hash}.mp4";
         
-        // Ако директорията за flv файловете не съществува,
+        // Ако директорията за конвертираните файловете не съществува,
         // записва в лога 
-        if(!is_dir(SBF_CAMS_FLV_PATH)) {
-            $this->logAlert("SBF директорията за .flv файловете не съществува - преинсталирайте cams.");
+        if (!is_dir(SBF_CAMS_FLV_PATH) || !is_dir(SBF_CAMS_MP4_PATH)) {
+            $this->logAlert("Директорията за конвертираните файлове не съществува - преинсталирайте пакета cams.");
         }
         
-        $fp->flvUrl = sbf(SBF_CAMS_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
+        $fp->mp4Url = sbf(SBF_CAMS_MP4_DIR . "/{$baseName}_{$hash}.mp4", '');
         
         return $fp;
     }
@@ -230,7 +230,7 @@ class cams_Records extends core_Master
         
         $data = new stdClass();
         // Настройваме параметрите на плеъра
-        $data->url = $fp->flvUrl;
+        $data->url = $fp->mp4Url;
         $data->image = toUrl(array($this, 'StartJpg', $id));
         $data->toolbar = cls::get('core_Toolbar');
         
@@ -250,48 +250,18 @@ class cams_Records extends core_Master
         } else {
             $data->toolbar->addBtn('Маркиране', array($this, 'Mark', $id));
         }
-/*        
-        // Вземаме записа за камерата и подготвяме драйвера
-        $camRec = $this->Cameras->fetch($rec->cameraId);
-        $driver = cls::getInterface('cams_DriverIntf', $camRec->driver, $camRec->params);
-*/
+
         // Подготвяме параметрите на записа        
         $params = json_decode($rec->params);
         
         $data->width = $params->width;
         $data->height = $params->height;
         
-        // След колко секунди, очакваме клипа да бъде конвертиран?
-        if(isset($rec->playedOn)) {
-            $secondsToEnd = dt::mysql2timestamp($rec->playedOn) +
-            $conf->CAMS_CLIP_TO_FLV_DURATION - time();
-            
-            // Времето може да бъде само положително
-            $secondsToEnd = $secondsToEnd > 0 ? $secondsToEnd : 0;
-        } else {
-            $secondsToEnd = NULL;
+        if(!file_exists($fp->mp4File) && !self::isRecordConverting($fp->mp4File)) {
+            // Стартираме конвертирането на видеото към mp4, ако това все още не е направено
+            $this->convertToMp4($fp->videoFile, $fp->mp4File);
+            $this->logInfo('Конвертиране към MP4', $rec->id);
         }
-        
-        if(!file_exists($fp->flvFile)) {
-            if(!$secondsToEnd) {
-                // Стартираме конвертирането на видеото към flv, ако това все още не е направено
-                $this->convertToFlv($fp->videoFile, $fp->flvFile, $params);
-                $this->logInfo('Конвертиране към FLV', $rec->id);
-                $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
-            }
-            
-            if($secondsToEnd === NULL) {
-                $this->logErr('Правенo е конвертиране, но FLV файлът не се е появил', $rec->id);
-                $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
-            }
-        } else {
-            if($secondsToEnd === NULL) {
-                $this->logWarning('Има FLV файл, без да е конвертиран', $rec->id);
-                $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
-            }
-        }
-        
-	    $data->startDelay = round($secondsToEnd * (filesize($fp->videoFile) / 100000000));
         
         $row = $this->recToVerbal($rec);
         
@@ -326,34 +296,111 @@ class cams_Records extends core_Master
     
     
     /**
-     * Рендиране на плеъра
+     * Рендиране на mp4 плеъра
      */
     function renderSingle_($data, $tpl = NULL)
     {
-        
-        $data->playerTpl = flvplayer_Embedder::render($data->url,
-            $data->width,
-            $data->height,
-            $data->image,
-            array('startDelay'=>$data->startDelay)
-        );
+
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
             <div class="video-rec" style="display:table">
                 <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
                 [#playerTpl#]
+                <div>[#convertProgress#]</div>
             </div>
         ');
-        
-        // Какво ще показваме, докато плеъра се зареди
-        setIfNot($data->content, "<img src='{$data->image}' style='width:{$data->width}px;height:{$data->height}px'>");
-        
+    
         $data->toolbar = $data->toolbar->renderHtml();
+
+        if ($this->isRecordConverting(basename($data->url))) {
+            $data->playerTpl = "<img src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
+            $data->convertProgress = "Конвертиране ...";
+            $tpl->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
+        } else {
+            $data->playerTpl = mejs_Adapter::createVideo(   $data->url,
+                                                            array(  'poster' => $data->image,
+                                                                'width' => $data->width,
+                                                                'height' => $data->height),
+                                                            'url');
+        }
         
         // Поставяме стойностите на плейсхолдърите
         $tpl->placeObject($data);
-        
+    
         return $tpl;
+    }
+    
+    /**
+     *  Дали записа е в процес на транскодиране
+     *  
+     *  @return boolean
+     */
+    private static function isRecordConverting($mp4File) {
+        // Ако файлa е заключен за транскодиране => има процес
+        $mp4File = basename($mp4File); 
+        if (core_Locks::isLocked($mp4File)) {
+
+          return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Конвертира указания файл (записан от този драйвер) към mp4 за html5 video
+     */
+    function convertToMp4($mp4Path, $mp4File)
+    {
+        
+        core_Locks::get(basename($mp4File), 300, 0, FALSE);
+        
+        $cmdTmpl = "ffmpeg -i [#INPUTF#] -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]";
+        $Script = cls::get('fconv_Script');
+        
+        // Инстанция на класа
+        $me = get_called_class();
+        
+        // Параметри необходими за конвертирането
+        $params = array(
+            'mp4File' => $mp4File,
+            'callBack' => $me . '::afterConvert',
+            'asynch' => TRUE,
+            'createdBy' => core_Users::getCurrent('id'),
+        );
+        $Script->setFile('INPUTF', $mp4Path);
+        $Script->setFile('OUTPUTF', $mp4File);
+        $Script->lineExec($cmdTmpl);
+        
+        $Script->callBack($params['callBack']);
+        
+        $Script->params = $params;
+        
+        // Стартираме скрипта Aсинхронно
+        if ($Script->run($params['asynch']) === FALSE) {
+            $this->logError("Грешка при пускане на прекодиране на видео");
+            // Добавяме съобщение
+            status_Messages::newStatus('|Грешка при транскодиране на MP4', 'error');
+        } else {
+            // Добавяме съобщение
+            status_Messages::newStatus('|Стартирано е транскодиране на MP4', 'success');
+        }
+        
+    }
+    
+    /**
+     * Изпълнява се след приключване на обработката
+     * 
+     * @param fconv_Script $script - Обект с данните
+     * 
+     * @param boolean  - TRUE - за да изтрие tmp скрипта и файловете
+     */
+    function afterConvert($script)
+    {
+        copy ($script->tempDir . basename($script->params['mp4File']), $script->params['mp4File']);
+        core_Locks::release(basename($script->params['mp4File']));
+        
+        return TRUE;
     }
     
     
@@ -918,6 +965,7 @@ class cams_Records extends core_Master
             CAMS_VIDEOS_PATH => "за съхраняване на записите",
             CAMS_IMAGES_PATH => "за съхраняване на JPG",
             SBF_CAMS_FLV_PATH => "за FLV за плейване",
+            SBF_CAMS_MP4_PATH => "за MP4 за плейване",
         );
         
         foreach($dirs as $d => $caption) {

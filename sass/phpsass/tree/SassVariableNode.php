@@ -15,7 +15,8 @@
  * @package      PHamlP
  * @subpackage  Sass.tree
  */
-class SassVariableNode extends SassNode {
+class SassVariableNode extends SassNode
+{
   const MATCH = '/^([!$])([\w-]+)\s*:?\s*((\|\|)?=)?\s*(.+?)\s*(!default)?;?$/i';
   const IDENTIFIER = 1;
   const NAME = 2;
@@ -41,10 +42,12 @@ class SassVariableNode extends SassNode {
 
   /**
    * SassVariableNode constructor.
-   * @param object source token
+   * @param object $token source token
+   * @throws SassVariableNodeException
    * @return SassVariableNode
    */
-  public function __construct($token) {
+  public function __construct($token)
+  {
     parent::__construct($token);
     preg_match(self::MATCH, $token->source, $matches);
     if (empty($matches[self::NAME]) || ($matches[self::VALUE] === '')) {
@@ -67,25 +70,28 @@ class SassVariableNode extends SassNode {
   /**
    * Parse this node.
    * Sets the variable in the current context.
-   * @param SassContext the context in which this node is parsed
+   * @param SassContext $context the context in which this node is parsed
    * @return array the parsed node - an empty array
    */
-  public function parse($context) {
+  public function parse($context)
+  {
     if (!$this->isDefault || !$context->hasVariable($this->name)) {
       $context->setVariable(
         $this->name, $this->evaluate($this->value, $context)
       );
     }
     $this->parseChildren($context); // Parse any warnings
+
     return array();
   }
 
   /**
    * Returns a value indicating if the token represents this type of node.
-   * @param object token
+   * @param object $token token
    * @return boolean true if the token represents this type of node, false if not
    */
-  public static function isa($token) {
+  public static function isa($token)
+  {
     return $token->source[0] === self::SASS_IDENTIFIER || $token->source[0] === self::SCSS_IDENTIFIER;
   }
 }

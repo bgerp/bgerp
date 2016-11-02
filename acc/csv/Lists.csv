@@ -14,4 +14,5 @@
 501,"Каси","cash_CaseAccRegIntf","case","no"
 502,"Безналични методи за плащане","cond_PaymentAccRegIntf","nonCash","no"
 503,"Банкови сметки","bank_OwnAccRegIntf","bankAcc","no"
+600,"Разходни обекти","doc_DocumentIntf","costObjects","no"
 610,"Центрове на дейност","hr_DepartmentAccRegIntf","departments","no"

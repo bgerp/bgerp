@@ -62,9 +62,11 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Детайли за клониране
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * 
+     * @see plg_Clone
      */
-    public $cloneDetailes = 'sales_ProformaDetails' ;
+    public $cloneDetails = 'sales_ProformaDetails' ;
     
     
     /**
@@ -218,7 +220,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	$form = &$data->form;
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
+    	foreach (array('responsible', 'deliveryPlaceId', 'vatDate', 'contragentCountryId', 'contragentName') as $fld){
     		$form->setField($fld, 'input=hidden');
     	}
     	
@@ -423,7 +425,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	$rec = $data->rec;
     
     	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))){
-    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
+    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png,row=2');
     	}
     	
     	if($rec->state == 'active'){

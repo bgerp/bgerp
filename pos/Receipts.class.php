@@ -121,7 +121,7 @@ class pos_Receipts extends core_Master {
 	
 	
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'pos/tpl/SingleLayoutReceipt.shtml';
     
@@ -136,6 +136,12 @@ class pos_Receipts extends core_Master {
      * Кои полета да се извлекат преди изтриване
      */
     public $fetchFieldsBeforeDelete = 'id';
+    
+    
+    /**
+     * Инстанция на детайла
+     */
+    public $pos_ReceiptDetails;
     
     
     /**
@@ -157,6 +163,8 @@ class pos_Receipts extends core_Master {
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
+
+    	$this->setDbIndex('valior');
     }
     
     
@@ -481,6 +489,7 @@ class pos_Receipts extends core_Master {
     	$this->requireRightFor('terminal');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
+    	pos_Points::requireRightFor('select', $rec->pointId);
     	
     	// Имаме ли достъп до терминала
     	if(!$this->haveRightFor('terminal', $rec)){
@@ -897,7 +906,7 @@ class pos_Receipts extends core_Master {
 				if($searchString){
 					$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
 				}
-				$query->where("#state != 'rejected'");
+				$query->where("#state != 'rejected' AND #state != 'closed'");
 				$query->show('id,name');
 				
 				if($type){
@@ -914,7 +923,7 @@ class pos_Receipts extends core_Master {
 				
 				if($type1 == 'person'){
 					if($Contragent = pos_Cards::getContragent($searchString, crm_Persons::getClassId())){
-						$data->recs["$type1|{$Contragent->that}"] = $Contragent->rec();
+						$data->recs["{$type1}|{$Contragent->that}"] = $Contragent->rec();
 					}
 				}
 			}

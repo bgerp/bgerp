@@ -55,7 +55,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'bank/tpl/SingleDepositSlip.shtml';
     
@@ -97,6 +97,8 @@ class bank_DepositSlips extends bank_DocumentBlank
         $this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory');
         $this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка');
         $this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
+
+        $this->setDbIndex('valior');
     }
     
     
@@ -173,8 +175,11 @@ class bank_DepositSlips extends bank_DocumentBlank
         $row->number = static::getHandle($rec->id);
         
         if($fields['-single']) {
-            $spellNumber = cls::get('core_SpellNumber');
-            $row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
+            $SpellNumber = cls::get('core_SpellNumber');
+            $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', TRUE);
+            
+            $row->sayWords = str_replace('0.0', '', $row->sayWords);
+            $row->sayWords = str_replace('0.', '', $row->sayWords);
         }
     }
     

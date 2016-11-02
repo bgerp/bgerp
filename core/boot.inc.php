@@ -96,48 +96,45 @@ try {
 
 } catch (Exception  $e) {
     
-    if($e instanceOf core_exception_Db && ($link = $e->getDbLink())) { 
+    if($e instanceof core_exception_Db && ($link = $e->getDbLink())) { 
         
-        if ((!defined('BGERP_GIT_BRANCH') || BGERP_GIT_BRANCH != 'dev') && $e->isNotExistsDB() ) {   
-
-            // Опитваме се да създадем базата и редиректваме към сетъп-а
-            try {
-                mysqli_query($link, "CREATE DATABASE " . EF_DB_NAME);
-            } catch(Exception $e) {
-                reportException($e);
-            }
+        if(defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
             
-            redirect(array('Index', 'SetupKey' => setupKey()));
-
-        } elseif ((!defined('BGERP_GIT_BRANCH') || BGERP_GIT_BRANCH != 'dev') && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
- 
-            // При празна база или грешка в базата редиректваме безусловно към сетъп-а
-            redirect(array('Index', 'SetupKey' => setupKey()));
-        }
-
-        $e->repairDB($link);
-
-        // Дали да поставим връзка за обновяване
-        $update = NULL;
-        if(($e->isNotInitializedDB() || $e->isNotExistsDB()) && $link) {
-            
-            try {
-                if((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
-                    if($e->isNotExistsDB()) {
-                        try {
-                            mysqli_query($link, "CREATE DATABASE " . EF_DB_NAME);
-                        } catch(Exception $e) {
-                            reportException($e);
-                        }
-                    }
-                    $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
+            // 1. Ако няма такава база, създаваме я и редирректваме към инсталация
+            if ($e->isNotExistsDB()) {
+                // Опитваме се да създадем базата и редиректваме към сетъп-а
+                try {
+                    mysqli_query($link, "CREATE DATABASE " . EF_DB_NAME);
+                } catch(Exception $e) {
+                    reportException($e);
                 }
-            } catch(Exception $e) {
-                reportException($e);
             }
             
-        } 
+            // Ако базата е абсолютно празна - ще се отиде направо към инициализирането
+            // Ако има поне един файл, няма да се отиде към инициализиране
+            if(core_Db::databaseEmpty()) {
+                redirect(array('Index', 'SetupKey' => setupKey()));
+            }
+            
+            if ($e instanceof core_exception_Db) {
+                // Опитваме се да поправим базата
+                $e->repairDB($link);
+                
+                // Ако грешката в свързана с не-инициализиране на базата, поставяме линк, само ако потребителя е админ или е в dev бранч
+                if($e->isNotInitializedDB()) {
+                
+                    try {
+                        if((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
+                            $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
+                        }
+                    } catch(Exception $e) {
+                        reportException($e);
+                    }
+                }
+            }
+        }
     }
+    
     reportException($e, $update, FALSE);
 }
 
@@ -168,7 +165,7 @@ function reportException($e, $update = NULL, $supressShowing = TRUE)
     $breakLine = $e->getLine();
     $stack     = $e->getTrace();
 
-    if ($e instanceOf core_exception_Break) {
+    if (($e instanceOf core_exception_Break) || ($e instanceOf core_exception_Expect)) {
         $dump = $e->getDump();
         $errType = $e->getType();
     }
@@ -457,6 +454,27 @@ function defineIfNot($name, $value)
     return core_App::defineIfNot($name, $value);
 }
 
+
+/**
+ * Деление на две числа, когато има опасност делителя да е 0
+ */
+function sDiv($x, $d)
+{
+    if(empty($d)) {
+        if(!empty($x)) {
+            // Делим на нула, различно от нула число
+            $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
+            $msg = "Делене на нула `{$x}`/`{$d}`: File = " . $debug[0]['file'] . ' line=' . $debug[0]['line'];
+            log_System::add('core_Debug', $msg, NULL, 'err');
+        }
+
+        return 0;
+    }
+
+    return $x/$d;
+}
+
+
 /**
  * Изисква потребителят да има посочената роля
  * Ако я няма - генерира грешка ако е логнат, а
@@ -509,6 +527,7 @@ function getTplFromFile($file)
 {
     return core_ET::getTplFromFile($file);
 }
+
 
 /**
  * Връща валиден ключ за оторизация в Setup-а

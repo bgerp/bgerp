@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -30,7 +30,7 @@ class doc_Notes extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, colab_CreateDocumentIntf';
     
     
     /**
@@ -102,7 +102,7 @@ class doc_Notes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
+    var $loadList = 'doc_Wrapper, doc_SharablePlg,doc_plg_Prototype, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
@@ -179,6 +179,7 @@ class doc_Notes extends core_Master
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
     }
     
     
@@ -210,13 +211,27 @@ class doc_Notes extends core_Master
 
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на бележка не променя състоянието на треда
+     * 
+     * @param integer $id
+     * 
+     * @return NULL|string
      */
     static function getThreadState($id)
     {
-        return NULL;
+	    $res = NULL;
+	    
+	    if (core_Packs::isInstalled('colab')) {
+	        $rec = self::fetch($id);
+	        if (core_Users::haveRole('collaborator', $rec->createdBy)) {
+	            $res = 'opened';
+	        } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
+	            $res = 'closed';
+	        }
+	    }
+	    
+	    return $res;
     }
-    
+        
     
     /**
      * След преобразуване на записа в четим за хора вид.

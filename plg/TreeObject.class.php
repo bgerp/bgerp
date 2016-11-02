@@ -333,7 +333,7 @@ class plg_TreeObject extends core_Plugin
 			$row->ROW_ATTR['class']    .= ' treeLevel' . $rec->_level;
 			
 			// Ако може да се добавя поделемент, показваме бутон за добавяне
-			if($mvc->haveRightFor('add')){
+			if($mvc->haveRightFor('add', (object)array($mvc->parentFieldName => $rec->id))){
 				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add-sub.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
 				
@@ -400,8 +400,8 @@ class plg_TreeObject extends core_Plugin
 	 * има чекнато децата му да са свойства. За да е един обект свойство трябва или да има баща
 	 * и децата му да са свойства или да няма баща
 	 *
-	 * @param string $ids - кейлист на обекти
-	 * @return array - масив със свойства и стойностти
+	 * @param string $keylist - кейлист на обекти
+	 * @return void
 	 */
 	public static function on_AfterGetFeaturesArray($mvc, &$res, $keylist)
 	{

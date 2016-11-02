@@ -21,7 +21,7 @@ class plg_State extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public static function on_AfterDescription(&$mvc)
     {
         self::setStateField($mvc);
     }
@@ -40,8 +40,8 @@ class plg_State extends core_Plugin
                   rejected=Оттеглен,
                   stopped=Спрян,
                   wakeup=Събуден,
-                  free=Освободен)',
-                'caption=Състояние,column=none,input=none');
+                  free=Освободен,template=Шаблон)',
+                 'caption=Състояние,column=none,input=none');
         }
 
         foreach($mvc->fields['state']->type->options as $state => $verbal) {
@@ -63,7 +63,7 @@ class plg_State extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)
+    public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)
     {
         if (!$rec->state && !$rec->id) {
             $rec->state = $mvc->defaultState ? $mvc->defaultState : 'draft';
@@ -74,7 +74,7 @@ class plg_State extends core_Plugin
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    public static function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $row->STATE_CLASS .= " state-{$rec->state}";
@@ -84,7 +84,7 @@ class plg_State extends core_Plugin
     /**
      * Поставя класа за състоянието на единичния изглед
      */
-    function on_AfterRenderSingleTitle($mvc, &$res, $data)
+    public static function on_AfterRenderSingleTitle($mvc, &$res, $data)
     {
         $res = new ET("<div style='padding:5px;' class='state-{$data->rec->state}'>[#1#]</div>", $res);
     }

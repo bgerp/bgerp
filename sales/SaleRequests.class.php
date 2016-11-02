@@ -182,7 +182,7 @@ class sales_SaleRequests extends core_Master
 	/**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
     {
     	if(($action == 'add') && isset($rec)){
     		if(!$rec->originId){
@@ -294,7 +294,12 @@ class sales_SaleRequests extends core_Master
 	    		$row->id .= " " . ht::createLink($img, array('sales_SaleRequests', 'CreateFromOffer', $rec->id, 'originId' => $rec->originId, 'ret_url' => TRUE, 'edit' => TRUE));
 	    	}
 	    	$row->id .= " {$id}";
-	    	@$rec->amountDeal = $rec->amountDeal / $rec->currencyRate;
+	    	
+	    	$rec->amountDeal = 0;
+	    	if (!empty($rec->currencyRate)) {
+	    	    $rec->amountDeal = $rec->amountDeal / $rec->currencyRate;
+	    	}
+	    	
 	    	$row->amountDeal = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $mvc->getFieldType('amountDeal')->toVerbal($rec->amountDeal);
     	}
 	    

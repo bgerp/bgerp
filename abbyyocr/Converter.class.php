@@ -208,8 +208,11 @@ class abbyyocr_Converter extends core_Manager
         $params['fh'] = $fileHnd;
         $Script->params = $params;
         
-        // Стартираме скрипта
-        $Script->run($params['asynch']);
+        $Script->setCheckProgramsArr('abbyyocr9');
+        // Стартираме скрипта Aсинхронно
+        if ($Script->run($params['asynch']) === FALSE) {
+            fileman_Indexes::createError($params);
+        }
         
         // Добавяме съобщение
         status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');

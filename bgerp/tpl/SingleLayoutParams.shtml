@@ -1,0 +1,129 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <h3 style="padding:5px;" class=" [#STATE_CLASS#]">
+        |Параметър|* <b style="color:green;display:inline-block;word-break:break-all">[#typeExt#]</b>
+    </h3>
+    <div class='scrolling-holder'>
+        <table class="styled-table">
+            <tr>
+                <td class="title-style">|Тип|*</td>
+                <td>[#driverClass#]</td>
+            </tr>
+            <!--ET_BEGIN suffix-->
+            <tr>
+                <td class="title-style">|Суфикс|*</td>
+                <td>[#suffix#]</td>
+            </tr>
+            <!--ET_END suffix-->
+            
+            <!--ET_BEGIN sysId-->
+            <tr>
+                <td class="title-style">|Системен №|*</td>
+                <td>[#sysId#]</td>
+            </tr>
+            <!--ET_END sysId-->
+            
+            <!--ET_BEGIN lastUsedOn-->
+            <tr>
+                <td class="title-style nowrap">|Последно използване|*</td>
+                <td>[#lastUsedOn#]</td>
+            </tr>
+            <!--ET_END lastUsedOn-->
+            
+            <!--ET_BEGIN order-->
+            <tr>
+                <td class="title-style nowrap">|Подредба в групата|*</td>
+                <td>[#order#]</td>
+            </tr>
+            <!--ET_END order-->
+            
+            <!--ET_BEGIN groupParams-->
+            [#groupParams#]
+            <tr>
+                <th colspan="2" style='padding-top: 20px;'>|Конкретизиране|*</th>
+            </tr>
+            <!--ET_BEGIN round-->
+            <tr>
+                <td class="title-style">|Закръгляне|*</td>
+                <td>[#round#]</td>
+            </tr>
+            <!--ET_END round-->
+            
+            <!--ET_BEGIN min-->
+            <tr>
+                <td class="title-style">|Минимум|*</td>
+                <td>[#min#]</td>
+            </tr>
+            <!--ET_END min-->
+            
+            <!--ET_BEGIN max-->
+            <tr>
+                <td class="title-style">|Максимум|*</td>
+                <td>[#max#]</td>
+            </tr>
+            <!--ET_END max-->
+            
+            <!--ET_BEGIN options-->
+            <tr>
+                <td class="title-style" style='vertical-align:top'>|Опции|*</td>
+                <td>[#options#]</td>
+            </tr>
+            <!--ET_END options-->
+            
+            <!--ET_BEGIN time-->
+            <tr>
+                <td class="title-style">|Дължина|*</td>
+                <td>[#time#]</td>
+            </tr>
+            <!--ET_END time-->
+            
+            <!--ET_BEGIN products-->
+            <tr>
+                <td class="title-style">|Вложими|*</td>
+                <td>[#products#]</td>
+            </tr>
+            <!--ET_END products-->
+            
+            <!--ET_BEGIN rows-->
+            <tr>
+                <td class="title-style">|Редове|*</td>
+                <td>[#rows#]</td>
+            </tr>
+            <!--ET_END rows-->
+            
+            <!--ET_BEGIN lenght-->
+            <tr>
+                <td class="title-style">|Дължина|*</td>
+                <td>[#lenght#]</td>
+            </tr>
+            <!--ET_END lenght-->
+            
+            <!--ET_BEGIN default-->
+            <tr>
+                <td class="title-style">|Дефолт|*</td>
+                <td>[#default#]</td>
+            </tr>
+            <!--ET_END default-->
+            <!--ET_END groupParams-->
+            <tr>
+                <th colspan="2" style='padding-top: 20px;'>|Счетоводен признак за групиране|*</th>
+            </tr>
+            <tr>
+                <td class="title-style">|Използване|*</td>
+                <td>[#isFeature#]</td>
+            </tr>
+            
+            <!--ET_BEGIN showInPublicDocuments-->
+            <tr>
+                <th colspan="2" style='padding-top: 20px;'>|Показване във външни документи|*</th>
+            </tr>
+            <tr>
+                <td class="title-style">|Показване|*</td>
+                <td>[#showInPublicDocuments#]</td>
+            </tr>
+            <!--ET_END showInPublicDocuments-->
+        </table>
+        
+    	<div style='margin-top: 20px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    </div>
+</div>

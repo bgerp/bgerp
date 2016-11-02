@@ -8,8 +8,8 @@
  *
  * @category  bgerp
  * @package   cash
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,121 +19,91 @@ class cash_Cases extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, cash_CaseAccRegIntf';
+    public $interfaces = 'acc_RegisterIntf, cash_CaseAccRegIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Фирмени каси';
+    public $title = 'Фирмени каси';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Каса";
+    public $singleTitle = "Каса";
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/safe-icon.png';
+    public $singleIcon = 'img/16/safe-icon.png';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name, cashiers, blAmount=Сума';
+    public $listFields = 'name,cashiers,activateRoles,selectUsers,selectRoles,blAmount=Сума';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
-    
-    
-    /**
-     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
-     */
-    var $coverMasterRoles = 'ceo, cashMaster';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
-    
-    
-    /**
-     *  Кой може да чете
-     */
-    var $canRead = 'ceo, cash';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, bgerp_plg_FLB, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo, cashMaster';
+    public $canWrite = 'ceo, admin';
     
     
     /**
      * Кой може да пише
      */
-    var $canReject = 'ceo, cashMaster';
+    public $canReject = 'ceo, admin';
     
     
     /**
      * Кой може да пише
      */
-    var $canRestore = 'ceo, cashMaster';
-    
-    
-    /**
-     * Кой може да пише
-     */
-    var $canCreatenewfolder = 'ceo, cash';
+    public $canRestore = 'ceo, admin';
     
     
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    var $canReports = 'ceo,cash,acc';
+    public $canReports = 'ceo,cash,acc';
     
     
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    var $canAddacclimits = 'ceo,cashMaster,accMaster';
+    public $canAddacclimits = 'ceo,cashMaster,accMaster,accLimits';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, cash';
+	public $canList = 'ceo, cash';
 
 
    /**
-	* Кой може да селектира?
+	* Кой може да активира?
 	*/
-	var $canSelect = 'ceo,cash';
-	
-	
-	/**
-	 * Кой може да селектира всички записи
-	 */
-	var $canSelectAll = 'ceo,cashMaster';
+	public $canActivate = 'ceo, cash';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,cash';
-    
-    
-	/**
-	 * Кое поле отговаря на кой работи с дадена каса
-	 */
-	var $inChargeField = 'cashiers';
+	public $canSingle = 'ceo,cash';
 	
 	
 	/**
@@ -163,13 +133,13 @@ class cash_Cases extends core_Master {
      * @see acc_plg_Registry
      * @var string
      */
-    var $autoList = 'case';
+    public $autoList = 'case';
  
     
     /**
      * Файл с шаблон за единичен изглед
      */
-    var $singleLayoutFile = 'cash/tpl/SingleLayoutCases.shtml';
+    public $singleLayoutFile = 'cash/tpl/SingleLayoutCases.shtml';
     
     
     /**
@@ -179,12 +149,20 @@ class cash_Cases extends core_Master {
     
     
     /**
+     * Поле за избор на потребителите, които могат да активират обекта
+     * 
+     * @see bgerp_plg_FLB
+     */
+    public $canActivateUserFld = 'cashiers';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
-        $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Касиери,mandatory');
+        $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     
         $this->setDbUnique('name');
@@ -224,7 +202,6 @@ class cash_Cases extends core_Master {
         			acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
         			 
         			// Събираме ги да намерим крайното салдо на перото
-        			
         			while($bRec = $bQuery->fetch()){
         				$rec->blAmount += $bRec->blAmount;
         			}
@@ -252,8 +229,7 @@ class cash_Cases extends core_Master {
     
     
     /**
-     * Подготвя и осъществява търсене по каса, изпозлва се
-     * в касовите документи
+     * Подготвя и осъществява търсене по каса, изпозлва се в касовите документи
      * @param stdClass $data 
      * @param array $fields - масив от полета в полета в които ще се
      * търси по caseId
@@ -279,7 +255,7 @@ class cash_Cases extends core_Master {
     /**
      * След рендиране на лист таблицата
      */
-    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
     	if(!count($data->rows)) return;
     	
@@ -307,7 +283,7 @@ class cash_Cases extends core_Master {
     
     /*******************************************************************************************
      * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see cash_CaseAccRegIntf
      * 
      ******************************************************************************************/
     

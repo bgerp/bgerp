@@ -26,8 +26,10 @@ class email_Incomings extends core_Master
      * SN - Senegal
      * SL - Sierra Leone
      * HK - Hong Kong
+     * BO - Bolivia
+     * NP - Nepal
      */
-    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK');
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP');
     
     
     /**
@@ -75,7 +77,7 @@ class email_Incomings extends core_Master
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id';
+    var $fetchFieldsBeforeDelete = 'id, containerId, fromEml';
     
     
     /**
@@ -168,6 +170,14 @@ class email_Incomings extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'subject, fromEml, fromName, textPart, files';
+    
+    
+    /**
+     * Дали да може да се изтрива документа от документната система
+     * 
+     * @see doc_Threads
+     */
+    public $deleteThreadAndDoc = TRUE;
     
     
     /**
@@ -1626,12 +1636,14 @@ class email_Incomings extends core_Master
         //
         
         /* @var $query core_Query */
-        $query = static::getQuery();
-        $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
-        $query->orderBy('createdOn', 'DESC');
-        $query->limit(3);     // 3 писма
-        while ($mrec = $query->fetch()) {
-            static::makeRouterRules($mrec);
+        if ($rec->fromEml) {
+            $query = static::getQuery();
+            $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
+            $query->orderBy('createdOn', 'DESC');
+            $query->limit(3);     // 3 писма
+            while ($mrec = $query->fetch()) {
+                static::makeRouterRules($mrec);
+            }
         }
     }
     

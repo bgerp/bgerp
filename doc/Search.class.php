@@ -332,6 +332,8 @@ class doc_Search extends core_Manager
             // Няма условия за търсене - показваме само формата за търсене, без данни
             $data->query->where("0 = 1");
         }
+
+        $data->query->useCacheForPager = TRUE;
     }
     
     
@@ -462,7 +464,7 @@ class doc_Search extends core_Manager
         
         $attr = array();
         $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
         
         $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
         

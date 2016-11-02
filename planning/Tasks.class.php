@@ -30,6 +30,12 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Шаблон за единичен изглед
+	 */
+	public $singleLayoutFile = 'planning/tpl/SingleLayoutTask.shtml';
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -43,7 +49,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
+	public $loadList = 'doc_plg_BusinessDoc,doc_plg_Prototype,doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
 	
 	
 	/**
@@ -53,7 +59,7 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
-	 * Еденично заглавие
+	 * Единично заглавие
 	 */
 	public $singleTitle = 'Задача за производство';
 	
@@ -83,46 +89,114 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Дали винаги да се форсира папка, ако не е зададена
+	 * 
+	 * @see doc_plg_BusinessDoc
+	 */
+	public $alwaysForceFolderIfEmpty = TRUE;
+	
+	
+	/**
+	 * Подготовка на формата за добавяне/редактиране
+	 */
+	public static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$rec = &$data->form->rec;
+		if(isset($rec->systemId)){
+			$data->form->setField('prototypeId', 'input=none');
+		}
+		
+		if(empty($rec->id)){
+			if($folderId = Request::get('folderId', 'key(mvc=doc_Folders)')){
+				unset($rec->threadId);
+				$rec->folderId = $folderId;
+			}
+		}
+	}
+	
+	
+	/**
 	 * След рендиране на задачи към задание
 	 * 
-	 * @param core_Mvc $mvc
+	 * @param core_Manager $mvc
 	 * @param stdClass $data
 	 * @return void
 	 */
 	public static function on_AfterPrepareTasks($mvc, &$data)
 	{
-		if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) return;
+		if(Mode::isReadOnly()) return;
+		$masterRec = $data->masterData->rec;
+		$containerId = $data->masterData->rec->containerId;
+		$defDriver = planning_drivers_ProductionTask::getClassId();
 		
 		// Може ли на артикула да се добавят задачи за производство
 		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
 		
-		$containerId = $data->masterData->rec->containerId;
+		$departments = keylist::toArray($masterRec->departments);
+		if(!count($departments) && !count($defaultTasks)){
+			$departments = array('' => NULL);
+		}
 		
-		// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
+		$sysId = (count($defaultTasks)) ? key($defaultTasks) : NULL;
+		
+		$draftRecs = array();
+		foreach ($departments as $depId){
+			$depFolderId = isset($depId) ? hr_Departments::forceCoverAndFolder($depId) : NULL;
+			
+			$r = new stdClass();
+			$r->folderId    = $depFolderId;
+			$r->title       = cat_Products::getTitleById($masterRec->productId);
+			$r->systemId    = $sysId;
+			$r->driverClass = $defDriver;
+			
+			if(!$sysId){
+				$r->productId = $masterRec->productId;
+			}
+			
+			$draftRecs[]    = $r;
+		}
+		
 		if(count($defaultTasks)){
 			foreach ($defaultTasks as $index => $taskInfo){
-				
+		
 				// Имали от създадените задачи, такива с този индекс
 				$foundObject = array_filter($data->recs, function ($a) use ($index) {
 					return $a->systemId == $index;
 				});
-				
+		
 				// Ако има не показваме дефолтната задача
 				if(is_array($foundObject) && count($foundObject)) continue;
-				
-				// Ако не може да бъде добавена задача не показваме реда
-				if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
-				$row = new stdClass();
-				$row->title = $taskInfo->title;
-				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driver, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);
-				
-				core_RowToolbar::createIfNotExists($row->_rowTools);
-				$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова задача за производство"));
-				
-				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
-		
-				$data->rows[] = $row;
+			
+				$r = new stdClass();
+				$r->title       = $taskInfo->title;
+				$r->systemId    = $index;
+				$r->driverClass = $taskInfo->driver;
+				$draftRecs[]    = $r;
 			}
+		}
+		
+		// Вербализираме дефолтните записи
+		foreach ($draftRecs as $draft){
+			if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'driverClass' => $draft->driverClass))) continue;
+		
+			$url = array('planning_Tasks', 'add', 'folderId' => $draft->folderId, 'originId' => $containerId, 'driverClass' => $draft->driverClass, 'title' => $draft->title, 'ret_url' => TRUE);
+			if(isset($draft->systemId)){
+				$url['systemId'] = $draft->systemId;
+			} else {
+				$url['productId'] = $draft->productId;
+			}
+			
+			$row = new stdClass();
+			core_RowToolbar::createIfNotExists($row->_rowTools);
+			$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова задача за производство"));
+				
+			$row->title = cls::get('type_Varchar')->toVerbal($draft->title);
+			$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
+			if(isset($draft->folderId)){
+				$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($draft->folderId))->title;
+			}
+				
+			$data->rows[] = $row;
 		}
 	}
 	
@@ -132,93 +206,27 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'add'){
-			if(isset($rec->originId)){
-				
-				// Може да се добавя само към активно задание
-				if($origin = doc_Containers::getDocument($rec->originId)){
-					if(!$origin->isInstanceOf('planning_Jobs')){
-						$requiredRoles = 'no_one';
-					}
+		if(isset($rec) && empty($rec->originId)){
+			$requiredRoles = 'no_one';
+		}
+		
+		if($action == 'add' && isset($rec->originId)){
+			// Може да се добавя само към активно задание
+			if($origin = doc_Containers::getDocument($rec->originId)){
+				if(!$origin->isInstanceOf('planning_Jobs')){
+					$requiredRoles = 'no_one';
 				}
-			}
-
-			if(empty($rec->threadId) && empty($rec->originId)){
-				$requiredRoles = 'no_one';
 			}
 		}
 	}
 	
-
-	/**
-	 * Проверка дали нов документ може да бъде добавен в посочената нишка
-	 *
-	 * @param int $threadId key(mvc=doc_Threads)
-	 * @return boolean
-	 */
-	public static function canAddToThread($threadId)
-	{
-		$firstDoc = doc_Threads::getFirstDocument($threadId);
-		
-		// Може да се добавя само към нишка с начало задание
-		return $firstDoc->isInstanceOf('planning_Jobs');
-	}
-	
 	
 	/**
-	 * Генерираме ключа за кеша
-	 * Интерфейсен метод
-	 *
-	 * @param core_Mvc $mvc
-	 * @param NULL|FALSE|string $res
-	 * @param NULL|integer $id
-	 * @param object $cRec
-	 *
-	 * @see doc_DocumentIntf
-	 */
-	public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
-	{
-		if ($res === FALSE) return ;
-	
-		$dealHistory = Request::get("TabTop{$cRec->id}");
-		
-		$res = md5($res . '|' . $dealHistory);
-	}
-	
-	
-	/**
-	 * Преди запис на документ, изчислява стойността на полето `isContable`
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $rec
+	 * Преди запис на документ
 	 */
 	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
-		if(empty($rec->originId)){
-			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-			$rec->originId = $firstDoc->fetchField('containerId');
-		}
-		
 		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
-	}
-	
-	
-	/**
-	 * Извиква се след успешен запис в модела
-	 *
-	 * @param core_Mvc $mvc
-	 * @param int $id първичния ключ на направения запис
-	 * @param stdClass $rec всички полета, които току-що са били записани
-	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-	{
-		if(isset($rec->originId)){
-			
-			// Ако има източник предизвикваме му обновяването да се инвалидира кеша ако има
-			$origin = doc_Containers::getDocument($rec->originId);
-			$originRec = $origin->fetch();
-			$origin->getInstance()->save($originRec);
-		}
 	}
 	
 
@@ -231,19 +239,98 @@ class planning_Tasks extends tasks_Tasks
 	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		if(core_Packs::isInstalled('label')){
-			if (($data->rec->state != 'rejected' && $data->rec->state != 'draft') && label_Labels::haveRightFor('add')){
+			if (($data->rec->state != 'rejected' && $data->rec->state != 'draft' && $data->rec->state != 'template') && label_Labels::haveRightFor('add')){
 				
 				$tQuery = label_Templates::getQuery();
-				$tQuery->where("#classId = '{$mvc->getClassId()}'");
-				$tQuery->where("#state != 'rejected'");
-				
+				$tQuery->where("#classId = '{$mvc->getClassId()}' AND #state != 'rejected'");
+				$tQuery->show('id');
+				$tQuery->limit(1);
 				$error = ($tQuery->fetch()) ? '' : ",error=Няма наличен шаблон за етикети от задачи за производство";
 				
 				core_Request::setProtected('class,objectId');
-				$url = array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'title' => "#" . $mvc->getHandle($data->rec->id), 'ret_url' => TRUE);
-				$data->toolbar->addBtn('Етикетиране', $url, NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от задачата за производство{$error}");
+				$url = array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE);
+				$data->toolbar->addBtn('Етикетиране', toUrl($url), NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от задачата за производство{$error}");
+				core_Request::removeProtected('class,objectId');
 			}
 		}
+	}
+	
+	
+	/**
+	 * Генерира баркод изображение от даден сериен номер
+	 * 
+	 * @param string $serial - сериен номер
+	 * @return core_ET $img - баркода
+	 */
+	public static function getBarcodeImg($serial)
+	{
+		$attr = array();
+		
+		$conf = core_Packs::getConfig('planning');
+		$barcodeType = $conf->PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE;
+		$size = array('width' => $conf->PLANNING_TASK_LABEL_WIDTH, 'height' => $conf->PLANNING_TASK_LABEL_HEIGHT);
+		$attr['ratio'] = $conf->PLANNING_TASK_LABEL_RATIO;
+		if ($conf->PLANNING_TASK_LABEL_ROTATION == 'yes') {
+			$attr['angle'] = 90;
+		}
+		
+		if ($conf->PLANNING_TASK_LABEL_COUNTER_SHOWING == 'barcodeAndStr') {
+			$attr['addText'] = array();
+		}
+		
+		// Генериране на баркод от серийния номер, според зададените параметри
+		$img = barcode_Generator::getLink($barcodeType, $serial, $size, $attr);
+		
+		// Връщане на генерираното изображение
+		return $img;
+	}
+	
+	
+	/**
+	 * Информация за произведения артикул по задачата
+	 *
+	 * @param stdClass $rec
+	 * @return stdClass $arr
+	 * 			  o productId       - ид на артикула
+	 * 			  o packagingId     - ид на опаковката
+	 * 			  o quantityInPack  - количество в опаковка
+	 * 			  o plannedQuantity - планирано количество
+	 * 			  o wastedQuantity  - бракувано количество
+	 * 			  o totalQuantity   - прозведено количество
+	 * 			  o storeId         - склад
+	 * 			  o fixedAssets     - машини
+	 * 			  o indTime         - време за пускане
+	 * 			  o startTime       - време за прозиводство
+	 */
+	public static function getTaskInfo($id)
+	{
+		$rec = static::fetchRec($id);
+		
+		$Driver = static::getDriver($rec);
+		$info = $Driver->getProductDriverInfo($rec);
+		
+		return $info;
+	}
+	
+	
+	/**
+	 * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
+	 *
+	 * @param mixed $id - ид или запис
+	 * @return array $fields - полета за етикети
+	 */
+	public function getLabelPlaceholders($id)
+	{
+		expect($rec = planning_Tasks::fetchRec($id));
+		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW');
+		
+		// Извличане на всички параметри на артикула
+		$params = static::getTaskProductParams($rec, TRUE);
+		
+		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
+		$fields = array_merge($fields, $params);
+		
+		return $fields;
 	}
 	
 	
@@ -263,57 +350,89 @@ class planning_Tasks extends tasks_Tasks
 		expect($rec = planning_Tasks::fetchRec($id));
 		expect($origin = doc_Containers::getDocument($rec->originId));
 		$jobRec = $origin->fetch();
-	    
-		// Форсираме сериен номер
-		$res['SERIAL'] = planning_TaskSerials::force($id, $labelNo, $rec->productId);
-	
-		// Хендлъра на заданието
+		$tInfo = planning_Tasks::getTaskInfo($rec);
+		
+		// Информация за артикула и заданието
 		$res['JOB'] = "#" . $origin->getHandle();
-	
-		// Заглавие на заданието
-		$res['JOB_NAME'] = $origin->getTitleById();
-	
-		// Хендлър на задачата за производство
-		$res['TASK'] = "#" . planning_Tasks::getHandle($rec->id);
-	
-		// Данни от сделката към която е заданието (ако е към сделка)
+		$res['NAME'] = cat_Products::getTitleById($tInfo->productId);
+		
+		// Генериране на баркод
+		$serial = planning_TaskSerials::force($id, $labelNo, $tInfo->productId);
+		$res['BARCODE'] = self::getBarcodeImg($serial)->getContent();
+		
+		// Информация за артикула
+		$measureId = cat_Products::fetchField($tInfo->productId, 'measureId');
+		$res['MEASURE_ID'] = cat_UoM::getShortName($measureId);
+		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($tInfo->quantityInPack);
 		if(isset($jobRec->saleId)){
-			$saleRec = sales_Sales::fetch($jobRec->saleId);
-				
-			// Хендлър на сделката
-			$res['ORDER'] = "#" . sales_Sales::getHandle($saleRec->id);
-				
-			// Дата на сделката
-			$res['ODDER_DATE'] = $saleRec->valior;
-				
-			$Contragent = cls::get($saleRec->contragentClassId);
-			$countryName = $Contragent->getContragentData($saleRec->contragentClassId)->country;
-			if(!empty($countryName)){
-	
-				// Държавата на контрагента от сделката
-				$res['DES_COUNTRY'] = $countryName;
-			}
-				
-			// Името на контрагента
-			$res['COMPANY'] = $Contragent->getTitleById($saleRec->contragentId);
+			$res['ORDER'] = sales_Sales::getLink($jobRec->saleId, 0);
 		}
-	
-		// Информация за производимия артикул
-		if(isset($rec->productId)){
-				
-			// Кода на произведения артикул
-			$res['ARTICLE_TITLE'] = cat_Products::getTitleById($rec->productId);
-			$productCode = cat_Products::fetchField($rec->productId, 'code');
-				
-			// Кода на произведения артикул, ако няма код това е хендлъра му
-			$res['ARTICLE'] = !empty($productCode) ? $productCode : "#" . cat_Products::getHandle($rec->productId);
+		
+		// Извличане на всички параметри на артикула
+		Mode::push('text', 'plain');
+		$params = static::getTaskProductParams($rec, TRUE);
+		Mode::pop('text');
+		
+		$params = cat_Params::getParamNameArr($params, TRUE);
+		$res = array_merge($res, $params);
+		
+		// Генериране на превю на артикула за етикети
+		$previewWidth = planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH');
+		$previewHeight = planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT');
+		
+		// Ако в задачата има параметър за изглед, взима се той
+		$previewParamId = cat_Params::fetchIdBySysId('preview');
+		if($prevValue = cat_products_Params::fetchField("#classId = {$this->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$preview = $Fancybox->getImage($prevValue, array($previewWidth, $previewHeight), array('550', '550'))->getContent();
+		} else {
+			
+			// Иначе се взима от дефолтния параметър
+			$preview = cat_Products::getPreview($tInfo->productId, array($previewWidth, $previewHeight));
 		}
-	
-		// Връщаме данните за етикета от задачата
+		
+		if(!empty($preview)){
+			$res['ИЗГЛЕД'] = $preview;
+			$res['PREVIEW'] = $preview;
+		}
+		
+		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;
 	}
     
     
+	/**
+	 * Помощна функция извличаща параметрите на задачата
+	 * 
+	 * @param stdClass $rec     - запис
+	 * @param boolean $verbal   - дали параметрите да са вербални
+	 * @return array $params    - масив с обеднението на параметрите на задачата и тези на артикула
+	 */
+	public static function getTaskProductParams($rec, $verbal = FALSE)
+	{
+		// Кои са параметрите на артикула
+		$classId = planning_Tasks::getClassId();
+		$tInfo = planning_Tasks::getTaskInfo($rec);
+		$productParams = cat_Products::getParams($tInfo->productId, NULL, TRUE);
+		
+		// Кои са параметрите на задачата
+		$params = array();
+		$query = cat_products_Params::getQuery();
+		$query->where("#classId = {$classId} AND #productId = {$rec->id}");
+		$query->show('paramId,paramValue');
+		while($dRec = $query->fetch()){
+			$dRec->paramValue = ($verbal === TRUE) ? cat_Params::toVerbal($dRec->paramId, $dRec->paramValue) : $dRec->paramValue;
+			$params[$dRec->paramId] = $dRec->paramValue;
+		}
+		
+		// Обединяване на параметрите на задачата с тези на артикула
+		$params = $params + $productParams;
+		
+		// Връщане на параметрите
+		return $params;
+	}
+	
+	
     /**
      * Броя на етикетите, които могат да се отпечатат
      * 
@@ -326,8 +445,9 @@ class planning_Tasks extends tasks_Tasks
      */
     public function getEstimateCnt($id, &$allowSkip)
     {
-        $allowSkip = TRUE;
-        
-        return 100 + $id;
+		// Планираното количество
+    	$tInfo = static::getTaskInfo($id);
+		
+        return $tInfo->plannedQuantity;
     }
 }

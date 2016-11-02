@@ -118,52 +118,16 @@
                         <li>|Доставка|*: [#deliveryTermId#]
                             <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                         <!--ET_END deliveryBlock-->
+                        <!--ET_BEGIN commonCondition-->
+                        <li>[#commonCondition#]</li>
+                        <!--ET_END commonCondition-->
                     </ol>
                     <!--ET_BEGIN isDelivered-->
                     <div class='stamp'>[#isDelivered#]</div>
                     <!--ET_END isDelivered-->
                 <!--ET_END conditions-->
                 <hr>
-                <table class='no-border paddingCells business-doc-summary-table fright'>
-                    <tr class='nowrap'>
-                        <td class="aright">|Стойност|* :</td>
-                        <td><span class='cCode'>[#currencyId#]</span></td>
-                        <td class="aright"> <b class="lighterBold">[#value#]</b></td>
-                    </tr>
-                    <!--ET_BEGIN discountValue-->
-                    <tr class='nowrap'>
-                        <td class="aright">|Отстъпка|* :</td>
-                        <td><span class='cCode'>[#discountCurrencyId#]</span></td>
-                        <td class="aright"><b class="lighterBold">[#discountValue#]</b></td>
-                    </tr>
-                    <!--ET_END discountValue-->
-                    <!--ET_BEGIN neto-->
-                    <tr class='nowrap'>
-                        <td class="aright">|Нето|* :</td>
-                        <td><span class='cCode'>[#netoCurrencyId#]</span></td>
-                        <td class="aright"><b class="lighterBold">[#neto#]</b></td>
-                    </tr>
-                    <!--ET_END neto-->
-                    <!--ET_BEGIN baseAmount-->
-                    <tr class='nowrap'>
-                        <td class="aright">|Данъчна основа|* :</td>
-                        <td><span class='cCode'>[#baseCurrencyId#]</span></td>
-                        <td class="aright"><b class="lighterBold">[#baseAmount#]</b></td>
-                    </tr>
-                    <!--ET_END baseAmount-->
-                    <!--ET_BEGIN vatAmount-->
-                    <tr class='nowrap'>
-                        <td class="aright">|ДДС|* <b>[#vat#]</b> :</td>
-                        <td><span class='cCode'>[#vatCurrencyId#]</span></td>
-                        <td class="aright"><b class="lighterBold">[#vatAmount#]</b></td>
-                    </tr>
-                    <!--ET_END vatAmount-->
-                    <tr class='nowrap'>
-                        <td class="aright">|Общо|* :</td>
-                        <td><span class='cCode'>[#currencyId#]</span></td>
-                        <td class="aright"><b>[#total#]</b></td>
-                    </tr>
-                </table>
+                [#/deals/tpl/DocumentPiceInfo.shtml#]
                 <div class="clearfix21"></div>
                 <hr>
                 <!--ET_BEGIN responsible-->

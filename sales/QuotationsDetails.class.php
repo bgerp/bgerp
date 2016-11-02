@@ -31,12 +31,6 @@ class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'sales_QuotesDetails';
-    
-    
-    /**
 	 * Мастър ключ към дъските
 	 */
 	public $masterKey = 'quotationId';
@@ -99,6 +93,12 @@ class sales_QuotationsDetails extends doc_Detail {
     public $metaProducts = 'canSell';
     
     
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'quotationId';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
@@ -114,13 +114,14 @@ class sales_QuotationsDetails extends doc_Detail {
         
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
-        $this->FLD('discount', 'percent(maxDecimals=2,Min=0)', 'caption=Отстъпка,smartCenter');
+        $this->FLD('discount', 'percent(maxDecimals=2,min=0)', 'caption=Отстъпка,smartCenter');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent,notNull,value=no');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
         $this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
+    	$this->setField('packPrice', 'silent');
     }
     
     
@@ -199,10 +200,20 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
     		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, FALSE, $masterRec->tplLang);
+    		if(isset($data->summary->vat009) && !isset($data->summary->vat0) && !isset($data->summary->vat02)){
+    			$data->summary->onlyVat = $data->summary->vat009;
+    			unset($data->summary->vat009);
+    		} elseif(isset($data->summary->vat0) && !isset($data->summary->vat009) && !isset($data->summary->vat02)){
+    			$data->summary->onlyVat = $data->summary->vat0;
+    			unset($data->summary->vat0);
+    		} elseif(isset($data->summary->vat02) && !isset($data->summary->vat009) && !isset($data->summary->vat0)){
+    			$data->summary->onlyVat = $data->summary->vat02;
+    			unset($data->summary->vat02);
+    		}
     		
     		// Обработваме сумарните данни
-    		if(!$data->summary->vatAmount){
-    			$data->summary->vatAmount = $data->masterData->row->chargeVat;
+    		if($data->masterData->rec->chargeVat != 'separate'){
+    			$data->summary->chargeVat = $data->masterData->row->chargeVat;
     		}
     		
     		if(!$data->summary->discountValue){
@@ -289,7 +300,7 @@ class sales_QuotationsDetails extends doc_Detail {
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
         
-	    $form->fields['price']->unit = "|*" . $masterRec->currencyId . ", " .(($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*');
+	    $form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", " .(($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*');
 	   
 	    if($form->rec->price && $masterRec->currencyRate){
        	 	if($masterRec->chargeVat == 'yes'){
@@ -327,6 +338,7 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	$rec = &$form->rec;
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
+    	$priceAtDate = (isset($masterRec->date)) ? $masterRec->date : dt::today();
     	
     	if($rec->productId){
     		$productInfo = cat_Products::getProductInfo($rec->productId);
@@ -369,7 +381,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat, NULL, FALSE);
     			
     			if(empty($policyInfo->price)){
     				$policyInfo->price = self::tryToCalcPrice($rec);
@@ -388,6 +400,7 @@ class sales_QuotationsDetails extends doc_Detail {
     				}
     			}
     				 
+    			$rec->autoPrice = TRUE;
     			$price = $policyInfo->price;
     		} else {
     			
@@ -412,9 +425,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	    	
     		if(!$form->gotErrors()){
     			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
-    				if($rec->optional == 'yes' && $sameProduct->optional == 'no' && $rec->id != $sameProduct->id){
-    					//$form->setError('productId', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
-    			    } elseif($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
+    				if($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
     					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
     			    }
     			}
@@ -427,12 +438,16 @@ class sales_QuotationsDetails extends doc_Detail {
     				}
     			}
     			
-    			// Ако във формата са открити грешки, занулаваме вече изчислените полета, да не се показват
-    			if($form->gotErrors()){
-    				unset($rec->packPrice, $rec->packQuantity, $rec->quantity, $rec->price, $rec->discount);
-    			}
-    			
     			$rec->vatPercent = $vat;
+    		}
+    		
+    		if(!$form->gotErrors()){
+    		    if(isset($masterRec->deliveryPlaceId)){
+    		        $masterRec->deliveryPlaceId  = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}'", 'id');
+    		    }
+    		    
+    			// Подготовка на сумата на транспорта, ако има
+    			tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
     		}
 	    }
     }
@@ -736,6 +751,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Закачане на JS
         $tpl->push('sales/js/ResizeQuoteTable.js', 'JS');
         jquery_Jquery::run($tpl, "resizeQuoteTable();");
+		jquery_Jquery::runAfterAjax($tpl, "resizeQuoteTable");
         
     	return $tpl;
     }
@@ -752,9 +768,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	$rows = &$data->rows;
     	$data->discountsOptional = $data->discounts = array();
     	$data->hasDiscounts = FALSE;
+    	$masterRec = $data->masterData->rec;
     	
-    	core_Lg::push($data->masterData->rec->tplLang);
-    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
+    	core_Lg::push($masterRec->tplLang);
+    	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
@@ -768,10 +785,15 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
     		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
+    		
+    		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
+    		$fee = tcost_Calcs::get($mvc->Master, $rec->quotationId, $rec->id)->fee;
+    		$vat = cat_Products::getVat($rec->productId, $masterRec->date);
+    		$row->amount = tcost_Calcs::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     	}
     	
     	core_Lg::pop();
@@ -871,7 +893,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			
     			// Въведената цена се обръща в основна валута без ддс
     			$dRec->price = $row['right'];
-    			$dRec->price = static::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
+    			$dRec->price = self::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
     		} else {
     			
     			// Ако няма извлича се цената от спецификацията
@@ -936,5 +958,43 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	 
     	return $res;
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Синхронизиране на сумата на транспорта
+    	if($rec->syncFee === TRUE){
+    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee);
+    	}
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	// Инвалидиране на изчисления транспорт, ако има
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, NULL);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	// Преди клониране клонира се и сумата на цената на транспорта
+    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->quotationId, $oldRec->id)->fee;
+    	if(isset($fee)){
+    		$rec->fee = $fee;
+    		$rec->syncFee = TRUE;
+    	}
     }
 }

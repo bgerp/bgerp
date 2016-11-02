@@ -91,7 +91,7 @@ class core_Cache extends core_Manager
     function description()
     {
         $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
-        $this->FLD('data', 'blob(16777215)', 'caption=Данни');
+        $this->FLD('data', 'blob(16777215,serialize,compress)', 'caption=Данни');
         $this->FLD('lifetime', 'int', 'caption=Живот,notNull');     // В секунди
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
@@ -194,7 +194,7 @@ class core_Cache extends core_Manager
             foreach ($type as $t) {
                 $key = $Cache->getKey($t, $handler);
                 $query = self::getQuery();
-                while($rec = $query->fetch(array("#key LIKE '[#1#]'", "{$key}"))) {
+                while($rec = $query->fetch(array("#key = '[#1#]'", "{$key}"))) {
                     $Cache->deleteData($rec->key);
                 }
             }
@@ -272,7 +272,8 @@ class core_Cache extends core_Manager
         $deletedRecs = 0;
         
         while($rec = $query->fetch()) {
-            $deletedRecs += $this->deleteData($rec->key);
+            $this->deleteData($rec->key, TRUE);
+            $deletedRecs += $this->delete($rec->id);
         }
         
         if($all) {
@@ -373,12 +374,13 @@ class core_Cache extends core_Manager
             }
                         
             $data = $rec->data;
-            
-            if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
-                $data = gzuncompress($data);
+            if (!is_object($rec->data)) {
+                if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
+                    $data = gzuncompress($data);
+                }
+                
+                $data = unserialize($data);
             }
-            
-            $data = unserialize($data);
             
             return $data;
         }
@@ -398,7 +400,7 @@ class core_Cache extends core_Manager
 
         if($onlyInMemory) return;
 
-        return $this->delete(array("#key LIKE '[#1#]'", $key));
+        return $this->delete(array("#key = '[#1#]'", $key));
     }
     
     

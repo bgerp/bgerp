@@ -98,8 +98,12 @@ class type_Int extends core_Type {
         
         if(empty($val)) $val = '0';
         $code = "\$val = $val;";
+
+        // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
+        $signP = '(\*|\/|\+|\-|\.|\,)';
+        $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))/";
         
-        if(@eval('return TRUE;' . $code)) {
+        if(!preg_match($pattern, $val) && @eval('return TRUE;' . $code)) {
             eval($code);
             
             return (int) $val;

@@ -9,30 +9,24 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class findeals_AdvanceReportDetails extends doc_Detail
+class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
 {
     
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'deals_AdvanceReportDetails';
-	
     
     /**
      * Заглавие
      */
-    public $title = 'Детайли на АО';
+    public $title = 'Детайли на авансовия отчет';
 
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Артикул';
     
     
     /**
@@ -44,7 +38,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering';
+    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering,acc_plg_ExpenseAllocation';
     
     
     /**
@@ -56,43 +50,37 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo, findeals';
+    public $canRead = 'ceo, pettyCashReport';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, findeals';
+    public $canEdit = 'ceo, pettyCashReport';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, findeals';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, findeals';
+    public $canAdd = 'ceo, pettyCashReport';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, findeals';
+    public $canDelete = 'ceo, pettyCashReport';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,activityCenterId,measureId=Мярка,quantity,description,amount=Сума';
+    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount, quantityInPack';
     
     
 	/**
      * Полета свързани с цени
      */
-    public $priceFields = 'amount';
+    public $priceFields = 'price,amount,discount,packPrice';
     
     
     /**
@@ -101,127 +89,60 @@ class findeals_AdvanceReportDetails extends doc_Detail
     public function description()
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,refreshForm,silent,tdClass=productCell leftCol wrap');
-    	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory');
-    	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=Количество,smartCenter');
-    	$this->FLD('vat', 'percent', 'caption=ДДС,smartCenter');
-    	$this->FLD('description', 'richtext(bucket=Notes,rows=3)', 'caption=Описание');
-    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център,mandatory,remember,smartCenter');
+    	parent::setDocumentFields($this);
     }
     
     
     /**
-     * Обработка на формата за редакция и добавяне
+     * Преди показване на форма за добавяне/промяна
      */
-    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$masterRec = $mvc->Master->fetch($form->rec->reportId);
-    	$cCode = currency_Currencies::getCodeById($masterRec->currencyId);
-    	$form->setField('amount', "unit={$cCode}|* |с ДДС|*");
-    	$cover = doc_Folders::getCover($masterRec->folderId);
-    	
-    	// Взимаме всички продаваеми продукти и махаме складируемите от тях
-    	$products = cat_Products::getProducts($cover->getClassId(), $cover->that, $masterRec->valior, 'canBuy', 'canStore');
-    	expect(count($products));
-        
-    	$form->setOptions('productId', $products);
-    	$form->setDefault('quantity', 1);
-    	$form->setSuggestions('vat', ',0 %,7 %,20 %');
-    	
-    	if(isset($rec->id)){
-    		$rec->amount /= $masterRec->rate;
-    		$rec->amount *= 1 + $rec->vat;
-    		$rec->amount = deals_Helper::roundPrice($rec->amount);
-    	}
-    	
-    	// Ако има избран артикул, извличаме му мярката и я показваме
-    	if(isset($rec->productId)){
-    		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-    		$shortUom = cat_UoM::getShortName($measureId);
-    		$form->setField('quantity', "unit={$shortUom}");
-    	}
-    	
-    	// По дефолт е избран неопределения център
-    	$defCenterId = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
-    	$form->setDefault('activityCenterId', $defCenterId);
-    	
-    	// Ако има само един център на дейност, скриваме полето
-    	if(hr_Departments::count() === 1){
-    		$form->setReadOnly('activityCenterId');
-    	}
+    	$form->setField('packPrice', 'mandatory');
+    	$form->setField('discount', 'input=none');
     }
     
     
     /**
-     * Проверка и валидиране на формата
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
-    protected static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	$rec = &$form->rec;
-    	if ($form->isSubmitted()){
-    		if(!isset($rec->vat)){
-    			$rec->vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-    		}
-    		
-    		$masterRec = $mvc->Master->fetch($rec->reportId);
-    		$rec->amount /= 1 + $rec->vat;
-    		$rec->amount *= $masterRec->rate;
-    	}
+    	parent::inputDocForm($mvc, $form);
+    }
+    
+    
+    /**
+     * Достъпните продукти
+     */
+    protected function getProducts($masterRec)
+    {
+    	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
+    
+    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
+    	 
+    	return $products;
     }
     
     
     /**
      *  Обработки по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	
-    	$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-    	$row->measureId = cat_UoM::getShortName($measureId);
-    	
-    	$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
-    	
-    	$masterRec = $mvc->Master->fetch($rec->reportId);
-    	$rec->amount /= $masterRec->rate;
-    	$rec->amount *= 1 + $rec->vat;
-    	
-    	if($rec->description){
-    		$row->productId .= "<div class='quiet'>{$row->description}</div>";
+    	$masterRec = findeals_AdvanceReports::fetch($rec->reportId);
+    	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
+    	$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
+    			
+    	if($rec->notes){
+    		$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
     	}
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-    	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
-    		if($mvc->Master->fetchField($rec->reportId, 'state') != 'draft'){
-    			$res = 'no_one';
-    		}
-    	}
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$res, &$data)
-    {
-    	unset($data->listFields['description']);
-    }
-    
-    
-    /**
-     * Преди рендиране на таблицата
-     */
-    public static function on_BeforeRenderListTable($mvc, &$res, &$data)
-    {
-    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
     }
 }

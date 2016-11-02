@@ -13,26 +13,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cond_Parameters extends embed_Manager
+class cond_Parameters extends bgerp_ProtoParam
 {
-    
-    
-	/**
-	 * Свойство, което указва интерфейса на вътрешните обекти
-	 */
-	public $driverInterface = 'cond_ParamTypeIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
-    
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'tools=Пулт, name, driverClass, state';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Search, plg_Clone';
     
     
     /**
@@ -45,12 +33,6 @@ class cond_Parameters extends embed_Manager
      * Заглавие в единствено число
      */
     public $singleTitle = "Търговско условие";
-    
-    
-    /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'ceo,cond';
     
     
     /**
@@ -72,21 +54,17 @@ class cond_Parameters extends embed_Manager
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'name';
-    
-    
-    /**
      * Кой може да добавя
      */
     public $canAdd = 'ceo,cond';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sysId';
     
     
     /**
@@ -94,41 +72,7 @@ class cond_Parameters extends embed_Manager
      */
     function description()
     {
-    	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Символи,text=Текст,date=Дата,enum=Изброим,percent=Процент,payMethod=Начин за плащане,delCond=Условие на доставка)', 'caption=Тип,input=none');
-        $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
-        $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id, input=hidden');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
-        
-        $this->setDbUnique('name');
-        $this->setDbUnique("sysId");
-    }
-    
-    
-    /**
-     * Връща типа на параметъра
-     *
-     * @param mixed $id - ид или запис на параметър
-     * @return FALSE|cond_type_Proto - инстанцирания тип или FALSE ако не може да се определи
-     */
-    public static function getTypeInstance($id)
-    {
-    	$rec = static::fetchRec($id);
-    	if($Driver = static::getDriver($rec)){
-    		return $Type = $Driver->getType($rec);
-    	}
-    	 
-    	return FALSE;
-    }
-    
-    
-    /**
-     * Изпълнява се преди импортирването на данните
-     */
-    public static function on_BeforeImportRec($mvc, &$rec)
-    {
-    	core_Classes::add($rec->driverClass);
-    	$rec->driverClass = cls::get($rec->driverClass)->getClassId();
+    	parent::setFields($this);
     }
     
     
@@ -138,9 +82,21 @@ class cond_Parameters extends embed_Manager
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setField('driverClass', 'caption=Тип,input');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$rec->name = str::mbUcfirst($rec->name);
+    	}
     }
     
     
@@ -154,10 +110,13 @@ class cond_Parameters extends embed_Manager
     			0 => "name",
     			1 => "driverClass",
     			2 => "sysId",
-    			3 => "default");
+    			3 => "group",
+    			4 => 'suffix',
+    			5 => 'default',
+    	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     	
     	return $res;
     }
@@ -165,54 +124,44 @@ class cond_Parameters extends embed_Manager
     
 	/**
      * Връща стойността на дадено търговско условие за клиента
-     * 
-     * @param int $cId - ид на контрагента
-     * @param string $conditionSysId - sysId на параметър (@see cond_Parameters)
-     * @return string $value - стойността на параметъра
-     * Намира се в следния ред:
+     * според следните приоритети
      * 	  1. Директен запис в cond_ConditionsToCustomers
      * 	  2. Дефолт метод "get{$conditionSysId}" дефиниран в модела
      *    3. Супер дефолта на параметъра дефиниран в cond_Parameters
      *    4. NULL ако нищо не е намерено
+     * 
+     * @param int $cClass            - клас на контрагента
+     * @param int $cId               - ид на контрагента
+     * @param string $conditionSysId - sysId на параметър (@see cond_Parameters)
+     * @return string $value         - стойността на параметъра
      */
-    public static function getParameter($cClass, $cId, $conditionSysId, $mvc = NULL)
+    public static function getParameter($cClass, $cId, $conditionSysId)
     {
+    	// Ако няма клас и ид на документ да не връща нищо
+    	if(!isset($cClass) && !isset($cId)) return;
+    	
     	expect($Class = cls::get($cClass));
     	expect($Class::fetch($cId));
-    	expect($condId = static::fetchField("#sysId = '{$conditionSysId}'", 'id'));
-    	
-    	if($mvc){
-    		if(is_string($mvc)){
-    			expect($mvc = cls::get($mvc));
-    		}
-    	}
+    	expect($condId = self::fetchIdBySysId($conditionSysId));
     	
     	// Връщаме стойността ако има директен запис за условието
-    	if($value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId)){
-    		
-    		return $value;
-    	}
+    	$value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId);
+    	if($value) return $value;
     	
     	// Търсим имали дефинирано търговско условие за държавата на контрагента
     	$contragentData = cls::get($cClass)->getContragentData($cId);
     	$countryId = $contragentData->countryId;
     	if($countryId){
-    		if($value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value')){
-    		
-    			return $value;
-    		}
+    		$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
+    		if($value) return $value;
     	}
     	
     	// Търси се метод дефиниран за връщане на стойността на условието
     	$method = "get{$conditionSysId}";
-    	if(method_exists($Class, $method)){
-    		
-    		return $Class::$method($cId);
-    	}
+    	if(method_exists($Class, $method)) return $Class::$method($cId);
     	
     	// Връща се супер дефолта на параметъра;
     	$default = static::fetchField($condId, 'default');
-    	
     	if(isset($default)) return $default;
     	
     	return NULL;

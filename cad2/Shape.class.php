@@ -41,6 +41,8 @@ abstract class cad2_Shape extends core_BaseClass
     function getCanvas()
     {
         $svg = cls::get('cad2_SvgCanvas');
+        
+        $svg->setPaper(210, 297, 10, 10, 10, 10);
 
         return $svg;
     }

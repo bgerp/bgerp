@@ -71,6 +71,7 @@ class hr_Setup extends core_ProtoSetup
      */
    var $managers = array(
    		    'hr_Departments',
+            'hr_CustomSchedules',
             'hr_WorkingCycles',
             'hr_WorkingCycleDetails',
             'hr_Shifts',
@@ -79,6 +80,7 @@ class hr_Setup extends core_ProtoSetup
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
+   			'migrate::forceDepartmentFolders'
         );
 
         
@@ -94,9 +96,12 @@ class hr_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "ceo, hr"),
         );
+
     
-    
-    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "hr_reports_LeaveDaysPersons";
     
     
     /**
@@ -108,10 +113,11 @@ class hr_Setup extends core_ProtoSetup
     	 
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', NULL, '1GB', 'user', 'hr');
+        $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', NULL, '1GB', 'user', 'powerUser');
         
         return $html;
     }
+    
     
     /**
      * Де-инсталиране на пакета
@@ -119,8 +125,23 @@ class hr_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Форсиране на папките на департаментите
+     */
+    function forceDepartmentFolders()
+    {
+    	$Departments = cls::get('hr_Departments');
+    	$Departments->setupMvc();
+    	
+    	$query = hr_Departments::getQuery();
+    	while($dRec = $query->fetch()){
+    		hr_Departments::forceCoverAndFolder($dRec->id);
+    	}
     }
 }

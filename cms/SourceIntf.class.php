@@ -9,13 +9,21 @@
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Интерфейс за мениджъри на публично съдържание
  */
 class cms_SourceIntf
 {
+	
+	
+	/**
+	 * Клас
+	 */
+	public $class;
+	
+	
     /**
      * Връща URL към съдържание в публичната част, което отговаря на посоченото меню
      */
@@ -40,5 +48,14 @@ class cms_SourceIntf
     function getWorkshopUrl($cMenuId)
     {
         return $this->class->getWorkshopUrl($cMenuId);
+    }
+
+    
+    /**
+     * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
+     */
+    function getSearchResults($menuId, $q, $maxLimit = 10)
+    {
+        return $this->class->getSearchResults($menuId, $q, $maxLimit);
     }
 }

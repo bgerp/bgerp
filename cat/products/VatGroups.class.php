@@ -69,7 +69,7 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Работен кеш
      */
-    private static $cache = array();
+    protected static $cache = array();
     
     
     /**
@@ -202,7 +202,7 @@ class cat_products_VatGroups extends core_Detail
         $tpl = $table->get($data->rows, $data->listFields);
     	
     	$title = 'ДДС';
-    	if($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    	if($data->addUrl && !Mode::isReadOnly()){
 			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ДДС група');
 		}
     	
@@ -228,6 +228,8 @@ class cat_products_VatGroups extends core_Detail
     		if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
     			$requiredRoles = 'no_one';
     		}  elseif(!cat_Products::haveRightFor('single', $rec->productId)) {
+    			$requiredRoles = 'no_one';
+    		} elseif(cat_Products::fetchField($rec->productId, 'createdBy') == core_Users::SYSTEM_USER) {
     			$requiredRoles = 'no_one';
     		}
     	}

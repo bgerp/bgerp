@@ -415,6 +415,13 @@ input[type="search"] {
 
 /*
  * *
+ * хак за смяна на цвета на плейсхолдърите в IE11
+ */
+input:-ms-input-placeholder {
+  color: #999999; }
+
+/*
+ * *
  * * Remove inner padding and search cancel button in Safari 5 and Chrome
  * * on OS X.
  */
@@ -428,7 +435,9 @@ input[type="search"]::-webkit-search-decoration {
   border: solid 1px #cccccc;
   display: block;
   position: relative;
-  height: 1.5em; }
+  height: 1.5em;
+  border-radius: 5px;
+  box-shadow: 1px 1px 0 rgba(60, 60, 60, 0.1); }
 
 #simpleSearch.forumSearch .button {
   top: -1px; }
@@ -449,7 +458,6 @@ input[type="search"]::-webkit-search-decoration {
   outline: none;
   height: 1.2em;
   box-shadow: none;
-  font-size: 0.95em;
   width: 90%;
   padding: 0px;
   padding-left: 0.2em; }
@@ -463,7 +471,7 @@ input[type="search"]::-webkit-search-decoration {
   right: 0px;
   position: absolute;
   border: none;
-  background-color: transparent;
+  background-color: rgba(0, 0, 0, 0);
   cursor: pointer;
   display: inline-block; }
 
@@ -654,7 +662,7 @@ input[type=checkbox],
 input[type=radio] {
   border: none !important;
   box-shadow: none !important;
-  background-color: transparent;
+  background-color: rgba(0, 0, 0, 0);
   outline: none; }
 
 .checkbox,
@@ -669,7 +677,7 @@ input[type=radio] {
 input[type=radio] + label,
 input[type=checkbox] + label {
   color: #888888;
-  background-color: transparent !important;
+  background-color: rgba(0, 0, 0, 0) !important;
   display: inline-block;
   vertical-align: baseline; }
 
@@ -716,7 +724,7 @@ tr.zebra0 {
   background-color: rgba(238, 238, 238, 0.5); }
 
 tr.zebra1 {
-  background-color: transparent; }
+  background-color: rgba(0, 0, 0, 0); }
 
 .wide input[type=submit],
 .wide input[type=button] {
@@ -761,6 +769,9 @@ button {
   -ms-border-radius: 3px;
   border-radius: 3px;
   -webkit-appearance: none; }
+
+a.button {
+  box-sizing: border-box; }
 
 .narrow a.button,
 .narrow input[type=button],
@@ -954,6 +965,9 @@ input.more-btn {
     transition-duration: 0.5s;
     transition-timing-function: ease-in-out; }
 
+.hiddenToolbar {
+  display: none; }
+
   .small .modal-toolbar .linkWithIcon {
     height: auto !important;
     font-size: 1em; }
@@ -992,6 +1006,9 @@ a.more-btn {
   background-position: 3px center;
   padding: 0.1em; }
 
+.narrow .docBgIcon {
+  background-position: 3px 5px; }
+
 .wide .icon {
   display: inline-block;
   height: 16px;
@@ -1017,7 +1034,12 @@ div.rowtools {
 .rowtools .r {
   vertical-align: middle;
   display: table-cell;
-  text-align: right; }
+  text-align: right;
+  position: relative;
+  top: 2px; }
+
+th .rowtools .r {
+  top: 0px; }
 
 .rowtools .l {
   vertical-align: middle;
@@ -1054,6 +1076,10 @@ th .rowtools .l {
   font-weight: bold;
   border-bottom: solid 1px #cccccc;
   padding: 2px; }
+
+.err-word {
+  border-bottom: 1px dashed #ff6566;
+  display: inline-block; }
 
 /*
  * край на общи стилове за линковете
@@ -1094,6 +1120,11 @@ a.profile {
       color: #993333; }
     a.profile.contractor.active {
       color: red; }
+  a.profile.no-one {
+    font-style: italic; }
+
+.profile-state {
+  text-decoration: underline !important; }
 
 /*
  * край на хипервръзки към профилите на потребители
@@ -1176,6 +1207,10 @@ a.profile {
     color: #999999 !important;
     text-decoration: none !important; }
 
+.state-template {
+  background-color: #a1aeff;
+  background-color: rgba(165, 170, 255, 0.7); }
+
 .document .state-rejected.state,
 .document .state-rejected.state a {
   color: #444444 !important;
@@ -1207,7 +1242,7 @@ a.profile {
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; }
 
 .state-rejected .linkWithIcon.state-rejected {
-  background-color: transparent; }
+  background-color: rgba(0, 0, 0, 0); }
 
 .state-free {
   background-color: #33ccf5;
@@ -1273,6 +1308,11 @@ table.listTable {
   table.listTable .rowNumColumn {
     width: 1%; }
 
+.detailNumbering {
+  text-align: right;
+  padding-top: 2px;
+  display: block; }
+
 .narrow table.listTable {
   margin-bottom: 12px; }
 
@@ -1323,7 +1363,8 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   font-size: 1.2em; }
 
 .wide table.listAction {
-  min-width: 760px; }
+  min-width: 760px;
+  width: 100%; }
 
 .wide .user-profile .remote_Authorizations table.listAction {
   min-width: 0; }
@@ -1802,7 +1843,7 @@ input:focus[type=button] {
  */
 table.keylist {
   width: 100%;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   outline: none; }
   table.keylist td {
     padding: 0.3em 0.1em 0 0.1em; }
@@ -1812,10 +1853,11 @@ table.keylist {
       height: 1.6em !important; }
     table.keylist .inner-keylist td {
       padding: 0.2em 0.1em 0.1em 0.1em; }
-  table.keylist.shrinked:not(.keylist-wide) {
-    width: auto !important; }
     table.keylist.shrinked:not(.keylist-wide) td {
       padding-right: 20px; }
+
+.wide table.keylist.shrinked:not(.keylist-wide) {
+  width: auto !important; }
 
 .narrow table.keylist {
   margin-bottom: -3px; }
@@ -1910,7 +1952,7 @@ a.pager {
   padding: 2px;
   margin-left: -2px;
   margin-right: 4px;
-  border: solid 1px transparent;
+  border: solid 1px rgba(0, 0, 0, 0);
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
   -ms-border-radius: 4px;
@@ -2108,9 +2150,9 @@ div.alphabet div.tab-page {
         background-color: #dddddd; }
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable th {
       background-color: #fefec2;
-      border-left: 1px solid transparent;
-      border-right: 1px solid transparent;
-      border-top: 1px solid transparent;
+      border-left: 1px solid rgba(0, 0, 0, 0);
+      border-right: 1px solid rgba(0, 0, 0, 0);
+      border-top: 1px solid rgba(0, 0, 0, 0);
       border-bottom: 1px dotted #bbbbbb;
       color: #333333;
       padding: 5px 0; }
@@ -2236,14 +2278,15 @@ div.alphabet div.tab-page {
       border: 1px solid #aaaaaa; }
       div.tab-control.deal-history-tab .tab-row .tab a,
       .single-thread .document .tab-top div.alphabet .tab-row .tab a {
-        color: #333333; }
+        text-shadow: none;
+        cursor: pointer; }
       div.tab-control.deal-history-tab .tab-row .tab:hover,
       .single-thread .document .tab-top div.alphabet .tab-row .tab:hover,
       div.tab-control.deal-history-tab .tab-row .tab.selected,
       .single-thread .document .tab-top div.alphabet .tab-row .tab.selected {
         padding: 4px;
+        top: 0 !important;
         border: 1px solid #bbbbbb;
-        margin: 0 3px 0 0;
         background-color: #ffffcc !important; }
         div.tab-control.deal-history-tab .tab-row .tab:hover a,
         .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a,
@@ -2267,13 +2310,15 @@ div.alphabet div.tab-page {
   .narrow div.tab-control.deal-history-tab .tab-row,
   .narrow .single-thread .document .tab-top div.alphabet .tab-row {
     float: none;
-    margin: 0 0 0 3px;
+    margin: 0px;
     clear: both; }
     .narrow div.tab-control.deal-history-tab div.tab-row .tab,
     .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected,
     .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab,
     .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab.selected {
-      padding: 2px !important; }
+      margin: 1px 2px 1px 0 !important;
+      padding: 3px 2px 3px !important;
+      font-size: 0.65em; }
   .narrow div.tab-control.deal-history-tab div.tab-page,
   .narrow .single-thread .document .tab-top div.alphabet div.tab-page {
     background: none;
@@ -2334,8 +2379,11 @@ div.richEdit {
 .richEdit textarea {
   margin-bottom: 0;
   overflow: auto;
-  border-bottom: 1px solid transparent;
+  border-bottom: 1px solid rgba(0, 0, 0, 0);
   width: 32em; }
+
+.hiddenFormRow .richEdit textarea {
+  min-height: 100px; }
 
 .wide .richEdit textarea {
   min-width: 310px; }
@@ -2357,8 +2405,8 @@ div.richEdit {
   cursor: pointer; }
 
 a.rtbutton {
-  border: 1px solid transparent;
-  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0);
+  background: rgba(0, 0, 0, 0);
   padding: 0.2em 0.3em 0.3em;
   cursor: pointer;
   display: block;
@@ -2555,7 +2603,7 @@ pre.rich-text {
 
 div.richtext pre .code {
   border: 1px solid #dddddd;
-  background: transparent;
+  background: rgba(0, 0, 0, 0);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
   background: rgba(245, 245, 255, 0.5);
   margin: 10px 0;
@@ -2569,7 +2617,7 @@ div.richtext pre code {
   padding: 0;
   font-size: 0.97em;
   overflow: auto;
-  background: transparent !important; }
+  background: rgba(0, 0, 0, 0) !important; }
 
 .printing .richtext .code {
   white-space: pre-wrap !important; }
@@ -2792,10 +2840,9 @@ div.richtext ol ol ol {
       margin-bottom: 0.3em !important; }
 
 .richtext-message a[href] {
-  color: inherit;
-  border-bottom: 1px dashed; }
+  color: inherit !important;
+  border-bottom: 1px solid; }
   .richtext-message a[href]:hover {
-    border-bottom: 1px solid;
     text-decoration: none; }
 
 .richtext > .richtext-message:last-of-type {
@@ -3110,7 +3157,7 @@ span.cng {
   background-color: #fee1e4 !important; }
 
 .core_LoginLog .group-by-date-row {
-  background-color: transparent !important; }
+  background-color: rgba(0, 0, 0, 0) !important; }
 
 .fracPart {
   display: inline-block;

@@ -143,7 +143,7 @@ class calendarpicker_Import {
         
         $btnAttr = array();
         $btnAttr['id'] = $attr['id'] . '_btn';
-        $btnImg = "<img style='vertical-align:top;' src=\"{$imgPath}\" alt=\"\" id=\"" . $attr['id'] . "_img\" >";
+        $btnImg = "<img style='vertical-align:top;min-height: 26px;' src=\"{$imgPath}\" alt=\"\" id=\"" . $attr['id'] . "_img\" >";
         $btnAttr['href'] = '#';
         $btnAttr['style'] = " visibility:hidden; padding:0px; margin:0px;";
         $tpl->append(ht::createElement('a', $btnAttr, $btnImg, TRUE));

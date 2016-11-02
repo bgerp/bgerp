@@ -17,6 +17,12 @@ abstract class batch_definitions_Proto extends core_BaseClass
 	
 	
 	/**
+	 * Автоматичен стринг
+	 */
+	const AUTO_VALUE_STRING = 'Автоматично';
+	
+	
+	/**
 	 * Интерфейси които имплементира
 	 */
 	public $interfaces = 'batch_BatchTypeIntf';
@@ -115,8 +121,8 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      * 
-     * @param text $value
-     * @return text $value
+     * @param string $value
+     * @return string $value
      */
     public function normalize($value)
     {
@@ -142,5 +148,16 @@ abstract class batch_definitions_Proto extends core_BaseClass
     public function toVerbal($value)
     {
     	return cls::get('type_Varchar')->toVerbal($value);
+    }
+    
+    
+    /**
+     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
+     *
+     * @return string
+     */
+    public function getAutoValueConst()
+    {
+    	return static::AUTO_VALUE_STRING;
     }
 }

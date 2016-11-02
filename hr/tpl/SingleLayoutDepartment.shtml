@@ -2,9 +2,6 @@
 	[#SingleToolbar#]
 	<div class='folder-cover state-active'>
 	    <div class='inner-folder'>
-	        <!--ET_BEGIN blank-->
-	        [#blank#]
-	        <!--ET_END blank-->
 	        <div class='block_title [#STATE_CLASS#] special-title'>
 	            <div>|Структурно звено|* <b>[#name#]</b></div>
 	        </div>
@@ -37,6 +34,20 @@
 	                <!--ET_END startingOn-->
 	            </div>
 	        </fieldset>
+	        <!--ET_BEGIN employees-->
+	        <fieldset class="detail-info">
+	            <legend class="groupTitle">|Служители|*</legend>
+	            [#employees#]
+	        </fieldset>
+	        <!--ET_END employees-->
+	        
+	        <!--ET_BEGIN assets-->
+	        <fieldset class="detail-info">
+	            <legend class="groupTitle">|Оборудване|*</legend>
+	            [#assets#]
+	        </fieldset>
+	        <!--ET_END assets-->
+	        
 	   <!--ET_BEGIN DETAILS-->
 	        [#DETAILS#]
 	   <!--ET_END DETAILS-->

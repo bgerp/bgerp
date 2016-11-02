@@ -93,7 +93,7 @@ class cms_Setup extends core_ProtoSetup
 
             'CMS_COPY_ON_SYMBOL_COUNT' => array ('int', 'caption=Добавка при копиране->Брой символи,width=100%'),
 	
-			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role)', 'caption=Добавка при копиране->Изключване за'),
+			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Добавка при копиране->Изключване за'),
 			
 			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
 	);
@@ -111,6 +111,7 @@ class cms_Setup extends core_ProtoSetup
             'cms_Includes',
             'cms_VerbalId',
             'migrate::contentOrder6',
+            'migrate::updateSearchKeywords',
          );
 
          
@@ -134,6 +135,9 @@ class cms_Setup extends core_ProtoSetup
     function install()
     {
         $html = parent::install();
+        
+        // Това е с цел да се в таблицата с класовете и да може да се избира по интерфейс
+        $html .= core_Classes::add('cms_page_External');
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
@@ -164,7 +168,7 @@ class cms_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
@@ -291,6 +295,34 @@ class cms_Setup extends core_ProtoSetup
                 }
                 $newsbar->save($rec);
             }
+        }
+    }
+    
+
+    /**
+     * Обновява (генерира наново) ключовите думи от външното съдържание
+     */
+    public function updateSearchKeywords()
+    {   
+        try {
+        	$mvcArr = array('eshop_Products', 'cms_Articles', 'blogm_Articles');
+        	
+        	foreach($mvcArr as $mvc) {
+        	
+        		if (!cls::load($mvc, TRUE)) continue ;
+        	
+        		$Inst = cls::get($mvc);
+        		$Inst->setupMvc();
+        		
+        		if (!$Inst->db->tableExists($Inst->dbTableName)) continue ;
+        	
+        		$query = $mvc::getQuery();
+        		while($rec = $query->fetch()){
+        			$mvc::save($rec, 'searchKeywords');
+        		}
+        	}
+        } catch(core_exception_Expect $e){
+        	reportException($e);
         }
     }
 }

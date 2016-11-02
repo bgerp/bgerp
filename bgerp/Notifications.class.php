@@ -21,7 +21,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
+    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Sorting, plg_Search, bgerp_RefreshRowsPlg';
     
     
     /**
@@ -119,6 +119,9 @@ class bgerp_Notifications extends core_Manager
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
         if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
+        // Да не се нотифицира контрактора
+        if (core_Users::haveRole('buyer', $userId) && !core_Users::haveRole('powerUser', $userId)) return ;
+        
         if(!$priority) {
             $priority = 'normal';
         }
@@ -170,6 +173,10 @@ class bgerp_Notifications extends core_Manager
         if(empty($userId)) {
             return;
         }
+
+        // Да не се нотифицира контрактора
+        if ($userId != '*' && core_Users::haveRole('buyer', $userId) && !core_Users::haveRole('powerUser', $userId)) return ;
+        
         $url = toUrl($urlArr, 'local', FALSE);
         $query = bgerp_Notifications::getQuery();
         
@@ -697,4 +704,21 @@ class bgerp_Notifications extends core_Manager
         
         return $hash;
     }
+
+
+    /**
+     * Изтрива стари записи в bgerp_Notifications
+     */
+    function cron_DeleteOldNotifications()
+    {
+        $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS')/(24*3600));
+
+        // $res = self::delete("(#closedOn IS NOT NULL) AND (#closedOn < '{$lastRecently}')");
+
+        if($res) {
+
+            return "Бяха изтрити {$res} записа от " . $this->className;
+        }
+    }
+
 }

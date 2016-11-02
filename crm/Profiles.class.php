@@ -134,6 +134,12 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Помощен масив за типовете дни
+     */
+    static $map = array('missing'=>'Отсъстващи','sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -146,6 +152,10 @@ class crm_Profiles extends core_Master
         $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
+        
+        $this->FLD('stateInfo', 'varchar', 'caption=Статус->Информация,input=none');
+        $this->FLD('stateDateFrom', 'datetime(format=smartTime)', 'caption=Статус->От,input=none');
+        $this->FLD('stateDateTo', 'datetime(format=smartTime)', 'caption=Статус->До,input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -271,16 +281,24 @@ class crm_Profiles extends core_Master
         
         // Ако потребителя е контрактор и текущия е супер потребите
         // Показваме папките, в които е споделен
-        if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
-            $data->ColabFolders = new stdClass();
-            $data->ColabFolders->rowsArr = array();
-            $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
-            
-            $params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
-            foreach ($sharedFolders as $folderId) {
-                $params['folderId'] = $folderId;
-                $data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getVerbalLink($params)));
-            }
+        if(core_Packs::isInstalled('colab')){
+        	if (core_Users::haveRole('collaborator', $data->rec->userId) && core_Users::isPowerUser()) {
+        		$data->ColabFolders = new stdClass();
+
+                // URL за промяна
+                if(haveRole('admin,ceo,manager')) {
+                    $data->ColabFolders->addUrl = array('colab_FolderToPartners', 'add', 'contractorId' => $data->rec->userId, 'ret_url' => TRUE);
+                }
+
+        		$data->ColabFolders->rowsArr = array();
+        		$sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+        	
+        		$params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
+        		foreach ($sharedFolders as $folderId) {
+        			$params['folderId'] = $folderId;
+        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getLink($folderId)));
+        		}
+        	}
         }
         
         // Ако има userId
@@ -323,7 +341,11 @@ class crm_Profiles extends core_Master
                 $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
                     
                 // Създаме линка
+                $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=Редактиране на потребителски данни');
+                                                     
+                // Създаме линка
                 $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=Редактиране на потребителски данни');  
+
             }
             
             if($data->User->rec->state != 'active') {
@@ -463,17 +485,34 @@ class crm_Profiles extends core_Master
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
         
+        if(isset($data->rec->stateInfo) && isset($data->rec->stateDateFrom) && isset($data->rec->stateDateTo)) {
+            $Date = cls::get('type_Date');
+            $s = strstr($data->rec->stateDateFrom, ' ', TRUE);
+            $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M');
+            $tpl->append($state, 'userStatus');  
+            $tpl->append("statusClass", 'userClass');
+        }
+        
         // Показваме достъпните папки на колабораторите
-        if ($data->ColabFolders && $data->ColabFolders->rowsArr) {
+        if ($data->ColabFolders) {
             $colabTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileColabFoldersLayout.shtml')));
             
-            $folderBlockTpl = $colabTpl->getBlock('folders');
-            foreach ((array)$data->ColabFolders->rowsArr as $rows) {
-                
-                $folderBlockTpl->placeObject($rows);
-                $folderBlockTpl->append2Master();
+            if($data->ColabFolders->rowsArr) {
+                $folderBlockTpl = $colabTpl->getBlock('folders');
+                foreach ((array)$data->ColabFolders->rowsArr as $rows) {
+                    
+                    $folderBlockTpl->placeObject($rows);
+                    $folderBlockTpl->append2Master();
+                }
             }
-            
+
+            if($data->ColabFolders->addUrl) {
+                // Иконата за редактиране
+                $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
+                $addLink = ht::createLink($img, $data->ColabFolders->addUrl, NULL, 'title=Споделяне на нова папка');
+                $colabTpl->replace($addLink, 'addColabBtn');
+            }
+
             $tpl->prepend($colabTpl, 'colabFolders');
         }
         
@@ -814,14 +853,11 @@ class crm_Profiles extends core_Master
         // Само ако досега визитката не е имала inCharge, променения потребител и става отговорник
         if(!$person->inCharge) {
         	
-        	// Ако създадения потребител е contractor и няма powerUser
-        	if(core_Users::haveRole('contractor', $user->id) && !core_Users::haveRole('powerUser', $user->id)){
+        	// Ако създадения потребител е collaborator и няма powerUser
+        	if(core_Users::haveRole('collaborator', $user->id) && !core_Users::haveRole('powerUser', $user->id)){
         		
         		// За отговорник стават първия админ/ceo
         		$person->inCharge  = doc_FolderPlg::getDefaultInCharge();
-        		
-        		// Визитката се споделя до лицето
-        		$person->shared = keylist::addKey('', $user->id);
         	} else {
         		
         		// Ако е powerUse Лицето става отговорник на папката си
@@ -961,7 +997,12 @@ class crm_Profiles extends core_Master
             $link = $title;
             
             $url  = array();
-    	    $attr['class'] .= ' profile';
+            
+            if(self::fetchField($userId,'stateInfo') !== NULL) {
+               $attr['class'] .= ' profile profile-state';
+            } else {
+    	       $attr['class'] .= ' profile';
+            }
 
     		$profileId = self::getProfileId($userId);
     		if ($profileId) {
@@ -970,7 +1011,7 @@ class crm_Profiles extends core_Master
     				$url  = static::getUrl($userId);
     			} 
     			
-    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none') as $role) {
+    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none', 'buyer') as $role) {
                     if($role == 'none') {
                         $attr['style'] .= ";color:#333;"; break;
                     }
@@ -980,7 +1021,7 @@ class crm_Profiles extends core_Master
     			}
     			
                 if (core_Users::haveRole('no_one', $userId)) {
-                    $attr['style'] .= " text-decoration: underline red;"; 
+                    $attr['class'] .= " no-one";
                 }
     
     			if ($userRec->lastActivityTime) {
@@ -998,16 +1039,16 @@ class crm_Profiles extends core_Master
     			}
     			
     			$attr['title'] = "|*" . $userRec->names;
-    			
+
     			$link = ht::createLink($title, $url, $warning, $attr);
     		} else {
                 $attr['style'] .= ';color:#999 !important;';
                 $link = ht::createLink($userRec->nick, NULL, NULL, $attr);
             }
-    		
+
     		$cacheArr[$key] = $link;
         }
-        
+
         return $cacheArr[$key];
     }
     
@@ -1074,8 +1115,7 @@ class crm_Profiles extends core_Master
         }
     }
 
-
-
+    
     /**
      * След подготовката на редовете на списъчния изглед
      * 
@@ -1088,7 +1128,7 @@ class crm_Profiles extends core_Master
     {
         $rows = &$data->rows;
         $recs = &$data->recs;
-        
+
         if(count($rows)) {
             foreach ($rows as $i=>&$row) {
                 $rec = &$recs[$i];
@@ -1101,9 +1141,16 @@ class crm_Profiles extends core_Master
                     } else {
                         $personLink = NULL;
                     }
-                    
+     
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
-                    $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+
+                    if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
+                        $link  = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+                        $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                        $row->userId = ht::createHint($link, $stateData,'notice');
+                    } else {
+                        $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
+                    }
                 }
             }
         }
@@ -1136,13 +1183,42 @@ class crm_Profiles extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $rec = $data->listFilter->rec;
+
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуска,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
+        
     	$data->listFilter->view = 'horizontal';
     	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	$fields = $data->listFilter->input();
     	 
-    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->showFields .= 'search,leave';
         
         $data->query->orderBy("lastTime", "DESC");
+
+        // Ако е избран 'Отсъстващи'
+        switch ($fields->leave) {
+                
+            case 'missing' :
+                
+                $data->query->where("(#stateInfo = 'sickDay') OR (#stateInfo = 'leaveDay') OR (#stateInfo = 'tripDay')");   
+                break;
+            case 'sickDay' :
+                    
+                $data->query->where("#stateInfo = 'sickDay'");
+                break;
+                    
+            case 'leaveDay' :
+                    
+                $data->query->where("#stateInfo = 'leaveDay'");
+                break;
+                    
+            case 'tripDay' :
+                    
+                $data->query->where("#stateInfo = 'tripDay'");
+                break;
+        }
     }
     
     
@@ -1311,7 +1387,7 @@ class crm_Profiles extends core_Master
                 if ($typeInst instanceof type_Enum) {
                     $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
                     $isEnum = TRUE;
-                } elseif ($typeInst instanceof type_Key) {
+                } elseif (($typeInst instanceof type_Key) || ($typeInst instanceof type_Key2)) {
                     $isKey = TRUE;
                 }
                 

@@ -184,7 +184,7 @@ class core_BaseClass
      */
     function invoke($event, $args = array())
     {
-        $method = 'on_' . $event;
+        $method = 'on_' . strtolower($event);
         
          // Ако нямаме - генерираме кеша с обработвачите
         if(!isset($this->_listenerCache[$method])) {

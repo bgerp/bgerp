@@ -154,8 +154,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 	        
 	        foreach ($date as $id => $rec) {
 	            foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-	                if(!is_null($rec->$fld)){
-	                    $data->summary->$fld += $rec->$fld;
+	                if(!is_null($rec->{$fld})){
+	                    $data->summary->{$fld} += $rec->{$fld};
 	                }
 	            }
 	        }
@@ -502,8 +502,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
    	    }
    	    
    	    foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-   	        if(!is_null($rec->$fld)){
-   	            $row->$fld = $Double->toVerbal($rec->$fld); 
+   	        if(!is_null($rec->{$fld})){
+   	            $row->{$fld} = $Double->toVerbal($rec->{$fld}); 
    	        }
    	    }
         
@@ -555,8 +555,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
             $dataRecs[] = $this->getVerbal($rec);
 
             foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-                if(!is_null($rec->$fld)){
-                    $dataRecs[$id]->$fld = $rec->$fld;
+                if(!is_null($rec->{$fld})){
+                    $dataRecs[$id]->{$fld} = $rec->{$fld};
                 }
             }
 

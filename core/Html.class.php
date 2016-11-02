@@ -128,6 +128,7 @@ class core_Html
             
             $suffix = '_cs';
             list($l, $r) = explode('[', $id);
+            $r = rtrim($r, ']');
             $selectId = $l . $suffix . $r;
 
             if ($attr['ajaxAutoRefreshOptions']) {
@@ -152,8 +153,13 @@ class core_Html
             jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", TRUE);
 
             $attr['id'] = $selectId;
-            $name = $attr['name'] = $selectId;
-
+            
+            $name = $attr['name'];
+            list($l, $r) = explode('[', $name);
+            $r = rtrim($r, ']');
+            $name = $l . $suffix . $r;
+            $attr['name'] = $name;
+            
             // Долното кара да не работи селекта в firefox-mobile, но е добре за  
             // декстоп-браузърите, когато се работи с tab за превключване на полетата
             if(!Mode::is('screenMode', 'narrow')) {
@@ -785,7 +791,7 @@ class core_Html
                     }
                 }
                 $icon    = "<img src='$iconSrc' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
-                $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
+                $title   = "<span class='linkWithIconSpan no-spell-check'>{$icon}{$title}</span>";
             } else {
                 // Добавяме икона на бутона, ако има
                 $attr = self::addBackgroundIcon($attr);
@@ -798,18 +804,20 @@ class core_Html
         	// Оцветяваме линка в зависимост от особеностите му
         	if(!$attr['disabled']) {
         		if($warning){
-        			$attr['style'] .= 'color:#772200 !important;';
+        			$attr['style'] .= ' color:#772200 !important;';
         		} elseif (strpos($url, '://')) {
         			if(!strpos($attr['class'], 'out')) {
         				$attr['class'] .= ' out';
         			}
         		} elseif($attr['target'] == '_blank') {
-        			$attr['style'] .= 'color:#008800 !important;';
+        			$attr['style'] .= ' color:#008800 !important;';
         		}
         	} else {
-        		$attr['style'] .= 'color:#999 !important;';
+        		$attr['style'] .= ' color:#999 !important;';
         	}
         }
+        
+        $attr['class'] .= ' no-spell-check';
         
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
@@ -829,7 +837,7 @@ class core_Html
 			unset($attr['ef_icon']);
 		}
 		
-		if(is_array($url) && count($url)){
+		if ($url !== FALSE && (is_string($url) || (is_array($url) && count($url)))) {
 			$link = self::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
 		}
 		
@@ -934,19 +942,21 @@ class core_Html
      * @param title $hint                       - текст на хинта
      * @param notice|warning|error|string $icon - име на иконката
      * @param boolean $appendToEnd              - дали хинта да се добави в края на стринга
+     * @param array $attr                       - атрибути на елемента
      * @return core_ET $element                 - шаблон с хинта
      */
-    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = TRUE)
+    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = TRUE, $attr = array())
     {
     	if(empty($hint)) return $body;
     	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
     	
     	$hint = strip_tags(tr($hint));
  
-    	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
+    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
-    	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
+    	$attr = arr::make($attr, TRUE) + array('src' => sbf($iconPath, ''));
+    	$iconHtml = ht::createElement("img", $attr);
     	
     	if($appendToEnd === TRUE){
     		$elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
@@ -1204,7 +1214,7 @@ class core_Html
             $id++;
             $name = $attr['name'] ? $attr['name'] : 'autoElement';
             $name = str_replace(array('[', ']'), array('_', '_'), $name);
-            $attr['id'] = $name . $id;
+            $attr['id'] = $name . rand(1000, 9999) . '_' .$id;
         }
     }
 
@@ -1238,7 +1248,7 @@ class core_Html
 
         if(!empty($icon) && getFullPath($icon)) {
 
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
             
             $attr['style'] = self::getIconStyle($icon, $attr['style']);
         }
@@ -1262,7 +1272,8 @@ class core_Html
 
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
             
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            $attr = array();
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
             
             $style = rtrim($style, ' ;');
 

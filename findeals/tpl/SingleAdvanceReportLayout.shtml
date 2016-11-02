@@ -3,7 +3,7 @@
    <tr>
       <td class='custom-header-bg' style="width: 35%"><b>|Подочетно лице|*</b></td>
       <td  rowspan='2' class='centered'>
-         <div class="document-title">|авансов ордер|*</div>
+         <div class="document-title">|авансов отчет|*</div>
          <div style="padding-top:5px;">
             № <span class="bigData">[#number#]</span> /
             <span class="bigData">[#valior#]</span>
@@ -11,9 +11,6 @@
          <!--ET_BEGIN state-->
          <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
          <!--ET_END state-->
-         <div style='margin:15px 0 3px 0;'>
-            |Общо|*: [#total#] <span class='cCode'>[#currencyId#]</span>
-         </div>
       </td>
       <td class='custom-header-bg' style="width: 35%"><b>|Oрганизация|*</b></td>
    </tr>
@@ -33,4 +30,14 @@
    </tr>
 </table>
 [#findeals_AdvanceReportDetails#]
+<div class="scrolling-holder">
+    <table class="innerTable footer-notes paddingCells" style='width:100%'>
+    	<tr>
+    	<td class="topCell aright vtop" style='width:33%'>
+            [#/deals/tpl/DocumentPiceInfo.shtml#]
+        </td>
+    	</tr>
+    </table>
+</div>
+
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

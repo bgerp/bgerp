@@ -355,20 +355,19 @@ class core_App
     public static function shutdown($sendOutput = TRUE)
     {
         
-        if (!isDebug() && $sendOutput) {
-            self::flushAndClose();
-        }
-
-
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
         if (session_id()) session_write_close();
 
+
+        if (!isDebug() && $sendOutput) {
+            self::flushAndClose();
+        }
  
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
         
-        // Проверяваме състоянието на системата и ако се налага репорва
+        // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
         
         // Излизаме със зададения статус
@@ -455,8 +454,12 @@ class core_App
         }
             
         // Изпращаме съдържанието на изходния буфер
-        ob_end_flush();
-        flush();
+        if(function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            ob_end_flush();
+            flush();
+        }
     }
 
 
@@ -824,7 +827,11 @@ class core_App
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
         if($params['ret_url'] === TRUE) {
-            $params['ret_url'] = self::getCurrentUrl();
+        	if($retUrl = Mode::get('ret_url')){
+        		$params['ret_url'] = $retUrl;
+        	} else {
+        		$params['ret_url'] = self::getCurrentUrl();
+        	}
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
@@ -968,10 +975,17 @@ class core_App
             
             $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
             
-            if(defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
-                $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;             
+            if($username = $_SERVER['PHP_AUTH_USER']) {
+                $password = $_SERVER['PHP_AUTH_PW'];
+                $auth = $username . ':' . $password . '@';
             } else {
-                $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . $dirName;                           
+                $auth = '';
+            }
+ 
+            if(defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                $boot = $protocol . "://" . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;             
+            } else {
+                $boot = $protocol . "://" . $auth . $_SERVER['HTTP_HOST'] . $dirName;                           
             }
             
         } else {
@@ -1004,7 +1018,7 @@ class core_App
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
 
-	   if (is_readable($shortPath)) {
+	   if (@is_readable($shortPath)) {
            
            return $shortPath;
        }
@@ -1018,7 +1032,7 @@ class core_App
         foreach($pathsArr as $base) {
             $fullPath = $base . '/' . $shortPath;
  
-            if(is_readable($fullPath)) return $fullPath;
+            if(@is_readable($fullPath)) return $fullPath;
         }
 
         return FALSE;
@@ -1120,6 +1134,9 @@ class core_App
     public static function setTimeLimit($time, $force = FALSE)
     {
     	expect(is_numeric($time));
+    	
+    	// Подсигуряване че времето не е много малко
+    	$time = max($time, 20);
     	
     	$now = time();
     	

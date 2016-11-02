@@ -6,7 +6,7 @@
  */
 class cad2_Drawings extends embed_Manager {
 
-    var $oldClassName = 'cad2_Shapes';
+    
     
     /**
 	 * Свойство, което указва интерфейса на вътрешните обекти
@@ -38,19 +38,13 @@ class cad2_Drawings extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,params=Параметри,createdOn,createdBy';
+    public $listFields = 'id,driverClass,params=Параметри,createdOn,createdBy';
     
     
     /**
      * Кой може да го отхвърли?
      */
     public $searchFields = 'name';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'name';
     
     
     /**
@@ -110,12 +104,38 @@ class cad2_Drawings extends embed_Manager {
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, remember=info,width=100%');
         $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
-		
-    }
+	}
 
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$exp = explode('»', $row->driverClass);
+		
+		if(count($exp) == 2){
+			$row->driverClass = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
+		} else {
+			$row->driverClass = tr($row->driverClass);
+		}
+		
+		if(isset($fields['-list'])){
+			$row->driverClass = ht::createLink($row->driverClass, self::getSingleUrlArray($rec->id));
+		}
+	}
+    
+    
+    /**
+     * След рендиране на сингъла
+     */
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     { 
-        $driver = cls::get($data->rec->driverClass);
+    	$driver = cls::get($data->rec->driverClass);
         $svg = $driver->getCanvas();
         $driver->render($svg, (array) $data->rec);
         $tpl->append('<div class="clearfix21"></div>');
@@ -134,7 +154,7 @@ class cad2_Drawings extends embed_Manager {
      * @param blast_EmailSend $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме записите, като неизпратените да се по-нагоре
         $data->query->orderBy("createdOn", 'DESC');
@@ -145,15 +165,15 @@ class cad2_Drawings extends embed_Manager {
     }
 
 
-    static function on_AfterRead($mvc, $rec)
+    public static function on_AfterRead($mvc, $rec)
     {
         if(!$rec->name) {
-            $rec->name = $mvc->getVerbal($rec, 'driverClass') . "({$rec->id})";
+            $rec->name = tr($mvc->getVerbal($rec, 'driverClass')) . "({$rec->id})";
         }
     }
 
 
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if(TRUE || $mvc->haveRightFor('update', $data->rec)) {
             $data->toolbar->addBtn('SVG', array($mvc, 'DownloadSvg', $data->rec->id), NULL, 'ef_icon=fileman/icons/svg.png');
@@ -212,8 +232,4 @@ class cad2_Drawings extends embed_Manager {
 
         shutdown();
     }
-
-
-
-
 }

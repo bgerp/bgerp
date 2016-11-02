@@ -240,7 +240,7 @@ class acc_ArticleDetails extends doc_Detail
                 }
                 
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$caption}->" . $list->rec->name);
+                $form->setField("{$type}Ent{$i}", "silent,removeAndRefreshForm,mandatory,input,caption={$caption}->" . $list->rec->name);
                 
                 // Ако може да се избират приключени пера, сетваме параметър в типа на перата
                 if($masterRec->useCloseItems == 'yes'){
@@ -254,9 +254,7 @@ class acc_ArticleDetails extends doc_Detail
                 	if($cover->haveInterface($list->rec->regInterfaceId)){
                 		if($coverClassId = $cover->getInstance()->getClassId()){
                 			if($itemId = acc_Items::fetchItem($coverClassId, $cover->that)->id){
-                				if($form->cmd !== 'refresh'){
-                					$form->setDefault("{$type}Ent{$i}", $itemId);
-                				}
+                				$form->setDefault("{$type}Ent{$i}", $itemId);
                 			}
                 		}
                 	}
@@ -265,9 +263,7 @@ class acc_ArticleDetails extends doc_Detail
                 	if($firstDoc->haveInterface($list->rec->regInterfaceId)){
                 		if($docClassId = $firstDoc->getInstance()->getClassId()){
                 			if($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id){
-                				if($form->cmd !== 'refresh'){
-                					$form->setDefault("{$type}Ent{$i}", $itemId);
-                				}
+                				$form->setDefault("{$type}Ent{$i}", $itemId);
                 			}
                 		}
                 	}
@@ -276,12 +272,17 @@ class acc_ArticleDetails extends doc_Detail
                 // Ако номенклатурата е размерна и ще може да се въвеждат цени
                 if($list->rec->isDimensional == 'yes' && !$quantityOnly){
                 	
+                	// Инпутване на размерното перо ако е в рекуеста
+                	$item = Request::get("{$type}Ent{$i}", 'acc_type_Item');
+                	$form->setDefault("{$type}Ent{$i}", $item);
+                	
                 	// И перото е попълнено и е от номенклатура валута
                 	if(isset($rec->{"{$type}Ent{$i}"})){
                 		$itemRec = acc_Items::fetch($rec->{"{$type}Ent{$i}"});
                 		
                 		// Ако перото е на валута
                 		if($itemRec->classId == currency_Currencies::getClassId()){
+                			$form->setField("{$type}Ent{$i}", "removeAndRefreshForm={{$type}Price}");
                 			
                 			// Задаваме курса към основната валута за дефолт цена
                 			$rate = currency_CurrencyRates::getRate($masterRec->valior, currency_Currencies::getCodeById($itemRec->objectId), NULL);
@@ -351,7 +352,7 @@ class acc_ArticleDetails extends doc_Detail
         	foreach ($accs as $type => $acc) {
         		if ($acc->isDimensional && !isset($rec->amount)) {
         			if(isset($rec->{"{$type}Price"}) && isset($rec->{"{$type}Quantity"})){
-        				@$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
+        				$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
         			}
         		}
         	}
@@ -381,13 +382,13 @@ class acc_ArticleDetails extends doc_Detail
                          */
                         switch (true) {
                             case !isset($rec->{"{$type}Quantity"}) :
-                            @$rec->{"{$type}Quantity"} = $rec->amount / $rec->{"{$type}Price"};
+                            $rec->{"{$type}Quantity"} = (!empty($rec->{"{$type}Price"})) ? $rec->amount / $rec->{"{$type}Price"} : 0;
                             break;
                             case !isset($rec->{"{$type}Price"}) :
-                            @$rec->{"{$type}Price"} = $rec->amount / $rec->{"{$type}Quantity"};
+                            $rec->{"{$type}Price"} = (!empty($rec->{"{$type}Quantity"})) ? $rec->amount / $rec->{"{$type}Quantity"} : 0;
                             break;
                             case !isset($rec->amount) :
-                            @$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
+                            $rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
                             break;
                         }
                         
@@ -447,8 +448,8 @@ class acc_ArticleDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
-            if(isset($rec->$fld)){
-                $row->$fld = acc_Items::getVerbal($rec->$fld, 'titleLink');
+            if(isset($rec->{$fld})){
+                $row->{$fld} = acc_Items::getVerbal($rec->{$fld}, 'titleLink');
             }
         }
         
@@ -458,8 +459,8 @@ class acc_ArticleDetails extends doc_Detail
         
         // Кешираме линковете към сметките
         foreach (array('debitAccId', 'creditAccId') as $accId){
-            if(!isset(static::$cache['accs'][$rec->$accId])){
-                static::$cache['accs'][$rec->$accId] = acc_Balances::getAccountLink($rec->$accId, $balanceValior);
+            if(!isset(static::$cache['accs'][$rec->{$accId}])){
+                static::$cache['accs'][$rec->{$accId}] = acc_Balances::getAccountLink($rec->{$accId}, $balanceValior);
             }
         }
         

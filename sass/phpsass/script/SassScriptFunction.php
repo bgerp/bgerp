@@ -8,7 +8,7 @@
  * @subpackage  Sass.script
  */
 
-require_once('SassScriptFunctions.php');
+require_once 'SassScriptFunctions.php';
 
 /**
  * SassScriptFunction class.
@@ -16,12 +16,13 @@ require_once('SassScriptFunctions.php');
  * @package      PHamlP
  * @subpackage  Sass.script
  */
-class SassScriptFunction {
+class SassScriptFunction
+{
   /**@#+
    * Regexes for matching and extracting functions and arguments
    */
-  const MATCH = '/^(((-\w)|(\w))[-\w]*)\(/';
-  const MATCH_FUNC = '/^((?:(?:-\w)|(?:\w))[-\w]*)\((.*)\)/';
+  const MATCH = '/^(((-\w)|(\w))[-\w:.]*)\(/';
+  const MATCH_FUNC = '/^((?:(?:-\w)|(?:\w))[-\w:.]*)\((.*)\)/';
   const SPLIT_ARGS = '/\s*((?:[\'"].*?["\'])|(?:.+?(?:\(.*\).*?)?))\s*(?:,|$)/';
   const NAME = 1;
   const ARGS = 2;
@@ -33,26 +34,29 @@ class SassScriptFunction {
 
   /**
    * SassScriptFunction constructor
-   * @param string name of the function
-   * @param array arguments for the function
+   * @param string $name name of the function
+   * @param array $args arguments for the function
    * @return SassScriptFunction
    */
-  public function __construct($name, $args) {
+  public function __construct($name, $args)
+  {
     $this->name = $name;
     $this->args = $args;
   }
 
-  private function process_arguments($input) {
+  private function process_arguments($input)
+  {
     if (is_array($input)) {
       $output = array();
       foreach ($input as $k => $token) {
         $output[$k] = trim($this->process_arguments($token), '\'"');
       }
+
       return $output;
     }
 
     $token = $input;
-    if (is_null($token))
+    if ($token === null)
       return ' ';
 
     if (!is_object($token))
@@ -70,13 +74,16 @@ class SassScriptFunction {
     return '';
   }
 
-  /**
-   * Evaluates the function.
-   * Look for a user defined function first - this allows users to override
-   * pre-defined functions, then try the pre-defined functions.
-   * @return Function the value of this Function
-   */
-  public function perform() {
+	/**
+	 * Evaluates the function.
+	 * Look for a user defined function first - this allows users to override
+	 * pre-defined functions, then try the pre-defined functions.
+	 *
+	 * @throws Exception
+	 * @return object the value of this Function
+	 */
+  public function perform()
+  {
     self::$context = new SassContext(SassScriptParser::$context);
 
     $name = preg_replace('/[^a-z0-9_]/', '_', strtolower($this->name));
@@ -91,10 +98,11 @@ class SassScriptFunction {
     try {
       if (SassScriptParser::$context->hasFunction($this->name)) {
         $return = SassScriptParser::$context->getFunction($this->name)->execute(SassScriptParser::$context, $this->args);
+
         return $return;
-      }
-      else if (SassScriptParser::$context->hasFunction($name)) {
+      } elseif (SassScriptParser::$context->hasFunction($name)) {
         $return = SassScriptParser::$context->getFunction($name)->execute(SassScriptParser::$context, $this->args);
+
         return $return;
       }
     } catch (Exception $e) {
@@ -110,8 +118,10 @@ class SassScriptFunction {
             if (count($lexed) === 1) {
               return $lexed[0];
             }
+
             return new SassString(implode('', $this->process_arguments($lexed)));
           }
+
           return $result;
         }
       }
@@ -120,18 +130,18 @@ class SassScriptFunction {
     if (method_exists('SassScriptFunctions', $name) || method_exists('SassScriptFunctions', $name = '_' . $name)) {
       $sig = self::get_reflection(array('SassScriptFunctions', $name));
       list($args) = self::fill_parameters($sig, $this->args, SassScriptParser::$context, $this);
+
       return call_user_func_array(array('SassScriptFunctions', $name), $args);
     }
 
     foreach ($this->args as $i => $arg) {
       if (is_object($arg) && isset($arg->quote)) {
-        $args[$i] = $arg->toString();
+        $args[$i] = (string)$arg;
       }
       if (!is_numeric($i) && SassScriptParser::$context->hasVariable($i)) {
         $args[$i] = SassScriptParser::$context->getVariable($i);
       }
     }
-
 
     // CSS function: create a SassString that will emit the function into the CSS
     return new SassString($this->name . '(' . join(', ', $args) . ')');
@@ -139,28 +149,32 @@ class SassScriptFunction {
 
   /**
    * Imports files in the specified directory.
-   * @param string path to directory to import
+   * @param string $dir path to directory to import
    * @return array filenames imported
    */
-  private function import($dir) {
+  private function import($dir)
+  {
     $files = array();
 
-    foreach (array_slice(scandir($dir), 2) as $file) {
+    foreach (scandir($dir) as $file) {
+      if (($file === '.') || ($file === '..')) continue;
       if (is_file($dir . DIRECTORY_SEPARATOR . $file)) {
         $files[] = $file;
         require_once($dir . DIRECTORY_SEPARATOR . $file);
       }
     } // foreach
+
     return $files;
   }
 
   /**
    * Returns a value indicating if a token of this type can be matched at
    * the start of the subject string.
-   * @param string the subject string
+   * @param string $subject the subject string
    * @return mixed match at the start of the string or false if no match
    */
-  public static function isa($subject) {
+  public static function isa($subject)
+  {
     if (!preg_match(self::MATCH, $subject, $matches))
       return false;
 
@@ -170,21 +184,22 @@ class SassScriptFunction {
     $strlen = strlen($subject);
     $subject_str = (string) $subject;
 
-    while($paren && $strpos < $strlen) {
+    while ($paren && $strpos < $strlen) {
       $c = $subject_str[$strpos++];
 
       $match .= $c;
       if ($c === '(') {
         $paren += 1;
-      }
-      elseif ($c === ')') {
+      } elseif ($c === ')') {
         $paren -= 1;
       }
     }
+
     return $match;
   }
 
-  public static function extractArgs($string, $include_null = TRUE, $context) {
+  public static function extractArgs($string, $include_null = TRUE, $context)
+  {
     $args = array();
     $arg = '';
     $paren = 0;
@@ -205,7 +220,7 @@ class SassScriptFunction {
 
       if (strpos($value, ':') !== false && preg_match(SassVariableNode::MATCH, $value, $match)) {
         $return[$match[SassVariableNode::NAME]] = $match[SassVariableNode::VALUE];
-      } else if(substr($value, 0, 1) == '$' && $include_null) {
+      } elseif (substr($value, 0, 1) == '$' && $include_null) {
         $return[str_replace('$', '', $value)] = NULL;
       } elseif ($include_null || $value !== NULL) {
         $return[] = $value;
@@ -215,12 +230,12 @@ class SassScriptFunction {
     return $return;
   }
 
-  public static function get_reflection($method) {
+  public static function get_reflection($method)
+  {
     if (is_array($method)) {
       $class = new ReflectionClass($method[0]);
       $function = $class->getMethod($method[1]);
-    }
-    else {
+    } else {
       $function = new ReflectionFunction($method);
     }
 
@@ -235,14 +250,15 @@ class SassScriptFunction {
       }
       $return[$parameter->getName()] = $parsed; # we evaluate the defaults to get Sass objects.
     }
+
     return $return;
   }
 
-  public static function fill_parameters($required, $provided, $context, $source) {
+  public static function fill_parameters($required, $provided, $context, $source)
+  {
     $context = new SassContext($context);
     $_required = array_merge(array(), $required); // need to array_merge?
     $fill = $_required;
-
 
     foreach ($required as $name=>$default) {
       // we require that named variables provide a default.
@@ -254,15 +270,29 @@ class SassScriptFunction {
     }
 
     // print_r(array($required, $provided, $_required));
+    $provided_copy = $provided;
 
     foreach ($required as $name=>$default) {
+      if ($default === null && strpos($name, '=') !== FALSE) {
+          list($name, $default) = explode('=', $name);
+          $name = trim($name);
+          $default = trim($default);
+      }
       if (count($provided)) {
         $arg = array_shift($provided);
-      }
-      elseif ($default !== NULL) {
+      } elseif ($default !== NULL) {
         $arg = $default;
-      }
-      else {
+
+        // for mixins with default values that refer to other arguments
+        // (e.g. border-radius($topright: 0, $bottomright: $topright, $bottomleft: $topright, $topleft: $topright)
+        if (is_string($default) && $default[0]=='$') {
+          $referred = trim(trim($default, '$'));
+          $pos = array_search($referred, array_keys($required));
+          if ($pos!==false && array_key_exists($pos, $provided_copy)) {
+            $arg = $provided_copy[$pos];
+          }
+        }
+      } else {
         throw new SassMixinNodeException("Function::$name: Required variable ($name) not given.\nFunction defined: " . $source->token->filename . '::' . $source->token->line . "\nFunction used", $source);
       }
       // splats

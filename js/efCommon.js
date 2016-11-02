@@ -1,6 +1,39 @@
 var shortURL;
 
 
+function spr(sel) {
+     if(sel.value == 'select') {
+        $("input[name*='from']").closest('tr').fadeIn();
+        $("input[name*='to']").closest('tr').fadeIn();
+        $("input[name*='from']").prop('disabled', false);
+        $("input[name*='to']").prop('disabled', false);
+        $("input[name*='from'], input[name*='to']").addClass('flashElem');
+        $("input[name*='from'], input[name*='to']").css('transition', 'background-color linear 500ms');
+        setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
+    } else {
+        $("input[name*='from']").prop('disabled', true);
+        $("input[name*='to']").prop('disabled', true);
+        $("input[name*='from']").closest('tr').fadeOut();
+        $("input[name*='to']").closest('tr').fadeOut();
+    }
+
+}
+
+
+
+/**
+ * Опитваме се да репортнем JS грешките
+ */
+window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
+	
+	if (typeof $.ajax != 'undefined') {
+		$.ajax({
+			url: "/A/wp/",
+			data: {errType: 'JS error', currUrl: window.location.href, error: errorMsg, script: url, line: lineNumber, column: columnNum}
+		})
+	}
+}
+
 function runOnLoad(functionName) {
     if (window.attachEvent) {
         window.attachEvent('onload', functionName);
@@ -17,6 +50,7 @@ function runOnLoad(functionName) {
         }
     }
 }
+
 
 /**
  * Сменя изображенията с fade ефект
@@ -398,7 +432,7 @@ var comboBoxInited = [];
  * Скрива и показва групите във формите 
  * @param id на групата
  */
-function toggleFormGroup(id) 
+function toggleFormGroup(id)
 {
 	if($('.fs' + id).css('display') == 'none') {
 		$('.fs' + id).fadeIn('slow');
@@ -416,7 +450,7 @@ function toggleFormGroup(id)
 	}
 	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
 	$('.fs-toggle' + id).toggleClass('openToggleRow');
-	
+    setRicheditWidth();
 }
 
 
@@ -1007,10 +1041,23 @@ function prepareContextMenu() {
         	act = 'update';
         }
 
+        var vertAdjust = $(this).outerHeight();
+        var horAdjust = -30;
+
+        if($(el).hasClass("twoColsContext")) {
+            vertAdjust += 2;
+            horAdjust += 1;
+        }
+        if($(el).closest(".contractorExtHolder").length) {
+            horAdjust -= 6;
+        }
+
         $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
             'position': position,
-            'sizeStyle': sizeStyle
+            'sizeStyle': sizeStyle,
+            'verAdjust': vertAdjust,
+            'horAdjust': horAdjust
         });
     });
 }
@@ -1018,7 +1065,7 @@ function prepareContextMenu() {
 
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id) {
-    var elem = $("#" + id).parent().find('.more-btn');
+    var elem = $("#" + id).parent().children('.more-btn');
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }
@@ -1412,6 +1459,7 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
@@ -1544,6 +1592,11 @@ function setFormElementsWidth() {
         $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
     } else {
+        $('.formTable .hiddenFormRow select.w50').css('width', "50%");
+        $('.formTable .hiddenFormRow select.w75').css('width', "75%");
+        $('.formTable .hiddenFormRow select.w100').css('width', "100%");
+        $('.formTable .hiddenFormRow select.w25').css('width', "25%");
+
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
@@ -1594,12 +1647,26 @@ function getAllLiveElements() {
     $('[data-live]').each(function() {
         var text = $(this).attr('data-live');
         var data = text.split("|");
-        var fn = window[data[0]];
+        var el = $(this);
+        $.each( data, function( key, value ) {
+            var fn = window["live_" + value];
+            if (typeof fn === "function") fn.apply(null, el);
+        });
 
-        data[0] = $(this).attr('id');
-        if (typeof fn === "function") fn(data);
     });
 }
+
+
+/**
+ * Прави елементите с определен клас да станат disabled след зареждането на страницата
+ * @param className
+ */
+function  live_disableFieldsAfterLoad(el){
+    setTimeout(function(){
+        $(el).prop('disabled', true);
+    }, 1000);
+}
+
 
 // функция, която взема елементите в контекстното меню от ajax
 function dropMenu(data) {
@@ -1882,6 +1949,7 @@ function refreshForm(form, removeFields) {
 	frm.css('cursor', 'wait');
 	
 	frm.find('input, select, textarea').css('cursor', 'wait');
+    frm.find('#save, #saveAndNew').prop( "disabled", true );
 	
 	var params = frm.serializeArray();
 
@@ -1889,9 +1957,13 @@ function refreshForm(form, removeFields) {
 	if (typeof removeFields == 'undefined') {
 		var filteredParams = params;
 	} else {
-		var filteredParams = params.filter(function(e){ return $.inArray(e.name, removeFields) == -1});
+		var filteredParams = params.filter(function(e){
+				var name = /[^/[]*/.exec(e.name)[0];
+			
+				return $.inArray(name, removeFields) == -1
+			});
 	}
-	
+
 	var serialized = $.param(filteredParams);
 
 	// form.submit();
@@ -1920,7 +1992,6 @@ function replaceFormData(frm, data)
     if ( typeof refreshForm.loadedFiles == 'undefined' ) {
         refreshForm.loadedFiles = [];
     }
-    
     var params = frm.serializeArray();
     
 	// Затваря всики select2 елементи
@@ -1999,7 +2070,7 @@ function replaceFormData(frm, data)
 	
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
-	
+    frm.find('#save, #saveAndNew').prop( "disabled", false );
 	frm.find('input, select, textarea').css('cursor', 'default');
 }
 /**
@@ -2121,44 +2192,53 @@ function addLinkOnCopy(text, symbolCount) {
 }
 
 
+
+function prepareContextHtmlFromAjax() {
+
+    $( ".ajaxContext").parent().css('position', 'relative');
+    $( ".ajaxContext").each(function() {
+        var holder = document.createElement('div');
+        $(holder).addClass('modal-toolbar');
+        $(holder).attr('id', $(this).attr("data-id"));
+        $(holder).attr('data-sizestyle', 'context');
+        $(holder).css('min-height', '120px');
+        $(holder).css('min-width', '140px');
+
+
+        $(this).parent().append(holder);
+    });
+}
+
+
+
+
 /**
  * Подготовка за контекстно меню по ajax
  */
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
 
-    $(".transparent.more-btn").on('click', function (e) {
-        if(e.button == 1 || e.offsetX > 22) {
-            $(this).contextMenu('close');
-            if(e.button == 1) {
-                window.open($(this).attr('href'),'_blank');
-            } else {
-                window.location.href = $(this).attr('href');
-            }
-        } else {
-            var url = $(this).attr("data-url");
-            if(!url) return;
+    $('.ajaxContext').on('mousedown', function() {
+        openAjaxMenu(this);
+    } );
 
-            resObj = new Object();
-            resObj['url'] = url;
-            getEfae().process(resObj);
-        }
+    $('.ajaxContext').each(function(){
+        var el = $(this);
+        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
 }
 
-function prepareContextHtmlFromAjax() {
-    $( ".transparent.more-btn").parent().css('position', 'relative');
-    $( ".transparent.more-btn").each(function(){
-        var holder = document.createElement('div');
-        $(holder).addClass('modal-toolbar');
-        $(holder).attr('id', $(this).attr("data-id"));
-        $(holder).attr('data-sizestyle', 'context');
+function openAjaxMenu(el) {
 
-        $(this).parent().append(holder);
-    });
+    var url = $(el).attr("data-url");
+    if(!url) return;
 
-    prepareContextMenu();
+    resObj = new Object();
+    resObj['url'] = url;
+    getEfae().process(resObj);
 }
+
+
 /**
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */
@@ -2456,6 +2536,7 @@ function toggleKeylistGroups(el) {
     }
 
 }
+
 
 /**
  *  намираме прилежащата на елемента група
@@ -3386,6 +3467,15 @@ function render_prepareContextMenu() {
 
 
 /**
+ * Функция, която извиква подготвянето на контекстното меню по ajax
+ * Може да се комбинира с efae
+ */
+function render_getContextMenuFromAjax() {
+    getContextMenuFromAjax();
+}
+
+
+/**
 * Функция, която извиква подготвянето на smartCenter
 * Може да се комбинира с efae
 */
@@ -3408,7 +3498,7 @@ function render_sumOfChildrenWidth() {
 * Може да се комбинира с efae
 */
 function render_setFormElementsWidth() {
-        setFormElementsWidth();
+	setFormElementsWidth();
 }
 
 
@@ -3417,7 +3507,7 @@ function render_setFormElementsWidth() {
 * Може да се комбинира с efae
 */
 function render_setThreadElemWidth() {
-        setThreadElemWidth();
+	setThreadElemWidth();
 }
 
 
@@ -4412,6 +4502,16 @@ function addBugReportInput(form, nameInput, value)
 }
 
 
+/**
+ * При хоризонтален скрол на страницата, да създадем watch point
+ */
+function detectScrollAndWp() {
+    if($('#packWrapper').outerWidth() > $(window).width() ) {
+    	getEfae().process({url: wpUrl}, {errType: 'Scroll Detected', currUrl: window.location.href});
+    }
+}
+
+
 function removeNarrowScroll() {
 	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
 		$('body').removeClass('narrow-scroll');
@@ -4498,7 +4598,7 @@ function mailServerSettings() {
 		    case "mail.bg":
 		    	server.value = " imap.mail.bg:143";
 		    	protocol.value = "imap";
-		    	security.value = "ssl";
+		    	security.value = "tls";
 		    	cert.value = "validate";
 		    	smtpServer.value = "smtp.mail.bg:25";
 		    	smtpSecure.value = "tls";
@@ -4515,10 +4615,9 @@ function mailServerSettings() {
 		    	smtpAuth.value = "no";
 		}
 
-    }
-    
-    if($('.select2').length){
-        $('select').trigger("change");
+        if($('.select2').length){
+            $('select').trigger("change");
+        }
     }
 };
 

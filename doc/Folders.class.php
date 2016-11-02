@@ -29,9 +29,15 @@ class doc_Folders extends core_Master
     
     
     /**
+     * 10 секунди време за опресняване на нишката
+     */
+    public $refreshRowsTime = 10000;
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting, plg_RefreshRows';
     
     
     /**
@@ -55,8 +61,14 @@ class doc_Folders extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'powerUser';
+    var $canWrite = 'no_one';
     
+    
+    /**
+     * Кой може да вижда единичния изглед
+     */
+    var $canSingle = 'powerUser';
+
     
     /**
      * Кой може да добавя?
@@ -80,12 +92,6 @@ class doc_Folders extends core_Master
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'powerUser';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
     
     
     /**
@@ -131,6 +137,17 @@ class doc_Folders extends core_Master
         
         $this->setDbUnique('coverId,coverClass');
     }
+
+
+    /**
+     * Редиректва към съдържанието на папката
+     */
+    public function act_Single()
+    {
+        expect($id = Request::get('id', 'int'));
+
+        return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
+    }
     
     
     /**
@@ -160,6 +177,80 @@ class doc_Folders extends core_Master
         $link = ht::createLink($title, $url, NULL, $attr);
         
         return $link;
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logRead($action, $objectId, $lifeDays)
+     */
+    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
+    {
+        self::logToFolder('read', $action, $objectId, $lifeDays);
+        
+        return parent::logRead($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
+     */
+    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    {
+        self::logToFolder('write', $action, $objectId, $lifeDays);
+        
+        return parent::logWrite($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $type
+     * @param string $action
+     * @param integer|NULL $objectId
+     * @param integer|NULL $lifeDays
+     */
+    protected static function logToFolder($type, $action, $objectId, $lifeDays)
+    {
+        if (!$objectId) return ;
+        
+        $allowedType = array('read', 'write');
+        
+        if (!in_array($type, $allowedType)) {
+            
+            return ;
+        }
+        
+        try {
+            $rec = self::fetch($objectId);
+            
+            $type = strtolower($type);
+            $type = ucfirst($type);
+            $fncName = 'log' . $type;
+            
+            if (!cls::load($rec->coverClass, TRUE)) return ;
+            
+            $inst = cls::get($rec->coverClass);
+            
+            $inst->$fncName($action, $rec->coverId, $lifeDays);
+            
+            return TRUE;
+        } catch (core_exception_Expect $e) {
+            
+            reportException($e);
+        }
     }
     
     
@@ -294,6 +385,9 @@ class doc_Folders extends core_Master
         $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
+        if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+        	$haveRight = colab_Folders::haveRightFor('single', $rec);
+        }
         
         // Иконката на папката според достъпа и
         $img = static::getIconImg($rec, $haveRight);
@@ -307,7 +401,11 @@ class doc_Folders extends core_Master
         
         if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-            $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator'))){
+            	$link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            } else {
+            	$link = array('colab_Threads', 'list', 'folderId' => $rec->id);
+            }
             
             // Ако е оттеглен
             if ($rec->state == 'rejected') {
@@ -384,8 +482,10 @@ class doc_Folders extends core_Master
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
 
-                if(!$rec) {
-                    return;
+                if (!$rec) {
+                    wp($id);
+                    
+                    continue;
                 }
                 
                 // Запомняме броя на отворените теми до сега
@@ -435,7 +535,24 @@ class doc_Folders extends core_Master
                         // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
                         $isRejected = core_Users::checkUsersIsRejected($notifyArr);
                         if ($isRejected) {
-                            $notifyArr += core_Users::getByRole('admin');
+                            
+                            $otherNotifyArr = array();
+                            if ($defNotify = doc_Setup::get('NOTIFY_FOR_OPEN_IN_REJECTED_USERS')) {
+                                $otherNotifyArr = type_Keylist::toArray($defNotify);
+                            }
+                            
+                            // Ако има избрани потребители в настройките, проверяваме да не са оттеглени
+                            if (!empty($otherNotifyArr)) {
+                                if (core_Users::checkUsersIsRejected($otherNotifyArr)) {
+                                    $otherNotifyArr = array();
+                                }
+                            }
+                            
+                            if (empty($otherNotifyArr)) {
+                                $otherNotifyArr = core_Users::getByRole('admin');
+                            }
+                            
+                            $notifyArr += $otherNotifyArr;
                         }
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
@@ -809,7 +926,7 @@ class doc_Folders extends core_Master
         $haveRight = static::haveRightFor('single', $rec);
         
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
-            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Folders::haveRightFor('single', $rec);
             }
         }
@@ -836,12 +953,13 @@ class doc_Folders extends core_Master
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
+            $params['Ctr'] = 'doc_Threads';
             $link = toUrl($params, $isAbsolute);
 
             // Атрибути на линка
             $attr = array();
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon})";    
+            $attr['style'] = "background-image:url({$sbfIcon});";    
             $attr['target'] = '_blank'; 
 
             // Създаваме линк
@@ -967,7 +1085,7 @@ class doc_Folders extends core_Master
         $query->orWhere("#title IS NULL");
         
         $query->limit(500);
-
+        
         while($rec = $query->fetch()) {
             try {
                 // Ако има папка без собственик
@@ -975,33 +1093,17 @@ class doc_Folders extends core_Master
                     $resArr['inCharge']++;
                     $rec->inCharge = $currUser;
                     self::save($rec, 'inCharge');
+                    self::logNotice("Добавен е собственик на папката", $rec->id);
                 }
                 
                 // Ако липсва coverClass, да е на несортираните
                 if (!isset($rec->coverClass)) {
-                    $resArr['coverClass']++;
-                    $rec->coverClass = $unsortedFolderId;
-                    self::save($rec, 'coverClass');
+                    $resArr += self::moveToUnsorted($rec, $currUser);
                 }
                 
                 // Ако няма coverId
                 if (!isset($rec->coverId)) {
-                    $resArr['coverId']++;
-                    
-                    // Ако не е несортирани
-                    if ($rec->coverClass != $unsortedFolderId) {
-                        $resArr['coverClass']++;
-                        $rec->coverClass = $unsortedFolderId;
-                        self::save($rec, 'coverClass');
-                    }
-                    
-                    // Създаваме документ и използваме id-то за coverId
-                    $unRec = new stdClass();
-                    $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
-                    $unRec->inCharge = $currUser;
-                    $unRec->folderId = $rec->id;
-                    $rec->coverId = $unsortedFolders::save($unRec);
-                    self::save($rec, 'coverId');
+                    $resArr += self::moveToUnsorted($rec, $currUser);
                 }
                 
                 // Ако няма заглвиет, използваме заглавието от документа
@@ -1010,13 +1112,21 @@ class doc_Folders extends core_Master
                     $coverMvc = cls::get($rec->coverClass);
                     $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
                     self::save($rec, 'title');
+                    self::logNotice("Добавено заглавие на корица {$rec->coverId}");
                 }
+                
+                self::logNotice("Папката е обновена, защото има развалени данни", $rec->id);
                 
                 // Обновяваме папката
                 self::updateFolderByContent($rec->id);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
             }
+        }
+        
+        // Ако е зададено да се поправят всички стойности
+        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+            $resArr += self::repairAll($from, $to, $delay);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
@@ -1024,8 +1134,268 @@ class doc_Folders extends core_Master
         
         return $resArr;
     }
-    
 
+
+
+    /**
+     * Проверка и поправка на всички записи
+     *
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     *
+     * @return array
+     */
+    public static function repairAll($from = NULL, $to = NULL, $delay = 10)
+    {
+        $resArr = array();
+        $query = self::getQuery();
+    
+        self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
+        
+        while ($rec = $query->fetch()) {
+            
+            $mustRepair = FALSE;
+            
+            try {
+                // Поправяме документите, които няма инстанция или липсва запис за тях
+                if (cls::load($rec->coverClass, TRUE)) {
+                    $inst = cls::get($rec->coverClass);
+                    
+                    if (!$inst->fetch($rec->coverId, '*', FALSE)) {
+                        $mustRepair = TRUE;
+                    }
+                } else {
+                    $mustRepair = TRUE;
+                }
+            } catch (ErrorException $e) {
+                reportException($e);
+                
+                continue;
+            }
+            
+            if ($mustRepair) {
+                try {
+                    $resArr += self::moveToUnsorted($rec);
+                } catch (ErrorException $e) {
+                    reportException($e);
+                
+                    continue;
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Поправка на структурата на кориците
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repairCover($from = NULL, $to = NULL, $delay = 10)
+    {
+        $resArr = array();
+        
+        // Изкючваме логването
+        $isLoging = core_Debug::$isLogging;
+        core_Debug::$isLogging = FALSE;
+        
+        // Всички документи, които имат интерфейса
+        $clsArr = core_Classes::getOptionsByInterface('doc_FolderIntf', 'name');
+        
+        $fArr = array();
+        
+        foreach ($clsArr as $clsId => $clsName) {
+            
+            if ($clsName == 'doc_Folders') continue;
+            
+            if (!cls::load($clsName, TRUE)) continue ;
+            
+            $coverInst = cls::get($clsName);
+            $coverId = core_Classes::getId($coverInst);
+            
+            $cQuery = $coverInst->getQuery();
+            
+            // Подготвяме данните за търсене
+            self::prepareRepairDateQuery($cQuery, $from, $to, $delay);
+            
+            $cQuery->where("#folderId IS NOT NULL AND #folderId != ''");
+            
+            while ($cRec = $cQuery->fetch()) {
+                
+                if (!$cRec->folderId) continue;
+                
+                // Премахва повтарящите се folderId
+                if ($fArr[$cRec->folderId]) {
+                    
+                    // Избираме най-добрият запис
+                    $cPoints = self::getPointsForRec($cRec);
+                    $aPoints = self::getPointsForRec($fArr[$cRec->folderId]['rec']);
+                    
+                    if ($cPoints == $aPoints) {
+                        if ($cRec->lastUsedOn > $fArr[$cRec->folderId]['rec']->lastUsedOn) {
+                            $cPoints++;
+                        }
+                    }
+                    
+                    try {
+                        // Нулираме folderId на записа с по-малко точки
+                        if ($aPoints > $cPoints) {
+                            $cRec->folderId = NULL;
+                            $coverInst->save($cRec, 'folderId');
+                            $coverInst->logNotice('Нулирано повтарящо се "folderId"', $cRec->id);
+                        } else {
+                            $sInst = cls::get($fArr[$cRec->folderId]['cls']);
+                            $fArr[$cRec->folderId]['rec']->folderId = NULL;
+                            $sInst->logNotice('Нулирано повтарящо се "folderId"', $fArr[$cRec->folderId]['rec']->id);
+                            $sInst->save($fArr[$cRec->folderId]['rec'], 'folderId');
+                        
+                            // Добавяме новите стойности в масива
+                            $fArr[$cRec->folderId]['cls'] = $clsName;
+                            $fArr[$cRec->folderId]['rec'] = $cRec;
+                        }
+                        $resArr['folderId']++;
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    }
+                } else {
+                    $fArr[$cRec->folderId]['cls'] = $clsName;
+                    $fArr[$cRec->folderId]['rec'] = $cRec;
+                }
+                
+                // Ако ще се проверяват всички записи
+                if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+                    
+                    $fRec = FALSE;
+                    if ($cRec->folderId) {
+                        $fRec = doc_Folders::fetch($cRec->folderId, '*', FALSE);
+                    }
+                    
+                    // Ако няма такава папка
+                    if (!$fRec) {
+                        try {
+                            $cRec->folderId = NULL;
+                            $coverInst->save($cRec, 'folderId');
+                            $coverInst->logNotice('Нулирано грешно "folderId"', $cRec->id);
+                            $resArr['folderId']++;
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
+                    } else {
+                        
+                        // Ако корицата не отговаря с данните на папката
+                        if ($fRec->coverClass != $coverId || $fRec->coverId != $cRec->id) {
+                            
+                            $newFolderId = doc_Folders::fetchField(array("#coverClass = '[#1#]' AND #coverId = '[#2#]'", $coverId, $cRec->id), 'id', FALSE);
+                            
+                            try {
+                                if ($newFolderId) {
+                                    $cRec->folderId = $newFolderId;
+                                    $coverInst->save($cRec, 'folderId');
+                                    $coverInst->logNotice('Променено грешно "folderId"', $cRec->id);
+                                    $resArr['folderId']++;
+                                } else {
+                                    $fRec->coverClass = $coverId;
+                                    $fRec->coverId = $cRec->id;
+                                    self::save($fRec, 'coverClass, coverId', 'IGNORE');
+                                    self::logNotice('Промене coverClass и coverId', $fRec->id);
+                                    $resArr['coverId']++;
+                                }
+                            } catch (ErrorException $e) {
+                                reportException($e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Опитва се да извлече точки за записа
+     * 
+     * @param stdObject $rec
+     * 
+     * @return number
+     */
+    protected static function getPointsForRec($rec)
+    {
+        $points = 0;
+        
+        $points = strlen($rec->searchKeywords);
+        
+        if ($rec->state == 'rejected') {
+            $points -= 1000;
+        }
+        
+        if (!$rec->lastUsedOn) {
+            $points -= 100;
+        }
+        
+        return $points;
+    }
+    
+    
+    /**
+     * Прави миграция на папките към несортирани. Използва се при поправка на документите.
+     * 
+     * @param stdObject $rec
+     * @param NULL|integer $currUser
+     * 
+     * @return array
+     */
+    protected static function moveToUnsorted($rec, $currUser = NULL)
+    {
+        $resArr = array();
+        $unsortedFolders = 'doc_UnsortedFolders';
+        $unsortedFolderId = core_Classes::getId($unsortedFolders);
+        
+        if (!$currUser) {
+            $currUser = core_Users::getCurrent();
+            if ($currUser <= 0) {
+                $currUser = core_Users::getFirstAdmin();
+            }
+            $currUser = ($currUser) ? $currUser : 1;
+        }
+        
+        if (isset($rec->coverClass) || ($rec->coverClass != $unsortedFolderId)) {
+            
+            self::logNotice("Променен клас на корица от {$rec->coverClass} на {$unsortedFolderId}");
+            
+            $resArr['coverClass']++;
+            $rec->coverClass = $unsortedFolderId;
+            $rec->coverId = NULL;
+            self::save($rec, 'coverClass, coverId');
+        }
+        
+        $resArr['coverId']++;
+        
+        $oldCoverId = $rec->coverId;
+        
+        // Създаваме документ и използваме id-то за coverId
+        $unRec = new stdClass();
+        $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
+        $unRec->inCharge = $currUser;
+        $unRec->folderId = $rec->id;
+        $rec->coverId = $unsortedFolders::save($unRec);
+        
+        self::save($rec, 'coverId');
+        
+        self::logNotice("Променено id на папка от {$oldCoverId} на {$rec->coverId}");
+        
+        return $resArr;
+    }
+    
+    
     /**
      * Екшън за поправка на структурите в документната система
      */
@@ -1140,6 +1510,14 @@ class doc_Folders extends core_Master
         if (!$rec->coverClass) return ;
         $class = cls::get($rec->coverClass);
         $title = $class->getTitle();
+        
+        if ($class instanceof core_Master) {
+            $singleTitle = $class->singleTitle;
+            if ($singleTitle && ($title != $singleTitle)) {
+                $title .= ' ' . $singleTitle;
+            }
+        }
+        
         $searchKeywords .= " " . plg_Search::normalizeText($title);
     }
     
@@ -1221,8 +1599,10 @@ class doc_Folders extends core_Master
         // Добавяме функционални полета
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени теми->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
-        $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на темите->Правило, input=input');
-        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From`->Имейл, input=input');
+
+        $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
+
+        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Получен личен имейл->Известяване, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
@@ -1293,9 +1673,100 @@ class doc_Folders extends core_Master
     	
     	$query->show('title');
     	while($rec = $query->fetch()){
-    		$options[$rec->id] = doc_Folders::getTitleById($rec->id, FALSE);
+    		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
     	}
     
     	return $options;
+    }
+
+
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+	    $query->orderBy("last=DESC");
+
+        $viewAccess = TRUE;
+	    if ($params['restrictViewAccess'] == 'yes') {
+	        $viewAccess = FALSE;
+	    }
+
+        $me = cls::get('crm_Companies');
+	       
+	    $me->restrictAccess($query, NULL, $viewAccess);
+	    
+        if(!$includeHiddens) {
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+	       
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+
+        if($threadId = $params['moveThread']) {
+            $tRec = doc_Threads::fetch($threadId);
+            expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
+            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->EXT('class', 'core_Classes', 'externalKey=coverClass,externalName=title');
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+       
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '%', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            foreach($qArr as $w) {
+                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+            }
+        }
+ 
+        if($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,searchFieldXpr,class');
+        
+        $res = array();
+        
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = trim($rec->searchFieldXpr) . ' (' . $rec->class . ')';
+        }
+ 
+        return $res;
+    }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        // Премахваме color стилове
+        $status = preg_replace('/style\s*=\s*(\'|")color:\#[a-z0-9]{3,6}(\'|")/i', '', $status);
     }
 }

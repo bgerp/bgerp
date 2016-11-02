@@ -1264,8 +1264,13 @@ class email_Outgoings extends core_Master
             $nRec = clone($rec);
         }
         
-        // Записваме обръщението в модела
-        email_Salutations::add($nRec);
+        // Обръщението да се записва за
+        $salUserId = email_Salutations::getUserId($nRec->containerId);
+        
+        if ($salUserId === FALSE || ($salUserId == core_Users::getCurrent())) {
+            // Записваме обръщението в модела
+            email_Salutations::add($nRec);
+        }
         
         // Ако препащме имейла
         if (($rec->forward == 'yes') && $rec->originId) {
@@ -1776,8 +1781,18 @@ class email_Outgoings extends core_Master
      */
     function getHeader($headerDataArr, $rec)
     {
-        // Вземаме обръщението
-        $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
+        $cu = core_Users::getCurrent();
+        
+        $salutation = NULL;
+        
+        if ($cu > 0) {
+            // Вземаме обръщението
+            $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email, $cu);
+        }
+        
+        if (!$salutation && ($cu > 0)) {
+            $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
+        }
         
         // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
         if ($salutation) {
@@ -2755,7 +2770,7 @@ class email_Outgoings extends core_Master
         while ($personsRec = $personsQuery->fetch()) {
             
             // Добавяме в масива
-            $personsArr[$personsRec->id] = crm_Persons::getVerbal($personsRec, 'name');
+            $personsArr[$personsRec->id] = $personsRec->name;
         }
         
         // Ако има открити стойности
@@ -2779,7 +2794,7 @@ class email_Outgoings extends core_Master
         while ($companiesRec = $companyQuery->fetch()) {
             
             // Добавяме в масива
-            $companiesArr[$companiesRec->id] = crm_Companies::getVerbal($companiesRec, 'name');
+            $companiesArr[$companiesRec->id] = $companiesRec->name;
         }
         
         // Ако има открити стойности

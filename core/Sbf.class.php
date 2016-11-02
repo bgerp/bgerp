@@ -60,17 +60,17 @@ class core_Sbf extends core_Mvc
      */
     static function getSbfFilePath_($path)
     {  
-        static $cashe;
+        static $cache;
 
-        if(!$cashe[$path]) {
+        if(!$cache[$path]) {
             $time = 0;
             if($file = getFullPath($path)) {
                 $time =  filemtime($file);
             } 
-            $cashe[$path] = self::getSbfPathByTime($path, $time);
+            $cache[$path] = self::getSbfPathByTime($path, $time);
         }
 
-        return $cashe[$path];
+        return $cache[$path];
     }
 
 

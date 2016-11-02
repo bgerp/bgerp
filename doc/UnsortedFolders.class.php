@@ -209,8 +209,8 @@ class doc_UnsortedFolders extends core_Master
      */
     public function description()
     {
-        $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
-        $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
+        $this->FLD('name' , 'varchar(255)', 'caption=Наименование,mandatory');
+        $this->FLD('description' , 'richtext(rows=3, passage=Общи)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
         $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
         $this->setDbUnique('name');
@@ -478,7 +478,7 @@ class doc_UnsortedFolders extends core_Master
         $resTask = array();
         while ($recContainers = $queryContainers->fetch()) {
         	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'pending' OR #state = 'active' OR #state = 'closed')");
-        	
+        	$recs = array();
         	// заявка към таблицата на Задачите
         	while ($recTask = $queryTasks->fetch()) {
         
@@ -496,7 +496,7 @@ class doc_UnsortedFolders extends core_Master
         		
         		if($timeStart){
         			// ако няма продължителност на задачата
-    	    		if(!$recTask->timeDuration) {
+    	    		if(!$recTask->timeDuration && !$timeEnd) {
     	    			// продължителността на задачата е края - началото
     	    			$timeDuration = 1800;
     	    		} elseif(!$recTask->timeDuration && $timeEnd) {
@@ -530,7 +530,7 @@ class doc_UnsortedFolders extends core_Master
 	    		    		);
 	    		    	    
 
-	        		$recs = array();
+	        		
 		    		$recs[$recTask->id] = $recTask;
 		    		$forTask = (object) array('recs' => $recs);
 		    		$i++;
@@ -542,7 +542,7 @@ class doc_UnsortedFolders extends core_Master
 	
 		$params = $others->otherParams;
 		$header = $others->headerInfo;
-        
+
 		$cntResTask = count($resTask);
 		
     	for ($i = 0; $i <= ($cntResTask); $i++){

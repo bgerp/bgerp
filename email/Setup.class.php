@@ -27,6 +27,12 @@ defIfNot('EMAIL_UNSORTABLE_COUNTRY', 'Несортирани - %s');
 
 
 /**
+ * Потребител, който ще е отговорник на несортираните имейли
+ */
+defIfNot('EMAIL_UNSORTABLE_INCHARGE', '');
+
+
+/**
  * Максималното време за изчакване на буфера
  */
 defIfNot('EMAIL_POP3_TIMEOUT', 2);
@@ -218,6 +224,9 @@ class email_Setup extends core_ProtoSetup
 
             // Шаблон за име на папки
             'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
+            
+            // Потребител, който ще е отговорник на несортираните имейли
+            'EMAIL_UNSORTABLE_INCHARGE' => array ('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'mandatory, caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
 
             // Максималната големина на файловете, които ще се приемат за CID
             'EMAIL_MAXIMUM_CID_LEN' => array ('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
@@ -290,6 +299,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::repairRecsInFilters',
             'migrate::repairSendOnTimeClasses',
             'migrate::updateUserInboxesD',
+            'migrate::repairSalutations',
         );
     
 
@@ -343,7 +353,7 @@ class email_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
@@ -525,6 +535,23 @@ class email_Setup extends core_ProtoSetup
         if (!function_exists('imap_open')) {
             
             return 'Не е инсталиран IMAP модула на PHP';
+        }
+    }
+    
+    
+    /**
+     * Поправка на userId на обръщенията
+     */
+    public function repairSalutations()
+    {
+        $query = email_Salutations::getQuery();
+        $query->where("#userId IS NULL");
+        $query->orWhere("#userId = '0' || #userId = '-1'");
+        
+        while ($rec = $query->fetch()) {
+            $rec->userId = $rec->createdBy;
+            
+            email_Salutations::save($rec, 'userId');
         }
     }
 }

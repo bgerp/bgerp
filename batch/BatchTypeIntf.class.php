@@ -63,8 +63,8 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      *
-     * @param text $value
-     * @return text $value
+     * @param string $value
+     * @return string $value
      */
     public function normalize($value)
     {
@@ -93,5 +93,16 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     public function makeArray($value)
     {
     	return $this->class->makeArray($value);
+    }
+    
+    
+    /**
+     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
+     *
+     * @return string
+     */
+    public function getAutoValueConst()
+    {
+    	return $this->class->getAutoValueConst();
     }
 }

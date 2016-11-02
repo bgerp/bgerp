@@ -92,7 +92,7 @@ class thumb_Img
     
     
     /**
-     * @var string Графичен формат на резултатното изображение: png, jpg или gif
+     * @var string|FALSE Графичен формат на резултатното изображение: png, jpg или gif
      */
     protected $format; 
     
@@ -235,6 +235,7 @@ class thumb_Img
      */
     function getAsString()
     {
+
         if(!$this->imgAsString) { 
             switch($this->sourceType) {
                 case 'url':  
@@ -321,7 +322,7 @@ class thumb_Img
                 $this->gdRes = $this->source;
             } else {
                 if($asString = $this->getAsString()) {
-                    $this->gdRes = imagecreatefromstring($asString);
+                    $this->gdRes = @imagecreatefromstring($asString);
                 }
             }
         }
@@ -334,22 +335,42 @@ class thumb_Img
      * Задаваме височината и широчината
      */
     function setWidthAndHeight()
-    {
+    {  
         // Ако не са зададени
         if(!$this->width || !$this->height) {
             
-            $handler = $this->getHash();
-            
-            // Опитваме се да вземем размерите от кеша, ако не - от изображението
-            if($sArr = core_Cache::get('imgSizes', $handler)) {  
-                $this->width  = $sArr[0];
-                $this->height = $sArr[1];
-            } elseif($gdRes = $this->getGdRes()) {
-                $this->width  = imagesx($gdRes);
-                $this->height = imagesy($gdRes);
+            if(!$this->gdRes) {
+                if($this->sourceType == 'string') {
+                    $this->gdRes = @imagecreatefromstring($this->source);
+                } elseif($this->sourceType == 'gdRes') {
+                    $this->gdRes = $this->source;
+                }
+            }
 
-                core_Cache::set('imgSizes', $handler, array($this->width, $this->height), 100000);
-             }
+            if($this->gdRes) {
+                $this->width  = imagesx($this->gdRes);
+                $this->height = imagesy($this->gdRes);
+            } else {
+                switch($this->sourceType) {
+                    case 'url':
+                    case 'path':  
+                        $uri = $this->source;
+                        break;
+                    case 'fileman':
+                        $uri = fileman_Files::fetchByFh($this->source, 'path');
+                        break;
+                    default:
+                        expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
+                }
+
+                expect($uri);
+                if (is_readable($uri)) {
+                    $fimg = new thumb_FastImageSize($uri);
+                    list($this->width, $this->height) = $fimg->getSize();
+                } else {
+                    log_Data::logWarning("Няма достъп до файла: " . $uri);
+                }
+            }
         }
     }
     
@@ -379,18 +400,25 @@ class thumb_Img
                 case 'url':
                 case 'path':
                     $this->format = fileman_Files::getExt($this->source);
+                    $uri = $this->source;
                 break;
                 case 'fileman':
                     $this->format = fileman_Files::getExt(fileman_Files::fetchByFh($this->source, 'name'));
+                    $uri = fileman_Files::fetchByFh($this->source, 'path');
                 break;
             }
 
-            if($this->format == 'jpeg') {
-                $this->format = 'jpg';
-            }
+            // Ако от името не можем да опрределим формата - пробваме съдържанието
+            if(!in_array($this->format, array('png', 'jpg', 'gif', 'jpeg'))) {
+                if(strlen($uri) && is_readable($uri)) {
+                    $fimg = new thumb_FastImageSize($uri);
+                    $this->format = $fimg->getType();
+                }
 
-            if(!in_array($this->format, array('png', 'jpg', 'gif'))) {
-                $this->format = 'png';
+            }
+            
+            if($this->format == 'jpeg' || empty($this->format)) {
+                $this->format = 'jpg';
             }
         }
 
@@ -552,6 +580,10 @@ class thumb_Img
      */
     protected function saveThumb()
     {
+        // ToDo: Ако картинката е зададена като файл, размерите и съответстват на изходните, няма ротация и форматите са едни и същи,
+        // можем да направим само копиране на файла, вместо да минаваме през GD
+
+ 
         if($gdRes = $this->getGdRes()) {
             
             $path = $this->getThumbPath();

@@ -3,13 +3,13 @@
 /**
  * Максимален брой за предложенията за последно използвани стойности на поле
  */
-defIfNot(RECENTLY_MAX_SUGGESTION, 20);
+defIfNot('RECENTLY_MAX_SUGGESTION', 20);
 
 
 /**
  * Максимален брой дни за запазване на стойност след нейната последна употреба
  */
-defIfNot(RECENTLY_MAX_KEEPING_DAYS, 60);
+defIfNot('RECENTLY_MAX_KEEPING_DAYS', 60);
 
 
 /**
@@ -93,7 +93,7 @@ class recently_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }

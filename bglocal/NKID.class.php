@@ -31,7 +31,7 @@ class bglocal_NKID extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bglocal_Wrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, bglocal_Wrapper, plg_Printing,
                        plg_SaveAndNew';
     
     
@@ -62,10 +62,10 @@ class bglocal_NKID extends core_Master
     /**
      * Преди запис
      */
-    static function on_BeforeSave($mvc, $res, $rec)
+    static function on_BeforeImportRec($mvc, $rec)
     {
-        if(isset($rec->csv_title)){
-            $rec->title = $rec->key . " " . $rec->csv_title;
+        if(isset($rec->title)){
+            $rec->title = $rec->key . " " . $rec->title;
         }
     }
     
@@ -76,8 +76,8 @@ class bglocal_NKID extends core_Master
     static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = "bglocal/data/nkid.csv";
-        $fields = array(0 => "key", 1 => "csv_title");
-        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+        $fields = array(0 => "key", 1 => "title");
+        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
 }

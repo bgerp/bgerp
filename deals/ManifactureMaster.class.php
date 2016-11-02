@@ -9,7 +9,7 @@
 * @category  bgerp
 * @package   deals
 * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
-* @copyright 2006 - 2014 Experta OOD
+* @copyright 2006 - 2016 Experta OOD
 * @license   GPL 3
 * @since     v 0.1
 */
@@ -42,6 +42,8 @@ abstract class deals_ManifactureMaster extends core_Master
 				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
 				'caption=Статус, input=none'
 		);
+
+		$mvc->setDbIndex('valior');
 	}
 	
 	
@@ -131,6 +133,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	
 	/**
 	 * Връща масив от използваните нестандартни артикули в протоколa
+	 * 
 	 * @param int $id - ид на протоколa
 	 * @return param $res - масив с използваните документи
 	 * 					['class'] - инстанция на документа
@@ -152,7 +155,7 @@ abstract class deals_ManifactureMaster extends core_Master
 			
 			$Detail = $mvc->mainDetail;
 			$dQuery = $Detail::getQuery();
-			$dQuery->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+			$dQuery->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
 			$dQuery->show('productId');
 			while($dRec = $dQuery->fetch()){
 				$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->productId));
@@ -234,6 +237,8 @@ abstract class deals_ManifactureMaster extends core_Master
     {
     	// Записваме документа за да му се обновят полетата
     	$rec = $this->fetchRec($id);
-    	$this->save($rec);
+    	if ($rec !== FALSE) {
+    	    $this->save($rec);
+    	}
     }
 }

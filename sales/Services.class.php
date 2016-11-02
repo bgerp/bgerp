@@ -245,7 +245,7 @@ class sales_Services extends deals_ServiceMaster
      * 				  o quantity       - количество опаковка
      * 				  o quantityInPack - количество в опаковката
      * 				  o discount       - отстъпка
-     * 				  o price          - цена за еденица от основната мярка
+     * 				  o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {
@@ -312,6 +312,17 @@ class sales_Services extends deals_ServiceMaster
     				}
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->originId)){
+    		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
     	}
     }
 }

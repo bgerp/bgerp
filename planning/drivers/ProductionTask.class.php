@@ -27,7 +27,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectDriver = 'planning,ceo';
+	public $canSelectDriver = 'taskPlanning,ceo';
 	
 	
 	/**
@@ -50,16 +50,57 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public function addFields(core_Fieldset &$fieldset)
     {
     	$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
+		$fieldset->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Описание');
+		$fieldset->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Доп. мярка');
 		
-		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,after=fixedAssets,removeAndRefreshForm=packagingId,silent');
+		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
-		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
-		$fieldset->FLD("indTime", 'time', 'caption=Произвеждане->Време,smartCenter');
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
+		$fieldset->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
+		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
+		$fieldset->FLD("startTime", 'time(noSmart)', 'caption=Норма->Произ-во,smartCenter');
+		$fieldset->FLD("indTime", 'time(noSmart)', 'caption=Норма->Пускане,smartCenter');
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$fieldset->FLD('quantityInPack', 'double(smartRound)', 'input=none');
-		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory,allowEmpty');
-    }
+		$fieldset->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
+	}
+	
+	
+	/**
+	 * Информация за произведения артикул по задачата
+	 * 
+	 * @param stdClass $rec
+	 * @return stdClass $arr
+	 * 			  o productId         - ид на артикула
+	 * 			  o packagingId       - ид на опаковката
+	 * 			  o quantityInPack    - количество в опаковка
+	 * 			  o plannedQuantity   - планирано количество
+	 * 			  o wastedQuantity    - бракувано количество
+	 * 			  o totalQuantity     - прозведено количество
+	 * 			  o storeId           - склад
+	 * 			  o fixedAssets       - машини
+	 * 			  o indTime           - време за пускане
+	 * 			  o startTime         - време за прозиводство
+	 * 			  o showadditionalUom - показване на допълнителна мярка
+	 */
+	public function getProductDriverInfo($rec)
+	{
+		$arr = array();
+		
+		$arr['productId']         = $rec->productId;
+		$arr['packagingId']       = $rec->packagingId;
+		$arr['quantityInPack']    = $rec->quantityInPack;
+		$arr['plannedQuantity']   = $rec->plannedQuantity;
+		$arr['wastedQuantity']    = $rec->totalQuantity;
+		$arr['totalQuantity']     = $rec->totalQuantity;
+		$arr['storeId']           = $rec->storeId;
+		$arr['fixedAssets']       = $rec->fixedAssets;
+		$arr['indTime']           = $rec->indTime;
+		$arr['startTime']         = $rec->startTime;
+		$arr['showadditionalUom'] = $rec->showadditionalUom;
+		
+		return (object)$arr;
+	}
 	
 	
 	/**
@@ -68,13 +109,102 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	public static function on_AfterRecToVerbal(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
 	{
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
-		if(!$rec->totalQuantity){
-			$rec->totalQuantity = 0;
-			$row->totalQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->totalQuantity);
-			$row->totalQuantity = "<span class='quiet'>{$row->totalQuantity}</span>";
+		foreach (array('totalQuantity', 'scrappedQuantity') as $fld){
+			if(!$rec->{$fld}){
+				$rec->{$fld} = 0;
+				$row->{$fld} = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->{$fld});
+				$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
+			}
 		}
 		
+		if(isset($rec->storeId)){
+			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		}
+		
+		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		
+		// Ако няма зададено очаквано начало и край, се приема, че са стандартните
+		$rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : NULL);
+		$rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : NULL);
+		
+		// Проверяване на времената
+		foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField){
+			
+			// Вербализиране на времената
+			$DateTime = core_Type::getByName("datetime(format=d.m H:i)");
+			$row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
+			$row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
+			
+			// Ако има очаквано и оригинално време
+			if(isset($rec->{$eTimeField}) && isset($rec->{$timeField})){
+				
+				// Колко е разликата в минути между тях?
+				$diffVerbal = NULL;
+				$diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
+				$diff = ceil($diff / 60);
+				
+				// Ако има разлика
+				if($diff != 0){
+					
+					// Подготовка на показването на разликата
+					$diffVerbal = cls::get('type_Int')->toVerbal($diff);
+					$diffVerbal = ($diff > 0) ? "<span class='red'>+{$diffVerbal}</span>" : "<span class='green'>{$diffVerbal}</span>";
+				}
+			
+				// Ако има разлика
+				if(isset($diffVerbal)){
+					
+					// Показва се след очакваното време в скоби, с хинт оригиналната дата
+					$hint = tr("Зададено") . ": {$row->{$timeField}}";
+					$diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', TRUE, array('height' => '12', 'width' => '12'));
+					$row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Подготовка за рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $res
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareSingle(planning_drivers_ProductionTask $Driver, embed_Manager $Embedder, &$res, &$data)
+	{
+		$rec = $data->rec;
+		
+		$d = new stdClass();
+    	$d->masterId = $rec->id;
+    	$d->masterClassId = planning_Tasks::getClassId();
+    	if($rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'rejected'){
+    		$d->noChange = TRUE;
+    		unset($data->editUrl);
+    	}
+    	
+    	cat_products_Params::prepareParams($d);
+    	$data->paramData = $d;
+	}
+	
+	
+	/**
+	 * След рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	public static function on_AfterRenderSingle(planning_drivers_ProductionTask $Driver, embed_Manager $Embedder, &$tpl, $data)
+	{
+		if(isset($data->paramData)){
+			$paramTpl = cat_products_Params::renderParams($data->paramData);
+			$tpl->append($paramTpl, 'PARAMS');
+		}
 	}
 	
 	
@@ -89,62 +219,54 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	{
 		$form = &$data->form;
 		$rec = $form->rec;
-		
-		if(empty($rec->originId)){
-			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-			$rec->originId = $firstDoc->fetchField('containerId');
-		}
+		$form->setField('title', 'input=hidden');
 		
 		// За произвеждане може да се избере само артикула от заданието
 		$origin = doc_Containers::getDocument($rec->originId);
 		$productId = $origin->fetchField('productId');
-		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
-		if(!$bomRec){
-			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+		
+		if(empty($rec->id)){
+			$form->setDefault('description', cat_Products::fetchField($productId, 'info'));
 		}
 		
-		$products[$productId] = cat_Products::getTitleById($productId, FALSE);
-		
-		// и ако има рецепта артикулите, които са етапи от нея
-		if(!empty($bomRec)){
-			$sQuery = cat_BomDetails::getQuery();
-			$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
-			$sQuery->show('resourceId');
-			while($sRec = $sQuery->fetch()){
-				$products[$sRec->resourceId] = cat_Products::getTitleById($sRec->resourceId, FALSE);
-			}
-		}
-		
-		// Ако има избран артикул, той винаги присъства в опциите
+		// Добавяме допустимите опции
+		$products = cat_Products::getByProperty('canManifacture');
 		if(isset($rec->productId)){
 			if(!isset($products[$rec->productId])){
 				$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
 			}
 		}
 		
-		// Добавяме допустимите опции
 		$form->setOptions('productId', array('' => '') + $products);
+		
 		if(count($products) == 1){
 			$form->setDefault('productId', key($products));
 		}
 		
+		$originDoc = doc_Containers::getDocument($rec->originId);
+		$originRec = $originDoc->fetch();
+		
 		// Ако задачата е дефолтна за артикула, задаваме и дефолтите
 		if(isset($rec->systemId)){
-			$originDoc = doc_Containers::getDocument($rec->originId);
-			$originRec = $originDoc->fetch();
 			
 			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
 			if(isset($tasks[$rec->systemId])){
 				foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld){
 					$form->setDefault($fld, $tasks[$rec->systemId]->{$fld});
 				}
+				$form->setReadOnly('productId');
 			}
 		}
 
+		$form->setDefault('productId', $originRec->productId);
+		$form->setDefault('plannedQuantity', $originRec->quantity);
+		
 		if(isset($rec->productId)){
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
-			$form->setDefault('packagingId', key($packs));
+			
+			$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+			$form->setDefault('packagingId', $measureId);
 			
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			if(!isset($productInfo->meta['canStore'])){
@@ -160,6 +282,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 				if($toProduce > 0){
 					$form->setDefault('plannedQuantity', $toProduce);
 				}
+			}
+			
+			if(cat_Products::fetchField($rec->productId, 'canStore') === 'yes'){
+				$form->setField('storeId', 'input,mandatory');
 			}
 		}
 	}
@@ -197,22 +323,25 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$dQuery->where("#state != 'rejected'");
 		$dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
 		$dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-		$dQuery->show('sumQuantity,sumWeight');
+		$dQuery->XPR('sumScrappedQuantity', 'double', 'SUM(#scrappedQuantity)');
+		$dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
 		 
 		$res = $dQuery->fetch();
 		 
 		// Преизчисляваме общото тегло
 		$rec->totalWeight = $res->sumWeight;
 		$rec->totalQuantity = $res->sumQuantity;
-		 
+		$rec->scrappedQuantity = $res->sumScrappedQuantity;
+		
 		// Изчисляваме колко % от зададеното количество е направено
-		@$rec->progress = round($rec->totalQuantity / $rec->plannedQuantity, 2);
+		$rec->progress = 0;
+		if (!empty($rec->plannedQuantity)) {
+		    $rec->progress = round($rec->totalQuantity / $rec->plannedQuantity, 2);
+		}
 		
-		// Записваме операцията в регистъра
-		$taskOrigin = doc_Containers::getDocument($rec->originId);
-		$quantity = $rec->totalQuantity * $rec->quantityInPack;
-		
-		planning_TaskActions::add($rec->id, $rec->productId, 'product', $taskOrigin->that, $quantity);
+		if($rec->progress < 0){
+			$rec->progress = 0;
+		}
 	}
 
 
@@ -268,49 +397,35 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
         $resArr = array();
         
-        $resArr['productId'] = array('name' => tr('Артикул'), 'val' =>"[#productId#]");
+        $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
+        																 <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
+        																 <span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
+        																 <!--ET_BEGIN fixedAssets--><br><span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<!--ET_END fixedAssets-->
+        																 <br>[#progressBar#] [#progress#]"));
         
-        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("|*<span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
-        		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity-->"));
+        $packagingId = cat_UoM::getTitleById($rec->packagingId);
+        $resArr['quantity'] = array('name' => tr("Количества|*, |{$packagingId}|*"), 'val' => tr("|*<span style='font-weight:normal'>|Планирано|*</span>: &nbsp;&nbsp;&nbsp;[#plannedQuantity#]<br>
+        																						    <span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<br>
+        																						    <span style='font-weight:normal'>|Бракувано|*</span>: &nbsp;&nbsp;&nbsp;&nbsp;[#scrappedQuantity#]"));
         
-        $resArr['packagingId'] = array('name' => tr('Мярка'), 'val' =>"[#packagingId#]");
-        
-        if (!empty($row->totalWeight)) {
-            $resArr['totalWeight'] =  array('name' => tr('Общо тегло'), 'val' =>"[#totalWeight#]");
+        if($rec->showadditionalUom == 'yes'){
+        	$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
         }
         
-        if (!empty($row->fixedAssets)) {
-            $resArr['fixedAssets'] =  array('name' => tr('Машини'), 'val' =>"[#fixedAssets#]");
+        if(!empty($rec->startTime) || !empty($rec->indTime)){
+        	if(isset($rec->indTime)){
+        		$row->indTime .= "/" . tr($packagingId);
+        	}
+        	
+        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#startTime#]</div><!--ET_END startTime-->"));
         }
         
-        if (!empty($row->indTime)) {
-        	$resArr['indTime'] =  array('name' => tr('Време за изпълнение'), 'val' =>"[#indTime#]");
-        }
-       
-        $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
-        
-        if (!empty($row->originId)) {
-            $resArr['originId'] =  array('name' => tr('Задание'), 'val' =>"[#originId#]");
-        }
-        
-        if (!empty($row->timeStart)) {
-        	$resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
-        }
-        
-        if (!empty($row->timeDuration)) {
-        	$resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
-        }
-        
-        if (!empty($row->timeEnd)) {
-        	$resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
-        }
-        
-        if (!empty($row->expectedTimeStart)) {
-        	$resArr['expectedTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectedTimeStart#]");
-        }
-        
-        if (!empty($row->expectedTimeEnd)) {
-        	$resArr['expectedTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectedTimeEnd#]");
+        if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
+        	
+        	$resArr['start'] =  array('name' => tr('Планирани времена'), 'val' => tr("|*<!--ET_BEGIN expectedTimeStart--><div><span style='font-weight:normal'>|Очаквано начало|*</span>: [#expectedTimeStart#]</div><!--ET_END expectedTimeStart-->
+																					 <!--ET_BEGIN timeDuration--><div><span style='font-weight:normal'>|Прод-ност|*</span>: [#timeDuration#]</div><!--ET_END timeDuration--> 
+        			 																 <!--ET_BEGIN expectedTimeEnd--><div><span style='font-weight:normal'>|Очакван край|*</span>: [#expectedTimeEnd#]</div><!--ET_END expectedTimeEnd-->
+        																			 <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime-->"));
         }
         
         return $resArr;
@@ -329,12 +444,20 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	unset($nRec->totalWeight);
     	unset($nRec->systemId);
-    	
-    	// Добавяме артикулите към детайлите за клониране
-    	$cloneDetails = $Embedder->cloneDetailes;
-    	$cloneDetails = arr::make($cloneDetails, TRUE);
-    	$cloneDetails['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
-    	$Embedder->cloneDetailes = implode(',', $cloneDetails);
+    }
+    
+    
+    /**
+     * След определяне на детайлите за клониране
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param array $details
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetDetailsToClone(tasks_BaseDriver $Driver, embed_Manager &$Embedder, &$details, $rec)
+    {
+    	$details['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
     }
     
     
@@ -382,19 +505,33 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     						foreach ($def->products[$var] as $p){
     							$p = (object)$p;
     							$nRec = new stdClass();
-    							$nRec->taskId         = $rec->id;
-    							$nRec->packagingId    = $p->packagingId;
-    							$nRec->quantityInPack = $p->quantityInPack;
+    							$nRec->taskId          = $rec->id;
+    							$nRec->packagingId     = $p->packagingId;
+    							$nRec->quantityInPack  = $p->quantityInPack;
     							$nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity * $rec->quantityInPack;
-    							$nRec->productId      = $p->productId;
-    							$nRec->type			  = $type;
-    							$nRec->storeId		  = $rec->storeId;
+    							$nRec->productId       = $p->productId;
+    							$nRec->type			   = $type;
+    							$nRec->storeId		   = $rec->storeId;
     							
     							planning_drivers_ProductionTaskProducts::save($nRec);
     						}
     					}
     				}
     			}
+    		}
+    	}
+    	
+    	// Копиране на параметрите на артикула към задачата
+    	$tasksClassId = planning_Tasks::getClassId();
+    	$params = cat_Products::getParams($rec->productId);
+    	if(is_array($params)){
+    		foreach ($params as $k => $v){
+    			$nRec = (object)array('paramId' => $k, 'paramValue' => $v, 'classId' => $tasksClassId, 'productId' => $rec->id);
+    			if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$k}", 'id')){
+    				$nRec->id = $id;
+    			}
+    			 
+    			cat_products_Params::save($nRec, NULL, "REPLACE");
     		}
     	}
     }

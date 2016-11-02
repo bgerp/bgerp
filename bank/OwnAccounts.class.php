@@ -8,14 +8,20 @@
  *
  * @category  bgerp
  * @package   bank
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class bank_OwnAccounts extends core_Master {
     
     
+	/**
+	 * Да се създаде папка при създаване на нов запис
+	 */
+	public $autoCreateFolder = 'instant';
+	
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -26,7 +32,7 @@ class bank_OwnAccounts extends core_Master {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
+                     plg_Sorting, bgerp_plg_FLB, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
@@ -42,57 +48,41 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Кое поле отговаря на кой работи с дадена сметка
-     */
-    public $inChargeField = 'operators';
-    
-    
-    /**
      * Кой има право да чете?
      */
-    public $canRead = 'bank, ceo';
+    public $canRead = 'ceo, bank';
     
     
     /**
-     * Кой може да селектира?
-     */
-    public $canSelect = 'ceo,bank';
+	* Кой може да активира?
+	*/
+	public $canActivate = 'ceo, bank';
     
     
     /**
-     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
+     * Поле за избор на потребителите, които могат да активират обекта
+     *
+     * @see bgerp_plg_FLB
      */
-    public $coverMasterRoles = 'ceo, bankMaster';
-    
-    
-    /**
-     * Кой може да пише
-     */
-    public $canCreatenewfolder = 'ceo, bank';
+    public $canActivateUserFld = 'operators';
     
     
     /**
      * Кой може да пише
      */
-    public $canReject = 'ceo, bankMaster';
+    public $canReject = 'ceo, admin';
     
     
     /**
      * Кой може да пише
      */
-    public $canRestore = 'ceo, bankMaster';
+    public $canRestore = 'ceo, admin';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'bankMaster, ceo';
-    
-    
-    /**
-     * Кой може да селектира всички записи
-     */
-    public $canSelectAll = 'ceo, bankMaster';
+    public $canWrite = 'ceo, admin';
     
     
     /**
@@ -104,7 +94,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'bank,ceo';
+    public $canSingle = 'ceo, bank';
     
     
     /**
@@ -122,7 +112,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canAddacclimits = 'ceo,bankMaster,accMaster';
+    public $canAddacclimits = 'ceo, bankMaster, accMaster,accLimits';
     
     
     /**
@@ -132,14 +122,13 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
-     * $autoList
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име $autoList
      */
     public $autoList = 'bankAcc';
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'bank/tpl/SingleLayoutOwnAccount.shtml';
     
@@ -156,6 +145,7 @@ class bank_OwnAccounts extends core_Master {
      * @var string|array
      */
     public $details = 'AccReports=acc_ReportDetails';
+    
     
     /**
      * Кой  може да вижда счетоводните справки?
@@ -188,7 +178,7 @@ class bank_OwnAccounts extends core_Master {
                                  capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
-        $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
+        $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     
         $this->setDbUnique('title');
@@ -515,11 +505,6 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */
-    
-    
-    /**
      * Връща Валутата и iban-a на всивки наши сметки разделени с "-"
      */
     public static function getOwnAccounts($selectIban = TRUE)
@@ -527,17 +512,16 @@ class bank_OwnAccounts extends core_Master {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
-        $query->where("#state != 'rejected' && #state != 'closed'");
+        $query->where("#state != 'rejected' AND #state != 'closed'");
+        $cu = core_Users::getCurrent();
         
         while($rec = $query->fetch()) {
+        	if(!bgerp_plg_FLB::canUse(__CLASS__, $rec, $cu, 'select')) continue;
+        	
         	if(isset($rec->bankAccountId)){
         		$account = bank_Accounts::fetch($rec->bankAccountId);
         		$cCode = currency_Currencies::getCodeById($account->currencyId);
-        		if($selectIban === TRUE){
-        			$verbal = $Varchar->toVerbal($account->iban);
-        		} else {
-        			$verbal = $rec->title;
-        		}
+        		$verbal = ($selectIban === TRUE) ? $Varchar->toVerbal($account->iban) : $rec->title;
         		
         		$accounts[$rec->id] = "{$cCode} - {$verbal}";
         	}

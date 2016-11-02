@@ -26,13 +26,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     /**
      * Работен кеш за запомняне на направения, оборот докато не е влязал в счетоводството
      */
-    private  $blAmount = 0;
-    
-    
-    /**
-     * Извлечен краткия баланс
-     */
-    private $shortBalance;
+    private $blQuantities = array();
     
     
     /**
@@ -71,11 +65,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     			$result->entries = array_merge($result->entries, $closeEntries);
     		}
     	} else {
-    		$this->shortBalance = new acc_ActiveShortBalance(array('itemsAll' => $dealItem->id));
-    		
     		$dealInfo = $this->class->getDealInfo($rec->threadId);
-    	
-    		$this->blAmount = $this->shortBalance->getAmount('411');
     		
     		// Създаване на запис за прехвърляне на всеки аванс
     		$entry2 = $this->transferDownpayments($dealInfo, $downpaymentAmounts, $firstDoc, $result);
@@ -96,6 +86,17 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     		$conf = core_Packs::getConfig('acc');
     		
     		$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    		
+    		// За всеки случай махат се от записите, тези които са на приключването на покупка
+    		if(isset($rec->id)){
+    			if($thisRec = acc_Journal::fetchByDoc($this->class, $rec->id)){
+    				$nQuery  = acc_JournalDetails::getQuery();
+    				$nQuery->where("#journalId = {$thisRec->id}");
+    				$thisIds = arr::extractValuesFromArray($nQuery->fetchAll(), 'id');
+    				$jRecs = array_diff_key($jRecs, $thisIds);
+    			}
+    		}
+    		
     		$quantities = acc_Balances::getBlQuantities($jRecs, '411');
     		
     		if(is_array($downpaymentAmounts)){
@@ -106,6 +107,17 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     		
     				$quantities[$index]->quantity -= $obj->quantity;
     				$quantities[$index]->amount -= $obj->amount;
+    			}
+    		}
+    		
+    		if(is_array($this->blQuantities)){
+    			foreach ($this->blQuantities as $index => $obj){
+    				if(!array_key_exists($index, $quantities)){
+    					$quantities[$index] = new stdClass();
+    				}
+    		
+    				$quantities[$index]->quantity += $obj->quantity;
+    				$quantities[$index]->amount += $obj->amount;
     			}
     		}
     		
@@ -221,16 +233,19 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     				'debit' => array('4530', array($firstDoc->className, $firstDoc->that)),
     				'reason' => 'ДДС по касови бележки');
     	} elseif($blAmount > 0){
+    		$quantity = round($blAmount / $docRec->currencyRate, 5);
+    		$currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency')));
+    		
     		$entries = array('amount' => $blAmount,
     				'credit'  => array('4530', array($firstDoc->className, $firstDoc->that)),
     				'debit' => array('411',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
-    						array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
-    						'quantity' => $blAmount),
+    						$currencyItem->id,
+    						'quantity' => $quantity),
     				'reason' => 'Доначисляване на ДДС');
-    
-    		$this->blAmount  += $blAmount;
+    		
+    		$this->blQuantities[$currencyItem->id] = (object)array('quantity' => $quantity, 'amount' => $blAmount);
     	}
     	 
     	return $entries;
@@ -287,7 +302,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     				$downpaymentAmounts = array($cItemId => (object)array('quantity' => 0, 'amount' => 0));
     			}
     			 
-    			$downpaymentAmounts[$cItemId]->quantity += $res->quantity;
+    			$downpaymentAmounts[$cItemId]->quantity -= $res->quantity;
     			$downpaymentAmounts[$cItemId]->amount -= $res->amount;
     		}
     	}

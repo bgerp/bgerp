@@ -241,29 +241,16 @@ class cal_TaskConditions extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
-    	
-    	if ($rec->id) {
-    		if (!isset($rec->baceId)) {
-    			$rec = cal_TaskConditions::fetch($rec->id);
-    		}
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->baseId)){
     		$taskRec = cal_Tasks::fetch($rec->baseId);
-    		
-    		if ($taskRec->state == 'active' || ($taskRec->state == 'closed') ) {
-	    			
-	        	$requiredRoles = 'no_one'; 
-	            	
-    	    } else {
-
-            	if ($action == 'edit' || $action == 'delete') { 
-	         		if (!cal_Tasks::haveRightFor('single', $taskRec)) {
-		         		$requiredRoles = 'no_one'; 
-
-		         	}
-	         	}
-    	    }
-    	}
+    		if (!cal_Tasks::haveRightFor('single', $taskRec)) {
+    			$requiredRoles = 'no_one';
+    		} elseif($taskRec->state != 'draft' && $taskRec->state != 'pending') {
+    			$requiredRoles = 'no_one';
+    		}
+    	} 
     }
 
 

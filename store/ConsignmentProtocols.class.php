@@ -217,7 +217,9 @@ class store_ConsignmentProtocols extends core_Master
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
-    	store_DocumentMaster::prepareHeaderInfo($row, $rec);
+    	$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+		$row = (object)((array)$row + (array)$headerInfo);
+		
     	if(isset($fields['-single'])){
     		$row->storeId = store_Stores::getHyperlink($rec->storeId);
     		if($rec->lineId){
@@ -264,7 +266,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	// Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
     	$Contragent = cls::get($data->rec->contragentClassId);
-    	if(!$Contragent->haveRightFor('single', $rec->contragentId)) return;
+    	if(!$Contragent->haveRightFor('single', $data->rec->contragentId)) return;
     	if(!haveRole($Contragent->canReports)) return;
     	
     	$snapshot = $data->rec->snapshot;

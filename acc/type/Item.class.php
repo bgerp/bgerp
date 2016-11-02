@@ -78,6 +78,12 @@ class acc_type_Item extends type_Key
                 );
             }
             
+            $closedOptions = array();
+            $oneList = (count($lists) == 1);
+            if ($oneList === TRUE) {
+            	$closedOptions["c{$listRec->id}"] = (object)array('title' => tr('Затворени'), 'group' => TRUE,);
+            }
+            
             // Извличаме перата на текущата номенклатура
             $query = clone($cleanQuery);
             $query->where("#lists LIKE '%|{$listRec->id}|%'");
@@ -85,21 +91,37 @@ class acc_type_Item extends type_Key
             // Показваме само активните, само ако е не е зададено в типа 'showAll'
             if(empty($this->params['showAll'])){
                 $query->where("#state = 'active'");
+            } else {
+            	
+            	// Ако има затворен период, остават за избор само активните пера, 
+            	// и затворените след крайната дата на последния затворен период
+            	$lastClosedPeriod = acc_Periods::getLastClosedPeriod();
+            	if(!empty($lastClosedPeriod)){
+            		$query->where("#state = 'active' || (#state = 'closed' AND #closedOn IS NOT NULL AND #closedOn > '{$lastClosedPeriod->end}')");
+            	}
             }
             
             while ($itemRec = $query->fetch()) {
                 $title = $itemRec->{$select};
+                $arr = &$this->options;
                 
                 // Ако перото е затворено, указваме го в името му
                 if($itemRec->state == 'closed'){
-                    $title .= " (" . tr('затворено') . ")";
+                	if($oneList === TRUE){
+                		$arr = &$closedOptions;
+                	} else {
+                		$title .= " (" . tr('затворено') . ")";
+                	}
                 }
                 
-                // Слагаме вербалното име на перата, и за всеки случай премахваме html таговете ако има
-                $this->options["{$itemRec->id}.{$listRec->id}"] = $title;
+                $arr["{$itemRec->id}.{$listRec->id}"] = $title;
             }
             
             $where .= ($query->where) ? $query->getWhereAndHaving()->w : ' ';
+        }
+        
+        if(count($closedOptions) && count($closedOptions) != 1){
+        	$this->options += $closedOptions;
         }
         
         $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
@@ -113,7 +135,8 @@ class acc_type_Item extends type_Key
     /**
      * Връща възможните стойности за ключа
      * 
-     * @param string $value
+     * @param int $id
+     * @param int $listId
      * 
      * @return array
      */

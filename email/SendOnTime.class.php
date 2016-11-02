@@ -319,9 +319,10 @@ class email_SendOnTime extends core_Manager
             try {
                 $inst = cls::get($rec->class);
                 $inst->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
-                self::logErr('Грешка при изпращане', $rec->id);
-            } catch (Exception $e) {
+                self::logNotice('Успешно изпращане', $rec->id);
+            } catch (ErrorException $e) {
                 reportException($e);
+                self::logErr('Грешка при изпращане', $rec->id);
             }
             core_Users::exitSudo();
             

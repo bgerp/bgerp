@@ -40,7 +40,7 @@ class plg_RowNumbering extends core_Plugin
     /**
      * Извиква се след подготовката на $data->recs и $data->rows за табличния изглед
      */
-    function on_AfterPrepareListRows($mvc, &$res, $data)
+    public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if($cnt = count($data->recs)) {
             
@@ -68,7 +68,7 @@ class plg_RowNumbering extends core_Plugin
                 if($data->rows[$id]->RowNumb instanceof core_Et) {
                     $data->rows[$id]->RowNumb->append($number, 'ROWTOOLS_CAPTION');
                 } else {
-                    $data->rows[$id]->RowNumb .= "<span style='float:right'>$number</span>";
+                    $data->rows[$id]->RowNumb .= "<span class='detailNumbering'>$number</span>";
                 }
 
                 $rec = $data->recs[$id];

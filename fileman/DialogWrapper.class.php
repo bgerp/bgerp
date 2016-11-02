@@ -80,17 +80,7 @@ class fileman_DialogWrapper extends core_Plugin
            // $tpl->prepend('<br>');
             
             $tpl->prepend($this->info->title . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
-            
-            $tpl->prepend("<style>
-            		
-                .fileman_Buckets { background-image:url('" . sbf('img/16/database.png', '') . "');}
-                .fileman_Upload { background-image:url('" . sbf('img/16/upload.png', '') . "');}
-                .fileman_Get { background-image:url('" . sbf('img/16/world_link.png', '') . "');}
-                .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
-                .tab-title.fileman_Log { background-image:url('" . sbf('img/16/databases.png', '') . "');}
-    
-                </style>");
-            
+
             // Сетвама, таба който сме използвали
             static::setLastUploadTab($invoker->className);
             

@@ -1,0 +1,10 @@
+Options -Indexes
+
+Header set X-Robots-Tag "noindex, nofollow"
+
+php_flag engine off
+
+<FilesMatch "\.(htaccess|htpasswd)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>

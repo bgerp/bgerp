@@ -31,7 +31,7 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Еденично заглавие
+     * Единично заглавие
      */
     public $singleTitle = 'Задача';
     
@@ -39,14 +39,8 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone';
 
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'powerUser';
-    
     
     /**
      * Кой има право да променя?
@@ -159,13 +153,13 @@ class tasks_Tasks extends embed_Manager
     {
     	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
     	
-    	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
-    			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
+    	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)',
+    			'caption=Времена->Начало, changable, tdClass=leftColImportant,formOrder=101');
     	$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
-    	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
+    	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
-    	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
+    	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
     	
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
     	
@@ -215,52 +209,22 @@ class tasks_Tasks extends embed_Manager
     		if ($rec->remainingTime > 0) {
     			$row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
     		} else {
-    	
     			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
-    		}
-    	}
-    	
-    	$row->timeStart = str_replace('00:00', '', $row->timeStart);
-    	$row->timeEnd = str_replace('00:00', '', $row->timeEnd);
-    	
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    		// Ако имаме само начална дата на задачата
-    		if ($rec->timeStart && !$rec->timeEnd) {
-    			// я парвим хипервръзка към календара- дневен изглед
-    			$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    			// Ако имаме само крайна дата на задачата
-    		} elseif ($rec->timeEnd && !$rec->timeStart) {
-    			// я правим хипервръзка към календара - дневен изглед
-    			$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    			// Ако задачата е с начало и край едновременно
-    		} elseif ($rec->timeStart && $rec->timeEnd) {
-    			// и двете ги правим хипервръзка към календара - дневен изглед
-    			$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    			$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     		}
     	}
     	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
-    		$expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
-    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($expectedTimeEnd);
-    	}
-    	
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    		if (isset($rec->expectedTimeStart)) {
-    			$row->expectedTimeStart = ht::createLink(dt::mysql2verbal($rec->expectedTimeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
-    		 
-    		if (isset($expectedTimeEnd)) {
-    			$row->expectedTimeEnd = ht::createLink(dt::mysql2verbal($expectedTimeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
+    		$rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
+    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
     	}
     	
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$originId = (!Mode::is('text', 'xhtml') && !Mode::is('printing')) ? $origin->getLink(0) : "#" . $origin->getHandle();
-    		$row->originId = $originId;
+    		$row->originId = $origin->getLink(0);
     	}
+    	
+    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     }
     
     
@@ -306,8 +270,7 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	if($form->isSubmitted()){
-    		
-    		if(empty($rec->title)){
+    		if(empty($rec->title) && $form->getField('title')->input != 'none'){
 				if(cls::load($rec->driverClass, TRUE)){
     				if($Driver = cls::get($rec->driverClass)){
     					$rec->title = $Driver->getDefaultTitle();
@@ -316,7 +279,7 @@ class tasks_Tasks extends embed_Manager
     		}
     		
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-    			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
+    			$form->setError('timeEnd', 'Крайният срок трябва да е след началото на задачата');
     		}
     		
     		if(!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)){
@@ -386,7 +349,7 @@ class tasks_Tasks extends embed_Manager
     		}
     	}
     	
-    	if($action == 'add'){
+    	if($action == 'add' || $action == 'edit' || $action == 'changestate'){
     		$originId = $rec->originId;
     		if(empty($originId) && isset($rec->threadId)){
     			$originId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
@@ -399,6 +362,9 @@ class tasks_Tasks extends embed_Manager
     				$requiredRoles = 'no_one';
     			}
     		}
+    	}
+    	
+    	if($action == 'add' && empty($rec)){
     		
     		// Ако потребителя не може да избере поне една опция, той не може да добави задача
     		$interfaces = $mvc::getAvailableDriverOptions($userId);
@@ -406,6 +372,8 @@ class tasks_Tasks extends embed_Manager
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($requiredRoles == 'no_one') return;
     	
     	// Ако нямаме права за драйвера на документа, не можем да правим нищо с него
     	if($action == 'clonerec' || $action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changestate' || $action == 'changerec'){
@@ -449,9 +417,6 @@ class tasks_Tasks extends embed_Manager
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
-    	$cu = core_Users::getCurrent();
-    	$form->setDefault('inCharge', keylist::addKey('', $cu));
     	
     	// Ако задачата идва от дефолт задача на продуктов драйвер
     	if(isset($rec->systemId)){
@@ -658,8 +623,8 @@ class tasks_Tasks extends embed_Manager
     {
     	$Cover = doc_Folders::getCover($folderId);
     	
-    	// Може да се добавя само в папка на 'Проект'
-    	return ($Cover->isInstanceOf('doc_UnsortedFolders'));
+    	// Може да се добавя само в папка на 'Звено'
+    	return ($Cover->haveInterface('hr_DepartmentAccRegIntf'));
     }
     
     
@@ -761,8 +726,6 @@ class tasks_Tasks extends embed_Manager
     		$data->rows[$rec->id] = $row;
     	}
     	
-    	$data->addUrlArray = array();
-    	
     	// Намираме всички задачи, които наследяват task_Tasks
     	$documents = core_Classes::getOptionsByInterface('tasks_TaskIntf');
     	
@@ -775,9 +738,7 @@ class tasks_Tasks extends embed_Manager
     			
     			// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
     			if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
-    				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    					$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
-    				}
+    				$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
     			}
     		}
     	}
@@ -794,25 +755,36 @@ class tasks_Tasks extends embed_Manager
     	// Ако няма намерени записи, не се рендира нищо
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = 'name=Документ,progress=Прогрес,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+    	$fields = 'name=Документ,progress=Прогрес,title=Заглавие,folderId=Папка,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
     	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	
     	$tpl = $table->get($data->rows, $data->listFields);
-    
+    	
     	// Имали бутони за добавяне
     	if(is_array($data->addUrlArray)){
     		foreach ($data->addUrlArray as $class => $url){
-    			
+    			 
     			// За всеки рендираме бутон за добавяне на задача от съответния тип
     			$Doc = cls::get($class);
     			$titleLower = mb_strtolower($Doc->singleTitle);
     			$btn = ht::createBtn($Doc->singleTitle, $url, FALSE, FALSE, "title=Създаване на {$titleLower} към задание,ef_icon={$Doc->singleIcon}");
+    			
     			$tpl->append($btn, 'btnTasks');
     		}
     	}
     
     	// Връщаме шаблона
     	return $tpl;
+    }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('hr_DepartmentAccRegIntf');
     }
 }

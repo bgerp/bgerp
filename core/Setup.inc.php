@@ -65,9 +65,16 @@ else {
 	$protocol = 'http://';
 }
 
-// Собственото URL
-$selfUri = "{$protocol}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+if($username = $_SERVER['PHP_AUTH_USER']) {
+    $password = $_SERVER['PHP_AUTH_PW'];
+    $auth = $username . ':' . $password . '@';
+} else {
+    $auth = '';
+}
 
+// Собственото URL
+$selfUri = "{$protocol}{$auth}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+ 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
 $nextUrl = addParams($selfUri, array('step' => $step+1));
@@ -225,7 +232,7 @@ a.menu {
 }
 
 .wrn, .wrn b {
-    color:#251895 !important;
+    color:#aa5500 !important;
     line-height:1.5em;
 }
 
@@ -634,9 +641,9 @@ if($step == 3) {
 
     // Необходими модули на PHP
     $log[] = 'h:Проверка за необходимите PHP модули:';
-    $requiredPhpModules = array('calendar', 'Core', 'ctype', 'date', 'ereg',
+    $requiredPhpModules = array('imap', 'calendar', 'Core', 'ctype', 'date',
                                 'exif', 'filter', 'ftp', 'gd', 'iconv', 'json',
-                                'mbstring', 'mysql', 'pcre', 'session', 'SimpleXML',
+                                'mbstring', 'mysqli', 'pcre', 'session', 'SimpleXML',
                                 'SPL', 'standard', 'tokenizer', 'xml', 'zlib', 'soap', 'curl');
     
     $activePhpModules = get_loaded_extensions();
@@ -655,14 +662,19 @@ if($step == 3) {
 
     $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_rewrite', 'mod_deflate');
     
-    $activeApacheModules = apache_get_modules();
     
-    foreach($requiredApacheModules as $module){
-        if(in_array($module, $activeApacheModules)){
-            $log[] = "inf:Наличен Apache модул: <b>`$module`</b>";
-        } else {
-            $log[] = "err:Липсващ Apache модул: <b>`$module`</b>";
+    if(function_exists('apache_get_modules')) {
+        $activeApacheModules = apache_get_modules();
+        
+        foreach($requiredApacheModules as $module){
+            if(in_array($module, $activeApacheModules)){
+                $log[] = "inf:Наличен Apache модул: <b>`$module`</b>";
+            } else {
+                $log[] = "err:Липсващ Apache модул: <b>`$module`</b>";
+            }
         }
+    } else {
+        $log[] = "wrn:Apache не работи с mod-php";
     }
     
     if (!core_Os::isWindows()) {
@@ -675,7 +687,7 @@ if($step == 3) {
             if (exec('which ' . escapeshellcmd($program))){
                 $log[] = "inf:Налична програма: <b>`$program`</b>";
             } else {
-                $log[] = "err:Липсващ програма: <b>`$program`</b>";
+                $log[] = "wrn:Липсваща програма: <b>`$program`</b>";
             }
         }
     }
@@ -821,7 +833,7 @@ if($step == 4) {
     }
 }
 
-if($step == 5) {
+if($step == 5) {  
     $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
 }
 
@@ -833,8 +845,8 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 200000; // 200 800
-    $totalTables = 340; //352
+    $totalRecords = 205000; // 205 300
+    $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
 
@@ -925,7 +937,11 @@ if ($step == 'setup') {
         
         // Изтриваме Log-a - ако има нещо в него
         if (!empty($setupLog)) {
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+            do {
+                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+                if($res !== FALSE) break;
+                usleep(1000);
+            } while($i++ < 100);
         }
         
         $setupLog = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($setupLog));
@@ -1259,7 +1275,7 @@ function gitHasChanges($repoPath, &$log)
     if (!empty($arrRes)) {
         foreach ($arrRes as $row) {
             $row = trim($row);
-            $arr = split(" ", $row);
+            $arr = explode(" ", $row);
             if (isset($statesWarning[$arr[0]])) {
                 $log[] = "wrn:<b>[{$repoName}]</b> " . $statesWarning[$arr[0]] . " файл: <b>`{$arr[1]}`</b>";
                 $wrn = TRUE;
@@ -1516,7 +1532,7 @@ function addParams($url, $newParams)
     }
     
     if (isset($purl["user"])) {
-        $res .= $purl["user"];
+        $res .= $purl["user"] . ':';
         $res .= $purl["pass"];
         $res .= "@";
     }

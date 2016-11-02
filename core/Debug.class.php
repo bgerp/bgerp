@@ -313,7 +313,7 @@ class core_Debug
                 $file = self::getEditLink($frame['file']);
                 $file =  $file . ' : ' . $line;
                 if($rUrl = self::getGithubSourceUrl($frame['file'], $frame['line'])) {
-                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png', '"', TRUE));
+                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, '//bgerp.com/sbf/bgerp/img/16/github.png');
                 } 
             } else {
                 $githubLink = '';
@@ -412,26 +412,31 @@ class core_Debug
     public static function getCodeAround($file, $line, $range = 4)
     {
         if(strpos($file, "eval()'d") !== FALSE) return;
-
-        $source = file_get_contents($file);
-
+		
+        $code = "";
+        
+        if (!$file) return $code;
+        
+        $source = @file_get_contents($file);
+                
+        if (!$source) return $code;
+        
         $lines = explode("\n", $source);
-
+        
         $from = max($line - $range-1, 0);
         $to   = min($line + $range, count($lines));
-        $code = "";
         $padding = strlen($to);
         for($i = $from; $i < $to; $i++) {
             $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
             $style = '';
             if($i+1 == $line) {
-                $style = " style='background-color:#ff9;'";
+                $style = " class='debugErrLine'; style='background-color:#ff9;'";
             }
             $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". 
                 str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
             $code .= $l;
         }
-         
+        
         return $code;
     }
 
@@ -658,12 +663,29 @@ class core_Debug
             
             try {
                 $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
-            } catch (Exception $e) {
+            } catch(ErrorException $e) {
                 // Не се прави нищо
             }
             
+            $contex['EF_APP_NAME'] = EF_APP_NAME;
+            
+            // Пътища, които се използват
+            $contex['EF_ROOT_PATH'] = EF_ROOT_PATH;
+            $contex['EF_INDEX_PATH'] = EF_INDEX_PATH;
+            $contex['EF_SBF_PATH'] = EF_SBF_PATH;
+            $contex['EF_TEMP_PATH'] = EF_TEMP_PATH;
+            $contex['EF_CONF_PATH'] = EF_CONF_PATH;
+            $contex['EF_UPLOADS_BASE_PATH'] = EF_UPLOADS_BASE_PATH;
+            $contex['EF_UPLOADS_PATH'] = EF_UPLOADS_PATH;
+            $contex['FILEMAN_UPLOADS_PATH'] = FILEMAN_UPLOADS_PATH;
+            $contex['EF_DOWNLOAD_DIR'] = EF_DOWNLOAD_DIR;
+            $contex['FILEMAN_TEMP_PATH'] = FILEMAN_TEMP_PATH;
+            $contex['THUMB_IMG_PATH'] = THUMB_IMG_PATH;
+            
+            $contex['EF_TIMEZONE'] = EF_TIMEZONE;
+            
             $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
-            $contex['BGERP_LAST_STABLE_VERSION'] = '16.24-Ком';
+            $contex['BGERP_LAST_STABLE_VERSION'] = '16.44-Pascal';
         }
         
         $state = array( 'errType'   => $errType, 

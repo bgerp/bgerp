@@ -104,9 +104,9 @@ class core_Packs extends core_Manager
         static $isInstalled = array();
         
         if (!isset($isInstalled[$name])) {
-            $rec = static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name));
+            $rec = static::fetch(array("#name = '[#1#]'", $name));
             
-            if ($rec) {
+            if ($rec && $rec->state == 'active') {
                 $isInstalled[$name] = $rec->id;
             } else {
                 $isInstalled[$name] = FALSE;
@@ -318,6 +318,10 @@ class core_Packs extends core_Manager
             $rec->startAct = $setup->startAct;
             
             if ($setup->deprecated) {
+                if ($rec->state != 'deprecated' && $rec->id) {
+                    $this->deinstall($pack);
+                }
+                
                 $rec->state = 'deprecated';
             } else if ($setup->noInstall) {
                 $rec->state = 'hidden';
@@ -567,7 +571,7 @@ class core_Packs extends core_Manager
             		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
             		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
             	}
-    	    } catch (Exception $e) {
+    	    } catch(ErrorException $e) {
     	        // Възможно е да липсва кода на пакета
     	    }
         }
@@ -746,7 +750,11 @@ class core_Packs extends core_Manager
         
         // Ако е пуснат от сетъп-а записваме в Лог-а 
         if ($setupFlag) {
-        	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
+            do {
+                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
+                if($res !== FALSE) break;
+                usleep(1000);
+            } while($i++ < 100);
         }
         
         // Проверка дали Setup класа съществува
@@ -809,7 +817,7 @@ class core_Packs extends core_Manager
             $rec = $this->fetch("#name = '{$pack}'");
         }
         
-        if ($force || empty($rec) || ($rec->version != $setup->version)) {
+        if ($force || empty($rec) || ($rec->version != $setup->version) || (!$force && $rec->state != 'active')) {
             
             // Форсираме системния потребител
             core_Users::forceSystemUser();
@@ -865,7 +873,13 @@ class core_Packs extends core_Manager
         if ($setupFlag) {
 			// Махаме <h2> тага на заглавието
 			$res = substr($res, strpos($res, "</h2>"), strlen($res));
-			file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+
+            do {
+                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+                if($res !== FALSE) break;
+                usleep(1000);
+            } while($i++ < 100);
+			
 			unset($res);
         }
         

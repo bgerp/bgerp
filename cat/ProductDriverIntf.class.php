@@ -69,17 +69,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Връща стойността на параметъра с това име, или
-	 * всички параметри с техните стойностти
-	 * 
-	 * @param string $classId - ид на ембедъра
-	 * @param string $id   - ид на записа
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
-	 * @return mixed - стойност или FALSE ако няма
-	 */
-	public function getParams($classId, $id, $name = NULL)
+     * Връща стойността на параметъра с това име, или
+     * всички параметри с техните стойностти
+     *
+     * @param int $classId    - ид на клас
+     * @param string $id      - ид на записа
+     * @param string $name    - име на параметъра, или NULL ако искаме всички
+     * @param boolean $verbal - дали да са вербални стойностите
+     * @return mixed  $params - стойност или FALSE ако няма
+     */
+	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
-		return $this->class->getParams($classId, $id, $name);
+		return $this->class->getParams($classId, $id, $name, $verbal);
 	}
 	
 	
@@ -219,5 +220,31 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	public function getDefaultBatchDef($id)
 	{
 		return $this->class->getDefaultBatchDef($id);
+	}
+	
+	
+	/**
+	 * ХТМЛ представяне на артикула (img)
+	 *
+	 * @param int $rec - запис на артикул
+	 * @param array $size - размер на картинката
+	 * @param array $maxSize - макс размер на картинката
+	 * @return string|NULL $preview - хтмл представянето
+	 */
+	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	{
+		return $this->class->getPreview($rec, $size, $maxSize);
+	}
+	
+	
+	/**
+	 * Добавя полетата на заданието за производство на артикула
+	 *
+	 * @param int $id                 - ид на артикул
+	 * @param core_Fieldset $fieldset - форма на задание
+	 */
+	public function addJobFields($id, core_Fieldset &$fieldset)
+	{
+		return $this->class->addJobFields($id, $fieldset);
 	}
 }

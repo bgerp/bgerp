@@ -208,7 +208,21 @@ class email_Mime extends core_BaseClass
     function getLg()
     {
         if(!isset($this->lg)) {
-            $this->lg = i18n_Language::detect($this->textPart, array(EF_DEFAULT_LANGUAGE => 5));
+            
+            $defLg = '';
+            $defLgArr = array();
+            
+            if (defined('EF_DEFAULT_LANGUAGE')) {
+                $defLg = EF_DEFAULT_LANGUAGE;
+                
+                $defLgArr[$defLg] = 5;
+            }
+            
+            if ($defLg != 'en' && !preg_match('/\p{Cyrillic}/ui', $this->textPart)) {
+                $defLgArr['en'] = 3;
+            }
+            
+            $this->lg = i18n_Language::detect($this->textPart, $defLgArr);
         }
 
         return $this->lg;
@@ -781,7 +795,7 @@ class email_Mime extends core_BaseClass
 
             } while ($data);
         }
-
+        
         $p = &$this->parts[$index];
         
         if(!is_object($p)) {
@@ -798,6 +812,18 @@ class email_Mime extends core_BaseClass
         
         // Парсираме хедър-а 'Content-Type'
         $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
+        
+        // Ако има текст в в началото на боундарито, да го премести в хедърите
+        if ($b = $ctParts['boundary']) {
+            if ($bPos = mb_strpos($data, '--'. $b)) {
+                $headerStr .= $nl . ' ' . mb_strcut($data, 0, $bPos);
+                $p->headersStr = $headerStr;
+                $p->headersArr = $this->parseHeaders($headerStr);
+//                 $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
+                
+                $data = mb_strcut($data, $bPos);
+            }
+        }
         
         list($p->type, $p->subType) = explode('/', strtoupper($ctParts[0]), 2);
         
@@ -869,9 +895,9 @@ class email_Mime extends core_BaseClass
         }
         
         // Ако частта е съставна, рекурсивно изваждаме частите и
-        if(($p->type == 'MULTIPART') && $p->boundary) {  
+        if(($p->type == 'MULTIPART') && $p->boundary) {
             $data = explode("--" . $p->boundary, $data);
-    
+            
             $cntParts = count($data);
             
             if($cntParts == 2) {
@@ -975,7 +1001,6 @@ class email_Mime extends core_BaseClass
                 }
                 
                 if($textRate > (1.05 * $this->bestTextRate)) {
-                    
                     // Записваме данните
                     $this->textPart = $text;
                     

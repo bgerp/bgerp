@@ -4,39 +4,57 @@
 /**
  * FileHandler на логото на фирмата на английски
  */
-defIfNot(BGERP_COMPANY_LOGO_EN, '');
+defIfNot('BGERP_COMPANY_LOGO_EN', '');
 
 
 /**
  * FileHandler на логото на фирмата на български
  */
-defIfNot(BGERP_COMPANY_LOGO, '');
+defIfNot('BGERP_COMPANY_LOGO', '');
 
 
 /**
  * FileHandler на логото на фирмата на английски
  * Генерирано от svg файл
  */
-defIfNot(BGERP_COMPANY_LOGO_SVG_EN, '');
+defIfNot('BGERP_COMPANY_LOGO_SVG_EN', '');
 
 
 /**
  * FileHandler на логото на фирмата на български
  * Генерирано от svg файл
 */
-defIfNot(BGERP_COMPANY_LOGO_SVG, '');
+defIfNot('BGERP_COMPANY_LOGO_SVG', '');
 
 
 /**
  * След колко време, ако не работи крона да бие нотификация
  */
-defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
+defIfNot('BGERP_NON_WORKING_CRON_TIME', 3600);
 
 
 /**
  * Звуков сигнал при нотификация
  */
-defIfNot(BGERP_SOUND_ON_NOTIFICATION, 'scanner');
+defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
+
+
+/**
+ * Колко време да се съхраняват нотификациите
+ */
+defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31104000);
+
+
+/**
+ * Колко време да се съхранява историята за отворени нишки и папки 
+ */
+defIfNot('BGERP_RECENTLY_KEEP_DAYS', 31104000);
+
+
+/**
+ * Звуков сигнал при нотификация
+ */
+defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 
 
 /**
@@ -88,15 +106,13 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
                 
         'BGERP_SOUND_ON_NOTIFICATION' => array ('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
+
+        'BGERP_NOTIFICATION_KEEP_DAYS' => array ('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
+        
+        'BGERP_RECENTLY_KEEP_DAYS' => array ('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
+
      );
     
-    
-    /**
-     * Описание на системните действия
-     */
-    var $systemActions = array(
-        array('title' => 'Поправка', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на системата'))
-    );
     
     /**
      * Път до js файла
@@ -120,7 +136,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-        $html .= $Plugins->repair();
+        $html = $Plugins->repair();
         
         $managers = array(
             'bgerp_Menu',
@@ -149,9 +165,9 @@ class bgerp_Setup extends core_ProtoSetup {
         // Списък на основните модули на bgERP
         $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
                   email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cash,bank,
-                  budget,purchase,accda,permanent,sens2,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
+                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
-                  callcenter,social,hyphen,distro,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
+                  callcenter,social,hyphen,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {
@@ -162,7 +178,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Folders = cls::get('doc_Folders');
         
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,select2,help,toast,minify,rtac,hljs,pixlr,tnef";
+            $packs .= ",avatar,keyboard,statuses,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,select2,help,toast,minify,rtac,hljs,pixlr,tnef";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
@@ -239,7 +255,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
         $Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
-        $Bucket->createBucket('exportCsv', 'Експортирани CSV-та', 'csv,txt,text,', '10MB', 'user', 'ceo');
+        $Bucket->createBucket('exportCsv', 'Експортирани CSV-та', 'csv,txt,text,', '10MB', 'user', 'powerUser');
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
@@ -257,6 +273,9 @@ class bgerp_Setup extends core_ProtoSetup {
         // Инсталираме плъгина за проверка дали работи cron
         $html .= $Plugins->installPlugin('Check cron', 'bgerp_plg_CheckCronOnLogin', 'core_Users', 'private');
         
+        // Инсталираме плъгина за оцветяване в листови изглед на резултати от търсене
+        $html .= $Plugins->installPlugin('Highlight list search', 'plg_HighlightListSearch', 'core_Manager', 'family');
+      
         $Menu = cls::get('bgerp_Menu');
         
         // Да се изтрият необновените менюта
@@ -265,6 +284,28 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= bgerp_Menu::addOnce(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
         
         $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
+
+
+        $rec = new stdClass();
+        $rec->systemId = "DeleteOldRecently";
+        $rec->description = "Изтриване на изтеклите Recently";
+        $rec->controller = "bgerp_Recently";
+        $rec->action = "DeleteOldRecently";
+        $rec->period = 24*60;
+        $rec->timeLimit = 50;
+        $rec->offset = mt_rand(0,300);
+        $html .= core_Cron::addOnce($rec);
+        
+        $rec = new stdClass();
+        $rec->systemId = "DeleteOldNotifications";
+        $rec->description = "Изтриване на изтеклите Notifications";
+        $rec->controller = "bgerp_Notifications";
+        $rec->action = "DeleteOldNotifications";
+        $rec->period = 24*60;
+        $rec->timeLimit = 50;
+        $rec->offset = mt_rand(0,300);
+        $html .= core_Cron::addOnce($rec);
+
         
         $html .= $Menu->repair();
         
@@ -281,10 +322,10 @@ class bgerp_Setup extends core_ProtoSetup {
     /**
      * Захранва с начални данни посочените пакети
      * 
-     * @param array $packs    Масив с пакети
-     * @param int   $itr      Номер на итерацията
+     * @param array|string  $packs  Масив с пакети
+     * @param int           $itr    Номер на итерацията
      *
-     * @return array          Грешки
+     * @return array                Грешки
      */
     function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
     {

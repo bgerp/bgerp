@@ -67,7 +67,7 @@ class dec_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
@@ -122,7 +122,7 @@ class dec_Setup extends core_ProtoSetup
     			dec_Declarations::Save($rec, 'template');
     		}
     		
-    	} catch (Exception $e) {
+    	} catch (ErrorException $e) {
             reportException($e);
         }
     }

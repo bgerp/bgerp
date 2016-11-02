@@ -31,7 +31,7 @@ class bglocal_NKPD extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bglocal_Wrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, bglocal_Wrapper, plg_Printing,
                        plg_SaveAndNew';
     
     
@@ -52,23 +52,20 @@ class bglocal_NKPD extends core_Master
      */
     function description()
     {
-        $this->FLD('key', 'varchar', 'caption=Код, mandatory');
+        $this->FLD('key', 'varchar', 'caption=Код');
+        $this->FLD('number', 'varchar', 'caption=Номер');
         $this->FLD('title', 'text', "caption=Наименование");
-        
-        $this->setDbUnique('key');
     }
     
     
     /**
      * Изпълнява се преид импортирването на запис
      */
-    static function on_BeforeSave($mvc, $res, $rec)
+    static function on_BeforeImportRec($mvc, $rec)
     {
-        if(isset($rec->csv_key)){
-            $rec->key = $rec->csv_key . $rec->csv_title;
-            $rec->title = $rec->key . " " . $rec->csv_position;
-        }
-    }
+        $rec->key = $rec->key . $rec->number;
+        $rec->title = $rec->key . " " . $rec->title;
+     }
     
     
     /**
@@ -77,8 +74,8 @@ class bglocal_NKPD extends core_Master
     static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = "bglocal/data/nkpd.csv";
-        $fields = array(0 => "csv_key", 1 => "csv_title", 2 => "csv_position");
-        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+        $fields = array(0 => "key", 1 => "number", 2 => "title");
+        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
 }

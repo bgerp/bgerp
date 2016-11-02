@@ -33,7 +33,8 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  * @since     v 0.1
  * @link
  * 
- * @method integer save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
+ * @method integer  save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
+ * @method bool     haveRightFor(string $action, NULL|int|object $id = NULL, int|NULL $userId = NULL)
  */
 class core_Mvc extends core_FieldSet
 {
@@ -48,7 +49,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Масив за кеширане на извлечените чрез fetch() записи
      */
-    var $_cashedRecords;
+    var $_cachedRecords;
 
 
     /**
@@ -64,13 +65,25 @@ class core_Mvc extends core_FieldSet
      */
     var $protectId = TRUE;
 
-    
+
+    /**
+     * Инстанция на връзката с базата данни
+     */
+    public $db;
+
+
     /**
      * Име на съответстващата таблица в базата данни
      */
     public $dbTableName;
 
 
+    /**
+     * Индекси в базата данни
+     */
+    public $dbIndexes;
+    
+    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
@@ -80,7 +93,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Енджина за таблицата в DB
      */
-    protected $dbEngine;
+    public $dbEngine;
     
 
     /**
@@ -213,19 +226,21 @@ class core_Mvc extends core_FieldSet
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {
             expect(!is_object($cond), $cond);
-            $casheKey = $cond . '|' . $fields;
+            $cacheKey = $cond . '|' . $fields;
 
-            if (isset($me->_cashedRecords[$casheKey])) {
+            if (isset($me->_cachedRecords[$cacheKey])) {
 
-                if(is_object($me->_cashedRecords[$casheKey])) {
+                if(is_object($me->_cachedRecords[$cacheKey])) {
 
-                    return clone ($me->_cashedRecords[$casheKey]);
+                    return clone ($me->_cachedRecords[$cacheKey]);
                 } else {
 
-                    return $me->_cashedRecords[$casheKey];
+                    return $me->_cachedRecords[$cacheKey];
                 }
             }
         }
+        
+        if($cache === 'only') return;
 
         if($fields != '*') {
             $query->show($fields);
@@ -243,7 +258,7 @@ class core_Mvc extends core_FieldSet
             } else {
                 $cacheData = $rec;
             }
-            $me->_cashedRecords[$casheKey] = $cacheData;
+            $me->_cachedRecords[$cacheKey] = $cacheData;
         }
 
         return $rec;
@@ -251,49 +266,39 @@ class core_Mvc extends core_FieldSet
     
     
     /**
-    
      * Малко по-гъвкава вариация на fetch()
-    
      *
-    
      * Ако първия аргумент е запис, просто го връща. В противен случай вика fetch()
-    
      *
-    
      * @param mixed $id ст-ст на първичен ключ, SQL условие или обект
-    
      * @param mixed $fields @see self::fetch()
-    
      * @param bool $cache @see self::fetch()
-    
+     * 
      * @return stdClass
-    
      */
-    
     public static function fetchRec($id, $fields = '*', $cache = TRUE)
-   
     {
-        
         $rec = $id;
-
         if (!is_object($rec)) {
             $rec = static::fetch($id, $fields, $cache);
         }
-
         
         return $rec;
-   
     }
     
-
+    
     /**
      * Връща поле от посочен запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
     static function fetchField($cond, $field = 'id', $cache = TRUE)
     {
         expect($field);
-
-        $rec = static::fetch($cond, $field, $cache);
+        
+        $rec = static::fetch($cond, '*', 'only');
+        
+        if(!$rec) {
+            $rec = static::fetch($cond, $field, $cache);
+        }
 
         return $rec->{$field};
     }
@@ -385,8 +390,8 @@ class core_Mvc extends core_FieldSet
             if($fld->kind == 'FLD' && (!count($fields) || $fields[$name])){
     		    $fieldsArr[$name] = $fld;
                 $mysqlName = str::phpToMysqlName($name);
-                $insertFields .= "$mysqlName,";
-                $updateFields .= "{$mysqlName}=VALUES({$mysqlName}),";
+                $insertFields .= "`$mysqlName`,";
+                $updateFields .= "`{$mysqlName}`=VALUES(`{$mysqlName}`),";
     	    }
         }
         
@@ -529,8 +534,58 @@ class core_Mvc extends core_FieldSet
      */
     function dbTableUpdated_()
     {
-        $this->_cashedRecords = array();
+        $this->_cachedRecords = array();
         $this->lastUpdateTime = DT::verbal2mysql();
+    }
+
+
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+       
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '%', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            foreach($qArr as $w) {
+                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+            }
+        }
+ 
+        if($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,' . $titleFld);
+
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->{$titleFld};
+        }
+ 
+        return $res;
     }
 
 
@@ -721,7 +776,7 @@ class core_Mvc extends core_FieldSet
 
         $rec = new stdClass();
 
-        try {$rec = $me->fetch($id);} catch (Exception $e) {}
+        try {$rec = $me->fetch($id);} catch(ErrorException $e) {}
         
         if(!$rec) return '??????????????';
 		
@@ -733,7 +788,7 @@ class core_Mvc extends core_FieldSet
      * 
      * 
      * @param integer $id
-     * @param boolean $escape
+     * @param boolean $escaped
      */
     public static function getTitleForId_($id, $escaped = TRUE)
     {
@@ -1058,7 +1113,7 @@ class core_Mvc extends core_FieldSet
  
             // Добавяме индексите
             if (is_array($this->dbIndexes)) {
-                foreach ($this->dbIndexes as $name => $indRec) {
+                foreach ($this->dbIndexes as $name => $indRec) {  
                     if($indexes[$name]) {
                         $exFields = $indexes[$name][$indRec->type];
                         $exFieldsList = '';

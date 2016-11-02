@@ -152,7 +152,7 @@ class core_ProtoSetup
                         } else {
                             $html .= "<li class='debug-new'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
                         }
-                    } catch (Exception $e) {
+                    } catch(ErrorException $e) {
                         $html .= "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
                         reportException($e);
                     }
@@ -350,7 +350,7 @@ class core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }

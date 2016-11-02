@@ -60,6 +60,8 @@ abstract class deals_Document extends deals_PaymentDocument
     	$mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
+
+    	$mvc->setDbIndex('valior');
     }
 	
 	
@@ -106,11 +108,20 @@ abstract class deals_Document extends deals_PaymentDocument
 		}
 		 
 		if(isset($form->rec->dealHandler)){
-			$doc = self::checkHandle($form->rec->dealHandler);
+			$errorMsg = '';
+			$doc = doc_Containers::getDocumentByHandle($form->rec->dealHandler);
+			
 			if(!$doc){
-				$form->setError('dealHandler', 'Няма документ с такъв хендлър');
+				$errorMsg = 'Няма документ с такъв хендлър';
+			} elseif(!$doc->isInstanceOf('findeals_Deals')){
+				$errorMsg = 'Документа трябва да е финансова сделка';
+			} elseif(!$doc->haveRightFor('single')){
+				$errorMsg = 'Нямате достъп до документа';
+			}
+			
+			if($errorMsg !== ''){
+				$form->setError('dealHandler', $errorMsg);
 			} else {
-				
 				$form->rec->currencyId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
 				$form->setField('amountDeal', "unit=|*{$doc->fetchField('currencyId')}");
 				
@@ -126,24 +137,6 @@ abstract class deals_Document extends deals_PaymentDocument
 				}
 			}
 		}
-	}
-
-	
-	/**
-	 * Имали такава сделка по хендлър
-	 * 
-	 * @param стринг $handler
-	 * @return core_ObjectReference|FALSE $doc - референция към намерената сделка
-	 */
-	private static function checkHandle($handler)
-	{
-		$doc = doc_Containers::getDocumentByHandle($handler);
-		
-		if(($doc instanceof core_ObjectReference) && !$doc->haveRightFor('single')){
-			$doc = FALSE;
-		}
-		
-		return $doc;
 	}
 	
 	
@@ -258,7 +251,7 @@ abstract class deals_Document extends deals_PaymentDocument
 			$fromHandle = $origin->getHandle();
 			$row->dealHandle = "#" . $fromHandle;
 			$row->nextHandle = "#" . $nextHandle;
-			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+			if(!Mode::isReadOnly()){
 				$row->dealHandle = ht::createLink($row->dealHandle, $origin->getSingleUrlArray());
 				$row->nextHandle = ht::createLink($row->nextHandle, findeals_Deals::getSingleUrlArray($rec->dealId));
 			}

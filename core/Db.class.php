@@ -2,7 +2,17 @@
 
 
 /**
- *
+ * Дали да се сетват стойности при всяка заявка.
+ * Ако е FALSE, трябва да  се сетнат преди това в настройките
+ * SET CHARACTER_SET_RESULTS=utf8, COLLATION_CONNECTION=utf8_bin, CHARACTER_SET_CLIENT=utf8, SQL_MODE = '';"
+ */
+defIfNot('EF_DB_SET_PARAMS', TRUE);
+
+
+/**
+ * SQL енджина по подразбиране
+ * Ако се промени на `InnoDB` в `index.cfg.php` трябва да се сетне `set global innodb_flush_log_at_trx_commit = 0;`,
+ * защото оптимизирането на таблиците по крон става много бавно. Или да се спре този процес (`OptimizeTables`).
  */
 defIfNot('CORE_SQL_DEFAULT_ENGINE', 'MYISAM');
 
@@ -134,8 +144,13 @@ class core_Db extends core_BaseClass
     {
        
         if(!($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
-
-            $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
+            
+            if(strpos($this->dbHost, ':')) {
+                list($host, $port) = explode(':', $this->dbHost);
+                $link = new mysqli($host, $this->dbUser, $this->dbPass, '', $port);
+            } else {
+                $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
+            }
 
             self::$links[$this->dbHost][$this->dbUser][$this->dbName] = $link;
 
@@ -148,13 +163,15 @@ class core_Db extends core_BaseClass
             // с цел да не се появи случайно при някой забравен bp()
             unset($this->dbPass);
             
-            if (BGERP_GIT_BRANCH == 'dev') {
-                $link->query("SET sql_mode = 'strict_trans_tables'");
-            } else {
-                $link->query("SET sql_mode = ''");
-            }
+            $sqlMode = "SQL_MODE = ''";
             
-            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, SQL_MODE = ''");
+//             if (BGERP_GIT_BRANCH == 'dev') {
+//                 $sqlMode = "SQL_MODE = 'strict_trans_tables'";
+//             }
+            
+            if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== FALSE)) {
+                $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
+            }
             
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
@@ -197,9 +214,13 @@ class core_Db extends core_BaseClass
      */
     function query($sqlQuery, $silent = FALSE)
     {
+
+     //   if(stripos($sqlQuery, "`hr_") && stripos($sqlQuery, "SET")) bp($sqlQuery);
+
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");
-        
+
+
         $link = $this->connect();
         $this->query = $sqlQuery;
         $dbRes = $link->query($sqlQuery);
@@ -277,8 +298,9 @@ class core_Db extends core_BaseClass
     /**
      * Връща един запис, под формата на масив
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $dbRes резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
      * @param int $resultType една от предефинираните константи MYSQLI_ASSOC или MYSQLI_NUM
+     * 
      * @return array В зависимост от $resultType, индексите на този масив са или цели числа (0, 1, ...) или стрингове
      */
     function fetchArray($dbRes, $resultType = MYSQLI_ASSOC)
@@ -416,6 +438,23 @@ class core_Db extends core_BaseClass
         return TRUE;
     }
     
+
+    function getVariable($name)
+    {
+        $query = "SHOW VARIABLES LIKE '{$name}'";
+        
+        $dbRes = $this->query($query);
+        
+        if(!$dbRes) {
+            
+            return FALSE;
+        }
+        
+        // Извличаме резултата
+        $res = $this->fetchObject($dbRes);
+
+        return $res->Value;
+    }
     
     /**
      * Връща атрибутите на посоченото поле от таблицата
@@ -645,6 +684,8 @@ class core_Db extends core_BaseClass
                 
                 if ($name == 'PRIMARY') {
                     $type = 'PRIMARY';
+                } elseif($rec->Index_type == 'FULLTEXT') {
+                    $type = 'FULLTEXT';
                 } elseif ($rec->Non_unique) {
                     $type = 'INDEX';
                 } else {
@@ -654,8 +695,21 @@ class core_Db extends core_BaseClass
                 $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = TRUE;
             }
         }
-        
+  
         return $indexes;
+    }
+
+
+    /**
+     * Преброява редовете в една MySQL таблица
+     */
+    function countRows($table)
+    {
+        $dbRes = $this->query("SELECT COUNT(*) AS cnt FROM `{$table}`");
+        $res   = $this->fetchObject($dbRes);
+        $count = $res->cnt;
+
+        return $count;
     }
     
     

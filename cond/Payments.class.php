@@ -121,7 +121,7 @@ class cond_Payments extends core_Manager {
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	 
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     	 
     	return $res;
     }

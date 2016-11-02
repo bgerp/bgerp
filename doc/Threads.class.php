@@ -18,15 +18,33 @@ class doc_Threads extends core_Manager
 
 
     /**
+     *
+     */
+    const DELETE_SYSTEM_ID = 'DeleteThread';
+    
+	
+    /**
      * Максимална дължина на показваните заглавия 
      */
     const maxLenTitle = 70;
+    
+
+    /**
+     * Възможности за филтриране на нишките в една папка
+     */
+    const filterList = 'open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите';
+    
+    
+    /**
+     * 10 секунди време за опресняване на нишката
+     */
+    public $refreshRowsTime = 10000;
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting';
+    var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting, plg_RefreshRows';
     
     
     /**
@@ -286,6 +304,7 @@ class doc_Threads extends core_Manager
         
         // id на папката за несортирани
         $currUser = core_Users::getCurrent();
+        $defaultFolderId = NULL;
         if ($currUser > 0) {
             $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', FALSE);
         }
@@ -324,6 +343,9 @@ class doc_Threads extends core_Manager
                         if ($rec->id) {
                             self::delete($rec->id);
                             $resArr['del_cnt']++;
+                            
+                            self::logNotice("Изтрита нишка, в която няма документи", $rec->id);
+                            
                             continue;
                         }
                     }
@@ -332,6 +354,7 @@ class doc_Threads extends core_Manager
                     
                     if (self::save($rec, 'firstContainerId')) {
                         $resArr['firstContainerId']++;
+                        self::logNotice("Контейнерът {$firstCid} е направен първи документ в нишката", $rec->id);
                     }
                 }
                 
@@ -341,24 +364,26 @@ class doc_Threads extends core_Manager
                     
                     if (self::save($rec, 'folderId')) {
                         $resArr['folderId']++;
+                        self::logNotice("Нишката е преместена в папка {$defaultFolderId}", $rec->id);
                     }
                 }
                 
+                self::logNotice("Нишката е обновена, защото има развалени данни", $rec->id);
+                
                 // Обновяваме нишката
                 self::updateThread($rec->id);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
             }
+        }
+                
+        // Ако е зададено да се поправят всички стойности
+        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+            $resArr += self::repairAll($from, $to, $delay);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
         core_Debug::$isLogging = $isLoging;
-        
-        $conf = core_Packs::getConfig('doc');
-        
-        if ($conf->DOC_REPAIR_STATE == 'yes') {
-            $resArr += self::repairStates($from, $to, $delay);
-        }
         
         return $resArr;
     }
@@ -374,26 +399,81 @@ class doc_Threads extends core_Manager
      * 
      * @return array
      */
-    public static function repairStates($from = NULL, $to = NULL, $delay = 10)
+    public static function repairAll($from = NULL, $to = NULL, $delay = 10)
     {
         $resArr = array();
         $query = self::getQuery();
         
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
         
+        // id на папката за несортирани
+        $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
+        
+        // id на папката за несортирани
+        $currUser = core_Users::getCurrent();
+        $defaultFolderId = NULL;
+        if ($currUser > 0) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', FALSE);
+        }
+        if (!isset($defaultFolderId)) {
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id', FALSE);
+        }
+        
         while ($rec = $query->fetch()) {
             try {
+                
+                // Ако папката е грешна (няма такава папка)
+                if ($rec->folderId) {
+                    if (!doc_Folders::fetch($rec->folderId, '*', FALSE)) {
+                        self::logNotice("Променена папка от {$rec->folderId} на {$defaultFolderId}", $rec->id);
+                        $rec->folderId = $defaultFolderId;
+                        
+                        if (self::save($rec, 'folderId')) {
+                            $resArr['folderId']++;
+                        }
+                    }
+                }
+                
+                // Поправка за броя на документите
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
+                $cQuery->where("#state != 'rejected'");
+                
+                $pCQuery = clone $cQuery;
+                
+                // Ако се различава броя на документите
+                $cCnt = $cQuery->count();
+                if ($cCnt != $rec->allDocCnt) {
+                    self::logNotice("Променен брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
+                    self::updateThread($rec->id);
+                    $resArr['allDocCnt']++;
+                }
+                
+                // Ако се различава броя на документите, видими за партньори
+                $pCQuery->where("#visibleForPartners = 'yes'");
+                $pCCnt = $pCQuery->count();
+                if ($pCCnt != $rec->partnerDocCnt) {
+                    self::logNotice("Променен брой на документите видими за партньори от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
+                    self::updateThread($rec->id);
+                    $resArr['partnerDocCnt']++;
+                }
+                
+                // Поправяме състоянието, ако се е счупило
+                
                 if (!$rec->firstContainerId) continue;
                 
                 try {
-                    $cRec = doc_Containers::fetch($rec->firstContainerId);
-                } catch (Exception $e) {
+                    $cRec = doc_Containers::fetch($rec->firstContainerId, '*', FALSE);
+                } catch (ErrorException $e) {
                     continue;
                 }
                 
                 if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
                 
                 try {
+                    
+                    if (!cls::load($cRec->docClass, TRUE)) continue;
+                    
                     $clsInst = cls::get($cRec->docClass);
                     $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
                     
@@ -406,12 +486,13 @@ class doc_Threads extends core_Manager
                     
                     if (self::save($rec, 'state')) {
                         $resArr['firstContainerIdState']++;
+                        self::logNotice("Променено състояние на първия документ в нишката", $rec->id);
                     }
                 } catch (core_exception_Expect $e) {
                     
                     continue;
                 }
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 reportException($e);
             }
         }
@@ -475,7 +556,7 @@ class doc_Threads extends core_Manager
     /**
      * Подготвя титлата на папката с теми
      */
-    static function on_AfterPrepareListTitle($mvc, &$res, $data)
+    protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         expect($data->folderId = Request::get('folderId', 'int'));
         
@@ -495,7 +576,7 @@ class doc_Threads extends core_Manager
         if($folderRec->inCharge > 0) {
             $user = crm_Profiles::createLink($folderRec->inCharge);
         } else {
-            $user = '@system';
+            $user = core_Setup::get('SYSTEM_NICK');
         }
         $title->replace($user, 'user');
       
@@ -517,11 +598,11 @@ class doc_Threads extends core_Manager
      * @param doc_Threads $mvc
      * @param object $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите)', 
+        $data->listFilter->FNC('order', 'enum(' . self::filterList . ')', 
             'allowEmpty,caption=Подредба,input,silent,autoFilter');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently,autoFilter');
@@ -547,7 +628,7 @@ class doc_Threads extends core_Manager
         
         // id на папката
         $folderId = $data->listFilter->rec->folderId;
-
+        
         $rejected = Request::get('Rejected');
         
         $documentsInThreadOptions = self::getDocumentTypesOptionsByFolder($folderId, FALSE, $rejected);
@@ -584,6 +665,15 @@ class doc_Threads extends core_Manager
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
         bgerp_Recently::add('folder', $folderId, NULL, ($folderRec->state == 'rejected') ? 'yes' : 'no');
+        
+        if (Request::get('share')) {
+            $url['share'] = TRUE;
+            bgerp_Notifications::clear($url);
+        }
+        
+        // Позволяваме на корицата да модифицира филтъра
+        $Cover = doc_Folders::getCover($folderId);
+        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query));
     }
     
     
@@ -698,7 +788,7 @@ class doc_Threads extends core_Manager
 
                         // Извличаме тредовете, където потребителя е лайквал документи
                         $lQuery = doc_Likes::getQuery();
-                        $lQuery->EXT('threadId', 'doc_Containers', 'externalKey=containerId');
+
                         $lQuery->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
                         $lQuery->show('threadId');
                         $lQuery->groupBy('threadId');
@@ -757,17 +847,38 @@ class doc_Threads extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if(empty($rec->firstContainerId)) return;
+        
+        static $lastRecently, $cu;
+
+        if(!$lastRecently) {
+            $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS')/(24*3600));
+        }
+ 
+        if(!$cu) {
+            $cu = core_Users::getCurrent();
+        }
 
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             $docRow = $docProxy->getDocumentRow();
             $attr = array();
             
-            $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docProxy->that));
+            $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
             
             if(mb_strlen($docRow->title) > self::maxLenTitle) {
                 $attr['title'] = $docRow->title;
             }
+
+            if($rec->last < $lastRecently) {
+                $attr['class'] .= ' tOld ';
+            } else {
+                if($rec->last > bgerp_Recently::getLastDocumentSee($rec->firstContainerId, NULL, TRUE)) {
+                    $attr['class'] .= ' tUnsighted ';
+                } else {
+                    $attr['class'] .= ' tSighted ';
+                }
+            }
+
             
             $row->onlyTitle = $row->title = ht::createLink(str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
@@ -787,6 +898,7 @@ class doc_Threads extends core_Manager
             }
 
             $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
+
 
         } catch (core_Exception_Expect $expect) {
             $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
@@ -854,7 +966,8 @@ class doc_Threads extends core_Manager
         $exp->functions['checksimilarperson'] = 'doc_Threads::checkSimilarPerson';
         $exp->functions['haveaccess'] = 'doc_Folders::haveRightToFolder';
         $exp->functions['checkmovetime'] = 'doc_Threads::checkExpectationMoveTime';
-        
+        $exp->functions['getfolderopt'] = 'doc_Threads::getFolderOpt';
+
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
                                                 newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', '');
@@ -871,8 +984,10 @@ class doc_Threads extends core_Manager
             }
         }
         
-        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'width=500px,mandatory');
-        
+        $exp->DEF('#folderId=Папка', 'key2(mvc=doc_Folders, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\', allowEmpty)', 'class=w100,mandatory');
+
+        //$exp->OPTIONS("#folderId", "getFolderOpt(#threadId,#dest)", '#dest == "exFolder"');
+
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
         $exp->DEF('#salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,notNull');
@@ -976,14 +1091,21 @@ class doc_Threads extends core_Manager
 
             // Брояч на грешките при преместване
             $errCnt = 0;
-
+            
+            $loggedToFolders = FALSE;
+            $moveW = count($selArr) > 1 ? 'Преместени нишки' : 'Преместена нишка';
+            
             foreach($selArr as $threadId) {
                 try {
                     $this->move($threadId, $folderId);
 					
-                    doc_Folders::logWrite('Преместена нишка от', $threadRec->folderId);
+                    if (!$loggedToFolders) {
+                        doc_Folders::logWrite("{$moveW} от", $threadRec->folderId);
+                        doc_Folders::logWrite("{$moveW} в", $folderId);
+                        $loggedToFolders = TRUE;
+                    }
+                    
                     doc_Threads::logWrite('Преместена нишка', $threadId);
-                    doc_Folders::logWrite('Преместена нишка в', $folderId);
                     
                     $successCnt++;
                 } catch (core_Exception_Expect $expect) { 
@@ -999,6 +1121,10 @@ class doc_Threads extends core_Manager
             // Входяща папка
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
+            
+            $Recently = cls::get('recently_Values');
+
+            $Recently->add('MoveFolders', $folderId);
             
             $message = '';
             
@@ -1082,6 +1208,40 @@ class doc_Threads extends core_Manager
     }
     
     
+
+    public static function getFolderOpt($threadId)
+    {  
+        $res = array();
+        // $res = doc_Folders::makeArray4Select();
+
+        $rec = doc_Threads::fetch($threadId);
+        $doc = doc_Containers::getDocument($rec->firstContainerId);
+        
+        $query = doc_Folders::getQuery();
+        $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+        $query->orderBy('#last=DESC,#title=ASC');
+        
+        $contragentData = self::getContragentData($threadId);
+ 
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->title;
+        }
+        
+        $Recently = cls::get('recently_Values');
+        $lastArr = $Recently->getSuggestions('MoveFolders');  
+        $res1 = array();
+        foreach($lastArr as $id) {
+            $res1[$id] = $res[$id];
+            unset($res[$id]);
+        }
+        $res1 += $res;
+        
+        return $res1;
+    }
+
+
+
+
     /**
      * Връща стринг с подобните фирми
      * 
@@ -1400,7 +1560,9 @@ class doc_Threads extends core_Manager
         
         if (is_array($ids)) {
             foreach (array_keys($ids) as $id) {
-                if (!isset($id)) { continue; }
+                if (!is_int($id)) { 
+                    continue; 
+                }
                 self::doUpdateThread($id);
             }
             return;
@@ -1413,6 +1575,12 @@ class doc_Threads extends core_Manager
         // Вземаме записа на треда
         $rec = self::fetch($id, NULL, FALSE);
         
+        if (!$rec) {
+        	wp($id);
+        	
+	        return;
+    	}
+
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
         
@@ -1432,16 +1600,24 @@ class doc_Threads extends core_Manager
             
             // Не броим оттеглените документи
             if($dcRec->state != 'rejected') {
-                $lastDcRec = $dcRec;
                 
+                // Преброяваме всичките документи и задържаме последния
+                $lastDcRec = $dcRec;
+                $rec->allDocCnt++;
+
                 if($dcRec->visibleForPartners == 'yes') {
+                    // Преброяваме партньорските документи и задържаме последния
+                    $lastDcPartnerRec = $dcRec;
                     $rec->partnerDocCnt++;
                 }
-                
-                $rec->allDocCnt++;
             }
         }
         
+        // Ако първия документ не е видим за партньори, то нищо в тази нишка не е видимо за тях
+        if($firstDcRec->visibleForPartners != 'yes') {
+            $rec->partnerDocCnt = 0;
+        }
+
         // Попълваме полето за споделените потребители
         $rec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
 
@@ -1626,7 +1802,7 @@ class doc_Threads extends core_Manager
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {
+    {  
         
         // Бутони за разгледане на всички оттеглени тредове
         if(Request::get('Rejected')) {
@@ -1644,24 +1820,7 @@ class doc_Threads extends core_Manager
         		if(doc_Folders::haveRightFor('newdoc', $data->folderId)){
         			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
-        		$data->rejQuery->where("#folderId = {$data->folderId}");
-        		$data->rejectedCnt = $data->rejQuery->count();;
-        		 
-        		if($data->rejectedCnt) {
-        			$curUrl = getCurrentUrl();
-        			$curUrl['Rejected'] = 1;
-                    if(isset($data->pager->pageVar)) {
-                        unset($curUrl[$data->pager->pageVar]);
-                    }
-
-                    $data->rejQuery->orderBy('modifiedOn', 'DESC');
-                    $data->rejQuery->limit(1); 
-                    $lastRec = $data->rejQuery->fetch();
-                    $color = dt::getColorByTime($lastRec->modifiedOn);
-
-        			$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
-        			$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
-            	}
+        		self::addBinBtnToToolbar($data);
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
             	$Cover = doc_Folders::getCover($data->folderId);
@@ -1688,6 +1847,35 @@ class doc_Threads extends core_Manager
         if (doc_Folders::canModifySettings($key, $userOrRole)) {
             core_Settings::addBtn($data->toolbar, $key, 'doc_Folders', $userOrRole, 'Настройки', array('class' => 'fright', 'row' => 2, 'title'=>'Персонални настройки на папката'));
         }
+    }
+    
+    
+    /**
+     * Добавя бутон за кошче към тулбара
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public static function addBinBtnToToolbar(&$data)
+    {
+    	$data->rejQuery->where("#folderId = {$data->folderId}");
+    	$data->rejectedCnt = $data->rejQuery->count();;
+    	 
+    	if($data->rejectedCnt) {
+    		$curUrl = getCurrentUrl();
+    		$curUrl['Rejected'] = 1;
+    		if(isset($data->pager->pageVar)) {
+    			unset($curUrl[$data->pager->pageVar]);
+    		}
+    	
+    		$data->rejQuery->orderBy('modifiedOn', 'DESC');
+    		$data->rejQuery->limit(1);
+    		$lastRec = $data->rejQuery->fetch();
+    		$color = dt::getColorByTime($lastRec->modifiedOn);
+    	
+    		$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
+    		$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
+    	}
     }
     
     
@@ -1765,9 +1953,9 @@ class doc_Threads extends core_Manager
 
         if($action == 'single') {
             if(doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
-                $res = 'user';
+                $res = 'powerUser';
             } elseif(keylist::isIn($userId, $rec->shared)) {
-                $res = 'user';
+                $res = 'powerUser';
             } else {
                 $res = 'no_one';
             }
@@ -1865,9 +2053,9 @@ class doc_Threads extends core_Manager
      */
     static function getContragentData($threadId, $field = NULL)
     {
-        static $cashe;
+        static $cache;
         
-        if(!$bestContragentData = $cashe[$threadId]) {
+        if(!$bestContragentData = $cache[$threadId]) {
             $query = doc_Containers::getQuery();
             $query->where("#state != 'rejected'");
             $query->where("#threadId = '{$threadId}'");
@@ -1952,7 +2140,7 @@ class doc_Threads extends core_Manager
                 $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
             }
             
-            $cashe[$threadId] = $bestContragentData;
+            $cache[$threadId] = $bestContragentData;
         }
         
         if($field) {
@@ -2109,7 +2297,7 @@ class doc_Threads extends core_Manager
         $haveRight = static::haveRightFor('single', $rec);
 
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
-            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Threads::haveRightFor('single', $rec);
             }
         }
@@ -2130,7 +2318,7 @@ class doc_Threads extends core_Manager
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
         // Иконата на нишката
-        $sbfIcon = sbf($docProxy->getIcon($docProxy->that), '"', $isAbsolute);
+        $sbfIcon = sbf($docProxy->getIcon(), '"', $isAbsolute);
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
@@ -2159,7 +2347,7 @@ class doc_Threads extends core_Manager
     /**
      * Прави широчината на колонката със заглавието на треда да не се свива под 240px
      */
-    function on_AfterPrepareListFields($mvc, $res, $data)
+    static function on_AfterPrepareListFields($mvc, $res, $data)
     {
         $data->listFields['title'] = "|*<div style='min-width:240px'>|" . $data->listFields['title'] . '|*</div>';
     }
@@ -2307,5 +2495,129 @@ class doc_Threads extends core_Manager
     	$folderId = self::fetchField($id, 'folderId');
     	core_Cache::remove("doc_Folders", "folder{$folderId}");
     	core_Cache::remove("doc_Folders", "visibleDocumentsInFolder{$folderId}");
+    }
+    
+    
+    /**
+     * Вика се по крон и изтрива оттеглените нишки и одкументи
+     * Ако са оттеглени преди константа, не са използвани в някой документ и има само един документ в нишката
+     */
+    public function cron_DeleteThread()
+    {
+        $query = self::getQuery();
+        
+        $from = NULL;
+        $to = dt::now();
+        doc_Folders::prepareRepairDateQuery($query, $from, $to, doc_Setup::get('REPAIR_DELAY'), 'modifiedOn');
+        
+        $delFrom = dt::subtractSecs(doc_Setup::get('DELETE_REJECTED_THREADS_PERIOD'));
+        $query->where(array("#modifiedOn <= '[#1#]'", $delFrom));
+        
+        $query->where("#state = 'rejected'");
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        $delCnt = 0;
+        while ($rec = $query->fetch()) {
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
+            
+            $cQuery->limit(2);
+            
+            if ($cQuery->count() != 1) continue ;
+            
+            $cQuery->orderBy('createdOn', 'DESC');
+            
+            $cRec = $cQuery->fetch();
+            
+            // Ако записа не е първия документ в нишката
+            if ($cRec->id != $rec->firstContainerId) continue;
+            
+            // Ако документа е използван някъде
+            if (doclog_Used::getUsedCount($cRec->id)) continue;
+            
+            $delFlag = FALSE;
+            
+            // Изтриваме записа в модела на документа
+            if ($cRec->docId && $cRec->docClass && cls::load($cRec->docClass, TRUE)) {
+                try {
+                    $doc = doc_Containers::getDocument($cRec->id);
+                    
+                    // Да не може да се изтриват всички документи
+                    if ($doc && $doc->deleteThreadAndDoc) {
+                        $delFlag = TRUE;
+                    }
+                } catch (ErrorException $e) {
+                    reportException($e);
+                }
+                
+                if ($delFlag) {
+                    try {
+                        $delMsg = 'Изтрит оттеглен документ';
+                    	
+                        if ($doc->instance instanceof core_Master) {
+                    	
+                            $dArr = arr::make($doc->details, TRUE);
+                    		
+                            // Изтирваме детайлите за документа
+                            if (!empty($dArr)) {
+                    		
+                                $delDetCnt = 0;
+                    			
+                                foreach ($dArr as $detail) {
+                                    if (!cls::load($detail, TRUE)) continue;
+                    				
+                                    $detailInst = cls::get($detail);
+                                    if (!($detailInst->Master instanceof $doc->instance)) continue;
+                    				
+                                    if ($detailInst->masterKey) {
+                                        $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $doc->that));
+                                    }
+                                }
+                    			
+                                $delMsg = "Изтрит оттеглен документ и детайлите към него ({$delDetCnt})";
+                            }
+                        }
+                    	
+                        $doc->instance->logInfo($delMsg, $doc->that);
+                    
+                        $doc->delete();
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    } 
+                }
+            }
+            
+            if ($delFlag) {
+                // Изтриваме нишката
+                self::logInfo('Изтрита оттеглена нишка', $rec->id);
+                self::delete($rec->id);
+                
+                // Изтриваме записа за използвани файлове в папката
+                doc_Files::delete(array("#containerId = '[#1#]'", $cRec->id));
+                
+                // Изтриваме документа
+                doc_Containers::logInfo('Изтрит оттеглен документ', $cRec->id);
+                doc_Containers::delete($cRec->id);
+                
+                $delCnt++;
+            }
+        }
+        
+        return "Изтрити записи: " . $delCnt; 
+    }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        doc_Folders::getContentHash_($status);
     }
 }

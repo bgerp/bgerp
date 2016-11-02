@@ -38,6 +38,12 @@ defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 3);
 
 
 /**
+ * Ценова политика по подразбиране
+ */
+defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -109,9 +115,9 @@ class cat_Setup extends core_ProtoSetup
             'migrate::fixProductsSearchKeywords',
     		'migrate::updateProductsNew',
     		'migrate::deleteCache2',
-    		'migrate::updateParams',
     		'migrate::addClassIdToParams',
-    		'migrate::updateBomType'
+    		'migrate::updateBomType',
+    		'migrate::updateParamStates',
         );
 
 
@@ -145,6 +151,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_DEFAULT_MEASURE_ID'                => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на артикулите->Мярка'),
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
+            'CAT_DEFAULT_PRICELIST'                 => array("key(mvc=price_Lists,select=title,allowEmpty)", 'caption=Ценова политика по подразбиране->Избор,mandatory'),
     );
 
     
@@ -185,7 +192,7 @@ class cat_Setup extends core_ProtoSetup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }
@@ -399,58 +406,6 @@ class cat_Setup extends core_ProtoSetup
     
     
     /**
-     * Ъпдейтва параметрите
-     */
-    function updateParams()
-    {
-    	$map = array('size'    => 'cond_type_Double',
-    			'weight'  => 'cond_type_Double',
-    			'volume'  => 'cond_type_Double',
-    			'double'  => 'cond_type_Double',
-    			'int'     => 'cond_type_Int',
-    			'varchar' => 'cond_type_Varchar',
-    			'text'    => 'cond_type_Text',
-    			'date'    => 'cond_type_Date',
-    			'percent' => 'cond_type_Percent',
-    			'enum'    => 'cond_type_Enum',
-    			'density' => 'cond_type_Double',
-    			'time'    => 'cond_type_Time',
-    	);
-    	 
-    	$query = cat_Params::getQuery();
-    	$query->where("#driverClass IS NULL");
-    	 
-    	try{
-    		while($rec = $query->fetch()){
-    			if($rec->id == 21 && $rec->name == 'МПС №'){
-    				$rec->options = 'ВТ 4250 ВВ,ВТ 6249 ВК,ВТ 0507 ВН,ВТ 2130 ВН,ВТ 7009 ВТ,ВТ 7119 АТ,ВТ 4969 ВТ,ВТ 3963 АХ';
-    			}
-    			 
-    			if($rec->type == 'size' && empty($rec->suffix)){
-    				$rec->suffix = 'cm';
-    			}
-    			 
-    			$newClass = $map[$rec->type];
-    			core_Classes::add($newClass);
-    			 
-    			$rec->driverClass = cls::get($newClass)->getClassId();
-    			cls::get('cat_Params')->save_($rec);
-    		}
-    		
-    		$pQuery = cat_products_Params::getQuery();
-    		$pQuery->EXT('type', 'cat_Params', 'externalName=type,externalKey=paramId');
-    		$pQuery->where("#type = 'size'");
-    		while($pRec = $pQuery->fetch()){
-    			$pRec->paramValue *= 100;
-    			cls::get('cat_products_Params')->save_($pRec);
-    		}
-    	} catch(core_exception_Expect $e){
-    		reportException($e);
-    	}
-    }
-    
-    
-    /**
      * Миграция на параметрите
      */
     public static function addClassIdToParams()
@@ -493,6 +448,23 @@ class cat_Setup extends core_ProtoSetup
     		} catch(core_exception_Expect $e){
     			reportException($e);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на състоянието на параметъра
+     */
+    public function updateParamStates()
+    {
+    	$Params = cls::get('cat_Params');
+    	$Params->setupMvc();
+    	
+    	$query = cat_Params::getQuery();
+    	$query->where("#state = '' || #state IS NULL");
+    	while($rec = $query->fetch()){
+    		$rec->state = 'active';
+    		$Params->save_($rec, 'state');
     	}
     }
 }

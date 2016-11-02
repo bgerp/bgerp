@@ -71,7 +71,6 @@ class price_ProductCosts extends core_Manager
 	public $canList = 'admin,debug';
 	
 	
-	//public $listItemsPerPage = 500000; 
     /**
      * Описание на модела (таблицата)
      */
@@ -95,13 +94,14 @@ class price_ProductCosts extends core_Manager
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
+    	$row->price = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $rec->price, TRUE);
     	
-    	if(cls::load($rec->documentClassId, TRUE)){
-    		$row->document = cls::get($rec->documentClassId)->getLink($rec->documentId, 0);
+    	if(cls::load($rec->documentClassId, TRUE) && isset($rec->documentId)){
+    		$Document = cls::get($rec->documentClassId);
+    		$row->document = $Document->getLink($rec->documentId, 0);
     	}
     	
     	$row->ROW_ATTR = array('class' => 'state-active');
@@ -134,7 +134,7 @@ class price_ProductCosts extends core_Manager
      * 
      * @return array $res - намерените цени
      */
-    function getAccCosts()
+    private function getAccCosts()
     {
     	$tmpArr = $res = array();
     	$balanceRec = acc_Balances::getLastBalance();
@@ -176,11 +176,12 @@ class price_ProductCosts extends core_Manager
      * Връща всички покупки, в които участват подадените артикули.
      * Покупките са подредени в низходящ ред, така най-първите са последните.
      * 
-     * @param array $productKeys - масив с ид-та на артикули
+     * @param array $productKeys    - масив с ид-та на артикули
      * @param boolean $withDelivery - дали да има доставено по покупката или не
-     * @return array $res - намерените последни доставни цени
+     * @param boolean $onlyActive   - дали да търси само по активните покупки
+     * @return array $res           - намерените последни доставни цени
      */
-    private function getPurchasesWithProducts($productKeys, $withDelivery = FALSE)
+    private function getPurchasesWithProducts($productKeys, $withDelivery = FALSE, $onlyActive = FALSE)
     {
     	$pQuery = purchase_PurchasesDetails::getQuery();
     	$pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
@@ -188,7 +189,11 @@ class price_ProductCosts extends core_Manager
     	$pQuery->EXT('amountDelivered', 'purchase_Purchases', 'externalName=amountDelivered,externalKey=requestId');
     	
     	// Всички активни
-    	$pQuery->where("#state = 'active'");
+    	if($onlyActive === TRUE){
+    		$pQuery->where("#state = 'active'");
+    	} else {
+    		$pQuery->where("#state = 'active' OR #state = 'closed'");
+    	}
     	
     	// и тези които са затворени и са последно модифицирани до два часа
     	$from = dt::addSecs(-2 * 60 * 60, dt::now());
@@ -224,7 +229,7 @@ class price_ProductCosts extends core_Manager
     	$Purchases = cls::get('purchase_Purchases');
     	
     	// Намираме всички покупки с доставка
-    	$allPurchases = $this->getPurchasesWithProducts($productKeys, TRUE);
+    	$allPurchases = $this->getPurchasesWithProducts($productKeys, TRUE, FALSE);
 		
     	// Тук ще кешираме доставените артикули във всяка
     	$purchaseProducts = array();
@@ -246,7 +251,7 @@ class price_ProductCosts extends core_Manager
     				// в нишката на покупката и са по друга сделка. Понеже в тяхната контировка не участва
     				// перото на текущата сделка, и 'purchase_transaction_Purchase::getEntries' не може
     				// да им вземе записите, затова ги добавяме ръчно
-    				$aExpensesQuery = acc_AllocatedExpenses::getQuery();
+    				$aExpensesQuery = acc_ValueCorrections::getQuery();
     				$aExpensesQuery->where("#threadId = {$purRec->threadId} AND #state = 'active' AND #correspondingDealOriginId != {$purRec->containerId}");
     				$aExpensesQuery->show('id');
     				
@@ -254,7 +259,7 @@ class price_ProductCosts extends core_Manager
     				while($aRec = $aExpensesQuery->fetch()){
     					
     					// Намираме записите от журнала 
-    					$jRec = acc_Journal::fetchByDoc('acc_AllocatedExpenses', $aRec->id);
+    					$jRec = acc_Journal::fetchByDoc('acc_ValueCorrections', $aRec->id);
     					$dQuery = acc_JournalDetails::getQuery();
     					$dQuery->where("#journalId = {$jRec->id}");
     					$expensesEntries = $dQuery->fetchAll();
@@ -268,7 +273,7 @@ class price_ProductCosts extends core_Manager
     				// от документите от вида "Корекция на стойност". В обикновените записи имаше приложени
     				// само корекциите от документа когато той е към същата сделка. Когато е към друга не се вземаха
     				// затова трябваше да се добавят ръчно към записите
-    				$purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries);
+    				$purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries, $purRec->requestId);
     			}
     			
     			// Намираме какво е експедирано по сделката
@@ -301,7 +306,7 @@ class price_ProductCosts extends core_Manager
     	$res = array();
     	
     	// Намираме всички покупки по, които няма доставени
-    	$allPurchases = $this->getPurchasesWithProducts($productKeys);
+    	$allPurchases = $this->getPurchasesWithProducts($productKeys, FALSE, TRUE);
     	
     	// За всяка покупка
     	foreach ($allPurchases as $purRec){

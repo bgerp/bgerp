@@ -329,17 +329,15 @@ class cal_Calendar extends core_Master
        
         // TODO
         $attr = array();
-        if($rec->type == 'leave'){
-        	$attr['ef_icon'] = 'img/16/leaves.png';
-        } elseif($rec->type == 'sickday') {
-        	$attr['ef_icon'] = 'img/16/sick.png';
-        }elseif($rec->type == 'trip'){
-			$attr['ef_icon'] = 'img/16/working-travel.png';    		
-        }else{
+        if(!strpos($rec->type, '/')) {
          	$attr['ef_icon'] = "img/16/{$lowerType}.png";
-    	}
+    	} elseif($rec->type = 'reminder') {
+         	$attr['ef_icon'] = "img/16/alarm_clock.png";
+    	} else { 
+            $attr['ef_icon'] = $rec->type;
+        }
 
-        $attr = ht::addBackgroundIcon($attr);
+       $attr = ht::addBackgroundIcon($attr);
 
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
@@ -455,6 +453,12 @@ class cal_Calendar extends core_Master
                     	$class .= ' third';
                     }elseif($data[$d]->type == '4'){
                     	$class .= ' diurnal';
+                    }elseif($data[$d]->type == '5'){
+                    	$class .= ' leave';
+                    }elseif($data[$d]->type == '6'){
+                    	$class .= ' sick';
+                    }elseif($data[$d]->type == '7'){
+                    	$class .= ' traveling';
                     }
                     
                                         
@@ -671,6 +675,16 @@ class cal_Calendar extends core_Master
         if (is_array($state->recs)) {
             $data = array();
             foreach($state->recs as $id => $rec) {
+                
+                $time = dt::mysql2timestamp($rec->time);
+                $i = (int) date('j', $time);
+                
+                if(!isset($data[$i])) {
+                    $data[$i] = new stdClass();
+                     
+                }
+                 
+                list ($d, $t) = explode(" ", $rec->time);
             
                 if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                     $time = dt::mysql2timestamp($rec->time);
@@ -681,18 +695,22 @@ class cal_Calendar extends core_Master
                     }
                     $data[$i]->type = $rec->type;
                    
+                } elseif($rec->type == 'working-travel') { 
+                    
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .">&nbsp;";
+
+                } elseif($rec->type == 'leaves') { 
+                    
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .">&nbsp;";
+
+                } elseif($rec->type == 'sick') { 
+                    
+                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .">&nbsp;";
+
                 } elseif($rec->type == 'workday') {
-                } elseif($rec->type == 'task'){
-                	$time = dt::mysql2timestamp($rec->time);
-                	$i = (int) date('j', $time);
-                	
-                	if(!isset($data[$i])) {
-                		$data[$i] = new stdClass();
-                		 
-                	}
-                	
-                	list ($d, $t) = explode(" ", $rec->time);
                 
+                } elseif($rec->type == 'task' || $rec->type == 'reminder'){
+
                 	if ($arr[$d] != 'active') { 
                 		if($rec->state == 'active' || $rec->state == 'pending') { 
                 			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
@@ -1115,22 +1133,41 @@ class cal_Calendar extends core_Master
     	
     	$nonWorking = $workDays = $allDays = 0;
     	
-    	$curDate = date("Y-m-d H:i:s", strtotime("{$leaveFrom} 00:00:00"));
+    	$curDate = date("Y-m-d H:i:s", strtotime("{$leaveFrom}"));
+    	$date1 = trim(date("Y-m-d", strtotime("{$leaveFrom}")));
+    	$date2 = trim(date("Y-m-d ", strtotime("{$leaveTo}")));  
     	
-    	while($curDate < dt::addDays(1, $leaveTo)){
-    		
-    		$dateType = self::getDayStatus($curDate, 'bg');
-    		$testArray [$curDate] = $dateType;
+    	$hours1 = trim(date("H:i:s", strtotime("{$leaveFrom}")));
+    	$hours2 = trim(date("H:i:s", strtotime("{$leaveTo}")));  
+    	
+    	if ($date1 == $date2){
+    	    $date1Type = self::getDayStatus($date1, 'bg');
+    	    if($date1Type->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
+    	        $workDays++;
+    	    } else {
+    	        $nonWorking++;
+    	    }
+    	    $allDays++;
+    	} else { 
+        	while($curDate <= $leaveTo){
 
-    		if($dateType->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
-    			$workDays++;
-    		} else {
-    		    $nonWorking++;
-    		}
-    		    		
-    		$curDate = dt::addDays(1, $curDate); 
-    		
-    		$allDays++;
+        		$dateType = self::getDayStatus($curDate, 'bg');
+        		$testArray [$curDate] = $dateType;
+    
+        		if($dateType->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
+        			$workDays++;
+        		} else {
+        		    $nonWorking++;
+        		}
+        		    		
+        		$curDate = dt::addDays(1, $curDate); 
+        		
+        		$allDays++;
+        	}
+        	
+        	if(($hours1 == $hours2) && $dateType->specialDay  != TRUE ) {
+        	    $workDays -= 1;
+        	}
     	}
 
     	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays, 'testArray'=>$testArray);
@@ -1266,9 +1303,11 @@ class cal_Calendar extends core_Master
 			$imgTask = $getTask->getIcon(trim($idTask));
 			$img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
 		
-		}elseif($type == 'end-date'){
+		} elseif($type == 'end-date'){
 			$img = "<img class='calImg'  src=". sbf('img/16/end-date.png') .">&nbsp;";
-		
+
+		} elseif($type == 'reminder'){ 
+		    $img = "<img class='calImg'  src=". sbf('img/16/alarm_clock.png') .">&nbsp;";
 		
 		} else {
 	    	$type = strtolower($type);

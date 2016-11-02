@@ -60,6 +60,12 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
+     * Работен кеш
+     */
+    protected static $baseCurrencyItems = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -74,7 +80,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('debitItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 2');
         $this->FLD('debitItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 3');
         $this->FLD('debitQuantity', 'double(minDecimals=0)', 'caption=Дебит->К-во');
-        $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
+        $this->FLD('debitPrice', 'double(decimals=5)', 'caption=Дебит->Цена');
         
         // Кредитна аналитична сметка
         $this->FLD('creditAccId', 'key(mvc=acc_Accounts,select=title)',
@@ -83,11 +89,14 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 2');
         $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 3');
         $this->FLD('creditQuantity', 'double(minDecimals=0)', 'caption=Кредит->К-во');
-        $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
+        $this->FLD('creditPrice', 'double(decimals=5)', 'caption=Кредит->Цена');
         
         // Обща сума на транзакцията
         $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
         $this->FLD('amount', 'double(minDecimals=2)', 'caption=Сума');
+
+        $this->setDbIndex('debitAccId, creditAccId');
+        $this->setDbIndex('debitItem1, debitItem2, debitItem3, creditItem1, creditItem2, creditItem3');
     }
     
     
@@ -104,8 +113,7 @@ class acc_JournalDetails extends core_Detail
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass $res - данни
      */
     static function on_AfterPrepareListRows($mvc, &$res)
     {
@@ -239,8 +247,8 @@ class acc_JournalDetails extends core_Detail
     {
         foreach ($query->getDeletedRecs() as $rec) {
             foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
-                if(isset($rec->$item)){
-                    $mvc->Master->affectedItems[$rec->$item] = $rec->$item;
+                if(isset($rec->{$item})){
+                    $mvc->Master->affectedItems[$rec->{$item}] = $rec->{$item};
                 }
             }
         }
@@ -263,5 +271,74 @@ class acc_JournalDetails extends core_Detail
         if($rec->reasonCode){
         	$row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$row->reasonCode}</div>";
         }
+    }
+    
+    
+    /**
+     * Коя е основната валута за посочения период
+     * 
+     * @param date $valior - вальор
+     * @return int
+     */
+    public static function getBaseCurrencyItemId($valior)
+    {
+    	$periodRec = acc_Periods::fetchByDate($valior);
+    	
+    	if(!array_key_exists("{$periodRec->id}", self::$baseCurrencyItems)){
+    		self::$baseCurrencyItems["{$periodRec->id}"] = acc_Items::fetchItem('currency_Currencies', acc_Periods::getBaseCurrencyId($valior))->id;
+    	}
+    	
+    	return self::$baseCurrencyItems["{$periodRec->id}"];
+    }
+    
+    
+    /**
+     * Записва редът (записа) в таблицата
+     */
+    function save_(&$rec, $fields = NULL, $mode = NULL)
+    {
+    	if(empty($fields)){
+    		
+    		// Кое е перото на основната валута за периода
+    		$valior = ($rec->valior) ? $rec->valior : acc_Journal::fetchField($rec->journalId, 'valior');
+    		$baseCurrencyItemId = self::getBaseCurrencyItemId($valior);
+    		 
+    		$replaceAmount = FALSE;
+    		
+    		// Обикаляме дебита и кредита, гледа се имали перо на основната валута.
+    		foreach (array('debit', 'credit') as $type){
+    			foreach (range(3, 1) as $i){
+    				$fld = $rec->{"{$type}Item{$i}"};
+    				if(!empty($fld)){
+    					
+    					// Ако има перо на основната валута запомняме и количеството
+    					if($fld === $baseCurrencyItemId){
+    						$replaceAmount = $rec->{"{$type}Quantity"};
+    						break;
+    					}
+    				}
+    			}
+    			
+    			if($replaceAmount !== FALSE) break;
+    		}
+    		
+    		// Ако е намерено к-во на основната валута
+    		if($replaceAmount !== FALSE){
+    			
+    			// И то е различно от сумата на реда замества се
+    			// Така се подсигуряваме че К-то и сумата на основната валута винаги ще са еднакви
+    			if(trim($replaceAmount) != trim($rec->amount)){
+    				$msg = "Replace amount '{$rec->amount}' with '{$replaceAmount}'";
+    				$rec->amount = $replaceAmount;
+    				acc_Journal::logDebug($msg, $rec->journalId);
+    			}
+    		}
+    	}
+    	
+    	// Викане на ф-ята за запис от бащата на класа
+    	$id = parent::save_($rec, $fields, $mode);
+    	 
+    	// Връщане на резултата от записа
+    	return $id;
     }
 }

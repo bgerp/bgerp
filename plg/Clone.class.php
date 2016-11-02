@@ -295,6 +295,60 @@ class plg_Clone extends core_Plugin
     
     
     /**
+     * Метод клониращ детайлите
+     */
+    public static function cloneDetails($Details, $oldMasterId, $newMasterId)
+    {
+    	// Ако има изброени детайли за клониране
+    	$Details = arr::make($Details, TRUE);
+    	if(count($Details)){
+    		$notClones = FALSE;
+    			 
+    		// За всеки от тях
+    		foreach ($Details as $det){
+    			$Detail = cls::get($det);
+    			if(!isset($Detail->masterKey)) continue;
+    	
+    			if(method_exists($Detail, 'cloneDetails')){
+    				$Detail->cloneDetails($oldMasterId, $newMasterId);
+    			} else {
+    	
+    				// Клонираме записа и го свързваме към новия запис
+    				$query = $Detail->getQuery();
+    				$query->where("#{$Detail->masterKey} = {$oldMasterId}");
+    				$query->orderBy('id', "ASC");
+    				$dRecs = $query->fetchAll();
+    						
+    				if(is_array($dRecs)){
+    					foreach($dRecs as $dRec){
+    						$oldRec = clone $dRec;
+    						$dRec->{$Detail->masterKey} = $newMasterId;
+    						unset($dRec->id);
+    	
+    						$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
+    	
+    						if($Detail->isUnique($dRec, $fields)){
+    									
+    							// Записваме клонирания детайл
+    							$Detail->save($dRec);
+    							$Detail->invoke('AfterSaveClonedDetail', array($dRec, $oldRec));
+    						} else {
+    							$notClones = TRUE;
+    						}
+    					}
+    				}
+    			}
+    		}
+    			 
+    		// Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
+    		if($notClones) {
+    			core_Statuses::newStatus('Някои от детайлите не бяха клонирани, защото са уникални', 'warning');
+    		}
+    	}
+    }
+    
+    
+    /**
      * След клониране на записа
      * 
      * @param core_Mvc $mvc
@@ -303,53 +357,18 @@ class plg_Clone extends core_Plugin
      */
     public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
-    	// Ако има изброени детайли за клониране
-    	if(isset($mvc->cloneDetailes)){
-    		
-    		$details = arr::make($mvc->cloneDetailes, TRUE);
-    		if(count($details)){
-    			$notClones = FALSE;
-    			
-    			// За всеки от тях
-    			foreach ($details as $det){
-    				$Detail = cls::get($det);
-    				if(!isset($Detail->masterKey)) continue;
-    				
-    				if(method_exists($Detail, 'cloneDetails')){
-    					$Detail->cloneDetails($rec->id, $nRec->id);
-    				} else {
-
-    					// Клонираме записа и го свързваме към новия запис
-    					$query = $Detail->getQuery();
-    					$query->where("#{$Detail->masterKey} = {$rec->id}");
-    					$query->orderBy('id', "ASC");
-    					$details = $query->fetchAll();
-    					
-    					if(is_array($details)){
-    						foreach($details as $dRec){
-    							$oldRec = clone $dRec;
-    							$dRec->{$Detail->masterKey} = $nRec->id;
-    							unset($dRec->id);
-    								
-    							$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
-    								
-    							if($Detail->isUnique($dRec, $fields)){
-    									
-    								// Записваме клонирания детайл
-    								$Detail->save($dRec);
-    							} else {
-    								$notClones = TRUE;
-    							}
-    						}
-    					}
-    				}
-    			}
-    			
-    			// Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
-    			if($notClones) {
-    				core_Statuses::newStatus('Някои от детайлите не бяха клонирани, защото са уникални', 'warning');
-    			}
-    		}
-    	}
+    	$Details = $mvc->getDetailsToClone($rec);
+    	
+    	self::cloneDetails($Details, $rec->id, $nRec->id);
+    }
+    
+    
+    /**
+     * Метод по подразбиране на детайлите за клониране
+     */
+    public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
+    {
+    	// Добавяме артикулите към детайлите за клониране
+    	$res = arr::make($mvc->cloneDetails, TRUE);
     }
 }

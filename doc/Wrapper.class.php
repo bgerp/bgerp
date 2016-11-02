@@ -24,7 +24,7 @@ class doc_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {        
-        $this->TAB('doc_Folders', 'Папки');
+        $this->TAB('doc_Folders', 'Папки', 'powerUser');
         
         // Зареждаме няколко променливи, определящи треда и папката от рекуеста
         $originId    = Request::get('originId', 'int');
@@ -86,7 +86,7 @@ class doc_Wrapper extends plg_ProtoWrapper
             }
         }
         
-        $this->TAB($threadsUrl, 'Теми');
+        $this->TAB($threadsUrl, 'Теми', 'powerUser');
         
         $containersUrl = array();
         
@@ -97,13 +97,13 @@ class doc_Wrapper extends plg_ProtoWrapper
             }
         }
         
-        $this->TAB($containersUrl, 'Нишка');
+        $this->TAB($containersUrl, 'Нишка', 'powerUser');
         
-        $this->TAB('doc_Search', 'Търсене');
+        $this->TAB('doc_Search', 'Търсене', 'powerUser');
         
-        $this->TAB($filesUrl, 'Файлове');
+        $this->TAB($filesUrl, 'Файлове', 'powerUser');
         
-        $this->TAB('doc_UnsortedFolders', 'Проекти');
+        $this->TAB('doc_UnsortedFolders', 'Проекти', 'powerUser');
         
         // Показва таба за Шаблони, само ако имаме права за листване
         $this->TAB('doc_TplManager', 'Изгледи||Views', 'ceo,admin');
@@ -124,5 +124,6 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         // Кеш за нишките от документи
         $this->TAB('doc_DocumentCache', 'Дебъг->Кеш', 'debug');
+        $this->TAB('doc_Prototypes', 'Дебъг->Шаблони', 'admin');
     }
 }

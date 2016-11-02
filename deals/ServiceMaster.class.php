@@ -55,6 +55,8 @@ abstract class deals_ServiceMaster extends core_Master
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
 		$mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=411');
+
+		$mvc->setDbIndex('valior');
 	}
 	
 	
@@ -69,8 +71,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$rec = $this->fetchRec($id);
 		 
 		$Detail = $this->mainDetail;
-		$query = $this->$Detail->getQuery();
-		$query->where("#{$this->$Detail->masterKey} = '{$id}'");
+		$query = $this->{$Detail}->getQuery();
+		$query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
 		$recs = $query->fetchAll();
 	
 		deals_Helper::fillRecs($this, $recs, $rec);
@@ -99,6 +101,7 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		$aggregatedDealInfo = $origin->getAggregateDealInfo();
 		$agreedProducts = $aggregatedDealInfo->get('products');
+		
 		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
 		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
 		
@@ -107,9 +110,10 @@ abstract class deals_ServiceMaster extends core_Master
 				$info = cat_Products::getProductInfo($product->productId);
 				
 				$toShip = $normalizedProducts[$index]->quantity;
-    			$price = $normalizedProducts[$index]->price;
-    			$discount = $normalizedProducts[$index]->discount;
 				
+				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
+				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
+    			
 				// Пропускат се експедираните и складируемите артикули
 				if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;
 				 
@@ -123,8 +127,12 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->notes       = $product->notes;
 				$shipProduct->quantityInPack = $product->quantityInPack;
 				
+				if(isset($product->expenseItemId)){
+					$shipProduct->expenseItemId = $product->expenseItemId;
+				}
+				
 				$Detail = $mvc->mainDetail;
-				$mvc->$Detail->save($shipProduct);
+				$mvc->{$Detail}->save($shipProduct);
 			}
 		}
 	}
@@ -154,31 +162,6 @@ abstract class deals_ServiceMaster extends core_Master
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
-
-
-	/**
-	 * Подготвя вербалните данни на моята фирма
-	 */
-	protected function prepareHeaderInfo(&$row, $rec)
-	{
-		$ownCompanyData = crm_Companies::fetchOwnCompany();
-		$Companies = cls::get('crm_Companies');
-		$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-		$row->MyCompany = transliterate(tr($row->MyCompany));
-		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
-		
-		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-		if($uic != $ownCompanyData->vatNo){
-			$row->MyCompanyVatNo = $ownCompanyData->vatNo;
-		}
-		$row->uicId = $uic;
-		 
-		// Данните на клиента
-		$ContragentClass = cls::get($rec->contragentClassId);
-		$cData = $ContragentClass->getContragentData($rec->contragentId);
-		$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-	}
 
 
 	/**
@@ -235,7 +218,9 @@ abstract class deals_ServiceMaster extends core_Master
     	
     	if(isset($fields['-single'])){
     		core_Lg::push($rec->tplLang);
-    		$mvc->prepareHeaderInfo($row, $rec);
+    		
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+    		$row = (object)((array)$row + (array)$headerInfo);
     		
     		if($rec->locationId){
     			$row->locationId = crm_Locations::getHyperlink($rec->locationId);
@@ -296,6 +281,7 @@ abstract class deals_ServiceMaster extends core_Master
     
 	/**
      * Връща масив от използваните нестандартни артикули в протоколa
+     * 
      * @param int $id - ид на протоколa
      * @return param $res - масив с използваните документи
      * 					['class'] - инстанция на документа
@@ -322,8 +308,8 @@ abstract class deals_ServiceMaster extends core_Master
     	$aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
     
     	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->where("#{$this->$Detail->masterKey} = {$rec->id}");
+    	$dQuery = $this->{$Detail}->getQuery();
+    	$dQuery->where("#{$this->{$Detail}->masterKey} = {$rec->id}");
     
     	while ($dRec = $dQuery->fetch()) {
     		$p = new stdClass();
@@ -359,10 +345,10 @@ abstract class deals_ServiceMaster extends core_Master
 
      	// заявка към детайлите
      	$Detail = $mvc->mainDetail;
-     	$query = $mvc->$Detail->getQuery();
+     	$query = $mvc->{$Detail}->getQuery();
      	
      	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+     	$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите

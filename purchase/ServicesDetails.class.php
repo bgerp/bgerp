@@ -39,7 +39,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_SaveAndNew,
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_SaveAndNew, acc_plg_ExpenseAllocation,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices,ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy';
     
     
@@ -97,7 +97,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     public function description()
     {
     	$this->FLD('shipmentId', 'key(mvc=purchase_Services)', 'column=none,notNull,silent,hidden,mandatory');
-        parent::setDocumentFields($this);
+    	parent::setDocumentFields($this);
     }
     
     
@@ -113,8 +113,8 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     	
     	return $products;
     }
-
-
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -137,8 +137,8 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-    
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
+    			
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
     			}

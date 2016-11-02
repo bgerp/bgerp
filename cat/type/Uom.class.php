@@ -126,7 +126,7 @@ class cat_type_Uom extends type_Varchar {
         
 		if($value === NULL || $value === ''){
 			$convObject->value = '';
-            $convObject->measure = $unitRec->id;
+            $convObject->measure = $baseUnitId;
 		} elseif (empty($this->error)){
 			$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
 		} else {

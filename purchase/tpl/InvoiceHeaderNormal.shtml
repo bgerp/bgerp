@@ -38,7 +38,8 @@
                                     <td class="cell">
                                         <b>[#contragentName#]</b>
                                         <div class='address-block'>
-                                            [#contragentCountryId#]
+                                            [#contragentCountryId#]<br>
+                                            [#contragentPCode#] [#contragentPlace#]<br>
                                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#]<!--ET_END contragentAddress-->
                                         </div>
                                     </td>
@@ -156,60 +157,7 @@
                                         <!--ET_END additionalInfo-->
                                     </td>
                                     <td id='invoice-info' style='width:40%'>
-                                        <table style='margin-bottom: 20px;width:100%;' class='business-doc-summary-table'>
-                                            <tr class='nowrap'>
-                                                <td class='aright'>|Стойност|*:</td>
-                                                <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
-                                                <td class='aright' style='width:1%'> <b class="lighterBold">[#value#]</b></td>
-                                            </tr>
-                                            <!--ET_BEGIN discountValue-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>|Отстъпка|* :</td>
-                                                <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-                                                <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
-                                            </tr>
-                                            <!--ET_END discountValue-->
-                                            <!--ET_BEGIN neto-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>|Нето|* :</td>
-                                                <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-                                                <td class='aright'><b class="lighterBold">[#neto#]</b></td>
-                                            </tr>
-                                            <!--ET_END neto-->
-                                            <!--ET_BEGIN baseAmount-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>|Данъчна основа|*  :</td>
-                                                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                                <td class='aright'><b class="lighterBold">[#baseAmount#]</b></td>
-                                            </tr>
-                                            <!--ET_END baseAmount-->
-                                            <tr>
-                                                <td colspan='3' style='padding:0px'>
-                                                    <hr>
-                                                </td>
-                                            </tr>
-                                            <!--ET_BEGIN vatAmount-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
-                                                <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-                                                <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
-                                            </tr>
-                                            <!--ET_END vatAmount-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>|Общо|* :</td>
-                                                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-                                                <td class='aright'><b>[#total#]</b></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan='3' style='text-align:right'>
-                                                    <!--ET_BEGIN sayWords-->
-                                                    <hr>
-                                                    |Словом|*:
-                                                    [#sayWords#]
-                                                    <!--ET_END sayWords-->
-                                                </td>
-                                            </tr>
-                                        </table>
+                                        [#/deals/tpl/DocumentPiceInfo.shtml#]
                                         <!--ET_BEGIN fileHnd-->
                                         <hr>
                                         <div class='custom-bg-block'><b>|Оригинален документ|*</b></div>

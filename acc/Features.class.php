@@ -298,8 +298,8 @@ class acc_Features extends core_Manager
     /**
      * Връща всички стойности свойства на зададените пера, ако не са зададени пера, връща всички
      *
-     * @param array $array - масив с ид-та на пера
-     * @return array $options - опции със стойности
+     * @param  int      $featureTitleId     id на feature
+     * @return array    $options            опции със стойности
      */
     public static function getFeatureValueOptions($featureTitleId)
     {
@@ -357,7 +357,7 @@ class acc_Features extends core_Manager
     
     
     /**
-     * Овновява списъците със свойства на номенклатурите от които е имало засегнати пера
+     * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
      *
      * @param acc_Items $mvc
      */

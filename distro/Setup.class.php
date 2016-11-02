@@ -37,40 +37,97 @@ class distro_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Разпределена група файлове";
+    var $info = "Разпределена файлова група";
+    
+	
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'ssh=0.1';
     
     
     /**
-     * Инсталиране на пакета
+     * Мениджъри за инсталиране
      */
-    function install()
-    {   
-        // Инсталиране на мениджърите
-        $managers = array(
+    var $managers = array(
             'distro_Group',
             'distro_Files',
             'distro_Automation',
-        );
+            'distro_Repositories',
+            'distro_Actions',
+            'distro_RenameDriver',
+            'distro_DeleteDriver',
+            'distro_CopyDriver',
+            'distro_AbsorbDriver',
+            'distro_ArchiveDriver',
+            'migrate::reposToKey',
+            'migrate::syncFiles',
+    );
+    
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+        array(1.9, 'Документи', 'Дистрибутив', 'distro_Group', 'default', "admin"),
+    );
+    
+    
+    /**
+     * Миграция за превръщане от keylist в key поле
+     */
+    public static function reposToKey()
+    {
+        // Ако полето липсва в таблицата на модела да не се изпълнява
+        $cls = cls::get('distro_Files');
+        $cls->db->connect();
+        $reposField = str::phpToMysqlName('repos');
+        if (!$cls->db->isFieldExists($cls->dbTableName, $reposField)) return ;
+
+        $fQuery = $cls->getQuery();
         
-        $instances = array();
+        unset($fQuery->fields['repos']);
+        $fQuery->FLD('repos', 'keylist(mvc=distro_Repositories, select=name)');
         
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
+        $fQuery->where("#repoId IS NULL");
+        
+        while ($fRec = $fQuery->fetch()) {
+            
+            $reposArr = type_Keylist::toArray($fRec->repos);
+            
+            foreach ($reposArr as $repoId) {
+                $fRec->repos = NULL;
+                $fRec->repoId = $repoId;
+                
+                $cls->save($fRec);
+                
+                unset($fRec->id);
+            }
         }
         
-        return $html;
+        return ;
     }
     
     
     /**
-     * Де-инсталиране на пакета
+     * Миграция за синхронизиране на файловете с новите имена на директориите
      */
-    function deinstall()
+    public static function syncFiles()
     {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $Files = cls::get('distro_Files');
+        $gQuery = distro_Group::getQuery();
         
-        return $res;
+        while ($gRec = $gQuery->fetch()) {
+            
+            $reposArr = type_Keylist::toArray($gRec->repos);
+            
+            foreach ($reposArr as $repoId) {
+                try {
+                    $Files->forceSync($gRec->id, $repoId);
+                } catch (ErrorException $e) {
+                    continue;
+                }
+            }
+        }
     }
 }

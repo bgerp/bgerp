@@ -4,7 +4,7 @@
 /**
  * Версията на chartjs, която се използва
  */
-defIfNot('CHARTJS_VERSION', '1.0.2');
+defIfNot('CHARTJS_VERSION', '2.3.0');
 
 
 /**
@@ -42,7 +42,7 @@ class chartjs_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'CHARTJS_VERSION' => array ('enum(1.0.2)', 'caption=Версия на chartjs->Версия')
+        'CHARTJS_VERSION' => array ('enum(2.3.0)', 'caption=Версия на chartjs->Версия')
     );
 
 

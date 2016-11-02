@@ -110,7 +110,7 @@ class eshop_Products extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'code,groupId,name';
+    public $searchFields = 'code,name,info,longInfo';
     
     
     /**
@@ -121,10 +121,12 @@ class eshop_Products extends core_Master
         $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
-        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
         
+        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
         $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация2,column=none');
         $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация3,column=none');
+        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация4,column=none');
+        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация5,column=none');
 
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
@@ -218,7 +220,7 @@ class eshop_Products extends core_Master
 
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
-            	$title = tr('Изпратете запитване за производство');
+            	$title = tr('Изпратете запитване за') . ' ' . tr($rec->name);
             	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
@@ -271,11 +273,23 @@ class eshop_Products extends core_Master
         while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
-            $image = $pRec->image;
-            $tact = abs(crc32($pRec->id . round(time()/(24*60*60+537)))) % 3;
-            if($tact == 2 && $pRec->image2) $image = $pRec->image2;
-            if($tact == 1 && $pRec->image1) $image = $pRec->image1;
-            $img = new thumb_Img($image, 120, 120);
+
+            $imageArr = array();
+            if($pRec->image) $imageArr[] = $pRec->image;
+            if($pRec->image1) $imageArr[] = $pRec->image1;
+            if($pRec->image2) $imageArr[] = $pRec->image2;
+            if($pRec->image3) $imageArr[] = $pRec->image3;
+            if($pRec->image4) $imageArr[] = $pRec->image4;
+            if(count($imageArr)) {
+                $tact = abs(crc32($pRec->id . round(time()/(24*60*60+537)))) % count($imageArr);
+                $image = $imageArr[$tact];
+                $img = new thumb_Img($image, 120, 120);
+            } else {
+                $img = new thumb_Img(getFullPath("eshop/img/noimage" . 
+                    (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . 
+                    ".png"), 120, 120, 'path');
+            }
+
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
             if(self::haveRightFor('edit', $pRec)) {
                 $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE);
@@ -423,10 +437,15 @@ class eshop_Products extends core_Master
         $data->rec->longInfo = trim($data->rec->longInfo);
 
         $data->row = $this->recToVerbal($data->rec);
+        
         if($data->rec->image) {
             $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(160, 160), array(800, 800), $data->row->name); 
+        } elseif(!$data->rec->image2 && !$data->rec->image3 && !$data->rec->image4 && !$data->rec->image5) {
+            $data->row->image = new thumb_Img(getFullPath("eshop/img/noimage" . 
+                    (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . 
+                    ".png"), 120, 120, 'path'); 
+            $data->row->image = $data->row->image->createImg(array('width' => 120, 'height' => 120));
         }
-        
 
         if($data->rec->image2) {
             $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(160, 160), array(800, 800), $data->row->name . ' 2'); 
@@ -524,6 +543,7 @@ class eshop_Products extends core_Master
         return $url;
     }
 
+
     
     /**
      * Титлата за листовия изглед
@@ -549,6 +569,8 @@ class eshop_Products extends core_Master
             $cRec = cms_Content::fetch($gRec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
         }
+        
+        $data->form->setOptions('measureId', cat_UoM::getUomOptions());
     }
     
     

@@ -256,20 +256,27 @@ class type_Key extends type_Int
                 $field = $this->getSelectFld();
             }
             
+            $where = '';
+            
             if ($this->params['where']) {
                 $where = $this->params['where'];
             }
             
             // Ако е зададено поле group='sysId'
             if ($this->params['group']) {
-                $where = $this->filterByGroup($mvc);
+                
+                $fWhere = $this->filterByGroup($mvc);
+                
+                if ($fWhere) {
+                    $where = empty($where) ? $fWhere : "({$where}) AND ({$fWhere})" ;
+                }
             }
             
             Debug::startTimer('prepareOPT ' . $this->params['mvc']);
             
             $options = array();
             
-            $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
+            $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this, $where));
  
             if (!count($options)) {
                 
@@ -281,7 +288,7 @@ class type_Key extends type_Int
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
-                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex);  
+                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex . '|' . core_Lg::getCurrent());  
                 } else {
                     foreach($this->options as $id => $v) {
                         $options[$id] = $v;
@@ -315,16 +322,16 @@ class type_Key extends type_Int
             
             $this->options = &$options;
             
-            $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+            $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this, $where));
         } else {
             $options = $this->options;
         }
         
         if(!$this->handler) {
-            $this->handler = md5(implode(',', array_keys($this->options)));
+            $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
         }
         
-        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20)) {
+        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20, array($this->params['mvc']))) {
             $cacheOpt = unserialize($optSz);
             $options = array();
             foreach($cacheOpt as $id => $obj) {
@@ -407,7 +414,7 @@ class type_Key extends type_Int
             $cacheOpt[$key]['title'] = $v;
             $cacheOpt[$key]['id'] = $vNorm;
         }
-        
+
         core_Cache::set($this->selectOpt, $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
     }
     
@@ -439,7 +446,7 @@ class type_Key extends type_Int
         $conf = core_Packs::getConfig('core');
         
         $maxSuggestions = $this->params['maxSuggestions'] ? $this->params['maxSuggestions'] : $conf->TYPE_KEY_MAX_SUGGESTIONS;
-        
+       
         return $maxSuggestions;
     }
     

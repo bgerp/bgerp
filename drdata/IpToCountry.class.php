@@ -39,6 +39,8 @@ class drdata_IpToCountry extends core_Manager {
         $this->FLD('country2', 'varchar(2)', 'mandatory,caption=Код на държава');
         
         $this->load('drdata_Countries,drdata_Wrapper');
+        
+        $this->dbEngine = 'MYISAM';
     }
     
     
@@ -57,12 +59,9 @@ class drdata_IpToCountry extends core_Manager {
             1 => 'maxIp',
             4 => 'country2'
         );
-        
-        // Удължаваме времето за мак. изпълнение
-        set_time_limit(240);
 
         // Импортираме данните
-        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
 
         $res .= $cntObj->html;
  
@@ -79,12 +78,7 @@ class drdata_IpToCountry extends core_Manager {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
         
-        $me = cls::get('drdata_IpToCountry');
-        
-        $query = $me->getQuery();
-        $query->limit(1);
-        
-        $cRec = $query->fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
+        $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
         
         return $cRec->country2;
     }

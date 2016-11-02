@@ -116,7 +116,7 @@ class acc_BalanceTransfers extends core_Master
 	
 	
 	/**
-	 * Файл с шаблон за единичен изглед на статия
+	 * Файл с шаблон за единичен изглед
 	 */
 	public $singleLayoutFile = 'acc/tpl/SingleLayoutBalanceTransfer.shtml';
 	
@@ -159,6 +159,7 @@ class acc_BalanceTransfers extends core_Master
 		
 		// Ако е избрана начална сметка
 		if(isset($rec->fromAccount)){
+			$interfaces = array();
 			$accInfo = acc_Accounts::getAccountInfo($rec->fromAccount);
 			
 			// Показваме аналитичностите и
@@ -232,7 +233,7 @@ class acc_BalanceTransfers extends core_Master
 						
 						// Проверяваме дали следващото е празно, ако не е показваме грешка
 						$entNext = "fromEnt" . ($i + 1) . "Id";
-						if(empty($from) && !empty($rec->$entNext)){
+						if(empty($from) && !empty($rec->{$entNext})){
 							$form->setError("fromEnt{$i}Id,toEnt{$i}Id", 'Ако има непопълнена аналитичност, то и следващата трябва да е празна');
 						}
 					}

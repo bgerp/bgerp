@@ -98,11 +98,14 @@ class hr_Shifts extends core_Master
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         static $shiftMap = array(
-            0 => 'п',
-            1 => 'I',
-            2 => 'II',
-            3 => 'н',
-            4 => 'д',
+             0 => 'п',
+             1 => 'I',
+             2 => 'II',
+             3 => 'н',
+             4 => 'д',
+             5 => 'о',
+             6 => 'б',
+             7 => 'к',
         );
         
         $month = Request::get('cal_month', 'int');
@@ -171,7 +174,7 @@ class hr_Shifts extends core_Master
             
             $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . "</span>";
             $d[$i]->type = (string)static::getShiftDay($data->rec, $date);
-            
+
             if($d[$i]->type == '0'){
                 $res->row->shift0 = ' rest';
             } elseif($d[$i]->type == '1'){
@@ -182,6 +185,12 @@ class hr_Shifts extends core_Master
                 $res->row->shift3 = ' third';
             } elseif($d[$i]->type == '4'){
                 $res->row->shift4 = ' diurnal';
+            } elseif($d[$i]->type == '5'){
+                $res->row->shift5 = ' leave';
+            } elseif($d[$i]->type == '6'){
+                $res->row->shift6 = ' sick';
+            } elseif($d[$i]->type == '7'){
+                $res->row->shift7 = ' traveling';
             }
         }
         

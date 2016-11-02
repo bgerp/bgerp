@@ -113,8 +113,12 @@ class bgerp_plg_Import extends core_Plugin
                 if($mvc->haveRightFor('import')){
                     
                     Mode::push('onExist', $onExist);
+                    Mode::push('importDelimiter', $delimiter);
+                    Mode::push('importEnclosure', $enclosure);
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
+                    Mode::pop('importEnclosure');
+                    Mode::pop('importDelimiter');
                     Mode::pop('onExist');
                     
                     // Редирект кум лист изгледа на мениджъра в който се импортира
@@ -171,7 +175,7 @@ class bgerp_plg_Import extends core_Plugin
         // Избиране на драйвър за импортиране
         $exp->DEF('#driver', 'int', 'caption=Източник,input,mandatory');
         $exp->OPTIONS("#driver", "getimportdrivers()");
-        $exp->question("#driver", tr("Моля, изберете източник") . ":", TRUE, 'title=' . tr('Какъв е източникът на данни?') . '?');
+        $exp->question("#driver", tr("Моля, изберете източник") . ":", TRUE, 'title=' . tr('Какъв е източникът на данни') . '?');
         
         // Избор как ще се въведат данните с copy & paste или с ъплоуд
         $exp->DEF('#source=Начин', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');

@@ -151,8 +151,8 @@ class store_InventoryNotes extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Вальор, mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
-    	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
-    	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните маркери->Избор, mandatory, notNULL,value=yes,maxRadio=2');
+    	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
+    	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=yes,maxRadio=2');
     }
     
     
@@ -236,7 +236,7 @@ class store_InventoryNotes extends core_Master
     		if(isset($rec->groups)){
     			$error = FALSE;
     			
-    			// Кои са недопустимите маркери
+    			// Кои са недопустимите групи
     			$notAllowed = array();
     			$groups = keylist::toArray($rec->groups);
     			
@@ -248,15 +248,15 @@ class store_InventoryNotes extends core_Master
     					break;
     				}
     				
-    				// Иначе добавяме него и наследниците му към недопустимите маркери
+    				// Иначе добавяме него и наследниците му към недопустимите групи
     				$descendant = cat_Groups::getDescendantArray($grId);
     				$notAllowed += $descendant;
     			}
     			
     			if($error === TRUE){
     				
-    				// Сетваме грешка ако са избрани маркери, които са вложени един в друг
-    				$form->setError('groups', 'Избрани са вложени маркери');
+    				// Сетваме грешка ако са избрани групи, които са вложени един в друг
+    				$form->setError('groups', 'Избрани са вложени групи');
     			}
     		}
     	}
@@ -416,11 +416,10 @@ class store_InventoryNotes extends core_Master
     	$rec = &$data->rec;
     	$row = &$data->row;
     	
-    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = transliterate(tr($row->MyCompany));
-    	$row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
- 		
+    	$headerInfo = deals_Helper::getDocumentHeaderInfo(NULL, NULL);
+    	$row = (object)((array)$row + (array)$headerInfo);
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    	
     	$toDate = dt::addDays(-1, $rec->valior);
     	$toDate = dt::verbal2mysql($toDate, FALSE);
     	$row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);
@@ -505,7 +504,7 @@ class store_InventoryNotes extends core_Master
      * @param stClass $rec
      * @return array
      * 		o productId      - ид на артикул
-     * 	    o groups         - в кои маркери е
+     * 	    o groups         - в кои групи е
      *  	o blQuantity     - к-во
      *  	o searchKeywords - ключови думи
      *  	o modifiedOn     - текуща дата
@@ -513,7 +512,9 @@ class store_InventoryNotes extends core_Master
     private function getProductsFromBalance($rec)
     {
     	$res = array();
-    	$rGroup = keylist::toArray($rec->groups);
+    	$rGroup = cat_Groups::getDescendantArray($rec->groups);
+    	$rGroup = keylist::toArray($rGroup);
+    	
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
@@ -549,14 +550,12 @@ class store_InventoryNotes extends core_Master
     			
     			$groups = cat_Products::fetchField($productId, 'groups');
     			if(count($groups)){
-    				$groups = cat_Groups::getDescendantArray($groups);
-    				$groups = keylist::fromArray($groups);
     				$aRec->groups = $groups;
     			}
     			
     			$add = TRUE;
     			
-    			// Ако е указано че искаме само артикулите с тези маркери
+    			// Ако е указано че искаме само артикулите с тези групи
     			if($rec->hideOthers == 'yes'){
     				if(!keylist::isIn($rGroup, $aRec->groups)){
     					$add = FALSE;

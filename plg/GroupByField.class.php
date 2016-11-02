@@ -28,7 +28,8 @@ class plg_GroupByField extends core_Plugin
 	{
 		// Ако няма записи, не правим нищо
 		if(!count($data->recs)) return;
-		 
+		if(!count($data->rows)) return;
+		
 		$recs = &$data->recs;
 		
 		// Ако не е зададено поле за групиране, не правим нищо
@@ -44,7 +45,7 @@ class plg_GroupByField extends core_Plugin
 		 
 		// Изчличаме в масив всички уникални стойностти на полето
 		foreach ($recs as $index => $rec1){
-			$groups[$rec1->$field] = $data->rows[$index]->$field;
+			$groups[$rec1->{$field}] = $data->rows[$index]->{$field};
 		}
 		 
 		$rows = array();
@@ -66,14 +67,16 @@ class plg_GroupByField extends core_Plugin
 			foreach ($recs as $id => $rec){
 				 
 				// Ако стойността на полето им за групиране е същата като текущото
-				if($rec->$field == $groupId){
+				if($rec->{$field} == $groupId){
 	
 					// Скриваме това поле от записа, и поставяме реда под групиращото поле
-					unset($data->rows[$id]->$field);
-					$rows[$id] = clone $data->rows[$id];
-	
-					// Веднъж групирано, премахваме записа от старите записи
-					unset($data->rows[$id]);
+					unset($data->rows[$id]->{$field});
+					if(is_object($data->rows[$id])){
+						$rows[$id] = clone $data->rows[$id];
+						
+						// Веднъж групирано, премахваме записа от старите записи
+						unset($data->rows[$id]);
+					}
 				}
 			}
 		}

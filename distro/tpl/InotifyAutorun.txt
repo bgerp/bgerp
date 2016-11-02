@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# id на процеса, който е точно за това хранилище
+pid=$(ps aux [#pipe#] egrep "(inotifywait)(.*?)([#regExPath#])+$" [#pipe#] awk {'print $2'});
+
+# Ако е стартиран, изчакваме, за да не се засече с прочитане
+if  [ -n "$pid" ];  then
+    # Ако часа и минутите съвпадат, тогава спираме процеса и изтриваме файла с действията
+    h=$(date +"%H");
+    if [ "$h" = "[#hour#]" ]; then
+        m=$(date +"%M");
+        if [ "$m" = "[#min#]" ]; then
+            sleep [#sleep#];
+            kill -9 $pid;
+            unset pid;
+            rm [#sysPath#];
+            sleep 1;
+        fi;
+    fi;
+fi;
+
+# Ако процеса е бил спрян - правим опит да го пуснем
+if  [ -z "$pid" ] ;  then
+    inotifywait --exclude "/\..*?" -d -o [#sysPath#] --timefmt "%F %T" --format "\"%w\" \"%f\" \"%e\" \"%T\"" -e modify,move,create,delete -r [#path#];
+    
+    # Това е за по-стари версии от 3.14, където няма -d и -o
+    sleep 1;
+    pid=$(ps aux [#pipe#] egrep "(inotifywait)(.*?)([#regExPath#])+$" [#pipe#] awk {'print $2'});
+    if  [ -z "$pid" ] ;  then
+        inotifywait --exclude "/\..*?" -m --timefmt "%F %T" --format "\"%w\" \"%f\" \"%e\" \"%T\"" -e modify,move,create,delete -r [#path#] >> [#sysPath#] 2>&1 &
+    fi
+fi

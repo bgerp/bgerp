@@ -50,7 +50,7 @@ class doc_LikesPlg extends core_Plugin
                 if (($rec->state == 'draft') || 
                     ($rec->state == 'rejected') || 
                     !$mvc->haveRightFor('single', $rec->id) || 
-                    doc_Likes::isLiked($rec->containerId, $userId)) {
+                    doc_Likes::isLiked($rec->containerId, $rec->threadId, $userId)) {
                     
                         $requiredRoles = 'no_one';
                 } elseif ($rec && doc_HiddenContainers::isHidden($rec->containerId)) {
@@ -63,7 +63,7 @@ class doc_LikesPlg extends core_Plugin
             if ($action == 'dislike') {
                 if (($rec->state == 'draft') || 
                     ($rec->state == 'rejected') ||
-                    !doc_Likes::isLiked($rec->containerId, $userId) ||
+                    !doc_Likes::isLiked($rec->containerId, $rec->threadId, $userId) ||
                     !$mvc->haveRightFor('single', $rec->id)) {
                     
                         $requiredRoles = 'no_one';
@@ -114,7 +114,7 @@ class doc_LikesPlg extends core_Plugin
             
             $mvc->requireRightFor('like', $rec);
             
-            if (doc_Likes::like($rec->containerId)) {
+            if (doc_Likes::like($rec->containerId, $rec->threadId)) {
                 $mvc->logWrite('Харесване', $rec->id);
                 $mvc->touchRec($rec->id);
                 
@@ -142,7 +142,7 @@ class doc_LikesPlg extends core_Plugin
             
             $redirect = FALSE;
             
-            $html = self::getLikesHtml($rec->containerId);
+            $html = self::getLikesHtml($rec->containerId, $rec->threadId);
             
             $resObj = new stdClass();
     		$resObj->func = "html";
@@ -182,7 +182,7 @@ class doc_LikesPlg extends core_Plugin
     {
         if (!$rec->containerId) return ;
         
-        $likedArr = doc_Likes::getLikedArr($rec->containerId, 'DESC');
+        $likedArr = doc_Likes::getLikedArr($rec->containerId, $rec->threadId);
         
         // Ако само текущия потребител е харесал документа
         if (!$likedArr) return ;
@@ -314,14 +314,15 @@ class doc_LikesPlg extends core_Plugin
      * Подготвя лога за харесванията
      * 
      * @param integer $cid
+     * @param integer $threadId
      * 
      * @return string
      */
-    protected static function getLikesHtml($cid)
+    protected static function getLikesHtml($cid, $threadId)
     {
         $html = '';
         
-        $likedArr = doc_Likes::getLikedArr($cid, 'DESC');
+        $likedArr = doc_Likes::getLikedArr($cid, $threadId);
             
         if ($likedArr) {
             
@@ -355,10 +356,10 @@ class doc_LikesPlg extends core_Plugin
                 
                 if ($rec->state != 'draft' && $rec->state != 'rejected') {
                     
-                    $likesCnt = doc_Likes::getLikesCnt($rec->containerId);
+                    $likesCnt = doc_Likes::getLikesCnt($rec->containerId, $rec->threadId);
                     
                     // Добавяме харесванията и линк
-                    $isLikedFromCurrUser = doc_Likes::isLiked($rec->containerId, core_Users::getCurrent());
+                    $isLikedFromCurrUser = doc_Likes::isLiked($rec->containerId, $rec->threadId, core_Users::getCurrent());
                     
                     $likesLink = '';
                     
@@ -424,10 +425,11 @@ class doc_LikesPlg extends core_Plugin
                     
                     $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
                     $row->DocumentSettingsLeft->append($likesLink);
-                    jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'showTooltip');
-                    jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'smartCenter');
-                    jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'setThreadElemWidth');
                 }
+                
+                jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'showTooltip');
+                jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'smartCenter');
+                jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'setThreadElemWidth');
             }
         }
     }

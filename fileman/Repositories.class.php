@@ -847,7 +847,7 @@ class fileman_Repositories extends core_Master
             // RecursiveIteratorIterator::SELF_FIRST - Служи за вземане и на директориите
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath), RecursiveIteratorIterator::SELF_FIRST);
             
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             self::logNotice('Не може да се обходи директорията', $repoRec->id);
             
             return $res;
@@ -985,6 +985,8 @@ class fileman_Repositories extends core_Master
      * 
      * @param string $ignoreStr - Стринг с файловете за игнориране
      * @param string $fileName - Име на файл
+     * 
+     * @return boolean
      */
     static function isForIgnore($ignoreStr, $fileName)
     {
@@ -1086,7 +1088,7 @@ class fileman_Repositories extends core_Master
             $match = preg_match($patternText, $fileName);
             
             // Връщаме резултата
-            return $match;
+            return (boolean)$match;
         }
         
         return FALSE;

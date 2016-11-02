@@ -101,12 +101,6 @@ class cms_Domains extends core_Embedder
 
 
     /**
-     * Файл с шаблон за единичен изглед на статия
-     */
-    // public $singleLayoutFile = 'frame/tpl/SingleLayoutReport.shtml';
-
-
-    /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
     public $innerObjectInterface = 'cms_ThemeIntf';
@@ -255,6 +249,10 @@ class cms_Domains extends core_Embedder
                     self::selectCurrent($domainRec->id);
                 }
             }
+        }
+        
+        if (!$domainRec || ($part == 'id' && !$domainRec->{$part})) {
+            wp($domainRec);
         }
               
         if($part) {

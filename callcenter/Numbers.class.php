@@ -98,10 +98,12 @@ class callcenter_Numbers extends core_Manager
         $this->FLD('type', 'enum(tel=Телефон, mobile=Мобилен, fax=Факс, internal=Вътрешен)', 'caption=Тип');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
-        
         $this->FNC('contragent', 'varchar', 'caption=Контрагент');
         
         $this->setDbUnique('number, type, classId, contragentId');
+
+        $this->setDbIndex('number');
+        $this->setDbIndex('classId, contragentId');
     }
     
     
@@ -166,7 +168,7 @@ class callcenter_Numbers extends core_Manager
      * 
      * @return string
      */
-    static function getCallerName($id, $userId)
+    static function getCallerName($id, $userId = NULL)
     {
         // Ако не е подадено id
         if (!$id) return ;
@@ -300,7 +302,7 @@ class callcenter_Numbers extends core_Manager
         foreach ((array)$existRecsArr as $num => $rec) {
             
             // Изтриваме
-            $deleted = static::delete(array("#classId = '[#1#]' AND #contragentId = '[#2#]' AND #number = [#3#]", $classId, $docId, $num));
+            $deleted = static::delete(array("#number = '[#1#]' AND #classId = '[#2#]' AND #contragentId = '[#3#]'", $num, $classId, $docId));
             
             // Ако е бил изтрит успешно
             if ($deleted) {
@@ -349,7 +351,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Добавяме посочения номер в модела като вътрешен
      * 
-     * @param array $numbersArr - Масив с номерата, които ще добавяме - tel, fax, mobile
+     * @param array $numbers - Масив с номерата, които ще добавяме - tel, fax, mobile
      * @param int $classId - id на класа
      * @param int $docId - id на документа
      */
@@ -817,7 +819,7 @@ class callcenter_Numbers extends core_Manager
         $retUrl = getRetUrl();
         
         // Ако няма URL, създаваме
-        if (!$retUrl) {
+        if (empty($retUrl)) {
             $retUrl = array('callcenter_Numbers', 'list');
         }
         

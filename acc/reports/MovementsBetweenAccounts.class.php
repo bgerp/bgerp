@@ -345,8 +345,13 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             
             foreach ($data->recs as &$rec1){
                 $fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
-                @$rec1->delta = round($rec1->{$fld} / $data->summary->${fld}, 5);
-                @$rec1->delta = cls::get('type_Percent')->toVerbal($rec1->delta);
+                if(!empty($data->summary->{$fld})){
+                	$rec1->delta = round($rec1->{$fld} / $data->summary->{$fld}, 5);
+                } else {
+                	$rec1->delta = 0;
+                }
+                
+                $rec1->delta = cls::get('type_Percent')->toVerbal($rec1->delta);
             }
 
         }
@@ -772,7 +777,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         if(count($innerState->rows)){
             foreach ($innerState->rows as $row){
                 foreach (array('debitAmount', 'debitQuantity','creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld){
-                    unset($row->$fld);
+                    unset($row->{$fld});
                 }
             }
         }

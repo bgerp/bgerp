@@ -48,12 +48,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, planning';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, planning';
@@ -104,19 +98,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
         $this->setField('quantity', 'caption=Количества->За влагане');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap');
-    }
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
     
-    
-    /**
-     * Преди подготвяне на едит формата
-     */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    {
-    	$type = Request::get('type', 'enum(input,pop)');
-    	 
-    	$title = ($type == 'pop') ? 'отпадък' : 'материал';
-    	$mvc->singleTitle = $title;
+        $this->setDbIndex('productId');
     }
     
     
@@ -126,19 +110,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
-    	if(isset($rec->id)){
-    		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
-    	} else {
-    		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
-    		$products = array('' => '') + cat_Products::getByProperty($metas);
-    		unset($products[$data->masterRec->productId]);
-    	}
-    	$form->setOptions('productId', $products);
+    	$data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : 'материал';
+    	$data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
     	
     	if(isset($rec->productId)){
     		$storable = cat_Products::fetchField($rec->productId, 'canStore');
@@ -159,7 +136,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	$rec = &$form->rec;
     	
@@ -216,7 +193,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * След подготовка на детайлите, изчислява се общата цена
      * и данните се групират
      */
-    public static function on_AfterPrepareDetail($mvc, $res, $data)
+    protected static function on_AfterPrepareDetail($mvc, $res, $data)
     {
     	$data->inputArr = $data->popArr = array();
     	$countInputed = $countPoped = 1;
@@ -314,7 +291,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	if(!count($data->recs)) return;
     	$storeId = $data->masterData->rec->inputStoreId;
@@ -327,7 +304,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => &$row){
     		$rec = $data->recs[$id];
     		
-    		@$difference = round(abs($rec->quantityFromBom - $rec->quantityFromTasks) / min($rec->quantityFromBom, $rec->quantityFromTasks) * 100);
+    		$difference = 0;
+    		$minQuantity = min($rec->quantityFromBom, $rec->quantityFromTasks);
+    		
+    		if (!empty($minQuantity)) {
+    		    $difference = round(abs($rec->quantityFromBom - $rec->quantityFromTasks) / $minQuantity * 100);
+    		}
+    		
     		if($difference >= 20){
     			if($data->masterData->rec->state != 'active'){
     				$row->packQuantity = ht::createHint($row->packQuantity, 'Има голяма разлика между количеството по рецепта и по задачи',  'warning', FALSE);

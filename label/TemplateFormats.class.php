@@ -91,7 +91,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Данни за тип
      */
-    protected static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка';
+    protected static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка,html=HTML';
     
     
     /**
@@ -148,7 +148,7 @@ class label_TemplateFormats extends core_Detail
         if ($mvc->haveRightFor('add', $rec)) {
             
             // URL за добавяне
-            $captionUrl = $counterUrl = $imageUrl = array(
+            $captionUrl = $counterUrl = $imageUrl = $htmlUrl = array(
                     $mvc,
                     'add',
                     $masterKey => $data->masterId,
@@ -177,6 +177,14 @@ class label_TemplateFormats extends core_Detail
             // Добавяме бутона
             $data->toolbar->addBtn('Нова картинка', $imageUrl,
                 'id=btnAddImage', 'ef_icon = img/16/star_2.png, title=Създаване на нова картинка'
+            );
+            
+            // URL за добавяне  шаблон за изображение
+            $htmlUrl['type'] = 'html';
+            
+            // Добавяме бутона
+            $data->toolbar->addBtn('Нов HTML', $htmlUrl,
+                'id=btnAddHTML', 'ef_icon = img/16/star_2.png, title=Създаване на нов HTML'
             );
         }
     }
@@ -416,6 +424,11 @@ class label_TemplateFormats extends core_Detail
                 $form->FNC('Rotation', 'enum(yes=Допустима, no=Недопустима)', 'caption=Ротация, input=input, mandatory');
             break;
             
+            case 'html':
+                // Максимална дължина на символите
+                $form->FNC('MaxLength', 'int(min=1, max=5000)', 'caption=Макс. символи, input=input');
+            break;
+            
             default:
                 
                 // Очакваме валиден тип
@@ -450,13 +463,13 @@ class label_TemplateFormats extends core_Detail
             
             // Плейсхолдера
             $placeHolder = trim($rec->placeHolder);
+            $placeHolder = mb_strtoupper($placeHolder);
             
             // Името на полето
             $placeHolderField = static::getPlaceholderFieldName($placeHolder);
             
             // Заглавието на полета
             $caption = "Параметри->" . $placeHolder;
-            
             // Ако е image
             if ($rec->type == 'image') {
                 
@@ -477,6 +490,20 @@ class label_TemplateFormats extends core_Detail
                 
                 // Максимална дължина на символите
                 $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
+            } elseif ($rec->type == 'html') {
+                
+                // Ако е зададена максимална дължина
+                if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
+                
+                    // Задаваме стрингов тип с максимална дължина
+                    $type = "html({$maxLength})";
+                } else {
+                
+                    // Типа без максимална дължина
+                    $type = 'html';
+                }
+                
+                $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
             }
         }
     }
@@ -496,8 +523,7 @@ class label_TemplateFormats extends core_Detail
      */
     public static function getPlaceholderFieldName($placeHolder)
     {
-        
-        return ucfirst($placeHolder);
+        return mb_strtoupper($placeHolder);
     }
     
     
@@ -658,6 +684,20 @@ class label_TemplateFormats extends core_Detail
                     $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
                 }
             }
+        } elseif ($type == 'html') {
+        
+            // Стринга, който ще се използва в масива за ключ
+            $valStr = $val . '|' . $updateTempData;
+            
+            // Ако не е вземана стойността
+            if (!$verbalValArr[$valStr]) {
+                
+                // Инстанциня на класа
+                $Html = cls::get('type_Html');
+                
+                // Добавяме в масива
+                $verbalValArr[$valStr] = $Html->toVerbal($val);
+            }
         }
         
         return $verbalValArr[$valStr];
@@ -802,6 +842,14 @@ class label_TemplateFormats extends core_Detail
                     }
                 }
             }
+        }
+        
+        // Ако шаблона е създаден от системата никой, не може да променя параметрите му
+        if(($action == 'add' || $action == 'edit') && isset($rec)){
+        	$createdBy = label_Templates::fetchField($rec->templateId, 'createdBy');
+        	if($createdBy == core_Users::SYSTEM_USER){
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
     

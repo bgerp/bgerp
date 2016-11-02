@@ -60,6 +60,8 @@ class type_UserOrRole extends type_User
     {
         $this->prepareSelOpt = FALSE;
         
+        $this->handler = md5(serialize($this->params) . '|' . core_Users::getCurrent());
+        
         $this->options = parent::prepareOptions();
         
         // Ако има съответната роля за виждане на ролите
@@ -269,7 +271,25 @@ class type_UserOrRole extends type_User
         if (!$userOrRole) return ;
         
         $inst = cls::get(get_called_class());
+        
+        // Няма нужда да се подготвят опциите за ролите, когато се търси потребител
+        if ($userOrRole >= 0) {
+            
+            // Опитваме се да определим потребителя с групата му
+            $userTeamsArr = self::getUserFromTeams($userOrRole);
+            
+            if (!empty($userTeamsArr)) {
+                reset($userTeamsArr);
+                $userGroupId = key($userTeamsArr);
+                
+                if ($userGroupId) return $userGroupId;
+            }
+            
+            $inst->params['rolesForAllRoles'] = 'no_one';
+        }
+        
         $inst->prepareOptions();
+        
         foreach ((array)$inst->options as $optVal => $vals) {
             if ($vals->value == $userOrRole) {
                 

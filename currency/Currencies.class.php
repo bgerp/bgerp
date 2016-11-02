@@ -282,7 +282,7 @@ class currency_Currencies extends core_Master {
 	    	2 => "state",);
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
-    	$res .= $cntObj->html;
+    	$res = $cntObj->html;
     	
     	return $res;
     }

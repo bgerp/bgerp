@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,13 @@ class planning_AssetResources extends core_Master
 	/**
      * Заглавие
      */
-    public $title = 'Машинни ресурси';
+    public $title = 'Оборудване';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper, plg_State2, plg_Search';
+    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew';
     
     
     /**
@@ -62,7 +62,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,code,name,protocolId,createdOn,createdBy,state';
+    public $listFields = 'tools=Пулт,code,name,protocolId,departments,quantity=К-во,createdOn,createdBy,state';
     
     
     /**
@@ -80,7 +80,7 @@ class planning_AssetResources extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Машинен ресурс';
+    public $singleTitle = 'Оборудване';
     
     
     /**
@@ -103,8 +103,12 @@ class planning_AssetResources extends core_Master
     	$this->FLD('name', 'varchar', 'caption=Име,mandatory');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
+    	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структура');
+    	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
+    	
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
+    	$this->setDbUnique('code');
     	$this->setDbUnique('protocolId');
     }
     

@@ -332,16 +332,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 		return $self->singleTitle . " №$rec->id";
 	}
-	
 
-	/**
-	 * Вкарваме css файл за единичния изглед
-	 */
-	protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
-	{
-		$tpl->push('bank/tpl/css/styles.css', 'CSS');
-	}
-	
 
 	/**
 	 * Подготовка на бутоните на формата за добавяне/редактиране
@@ -398,13 +389,11 @@ abstract class bank_Document extends deals_PaymentDocument
 				unset($row->rate);
 			}
 	
-			$ownCompany = crm_Companies::fetchOwnCompany();
-			$Companies = cls::get('crm_Companies');
-			$row->companyName = cls::get('type_Varchar')->toVerbal($ownCompany->company);
-			$row->companyAddress = $Companies->getFullAdress($ownCompany->companyId);
-	
-			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-			$row->contragentAddress = $contragent->getFullAdress();
+			// Вземаме данните за нашата фирма
+    		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+    		foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld){
+    			$row->{$fld} = $headerInfo[$fld];
+    		}
 	
 			if(isset($rec->ownAccount)){
 				$row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
@@ -486,7 +475,12 @@ abstract class bank_Document extends deals_PaymentDocument
         expect(count($options));
        
         if($expectedPayment = $dealInfo->get('expectedPayment')){
-        	$amount = $expectedPayment / $dealInfo->get('rate');
+        	if(isset($form->rec->originId) && isset($form->rec->amountDeal)){
+        		$expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
+        	}
+        	
+        	$amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+        	
         	if($form->rec->currencyId == $form->rec->dealCurrencyId){
         		$form->setDefault('amount', $amount);
         	}

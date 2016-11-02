@@ -116,7 +116,7 @@ class cash_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     var $singleLayoutFile = 'bank/tpl/SingleInternalMoneyTransfer.shtml';
     
@@ -199,12 +199,6 @@ class cash_InternalMoneyTransfer extends core_Master
             
             return;
         }
-	   
-    	if($folderId = Request::get('folderId', 'int')){
-    		if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
-	        	return redirect(array('cash_Cases', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна каса");
-	        }
-        }
         
         // Има ли вече зададено основание? 
         if (Request::get('operationSysId', 'varchar')) {
@@ -236,6 +230,10 @@ class cash_InternalMoneyTransfer extends core_Master
         $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
        	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
+       	if(!doc_Folders::haveRightToObject($folderId)){
+       		$folderId = static::getDefaultFolder(NULL, FALSE);
+       	}
+       	
        	$form->setDefault('folderId', $folderId);
         
         return $form;
@@ -288,6 +286,20 @@ class cash_InternalMoneyTransfer extends core_Master
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
     		$mvc->validateForm($form);
+    	}
+    }
+    
+    
+    /**
+     * Ако в документа няма код, който да рутира документа до папка/тред,
+     * долния код, рутира документа до "Несортирани - [заглавие на класа]"
+     */
+    protected static function on_BeforeRoute($mvc, &$res, $rec)
+    {
+    	if($rec->operationSysId == 'case2bank'){
+    		$rec->folderId = bank_OwnAccounts::fetchField($rec->debitBank, 'folderId');
+    	} elseif($rec->operationSysId == 'case2case'){
+    		$rec->folderId = cash_Cases::fetchField($rec->debitCase, 'folderId');
     	}
     }
     
@@ -405,5 +417,16 @@ class cash_InternalMoneyTransfer extends core_Master
     	$self = cls::get(__CLASS__);
     
     	return $self->singleTitle . " №$rec->id";
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// Споделяме текущия потребител със нишката на заданието
+    	$cu = core_Users::getCurrent();
+    	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Клас 'cal_Tasks' - Документ - задача
  *
@@ -8,7 +7,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -32,7 +31,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, 
+    public $loadList = 'plg_RowTools, cal_Wrapper, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
     				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone';
 
 
@@ -85,6 +84,12 @@ class cal_Tasks extends core_Master
 
 
     /**
+     * Кой може да променя състоянието?
+     */
+    public $canChangestate = 'powerUser';
+    
+    
+    /**
      * Кой има право да го чете?
      */
     public $canRead = 'powerUser';
@@ -121,21 +126,9 @@ class cal_Tasks extends core_Master
 
 
     /**
-     *
+     * Кой има достъп до сингъла
      */
     public $canSingle = 'powerUser';
-
-
-    /**
-     * Кой има право да приключва?
-     */
-    public $canChangeTaskState = 'powerUser';
-
-
-    /**
-     * Кой има право да затваря задачите?
-     */
-    public $canClose = 'powerUser';
 
 
     /**
@@ -167,17 +160,28 @@ class cal_Tasks extends core_Master
      */
     public $newBtnGroup = "1.3|Общи";
 
-    static $view = array(
-        'WeekHour' => 1,
-        'WeekHour4' => 2,
-        'WeekHour6' => 3,
-        'WeekDay' => 4,
-        'Months' => 5,
-        'YearWeek' => 6,
-        'Years' => 7,
-    );
+    
+    /**
+     * Изгледи
+     */
+    public static $view = array('WeekHour'  => 1,
+    							'WeekHour4' => 2,
+    							'WeekHour6' => 3,
+    							'WeekDay'   => 4,
+    							'Months'    => 5,
+    							'YearWeek'  => 6,
+    							'Years'     => 7,);
 
+    
+    /**
+     * Поле за филтър по дата - начало
+     */
     public $filterFieldDateFrom = 'timeStart';
+
+    
+    /**
+     * Поле за филтър по дата - край
+     */
     public $filterFieldDateTo = 'timeEnd';
     
     
@@ -197,6 +201,14 @@ class cal_Tasks extends core_Master
         'onEnd' => array('По края', 'timeEnd=По края'),
         'noStartEnd' => array('Без начало и край', 'noStartEnd=Без начало и край'),
     );
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed';
 
 
     /**
@@ -210,7 +222,7 @@ class cal_Tasks extends core_Master
                                     high=Висок,
                                     critical=Критичен)',
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
-        $this->FLD('description', 'richtext(bucket=calTasks)', 'caption=Описание,changable');
+        $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
 
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,changable');
@@ -223,7 +235,7 @@ class cal_Tasks extends core_Master
         $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable');
 
         // Краен срок на задачата
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Времена->Край,changable, tdClass=leftColImportant');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime, defaultTime=23:59:59)', 'caption=Времена->Край,changable, tdClass=leftColImportant');
 
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -429,7 +441,7 @@ class cal_Tasks extends core_Master
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         $cu = core_Users::getCurrent();
         $rec = $form->rec;
@@ -446,6 +458,10 @@ class cal_Tasks extends core_Master
             
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
                 $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
+            }
+            
+            if ($rec->timeStart && $rec->timeEnd && $rec->timeDuration) {
+                $form->setError('timeEnd,timeStart,timeDuration', 'Не може задачата да има едновременно начало, продължителност и край. Попълнете само две от тях');
             }
 
             // при активиране на задачата
@@ -507,28 +523,43 @@ class cal_Tasks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if ($data->rec->state == 'active' || $data->rec->state == 'pending') {
-            $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
-            $data->toolbar->removeBtn('btnActivate');
+        if(cal_TaskProgresses::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
+        	$data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
+        }
+       
+        if(cal_TaskConditions::haveRightFor('add', (object)array('baseId' => $data->rec->id))){
+        	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
 
-        if ($data->rec->state == 'draft' || $data->rec->state == 'pending') {
-            $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
+        if($data->rec->timeEnd) {
+            $taskEnd = $data->rec->timeEnd;
+        } else {
+            $taskEnd = dt::now();
         }
-
+        
+        if($data->rec->timeStart) {
+            $taskStart = $data->rec->timeStart;
+        } else {
+            $taskStart = dt::now();
+        }
+        
         // ако имаме зададена продължителност
         if ($data->rec->timeDuration) {
 
-            // то изчисляваме края на задачата
-            // като към началото добавяме продължителността
-            $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration);
-        } else {
-            $taskEnd = $data->rec->timeEnd;
-        }
-        // изчислява продължителността в секунди
-        $durations = dt::mysql2timestamp($taskEnd) - dt::mysql2timestamp($data->rec->timeStart);
+            if(!$data->rec->timeEnd) {
+                // то изчисляваме края на задачата
+                // като към началото добавяме продължителността
+                $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration);
+            } 
+            
+            if(!$data->rec->timeStart) {
+                // то изчисляваме началото на задачата
+                // като от края на задачата вадим продължителността
+                $taskStart = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeEnd) - $data->rec->timeDuration);
+            } 
+        } 
 
         // ако имаме бутон "Активиране"
         if (isset($data->toolbar->buttons['Активиране'])) {
@@ -538,17 +569,18 @@ class cal_Tasks extends core_Master
 
             // при следните условия
             $query->likeKeylist('sharedUsers', $data->rec->sharedUsers);
-            $query->where("#timeEnd >= '{$data->rec->timeStart}' AND #timeStart <= '{$taskEnd}'");
-            $query->where("#timeDuration >= '{$durations}' AND #timeStart <= '{$taskEnd}'");
+            $query->where("('{$taskStart}' > #timeStart AND #timeStart < '{$taskEnd}') OR ('{$taskStart}' > #timeEnd AND #timeEnd < '{$taskEnd}')");
+         
 
             // и намерим такъв запис
             if ($query->fetch()) {
                 // променяме бутона "Активиране"
-                $data->toolbar->buttons['Активиране']->error = "Има колизия във времената на задачата";
+                $data->toolbar->buttons['Активиране']->warning = "По същото време има и други задачи с някои от същите споделени потребители";
             }
         }
     }
 
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -557,6 +589,7 @@ class cal_Tasks extends core_Master
         $mvc->updateTaskToCalendar($rec->id);
     }
 
+    
     /**
      * След изтриване на запис
      */
@@ -579,19 +612,13 @@ class cal_Tasks extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
         if ($action == 'postpone') {
             if ($rec->id) {
                 if ($rec->state !== 'active' || (!$rec->timeStart)) {
                     $requiredRoles = 'no_one';
-                }  /*else {
-	                if(!haveRole('ceo') || ($userId !== $rec->createdBy) &&
-	                !keylist::isIn($userId, $rec->sharedUsers)) { 
-	                	
-	                	$requiredRoles = 'no_one';
-	                }
-	            }*/
+                }
             }
         }
 
@@ -600,6 +627,14 @@ class cal_Tasks extends core_Master
                 if (!cal_Tasks::haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+        
+        if ($action == 'changestate') {
+            if ($rec->id) {
+                if (!$mvc->haveRightFor('single', $rec->id, $userId)) {
+                    $requiredRoles = 'no_one';
+               }
             }
         }
     }
@@ -621,7 +656,7 @@ class cal_Tasks extends core_Master
 
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
-        // bp($canActivate,self::calculateExpectationTime($rec), $rec);
+        
         if ($now >= $canActivate && $canActivate !== NULL) {
 
             $rec->timeCalc = $canActivate->calcTime;
@@ -823,27 +858,6 @@ class cal_Tasks extends core_Master
 	        		              ");
             }
         }
-    }
-
-
-    /**
-     * Ако няма записи не вади таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    static function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-
-        if (Mode::is('listTasks', 'by') || Mode::is('listTasks', 'to')) {
-
-            // return FALSE;
-        }
-        // bp($data);
-        //$data->query->orderBy("id=DESC");
-        //bp();
-
     }
 
 
@@ -1447,6 +1461,9 @@ class cal_Tasks extends core_Master
      */
     static function renderGanttTimeType($data)
     {
+        // Сетваме времевата зона
+        date_default_timezone_set('UTC');
+        
     	$ganttType = Request::get('View');
     	
     	$url = self::getNextGanttType($ganttType);
@@ -1475,7 +1492,9 @@ class cal_Tasks extends core_Master
     		
     	// ако периода на таблицата е по-голям от година
     		case 'Years': 
-    	   	 	
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е година/месец
 	    		$otherParams['mainHeaderCaption'] = tr('година');
 	    		$otherParams['subHeaderCaption'] = tr('месеци');
@@ -1513,7 +1532,9 @@ class cal_Tasks extends core_Master
     		
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour4' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -1551,6 +1572,8 @@ class cal_Tasks extends core_Master
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour6' :
     		
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -1587,7 +1610,9 @@ class cal_Tasks extends core_Master
     		
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -1624,7 +1649,9 @@ class cal_Tasks extends core_Master
    		
     		// ако периода на таблицата е в рамките на седмица - месец
     		case 'WeekDay' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е седмица/ден
 	    		$otherParams['mainHeaderCaption'] = tr('седмица');
 	    		$otherParams['subHeaderCaption'] = tr('ден');
@@ -1667,7 +1694,9 @@ class cal_Tasks extends core_Master
             
     	   // ако периода на таблицата е в рамките на месец - ден
     		case 'Months' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е месец/ден
 	    		$otherParams['mainHeaderCaption'] = tr('месец');
 	    		$otherParams['subHeaderCaption'] = tr('ден');
@@ -1688,7 +1717,7 @@ class cal_Tasks extends core_Master
 	    		$toDate = dt::addDays(3, $endTasksTime[0]). " 23:59:59"; 
 	            
 	    		// генерираме номерата на седмиците между началото и края
-	    		while ($curDate < $toDate){
+	    		while ($curDate <= $toDate){
 	    		    $color = cal_Calendar::getColorOfDay($curDate);
 	    			$curDateExplode =  explode("-", $curDate);
 	    			$w = dt::getMonth($curDateExplode[1], 'F') . " " . $curDateExplode[0];
@@ -1705,12 +1734,14 @@ class cal_Tasks extends core_Master
 	    		foreach ($res as $headerArr) {
 	    			$headerInfo[] = $headerArr;
 	    		}
-    		
+
     		break; 
     	  
     	   // ако периода на таблицата е в рамките на година - седмици
     		case 'YearWeek' :
-    		
+    		    
+    		    date_default_timezone_set('UTC');
+    		    
 	    		// делението е месец/седмица
 	    		$otherParams['mainHeaderCaption'] = tr('година');
 	    		$otherParams['subHeaderCaption'] = tr('седмица');
@@ -2108,27 +2139,6 @@ class cal_Tasks extends core_Master
 	    
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
-
-    }
-        
-    static function act_Test()
-    {
-    	 // Обикаляме по всички чакащи задачи 
-       $query = $this->getQuery();
-       $query->where("#state = 'pending'");
-       
-	   $activatedTasks = array ();
-	   $now = dt::verbal2mysql();
-       
-	   while ($rec = $query->fetch()) { 
- 
-	   	   // изчисляваме очакваните времена
-	   	
-	   		//bp($rec->expectationTimeEnd, $rec);
-	       if($rec->id == 24){
-		  	self::calculateExpectationTime($rec);
-	       }
-	   }
     }
     
     
@@ -2139,9 +2149,8 @@ class cal_Tasks extends core_Master
      * @param stdClass $rec
      * @param stdClass $recCond
      */
-    static public function calculateTimeToStart ($rec, $recCond)
+    static public function calculateTimeToStart($rec, $recCond)
     {
-    	
     	// времето от което зависи новата задача е началото на зависимата задача
     	// "timeCalc"
     	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
@@ -2300,10 +2309,6 @@ class cal_Tasks extends core_Master
         if (!$rec->timeStart && !$rec->timeEnd) {
         	unset($resArr['expectationTimeStart']);
         	unset($resArr['expectationTimeEnd']);
-        }
-        
-        if ($row->timeClosed) {
-            $resArr['timeClosed'] =  array('name' => tr('Приключено на'), 'val' =>"[#timeClosed#]");
         }
     }
     

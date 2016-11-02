@@ -22,10 +22,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <b>[#companyName#]</b>
-	                        <div class='address-block'>
-	                            [#companyAddress#]
-	                        </div>
+                            <b>[#MyCompany#]</b>
+                        	<div class='address-block'>
+                            	[#MyAddress#]
+                        	</div>
                         </td>
                         <td>
                             <b>[#contragentName#]</b>

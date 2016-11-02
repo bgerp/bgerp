@@ -46,7 +46,11 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
-			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено)', 'caption=Състояние, input=none');
+			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
+		}
+		
+		if (!$mvc->fields['timeClosed']) {
+			$mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворено на,input=none');
 		}
 		
 		if(isset($mvc->demandReasonChangeState)){
@@ -67,7 +71,7 @@ class planning_plg_StateManager extends core_Plugin
 		
 		// Добавяне на бутон за приключване
 		if($mvc->haveRightFor('close', $rec)){
-			$attr = array('ef_icon' => "img/16/lightbulb_off.png", 'title' => "Приключване на документа", 'warning' => "Сигурни ли сте, че искате да приключите документа", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/gray-close.png", 'title' => "Приключване на документа", 'warning' => "Сигурни ли сте, че искате да приключите документа", 'order' => 30);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['close'])){
 				unset($attr['warning']);
 			}
@@ -77,17 +81,17 @@ class planning_plg_StateManager extends core_Plugin
 		 
 		// Добавяне на бутон за спиране
 		if($mvc->haveRightFor('stop', $rec)){
-			$attr = array('ef_icon' => "img/16/control_pause.png", 'title' => "Спиране на документа",'warning' => "Сигурни ли сте, че искате да спрете документа", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/control_pause.png", 'title' => "Спиране на документа",'warning' => "Сигурни ли сте, че искате да спрете документа", 'order' => 30, 'row' => 2);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['stop'])){
 				unset($attr['warning']);
 			}
 			
-			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE),  $attr);
+			$data->toolbar->addBtn("Пауза", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE),  $attr);
 		}
 		 
 		// Добавяне на бутон за събуждане
 		if($mvc->haveRightFor('wakeup', $rec)){
-			$attr = array('ef_icon' => "img/16/lightbulb.png", 'title' => "Събуждане на документа",'warning' => "Сигурни ли сте, че искате да събудите документа", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/lightbulb.png", 'title' => "Събуждане на документа",'warning' => "Сигурни ли сте, че искате да събудите документа", 'order' => 30, 'row' => 3);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['wakeup'])){
 				unset($attr['warning']);
 			}
@@ -127,8 +131,8 @@ class planning_plg_StateManager extends core_Plugin
 			switch($action){
 				case 'close':
 	
-					// Само активните и събудените могат да бъдат приключени
-					if($rec->state != 'active' && $rec->state != 'wakeup'){
+					// Само активните, събудените и спрените могат да бъдат приключени
+					if($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped'){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -149,14 +153,14 @@ class planning_plg_StateManager extends core_Plugin
 				case 'activateagain':
 	
 					// Дали може да бъде активирана отново, след като е било променено състоянието
-					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'pending'){
+					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'pending' || $rec->state == 'template'){
 						$requiredRoles = 'no_one';
 					}
 					break;
 				case 'activate':
 					
 					// Само приключените могат да бъдат събудени
-					if($rec->state != 'draft'){
+					if($rec->state != 'draft' && isset($rec->state)){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -212,6 +216,7 @@ class planning_plg_StateManager extends core_Plugin
     			case 'close':
     				$rec->brState = $rec->state;
     				$rec->state = 'closed';
+    				$rec->timeClosed = dt::now();
     				$logAction = 'Приключване';
     				break;
     			case 'stop':
@@ -237,10 +242,17 @@ class planning_plg_StateManager extends core_Plugin
     			break;
     		}
     	
+    		// Ако ще активираме: запалваме събитие, че ще активираме
+    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
+    		if($action == 'activate'){
+    			$mvc->invoke('BeforeActivation', array(&$rec));
+    			$saveFields = NULL;
+    		}
+    		
     		// Обновяваме състоянието и старото състояние
-    		if($mvc->save($rec, 'brState,state,modifiedOn,modifiedBy')){
+    		if($mvc->save($rec, $saveFields)){
     			$mvc->logWrite($logAction, $rec->id);
-    			$mvc->invoke('AfterChangeState', array(&$rec, $action));
+    			$mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
     		}
     		
     		// Ако сме активирали: запалваме събитие, че сме активирали
@@ -250,6 +262,28 @@ class planning_plg_StateManager extends core_Plugin
     		
     		// Редирект обратно към документа
     		redirect(array($mvc, 'single', $rec->id));
+		}
+	}
+	
+
+	/**
+	 * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+	 */
+	public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+	{
+		$rec = $mvc->fetchRec($id);
+		$mvc->invoke('AfterChangeState', array(&$rec, 'rejected'));
+	}
+	
+	
+	/**
+	 * След възстановяване
+	 */
+	public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+	{
+		$rec = $mvc->fetchRec($id);
+		if($rec->state != 'rejected'){
+			$mvc->invoke('AfterChangeState', array(&$rec, 'restore'));
 		}
 	}
 	
@@ -298,5 +332,60 @@ class planning_plg_StateManager extends core_Plugin
 		$res = $mvc->renderWrapping($res);
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * След подготовка на сингъла
+	 */
+	public static function on_AfterPrepareSingle($mvc, &$res, $data)
+	{
+		$rec = &$data->rec;
+		$row = &$data->row;
+		
+		if($rec->state == 'stopped' || $rec->state == 'closed') {
+			$tpl = new ET(tr(' от [#user#] на [#date#]'));
+			$dateChanged = ($rec->state == 'closed') ? $rec->timeClosed : $rec->modifiedOn;
+			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+	 */
+	protected static function on_AfterPrepareEditToolbar($mvc, $data)
+	{
+		if ($mvc->haveRightFor('activate', $data->form->rec)) {
+			$data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate, order=9.99980', 'ef_icon = img/16/lightning.png,title=Активиране на документа');
+		}
+	}
+	
+	
+	/**
+	 * Ако е натиснат бутона 'Активиране" добавя състоянието 'active' в $form->rec
+	 */
+	public static function on_AfterInputEditForm($mvc, $form)
+	{
+		if($form->isSubmitted()) {
+			if($form->cmd == 'active') {
+				$form->rec->state = ($mvc->activateNow($form->rec)) ? 'active' : 'pending';
+				$mvc->invoke('BeforeActivation', array($form->rec));
+				$form->rec->_isActivated = TRUE;
+			}
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 */
+	public static function on_AfterSave($mvc, &$id, $rec)
+	{
+		if($rec->_isActivated === TRUE) {
+			unset($rec->_isActivated);
+			$mvc->invoke('AfterActivation', array($rec));
+			$mvc->logWrite('Активиране', $rec->id);
+		}
 	}
 }

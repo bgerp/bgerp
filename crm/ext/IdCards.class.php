@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   crm
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     0.12
  */
@@ -18,39 +18,45 @@ class crm_ext_IdCards extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'personId';
+    public $masterKey = 'personId';
 
     
     /**
      * Заглавие
      */
-    var $title = 'Лични карти';
+    public $title = 'Лични карти';
 
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Лична карта';
+    public $singleTitle = 'Лична карта';
     
     
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'crm_Wrapper,plg_RowTools2';
+    public $loadList = 'crm_Wrapper';
     
     
     /**
      * Текущ таб
      */
-    var $currentTab = 'Лица';
+    public $currentTab = 'Лица';
     
     
     /**
      * Кой може да редактира
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
 
 
+    /**
+     * Кой може да изтрива
+     */
+    public $canDelete = 'powerUser';
+    
+    
     /**  
      * Предлог в формата за добавяне/редактиране  
      */  
@@ -62,75 +68,14 @@ class crm_ext_IdCards extends core_Detail
      */
     public function description()
     {
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent');
-        $this->FLD('idCardNumber', 'varchar(16)', 'caption=Номер');
+        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
+        $this->FLD('idCardNumber', 'varchar(16)', 'caption=Номер,mandatory');
         $this->FLD('idCardIssuedOn', 'date', 'caption=Издадена на');
         $this->FLD('idCardExpiredOn', 'date', 'caption=Валидна до');
         $this->FLD('idCardIssuedBy', 'varchar', 'caption=Издадена от');
 
         $this->setDbUnique('personId');
 	}
-    
-	
-	/**
-	 * Подготовка за показване в указателя
-	 */
-    public static function prepareIdCard($data)
-    {
-        $data->TabCaption = 'ЛК';
-
-        expect($data->masterId);
-        
-        if(!$data->IdCard) {
-            $data->IdCard = new stdClass();
-        }
-
-        $data->IdCard->rec = static::fetch("#personId = {$data->masterId}");
-        if ($data->IdCard->rec) {
-            $data->IdCard->row = static::recToVerbal($data->IdCard->rec);    
-        }
-        $data->canChange = static::haveRightFor('edit');
-    }
-    
-    
-    /**
-     * Рендиране на показването в указателя
-     */
-    public static function renderIdCard($data)
-    {
-        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        
-        $tpl->append(tr('Лична карта'), 'title');        
-
-        if ($data->canChange && !Mode::is('printing')) {
-            
-            $rec = $data->IdCard->rec;
-
-            if ($rec->idCardNumber || $rec->idCardIssuedOn || $rec->idCardExpiredOn || $rec->idCardIssuedBy) {
-                $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => TRUE);
-                $idCardTpl = new ET(getFileContent('crm/tpl/IdCard.shtml'));
-                $idCardTpl->placeObject($data->IdCard->row);
-            } else {
-                $idCardTpl = new ET(tr('Няма данни'));
-                $url = array(get_called_class(), 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
-            }
-            
-            if($data->masterMvc->haveRightFor('edit', $data->masterId)){
-            	$img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
-	            $tpl->append(
-	                ht::createLink(
-	                    $img, $url, FALSE,
-	                    'title=Промяна ЛК'
-	                ),
-	                'title'
-	            );
-            }
-        }
-        
-        $tpl->append($idCardTpl, 'content');
-        
-        return $tpl;
-    }
     
     
     /**
@@ -140,7 +85,7 @@ class crm_ext_IdCards extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
     	$conf = core_Packs::getConfig('crm');
     	
@@ -167,17 +112,81 @@ class crm_ext_IdCards extends core_Detail
 
         $form->setSuggestions('idCardIssuedBy', $mvrSug);
 
-        $data->form->title = 'Лична карта на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
+        $data->form->title = 'Лична карта на|* ' .  $mvc->Master->getVerbal($data->masterRec, 'name');
     }
     
     
 	/**
      * Изпълнява се след подготовката на ролите
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'edit' && isset($rec)){
-    		$res = $mvc->getRequiredRoles('add', $rec);
+    	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec->personId)){
+    		if(!crm_Persons::haveRightFor('edit', $rec->personId)){
+    			$res = 'no_one';
+    		}
     	}
+    }
+    
+
+    /**
+     * Подготовка за показване в указателя
+     */
+    public function prepareIdCard($data)
+    {
+    	$data->IdCard = new stdClass();
+    	$rec = crm_ext_IdCards::fetch("#personId = {$data->masterId}");
+    	if(!empty($rec)){
+    		$data->IdCard->rec = $rec;
+    		$row = crm_ext_IdCards::recToVerbal($data->IdCard->rec);
+    		$data->IdCard->row = $row;
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на показването в указателя
+     */
+    public function renderIdCard($data)
+    {
+    	$tpl = new core_ET("");
+    
+    	$tpl->append(tr('Лична карта'), 'idCardTitle');
+    
+    	$rec = $data->IdCard->rec;
+    	$url = array();
+    
+    	if ($rec->idCardNumber || $rec->idCardIssuedOn || $rec->idCardExpiredOn || $rec->idCardIssuedBy) {
+    		$idCardTpl = new ET(getFileContent('crm/tpl/IdCard.shtml'));
+    		$idCardTpl->placeObject($data->IdCard->row);
+    			
+    		if(crm_ext_IdCards::haveRightFor('edit', $rec->id)){
+    			$url = array('crm_ext_IdCards', 'edit', $rec->id, 'ret_url' => TRUE);
+    			$efIcon = 'img/16/edit.png';
+    		}
+    	} else {
+    		$idCardTpl = new ET(tr('Няма данни'));
+    			
+    		if(crm_ext_IdCards::haveRightFor('add', (object)array('personId' => $data->masterId))){
+    			$url = array('crm_ext_IdCards', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
+    			$efIcon = 'img/16/add.png';
+    		}
+    	}
+    
+    	if(count($url)){
+    		$link = ht::createLink('', $url, FALSE, "title=Промяна на лична карта,ef_icon={$efIcon}");
+    		$tpl->append($link, 'idCardTitle');
+    	}
+    
+    	if(isset($rec->id) && crm_ext_IdCards::haveRightFor('delete', $rec->id)){
+    		$delUrl = array('crm_ext_IdCards', 'delete', 'id' => $rec->id, 'ret_url' => TRUE);
+    		$link = ht::createLink('', $delUrl, 'Наистина ли искате да изтриете личната карта на лицето', "title=Изтриване на данни за лична карта,ef_icon=img/16/delete.png");
+    		$tpl->append($link, 'idCardTitle');
+    	}
+    
+    
+    	$tpl->append($idCardTpl);
+    
+    	return $tpl;
     }
 }

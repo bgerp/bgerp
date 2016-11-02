@@ -20,73 +20,75 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2,plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2,plg_Translate, plg_Clone';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, state';
+    public $listFields = 'id, sysId, title, state, type';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Методи на плащане';
+    public $title = 'Методи на плащане';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Метод на плащане";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'ceo, cond, admin';
+    public $singleTitle = "Метод на плащане";
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,cond, admin';
+	public $canList = 'ceo,cond, admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,cond, admin';
+	public $canSingle = 'ceo,cond, admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, cond, admin';
+    public $canEdit = 'ceo, cond, admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, cond, admin';
+    public $canAdd = 'ceo, cond, admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, cond, admin';
+    public $canDelete = 'ceo, cond, admin';
     
     
     /**
      * Шаблон за единичен изглед
      */
-    var $singleLayoutFile = "cond/tpl/SinglePaymentMethod.shtml";
+    public $singleLayoutFile = "cond/tpl/SinglePaymentMethod.shtml";
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sysId';
     
     
     /**
@@ -99,6 +101,7 @@ class cond_PaymentMethods extends core_Master
 
         // Текстово описание
         $this->FLD('title', 'varchar', 'caption=Описание, mandatory, translate,oldFieldName=description');
+        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'caption=Вид плащане');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
@@ -109,9 +112,16 @@ class cond_PaymentMethods extends core_Master
         // Плащане при получаване
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
         
-        // Колко дни след фактуриране да е балансовото плащане?
-        $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
+        // Колко дни след дадено събитие да е балансовото плащане?
+        $this->FLD('eventBalancePayment', 'enum(,invDate=Датата на фактурата||Invoice date,
+                                               invEndOfMonth=След краят на месеца на фактурата||After the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
+        $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
+
+        // Отстъпка за предсрочно плащане
+        $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
+        $this->FLD('discountPeriod', 'time(uom=days,suggestions=незабавно|5 дни|10 дни|15 дни)', 'caption=Отстъпка за предсрочно плащане->Срок,hint=Дни');
+
         $this->setDbUnique('sysId');
         $this->setDbUnique('title');
     }
@@ -279,7 +289,7 @@ class cond_PaymentMethods extends core_Master
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cond/csv/PaymentMethods.csv";
     	$fields = array(
@@ -288,12 +298,16 @@ class cond_PaymentMethods extends core_Master
             2 => 'downpayment',
             3 => 'paymentBeforeShipping',
             4 => 'paymentOnDelivery',
-            5 => 'timeBalancePayment');
+            5 => 'eventBalancePayment',
+            6 => 'timeBalancePayment',
+            7 => 'discountPercent',
+            8 => 'discountPeriod',
+    		9 => 'type',
+        );
             
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	$res .= $cntObj->html;
-    	
-    	return $res;
+
+        $res .= $cntObj->html;
     }
     
     
@@ -325,4 +339,5 @@ class cond_PaymentMethods extends core_Master
     	// Връщане на аванса
     	return $amount;
     }
+
 }

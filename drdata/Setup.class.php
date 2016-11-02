@@ -116,6 +116,7 @@ class drdata_Setup extends core_ProtoSetup
             'drdata_Countries',
             'drdata_IpToCountry',
             'drdata_DialCodes',
+            'drdata_PhoneCache',
             'drdata_Vats',
             'drdata_Domains',
     		'drdata_Languages',
@@ -128,7 +129,7 @@ class drdata_Setup extends core_ProtoSetup
     function deinstall()
     {
          // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+        $res = bgerp_Menu::remove($this);
         
         return $res;
     }

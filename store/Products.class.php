@@ -107,10 +107,6 @@ class store_Products extends core_Manager
 
     /**
      * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
      */
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
@@ -153,9 +149,9 @@ class store_Products extends core_Manager
     {
     	// Подготвяме формата
     	cat_Products::expandFilter($data->listFilter);
-    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
+    	$orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
     	$data->listFilter->setOptions('order', $orderOptions);
-		$data->listFilter->setDefault('order', 'standard');
+		$data->listFilter->setDefault('order', 'active');
     	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
@@ -207,6 +203,9 @@ class store_Products extends core_Manager
         			case 'closed':
         				$data->query->where("#state = 'closed'");
         				break;
+        			case 'active':
+        				$data->query->where("#state != 'closed'");
+        				break;
         			default :
         				$data->query->where("#isPublic = 'yes'");
         				$data->query->orderBy('#state,#name');
@@ -214,7 +213,7 @@ class store_Products extends core_Manager
         		}
         	}
         	
-        	// Филтър по маркери на артикула
+        	// Филтър по групи на артикула
         	if (!empty($rec->groupId)) {
         		$descendants = cat_Groups::getDescendantArray($rec->groupId);
         		$keylist = keylist::fromArray($descendants);
@@ -252,7 +251,7 @@ class store_Products extends core_Manager
      * Ф-я която ъпдейтва всички записи, които присъстват в модела, 
      * но липсват в баланса
      * 
-     * @param date $date - дата
+     * @param array $array - масив с данни за наличните артикул
      */
     private static function updateMissingProducts($array)
     {
@@ -287,13 +286,13 @@ class store_Products extends core_Manager
     /**
      * Връща всички продукти в склада
      * 
-     * @param int $storeId - ид на склад, ако е NULL взима текущия активен склад
+     * @param NULL|int $storeId - ид на склад, ако е NULL взима текущия активен склад
      * @return array $products
      */
     public static function getProductsInStore($storeId = NULL)
     {
     	// Ако няма склад, взима се текущия
-    	if(!$storeId){
+    	if(!isset($storeId)){
     		$storeId = store_Stores::getCurrent();
     	}
     	
@@ -338,15 +337,27 @@ class store_Products extends core_Manager
     
     
     /**
-     * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
+     * Подготвя полетата (колоните) които ще се показват
      */
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    public function prepareListFields_(&$data)
     {
+    	parent::prepareListFields_($data);
+    	
     	if(!core_Packs::isInstalled('pallet')){
     		unset($data->listFields['quantityNotOnPallets']);
     		unset($data->listFields['quantityOnPallets']);
     		$data->listFields['quantity'] = 'Количество';
     	}
+    	
+    	return $data;
+    }
+    
+    
+    /**
+     * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
     	
     	// Тулбара го преместваме преди състоянието

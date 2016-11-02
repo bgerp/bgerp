@@ -282,7 +282,7 @@ class fconv_Remote extends core_Manager
             // Вземаме итератор
             // RecursiveIteratorIterator::SELF_FIRST - Служи за вземане и на директориите
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tempDir), RecursiveIteratorIterator::SELF_FIRST);
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
         
             reportException($e);
         

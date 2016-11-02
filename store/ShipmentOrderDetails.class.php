@@ -113,7 +113,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'info,discount';
+    public $hideListFieldsIfEmpty = 'info,discount,reff';
     
     
     /**
@@ -234,7 +234,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
-    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     }
 }

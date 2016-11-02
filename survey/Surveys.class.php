@@ -31,7 +31,7 @@ class survey_Surveys extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
+    public $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,plg_Clone,
      	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg';
     
     
@@ -129,6 +129,7 @@ class survey_Surveys extends core_Master {
     	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,mandatory');
     	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory');
     	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
+      	$this->FLD('userBy', 'enum(browser=Браузър,ip=IP)', 'caption=Разграничаване на потребителите->Признак');
     }
     
     

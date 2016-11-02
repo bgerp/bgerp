@@ -42,19 +42,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * , acc_plg_Contable
 	 */
 	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank, deals_plg_SelectDeal';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
 	public $canConto = 'ceo,planning';
-	
-	
-	/**
-	 * Кой има право да чете?
-	 */
-	public $canRead = 'ceo,planning';
 	
 	
 	/**
@@ -108,10 +102,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
-	 * (@see plg_Clone)
-	 */
-	public $cloneDetailes = 'planning_DirectProductNoteDetails';
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * 
+     * @see plg_Clone
+     */
+	public $cloneDetails = 'planning_DirectProductNoteDetails';
 	
 	
 	/**
@@ -129,29 +124,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'valior, title=Документ, productId, quantity=К-во, storeId=В склад,dealId=По сделка, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'valior, title=Документ, productId, quantity=К-во, storeId=В склад,expenseItemId=Разход за, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	public $hideListFieldsIfEmpty = 'deadline,dealId,storeId';
-	
-	
-	/**
-	 * След кое поле да се покаже секцията за избор на сделка
-	 *
-	 * @see deals_plg_SelectDeal
-	 */
-	public $selectDealAfterField = 'expenses';
-	
-	
-	/**
-	 * От кои класове на сделки може да се избира
-	 *
-	 * @see deals_plg_SelectDeal
-	 */
-	public $selectedDealClasses = 'sales_Sales';
+	public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId';
 	
 	
 	/**
@@ -165,23 +144,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
-		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
+		$this->FLD('expenses', 'percent', 'caption=Реж. разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
 		$this->FLD('debitAmount', 'double(smartRound)', 'input=none');
+		$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Вътрешнофирмен разход->За');
 		
 		$this->setDbIndex('productId');
 	}
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
+	 * Подготвя формата за редактиране
 	 */
-	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	public function prepareEditForm_($data)
 	{
+		parent::prepareEditForm_($data);
+		
 		$form = &$data->form;
 		
 		if(isset($form->rec->id)){
@@ -212,33 +191,24 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		$productInfo = cat_Products::getProductInfo($form->rec->productId);
 		
-		if(isset($productInfo->meta['canStore'])){
-			$form->setField('contragentFolderId', 'input=none');
-			$form->setField('dealHandler', 'input=none');
-			$form->setField('dealId', 'input=none');
-		} else {
-			$form->setField('dealHandler', 'mandatory');
+		if(!isset($productInfo->meta['canStore'])){
+			
+			// Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
+			if(!isset($productInfo->meta['canConvert']) && !isset($productInfo->meta['fixedAsset'])){
+				$form->setField('expenseItemId', 'input,mandatory');
+			}
+			
+			// Ако заданието, към което е протокола е към продажба, избираме я по дефолт
+			if(empty($form->rec->id) && isset($originRec->saleId)){
+				$saleItem = acc_Items::fetchItem('sales_Sales', $originRec->saleId);
+				$form->setDefault('expenseItemId', $saleItem->id);
+			}
+			
 			$form->setField('storeId', 'input=none');
+			$form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
 		}
-	}
-	
-	
-	/**
-	 * Проверява хендлъра дали може да се избере
-	 *
-	 * @param core_Mvc $mvc  - класа
-	 * @param string $error  - текста на грешката
-	 * @param string $handle - хендлъра на сделката
-	 * @param stdClass $rec  - текущия запис
-	 */
-	public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
-	{
-		if($error) return $error;
 		
-		$doc = doc_Containers::getDocumentByHandle($handle);
-		if(!$doc->isInstanceOf('sales_Sales')){
-			$error = 'Сделката не е активна продажба';
-		}
+		return $data;
 	}
 	
 	
@@ -248,9 +218,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param core_Mvc $mvc
 	 * @param core_Form $form
 	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
+	protected static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
+		
 		if($form->isSubmitted()){
 			$productInfo = cat_Products::getProductInfo($form->rec->productId);
 			if(!isset($productInfo->meta['canStore'])){
@@ -280,6 +251,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 			$row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
 		}
+		
+		if(isset($rec->expenseItemId)){
+			$row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
+		}
+		
+		$row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
+		$row->subTitle = tr($row->subTitle);
 	}
 	
 	
@@ -311,8 +289,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 							
 							// Ако артикула от заданието не е производим не можем да добавяме документ
 							$productId = $originDoc->fetchField('productId');
-							$pInfo = cat_Products::getProductInfo($productId);
-							if(!isset($pInfo->meta['canManifacture'])){
+							$canManifacture = cat_Products::fetchField($productId, 'canManifacture');
+							if($canManifacture != 'yes'){
 								$requiredRoles = 'no_one';
 							}
 						}
@@ -325,7 +303,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
 			if($requiredRoles != 'no_one'){
 				if(isset($rec)){
-					if(planning_DirectProductNoteDetails::fetch("#noteId = {$rec->id}")){
+					if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}", 'id')){
 						$requiredRoles = 'no_one';
 					}
 				}
@@ -419,14 +397,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$originRec = doc_Containers::getDocument($rec->originId)->rec();
 		
 		// Намираме всички непроизводствени действия от задачи
-		$aQuery = planning_TaskActions::getQuery();
+		//@TODO да не се гледа само от този модел
+		$aQuery = planning_drivers_ProductionTaskProducts::getQuery();
 		$aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
-		$aQuery->where("#taskState != 'rejected'");
-		$aQuery->where("#type != 'product'");
-		$aQuery->where("#jobId = {$originRec->id}");
+		$aQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+		$aQuery->where("#originId = {$rec->originId}");
 		
 		// Сумираме ги по тип и ид на продукт
-		$aQuery->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		$aQuery->where("#taskState != 'rejected'");
+		$aQuery->XPR('sumQuantity', 'double', "SUM(#realQuantity)");
 		$aQuery->groupBy("productId,type");
 		
 		// Събираме ги в масив
@@ -617,6 +596,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		return $tpl;
 	}
 	
+	
 	/**
 	 * Екшън създаващ нова рецепта по протокола
 	 */
@@ -658,7 +638,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $recsToSave, NULL, $rec->expenses);
 		
 		// Записваме, че потребителя е разглеждал този списък
-		cat_Boms::logWrite("Създаване на рецепта от протокол за бързо производство", $newId);
+		cat_Boms::logWrite("Създаване на рецепта от протокол за производство", $newId);
 		
 		// Редирект
 		return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');
@@ -673,8 +653,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$rec = static::fetchRec($rec);
 		
 		if(isset($rec->id)){
-			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'");
-			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'");
+			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
+			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
 			if($pop && !$input){
 			
 				return FALSE;

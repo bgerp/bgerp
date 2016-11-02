@@ -2,7 +2,7 @@
 
 
 /**
- * Прокси на 'colab_Folders' позволяващ на потребител с роля 'contractor' да вижда споделените му папки
+ * Прокси на 'colab_Folders' позволяващ на потребител с роля 'collaborator' да вижда споделените му папки
  *
  * @category  bgerp
  * @package   colab
@@ -28,9 +28,15 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
+	 * 10 секунди време за опресняване на нишката
+	 */
+	public $refreshRowsTime = 10000;
+	
+	
+	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	var $loadList = 'colab_Wrapper,Folders=doc_Folders,plg_RowNumbering,plg_Search';
+	var $loadList = 'cms_ExternalWrapper,Folders=doc_Folders,plg_RowNumbering,plg_Search, plg_RefreshRows';
 	
 	
 	/**
@@ -48,7 +54,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Кой има право да чете?
 	 */
-	var $canRead = 'contractor';
+	var $canRead = 'collaborator';
 	
 	
 	/**
@@ -157,6 +163,12 @@ class colab_Folders extends core_Manager
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
+		// Ако пакета 'colab' не е инсталиран, никой не може нищо
+		if(!core_Packs::isInstalled('colab')){
+			$requiredRoles = 'no_one';
+			return;
+		}
+		
 		if($action == 'list'){
 			$sharedFolders = self::getSharedFolders($userId);
 			
@@ -168,7 +180,7 @@ class colab_Folders extends core_Manager
 		if($requiredRoles != 'no_one'){
 			
 			// Ако потребителя няма роля партньор, не му е работата тук
-			if(!core_Users::isContractor()){
+			if(!core_Users::haveRole('collaborator', $userId)){
 				$requiredRoles = 'no_one';
 			}
 		}
@@ -203,6 +215,28 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
+	 * Връща споделените партнори в посочената папка
+	 * 
+	 * @param int $folderId - папка
+	 * @return array $users - споделени партньори
+	 */
+	public static function getSharedUsers($folderId)
+	{
+		$users = array();
+		
+		// Намиране на всички потребители споделени в посочените папки
+		$query = colab_FolderToPartners::getQuery();
+		$query->where(array("#folderId = [#1#]", $folderId));
+		$query->show('contractorId');
+		
+		$all = $query->fetchAll();
+		$users = arr::extractValuesFromArray($all, 'contractorId');
+		
+		return $users;
+	}
+	
+	
+	/**
 	 * Броя на записите
 	 */
 	public static function count($cond = '1=1')
@@ -228,4 +262,18 @@ class colab_Folders extends core_Manager
 		
 		$data->title = "|Папките на|* <span style='color:green'>{$names} ({$nick})</span>";
 	}
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
+     *
+     * @param string $status
+     *
+     * @return string
+     * @see plg_RefreshRows
+     */
+    public static function getContentHash_(&$status)
+    {
+        doc_Folders::getContentHash_($status);
+    }
 }

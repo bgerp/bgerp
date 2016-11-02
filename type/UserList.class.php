@@ -25,6 +25,12 @@ class type_UserList extends type_Keylist
     
     
     /**
+     * 
+     */
+    protected $keySep = '_';
+    
+    
+    /**
      * Инициализиране на обекта
      */
     function init($params = array())
@@ -46,8 +52,10 @@ class type_UserList extends type_Keylist
      * Подготвя опциите според зададените параметри.
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
+     * 
+     * @return array
      */
-    private function prepareSuggestions($defUser =  NULL)
+    public function prepareSuggestions()
     {
         $mvc = cls::get($this->params['mvc']);
         
@@ -55,9 +63,17 @@ class type_UserList extends type_Keylist
         
         if (isset($this->suggestions)) {
             
-            return;
+            return $this->suggestions;
         }
-        
+
+        // извличане на потребителите с информация
+        $pQuery = crm_Profiles::getQuery();
+        $pQuery->show("id");
+        while($rec = $pQuery->fetch("#stateInfo IS NOT NULL")) {
+            $iUsers[$rec->id] = $rec->id;
+        }
+        $this->info = $iUsers;
+
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип
         if(!haveRole($this->params['rolesForAll'])) {
             $ownRoles = core_Users::getCurrent('roles');
@@ -90,7 +106,9 @@ class type_UserList extends type_Keylist
             // Отваряме всички групи
             $openAllGroups = TRUE;
         }
-        
+
+        $userArr = core_Users::getRolesWithUsers();
+
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
@@ -101,20 +119,17 @@ class type_UserList extends type_Keylist
 
             $this->suggestions[$t . ' team'] = $group;
             
-            $uQuery = core_Users::getQuery();
-            $uQuery->where("#state != 'rejected'");
-            $uQuery->orderBy('nick');
-            
-            $uQuery->likeKeylist('roles', "|{$t}|");
-            
-            $uQuery->likeKeylist('roles', $roles);
-
             $teamMembers = 0;
             
-            while($uRec = $uQuery->fetch()) {
-                
+            foreach((array)$userArr[$t] as $uId) {
+                    
+                $uRec = $userArr['r'][$uId];
+                if ($uRec->state == 'rejected') continue;
+
+                $uRec->id = $uId;
+
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
-                if ($openAllGroups || ($uRec->id == $currUserId)) {
+                if ($openAllGroups || ($uId == $currUserId)) {
                     
                     // Вдигам флага да се отвори групата
                     $group->autoOpen = TRUE;
@@ -123,7 +138,7 @@ class type_UserList extends type_Keylist
                     $haveOpenedGroup=TRUE;
                 }
                 
-                $key = $uRec->id;
+                $key = $this->getKey($t, $uId);
                 if(!isset($this->suggestions[$key])) {
                     $teamMembers++;
                     $this->suggestions[$key] =  html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
@@ -137,7 +152,7 @@ class type_UserList extends type_Keylist
                 unset($this->suggestions[$t . ' team']);
             }
         }
-
+        
         if(!$this->suggestions) {
             $group = new stdClass();
             $group->title = tr("Липсват потребители за избор");
@@ -161,17 +176,112 @@ class type_UserList extends type_Keylist
         }
         
         $mvc->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
-     }
+    }
+    
+    
+    /**
+     * @param mixed $value
+     * 
+     * @see type_Keylist::fromVerbal_()
+     * 
+     * @return mixed
+     */
+    function fromVerbal_($value)
+    {
+        if (is_array($value)) {
+            $nValArr = array();
+            foreach ($value as $v) {
+                
+                $userId = $this->getUserIdFromKey($v);
+                
+                $nValArr[$userId] = $userId;
+            }
+            
+            $value = $nValArr;
+        }
+        
+        return parent::fromVerbal_($value);
+    }
     
     
     /**
      * Рендира HTML инпут поле
+     * 
+     * @param string $name
+     * @param string $value
+     * @param array|NULL $attr
+     * 
+     * @see type_Keylist::renderInput_()
+     * 
+     * @return core_ET
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $this->prepareSuggestions($value);
-
+        $this->prepareSuggestions();
+        
+        if ($value) {
+            
+            $teams = core_Roles::getRolesByType('team');
+            
+            if(is_array($value)) {
+                $value = $this->fromArray($value);
+            }
+            
+            $valuesArr = explode($value{0}, trim($value, $value{0}));
+            
+            $nValArr = array();
+            
+            foreach ($valuesArr as $uId) {
+                $roles = core_Users::fetchField($uId, 'roles');
+                
+                $dArr = $this->getDiffArr($teams, $roles);
+                $rolesArr = $dArr['same'];
+                
+                // Потребителят да е избран само в първата група, която участва
+                if ($rolesArr) {
+                    $rId = key($rolesArr);
+                    $key = $this->getKey($rId, $uId);
+                    $nValArr[$key] = $key;
+                }
+            }
+            
+            $value = $nValArr;
+        }
+        
         $res = parent::renderInput_($name, $value, $attr);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Преобразува от масив с индекси ключовете към keylist
+     * 
+     * @param array $value
+     * 
+     * @see type_Keylist::fromArray()
+     * 
+     * @return string
+     */
+    static function fromArray($value)
+    {
+        $res = '';
+        
+        if (is_array($value) && !empty($value)) {
+
+            // Сортираме ключовете на масива, за да има
+            // стринга винаги нормализиран вид - от по-малките към по-големите
+            ksort($value);
+
+            foreach ($value as $id => $val)
+            {
+                if (empty($id) && empty($val)) continue;
+                
+                $res .= "|" . $id;
+            }
+            
+            $res = $res . "|";
+        }
         
         return $res;
     }
@@ -224,7 +334,7 @@ class type_UserList extends type_Keylist
         }
         
         // Връщаме keylist
-        return type_Keylist::fromArray($retTypeArr);
+        return $this->fromArray($retTypeArr);
     }
     
     
@@ -233,6 +343,42 @@ class type_UserList extends type_Keylist
      */
     public function getRoles()
     {
+        
     	return $this->params['roles'];
+    }
+    
+    
+    /**
+     * Връща ключа от ид на ролята и потребителя
+     * 
+     * @param integer $roleId
+     * @param integer $uId
+     * 
+     * @return string
+     */
+    protected function getKey($roleId, $uId)
+    {
+        $key = $roleId . $this->keySep . $uId;
+        
+        return $key;
+    }
+    
+    
+    /**
+     * Връща id на потребителя, от подадения стринг
+     * 
+     * @param string $key
+     * 
+     * @return integer
+     */
+    protected function getUserIdFromKey($key)
+    {
+        list($roleId, $userId) = explode($this->keySep, $key);
+        
+        if (!isset($userId)) {
+            $userId = $roleId;
+        }
+        
+        return $userId;
     }
 }

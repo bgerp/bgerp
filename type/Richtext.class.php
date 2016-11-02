@@ -68,7 +68,7 @@ class type_Richtext extends type_Blob
     /**
      * Заместител на [bQuote=???]
      */
-    const BQUOTE_DIV_BEGIN = "<div class='richtext-quote'>";
+    const BQUOTE_DIV_BEGIN = "<div class='richtext-quote no-spell-check'>";
     
     
 	/**
@@ -177,8 +177,9 @@ class type_Richtext extends type_Blob
         if (!strlen($value)) return NULL;
         
         if (Mode::is('text', 'plain')) {
-            $res = strip_tags($this->toHtml($value));
+            $res = $this->toHtml($value);
             $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
+            $res = self::stripTags($res);
         } else {
             $res = $this->toHtml($value);
         }
@@ -235,9 +236,9 @@ class type_Richtext extends type_Blob
         
         // Намаляме стойността за да не гърми по-лош начин
         if (core_Os::isWindows()) {
-            ini_set('pcre.recursion_limit', '524');
+            ini_set('pcre.recursion_limit', '500');
         } else {
-            ini_set('pcre.recursion_limit', '16777');
+            ini_set('pcre.recursion_limit', '16000');
         }
         
         // Заместваме й с ѝ
@@ -637,7 +638,9 @@ class type_Richtext extends type_Blob
     {  
         if(Mode::is('text', 'plain')) {
             if(Mode::is('htmlEntity', 'none')) {
-                $res = strip_tags($match[1]);
+                $res = $match[1];  
+                //$res = self::stripTags($match[1]);
+                $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
             } else {
                 $res = html2text_Converter::toRichText($match[1]);
             }
@@ -650,6 +653,18 @@ class type_Richtext extends type_Blob
 
 		return $res;
     }
+
+
+    /**
+     * Премахва таговете, като добавя нови редове пред някои от тях
+     */
+    public static function stripTags($html)
+    {
+        $res = str_ireplace(array('<br', '<div', '<p', '<table'),  array("\n<br", "\n<div", "\n<p", "\n<table"), $html); 
+        $res = strip_tags($res);
+
+        return $res;
+    }
     
         
     /**
@@ -660,7 +675,7 @@ class type_Richtext extends type_Blob
     static function getRichTextPatternForBold()
     {
         // Ако не е сетнат шаблона
-        if (!isset(static::$boldPattern)) {
+        if (!isset(self::$boldPattern)) {
             
             // Разбиваме текстовете на масив
             $boldTextTypeArr = type_Set::toArray(RICHTEXT_BOLD_TEXT);
@@ -682,16 +697,16 @@ class type_Richtext extends type_Blob
             if ($boldTextPattern) {
                 
                 // Добавяме текста в шаблона
-                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n]+))/ui";    
+                self::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n]+))/ui";    
             } else {
                 
                 // Добавяме FALSE, за да не се опитваме да го определим пак
-                static::$boldPattern = FALSE;
+                self::$boldPattern = FALSE;
             }
         }
         
         // Връщаме резултата
-        return static::$boldPattern;
+        return self::$boldPattern;
     }
     
     
@@ -767,10 +782,10 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $res = "<pre class='rich-text code{$classLg}'><code>[#{$place}#]</code></pre>" . $end; 
+            $res = "<pre class='rich-text code{$classLg} no-spell-check'><code>[#{$place}#]</code></pre>" . $end; 
         } else {
            // $code = str_replace("\n", "<br>", $code);
-            $res = "<pre class='rich-text'>[#{$place}#]</pre>" . $end;
+            $res = "<pre class='rich-text no-spell-check'>[#{$place}#]</pre>" . $end;
         }
         
         $this->_htmlBoard[$place] = rtrim($code);
@@ -883,7 +898,7 @@ class type_Richtext extends type_Blob
         if(!strlen($code)) return $match[0];
         
         // Добавяме кода в блок
-        $code1 = "<span class='oneLineCode'>{$code}</span>";
+        $code1 = "<span class='oneLineCode no-spell-check'>{$code}</span>";
         
         // Доабавяме в масива
         $this->_htmlBoard[$place] = $code1;
@@ -1027,10 +1042,10 @@ class type_Richtext extends type_Blob
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
 
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon no-spell-check\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
 
         } else {
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out no-spell-check\">[#{$titlePlace}#]</a>";
         }
         
         return $link;
@@ -1203,7 +1218,7 @@ class type_Richtext extends type_Blob
             
             $title = type_Varchar::escape($title);
             
-            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
+            $link = "<a href=\"{$url}\" target='_blank' class='out no-spell-check'>{$title}</a>";
         }
         
         $place = $this->getPlace();

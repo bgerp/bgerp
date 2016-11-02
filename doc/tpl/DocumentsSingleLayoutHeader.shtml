@@ -27,4 +27,9 @@
 		    </div>
 		</div>
 	<!--ET_END header-->
+	
+	<!--ET_BEGIN ExtState-->
+	   <div class='extState'>[#ExtState#]</div>
+	<!--ET_END ExtState-->
+        
 	[#LetterHead#]

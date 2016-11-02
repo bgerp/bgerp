@@ -178,7 +178,7 @@ class doclog_Used extends core_Manager
             try {
                 $threadId = doc_Containers::fetchField($rec->usedContainerId, 'threadId');
                 doclog_Documents::removeHistoryFromCache($threadId);
-            } catch (Exception $e) {
+            } catch (ErrorException $e) {
                 
                 reportException($e);
                 
@@ -199,13 +199,13 @@ class doclog_Used extends core_Manager
     {
         try {
             $row->containerId = doc_Containers::getLinkForSingle($rec->containerId);
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             $row->containerId = tr('Грешка при показване');
         }
         
         try {
             $row->usedContainerId = doc_Containers::getLinkForSingle($rec->usedContainerId);
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             $row->usedContainerId = tr('Грешка при показване');
         }
     }

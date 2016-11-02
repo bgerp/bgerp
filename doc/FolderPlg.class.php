@@ -31,14 +31,17 @@ class doc_FolderPlg extends core_Plugin
                 
                 // Поле за id на папката. Ако не е зададено - обекта няма папка
                 $mvc->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
+                $mvc->setDbIndex('folderId');
             }
             
             // Определя достъпа по подразбиране за новите папки
             setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
-            $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
+            $mvc->FLD('inCharge' , 'user(role=powerUser, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне,formOrder=10002');
+            
+            $mvc->setDbIndex('inCharge');
         }
         
         // Добавя интерфейс за папки
@@ -218,7 +221,9 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id));
+        if (Request::get('share')) {
+            bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id, 'share' => TRUE));
+        }
     }
     
     
@@ -236,17 +241,17 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако оттегляме документа
-        if ($action == 'reject' && $rec->folderId) {
+        if ($action == 'reject' && $rec->folderId && $requiredRoles != 'no_one') {
             
             // Ако има запис, който не е оттеглен
-            if (doc_Threads::fetch("#folderId = '{$rec->folderId}' && #state != 'rejected'")) {
+            if (doc_Folders::fetch($rec->folderId)->allThreadsCnt) {
                 
                 // Никой да не може да оттегля папката
                 $requiredRoles = 'no_one';    
             }
         }
         
-        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc')) {
+        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
             
             $rec = $mvc->fetch($rec->id);
             
@@ -274,7 +279,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // Не може да се създава нова папка, ако потребителя няма достъп до обекта
-        if($action == 'createnewfolder' && isset($rec)){
+        if($action == 'createnewfolder' && isset($rec) && $requiredRoles != 'no_one'){
         	if (!doc_Folders::haveRightToObject($rec, $userId)) {
         		$requiredRoles = 'no_one';
         	} elseif($rec->state == 'rejected'){
@@ -282,9 +287,24 @@ class doc_FolderPlg extends core_Plugin
         	}
         }
         
-        if (($action == 'viewlogact') && $rec) {
+        if (($action == 'viewlogact') && $rec && $requiredRoles != 'no_one') {
             if (!$mvc->haveRightFor('single', $rec, $userId)) {
                 $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
+        if(!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
+            if($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+                if(!$userId) {
+                    $userId = core_Users::getCurrent();
+                }
+                if(!$rec->inCharge) {
+                    $rec = $mvc->fetch($rec->id);
+                }
+                if($userId && $userId != $rec->inCharge) {
+                    $requiredRoles = 'officer';
+                }
             }
         }
     }
@@ -551,11 +571,11 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Изтриваме нотификациите от премахнатите потребители 
-            if ($delNotifyArr) {
+            if (!empty($delNotifyArr)) {
                 foreach ($delNotifyArr as $clearUser) {
-                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'yes', $clearUser);
-                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $clearUser);
-                    bgerp_Notifications::setHidden(array($mvc, 'list'), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'share' => TRUE), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'share' => TRUE), 'yes', $clearUser);
+                    bgerp_Notifications::setHidden(array($mvc, 'list', 'share' => TRUE), 'yes', $clearUser);
                 }
             }
             
@@ -571,7 +591,7 @@ class doc_FolderPlg extends core_Plugin
                     if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                          
                         if(doc_Folders::haveRightFor('single', $rec->folderId, $notifyUserId)){
-                            $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+                            $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'share' => TRUE);
                         }
             
                         $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
@@ -579,14 +599,14 @@ class doc_FolderPlg extends core_Plugin
             
                     if (empty($url)) {
                         if (($mvc instanceof core_Master) && $mvc->haveRightFor('single', $rec, $notifyUserId)) {
-                            $url = array($mvc, 'single', $rec->id);
+                            $url = array($mvc, 'single', $rec->id, 'share' => TRUE);
                             $msg = $currUserNick . ' |сподели|* "|' . $mvc->singleTitle . '|*"';
                         } else {
-                            $url = array($mvc, 'list');
+                            $url = array($mvc, 'list', 'share' => TRUE);
                             $msg = $currUserNick . ' |сподели|* "|' . $mvc->title . '|*"';
                         }
                     }
-            
+                    
                     bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
                 }
             }
@@ -600,7 +620,7 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->inCharge == -1) {
-            $row->inCharge = '@system';
+            $row->inCharge = core_Setup::get('SYSTEM_NICK');
         }
         
         if($fields['-single']) {
@@ -859,7 +879,9 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        bgerp_Notifications::clear(array($mvc, 'list'));
+        if (Request::get('share')) {
+            bgerp_Notifications::clear(array($mvc, 'list', 'share' => TRUE));
+        }
     }
     
     
@@ -873,7 +895,10 @@ class doc_FolderPlg extends core_Plugin
     		
     		// Ако имаме достъп до корицата и тя наследява core_Master пренасочваме към сингъла
     		if(doc_Folders::haveRightToObject($data->form->rec) && $mvc instanceof core_Master){
-    			$data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+    			
+                if(is_array($data->retUrl) && (strtolower($data->retUrl[1]) == 'list' || strtolower($data->retUrl[1]) == 'default' || strtolower($data->retUrl['Act']) == 'list' || strtolower($data->retUrl['Act']) == 'default')) {
+    			    $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+                }
     		} else {
     			
     			// Ако нямаме достъп, пренасочваме към списъчния изглед

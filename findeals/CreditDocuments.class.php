@@ -93,7 +93,7 @@ class findeals_CreditDocuments extends deals_Document
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'findeals/tpl/SingleLayoutCreditDocument.shtml';
 
