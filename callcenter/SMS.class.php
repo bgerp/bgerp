@@ -261,9 +261,11 @@ class callcenter_SMS extends core_Master
     /**
      * Връща услугата за изпращане на съобщения
      * 
+     * @param boolean $log
+     * 
      * @return NULL|integer
      */
-    public static function getDefaultService()
+    public static function getDefaultService($log = TRUE)
     {
         // Използваме услугата от конфигурацията
         $service = callcenter_Setup::get('SMS_SERVICE');
@@ -276,8 +278,8 @@ class callcenter_SMS extends core_Master
             }
         }
         
-        if (!$service) {
-            self::logWarning('Не е инсталирана услуга за изпращане на съобщения');
+        if (!$service && $log) {
+            self::logWarning('Няма нито една налична услуга за изпращане на SMS');
         }
         
         return $service;
