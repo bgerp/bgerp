@@ -165,8 +165,8 @@ class trz_Requests extends core_Master
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
-    	$this->FLD('leaveFrom', 'datetime (timeSuggestions=00:00)', 'caption=Считано->От, mandatory');
-    	$this->FLD('leaveTo', 'datetime (timeSuggestions=23:59)', 'caption=Считано->До, mandatory');
+    	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');

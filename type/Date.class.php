@@ -54,6 +54,7 @@ class type_Date extends core_Type {
         }
         
         $date = dt::mysql2verbal($value, $format);
+
         
         return $date;
     }
