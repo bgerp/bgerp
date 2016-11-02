@@ -1267,6 +1267,7 @@ class core_Html
 
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
             
+            $attr = array();
             $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
             
             $style = rtrim($style, ' ;');
