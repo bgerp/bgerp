@@ -165,8 +165,8 @@ class trz_Requests extends core_Master
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
-    	$this->FLD('leaveFrom', 'datetime (timeSuggestions=00:00)', 'caption=Считано->От, mandatory');
-    	$this->FLD('leaveTo', 'datetime (timeSuggestions=23:59)', 'caption=Считано->До, mandatory');
+    	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
@@ -265,11 +265,6 @@ class trz_Requests extends core_Master
     	$form->setSuggestions('useDaysFromYear', $years);
     	$form->setDefault('useDaysFromYear', $years[0]);
     	
-    	$time = "". " 00:00:00";
-    	$time2 = "". " 23:59:59";
-    	
-    	$form->setDefault('leaveFrom', $time);
-    	$form->setDefault('leaveTo', $time2);
 
     	// Намират се всички служители
     	$employees = crm_Persons::getEmployeesOptions();
@@ -290,16 +285,20 @@ class trz_Requests extends core_Master
 	        }
         }
     }
-    
+
     
     /**
-     * Проверява и допълва въведените данни от 'edit' формата
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
 
-    	$rec = $form->rec;
-
+        if ($form->isSubmitted()) { 
+            // Размяна, ако периодите са объркани
+            if(isset($form->rec->leaveFrom) && isset($form->rec->leaveTo) && ($form->rec->leaveFrom > $form->rec->leaveTo)) { 
+                $form->setError('startDate, toDate', "Началната дата трябва да е по-малка от крайната");
+            }
+        }
     }
  
     
@@ -386,40 +385,7 @@ class trz_Requests extends core_Master
     		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
     }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
 
-        $s1 = trim(strstr($rec->leaveFrom, " "));
-        $s2 = trim(strstr($rec->leaveTo, " "));
-
-        if(($s1 == "00:00:00" && $s2 == "23:59:00") || ($s1 == "00:00:00" && $s2 == "23:59:59") ){ 
-            $row->leaveFrom = trim(strstr($row->leaveFrom, " ", TRUE));
-            $row->leaveTo = trim(strstr($row->leaveTo, " ", TRUE));
-        }
-
-    
-    }
-    
-    
-    /**
-     * Тестова функция
-     */
-    public static function act_Test()
-    {
-    	$p = 1;
-    	$a = '2013-05-02';
-    	$b = '2013-05-10';
-    }
-    
     
     /**
      * Обновява информацията за молбите в календара
@@ -540,39 +506,7 @@ class trz_Requests extends core_Master
         
         return $row;
     }
-    
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_PersonAccRegIntf', 'folderClass' => 'doc_UnsortedFolders');
-    }
-    
-    /**
-     * Метод филтриращ заявка към doc_Folders
-     * Добавя условия в заявката, така, че да останат само тези папки, 
-     * в които може да бъде добавен документ от типа на $mvc
-     * 
-     * @param core_Query $query   Заявка към doc_Folders
-     */
-    function restrictQueryOnlyFolderForDocuments($query)
-    {
-    	$pQuery = crm_Persons::getQuery();
-        
-        // Искаме да филтрираме само групата "Служители"
-        $employeesId = crm_Groups::getIdFromSysId('employees');
-        
-        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
-            $list = implode(',', array_keys($employees));
-            $query->where("#coverId IN ({$list})");
-        } else {
-            $query->where("#coverId = -2");
-        }
-    }
-    
+
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -585,5 +519,4 @@ class trz_Requests extends core_Master
          
         return $title;
     }
-    
 }
