@@ -160,7 +160,7 @@ class planning_plg_StateManager extends core_Plugin
 				case 'activate':
 					
 					// Само приключените могат да бъдат събудени
-					if($rec->state != 'draft'){
+					if($rec->state != 'draft' && isset($rec->state)){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -347,6 +347,45 @@ class planning_plg_StateManager extends core_Plugin
 			$tpl = new ET(tr(' от [#user#] на [#date#]'));
 			$dateChanged = ($rec->state == 'closed') ? $rec->timeClosed : $rec->modifiedOn;
 			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+	 */
+	protected static function on_AfterPrepareEditToolbar($mvc, $data)
+	{
+		if ($mvc->haveRightFor('activate', $data->form->rec)) {
+			$data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate, order=9.99980', 'ef_icon = img/16/lightning.png,title=Активиране на документа');
+		}
+	}
+	
+	
+	/**
+	 * Ако е натиснат бутона 'Активиране" добавя състоянието 'active' в $form->rec
+	 */
+	public static function on_AfterInputEditForm($mvc, $form)
+	{
+		if($form->isSubmitted()) {
+			if($form->cmd == 'active') {
+				$form->rec->state = ($mvc->activateNow($form->rec)) ? 'active' : 'pending';
+				$mvc->invoke('BeforeActivation', array($form->rec));
+				$form->rec->_isActivated = TRUE;
+			}
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 */
+	public static function on_AfterSave($mvc, &$id, $rec)
+	{
+		if($rec->_isActivated === TRUE) {
+			unset($rec->_isActivated);
+			$mvc->invoke('AfterActivation', array($rec));
+			$mvc->logWrite('Активиране', $rec->id);
 		}
 	}
 }

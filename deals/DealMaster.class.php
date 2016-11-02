@@ -359,7 +359,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$rec->deliveryTermId = NULL;
     	
     	$deliveryExtended = $rec->deliveryTermIdExtended;
-    	if(empty($rec->deliveryTermIdExtended) && isset($rec->deliveryLocationId)){
+    	if(empty($rec->deliveryTermIdExtended) && isset($rec->deliveryLocationId) && empty($rec->id)){
     		$deliveryExtended = 'DDP';
     	}
     	
