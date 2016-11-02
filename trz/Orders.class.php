@@ -256,17 +256,7 @@ class trz_Orders extends core_Master
 	        $data->form->setReadonly('personId');
         }
     }
-      
-    
-    /**
-     * Проверява и допълва въведените данни от 'edit' формата
-     */
-    public static function on_AfterInputEditForm($mvc, $form)
-    {
-    	$rec = $form->rec;
 
-    }
-    
     
 	/**
      * След подготовка на тулбара на единичен изглед.
@@ -279,7 +269,6 @@ class trz_Orders extends core_Master
         if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
-        
     }
     
     
@@ -453,5 +442,4 @@ class trz_Orders extends core_Master
          
         return $title;
     }
-
 }

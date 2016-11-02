@@ -285,16 +285,20 @@ class trz_Requests extends core_Master
 	        }
         }
     }
-    
+
     
     /**
-     * Проверява и допълва въведените данни от 'edit' формата
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
 
-    	$rec = $form->rec;
-
+        if ($form->isSubmitted()) { 
+            // Размяна, ако периодите са объркани
+            if(isset($form->rec->leaveFrom) && isset($form->rec->leaveTo) && ($form->rec->leaveFrom > $form->rec->leaveTo)) { 
+                $form->setError('startDate, toDate', "Началната дата трябва да е по-малка от крайната");
+            }
+        }
     }
  
     
@@ -381,21 +385,7 @@ class trz_Requests extends core_Master
     		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
     }
-    
-    
- 
-    
-    
-    /**
-     * Тестова функция
-     */
-    public static function act_Test()
-    {
-    	$p = 1;
-    	$a = '2013-05-02';
-    	$b = '2013-05-10';
-    }
-    
+
     
     /**
      * Обновява информацията за молбите в календара
@@ -516,39 +506,7 @@ class trz_Requests extends core_Master
         
         return $row;
     }
-    
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_PersonAccRegIntf', 'folderClass' => 'doc_UnsortedFolders');
-    }
-    
-    /**
-     * Метод филтриращ заявка към doc_Folders
-     * Добавя условия в заявката, така, че да останат само тези папки, 
-     * в които може да бъде добавен документ от типа на $mvc
-     * 
-     * @param core_Query $query   Заявка към doc_Folders
-     */
-    function restrictQueryOnlyFolderForDocuments($query)
-    {
-    	$pQuery = crm_Persons::getQuery();
-        
-        // Искаме да филтрираме само групата "Служители"
-        $employeesId = crm_Groups::getIdFromSysId('employees');
-        
-        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
-            $list = implode(',', array_keys($employees));
-            $query->where("#coverId IN ({$list})");
-        } else {
-            $query->where("#coverId = -2");
-        }
-    }
-    
+
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -561,5 +519,4 @@ class trz_Requests extends core_Master
          
         return $title;
     }
-    
 }
