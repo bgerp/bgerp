@@ -262,6 +262,13 @@ class trz_Sickdays extends core_Master
         	if($form->rec->toDate < $form->rec->startDate){
         		$form->setError('toDate', "Крайната дата трябва да е след|*  <b>{$form->rec->startDate}</b>");
         	}
+        	
+        	// Размяна, ако периодите са объркани
+        	if(isset($form->rec->startDate) && isset($form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
+        	    $mid = $form->rec->startDate;
+        	    $form->rec->startDate = $form->rec->toDate;
+        	    $form->rec->toDate = $mid;
+        	}
         }
     }
     
@@ -586,46 +593,7 @@ class trz_Sickdays extends core_Master
     {
     	return array('crm_PersonAccRegIntf', 'folderClass' => 'doc_UnsortedFolders');
     }
-  
-    
-    /**
-     * Метод филтриращ заявка към doc_Folders
-     * Добавя условия в заявката, така, че да останат само тези папки, 
-     * в които може да бъде добавен документ от типа на $mvc
-     * 
-     * @param core_Query $query   Заявка към doc_Folders
-     */
-    function restrictQueryOnlyFolderForDocuments($query)
-    {
-    	$pQuery = crm_Persons::getQuery();
-        
-        // Искаме да филтрираме само групата "Служители"
-        $employeesId = crm_Groups::getIdFromSysId('employees');
-        
-        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
-            $list = implode(',', array_keys($employees));
-            $query->where("#coverId IN ({$list})");
-        } else {
-            $query->where("#coverId = -2");
-        }
-    }
-    
-    
-    /**
-     * Преди да се подготвят опциите на кориците, ако
-     */
-    public static function getCoverOptions($coverClass)
-    {
-         
-        if($coverClass instanceof crm_Persons){
-    
-            // Искаме да филтрираме само групата "Служители"
-            $sysId = crm_Groups::getIdFromSysId('employees');
-             
-            $query->where("#groupList LIKE '%|{$sysId}|%'");
-        }
-    }
-    
+
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
