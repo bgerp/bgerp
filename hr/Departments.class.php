@@ -480,4 +480,17 @@ class hr_Departments extends core_Master
     		unset($res[$undefinedDepId]);
     	}
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'add' && isset($rec->parentId)){
+    		if(!$mvc->haveRightFor('single', $rec->parentId)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    }
 }
