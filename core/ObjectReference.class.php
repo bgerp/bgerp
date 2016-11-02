@@ -14,8 +14,8 @@
  * @since     v 0.1
  * 
  * @property string valiorFld
- * @method fetch(mixed $fields = '*', boolean $cache = TRUE)
- * @method fetchField(string $field = 'id', boolean $cache = TRUE)
+ * @method fetch(mixed $cond, mixed $fields = '*', boolean $cache = TRUE)
+ * @method fetchField(mixed $cond, string $field = 'id', boolean $cache = TRUE)
  * @method core_Query getQuery()
  * @method getHandle()
  * @method getHyperlink(boolean $icon = FALSE, boolean $short = FALSE)
@@ -29,7 +29,7 @@
  * @method getShipmentOperations()
  * @method getOrigin()
  * @method getDocumentRow()
- * @method getIcon()
+ * @method getIcon(int $id)
  */
 class core_ObjectReference
 {
