@@ -160,15 +160,20 @@ class type_Datetime extends type_Date {
     {
     	list($d, $t) = explode(' ', $value);
 
-        $sf = $this->timePart;
+        $stp = $this->timePart;
+        $sf = $this->params['format'];
         
         if($t == $this->params['defaultTime']) {
             $this->timePart = '';
+            if($this->params['format'] == 'smartTime') {
+                $this->params['format'] = 'smartDate';
+            }
         }
     	
         $res = parent::toVerbal($value, $useFormat);
 
-        $this->timePart = $sf;
+        $this->timePart = $stp;
+        $this->params['format'] = $sf;
 
         return $res;
     }
