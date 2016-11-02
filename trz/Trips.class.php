@@ -131,7 +131,7 @@ class trz_Trips extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Trip";
+    public $abbr = "Trp";
     
     
     /**
@@ -157,9 +157,9 @@ class trz_Trips extends core_Master
      */
     public function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
-    	$this->FLD('startDate', 'datetime',     'caption=Считано->От');
-		$this->FLD('toDate', 'datetime(defaultTime=23:59:59)',     'caption=Считано->До');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
+    	$this->FLD('startDate', 'datetime',     'caption=Считано->От, mandatory');
+		$this->FLD('toDate', 'datetime(defaultTime=23:59:59)',     'caption=Считано->До, mandatory');
         $this->FLD('place',    'richtext(rows=5, bucket=Notes)', 'caption=Място');
     	$this->FLD('purpose', 'richtext(rows=5, bucket=Notes)', 'caption=Цел');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
@@ -193,16 +193,13 @@ class trz_Trips extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields .= ', personId';
-        
-        $data->listFilter->input('personId', 'silent');
+    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
+        $data->listFilter->input('employeeId', 'silent');
         
     	if($filterRec = $data->listFilter->rec){
-        	if($filterRec->personId){
-        		$data->query->where(array("#personId = '[#1#]'", $filterRec->personId));
+        	if($filterRec->employeeId){
+        		$data->query->where(array("#personId = '[#1#]'", $filterRec->employeeId));
         	}
     	}
     }
@@ -213,16 +210,25 @@ class trz_Trips extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $rec = $data->form->rec;
+    	$form = &$data->form;
+    	$rec = $form->rec;
+        
+        // Намират се всички служители
+        $employees = crm_Persons::getEmployeesOptions();
+        if(count($employees)){
+        	$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+        } else {
+        	redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
+        }
+        
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if ($rec->folderId && $folderClass == 'crm_Persons') {
-	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
-	        $data->form->setReadonly('personId');
+	        $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $form->setReadonly('personId');
 
-            $cu = core_Users::getCurrent();
-	        if(!haveRole('ceo,trz,hr', $cu)) {
-	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+	        if(!haveRole('ceo,trz,hr')) {
+	        	$form->setField('sharedUsers', 'mandatory');
 	        }
         }
     }
@@ -274,7 +280,6 @@ class trz_Trips extends core_Master
         if(!isset($data->rec->amountRoad) || !isset($data->rec->amountDaily) || !isset($data->rec->amountHouse)  ) {
     
             $tpl->removeBlock('compensation');
-             
         }
     }
     
@@ -444,11 +449,19 @@ class trz_Trips extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Името на класа
-    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-    	
-    	// Ако не е папка проект или контрагент, не може да се добави
-    	if ($coverClassName != 'crm_persons' && $coverClassName != 'doc_unsortedfolders') return FALSE;
+        $Cover = doc_Folders::getCover($folderId);
+        
+        // Трябва да е в папка на лице или на проект
+        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') return FALSE;
+        
+        // Ако е в папка на лице, лицето трябва да е в група служители
+        if($Cover->className == 'crm_Persons'){
+        	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+        	$personGroups = $Cover->fetchField('groupList');
+        	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        return TRUE;
     }
     
     

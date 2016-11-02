@@ -625,7 +625,7 @@ class core_String
         $flagWord = TRUE;
         $flagHtml = FALSE;
         $pointer  = 0;
-        setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“', '„', '…', '&', '_', '/'));
+        setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“', '„', '…', '&', '_', '/', '=', '+', '*'));
         
         $res = array();
         
@@ -639,7 +639,7 @@ class core_String
 
                         // Ако е зададен колбек - викаме го
                         if($callback) {
-                            $callback($out, $lastLen);
+                            $callback($out, $lastLen, $lastTag);
                         }
                     }
                 }
@@ -653,6 +653,11 @@ class core_String
             if($html) {
                 if($c == '<') {
                     $flagHtml = TRUE;
+                    $lastTag = '';
+                }
+
+                if($flagHtml) {
+                    $lastTag .= $c;
                 }
 
                 if($c == '>') {

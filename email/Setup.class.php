@@ -299,6 +299,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::repairRecsInFilters',
             'migrate::repairSendOnTimeClasses',
             'migrate::updateUserInboxesD',
+            'migrate::repairSalutations',
         );
     
 
@@ -534,6 +535,23 @@ class email_Setup extends core_ProtoSetup
         if (!function_exists('imap_open')) {
             
             return 'Не е инсталиран IMAP модула на PHP';
+        }
+    }
+    
+    
+    /**
+     * Поправка на userId на обръщенията
+     */
+    public function repairSalutations()
+    {
+        $query = email_Salutations::getQuery();
+        $query->where("#userId IS NULL");
+        $query->orWhere("#userId = '0' || #userId = '-1'");
+        
+        while ($rec = $query->fetch()) {
+            $rec->userId = $rec->createdBy;
+            
+            email_Salutations::save($rec, 'userId');
         }
     }
 }

@@ -232,7 +232,6 @@ class plg_Select extends core_Plugin
      * @param core_Mvc $mvc
      * @param string $res
      * @param string $status
-     * @param object $data
      */
     function on_BeforeGetContentHash($mvc, &$res, &$status)
     {

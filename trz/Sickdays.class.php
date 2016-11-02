@@ -133,7 +133,7 @@ class trz_Sickdays extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Sick";
+    public $abbr = "Sck";
     
     
     /**
@@ -165,7 +165,7 @@ class trz_Sickdays extends core_Master
      */
     public function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител,readonly');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,mandatory');
     	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
     	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
     	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, input=none, changable');
@@ -202,15 +202,13 @@ class trz_Sickdays extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields .= ',personId';
-        
-        $data->listFilter->input('personId', 'silent');
+    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
+    	$data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
+    	$data->listFilter->input('employeeId', 'silent');
         
     	if($filterRec = $data->listFilter->rec){
-        	if($filterRec->personId){
-        		$data->query->where(array("#personId = '[#1#]'", $filterRec->personId));
+        	if($filterRec->employeeId){
+        		$data->query->where(array("#personId = '[#1#]'", $filterRec->employeeId));
         	}
     	}
     }
@@ -221,18 +219,25 @@ class trz_Sickdays extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	$data->form->setDefault('reason', 3);
-        
-        $rec = $data->form->rec;
-        
+    	$form = &$data->form;
+    	$rec = $form->rec;
+    	
+    	// Намират се всички служители
+    	$employees = crm_Persons::getEmployeesOptions();
+    	if(count($employees)){
+    		$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+    	} else {
+    		redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
+    	}
+    	
+    	$form->setDefault('reason', 3);
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if ($rec->folderId && $folderClass == 'crm_Persons') {
-	        $rec->personId = doc_Folders::fetchCoverId($rec->folderId);
-	        $data->form->setReadonly('personId');
+	        $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+	        $form->setReadonly('personId');
 	        
-            $cu = core_Users::getCurrent();
-	        if(!haveRole('ceo,trz,hr', $cu)) {
+	        if(!haveRole('ceo,trz,hr')) {
 	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
 	        }
         } 
@@ -245,18 +250,19 @@ class trz_Sickdays extends core_Master
     public static function on_AfterInputEditForm($mvc, $form)
     { 
     	$now = dt::now(FALSE);
+    	
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
         	if($form->rec->startDate > $now){
+        		
         		// Добавяме съобщение за грешка
-                $form->setError('startDate', "Началната дата трябва да е преди ". $now);
+                $form->setError('startDate', "Началната дата трябва да е преди|* <b>{$now}</b>");
         	}
+        	
         	if($form->rec->toDate < $form->rec->startDate){
-        		$form->setError('toDate', "Крайната дата трябва да е след ". $form->rec->startDate);
+        		$form->setError('toDate', "Крайната дата трябва да е след|*  <b>{$form->rec->startDate}</b>");
         	}
         }
-        
-    	$rec = $form->rec;
     }
     
     
@@ -517,36 +523,28 @@ class trz_Sickdays extends core_Master
     
         return hr_CustomSchedules::updateEvents($events, $fromDate, $toDate, $prefix);
     }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param $threadId int ид на нишката
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Добавяме тези документи само в персонални папки
-        $threadRec = doc_Threads::fetch($threadId);
-
-        return self::canAddToFolder($threadRec->folderId);
-    }
 
     
     /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка 
+     * Проверка дали нов документ може да бъде добавен в посочената папка 
      *
      * @param $folderId int ид на папката
      */
     public static function canAddToFolder($folderId)
     {
-        // Името на класа
-    	$coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
-    	
-    	// Ако не е папка проект или контрагент, не може да се добави
-    	if ($coverClassName != 'crm_persons' && $coverClassName != 'doc_unsortedfolders') return FALSE;
+        $Cover = doc_Folders::getCover($folderId);
+        
+        // Трябва да е в папка на лице или на проект
+        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') return FALSE;
+        
+        // Ако е в папка на лице, лицето трябва да е в група служители
+        if($Cover->className == 'crm_Persons'){
+        	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+        	$personGroups = $Cover->fetchField('groupList');
+        	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        return TRUE;
     }
     
     
