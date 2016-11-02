@@ -474,6 +474,11 @@ class trz_Requests extends core_Master
         	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
         }
         
+        if($Cover->className == 'doc_UnsortedFolders') {
+            $cu = core_Users::getCurrent();
+            if(!haveRole('ceo,trz', $cu)) return FALSE;
+        }
+        
         return TRUE;
     }
 

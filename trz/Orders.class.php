@@ -246,8 +246,6 @@ class trz_Orders extends core_Master
     		$data->form->setDefault('note', $rec->note);
     		$data->form->setDefault('useDaysFromYear', $rec->useDaysFromYear);
     		$data->form->setDefault('isPaid', $rec->paid);
-    
-
 		}
 		
         $rec = $data->form->rec;

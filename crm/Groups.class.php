@@ -860,11 +860,11 @@ class crm_Groups extends core_Master
         $form->title = "Изпращане на циркулярни SMS-и";
          
         $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
-        $form->FNC('message', 'text', 'caption=Съобщение,mandatory,silent,input=input');
+        $form->FNC('message', 'text(160)', 'caption=Съобщение,mandatory,silent,input=input');
         
         $form->setOptions('type', $groupChoiseArr);
          
-        $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор');
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png, title = Избор');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         $form->input();
@@ -881,6 +881,8 @@ class crm_Groups extends core_Master
             if (empty($pArr)) return new Redirect($retUrl, '|Няма данни за изпращане');
             
             $sendCnt = 0;
+            
+            $sendArr = array();
             
             foreach ($pArr as $pId => $p) {
                 $tel = '';
@@ -912,19 +914,24 @@ class crm_Groups extends core_Master
                 
                 if (!$mobileNum) continue;
                 
-                $sended = NULL;
+                // Защитата, за да не се праща няколко пъти
+                if ($sendArr[$mobileNum]) continue;
+                
+                $sendArr[$mobileNum] = TRUE;
+                
+                $send = NULL;
                 try {
                     $message = $form->rec->message;
                     $message = str::utf2ascii($message);
-                    $sended = callcenter_SMS::sendSmart($mobileNum, $message);
+                    $send = callcenter_SMS::sendSmart($mobileNum, $message);
                 } catch (ErrorException $e) {
                     $this->logWarning('Грешка при изпращане на масово съобщение: ' . $e->getMessage());
                 }
                 
-                if ($sended) $sendCnt++;
+                if ($send) $sendCnt++;
             }
             
-            if ($sended) {
+            if ($send) {
                 $msg = "|Изпратени съобщения|*: {$sendCnt}";
             } else {
                 $msg = "|Не е изпратено нито едно съобщение";

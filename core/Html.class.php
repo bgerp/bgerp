@@ -153,8 +153,13 @@ class core_Html
             jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", TRUE);
 
             $attr['id'] = $selectId;
-            $name = $attr['name'] = $attr['name'] . $suffix;
-
+            
+            $name = $attr['name'];
+            list($l, $r) = explode('[', $name);
+            $r = rtrim($r, ']');
+            $name = $l . $suffix . $r;
+            $attr['name'] = $name;
+            
             // Долното кара да не работи селекта в firefox-mobile, но е добре за  
             // декстоп-браузърите, когато се работи с tab за превключване на полетата
             if(!Mode::is('screenMode', 'narrow')) {
