@@ -86,7 +86,7 @@ class rfid_Ownerships extends core_Manager {
         $this->FLD('holderId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Притежател,mandatory,silent');
         $this->FLD('tagId', 'int', 'caption=rfid');
         $this->FLD('startOn', 'datetime', 'caption=Притежание->от');
-        $this->FLD('endOn', 'datetime(defaultTime=23:59:59', 'caption=Притежание->до');
+        $this->FLD('endOn', 'datetime(defaultTime=23:59:59)', 'caption=Притежание->до');
     }
     
     
