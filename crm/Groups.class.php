@@ -882,6 +882,8 @@ class crm_Groups extends core_Master
             
             $sendCnt = 0;
             
+            $sendArr = array();
+            
             foreach ($pArr as $pId => $p) {
                 $tel = '';
                 if (trim($p['mobile'])) {
@@ -912,19 +914,24 @@ class crm_Groups extends core_Master
                 
                 if (!$mobileNum) continue;
                 
-                $sended = NULL;
+                // Защитата, за да не се праща няколко пъти
+                if ($sendArr[$mobileNum]) continue;
+                
+                $sendArr[$mobileNum] = TRUE;
+                
+                $send = NULL;
                 try {
                     $message = $form->rec->message;
                     $message = str::utf2ascii($message);
-                    $sended = callcenter_SMS::sendSmart($mobileNum, $message);
+                    $send = callcenter_SMS::sendSmart($mobileNum, $message);
                 } catch (ErrorException $e) {
                     $this->logWarning('Грешка при изпращане на масово съобщение: ' . $e->getMessage());
                 }
                 
-                if ($sended) $sendCnt++;
+                if ($send) $sendCnt++;
             }
             
-            if ($sended) {
+            if ($send) {
                 $msg = "|Изпратени съобщения|*: {$sendCnt}";
             } else {
                 $msg = "|Не е изпратено нито едно съобщение";
