@@ -586,11 +586,17 @@ class core_Settings extends core_Manager
     function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
     {
         if (!$data->cClass) return ;
-           
-        // Рендираме изгледа
-        $res = $data->cClass->renderWrapping($tpl, $data);
-        
-        // За да не се изпълнява по - нататък
-        return FALSE;
+       
+        // Ако текущия потребител е контрактор, показваме обвивката на външната част
+        if(core_Users::haveRole('contractor') && !core_Users::isPowerUser()){
+        	plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+        	$this->currentTab = 'Профил';
+        } else {
+        	// Рендираме изгледа
+        	$res = $data->cClass->renderWrapping($tpl, $data);
+        	
+        	// За да не се изпълнява по - нататък
+        	return FALSE;
+        }
     }
 }
