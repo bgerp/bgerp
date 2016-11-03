@@ -659,9 +659,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$rec = &$form->rec;
     		
     		if(isset($rec->dueDate) && isset($rec->dueTime)){
-    			$date = dt::addSecs($rec->dueTime, $rec->date);
-    			$date = dt::verbal2mysql($date, FALSE);
-    			if($date != $rec->dueDate){
+    			$date = dt::addDays($rec->dueTime / (24 * 60 * 60), $rec->date, FALSE);
+     			
+                if($date != $rec->dueDate){
     				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
     			}
     		}
