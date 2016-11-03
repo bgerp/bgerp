@@ -88,8 +88,8 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  10.".$this->act_CreatePackage();
         $res .= "  11.".$this->act_CreateGroup();
         $res .= "  12.".$this->act_CreateProject();
-        //$res .= "  13.".$this->act_CreateDepartment1();
-        //$res .= "  14.".$this->act_CreateDepartment2();
+        $res .= "  13.".$this->act_CreateDepartment1();
+        $res .= "  14.".$this->act_CreateDepartment2();
         $res .= "  15.".$this->act_CreateProduct();
         $res .= "  16.".$this->act_CreateEditPerson();
         $res .= "  17.".$this->act_CreateCompany();
