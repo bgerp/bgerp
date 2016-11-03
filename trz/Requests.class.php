@@ -260,10 +260,10 @@ class trz_Requests extends core_Master
     	
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
     	for($i = 0; $i < 5; $i++){
-    		$years[] = $nowYear - $i;
-    	}
+    		$years[$nowYear - $i] = $nowYear - $i;
+    	} 
     	$form->setSuggestions('useDaysFromYear', $years);
-    	$form->setDefault('useDaysFromYear', $years[0]);
+    	$form->setDefault('useDaysFromYear', $years[$nowYear]);
     	
 
     	// Намират се всички служители
@@ -472,6 +472,11 @@ class trz_Requests extends core_Master
         	$emplGroupId = crm_Groups::getIdFromSysId('employees');
         	$personGroups = $Cover->fetchField('groupList');
         	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        if($Cover->className == 'doc_UnsortedFolders') {
+            $cu = core_Users::getCurrent();
+            if(!haveRole('ceo,trz', $cu)) return FALSE;
         }
         
         return TRUE;

@@ -259,8 +259,8 @@ class unit_MinkPProducts extends core_Manager {
             $browser->press('Чернова');
             $browser->press('Активиране');
             //Произвеждане и влагане
-            //$browser->press('Произвеждане'); -разпознава бутона за приключване в заданието
-            $browser->press('Добавяне на произведен артикул');
+            $browser->press('Произвеждане'); 
+            //$browser->press('Добавяне на произведен артикул');
             $browser->setValue('quantity', '1000');
             $browser->setValue('employees[4]', '4');
             $browser->press('Запис');

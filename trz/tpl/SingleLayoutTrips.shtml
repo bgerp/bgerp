@@ -23,42 +23,55 @@
         <!--ET_END purpose-->
     </div>
     
-    <!--ET_BEGIN compensation-->
+        <!--ET_BEGIN compensation-->
         <br><p><b>|Командировъчни|*:</b></p>
+        <!--ET_END compensation-->
         
         <table class="inlineRichTable listTable" style="width:48%">
         	<tr>
+        	   <!--ET_BEGIN amountRoad-->
         		<th>|Пътни|*</th>
                 <td class="centered">[#amountRoad#]</td>
+                <!--ET_END amountRoad-->
             </tr>
         	<tr>
+        	   <!--ET_BEGIN amountDaily-->
         		<th>|Дневни|*</th>
                 <td class="centered">[#amountDaily#]</td>
+                <!--ET_END amountDaily-->
             </tr>
 
             <tr>  
+                <!--ET_BEGIN amountHouse-->
             	<th>|Квартирни|*</th>
 	            <td class="centered">[#amountHouse#]</td>
+	            <!--ET_END amountHouse-->
 	        </tr>
 	    </table>
-        <!--ET_END compensation-->
+
     
     <!--ET_BEGIN access-->        
     <br><p><b>|По време на отсъствието ще|*:</b></p>
     <table class="inlineRichTable listTable">
     	<tr>
+    		<!--ET_BEGIN answerGSM-->
     		<td>|отговарям на мобилен телефон|*</td>
             <td class="centered">[#answerGSM#]</td>
+            <!--ET_END answerGSM-->
         </tr>
         
         <tr>
+        	<!--ET_BEGIN answerSystem-->
         	<td>|имам достъп до системата|*</td>
             <td class="centered">[#answerSystem#]</td>
+            <!--ET_END answerSystem-->
         </tr>
             
         <tr>
+           <!--ET_BEGIN alternatePerson-->
             <td>|ме замества|*</td>
             <td class="centered">[#alternatePerson#]</td>
+            <!--ET_END alternatePerson-->
         </tr>
     </table>
     <!--ET_END access-->

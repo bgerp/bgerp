@@ -51,7 +51,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     	$form->FLD('from', 'date', 'caption=От, mandatory');
     	$form->FLD('to', 'date', 'caption=До,mandatory');
     	$form->FLD('departments', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=Отдел');
-    	$form->FLD('team', 'varchar', 'caption=Екип');
+    	$form->FLD('team', 'key(mvc=core_Roles, select=role)', 'caption=Екип');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -159,13 +159,13 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
 
     	if($data->rec->team) {
     	    $message = $data->rec->team;  
-    	    $flag = FALSE;
+    	    $flag = 0;
     	} elseif($data->rec->departments) {
     	    $message = $data->rec->departments;
     	    $flag = 1;
     	} else {
     	    $message = 'Отсъстващи';
-    	    $flag = TRUE;
+    	    $flag = -1;
     	}
 
 
@@ -240,16 +240,10 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     	
     	$tpl->replace($title[1], 'TITLE');
     
-    	$form = cls::get('core_Form');
+    	$this->prependStaticForm($tpl, 'FORM');
+
+    	$tpl->placeObject($data->row);
     
-    	$this->addEmbeddedFields($form);
-    
-    	$form->rec = $data->rec;
-    	$form->class = 'simpleForm';
-    
-    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
-    	
-    	$tpl->placeObject($data->rec);
 
     	$f = cls::get('core_FieldSet');
 
@@ -294,16 +288,15 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
 
         $row = new stdClass();
 
-        if($rec->flag == FALSE) {
+        if($rec->flag == 0) {
             // вербализираме екипа
             $tRole = core_Roles::getVerbal($rec->missing, 'role');
             $title = tr('Екип') . " \"" . $tRole . "\"";
             $row->missing = $title;
-        } elseif($rec->flag == 1){
-            
-            $row->missing = hr_Departments::fetchField($rec->missing, 'name');
-        } else {
+        } elseif($rec->flag == -1){
             $row->missing = $Varchar->toVerbal($rec->missing);
+        } elseif($rec->flag == 1) { 
+            $row->missing = hr_Departments::fetchField($rec->missing, 'name');   
         }
         
         $row->percent = $Percent->toVerbal($rec->percent);

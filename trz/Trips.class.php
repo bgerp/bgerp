@@ -92,6 +92,12 @@ class trz_Trips extends core_Master
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'powerUser';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = "5.4|Човешки ресурси"; 
@@ -237,8 +243,8 @@ class trz_Trips extends core_Master
         }
         
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
-
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
+        
+        if ($rec->folderId && $folderClass == 'crm_Persons') { 
 	        $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
 	        $form->setReadonly('personId');
 
@@ -292,7 +298,7 @@ class trz_Trips extends core_Master
      */
     protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
     {
-        if(!isset($data->rec->amountRoad) || !isset($data->rec->amountDaily) || !isset($data->rec->amountHouse)  ) {
+        if(!isset($data->rec->amountRoad) && !isset($data->rec->amountDaily) && !isset($data->rec->amountHouse)  ) {
     
             $tpl->removeBlock('compensation');
         }
@@ -474,6 +480,11 @@ class trz_Trips extends core_Master
         	$emplGroupId = crm_Groups::getIdFromSysId('employees');
         	$personGroups = $Cover->fetchField('groupList');
         	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        if($Cover->className == 'doc_UnsortedFolders') {
+            $cu = core_Users::getCurrent();
+            if(!haveRole('ceo,trz', $cu)) return FALSE;
         }
         
         return TRUE;

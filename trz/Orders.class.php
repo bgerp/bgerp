@@ -157,7 +157,7 @@ class trz_Orders extends core_Master
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
-    	$this->FLD('useDaysFromYear', 'int(nowYest, nowYear-1)', 'caption=Информация->Ползване от,unit=година');
+    	$this->FLD('useDaysFromYear', 'int(nowYear, nowYear-1)', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('isPaid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Вид,maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('amount', 'double', 'caption=Дневна компенсация,input=none, changable,recently');
     }
@@ -225,10 +225,10 @@ class trz_Orders extends core_Master
     {
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
     	for($i = 0; $i < 5; $i++){
-    		$years[] = $nowYear - $i;
+    		$years[$nowYear - $i] = $nowYear - $i;
     	}
     	$data->form->setSuggestions('useDaysFromYear', $years);
-    	$data->form->setDefault('useDaysFromYear', $years[0]);
+    	$data->form->setDefault('useDaysFromYear', $years[$nowYear]);
 
     	if($data->form->rec->originId){
 			// Ако напомнянето е по  документ задача намираме кой е той
@@ -246,8 +246,6 @@ class trz_Orders extends core_Master
     		$data->form->setDefault('note', $rec->note);
     		$data->form->setDefault('useDaysFromYear', $rec->useDaysFromYear);
     		$data->form->setDefault('isPaid', $rec->paid);
-    
-
 		}
 		
         $rec = $data->form->rec;

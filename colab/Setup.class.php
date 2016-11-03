@@ -77,9 +77,6 @@ class colab_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Споделяне на папки на лица с партньори', 'colab_plg_FolderToPartners', 'crm_Persons', 'private');
     	$html .= $Plugins->installPlugin('Споделяне системи с партньори', 'colab_plg_FolderToPartners', 'support_Systems', 'private');
     	
-    	// 
-    	$html .= $Plugins->installPlugin('Настройка на профилите на партньори', 'colab_plg_Settings', 'core_Settings', 'private');
-        
     	// Закачаме плъгина към документи, които са видими за партньори
     	$html .= $Plugins->installPlugin('Colab за приходни банкови документи', 'colab_plg_Document', 'bank_IncomeDocuments', 'private');
     	$html .= $Plugins->installPlugin('Colab за разходни банкови документи', 'colab_plg_Document', 'bank_SpendingDocuments', 'private');

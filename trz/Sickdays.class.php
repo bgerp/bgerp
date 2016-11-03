@@ -122,6 +122,12 @@ class trz_Sickdays extends core_Master
 
     
     public $canEdited = 'ceo,trz';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'powerUser';
 
     
     /**
@@ -547,6 +553,11 @@ class trz_Sickdays extends core_Master
         	$emplGroupId = crm_Groups::getIdFromSysId('employees');
         	$personGroups = $Cover->fetchField('groupList');
         	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        if($Cover->className == 'doc_UnsortedFolders') {
+            $cu = core_Users::getCurrent();
+            if(!haveRole('ceo,trz', $cu)) return FALSE;
         }
         
         return TRUE;
