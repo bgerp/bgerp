@@ -162,7 +162,7 @@ class sales_Setup extends core_ProtoSetup
 	
 			'SALE_INVOICE_DEF_TPL_BG'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
 			'SALE_INVOICE_DEF_TPL_EN'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
-			'SALE_INVOICES_SHOW_DEAL'         => array("enum(auto=Автоматично,no=Никога,yes=Винаги)", 'caption=Показвеане на сделката в описанието на фактурата->Избор'),
+			'SALE_INVOICES_SHOW_DEAL'         => array("enum(auto=Автоматично,no=Никога,yes=Винаги)", 'caption=Показване на сделката в описанието на фактурата->Избор'),
 			
 			'SALES_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
 			'SALES_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
