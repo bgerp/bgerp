@@ -676,10 +676,16 @@ class core_DateTime
     {
         if (!$date) $date = dt::verbal2mysql();
         
-        $date = dt::mysql2timestamp($date);
-        $date += $days * 24 * 60 * 60;
+        list($d, $t) = explode(' ', $date);
+
+        $d = dt::mysql2timestamp($d . ' 12:00:00');
+        $d += $days * 24 * 60 * 60;
         
-        $res = dt::timestamp2Mysql($date);
+        $res = dt::timestamp2Mysql($d);
+        
+        list($d1, $t1) = explode(' ', $res);
+
+        $res = $d1 . ' ' . $t;
 
         if(!$full) {
             list($res, ) = explode(' ', $res);
@@ -696,6 +702,11 @@ class core_DateTime
     {
         if (!$date) $date = dt::verbal2mysql();
         
+        if($secs % (24*60*60) == 0) {
+
+            return self::addDays($secs / (24*60*60), $date);
+        }
+
         $date = dt::mysql2timestamp($date);
         $date += $secs;
         
