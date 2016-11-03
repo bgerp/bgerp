@@ -677,6 +677,10 @@ class core_DateTime
         if (!$date) $date = dt::verbal2mysql();
         
         list($d, $t) = explode(' ', $date);
+        
+        if(!$t) {
+            $t = '00:00:00';
+        }
 
         $d = dt::mysql2timestamp($d . ' 12:00:00');
         $d += $days * 24 * 60 * 60;
