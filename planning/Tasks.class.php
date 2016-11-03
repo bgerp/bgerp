@@ -142,6 +142,7 @@ class planning_Tasks extends tasks_Tasks
 		$draftRecs = array();
 		foreach ($departments as $depId){
 			$depFolderId = isset($depId) ? hr_Departments::forceCoverAndFolder($depId) : NULL;
+			if(!doc_Folders::haveRightFor('single', $depFolderId)) continue;
 			
 			$r = new stdClass();
 			$r->folderId    = $depFolderId;
