@@ -182,7 +182,8 @@ class acc_Items extends core_Manager
      */
     protected static function on_CalcTitleLink($mvc, $rec)
     {
-        $title = $mvc->getVerbal($rec, 'title');
+        $rec->title = tr($rec->title);
+    	$title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
         $rec->titleLink = $title . " ($num)";
     }
