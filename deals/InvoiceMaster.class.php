@@ -660,8 +660,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		if(isset($rec->dueDate) && isset($rec->dueTime)){
     			$date = dt::addDays($rec->dueTime / (24 * 60 * 60), $rec->date, FALSE);
-     			if($date != $rec->dueDate){
-                    bp($rec->date, $date , $rec->dueDate);
+     			
+                if($date != $rec->dueDate){
     				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
     			}
     		}
