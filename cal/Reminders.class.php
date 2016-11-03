@@ -673,6 +673,14 @@ class cal_Reminders extends core_Master
     
                 // TODO да се проверява за високосна година
                 $calRec->time = $rec->timeStart;
+                
+                if($rec->nextStartTime) {
+                    // Ключ на събитието
+                    $calRec->key = $prefix . '-Start';
+                    
+                    // TODO да се проверява за високосна година
+                    $calRec->time = $rec->timeStart;
+                }
     
                 $calRec->type = 'alarm_clock';
                 
@@ -691,31 +699,31 @@ class cal_Reminders extends core_Master
                 $events[] = $calRec;
             }
         }
-           
-        if ($rec->nextStartTime && $rec->nextStartTime >= $fromDate && $rec->nextStartTime <= $toDate && ($rec->state == 'active')){
-        
-            $calRec = new stdClass();
+
+        if ($rec->nextStartTime && $rec->nextStartTime >= $rec->timeStart && $rec->nextStartTime <= $toDate && ($rec->state == 'active')){ 
+
+            $remRec = new stdClass();
                
             // Ключ на събитието
-            $calRec->key = $prefix . '-NextStart';
+            $remRec->key = $prefix . '-NextStart';
 
-            $calRec->time = $rec->nextStartTime;
+            $remRec->time = $rec->nextStartTime;
                
-            $calRec->type = 'alarm_clock';
+            $remRec->type = 'alarm_clock';
                
-            $calRec->allDay = 'no';
+            $remRec->allDay = 'no';
                
-            $calRec->state = $rec->state;
+            $remRec->state = $rec->state;
                
-            $calRec->title = $rec->title;
+            $remRec->title = $rec->title;
                
-            $calRec->users =  $rec->sharedUsers;
+            $remRec->users =  $rec->sharedUsers;
                
-            $calRec->url = array('cal_Reminders', 'Single', $id);
+            $remRec->url = array('cal_Reminders', 'Single', $id);
                
-            $calRec->priority = 90;
+            $remRec->priority = 90;
                
-            $events[] = $calRec;
+            $events[] = $remRec;
         }
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
@@ -945,12 +953,12 @@ class cal_Reminders extends core_Master
         	$nextStartTimeTs = $startTs - $rec->timePreviously ;
         	$nextStartTime = date("Y-m-d H:i:s", $nextStartTimeTs);
         	
-        	return $nextStartTime;
+        	//return $nextStartTime;
         	
         } elseif($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
         	$nextStartTime = $rec->timeStart;
         	
-        	return $nextStartTime;
+        	//return $nextStartTime;
         }
         
         if($rec->repetitionEach !== NULL ) {
