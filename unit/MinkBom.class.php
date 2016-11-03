@@ -85,7 +85,7 @@ class unit_MinkBom extends core_Manager
             $browser->press('Отказ');
             $browser->click('Труд (work)');
         } 
-        
+       
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
@@ -310,6 +310,7 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'час');
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
+        $browser->setValue('meta[canStore]', False);
         $browser->press('Запис');
      
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -342,6 +343,7 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'час');
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
+        $browser->setValue('meta[canStore]', False);
         $browser->press('Запис');
           
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -374,6 +376,7 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'час');
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
+        $browser->setValue('meta[canStore]', False);
         $browser->press('Запис');
           
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){

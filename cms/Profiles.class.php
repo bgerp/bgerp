@@ -61,7 +61,7 @@ class cms_Profiles extends core_Master
     /**
      * Кой има достъп до единичния изглед
      */
-    public $canSingle = 'buyer';
+    public $canSingle = 'contractor';
     
     
 	/**
@@ -70,7 +70,7 @@ class cms_Profiles extends core_Master
     function act_Default()
     {
         // Изискваме да е логнат потребител
-        requireRole('buyer');
+        requireRole('contractor');
         
         // Редиректваме
         return new Redirect(array($this, 'Single'));
@@ -158,7 +158,7 @@ class cms_Profiles extends core_Master
      */
     public function act_ChangePassword()
     {
-    	requireRole('buyer');
+    	requireRole('contractor');
 
         $form = $this->Profile->prepareChangePassword();
         $form->input();
