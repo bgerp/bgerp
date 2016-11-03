@@ -770,7 +770,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     /**
-     * 2.Запитване от съществуваща фирма с папка и артикул от него
+     * 2.Запитване, артикул от него и оферта
      */
     //http://localhost/unit_MinkPbgERP/CreateInq/
     function act_CreateInq()
@@ -801,6 +801,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
         $browser->press('Оферта');
+        $browser->setValue('Цена', '3,1234');
+        $browser->setValue('validFor', '10 дни');
+        $browser->press('Чернова');
+        $browser->press('Активиране');
         //return $browser->getHtml();
     }
     
