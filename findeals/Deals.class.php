@@ -939,32 +939,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Изпълнява се след създаването на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-    	// Попълва информация за мениджъра от който е направен записа
-    	if($mvc->count()){
-    		$sysId = findeals_AdvanceReports::$baseAccountSysId;
-    		$exceptId = acc_Accounts::getRecBySystemId($sysId)->id;
-    		
-    		$query = $mvc->getQuery();
-    		while($rec = $query->fetch()){
-    			if(empty($rec->dealManId)){
-    				if($rec->accountId == $exceptId){
-    					$rec->dealManId = findeals_AdvanceDeals::getClassId();
-    				} else {
-    					$rec->dealManId = findeals_Deals::getClassId();
-    				}
-    				
-    				$mvc->save($rec);
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Изпълнява се след възстановяване на документа
      */
     protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
