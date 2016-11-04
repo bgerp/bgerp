@@ -381,7 +381,9 @@ class colab_FolderToPartners extends core_Manager
             tr("моля последвай този||please follow this") .
             " [link=[#link#]]" . tr("линк||link") . "[/link] - " . 
             tr("изтича след 7 дена||it expired after 7 days"));
-		$body->replace($companyName, 'company');
+		
+    	$companyName = str_replace(array('&lt;', '&amp;'), array("<", "&"), $companyName);
+    	$body->replace($companyName, 'company');
 		$body->replace($url, 'link');
 		
 		$footer = cls::get('email_Outgoings')->getFooter($companyRec->country);
