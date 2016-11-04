@@ -475,7 +475,7 @@ class crm_Groups extends core_Master
      * 
      * @return array
      */
-    protected function getFielsFor($p)
+    protected function getFieldsFor($p)
     {
         $arr = array();
         
@@ -585,7 +585,7 @@ class crm_Groups extends core_Master
     {
         list(, $p) = explode('_', $id);
         
-        $filedsArr = (array)$this->getFielsFor($p);
+        $filedsArr = (array)$this->getFieldsFor($p);
         $keysArr = array_keys($filedsArr);
         $nArr = array_combine($keysArr, $keysArr);
         
@@ -609,7 +609,7 @@ class crm_Groups extends core_Master
         list($id, $p) = explode('_', $id);
         
         // Вземаме всички полета
-        $fieldsArr = (array)$this->getFielsFor($p);
+        $fieldsArr = (array)$this->getFieldsFor($p);
         
         $allClass = array();
         
@@ -628,6 +628,10 @@ class crm_Groups extends core_Master
             if ($limit) {
                 $query->limit($limit);
             }
+            
+            // Премахваме оттеглените и спрените
+            $query->where("#state != 'rejected'");
+            $query->where("#state != 'closed'");
             
             while ($rec = $query->fetch()) {
                 foreach ((array)$fArr as $name => $fieldName)
@@ -877,7 +881,6 @@ class crm_Groups extends core_Master
         
         if ($form->isSubmitted()) {
             $pArr = $this->getPresonalizationArr($form->rec->type);
-            
             if (empty($pArr)) return new Redirect($retUrl, '|Няма данни за изпращане');
             
             $sendCnt = 0;
