@@ -521,7 +521,7 @@ class colab_FolderToPartners extends core_Manager
     	
     	// Задаваме дефолтните роли
     	$defRoles = array();
-    	foreach (array('contractor') as $role){
+    	foreach (array('collaborator') as $role){
     		$id = core_Roles::fetchByName($role);
     		$defRoles[$id] = $id;
     	}
