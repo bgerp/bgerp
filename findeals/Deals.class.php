@@ -510,6 +510,10 @@ class findeals_Deals extends deals_DealBase
     		if(empty($row->contragentCaption)){
     			$row->contragentCaption = tr('Контрагент');
     		}
+    		
+    		if($rec->currencyRate == 1){
+    			unset($row->currencyRate);
+    		}
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
