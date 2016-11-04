@@ -34,7 +34,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, email_DocumentIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf,acc_TransactionSourceIntf=findeals_transaction_Deal';
+    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf,acc_TransactionSourceIntf=findeals_transaction_Deal';
     
     
     /**
