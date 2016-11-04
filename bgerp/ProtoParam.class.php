@@ -90,7 +90,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		}
 		 
 		if (!empty($rec->suffix)) {
-			$rec->typeExt .= ' (' . tr($rec->suffix) . ')';
+			$rec->typeExt .= ' (' . str_replace(array('&lt;', '&amp;'), array("<", "&"), tr($rec->suffix)) . ')';
 		}
 	}
 	
