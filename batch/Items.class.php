@@ -329,7 +329,9 @@ class batch_Items extends core_Master {
     /**
      * Чръща всички складируеми артикули с дефинирани видове партидност
      *
-     * @return array $storable - масив с артикули
+     * @param int $productId    - артикул
+     * @param int|NULL $storeId - склад
+     * @return array $res       - масив с артикули
      */
     public static function getBatches($productId, $storeId = NULL)
     {
@@ -337,9 +339,11 @@ class batch_Items extends core_Master {
     	
     	$query = self::getQuery();
     	$query->where("#productId = {$productId}");
+    	$query->where("#state != 'closed' AND #quantity != 0");
     	if(isset($storeId)){
     		$query->where("#storeId = {$storeId}");
     	}
+    	
     	$query->show('batch');
     	
     	while($rec = $query->fetch()){
