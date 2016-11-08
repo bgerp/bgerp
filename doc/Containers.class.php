@@ -425,7 +425,7 @@ class doc_Containers extends core_Manager
         // Ако е избран някой документ, го отваряме временно - да не скрит
         if ($docId = Request::get('docId')) {
             try {
-                $doc = doc_Containers::getDocumentByHandle($docId);
+                $doc = self::getDocumentByHandle($docId);
                 $dRec = $doc->fetch();
             } catch (ErrorException $e) {
                 $dRec = FALSE;
