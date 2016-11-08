@@ -1668,12 +1668,14 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешна сума извънреден приход', 'warning');
         }
         //Да отваря журнала на приключването
-        //$browser->press('Журнал','[4]');
+        $browser->click('Други действия с този документ[4]');
+        //return $browser->getHtml();
+        $browser->press('Журнал');
         //if(strpos($browser->gettext(), '2,70 Извънредни приходи - надплатени')) {
         //} else {
         //    return unit_MinkPbgERP::reportErr('Грешkа ', 'warning');
         //}
-        //return $browser->getHtml();
+        return $browser->getHtml();
     }
     
     /**
