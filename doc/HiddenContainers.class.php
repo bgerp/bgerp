@@ -124,7 +124,7 @@ class doc_HiddenContainers extends core_Manager
             if ($cId && ($cId == $firstCid)) continue;
             
             $mName = self::getModeName($cId, $userId);
-            $modeStatus = Mode::is($mName, 'opened');
+            $modeStatus = Mode::get($mName, 'opened');
             $rec = FALSE;
             
             if (!$modeStatus) {
