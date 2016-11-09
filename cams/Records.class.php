@@ -367,10 +367,11 @@ class cams_Records extends core_Master
             'callBack' => $me . '::afterConvert',
             'asynch' => TRUE,
             'createdBy' => core_Users::getCurrent('id'),
+            'errFilePath' => 'err_videoconv.txt'
         );
         $Script->setFile('INPUTF', $mp4Path);
         $Script->setFile('OUTPUTF', $mp4File);
-        $Script->lineExec($cmdTmpl);
+        $Script->lineExec($cmdTmpl, array('errFilePath' => $params['errFilePath']));
         
         $Script->callBack($params['callBack']);
         
@@ -399,6 +400,10 @@ class cams_Records extends core_Master
     {
         copy ($script->tempDir . basename($script->params['mp4File']), $script->params['mp4File']);
         core_Locks::release(basename($script->params['mp4File']));
+        if (file_exists($script->params['errFilePath'])) {
+            $err = file_get_contents($script->params['errFilePath']);
+            self::logErr("Грешка при конвертиране на видео: $err");
+        }
         
         return TRUE;
     }
