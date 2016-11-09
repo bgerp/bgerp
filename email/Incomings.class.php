@@ -1679,7 +1679,6 @@ class email_Incomings extends core_Master
      * Създаване на правило от тип `FromTo` - само ако получателя не е общ.
      *
      * @param stdClass $rec
-     * @param int $priority
      */
     static function makeFromToRule($rec)
     {
@@ -1706,7 +1705,6 @@ class email_Incomings extends core_Master
      * Създаване на правило от тип `From` - винаги
      *
      * @param stdClass $rec
-     * @param int $priority
      */
     static function makeFromRule($rec)
     {
@@ -1729,7 +1727,6 @@ class email_Incomings extends core_Master
      * Създаване на правило от тип `Domain` - ако изпращача не е от пуб. домейн и получателя е общ.
      *
      * @param stdClass $rec
-     * @param int $priority
      */
     static function makeDomainRule($rec)
     {
