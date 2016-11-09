@@ -1667,7 +1667,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума извънреден приход', 'warning');
         }
-        //Да отваря журнала на приключването
+        //Да отваря журнала на приключването, а не на продажбата!!!
         $browser->click('Други действия с този документ[4]');
         //return $browser->getHtml();
         $browser->press('Журнал');
@@ -1675,7 +1675,7 @@ class unit_MinkPSales extends core_Manager {
         //} else {
         //    return unit_MinkPbgERP::reportErr('Грешkа ', 'warning');
         //}
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
     /**

@@ -121,7 +121,7 @@ class support_Issues extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
-    				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc';
+    				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc, plg_Clone';
     
     
     /**
@@ -161,15 +161,9 @@ class support_Issues extends core_Master
     
     
     /**
-     * 
-     */
-    var $cloneFields = 'componentId, typeId, title, description, priority';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    public $canClonerec = 'powerUser';
 	
     
     /**
