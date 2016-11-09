@@ -424,15 +424,19 @@ class doc_Containers extends core_Manager
         
         // Ако е избран някой документ, го отваряме временно - да не скрит
         if ($docId = Request::get('docId')) {
+            $dRec = FALSE;
             try {
                 $doc = self::getDocumentByHandle($docId);
-                $dRec = $doc->fetch();
+                
+                if ($doc && $doc->instance instanceof core_Mvc) {
+                    $dRec = $doc->fetch();
+                }
+                
+                if ($dRec) {
+                    doc_HiddenContainers::showOrHideDocument($dRec->containerId, FALSE, TRUE);
+                }
             } catch (ErrorException $e) {
-                $dRec = FALSE;
-            }
-            
-            if ($dRec) {
-                doc_HiddenContainers::showOrHideDocument($dRec->containerId, FALSE, TRUE);
+                // Нищо не се прави
             }
         }
     }
