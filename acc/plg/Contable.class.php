@@ -264,13 +264,6 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'every_one';
             }
             
-            // Ако документа трябва да става чакащ не може да се активира
-            if(isset($rec)){
-            	if($mvc->getPendingOrActivate($rec) == 'pending'){
-            		$requiredRoles = 'no_one';
-            	}
-            }
-            
             // Кой може да реконтира документа( изпълнява се след възстановяване на оттеглен документ)
         } elseif($action == 'reconto' && isset($rec)){
             
@@ -376,9 +369,7 @@ class acc_plg_Contable extends core_Plugin
         }
         
         if($action == 'closewith' && isset($rec)){
-        	
-        	// Ако документа трябва да става чакащ не може да се активира
-            if($mvc->getPendingOrActivate($rec) == 'pending'){
+            if($rec->state == 'pending'){
             	$requiredRoles = 'no_one';
             }
         }

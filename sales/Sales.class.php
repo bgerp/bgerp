@@ -125,7 +125,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'collaborator,ceo,sales';
+    public $canPending = 'collaborator';
     
     
     /**

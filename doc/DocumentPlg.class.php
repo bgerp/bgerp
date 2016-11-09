@@ -3375,17 +3375,6 @@ class doc_DocumentPlg extends core_Plugin
     		}
     	}
     }
-    
-    
-    /**
-     * Дали при активиране документа трябва да стане чакащ или активен, метод по подразбиране
-     */
-    public static function on_AfterGetPendingOrActivate($mvc, &$res, $rec)
-    {
-    	if(!$res){
-    		$res = 'activate';
-    	}
-    }
 
 
     /**

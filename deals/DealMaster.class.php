@@ -1754,18 +1754,6 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Дали при активиране документа трябва да стане чакащ или активен
-     * 
-     * @param stdClass $rec
-     * @return pending|activate
-     */
-    public function getPendingOrActivate($rec)
-    {
-    	return (core_Users::haveRole('collaborator') ? 'pending' : 'activate');
-    }
-    
-    
-    /**
      * След като документа става чакащ
      */
     public static function on_AfterSavePendingDocument($mvc, &$rec)
