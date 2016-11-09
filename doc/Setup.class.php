@@ -101,7 +101,7 @@ defIfNot('DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS', '');
 /**
  * След колко време да се изтриват оттеглените нишки
  */
-defIfNot('DOC_DELETE_REJECTED_THREADS_PERIOD', type_Time::SECONDS_IN_MONTH);
+defIfNot('DOC_DELETE_REJECTED_THREADS_PERIOD', core_DateTime::SECONDS_IN_MONTH);
 
 
 /**

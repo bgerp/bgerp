@@ -158,9 +158,9 @@ class doc_LikesPlg extends core_Plugin
                 
                 if (doc_Threads::getFirstContainerId($rec->threadId) != $rec->containerId) {
                     // Показваме документа, ако е скрит
-                    doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
+                    doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE, TRUE);
                 }
-               
+                
                 // Връщаме документа
                 $res = doc_Containers::getDocumentForAjaxShow($rec->containerId);
                 

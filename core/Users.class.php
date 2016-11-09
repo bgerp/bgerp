@@ -267,7 +267,7 @@ class core_Users extends core_Manager
             foreach ($rolesArr as $roleId) {
                 $usersRolesArr[0][$uRec->id] = $uRec->id;
                 $usersRolesArr[$roleId][$uRec->id] = $uRec->id;
-                $usersRolesArr['r'][$uRec->id] = (object) array('nick' => type_Nick::normalize($uRec->nick), 'names' => $uRec->names, 'state' => $uRec->state);
+                $usersRolesArr['r'][$uRec->id] = (object) array('nick' => type_Nick::normalize($uRec->nick), 'names' => $uRec->names, 'state' => $uRec->state, 'roles' => $uRec->roles);
             }
         }
         

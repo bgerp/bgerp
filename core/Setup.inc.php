@@ -908,7 +908,7 @@ if ($step == 'setup') {
                     <span id=\"progressPercents\">0 %</span>
                     </li>
                 ");
-
+    $cnt = 0;
     do {
         clearstatcache(EF_TEMP_PATH . '/setupLog.html');
         $fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
@@ -952,13 +952,20 @@ if ($step == 'setup') {
                 
         sleep(2);
         Debug::log('Sleep 2 sec. in' . __CLASS__);
-
+        
         $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
         if (($fTime2 - $fTime) > 0) {
             $logModified = TRUE;
         } else {
             $logModified = FALSE;
         }
+        
+        $cnt++;
+        if ($cnt > 100) {
+            // Ако инсталацията увисне
+            wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, $logModified, $fTime2, $fTime);
+        }
+        
       } while (setupProcess() || !empty($setupLog) || $logModified);
     
     if ($percents < 100) {

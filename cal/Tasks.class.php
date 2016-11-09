@@ -569,11 +569,12 @@ class cal_Tasks extends core_Master
 
             // при следните условия
             $query->likeKeylist('sharedUsers', $data->rec->sharedUsers);
-            $query->where("('{$taskStart}' > #timeStart AND #timeStart < '{$taskEnd}') OR ('{$taskStart}' > #timeEnd AND #timeEnd < '{$taskEnd}')");
-         
+            $query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskStart}' AND #timeEnd >= '{$taskStart}')
+                            OR
+                           (#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskEnd}' AND #timeEnd >= '{$taskEnd}')");
 
             // и намерим такъв запис
-            if ($query->fetch()) {
+            if ($query->fetch()) { 
                 // променяме бутона "Активиране"
                 $data->toolbar->buttons['Активиране']->warning = "По същото време има и други задачи с някои от същите споделени потребители";
             }

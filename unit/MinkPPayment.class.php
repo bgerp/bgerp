@@ -39,7 +39,7 @@ class unit_MinkPPayment extends core_Manager {
         $res .= "  12.".$this->act_CreatePurchaseWait();
         $res .= "  13.".$this->act_CreatePurchaseOverpaid();
         $res .= "  14.".$this->act_CreatePurchase3();
-        $res .= "  14.".$this->act_CreatePurchaseMoment();
+        $res .= "  15.".$this->act_CreatePurchaseMoment();
            
         return $res;
     }
@@ -122,7 +122,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
+        //return $browser->getHtml();
         $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 81,64')) {
         } else {
@@ -138,9 +138,11 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         $valior=strtotime("now");
         $browser->setValue('dueDate', date('d-m-Y', $valior));
+        $browser->setValue('dueTime', Null);
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
+        //return $browser->getHtml();
         $browser->press('Контиране');
         
         // ПКО
@@ -244,7 +246,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('dueDate', date('d-m-Y', $valior));
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
+       
         $browser->press('Чернова');
+        //return $browser->getHtml();
         $browser->press('Контиране');
     
         // ПКО
@@ -304,7 +308,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010,0+03*08');//34
         $browser->setValue('packPrice', '01,00+3*0.8');//3.4
-        $browser->setValue('discount', '3+1,2');//4.2
+        $browser->setValue('discount', '3.5*1.2');//4.2
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други услуги');

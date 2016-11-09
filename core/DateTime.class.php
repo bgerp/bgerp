@@ -40,6 +40,11 @@ class core_DateTime
     // Кратки имена на дните от седмицата на английски
     static $weekDaysShortEn = array("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", 
         "Sun");
+    
+    /**
+     * Колко секунди има средно в един месец
+     */
+    const SECONDS_IN_MONTH = 2629746;
 
      
     /**
@@ -706,10 +711,18 @@ class core_DateTime
     {
         if (!$date) $date = dt::verbal2mysql();
         
+        // Ако добавяме точно количество дни
         if($secs % (24*60*60) == 0) {
 
             return self::addDays($secs / (24*60*60), $date);
         }
+
+        // Ако добавяме точно количество месеци
+        if($secs % core_DateTime::SECONDS_IN_MONTH == 0) {
+
+            return self::addMonths($secs / core_DateTime::SECONDS_IN_MONTH, $date);
+        }
+
 
         $date = dt::mysql2timestamp($date);
         $date += $secs;
@@ -840,14 +853,42 @@ class core_DateTime
      */
     static function addMonths($num, $date = NULL)
     {
-    	expect(is_numeric($num));
     	if(!$date){
     		$date = dt::now();
     	}
+
+        list($d, $t) = explode(' ', $date);
+
+        if(!$t) {
+            $t = '00-00-00';
+        }
+        
+        list($y, $m, $day) = explode('-', $d);
     	
     	$num = (int)$num;
-    	$newDateStamp = strtotime("+{$num} months", dt::mysql2timestamp($date));
-    	return dt::timestamp2Mysql($newDateStamp);
+        if($num >= 0) {
+            $num = '+' . $num;
+        } else {
+             $num = '-' . $num;
+        }
+        
+        $mStart = "{$y}-{$m}-01";
+
+    	$newDateStamp = strtotime("{$num} months", dt::mysql2timestamp($mStart));
+        
+        $lastDay = date("t", $newDateStamp);
+
+        if($day > $lastDay) {
+            $day = $lastDay;
+        }
+
+    	$newMonth = dt::timestamp2Mysql($newDateStamp);
+
+        list($y, $m) = explode('-', $newMonth);
+
+        $res = "{$y}-{$m}-{$day} {$t}";
+
+        return $res;
     }
 
 
