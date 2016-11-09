@@ -228,6 +228,20 @@ class planning_Tasks extends tasks_Tasks
 	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
+		
+		$productFields = self::getFieldsFromProductDriver($rec->productId);
+		$rec->additionalFields = array();
+		 
+		// Вкарване на записите специфични от драйвера в блоб поле
+		if(is_array($productFields)){
+			foreach ($productFields as $name => $field){
+				if(isset($rec->{$name})){
+					$rec->additionalFields[$name] = $rec->{$name};
+				}
+			}
+		}
+		 
+		$rec->additionalFields = count($rec->additionalFields) ? $rec->additionalFields : NULL;
 	}
 	
 
@@ -450,5 +464,22 @@ class planning_Tasks extends tasks_Tasks
     	$tInfo = static::getTaskInfo($id);
 		
         return $tInfo->plannedQuantity;
+    }
+    
+    
+    /**
+     * Ф-я връщаща полетата специфични за артикула от драйвера
+     *
+     * @param int $productId
+     * @return array
+     */
+    public static function getFieldsFromProductDriver($productId)
+    {
+    	$form = cls::get('core_Form');
+    	if($driver = cat_Products::getDriver($productId)){
+    		$driver->addJobFields($productId, $form);
+    	}
+    	 
+    	return $form->selectFields();
     }
 }
