@@ -34,15 +34,9 @@ class doc_Notes extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'subject, body';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    public $canClonerec = 'powerUser';
     
     
     /**

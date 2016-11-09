@@ -36,15 +36,9 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'subject, body, recipient, attn, email, emailCc, tel, fax, country, pcode, place, address, forward';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    public $canClonerec = 'powerUser';
     
     
     /**
@@ -130,7 +124,7 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone';
     
     
     /**
@@ -1403,7 +1397,7 @@ class email_Outgoings extends core_Master
         
         // Ако се препраща
         $isForwarding = (boolean) Request::get('forward');
-        $isCloning = (boolean) Request::get('clone');
+        $isCloning = (boolean) ($data->action == 'clone');
         $isEditing = (boolean) $rec->id;
         
         $faxTo = Request::get('faxto');
@@ -1583,7 +1577,8 @@ class email_Outgoings extends core_Master
             }
         } else {
             if ($isCloning) {
-                $emailLg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
+                $oId = $rec->originId ? $rec->originId : $rec->containerId;
+                $emailLg = email_Outgoings::getLanguage($oId, $rec->threadId, $rec->folderId);
             } else {
                 $emailLg = email_Outgoings::getLanguage($rec->containerId, $rec->threadId, $rec->folderId);
             }

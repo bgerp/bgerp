@@ -29,105 +29,120 @@ class blast_Emails extends core_Master
      */
     public $defaultFolder = 'Циркулярни имейли';
     
-    /**
-     * Полета, които ще се клонират
-     */
-    public $cloneFields = 'perSrcClassId, perSrcObjectId, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address, attachments, encoding';
     
     /**
      * Заглавие на таблицата
      */
     public $title = "Циркулярни имейли";
     
+    
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Циркулярен имейл";
+    
     
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/emails.png';
     
+    
     /**
      * Абревиатура
      */
     public $abbr = 'Inf';
+    
     
     /**
      * Полето "Относно" да е хипервръзка към единичния изглед
      */
     public $rowToolsSingleField = 'subject';
     
+    
     /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = TRUE;
+    
     
     /**
      * Кой има право да чете?
      */
     protected $canRead = 'ceo, blast';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'ceo, blast';
     
+    
     /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'ceo, blast';
+    public $canClonerec = 'ceo, blast';
+    
     
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'ceo, blast';
     
+    
     /**
      * Кой може да го види?
      */
     protected $canView = 'ceo, blast';
+    
     
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'ceo, blast';
     
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     protected $canSingle = 'ceo, blast';
+    
     
     /**
      * Кой може да оттелгя имейла
      */
     protected $canReject = 'ceo, blast';
     
+    
     /**
      * Кой може да активира имейла
      */
     protected $canActivate = 'ceo, blast';
+    
     
     /**
      * Кой може да обновява списъка с детайлите
      */
     protected $canUpdate = 'ceo, blast';
     
+    
     /**
      * Кой може да спира имейла
      */
     protected $canStop = 'ceo, blast';
+   
     
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'no_one';
     
+    
     /**
      * Кой може да праша информационните съобщения?
      */
     protected $canBlast = 'ceo, blast';
+    
     
     /**
      * Кой може да променя активирани записи
@@ -135,15 +150,18 @@ class blast_Emails extends core_Master
      */
     protected $canChangerec = 'blast, ceo';
     
+    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'email_DocumentIntf';
     
+    
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin, plg_Search';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене
@@ -151,25 +169,30 @@ class blast_Emails extends core_Master
      */
     public $searchFields = 'subject, body';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     protected $listFields = 'id, subject, srcLink, from, sendPerCall, sendingDay, sendingFrom, sendingTo';
+    
     
     /**
      * Детайла, на модела
      */
     public $details = 'blast_EmailSend';
     
+    
     /**
      * Нов темплейт за показване
      */
     protected $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.shtml';
     
+    
     /**
      * Групиране на документите
      */
     public $newBtnGroup = "2.2|Циркулярни";
+    
     
     /**
      * id на системата в крона
@@ -1511,7 +1534,7 @@ class blast_Emails extends core_Master
         // Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
         $rec = $data->form->rec;
         
-        if ((!$rec->id) && (!Request::get('clone'))) {
+        if ((!$rec->id) && $data->action != 'clone') {
             
             // По подразбиране да е избран текущия имейл на потребителя
             $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));

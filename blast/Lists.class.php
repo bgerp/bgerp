@@ -28,21 +28,23 @@ class blast_Lists extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
      */
-    var $cloneFields = 'title, keyField, fields';
+    public $cloneDetails = 'blast_ListDetails';
     
     
     /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'ceo, blast, admin';
+    public $canClonerec = 'ceo, blast, admin';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search, bgerp_plg_Blank';
+    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search, bgerp_plg_Blank, plg_Clone';
     
     
     /**
