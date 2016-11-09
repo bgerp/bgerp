@@ -400,8 +400,8 @@ class cams_Records extends core_Master
     {
         copy ($script->tempDir . basename($script->params['mp4File']), $script->params['mp4File']);
         core_Locks::release(basename($script->params['mp4File']));
-        if (file_exists($script->params['errFilePath'])) {
-            $err = file_get_contents($script->params['errFilePath']);
+        $err = file_get_contents($script->params['errFilePath']);
+        if ($err) {
             self::logErr("Грешка при конвертиране на видео: $err");
         }
         
