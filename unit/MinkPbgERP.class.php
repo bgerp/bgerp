@@ -366,13 +366,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
         $browser->click('Валути');
         $browser->click('Валутни курсове');
-        
-        if (strpos($browser->getText(),"BGN")){
-        } else { 
-            $browser->press('Зареди от ECB');
-            echo $browser->getHtml();
-            //return $browser->getHtml();
-        }
+        $browser->press('Зареди от ECB');
+         
     }
     
     /**
@@ -1002,7 +997,7 @@ class unit_MinkPbgERP extends core_Manager {
         //}
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '1176');
+        $browser->setValue('number', '11776');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 29,60')) {
@@ -1265,7 +1260,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Фактура');
         $browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
-        //return 'paymentType';
+        //echo $browser->getHtml();
         //$browser->setValue('paymentType', 'По банков път');
         $browser->press('Контиране');
         
