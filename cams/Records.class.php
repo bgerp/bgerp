@@ -355,7 +355,7 @@ class cams_Records extends core_Master
         
         core_Locks::get(basename($mp4File), 300, 0, FALSE);
         
-        $cmdTmpl = "ffmpeg -i [#INPUTF#] -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]";
+        $cmdTmpl = "ffmpeg -i [#INPUTF#] -preset fast -crf 35 -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]";
         $Script = cls::get('fconv_Script');
         
         // Инстанция на класа

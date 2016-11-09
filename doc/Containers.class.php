@@ -421,6 +421,20 @@ class doc_Containers extends core_Manager
 
         jquery_Jquery::run($tpl, "setThreadElemWidth();");
         jquery_Jquery::runAfterAjax($tpl, "setThreadElemWidth");
+        
+        // Ако е избран някой документ, го отваряме временно - да не скрит
+        if ($docId = Request::get('docId')) {
+            try {
+                $doc = self::getDocumentByHandle($docId);
+                $dRec = $doc->fetch();
+            } catch (ErrorException $e) {
+                $dRec = FALSE;
+            }
+            
+            if ($dRec) {
+                doc_HiddenContainers::showOrHideDocument($dRec->containerId, FALSE, TRUE);
+            }
+        }
     }
     
     
@@ -1254,6 +1268,8 @@ class doc_Containers extends core_Manager
      *
      * @param string $handle манипулатор на документ
      * @return int key(mvc=doc_Containers) NULL ако няма съответен на манипулатора контейнер
+     * 
+     * @deprecated
      */
     public static function getByHandle($handle)
     {

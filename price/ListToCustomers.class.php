@@ -321,7 +321,7 @@ class price_ListToCustomers extends core_Manager
         
         // Проверяваме имали последна цена по оферта
         if($quotationPriceFirst === TRUE){
-        	$rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity);
+        	$rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $datetime, $productId, $packagingId, $quantity);
         }
 		
         // Ако има връщаме нея

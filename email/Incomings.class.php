@@ -831,6 +831,7 @@ class email_Incomings extends core_Master
                     $errIpCountryName = ' - ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
                     
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова зона|*{$errIpCountryName}!", 'error');
+                    $haveErr = TRUE;
                 }
             }
         }

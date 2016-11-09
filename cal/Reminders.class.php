@@ -939,152 +939,76 @@ class cal_Reminders extends core_Master
      */
     static public function calcNextStartTime($rec)
     {
-
-    	$now = dt::verbal2mysql();
-
-    	// Секундите на днешната дата
-    	$nowTs = dt::mysql2timestamp($now) + $rec->timePreviously;
-    	
     	// Секундите на началната дата
         $startTs = dt::mysql2timestamp($rec->timeStart);
-        
-        // Ако искаме напомнянето да се изпълни само един път
-        if($rec->repetitionEach == NULL && $rec->timePreviously !== NULL) {
-        	$nextStartTimeTs = $startTs - $rec->timePreviously ;
-        	$nextStartTime = date("Y-m-d H:i:s", $nextStartTimeTs);
-        	
-        	//return $nextStartTime;
-        	
-        } elseif($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
-        	$nextStartTime = $rec->timeStart;
-        	
-        	//return $nextStartTime;
-        }
-        
+
+        // Ако искаме напомнянето да се изпълни само един път,
+        /*if($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
+        	$nextStartTime = dt::verbal2mysql($rec->timeStart);
+        }*/
+      
+        // Име повторение
         if($rec->repetitionEach !== NULL ) {
-	        // Типа на повторението е ден или седмица
-	        if($rec->repetitionType == 'days' || $rec->repetitionType == 'weeks'){
-	        	
-	        	if($startTs > $nowTs) {
-	        	    $nextStartTime = $startTs; 
-	        	}
-	        	// Намираме интервала в секинди
-		    	$intervalTs = self::getSecOfInterval($rec->repetitionEach, $rec->repetitionType);
-		  
-		    	// Изчисляваме следващата дата в секунди
-		    	$nextStartTimeTs = (floor(($nowTs-$startTs)/$intervalTs) + 1)*$intervalTs;
-		    	
-		    	// Правим mySQL формат на новата дата
-			    $nextStartTime = date("Y-m-d H:i:s", $startTs + $nextStartTimeTs);
-		    	
-		    	if($rec->timePreviously !== NULL){
-		    		$nextStartTimePrev = $nextStartTimeTs - $rec->timePreviously;
-		    		$nextStartTime = date("Y-m-d H:i:s", $startTs + $nextStartTimePrev);
-
-		    	}
-
-		    	//return $nextStartTime;
-	        }
-	        
-	        // Типа на повторението е месец
-	        for ($i = 1; $i <= 10000; $i++){
-	        		
-    	        // Масив с час, сек, мин, ден, месец, год ... на Началната дата
-    	        $data = getdate($startTs);
-    	        	
-    	        // Новия месец който търсим е стария месец + ($i * повторението ни)
-    	        $newMonth = $data['mon'] + ($i * $rec->repetitionEach);
-    	        		
-    	        // Секундите на новия месец
-    	        $newMonthTs = mktime(0, 0, 0, $newMonth, 1, $data[year]);
-	        		
-		        // Търсим съответствие по ден от месеца:
-			    if($rec->repetitionType == 'monthDay' || $rec->repetitionType == 'months'){
-			        		
-				    // НАчалния ни ден
-				    $day = $data[mday];
-				        		
-				    // Новия ни ден
-				    $newDay = 1 + ($day - 1);
-				        		
-				    // Правим mySQL формат на датата от началните час, мин, сек и новия месец, новия ден и началната година
-				    $nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'], $newMonth, $newDay, $data['year']));
-				        		
-				    // Проверяваме броя на дните в новия месец
-				    $numbMonthDay = date('t', $newMonthTs);
-				        		
-				    // Ако новия ден не присъства в новия месец, то взимаме последния ден от новия месец
-				    if($newDay >= $numbMonthDay) {
-				        $nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'], $newMonth, $numbMonthDay, $data['year']));
-				    }
-
-				    if($nextStartTime < $now) continue;
-				    
-				    if($rec->timePreviously !== NULL){
-				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'] - $rec->timePreviously, $newMonth, $newDay, $data['year']));
-				    }
-
-				} elseif($rec->repetitionType == 'weekDay'){
-				        		
-					// Масив с дните от седмицата
-					$weekDayNames = array(
-							            1 => 'monday',
-							            2 => 'tuesday',
-							            3 => 'wednesday',
-							            4 => 'thursday',
-							            5 => 'friday',
-							            6 => 'saturday',
-							            0 => 'sunday');
-							            
-					// Броя на дните в месеца	
-					$numbMonthDay = date('t', $startTs);
-					        	    
-					// Проверки за поредността на деня - 
-					// един ден от седмицата (напр. понеделник) може да има най-много 5 срещания
-					// в дадения месец
-					if ($data[mday] - 7 >= -6 && $data['mday'] - 7 <= 0) {
-					    $monthsWeek = 'first';
-					} elseif($data[mday] - 14 >= -6 && $data['mday'] - 14 <= 0) {
-					    $monthsWeek = 'second'; 
-					} elseif($data[mday] - 21 >= -6 && $data['mday'] - 21 <= 0) {
-					    $monthsWeek = 'third'; 
-					}
-					        		
-					// Ако един ден е намерен за 3 път, проверяваме дали той не е и предпоследен
-					if($data[mday] + 14 > $numbMonthDay && $monthsWeek = 'third') {
-					    $monthsWeek = 'penultimate'; 
-					}
-					        		
-					// Ако един ден е намерен за предпоследен път, проверяваме дали той не е и последен
-					if($data[mday] + 7 > $numbMonthDay && $monthsWeek == 'penultimate'){
-					    $monthsWeek = 'last'; 
-					}
-					        	
-					// Вербалното име на деня, напр. first-monday, penultimate-wednesday
-					$nextStartTimeName = $monthsWeek."-".$weekDayNames[$data['wday']];
-					$nextStartTimeMonth = $newMonth;
-					        		
-					$rec->monthsWeek = $monthsWeek;
-					$rec->weekDayNames = $weekDayNames[$data['wday']];
-					
-					$nextStartTime = date("Y-m-d {$data['hours']}:{$data['minutes']}:{$data['seconds']}", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-					        		
-					if(dt::mysql2timestamp($nextStartTime) < $nowTs) continue;
-					
-					if($rec->timePreviously !== NULL){
-						$nextStartTimeD = date("d", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-						$nextStartTimeM = date("m", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-						$nextStartTimeG = date("Y", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'] - $rec->timePreviously, $nextStartTimeM, $nextStartTimeD, $nextStartTimeG));
-					}
-      		
-				}
- 	
-		    }
-		    
-		    return $nextStartTime;
+            // от какъв тип е
+            switch ($rec->repetitionType) {
+                // дни
+                case 'days' :
+                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach),$rec->timeStart));
+                break;
+                // седмици
+                case 'weeks' :
+                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach * 7),$rec->timeStart));
+                break;
+                // месеци
+                case 'months' :
+                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                break;
+                // месеци, като се спазва деня от седмицата
+                case 'weekDay' :
+                    
+                    $dayOfWeekName = strtolower(date("l",$startTs));
+                    
+                    if(date("j",$startTs) >= 1 && date("j",$startTs) <= 7) {
+                        $monthsWeek = 'first';
+                    }
+                    if(date("j",$startTs) >= 8 && date("j",$startTs) <= 14) {
+                        $monthsWeek = 'second';
+                    }
+                    if(date("j",$startTs) >= 15 && date("j",$startTs) <= 21) {
+                        $monthsWeek = 'third';
+                    }
+                    if(date("j",$startTs) >= 22 && date("j",$startTs) <= 28) {
+                        $monthsWeek = 'penultimate';
+                    }
+                    if(date("j",$startTs) >= 29 && date("j",$startTs) <= 31) {
+                        $monthsWeek = 'last';
+                    }
+       
+                    $wDay = $monthsWeek. "-" . $dayOfWeekName;
+                    $nextDate =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                  
+                    $nextStartTime = dt::timestamp2Mysql(dt::firstDayOfMonthTms(date("m",dt::mysql2timestamp($nextDate)), date("Y",dt::mysql2timestamp($nextDate)), $wDay));
+                
+                break;
+                // точния ден от месеца
+                case 'monthDay' : 
+                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                break;
+    
+            }
         }
 
+        // Ако имаме отбелязано време предварително
+        if($rec->timePreviously !== NULL){ 
+            $nextStartTimeTs = $startTs - $rec->timePreviously ;
+        	$nextStartTime = dt::timestamp2Mysql($nextStartTimeTs);
+        }
+        
+        // Ако изчисленото ново време, не е по-долямо от сега или от началната дата,
+        // то продължаваме да го търсим
+        if(dt::mysql2timestamp($nextStartTime) < dt::mysql2timestamp($now)) return;
+       
+        return $nextStartTime;
     }
 
     

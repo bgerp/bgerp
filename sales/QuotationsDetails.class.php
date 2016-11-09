@@ -929,7 +929,7 @@ class sales_QuotationsDetails extends doc_Detail {
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    public static function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = 1)
+    public static function getPriceInfo($customerClass, $customerId, $date, $productId, $packagingId = NULL, $quantity = 1)
     {
     	$today = dt::today();
     	
@@ -945,7 +945,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$query->where("#productId = {$productId} AND #quantity = {$quantity}");
     	$query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
     	$query->where("#state = 'active'");
-    	$query->where("(#expireOn IS NULL AND #date >= '{$today}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$today}')");
+    	$query->where("(#expireOn IS NULL AND #date >= '{$date}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$date}')");
     	$query->orderBy("date,quotationId", 'DESC');
     	
     	$res = (object)array('price' => NULL);

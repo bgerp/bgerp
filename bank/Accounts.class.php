@@ -336,9 +336,13 @@ class bank_Accounts extends core_Master {
                     $row->title .= ", {$row->bank}";
                 }
                 
+                $row->title = core_ET::escape($row->title);
+               
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
-                $tpl->append("{$row->title} <span style='position:relative;top:4px'>" . $row->_rowTools->renderHtml() . "</span>", 'content');
-                
+                $tools = new core_ET("{$row->title} <span style='position:relative;top:4px'>[#tools#]</span>");
+                $tools->replace($row->_rowTools->renderHtml(), 'tools');
+               
+                $tpl->append($tools, 'content');
                 $tpl->append("</div>", 'content');
             }
         } else {

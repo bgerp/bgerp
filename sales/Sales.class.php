@@ -402,7 +402,7 @@ class sales_Sales extends deals_DealMaster
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
-        if($hideRate == 'yes'){
+        if($hideRate == 'yes' && !haveRole('collaborator')){
         	$form->setField('currencyRate', 'input');
         }
         

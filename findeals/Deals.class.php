@@ -34,7 +34,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, email_DocumentIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf,acc_TransactionSourceIntf=findeals_transaction_Deal';
+    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf,acc_TransactionSourceIntf=findeals_transaction_Deal';
     
     
     /**
@@ -510,6 +510,10 @@ class findeals_Deals extends deals_DealBase
     		if(empty($row->contragentCaption)){
     			$row->contragentCaption = tr('Контрагент');
     		}
+    		
+    		if($rec->currencyRate == 1){
+    			unset($row->currencyRate);
+    		}
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -931,32 +935,6 @@ class findeals_Deals extends deals_DealBase
     	$rec->amountDeal = $aggregateDealInfo->get('blAmount');
     	
     	$mvc->save($rec);
-    }
-    
-    
-    /**
-     * Изпълнява се след създаването на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-    	// Попълва информация за мениджъра от който е направен записа
-    	if($mvc->count()){
-    		$sysId = findeals_AdvanceReports::$baseAccountSysId;
-    		$exceptId = acc_Accounts::getRecBySystemId($sysId)->id;
-    		
-    		$query = $mvc->getQuery();
-    		while($rec = $query->fetch()){
-    			if(empty($rec->dealManId)){
-    				if($rec->accountId == $exceptId){
-    					$rec->dealManId = findeals_AdvanceDeals::getClassId();
-    				} else {
-    					$rec->dealManId = findeals_Deals::getClassId();
-    				}
-    				
-    				$mvc->save($rec);
-    			}
-    		}
-    	}
     }
     
     
