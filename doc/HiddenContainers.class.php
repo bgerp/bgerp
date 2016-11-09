@@ -123,13 +123,20 @@ class doc_HiddenContainers extends core_Manager
             // Първия, да не се скрива, и да не може да се скрива
             if ($cId && ($cId == $firstCid)) continue;
             
-            $rec = self::fetch("#containerId = '{$cId}' AND #userId = '{$userId}'");
+            $mName = self::getModeName($cId, $userId);
+            $modeStatus = Mode::get($mName);
+            $rec = FALSE;
+            
+            if (!$modeStatus) {
+                $rec = self::fetch("#containerId = '{$cId}' AND #userId = '{$userId}'");
+            }
             
             $hide = TRUE;
             
             // Ако е зададено да се показва в модела
-            if ($rec) {
-                if ($rec->state == 'opened') {
+            if ($rec || $modeStatus) {
+                
+                if ($rec->state == 'opened' || $modeStatus == 'opened') {
                     $hide = FALSE;
                 }
             } else {
@@ -192,34 +199,69 @@ class doc_HiddenContainers extends core_Manager
      * 
      * @param integer $id
      * @param boolean|NULL $hide
+     * @param boolean $temp
      */
-    public static function showOrHideDocument($cId, $hide = FALSE)
+    public static function showOrHideDocument($cId, $hide = FALSE, $temp = FALSE)
     {
         $userId = core_Users::getCurrent();
         
-        if (!$userId) return ;
+        if ($userId < 1) return ;
         
-        $rec = self::fetch(("#containerId = '{$cId}' AND #userId = '{$userId}'"));
-        
-        if (!$rec) {
-            $rec = new stdClass();
-            $rec->userId = $userId;
-            $rec->containerId = $cId;
-        }
-        
-        if ($hide) {
-            $rec->state = 'closed';
-            self::save($rec);
-            self::$hiddenDocsArr[$cId] = TRUE;
-        } elseif ($hide === FALSE) {
-            $rec->state = 'opened';
-            self::save($rec);
-            self::$hiddenDocsArr[$cId] = FALSE;
+        if ($temp) {
+            // Когато документа трябва да е отворен/затворен само временно
+            $name = self::getModeName($cId, $userId);
+            if ($hide) {
+                Mode::setPermanent($name, 'closed');
+                self::$hiddenDocsArr[$cId] = TRUE;
+            } elseif ($hide === FALSE) {
+                Mode::setPermanent($name, 'opened');
+                self::$hiddenDocsArr[$cId] = FALSE;
+            } else {
+                Mode::setPermanent($name, NULL);
+            }
         } else {
-            if ($rec->id) {
-                self::delete($rec->id);
+            $rec = self::fetch(("#containerId = '{$cId}' AND #userId = '{$userId}'"));
+            
+            if (!$rec) {
+                $rec = new stdClass();
+                $rec->userId = $userId;
+                $rec->containerId = $cId;
+            }
+            
+            if ($hide) {
+                $rec->state = 'closed';
+                self::save($rec);
+                self::$hiddenDocsArr[$cId] = TRUE;
+            } elseif ($hide === FALSE) {
+                $rec->state = 'opened';
+                self::save($rec);
+                self::$hiddenDocsArr[$cId] = FALSE;
+            } else {
+                if ($rec->id) {
+                    self::delete($rec->id);
+                }
             }
         }
+    }
+    
+    
+    /**
+     * Връща името за името на сесията
+     * 
+     * @param integer $cId
+     * @param integer|NULL $userId
+     * 
+     * @return string
+     */
+    protected static function getModeName($cId, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $name = 'HIDE_CONTAINERS_' . $cId . '|' . $userId;
+        
+        return $name;
     }
     
     

@@ -53,6 +53,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$rec = &$form->rec;
 		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 		
+		if(haveRole('collaborator')) return;
+		
 		if(isset($rec->{$mvc->productFieldName})){
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
@@ -223,7 +225,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_BeforeRenderListTable($mvc, &$res, &$data)
 	{
-		if(!count($data->rows)) return;
+		if(!count($data->rows) || haveRole('collaborator')) return;
 		
 		$rows = &$data->rows;
 		

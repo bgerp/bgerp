@@ -108,7 +108,9 @@ class type_UserList extends type_Keylist
         }
 
         $userArr = core_Users::getRolesWithUsers();
-
+        
+        $rolesArr = type_Keylist::toArray($roles);
+        
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
@@ -125,7 +127,11 @@ class type_UserList extends type_Keylist
                     
                 $uRec = $userArr['r'][$uId];
                 if ($uRec->state == 'rejected') continue;
-
+                
+                if (!empty($rolesArr)) {
+                    if (!type_Keylist::isIn($rolesArr, $uRec->roles)) continue;
+                }
+                
                 $uRec->id = $uId;
 
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител

@@ -831,6 +831,7 @@ class email_Incomings extends core_Master
                     $errIpCountryName = ' - ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
                     
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова зона|*{$errIpCountryName}!", 'error');
+                    $haveErr = TRUE;
                 }
             }
         }
@@ -1388,11 +1389,37 @@ class email_Incomings extends core_Master
     {
         // Винаги рутираме по номер на тред
         if(email_Router::doRuleThread($rec)) {
-            
-            // Добавяме начина на рутиране
-            $rec->routeBy = 'thread';
-            
-            return;
+            if ($rec->threadId) {
+                
+                $tRec = doc_Threads::fetch($rec->threadId);
+                $routeByThread = TRUE;
+                
+                // Входящите имейли да не влизат в оттеглени нишки, в които има документи за контиране
+                if ($tRec->state == 'rejected') {
+                    
+                    $query = doc_Containers::getQuery();
+                    $query->where(array("#threadId = '[#1#]'", $rec->threadId));
+                    $query->orderBy('createdOn', 'ASC');
+                    
+                    while ($cRec = $query->fetch()) {
+                        if (($cRec->docClass) && (cls::load($cRec->docClass, TRUE)) && cls::haveInterface('acc_TransactionSourceIntf', $cRec->docClass)) {
+                            
+                            $routeByThread = FALSE;
+                            
+                            break;
+                        }
+                    }
+                }
+                
+                if ($routeByThread) {
+                    // Добавяме начина на рутиране
+                    $rec->routeBy = 'thread';
+                    
+                    return;
+                } else {
+                    unset($rec->threadId);
+                }
+            }
         }
         
         // Първо рутираме по ръчно зададените правила

@@ -1667,7 +1667,15 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума извънреден приход', 'warning');
         }
+        //Да отваря журнала на приключването
+        $browser->click('Други действия с този документ[4]');
         //return $browser->getHtml();
+        $browser->press('Журнал');
+        //if(strpos($browser->gettext(), '2,70 Извънредни приходи - надплатени')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешkа ', 'warning');
+        //}
+        return $browser->getHtml();
     }
     
     /**
@@ -1684,7 +1692,7 @@ class unit_MinkPSales extends core_Manager {
     
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
-    
+        
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');

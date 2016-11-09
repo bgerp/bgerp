@@ -162,6 +162,7 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
     	
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
+    	$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('classId');
     	

@@ -2347,8 +2347,9 @@ class cat_Products extends embed_Manager {
     			
     			$codeCount = strlen($obj->code);
     			$length = $codeCount - strlen(".{$dRec->position}");
+    			$length = ($length < 0) ? 0 : $length;
     			$obj->parent = substr($obj->code, 0, $length);
-    			 
+    			
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
     			
