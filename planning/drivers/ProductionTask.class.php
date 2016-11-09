@@ -311,7 +311,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			
 			// Подаване на формата на драйвера на артикула, ако иска да добавя полета
 			$Driver = cat_Products::getDriver($rec->productId);
-			$Driver->addJobFields($rec->productId, $form);
+			$Driver->addTaskFields($rec->productId, $form);
 				
 			// Попълване на полетата с данните от драйвера
 			$driverFields = planning_Tasks::getFieldsFromProductDriver($rec->productId);

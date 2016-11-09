@@ -477,7 +477,7 @@ class planning_Tasks extends tasks_Tasks
     {
     	$form = cls::get('core_Form');
     	if($driver = cat_Products::getDriver($productId)){
-    		$driver->addJobFields($productId, $form);
+    		$driver->addTaskFields($productId, $form);
     	}
     	 
     	return $form->selectFields();
