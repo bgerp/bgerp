@@ -10,7 +10,7 @@ defIfNot('BATCH_EXPIRYDATE_PERCENT', 0.15);
 /**
  * Партиди без движения колко месеца назаде да се затварят
  */
-defIfNot('BATCH_CLOSE_OLD_BATCHES', type_Time::SECONDS_IN_MONTH);
+defIfNot('BATCH_CLOSE_OLD_BATCHES', core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
