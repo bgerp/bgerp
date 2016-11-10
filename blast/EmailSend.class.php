@@ -91,11 +91,11 @@ class blast_EmailSend extends core_Detail
     /**
      * Описание на модела
      */
-    protected function description()
+    function description()
     {
         $this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Списък');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
-        $this->FLD('state', 'enum(waiting=Чакащо,sended=Изпратено)', 'caption=Изпращане->Състояние, input=none');
+        $this->FLD('state', 'enum(pending,waiting=Чакащо,sended=Изпратено)', 'caption=Изпращане->Състояние, input=none');
         $this->FLD('stateAct', 'enum(active=Активно, stopped=Спряно)', 'caption=Изпращане->Действие, input=none, notNull');
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено->На, input=none');
         $this->FLD('email', 'emails', 'caption=Изпратено->До, input=none');
