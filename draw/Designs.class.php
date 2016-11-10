@@ -212,7 +212,7 @@ class draw_Designs extends core_Master
     { 
         if(isset($params[2])) {
             $cond = self::calcExpr($params[2], $contex);
-            if($cond == self::CALC_ERROR) {
+            if($cond === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
 
                 return FALSE;
@@ -223,7 +223,7 @@ class draw_Designs extends core_Master
  
         if($cond) {
             $expr = self::calcExpr($params[1], $contex);  
-            if($expr == self::CALC_ERROR) {
+            if($expr === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
@@ -279,7 +279,7 @@ class draw_Designs extends core_Master
     public static function cmd_Move($params, &$svg, &$contex, &$error)
     { 
         $x =  self::calcExpr($params[0], $contex);  
-        if($x == self::CALC_ERROR) {
+        if($x === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
  
                 return FALSE;
@@ -287,7 +287,7 @@ class draw_Designs extends core_Master
 
 
         $y =  self::calcExpr($params[1], $contex);  
-        if($y == self::CALC_ERROR) {
+        if($y === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
@@ -306,7 +306,7 @@ class draw_Designs extends core_Master
     public static function cmd_LineTo($params, &$svg, &$contex, &$error)
     { 
         $x =  self::calcExpr($params[0], $contex);  
-        if($x == self::CALC_ERROR) {
+        if($x === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
  
                 return FALSE;
@@ -331,7 +331,7 @@ class draw_Designs extends core_Master
     { 
         $x =  self::calcExpr($params[0], $contex);  
         
-        if($x == self::CALC_ERROR) {
+        if($x === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
  
                 return FALSE;
@@ -339,7 +339,7 @@ class draw_Designs extends core_Master
 
 
         $y =  self::calcExpr($params[1], $contex);  
-        if($y == self::CALC_ERROR) {
+        if($y === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
@@ -367,7 +367,7 @@ class draw_Designs extends core_Master
 
         $res = self::runScript($data->rec->script, $canvas, $contex, $error);
 
-        if($res === FALSE) bp($error);
+        if($res === FALSE) $data->error = $error;
 
         $data->contex = $contex;
         $data->canvas = $canvas;
@@ -375,9 +375,11 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-
- 
-        $tpl->append($data->canvas->render(), 'DETAILS');
+        if(!$data->error) {
+            $tpl->append($data->canvas->render(), 'DETAILS');
+        } else {
+            $tpl->append("<h3 style='color:red;'>" . $data->error . "</h3>", 'DETAILS');
+        }
     }
 
 
@@ -412,7 +414,7 @@ class draw_Designs extends core_Master
 
         // Заместваме променливите и индикаторите
         $expr  = strtr($expr, $ctx);
-        
+      
         if(str::prepareMathExpr($expr) === FALSE) {
             $res = self::CALC_ERROR;
         } else {
