@@ -421,7 +421,7 @@ class doc_Setup extends core_ProtoSetup
     public function migratePending1()
     {
     	$arr = array('email_Outgoings', 'email_SendOnTime', 'blast_Emails', 'blast_EmailSend', 'cal_Tasks', 'planning_Tasks', 'pos_Receipts');
-    	if(core_Packs::isInstalled('pallets')){
+    	if(core_Packs::isInstalled('pallet')){
     		$arr[] = 'pallet_Movements';
     		$arr[] = 'pallet_Pallets';
     	}
