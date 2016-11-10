@@ -199,7 +199,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
-    	'migrate::migratePending'
+    	'migrate::migratePending1'
     );
 	
     
@@ -418,10 +418,14 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Миграция към новото чакащо състояние
      */
-    public function migratePending()
+    public function migratePending1()
     {
     	$arr = array('email_Outgoings', 'email_SendOnTime', 'blast_Emails', 'blast_EmailSend', 'cal_Tasks', 'planning_Tasks', 'pos_Receipts');
-    
+    	if(core_Packs::isInstalled('pallets')){
+    		$arr[] = 'pallet_Movements';
+    		$arr[] = 'pallet_Pallets';
+    	}
+    	
     	try{
     		foreach ($arr as $Cls){
     			$Cls = cls::get($Cls);
