@@ -199,6 +199,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
+    	'migrate::migratePending1'
     );
 	
     
@@ -411,5 +412,38 @@ class doc_Setup extends core_ProtoSetup
                 continue;
             }
         }
+    }
+    
+    
+    /**
+     * Миграция към новото чакащо състояние
+     */
+    public function migratePending1()
+    {
+    	$arr = array('email_Outgoings', 'email_SendOnTime', 'blast_Emails', 'blast_EmailSend', 'cal_Tasks', 'planning_Tasks', 'pos_Receipts');
+    	if(core_Packs::isInstalled('pallet')){
+    		$arr[] = 'pallet_Movements';
+    		$arr[] = 'pallet_Pallets';
+    	}
+    	
+    	try{
+    		foreach ($arr as $Cls){
+    			$Cls = cls::get($Cls);
+    			
+    			$db = new core_Db();
+    			if(!$db->tableExists($Cls->dbTableName)) return;
+    			$Cls->setupMvc();
+    
+    			$query = $Cls->getQuery();
+    			$query->where("#state = 'pending'");
+    			$query->show('state');
+    			while($rec = $query->fetch()){
+    				$rec->state = 'waiting';
+    				$Cls->save_($rec, 'state');
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
     }
 }

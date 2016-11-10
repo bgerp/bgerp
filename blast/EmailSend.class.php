@@ -91,11 +91,11 @@ class blast_EmailSend extends core_Detail
     /**
      * Описание на модела
      */
-    protected function description()
+    function description()
     {
         $this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Списък');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
-        $this->FLD('state', 'enum(pending=Чакащо, sended=Изпратено)', 'caption=Изпращане->Състояние, input=none');
+        $this->FLD('state', 'enum(pending,waiting=Чакащо,sended=Изпратено)', 'caption=Изпращане->Състояние, input=none');
         $this->FLD('stateAct', 'enum(active=Активно, stopped=Спряно)', 'caption=Изпращане->Действие, input=none, notNull');
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено->На, input=none');
         $this->FLD('email', 'emails', 'caption=Изпратено->До, input=none');
@@ -128,7 +128,7 @@ class blast_EmailSend extends core_Detail
             $nRec = new stdClass();
             $nRec->emailId = $emailId;
             $nRec->data = $data;
-            $nRec->state = 'pending';
+            $nRec->state = 'waiting';
             
             // Ако са подадени полета, които да се използват за имейли
             if ($emailFieldsArr) {
@@ -191,7 +191,7 @@ class blast_EmailSend extends core_Detail
         // Вземаме всички записи, които не са използвани
         $query = self::getQuery();
         $query->where(array("#emailId = '[#1#]'", $emailId));
-        $query->where("#state = 'pending'");
+        $query->where("#state = 'waiting'");
         $query->where("#stateAct != 'stopped'");
         
         // Ако има ограничение
@@ -256,7 +256,7 @@ class blast_EmailSend extends core_Detail
         foreach ((array)$dataArr as $id => $dummy) {
             $nRec = new stdClass();
             $nRec->id = $id;
-            $nRec->state = 'pending';
+            $nRec->state = 'waiting';
             
             self::save($nRec, NULL, 'UPDATE');
         }

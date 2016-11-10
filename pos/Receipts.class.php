@@ -159,7 +159,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,pending=Чакащ)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
@@ -1277,7 +1277,7 @@ class pos_Receipts extends core_Master {
     	
     	$this->requireRightFor('close', $rec);
     	
-    	$rec->state = 'pending';
+    	$rec->state = 'waiting';
     	if($this->save($rec)){
     		
     		// Обновяваме складовите наличности
@@ -1555,7 +1555,7 @@ class pos_Receipts extends core_Master {
     	
     	$query = $this->getQuery();
     	$query->where("#pointId = {$data->masterId}");
-    	$query->where("#state = 'pending' OR #state = 'draft'");
+    	$query->where("#state = 'waiting' OR #state = 'draft'");
     	$query->orderBy("#state");
     	
     	$conf =core_Packs::getConfig('pos');

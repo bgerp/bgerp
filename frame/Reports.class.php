@@ -239,7 +239,7 @@ class frame_Reports extends core_Embedder
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	if(is_null($fields) && ($rec->state == 'draft' || $rec->state == 'pending')){
+    	if(is_null($fields) && ($rec->state == 'draft' || $rec->state == 'waiting')){
     		
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
@@ -404,7 +404,7 @@ class frame_Reports extends core_Embedder
     	
     	// Намираме всички отчети които са чакащи и им е пресрочена датата на активация
     	$query = $this->getQuery();
-    	$query->where("#state = 'pending'");
+    	$query->where("#state = 'waiting'");
     	$query->where("#earlyActivationOn <= '{$now}'");
     	$query->orWhere("#earlyActivationOn IS NULL");
     	
@@ -482,7 +482,7 @@ class frame_Reports extends core_Embedder
     	}
     	
     	// Ако сега сме преди датата за активиране, правим го 'чакащ' иначе директно се 'активира'
-    	$rec->state = ($when < $rec->earlyActivationOn) ? 'pending' : 'active';
+    	$rec->state = ($when < $rec->earlyActivationOn) ? 'waiting' : 'active';
     	$this->save($rec, 'state');
     	 
     	// Ако сме го активирали, генерираме събитие, че е бил активиран
@@ -535,7 +535,7 @@ class frame_Reports extends core_Embedder
     	// Ако отчета е чакащ, може да се редактира
     	if($action == 'edit' && isset($rec)){
     		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
-    		if($state == 'pending'){
+    		if($state == 'waiting'){
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
     	}

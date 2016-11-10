@@ -340,8 +340,9 @@ class cal_Reminders extends core_Master
     	$now = dt::now(); 
     	
     	if ($rec->id) {
-    		if (!$rec->timeStart) {
-    		    $rec->timeStart = dt::now();
+    	    $fullRec = self::fetch($rec->id);
+    		if (!$fullRec->timeStart) { 
+    		    $fullRec->timeStart = dt::now();
     		}
     	}
     }

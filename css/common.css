@@ -1175,6 +1175,10 @@ a.profile {
   background-color: #cc6666;
   background-color: rgba(204, 102, 102, 0.8); }
 
+.state-waiting {
+  background-color: #cef763;
+  background-color: rgba(206, 247, 99, 0.8); }
+
 .state-rejected td,
 .state-rejected .document th,
 .state-rejected .document td a,
@@ -1208,7 +1212,7 @@ a.profile {
     text-decoration: none !important; }
 
 .state-template {
-  background-color: #a1aeff;
+  background-color: #a5aaff;
   background-color: rgba(165, 170, 255, 0.7); }
 
 .document .state-rejected.state,

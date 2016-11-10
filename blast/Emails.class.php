@@ -410,7 +410,7 @@ class blast_Emails extends core_Master
         $query = blast_Emails::getQuery();
         
         $query->where("#state = 'active'");
-        $query->orWhere("#state = 'pending'");
+        $query->orWhere("#state = 'waiting'");
         
         $conf = core_Packs::getConfig('blast');
         
@@ -447,7 +447,7 @@ class blast_Emails extends core_Master
             // Вземаме секундите между сегашното време и времето на стартиране
             $sec = dt::secsBetween($nextStartTime, $now);
             
-            if ($rec->state == 'pending') {
+            if ($rec->state == 'waiting') {
                 if (($sec <= 0) || ($sec <= $period)) {
                     $rec->state = 'active';
                     $this->save($rec, 'state');
@@ -457,7 +457,7 @@ class blast_Emails extends core_Master
                 }
             } elseif ($rec->state == 'active') {
                 if ($sec > $period) {
-                    $rec->state = 'pending';
+                    $rec->state = 'waiting';
                     $this->save($rec, 'state');
                     $this->touchRec($rec->id);
                 } elseif ($sec) {
@@ -1068,7 +1068,7 @@ class blast_Emails extends core_Master
             } else {
                 
                 // Сменя статуса на чакащ
-                $form->rec->state = 'pending';
+                $form->rec->state = 'waiting';
             }
             
             $form->rec->errMsg = NULL;
@@ -1835,14 +1835,14 @@ class blast_Emails extends core_Master
         } else {
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
-            if (($state == 'pending') || ($state == 'active')) {
+            if (($state == 'waiting') || ($state == 'active')) {
                 if ($mvc->haveRightFor('stop', $rec->rec)) {
                     $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }
             }
             
             // Добавяме бутон за обновяване в, ако състоянието е активно, изчакване или затворено
-            if (($state == 'pending') || ($state == 'active') || ($state == 'closed')) {
+            if (($state == 'waiting') || ($state == 'active') || ($state == 'closed')) {
                 if ($mvc->haveRightFor('update', $rec->rec)) {
                     $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), NULL, array('ef_icon'=>'img/16/update-icon.png', 'row'=>'1', 'title'=>'Добави новите имейли към списъка'));
                 }
@@ -1931,7 +1931,7 @@ class blast_Emails extends core_Master
             }
             
             // Ако състоянието е активирано или чернов
-            if ($rec->state == 'active' || $rec->state == 'pending') {
+            if ($rec->state == 'active' || $rec->state == 'waiting') {
                 
                 $nextStartTime = self::getNextStartTime($rec, core_Cron::getNextStartTime(self::$cronSytemId));
                 

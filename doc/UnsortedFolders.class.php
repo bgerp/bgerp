@@ -477,7 +477,7 @@ class doc_UnsortedFolders extends core_Master
         
         $resTask = array();
         while ($recContainers = $queryContainers->fetch()) {
-        	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'pending' OR #state = 'active' OR #state = 'closed')");
+        	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'waiting' OR #state = 'active' OR #state = 'closed')");
         	$recs = array();
         	// заявка към таблицата на Задачите
         	while ($recTask = $queryTasks->fetch()) {

@@ -1253,6 +1253,12 @@ a.profile {
     background-color: rgba(204, 102, 102, 0.8);
 }
 
+
+.state-waiting {
+	background-color: #cef763;
+	background-color: rgba(206, 247, 99, 0.8);
+}
+
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
 .state-rejected .richtext, .state-rejected .document a, .state-rejected .document span:not(.state), .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
 .state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
@@ -1275,7 +1281,7 @@ a.profile {
 }
 
 .state-template {
-	background-color: #A1AEFF;
+	background-color: #A5AAFF;
 	background-color: rgba(165, 170, 255, 0.7);
 }
 
