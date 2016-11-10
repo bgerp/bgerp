@@ -247,7 +247,7 @@ class cal_TaskConditions extends core_Detail
     		$taskRec = cal_Tasks::fetch($rec->baseId);
     		if (!cal_Tasks::haveRightFor('single', $taskRec)) {
     			$requiredRoles = 'no_one';
-    		} elseif($taskRec->state != 'draft' && $taskRec->state != 'pending') {
+    		} elseif($taskRec->state != 'draft' && $taskRec->state != 'waiting') {
     			$requiredRoles = 'no_one';
     		}
     	} 

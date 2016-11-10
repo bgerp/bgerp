@@ -122,7 +122,7 @@ class select2_PluginSelect extends core_Plugin
         $ajaxUrl = '';
         
         if ($optionsCnt > $maxSuggestions) {
-            $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
+            $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1));
         }
         
         // Добавяме необходимите файлове и стартирам select2

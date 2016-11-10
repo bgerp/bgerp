@@ -162,6 +162,7 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
     	
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
+    	$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('classId');
     	
@@ -330,7 +331,7 @@ class tasks_Tasks extends embed_Manager
     			if($state != 'pendingandactive'){
     				$data->query->where("#state = '{$state}'");
     			} else {
-    				$data->query->where("#state = 'active' || #state = 'pending'");
+    				$data->query->where("#state = 'active' || #state = 'waiting'");
     			}
     		}
     	}
@@ -344,7 +345,7 @@ class tasks_Tasks extends embed_Manager
     {
     	// Може да се променя само ако състоянието на задачата е активно или чакащо
     	if($action == 'changerec' && isset($rec)){
-    		if($rec->state != 'pending' && $rec->state != 'active'){
+    		if($rec->state != 'waiting' && $rec->state != 'active'){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -402,7 +403,7 @@ class tasks_Tasks extends embed_Manager
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($data->rec->state == 'active' || $data->rec->state == 'pending'){
+    	if($data->rec->state == 'active' || $data->rec->state == 'waiting'){
     		if(cal_Reminders::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
     			$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2', 'title=Създаване на ново напомняне');
     		}
@@ -490,7 +491,7 @@ class tasks_Tasks extends embed_Manager
     {
     	// Намираме чакащите и активните задачи от най-старата към най-новата
     	$query = self::getQuery();
-    	$query->where("#state = 'active' || #state = 'pending' || #state = 'stopped'");
+    	$query->where("#state = 'active' || #state = 'waiting' || #state = 'stopped'");
     	$query->orderBy('id', 'ASC');
     	
     	$recs = $query->fetchAll();
@@ -554,7 +555,7 @@ class tasks_Tasks extends embed_Manager
     		$rec1->expectedTimeStart = $expectedTimes[$rec1->id];
     		
     		// Ако условията са изпълнени за активиране, активираме задачата иначе я правим чакаща
-    		$rec1->state = ($this->activateNow($rec1)) ? 'active' : 'pending';
+    		$rec1->state = ($this->activateNow($rec1)) ? 'active' : 'waiting';
     	}
     	
     	$this->saveArray($recs);
@@ -711,7 +712,7 @@ class tasks_Tasks extends embed_Manager
     
     	$containerId = $data->masterData->rec->containerId;
     	$query->where("#originId = {$data->masterData->rec->containerId}");
-    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'pending' THEN 5 ELSE 6 END)");
+    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
     	$query->orderBy('#orderByState=ASC');
     		
     	// Подготвяме данните

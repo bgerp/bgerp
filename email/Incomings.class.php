@@ -1389,11 +1389,37 @@ class email_Incomings extends core_Master
     {
         // Винаги рутираме по номер на тред
         if(email_Router::doRuleThread($rec)) {
-            
-            // Добавяме начина на рутиране
-            $rec->routeBy = 'thread';
-            
-            return;
+            if ($rec->threadId) {
+                
+                $tRec = doc_Threads::fetch($rec->threadId);
+                $routeByThread = TRUE;
+                
+                // Входящите имейли да не влизат в оттеглени нишки, в които има документи за контиране
+                if ($tRec->state == 'rejected') {
+                    
+                    $query = doc_Containers::getQuery();
+                    $query->where(array("#threadId = '[#1#]'", $rec->threadId));
+                    $query->orderBy('createdOn', 'ASC');
+                    
+                    while ($cRec = $query->fetch()) {
+                        if (($cRec->docClass) && (cls::load($cRec->docClass, TRUE)) && cls::haveInterface('acc_TransactionSourceIntf', $cRec->docClass)) {
+                            
+                            $routeByThread = FALSE;
+                            
+                            break;
+                        }
+                    }
+                }
+                
+                if ($routeByThread) {
+                    // Добавяме начина на рутиране
+                    $rec->routeBy = 'thread';
+                    
+                    return;
+                } else {
+                    unset($rec->threadId);
+                }
+            }
         }
         
         // Първо рутираме по ръчно зададените правила
@@ -1653,7 +1679,6 @@ class email_Incomings extends core_Master
      * Създаване на правило от тип `FromTo` - само ако получателя не е общ.
      *
      * @param stdClass $rec
-     * @param int $priority
      */
     static function makeFromToRule($rec)
     {
@@ -1680,7 +1705,6 @@ class email_Incomings extends core_Master
      * Създаване на правило от тип `From` - винаги
      *
      * @param stdClass $rec
-     * @param int $priority
      */
     static function makeFromRule($rec)
     {
@@ -1703,7 +1727,6 @@ class email_Incomings extends core_Master
      * Създаване на правило от тип `Domain` - ако изпращача не е от пуб. домейн и получателя е общ.
      *
      * @param stdClass $rec
-     * @param int $priority
      */
     static function makeDomainRule($rec)
     {

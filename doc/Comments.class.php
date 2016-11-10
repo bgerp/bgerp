@@ -35,15 +35,9 @@ class doc_Comments extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'subject, body';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'user';
+    public $canClonerec = 'user';
     
     
     /**
@@ -111,7 +105,7 @@ class doc_Comments extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
     /**
@@ -219,7 +213,7 @@ class doc_Comments extends core_Master
                 $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
             }
             
-            if ($cid && !Request::get('clone')) {
+            if ($cid && $data->action != 'clone') {
                 
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($cid);

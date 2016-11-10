@@ -121,9 +121,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->start('http://localhost/');
         //$browser->start('http://' . $_SERVER['HTTP_HOST']);
         
-        
         //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите')) {
-       
         //$browser->click('☒ Ако приемате лиценза по-долу, може да продължите »');
         //$browser->click('Продължаване без обновяване »');
         //$browser->click('✓ Всичко е наред. Продължете с инициализирането »');
@@ -366,13 +364,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
         $browser->click('Валути');
         $browser->click('Валутни курсове');
-        
-        if (strpos($browser->getText(),"BGN")){
-        } else { 
-            $browser->press('Зареди от ECB');
-            echo $browser->getHtml();
-            //return $browser->getHtml();
-        }
+        $browser->press('Зареди от ECB');
+         
     }
     
     /**
@@ -811,10 +804,8 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     
-    
-    
     /**
-     * 2.Запитване, артикул от него и оферта
+     * 2.Запитване, артикул от него и оферта във валута
      */
     //http://localhost/unit_MinkPbgERP/CreateInq/
     function act_CreateInq()
@@ -841,20 +832,24 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         // Създаване на нов артикул по запитването
         $browser->press('Артикул');
-        $browser->setValue('name', 'Артикул по запитване');
+        $browser->setValue('name', 'Артикул по запитване1');
         $browser->press('Запис');
         $browser->press('Оферта');
         $browser->setValue('Цена', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
-        //echo $browser->getHtml();
-        // bp();
+        $browser->press('Добавяне');
+        $browser->setValue('productId', 'Артикул по запитване1');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 100);
+        $browser->setValue('packPrice', 4);
+        $browser->press('Запис');
         $browser->press('Активиране');
         //return $browser->getHtml();
     }
     
     /**
-     * 2.Нова оферта на съществуваща фирма с папка
+     * 2.Нова оферта в лева на съществуваща фирма с папка
      */
     ///http://localhost/unit_MinkPbgERP/CreateQuotation/
     function act_CreateQuotation()
@@ -864,8 +859,8 @@ class unit_MinkPbgERP extends core_Manager {
     
         //Отваряне папката на фирмата
         $browser->click('Визитник');
-        $browser->click('N');
-        $Company = "NEW INTERNATIONAL GMBH";
+        $browser->click('F');
+        $Company = "Фирма bgErp";
         $browser->click($Company);
         $browser->press('Папка');
         // нова оферта
@@ -882,13 +877,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
         $browser->setValue('packPrice', 2);
-         // Записване на артикула и добавяне на нов - нестандартен
-        $browser->press('Запис и Нов');
-        
-        $browser->setValue('productId', 'Артикул по запитване');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 100);
-        $browser->setValue('packPrice', 1);
         // Записваме артикула
         $browser->press('Запис');
         // Записване на артикула и добавяне на опционален - услуга
@@ -902,8 +890,8 @@ class unit_MinkPbgERP extends core_Manager {
         // Активиране на офертата
         $browser->press('Активиране');
         $browser->press('Продажба');
-        ////Опционален артикул
-        ////$browser->setValue('9|yes|9|1', 2);
+        ////Опционален артикул - не сработва
+        ////$browser->setValue('9|yes|9|1', 1);
         //echo $browser->getHtml();
         $browser->press('Създай');
         $browser->press('Активиране');
@@ -1002,7 +990,7 @@ class unit_MinkPbgERP extends core_Manager {
         //}
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '1176');
+        $browser->setValue('number', '11776');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 29,60')) {
@@ -1265,7 +1253,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Фактура');
         $browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
-        //return 'paymentType';
+        //echo $browser->getHtml();
         //$browser->setValue('paymentType', 'По банков път');
         $browser->press('Контиране');
         
