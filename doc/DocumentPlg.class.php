@@ -30,7 +30,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     static $stateArr = array(
         'draft'    => 'Чернова',
-        'pending'  => 'Чакащо',
+        'pending'  => 'Заявка',
+    	'waiting'  => 'Чакащо',
         'active'   => 'Активирано',
         'opened'   => 'Отворено',
         'closed'   => 'Приключено',
@@ -1791,7 +1792,7 @@ class doc_DocumentPlg extends core_Plugin
         	} else {
         		
         		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
-        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'template'){
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting' || $rec->state == 'template'){
         			$requiredRoles = 'no_one';
         		}
         	}

@@ -295,7 +295,7 @@ class cal_TaskProgresses extends core_Detail
     			
     		// Проверка дали потребителя има достъп до задачата и дали е в позволено състояние за добавяне на прогрес
     		$taskState = cal_Tasks::fetchField($rec->taskId, 'state');
-    		if($taskState != 'active' && $taskState != 'pending' && $taskState != 'wakeup'){
+    		if($taskState != 'active' && $taskState != 'waiting' && $taskState != 'wakeup'){
     			$requiredRoles = 'no_one';
     		} elseif(!cal_Tasks::haveRightFor('single', $rec->taskId)){
     			$requiredRoles = 'no_one';

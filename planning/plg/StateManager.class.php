@@ -9,15 +9,12 @@
  * Преминаванията от състояние в състояние са следните:
  * 
  * Чернова    (draft)    -> чакащо, активно или оттеглено
- * Чакащо     (pending)  -> активно или оттеглено
+ * Чакащо     (waiting)  -> активно или оттеглено
  * Активно    (active)   -> спряно, приключено или оттеглено
  * Приключено (closed)   -> събудено или оттеглено
  * Спряно     (stopped)  -> активно или събудено
  * Събудено   (wakeup)   -> приключено, спряно или оттеглено
  * Оттеглено  (rejected) -> възстановено до някое от горните състояния
- * 
- * При активиране (от чернова) документа става активен, ако искаме да се премине в друго състояние
- * например чакащо в мениджъра трябва да има метод $mvc->getActivatedState($rec) който да върне 'pending'
  *
  *
  * @category  bgerp
@@ -46,7 +43,7 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
-			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
+			$mvc->FLD('state', 'enum(draft=Чернова, pending=Заявка,waiting=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
 		}
 		
 		if (!$mvc->fields['timeClosed']) {
@@ -153,7 +150,7 @@ class planning_plg_StateManager extends core_Plugin
 				case 'activateagain':
 	
 					// Дали може да бъде активирана отново, след като е било променено състоянието
-					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'pending' || $rec->state == 'template'){
+					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'waiting' || $rec->state == 'template'){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -237,7 +234,7 @@ class planning_plg_StateManager extends core_Plugin
     				break;
     			case 'activate':
     				$rec->brState = $rec->state;
-    				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'pending';
+    				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'waiting';
     				$logAction = 'Активиране';
     			break;
     		}
@@ -369,7 +366,7 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		if($form->isSubmitted()) {
 			if($form->cmd == 'active') {
-				$form->rec->state = ($mvc->activateNow($form->rec)) ? 'active' : 'pending';
+				$form->rec->state = ($mvc->activateNow($form->rec)) ? 'active' : 'waiting';
 				$mvc->invoke('BeforeActivation', array($form->rec));
 				$form->rec->_isActivated = TRUE;
 			}
