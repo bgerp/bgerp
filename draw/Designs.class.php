@@ -230,7 +230,7 @@ class draw_Designs extends core_Master
                 return FALSE;
             }
 
-            $varId = ltrim($params[0], '$');
+            $varId = ltrim($params[0], '$ ');
             if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varId)) {
                 $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
 
