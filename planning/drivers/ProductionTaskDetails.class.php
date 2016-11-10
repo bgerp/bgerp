@@ -485,7 +485,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
     		
-    		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
+    		if($state != 'active' && $state != 'waiting' && $state != 'wakeup'){
     			$requiredRoles = 'no_one';
     		} 
     	}
