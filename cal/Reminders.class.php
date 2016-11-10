@@ -384,7 +384,7 @@ class cal_Reminders extends core_Master
         $data->listFilter->input('selectedUsers', 'silent');
                         
         if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = keylist::addKey($rec->sharedUsers, $cu);
+            $data->listFilter->rec->selectedUsers = keylist::addKey($data->listFilter->rec->selectedUsers, $cu);
 	  	}
                         
         if($data->listFilter->rec->selectedUsers) {
@@ -961,7 +961,7 @@ class cal_Reminders extends core_Master
                     // месеци, като се спазва деня от седмицата
                 case 'weekDay' :
                     $row->repetitionType = tr('месец');
-                    $row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
+                    $row->repetitionTypeMonth = tr($rec->monthsWeek. " " .$rec->weekDayNames). tr(" от месеца");
                     break;
                     // точния ден от месеца
                 case 'monthDay' :
