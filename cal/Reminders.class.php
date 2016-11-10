@@ -244,21 +244,12 @@ class cal_Reminders extends core_Master
     	$now = dt::now();
         $data->form->setDefault('priority', 'normal');
         $data->form->setDefault('sharedUsers', "|".$cu."|");
-        
-        $folderList = cls::get('doc_Folders');
-		$folderId = $data->form->rec->folderId;
-		$folderClass = $folderList->fetchField("#id = '{$folderId}'", 'coverClass');
-							
-		// Проверка дали папката е фирмена или лична
-		$companies = 'crm_Companies';
-		$idCompanies = core_Classes::getId($companies);
-							
-		$persons = 'crm_Persons';
-		$idPersons = core_Classes::getId($persons);
-							
-		if($folderClass == $idCompanies || $folderClass == $idPersons){
-
-			$mvc->getFieldType(action)->options['notifyNoAns'] = tr("Нотификация-ако няма отговор");
+		
+		$Cover = doc_Folders::getCover($data->form->rec->folderId);
+		
+		// Трябва да е в папка на лице или на фирма
+		if ($Cover->className == 'crm_Persons' && $Cover->className == 'crm_Companies') {
+		    $mvc->getFieldType(action)->options['notifyNoAns'] = tr("Нотификация-ако няма отговор");
 		}
 
 		$data->form->setSuggestions('repetitionEach', static::$suggestions);
@@ -350,10 +341,6 @@ class cal_Reminders extends core_Master
     	
     	if ($rec->id) {
     		if (!$rec->timeStart) {
-    			$rec->timeStart = self::fetchField($rec->id, 'timeStart');
-    		}
-    		
-    		if (!$rec->timeStart) {
     		    $rec->timeStart = dt::now();
     		}
     	}
@@ -396,7 +383,7 @@ class cal_Reminders extends core_Master
         $data->listFilter->input('selectedUsers', 'silent');
                         
         if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+            $data->listFilter->rec->selectedUsers = keylist::addKey($rec->sharedUsers, $cu);
 	  	}
                         
         if($data->listFilter->rec->selectedUsers) {
@@ -408,90 +395,6 @@ class cal_Reminders extends core_Master
         }
     }
 
-
-    /**
-     * Подготовка за рендиране на единичния изглед
-     * 
-     *  
-     * @param cal_Reminders $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareSingle($mvc, $data)
-    {
-    	if($data->rec->repetitionType == 'days' ) {
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('ден');
-    		}elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		}else {
-    			$data->row->each = tr('на всеки');
-    		}
-    	} elseif($data->rec->repetitionType == 'months'){
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('месец');
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else {
-    			$data->row->each = tr('на всеки');
-    		}
-    		
-    	} elseif($data->rec->repetitionType == 'weeks') {
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всяка');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('седмица');
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else {
-    			$data->row->each = tr('на всеки');
-    		}
-    	} elseif($data->rec->repetitionType == 'weekDay'){
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('месец');
-    			$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else{
-	    		$data->row->each = tr('на всеки');
-	    		$data->row->repetitionType = tr('месеца');
-	    		$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
-    		}
-    	} elseif($data->rec->repetitionType == 'monthDay') {
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('месец');
-    			$data->row->repetitionTypeMonth = tr('точния ден от месеца');
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else {
-	    		$data->row->each = tr('на всеки');
-	    		$data->row->repetitionType = tr('месеца');
-	    		$data->row->repetitionTypeMonth = tr('точния ден от месеца');
-    		}
-    		
-    	}
-    	
-    	if($data->rec->action === 'notifyNoAns') $data->row->action = tr('Нотификация-ако няма отговор');
-
-    	if($data->rec->repetitionEach === NULL){
-    		$data->row->each = '';
-	    	$data->row->repetitionType = '';
-	    	$data->row->repetitionTypeMonth = '';
-    	}
-    }
-    
     
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
@@ -1006,7 +909,7 @@ class cal_Reminders extends core_Master
         
         // Ако изчисленото ново време, не е по-долямо от сега или от началната дата,
         // то продължаваме да го търсим
-        if(dt::mysql2timestamp($nextStartTime) < dt::mysql2timestamp($now)) return;
+        if(dt::mysql2timestamp($nextStartTime) < dt::mysql2timestamp(dt::now())) return;
        
         return $nextStartTime;
     }
@@ -1060,8 +963,62 @@ class cal_Reminders extends core_Master
             unset($resArr['nextStartTime']);
         }
         
-        if ($row->repetitionEach){
-            $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
+        if($rec->repetitionEach == '1'){
+            switch ($rec->repetitionType) {
+                // дни
+                case 'days' :
+                    $row->repetitionType = tr('ден');
+                    break;
+                    // седмици
+                case 'weeks' :
+                    $row->repetitionType = tr('седмица');
+                    $row->each = tr('всяка');
+                    break;
+                    // месеци
+                case 'months' :
+                    $row->repetitionType = tr('месец');
+                    break;
+                    // месеци, като се спазва деня от седмицата
+                case 'weekDay' :
+                    $row->repetitionType = tr('месец');
+                    $row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
+                    break;
+                    // точния ден от месеца
+                case 'monthDay' :
+                    $row->repetitionType = tr('месец');
+                    $row->repetitionTypeMonth = tr('точния ден от месеца');
+                    break;
+        
+            }
+        
+            if(!$row->each) {
+                $row->each = tr('всеки');
+            }
+        
+            $row->repetitionEach = '';
+        
+        } else {
+            $row->each = tr('на всеки');
+        
+            if($rec->repetitionType == 'weekDay'){
+                $row->repetitionType = tr('месеца');
+            }
+        
+            if($rec->repetitionType == 'monthDay'){
+                $row->repetitionType = tr('месеца');
+                $row->repetitionTypeMonth = tr('точния ден от месеца');
+            }
         }
+        
+        if ($rec->repetitionEach == NULL) {
+            $row->rem = $data->row->nextStartTime;
+            $row->nextStartTime = NULL;
+            $row->each = '';
+            $row->repetitionType = '';
+            $row->repetitionTypeMonth = '';
+        }
+
+        $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
+
     }
 }

@@ -719,7 +719,7 @@ class core_DateTime
 
         // Ако добавяме точно количество месеци
         if($secs % core_DateTime::SECONDS_IN_MONTH == 0) {
-
+            
             return self::addMonths($secs / core_DateTime::SECONDS_IN_MONTH, $date);
         }
 
@@ -868,8 +868,6 @@ class core_DateTime
     	$num = (int)$num;
         if($num >= 0) {
             $num = '+' . $num;
-        } else {
-             $num = '-' . $num;
         }
         
         $mStart = "{$y}-{$m}-01";
