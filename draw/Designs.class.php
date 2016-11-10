@@ -188,6 +188,7 @@ class draw_Designs extends core_Master
     {
         $i = 0;
         $level = 0;
+        $res = array();
         foreach(str_split($params) as $c) {
             if($c == '(') {
                 $level++;
@@ -435,7 +436,8 @@ class draw_Designs extends core_Master
     public static function getVars($designId)
     {
         $cmdQuery = draw_DesignCommands::getQuery();
-
+        
+        $res = array();
         while($rec = $cmdQuery->fetch("#designId = {$designId}")) {
             $name = '$' . ltrim($rec->varId, '$');
             $res[$name] = $name;
