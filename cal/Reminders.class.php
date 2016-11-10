@@ -396,22 +396,6 @@ class cal_Reminders extends core_Master
         }
     }
 
-    
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-    	if ($data->recs) {
-        	foreach((array)$data->recs as $id => $rec){
-    		    $row = $mvc->recToVerbal($rec);
-    		    
-    		    if ($rec->repetitionEach != NULL) {
-    				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
-    		    } else {
-    		    	$data->rows[$id]->repetition = " ";
-    		    }
-    		}
-    	}
-    }
-    
 
     /**
      *
@@ -846,11 +830,6 @@ class cal_Reminders extends core_Master
     	// Секундите на началната дата
         $startTs = dt::mysql2timestamp($rec->timeStart);
 
-        // Ако искаме напомнянето да се изпълни само един път,
-        /*if($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
-        	$nextStartTime = dt::verbal2mysql($rec->timeStart);
-        }*/
-      
         // Име повторение
         if($rec->repetitionEach !== NULL ) {
             // от какъв тип е
@@ -1010,16 +989,9 @@ class cal_Reminders extends core_Master
                 $row->repetitionTypeMonth = tr('точния ден от месеца');
             }
         }
-        
-        if ($rec->repetitionEach == NULL) {
-            $row->rem = $data->row->nextStartTime;
-            $row->nextStartTime = NULL;
-            $row->each = '';
-            $row->repetitionType = '';
-            $row->repetitionTypeMonth = '';
+
+        if($rec->repetitionEach != NULL ){
+            $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }
-
-        $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
-
     }
 }
