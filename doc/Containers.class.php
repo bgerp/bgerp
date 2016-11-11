@@ -432,7 +432,7 @@ class doc_Containers extends core_Manager
                     $dRec = $doc->fetch();
                 }
                 
-                if ($dRec) {
+                if ($dRec && $dRec->state != 'rejected') {
                     doc_HiddenContainers::showOrHideDocument($dRec->containerId, FALSE, TRUE);
                 }
             } catch (ErrorException $e) {
