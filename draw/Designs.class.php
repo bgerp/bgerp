@@ -79,7 +79,13 @@ class draw_Designs extends core_Master
      */
     var $singleIcon = 'img/16/script.png';
 
-    
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'draw/tpl/SingleLayoutDesign.shtml';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -496,8 +502,18 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        //bp($data);
         if(!$data->error) {
+            // Обвиваме съдъжанието на файла в код
+            $code = "<div class='richtext'><pre class='rich-text code'><code>{$data->rec->script}</code></pre></div>";
+
+            $tpl2 = hljs_Adapter::enable('github');
+            $tpl2->append($code, 'CODE');
+
+            $tpl->append($tpl2);
             $tpl->append($data->canvas->render(), 'DETAILS');
+            $tpl->append("state-{$data->rec->state}", 'STATE_CLASS');
+
         } else {
             $tpl->append("<h3 style='color:red;'>" . $data->error . "</h3>", 'DETAILS');
         }
