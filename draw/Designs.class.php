@@ -116,6 +116,7 @@ class draw_Designs extends core_Master
             'SavePoint(' => 'SavePoint(',
             'ArcTo(' => 'ArcTo(',
             'PolarLineTo(' => 'PolarLineTo(',
+            'ClosePath(' => 'ClosePath(',
             'GetPen(' => 'GetPen(',
             'OpenGroup(' => 'OpenGroup(',
             'CloseGroup(' => 'CloseGroup(',
@@ -247,7 +248,13 @@ class draw_Designs extends core_Master
             $contex->{$varId} = $expr; 
         }
     }
-    
+
+
+    public static function cmd_ClosePath($params, &$svg, &$contex, &$error)
+    {
+        $svg->closePath();
+    }
+
 
     public static function cmd_OpenLayer($params, &$svg, &$contex, &$error)
     {
