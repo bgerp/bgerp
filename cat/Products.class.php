@@ -2136,28 +2136,53 @@ class cat_Products extends embed_Manager {
      * 			o productId - ид на продукта
      * 			o quantity - к-то на продукта
      */
-    public static function getMaterialsForProduction($id, $quantity = 1, $date = NULL)
+    public static function getMaterialsForProduction($id, $quantity = 1, $date = NULL, $recursive = FALSE)
     {
     	if(!$date){
     		$date = dt::now();
     	}
 
     	$res = array();
+    	
+    	// Намираме рецептата за артикула (ако има)
     	$bomId = static::getLastActiveBom($id, 'production')->id;
-    
     	if(!$bomId) {
     		$bomId = static::getLastActiveBom($id, 'sales')->id;
     	}
     	
     	if (isset($bomId)) {
+    		
+    		// Извличаме какво к-во
 	    	$info = cat_Boms::getResourceInfo($bomId, $quantity, $date);
 	    
 	    	foreach ($info['resources'] as $materialId => $rRec){
 	    		if($rRec->type != 'input') continue;
 	    		
-	    		$quantity1 = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
-
-	    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity1);
+	    		// Добавяме материала в масива
+	    		$quantity1 = $rRec->baseQuantity + $rRec->propQuantity;
+	    		if(!array_key_exists($pId, $res)){
+	    			$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity1);
+	    		} else {
+	    			$res[$rRec->productId]['quantity'] += $quantity1;
+	    		}
+	    		
+	    		// Ако искаме рекурсивно, проверяваме дали артикула има материали
+	    		if($recursive === TRUE){
+	    			$newMaterials = self::getMaterialsForProduction($rRec->productId, $quantity1, $date, $recursive);
+	    			
+	    			// Ако има артикула се маха и се викат материалите му
+	    			if(count($newMaterials)){
+	    				unset($res[$rRec->productId]);
+	    				
+	    				foreach ($newMaterials as $pId => $arr){
+	    					if(array_key_exists($pId, $res)){
+	    						$res[$pId]['quantity'] += $arr['quantity'];
+	    					} else {
+	    						$res[$pId] = $arr;
+	    					}
+	    				}
+	    			}
+	    		}
 	    	}
     	}
     	
