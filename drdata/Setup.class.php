@@ -13,7 +13,7 @@ defIfNot("SENDER_EMAIL", 'team@example.com');
 
 
 /**
- * Стандартен и-мейл на изпращача
+ * Стандартен код на държавата
  */
 defIfNot("COUNTRY_PHONE_CODE", '359');
 
