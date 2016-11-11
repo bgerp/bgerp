@@ -117,6 +117,8 @@ class draw_Designs extends core_Master
             'ArcTo(' => 'ArcTo(',
             'PolarLineTo(' => 'PolarLineTo(',
             'GetPen(' => 'GetPen(',
+            'OpenGroup(' => 'OpenGroup(',
+            'CloseGroup(' => 'CloseGroup(',
             'OpenLayer(' => 'OpenLayer(',
             'CloseLayer(' => 'CloseLayer(',
             'MeasureLine(' => 'MeasureLine(',
@@ -259,6 +261,21 @@ class draw_Designs extends core_Master
     {
         $svg->closeLayer();
     }
+
+
+    public static function cmd_OpenGroup($params, &$svg, &$contex, &$error)
+    {
+        $name = trim($params[0]);
+
+        $svg->openGroup($name);
+    }
+
+
+    public static function cmd_CloseGroup($params, &$svg, &$contex, &$error)
+    {
+        $svg->closeGroup();
+    }
+
 
     public static function cmd_MeasureLine($params, &$svg, &$contex, &$error)
     {
