@@ -411,8 +411,8 @@ class draw_Designs extends core_Master
         }
 
 
-        $y =  self::calcExpr($params[1], $contex);  
-        if($y == self::CALC_ERROR) {
+        $y =  self::calcExpr($params[1], $contex);
+        if($y === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
@@ -471,7 +471,7 @@ class draw_Designs extends core_Master
         }
         
         $r =  self::calcExpr($params[2], $contex);  
-        if($r == self::CALC_ERROR) {
+        if($r === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
  
                 return FALSE;
