@@ -207,9 +207,10 @@ class doc_HiddenContainers extends core_Manager
         
         if ($userId < 1) return ;
         
+        // Когато документа трябва да е отворен/затворен само временно
+        $name = self::getModeName($cId, $userId);
+        
         if ($temp) {
-            // Когато документа трябва да е отворен/затворен само временно
-            $name = self::getModeName($cId, $userId);
             if ($hide) {
                 Mode::setPermanent($name, 'closed');
                 self::$hiddenDocsArr[$cId] = TRUE;
@@ -220,6 +221,10 @@ class doc_HiddenContainers extends core_Manager
                 Mode::setPermanent($name, NULL);
             }
         } else {
+            
+            // Изтрваме временните настройки за показване на документа
+            Mode::setPermanent($name, NULL);
+            
             $rec = self::fetch(("#containerId = '{$cId}' AND #userId = '{$userId}'"));
             
             if (!$rec) {

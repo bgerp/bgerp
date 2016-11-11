@@ -79,7 +79,13 @@ class draw_Designs extends core_Master
      */
     var $singleIcon = 'img/16/script.png';
 
-    
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'draw/tpl/SingleLayoutDesign.shtml';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -110,11 +116,20 @@ class draw_Designs extends core_Master
     static function on_AfterPrepareEditform($mvc, &$data)
     {
         $data->form->setSuggestions('script', array(
-            'set(' => 'set(',
-            'move(' => 'move(',
-            'lineTo(' => 'lineTo(',
-            'polarLineTo(' => 'polarLineTo(',
-            'getPen(' => 'getPen(',
+            'Set(' => 'Set(',
+            'MoveTo(' => 'MoveTo(',
+            'LineTo(' => 'LineTo(',
+            'SavePoint(' => 'SavePoint(',
+            'ArcTo(' => 'ArcTo(',
+            'PolarLineTo(' => 'PolarLineTo(',
+            'ClosePath(' => 'ClosePath(',
+            'GetPen(' => 'GetPen(',
+            'OpenGroup(' => 'OpenGroup(',
+            'CloseGroup(' => 'CloseGroup(',
+            'OpenLayer(' => 'OpenLayer(',
+            'CloseLayer(' => 'CloseLayer(',
+            'MeasureLine(' => 'MeasureLine(',
+
             ));
     }
 
@@ -188,6 +203,7 @@ class draw_Designs extends core_Master
     {
         $i = 0;
         $level = 0;
+        $res = array();
         foreach(str_split($params) as $c) {
             if($c == '(') {
                 $level++;
@@ -212,7 +228,7 @@ class draw_Designs extends core_Master
     { 
         if(isset($params[2])) {
             $cond = self::calcExpr($params[2], $contex);
-            if($cond == self::CALC_ERROR) {
+            if($cond === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
 
                 return FALSE;
@@ -223,13 +239,13 @@ class draw_Designs extends core_Master
  
         if($cond) {
             $expr = self::calcExpr($params[1], $contex);  
-            if($expr == self::CALC_ERROR) {
+            if($expr === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
             }
 
-            $varId = ltrim($params[0], '$');
+            $varId = ltrim($params[0], '$ ');
             if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varId)) {
                 $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
 
@@ -238,6 +254,88 @@ class draw_Designs extends core_Master
             $contex->{$varId} = $expr; 
         }
     }
+
+
+    public static function cmd_ClosePath($params, &$svg, &$contex, &$error)
+    {
+        $svg->closePath();
+    }
+
+
+    public static function cmd_OpenLayer($params, &$svg, &$contex, &$error)
+    {
+        $name = trim($params[0]);
+
+        $svg->openLayer($name);
+    }
+
+
+    public static function cmd_CloseLayer($params, &$svg, &$contex, &$error)
+    {
+        $svg->closeLayer();
+    }
+
+
+    public static function cmd_OpenGroup($params, &$svg, &$contex, &$error)
+    {
+        $name = trim($params[0]);
+
+        $svg->openGroup($name);
+    }
+
+
+    public static function cmd_CloseGroup($params, &$svg, &$contex, &$error)
+    {
+        $svg->closeGroup();
+    }
+
+
+    public static function cmd_MeasureLine($params, &$svg, &$contex, &$error)
+    {
+        $x1 =  self::calcExpr($params[0], $contex);  
+        if($x1 === self::CALC_ERROR) {
+                $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
+ 
+                return FALSE;
+        }
+
+        $y1 =  self::calcExpr($params[1], $contex);  
+        if($y1 === self::CALC_ERROR) {
+                $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
+ 
+                return FALSE;
+        }
+        
+        $x2 =  self::calcExpr($params[2], $contex);  
+        if($x2 === self::CALC_ERROR) {
+                $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
+ 
+                return FALSE;
+        }
+        $y2 =  self::calcExpr($params[3], $contex);  
+        if($y2 === self::CALC_ERROR) {
+                $error = "Грешка при изчисляване на: \"" . $params[3] . "\"";
+ 
+                return FALSE;
+        }
+        
+        if(isset($params[4])) {
+            $d =  self::calcExpr($params[4], $contex);  
+            if($d === self::CALC_ERROR) {
+                    $error = "Грешка при изчисляване на: \"" . $params[4] . "\"";
+     
+                    return FALSE;
+            }
+        } else {
+            $d = 1;
+        }
+
+        $text = trim($params[5]);
+
+
+        self::drawMeasureLine($svg, $x1, $y1, $x2, $y2, $d, $text);
+    }
+
     
     
     public static function cmd_GetPen($params, &$svg, &$contex, &$error)
@@ -276,10 +374,10 @@ class draw_Designs extends core_Master
     }
 
 
-    public static function cmd_Move($params, &$svg, &$contex, &$error)
+    public static function cmd_MoveTo($params, &$svg, &$contex, &$error)
     { 
         $x =  self::calcExpr($params[0], $contex);  
-        if($x == self::CALC_ERROR) {
+        if($x === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
  
                 return FALSE;
@@ -287,7 +385,7 @@ class draw_Designs extends core_Master
 
 
         $y =  self::calcExpr($params[1], $contex);  
-        if($y == self::CALC_ERROR) {
+        if($y === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
@@ -306,7 +404,7 @@ class draw_Designs extends core_Master
     public static function cmd_LineTo($params, &$svg, &$contex, &$error)
     { 
         $x =  self::calcExpr($params[0], $contex);  
-        if($x == self::CALC_ERROR) {
+        if($x === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
  
                 return FALSE;
@@ -319,8 +417,35 @@ class draw_Designs extends core_Master
  
                 return FALSE;
         }
+
+        $abs = trim(strtolower($params[2]));
+
+        $svg->lineTo($x, $y, $abs === 'abs');
+    }
+    
+    
+    /**
+     * Зашазва текущата точка
+     */
+    public static function cmd_SavePoint($params, &$svg, &$contex, &$error)
+    { 
+        list($x, $y) = $svg->getCP();
         
-        $svg->lineTo($x, $y);
+        $varX = ltrim($params[0], '$ ');
+        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varX)) {
+            $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
+
+            return FALSE;
+        }
+        $contex->{$varX} = $x; 
+
+        $varY = ltrim($params[1], '$ ');
+        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varY)) {
+            $error = "Невалидно име на променлива: \"" . $params[1] . "\"";
+
+            return FALSE;
+        }
+        $contex->{$varY} = $y;
     }
 
 
@@ -331,7 +456,7 @@ class draw_Designs extends core_Master
     { 
         $x =  self::calcExpr($params[0], $contex);  
         
-        if($x == self::CALC_ERROR) {
+        if($x === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
  
                 return FALSE;
@@ -339,7 +464,7 @@ class draw_Designs extends core_Master
 
 
         $y =  self::calcExpr($params[1], $contex);  
-        if($y == self::CALC_ERROR) {
+        if($y === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
@@ -351,8 +476,10 @@ class draw_Designs extends core_Master
  
                 return FALSE;
         }
+        
+        $abs = trim(strtolower($params[2]));
 
-        $svg->arcTo($x, $y, $r);
+        $svg->arcTo($x, $y, $r, $abs === 'abs');
     }
 
 
@@ -367,7 +494,7 @@ class draw_Designs extends core_Master
 
         $res = self::runScript($data->rec->script, $canvas, $contex, $error);
 
-        if($res === FALSE) bp($error);
+        if($res === FALSE) $data->error = $error;
 
         $data->contex = $contex;
         $data->canvas = $canvas;
@@ -375,9 +502,20 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        // Обвиваме съдъжанието на файла в код
+        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->rec->script}</code></pre></div>";
 
- 
-        $tpl->append($data->canvas->render(), 'DETAILS');
+        $tpl2 = hljs_Adapter::enable('github');
+        $tpl2->append($code, 'CODE');
+
+        $tpl->append($tpl2);
+        $tpl->append("state-{$data->rec->state}", 'STATE_CLASS');
+
+        if(!$data->error) {
+            $tpl->append($data->canvas->render(), 'DETAILS');
+        } else {
+            $tpl->append("<h3 style='color:red;'>" . $data->error . "</h3>", 'DETAILS');
+        }
     }
 
 
@@ -412,7 +550,7 @@ class draw_Designs extends core_Master
 
         // Заместваме променливите и индикаторите
         $expr  = strtr($expr, $ctx);
-        
+      
         if(str::prepareMathExpr($expr) === FALSE) {
             $res = self::CALC_ERROR;
         } else {
@@ -433,13 +571,48 @@ class draw_Designs extends core_Master
     public static function getVars($designId)
     {
         $cmdQuery = draw_DesignCommands::getQuery();
-
+        
+        $res = array();
         while($rec = $cmdQuery->fetch("#designId = {$designId}")) {
             $name = '$' . ltrim($rec->varId, '$');
             $res[$name] = $name;
         }
 
         return $res;
+    }
+
+
+
+    /**
+     * Изчертава оразмерителна линия
+     */
+    static function drawMeasureLine($svg, $Ax, $Ay, $Bx, $By, $dist = 1, $measureText = NULL)
+    {
+        $svg->setAttr('stroke', '#0000fe');
+        $svg->setAttr('stroke-width', '0.1');
+        $svg->setAttr('font-size', 40);
+        $svg->setAttr('stroke-dasharray', '');
+        $svg->setAttr('stroke-opacity', '1');
+        $svg->setAttr('stroke-opacity', '1');
+        $svg->setAttr('font-size', 40);
+	    $svg->setAttr('font-weight', 'bold');
+	    $svg->setAttr('font-family', 'Arial, Sans-serif');
+        cad2_MeasureLine::draw($svg, $Ax, $Ay, $Bx, $By, $dist * 5, $measureText);
+    }
+
+
+    /**
+     * Задава стила на молива за оразмерителните линии
+     */
+    function setMeasureAttr($svg)
+    {
+    	if($svg->p["view"] != "preview") {
+	        $svg->setAttr('stroke', '#0000fe');
+	        $svg->setAttr('stroke-width', '0.1');
+	        $svg->setAttr('font-size', 40);
+	        $svg->setAttr('stroke-dasharray', '');
+	        $svg->setAttr('stroke-opacity', '1');
+    	}
     }
 
 }
