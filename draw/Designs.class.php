@@ -505,7 +505,7 @@ class draw_Designs extends core_Master
         //bp($data);
         if(!$data->error) {
             // Обвиваме съдъжанието на файла в код
-            $code = "<div class='richtext'><pre class='rich-text code'><code>{$data->rec->script}</code></pre></div>";
+            $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->rec->script}</code></pre></div>";
 
             $tpl2 = hljs_Adapter::enable('github');
             $tpl2->append($code, 'CODE');
