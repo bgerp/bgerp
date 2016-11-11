@@ -36,7 +36,9 @@ class unit_MinkPPurchases extends core_Manager {
         $res .= "  12.".$this->act_CreatePurchaseAdvPaymentInclVAT();
         $res .= "  13.".$this->act_CreatePurchaseAdvPaymentSep();
         $res .= "  14.".$this->act_CreatePurchaseDifVAT();
-        $res .= "  14.".$this->act_CreatePurchaseExpense();
+        $res .= "  15.".$this->act_CreatePurchaseExpense();
+        $res .= "  16.".$this->act_CreatePurchaseExtraExpenses();
+        $res .= "  17.".$this->act_CreatePurchaseExtraIncome();
         return $res;
     }
        
@@ -1474,7 +1476,7 @@ class unit_MinkPPurchases extends core_Manager {
         //return $browser->getHtml();
         // Фактура в покупка 1
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '5418');
+        $browser->setValue('number', '18');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 36,88')) {
@@ -1519,6 +1521,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('note', 'MinkPPurchaseExtraIncome');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
+        $browser->setValue('template', 'Договор за покупка');
         // Записване черновата на Покупката
         $browser->press('Чернова');
     
@@ -1552,7 +1555,7 @@ class unit_MinkPPurchases extends core_Manager {
     
         // Фактура
         $browser->press('Вх. фактура');
-        $browser->setValue('number', '1128');
+        $browser->setValue('number', '19');
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 29,52')) {
@@ -1579,6 +1582,97 @@ class unit_MinkPPurchases extends core_Manager {
         if(strpos($browser->gettext(), 'BGN 0,00 BGN 14,36')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума - извънреден разход');
+        }
+        //return $browser->getHtml();
+    }
+    
+    /**
+     * Покупка - отделно ДДС - извънредни приходи
+     */
+     
+    //http://localhost/unit_MinkPPurchases/CreatePurchaseExtraIncome/
+    function act_CreatePurchaseExtraIncome()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+    
+        // нова Покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Покупка');
+        }
+         
+        //$browser->hasText('Създаване на Покупка');
+        $browser->setValue('note', 'MinkPPurchaseExtraIncome');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        $browser->setValue('template', 'Договор за покупка');
+        // Записване черновата на Покупката
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '30');
+        $browser->setValue('packPrice', '1,32');
+        $browser->setValue('discount', 2);
+        // Записване на артикула
+        $browser->press('Запис');
+    
+        // активиране на Покупката
+        $browser->press('Активиране');
+        //return $browser->getHtml();
+        $browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Отстъпка: BGN 0,79')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
+        }
+        if(strpos($browser->gettext(), 'Четиридесет и шест BGN и 0,57')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
+    
+        // Когато няма автом. избиране
+        // Складова разписка
+        // протокол
+    
+        // Фактура
+        $browser->press('Вх. фактура');
+        $browser->setValue('number', '20');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 38,81')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
+        }
+    
+        // РБД
+        $browser->press('РБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->setValue('amountDeal', '46,50');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        // Приключване
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        if(strpos($browser->gettext(), '46,57 46,57 46,50 46,57')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера');
+        }
+        if(strpos($browser->gettext(), 'BGN 0,07 BGN 0,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна сума - извънреден приход');
         }
         //return $browser->getHtml();
     }
