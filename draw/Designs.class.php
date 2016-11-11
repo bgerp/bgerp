@@ -502,18 +502,17 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        //bp($data);
+        // Обвиваме съдъжанието на файла в код
+        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->rec->script}</code></pre></div>";
+
+        $tpl2 = hljs_Adapter::enable('github');
+        $tpl2->append($code, 'CODE');
+
+        $tpl->append($tpl2);
+        $tpl->append("state-{$data->rec->state}", 'STATE_CLASS');
+
         if(!$data->error) {
-            // Обвиваме съдъжанието на файла в код
-            $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->rec->script}</code></pre></div>";
-
-            $tpl2 = hljs_Adapter::enable('github');
-            $tpl2->append($code, 'CODE');
-
-            $tpl->append($tpl2);
             $tpl->append($data->canvas->render(), 'DETAILS');
-            $tpl->append("state-{$data->rec->state}", 'STATE_CLASS');
-
         } else {
             $tpl->append("<h3 style='color:red;'>" . $data->error . "</h3>", 'DETAILS');
         }
