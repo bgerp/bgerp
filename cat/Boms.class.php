@@ -174,7 +174,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж');
+    	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
     	$this->setDbIndex('productId');

@@ -79,7 +79,13 @@ class draw_Designs extends core_Master
      */
     var $singleIcon = 'img/16/script.png';
 
-    
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'draw/tpl/SingleLayoutDesign.shtml';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -116,7 +122,10 @@ class draw_Designs extends core_Master
             'SavePoint(' => 'SavePoint(',
             'ArcTo(' => 'ArcTo(',
             'PolarLineTo(' => 'PolarLineTo(',
+            'ClosePath(' => 'ClosePath(',
             'GetPen(' => 'GetPen(',
+            'OpenGroup(' => 'OpenGroup(',
+            'CloseGroup(' => 'CloseGroup(',
             'OpenLayer(' => 'OpenLayer(',
             'CloseLayer(' => 'CloseLayer(',
             'MeasureLine(' => 'MeasureLine(',
@@ -245,7 +254,13 @@ class draw_Designs extends core_Master
             $contex->{$varId} = $expr; 
         }
     }
-    
+
+
+    public static function cmd_ClosePath($params, &$svg, &$contex, &$error)
+    {
+        $svg->closePath();
+    }
+
 
     public static function cmd_OpenLayer($params, &$svg, &$contex, &$error)
     {
@@ -259,6 +274,21 @@ class draw_Designs extends core_Master
     {
         $svg->closeLayer();
     }
+
+
+    public static function cmd_OpenGroup($params, &$svg, &$contex, &$error)
+    {
+        $name = trim($params[0]);
+
+        $svg->openGroup($name);
+    }
+
+
+    public static function cmd_CloseGroup($params, &$svg, &$contex, &$error)
+    {
+        $svg->closeGroup();
+    }
+
 
     public static function cmd_MeasureLine($params, &$svg, &$contex, &$error)
     {
@@ -381,8 +411,8 @@ class draw_Designs extends core_Master
         }
 
 
-        $y =  self::calcExpr($params[1], $contex);  
-        if($y == self::CALC_ERROR) {
+        $y =  self::calcExpr($params[1], $contex);
+        if($y === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
  
                 return FALSE;
@@ -441,7 +471,7 @@ class draw_Designs extends core_Master
         }
         
         $r =  self::calcExpr($params[2], $contex);  
-        if($r == self::CALC_ERROR) {
+        if($r === self::CALC_ERROR) {
                 $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
  
                 return FALSE;
@@ -472,6 +502,15 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        // Обвиваме съдъжанието на файла в код
+        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->rec->script}</code></pre></div>";
+
+        $tpl2 = hljs_Adapter::enable('github');
+        $tpl2->append($code, 'CODE');
+
+        $tpl->append($tpl2);
+        $tpl->append("state-{$data->rec->state}", 'STATE_CLASS');
+
         if(!$data->error) {
             $tpl->append($data->canvas->render(), 'DETAILS');
         } else {
