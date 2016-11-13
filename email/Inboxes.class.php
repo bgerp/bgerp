@@ -267,13 +267,13 @@ class email_Inboxes extends core_Master
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Вземам всички акаунти за които може да се създаде имейл
-        if ($data->form->rec->id) {
+        if ($data->form->rec->id && $data->form->rec->accountId) {
             $allAccounts = array();
             $allAccounts[$data->form->rec->accountId] = email_Accounts::fetch($data->form->rec->accountId);
         } else {
             $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
         }
-        
+
         if (empty($allAccounts)) {
             if (email_Accounts::haveRightFor('add')) {
                 
