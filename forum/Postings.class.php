@@ -1033,7 +1033,7 @@ class forum_Postings extends core_Detail {
 	           	  } 
    	 		 } 
    	 	} else {
-   	 		if(!$this->masterMVC) {
+   	 		if(!$mvc->masterMVC) {
    	 			if($fields['-list']) {
    	 				$row->type = 'коментар';
    	 				$commentURL = array($this, 'Topic', $rec->themeId, '#' => "C{$rec->id}");

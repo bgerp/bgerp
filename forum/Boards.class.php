@@ -204,7 +204,6 @@ class forum_Boards extends core_Master {
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
         $data->ForumTheme = static::getThemeClass();
-        $data->title = tr($conf->FORUM_GREETING_MESSAGE);
         $data->action = 'forum';
         $data->display = 'public';
         $data->category = Request::get('cat');
@@ -270,7 +269,7 @@ class forum_Boards extends core_Master {
 		}
 		
 		// Линк към началото на форума
-		$arr[] = ht::createLink(tr('Форуми'), $url);
+		$arr[] = ht::createLink(tr('Форум'), $url);
 		
 		if($boardId){
 			$url = array($this, 'single', $boardId);
@@ -388,7 +387,6 @@ class forum_Boards extends core_Master {
 	function renderForum($data)
 	{
 		$tpl = $data->ForumTheme->getIndexLayout();
- 		$tpl->replace('<h2>' . $data->title . '</h2>', 'GREETING');
 		$boards = $data->ForumTheme->getBoardsLayout();
 		
 		if(count($data->categories)) {
