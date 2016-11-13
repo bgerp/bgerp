@@ -53,8 +53,8 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkBom');
         $res .= $inst->act_Run();
-        //$inst = cls::get('unit_MinkInv');
-        //$res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPColab');
+        $res .= $inst->act_Run();
         return $res;
     }
     

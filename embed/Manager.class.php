@@ -128,7 +128,7 @@ class embed_Manager extends core_Master
 				$driver = cls::get($id, array('Embedder' => $me));
 		
 				// Ако потребителя не може да го избира, махаме го от масива
-				if(!$driver->canSelectDriver($userId)){
+				if(cls::existsMethod($driver, 'canSelectDriver') && !$driver->canSelectDriver($userId)){
 					unset($interfaces[$id]);
 				}
 			}

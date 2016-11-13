@@ -1071,4 +1071,14 @@ class core_String
      	
     	return hyphen_Plugin::getHyphenWord($matches[0]);
     }
+
+
+    /**
+     * Помощна функция за сортиране на масив
+     */
+    public static function sortByLengthReverse($a, $b)
+    {
+        return strlen($b) - strlen($a);
+    }
+
 }
