@@ -2117,6 +2117,10 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума - извънреден разход', 'warning');
         }
+        if(strpos($browser->gettext(), '0,00 0,00 0,00 0,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
         //return $browser->getHtml();
     }
     
