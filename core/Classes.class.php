@@ -427,4 +427,20 @@ class core_Classes extends core_Manager
     	
     	return $verbalInterfaces;
     }
+    
+    
+    function act_Test()
+    {
+    	$id = 2;
+    	$debitSysId = '321';
+    	$creditSysId = '411';
+    	
+    	$item = acc_Items::fetchItem(store_Stores::getClassId(), 1)->id;
+    	
+    	$debit = array('101', array('crm_Companies', 1), NULL, NULL, 'quantity' => 100);
+    	$credit = array('401', array('crm_Companies', 1), array('sales_Sales', 1), array('currency_Currencies', 1), 'quantity' => 100);
+    	$amount = 200;
+    	
+    	acc_Articles::addRow(4, $debit, $credit, $amount);
+    }
 }
