@@ -52,20 +52,6 @@ class unit_MinkPPrices extends core_Manager {
     }
   
     /**
-     * Избор на фирма
-     */
-    public function SetFirm()
-    {
-        $browser = $this->SetUp();
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
-        return $browser;
-    }
-   
-    /**
      * 1. Редакция на ценова политика
      */
     //http://localhost/unit_MinkPPrices/EditPriceList/
@@ -160,12 +146,13 @@ class unit_MinkPPrices extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        // Отваряне на папка Ценова политика
+        // Отваряне на корицата на клиент
         $browser->click('Визитник');
         $browser->click('F');
         $Company = 'Фирма с локация';
         $browser->click($Company);
         $browser->click('Търговия');
+        // Създаване на ценова политика за клиента
         $browser->click('Избор на ценова политика');
         $browser->press('Нови правила');
         $browser->setValue('title', 'Ценова политика за Фирма с локация');
@@ -173,11 +160,12 @@ class unit_MinkPPrices extends core_Manager {
         $browser->setValue('discountCompared', 'Каталог');
         $browser->setValue('defaultSurcharge', '3');
         $browser->press('Чернова');
+        
+        // Отваряне на папката на клиента
         $browser->click($Company);
-        //return $browser->getHtml();
         $browser->press('Папка');
         $browser->press('Нов');
-        //създаване на ценоразпис в папката на клиента
+        // Създаване на ценоразпис в папката на клиента
         $browser->press('Ценоразпис');
         $browser->setValue('title', 'Ценоразпис за Фирма с локация');
         $browser->press('Чернова');
@@ -198,12 +186,13 @@ class unit_MinkPPrices extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        // Отваряне на папка Ценова политика
+        // Отваряне на корицата на клиент
         $browser->click('Визитник');
         $browser->click('F');
         $Company = 'Фирма bgErp';
         $browser->click($Company);
         $browser->click('Търговия');
+        // Избор на ценова политика "Каталог" за клиента
         $browser->click('Избор на ценова политика');
         $fromdate=strtotime("+1 Day");
         $browser->setValue('validFrom[d]', date('d-m-Y', $fromdate));
