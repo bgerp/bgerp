@@ -192,4 +192,17 @@ class doc_plg_Prototype extends core_Plugin
 			plg_Clone::cloneDetails($Details, $rec->{$mvc->protoFieldName}, $rec->id);
 		}
 	}
+	
+	
+	/**
+	 * Метод по подразбиране дали документа може да бъде прототип
+	 */
+	public static function on_AfterCanBeTemplate($mvc, &$res, $id)
+	{
+		if(!isset($res)){
+			$rec = $mvc->fetchRec($id);
+			
+			$res = ($rec->state == 'draft');
+		}
+	}
 }
