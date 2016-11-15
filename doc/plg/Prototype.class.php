@@ -30,7 +30,8 @@ class doc_plg_Prototype extends core_Plugin
 			                           'modifiedOn', 
 			                           'searchKeywords', 
 			                           'lastUsedOn',
-									   'prototypeId', 
+									   'prototypeId',
+									   'proto', 
 									   'version',
 									   'subVersion', 
 									   'changeModifiedOn', 
@@ -44,9 +45,10 @@ class doc_plg_Prototype extends core_Plugin
 	public static function on_AfterDescription(&$mvc)
 	{
 		$mvc->declareInterface('doc_PrototypeSourceIntf');
+		setIfNot($mvc->protoFieldName, 'prototypeId');
 		
 		$after = ($mvc instanceof embed_Manager) ? $mvc->driverClassField : (($mvc instanceof core_Embedder) ? $mvc->driverClassField : 'id');
-		$mvc->FLD('prototypeId', "int", "caption=Шаблон,forceField,input=none,silent,removeAndRefreshForm=chargeVat,after={$after}");
+		$mvc->FLD($mvc->protoFieldName, "int", "caption=Шаблон,forceField,input=none,silent,after={$after}");
 	}
 	
 	
@@ -96,8 +98,8 @@ class doc_plg_Prototype extends core_Plugin
 		
 		// Ако има прототипи
 		if(count($prototypes)){
-			$form->setField('prototypeId', 'input');
-			$form->setOptions('prototypeId', array('' => '') + $prototypes);
+			$form->setField($mvc->protoFieldName, 'input');
+			$form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
 				
 			// Определяне на кои полета ще се попълват от прототипа
 			$fields = arr::make(array_keys($mvc->selectFields()), TRUE);
@@ -126,12 +128,12 @@ class doc_plg_Prototype extends core_Plugin
 			// Добавяне на рефреш на полето
 			if(count($fields)){
 				$refresh = implode('|', array_keys($fields));
-				$form->setField('prototypeId', "removeAndRefreshForm={$refresh}");
+				$form->setField($mvc->protoFieldName, "removeAndRefreshForm={$refresh}");
 			}
 				
 			// При редакция прототипа не може да се сменя
 			if(isset($form->rec->id)){
-				$form->setField('prototypeId', 'input=hidden');
+				$form->setField($mvc->protoFieldName, 'input=hidden');
 			}
 		}
 		
@@ -139,7 +141,7 @@ class doc_plg_Prototype extends core_Plugin
 		if(empty($form->rec->id)){
 			
 			// И има избран прототип
-			if($proto = $form->rec->prototypeId) {
+			if($proto = $form->rec->{$mvc->protoFieldName}) {
 				if($protoRec = $mvc->fetch($proto)) {
 					$isCoreEmbedder = $mvc instanceof core_Embedder;
 					
@@ -182,12 +184,12 @@ class doc_plg_Prototype extends core_Plugin
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		if(isset($rec->prototypeId) && ($rec->_isClone !== TRUE)){
-			$oldRec = (object)array('id' => $rec->prototypeId);
+		if(isset($rec->{$mvc->protoFieldName}) && ($rec->_isClone !== TRUE)){
+			$oldRec = (object)array('id' => $rec->{$mvc->protoFieldName});
 			
 			// След създаване на документ с избран прототип, клонират се детайлите му
 			$Details = $mvc->getDetailsToClone($rec);
-			plg_Clone::cloneDetails($Details, $rec->prototypeId, $rec->id);
+			plg_Clone::cloneDetails($Details, $rec->{$mvc->protoFieldName}, $rec->id);
 		}
 	}
 }
