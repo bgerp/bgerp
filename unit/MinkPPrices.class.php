@@ -116,12 +116,39 @@ class unit_MinkPPrices extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно зареден групов марж', 'warning');
         }
-        //return $browser->getHtml();
         
     }
     
     /**
      * 2. Добавяне на ценова политика (от папка на проект)
      */
+    //http://localhost/unit_MinkPPrices/AddPriceList/
+    function act_AddPriceList()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Отваряне на папка Ценова политика
+        $browser->click('Всички');
+        $browser->click('Проекти');
+        $browser->click('Ценови политики');
+        $browser->press('Папка');
+        $browser->press('Ценова политика');
+        //Добавяне на ценова политика
+        $browser->setValue('title', 'Ценова политика 2017');
+        $browser->setValue('parent', 'Каталог');
+        $browser->setValue('discountCompared', 'Каталог');
+        $browser->setValue('significantDigits', '4');
+        $browser->setValue('defaultSurcharge', '9');
+        $browser->setValue('minSurcharge', '15');
+        $browser->setValue('maxSurcharge', '19');
+        $browser->press('Запис');
+        
+        if(strpos($browser->gettext(), 'Надценка по подразбиране 9,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна надценка', 'warning');
+        }
+       
+    }
     
 }
