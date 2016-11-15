@@ -1,5 +1,5 @@
 <li>
-    <table class='no-border' style='width:100%'>
+    <table class="forumThread" style='width:100%; margin-bottom: 5px;'>
         <tr>
             <td class='forum-table' style='width:70%'>
                 <div class='forum-icon case'>[#ICON#]</div>

@@ -7,7 +7,7 @@
     <!--ET_END SEARCH_FORM-->
     <!--ET_BEGIN category-->
     [#category#]
-    <ul class='category-ul'  style='width:100%'>
+    <ul class='category-ul'  style='width:100%; margin: 20px 0 25px'>
         <li class='thread-header'>
             <table class="header-table no-border" style='width:100%'>
                 <tr>

@@ -201,7 +201,7 @@ class forum_Postings extends core_Detail {
 		$tpl = $data->ForumTheme->getThemeLayout();
 		
 		// Иконките на отключените и заключените теми взети от текущата тема
-		$openIcon = $data->ForumTheme->getImage('unlocked.png', '32');
+		$openIcon = $data->ForumTheme->getImage('forum-theme.png', '32');
 		$lockedIcon = $data->ForumTheme->getImage('locked.png', '32');
 		
 		// Ако имаме теми в дъската ние ги рендираме
@@ -337,7 +337,7 @@ class forum_Postings extends core_Detail {
 			$data->postForm->setField('status', 'input=none');
 			$data->postForm->setHidden('themeId', $data->rec->id);
 			$data->postForm->setHidden('boardId', $data->rec->boardId);
-			$data->postForm->toolbar->addSbBtn('Добави');
+			$data->postForm->toolbar->addSbBtn('Добави', 'default', 'class=forumbtn addComment');
 			
 			// Котва към формата за коментар
 			$data->formAnchor =  array($this, 'Theme', $data->rec->id, '#'=>'comment');
@@ -398,11 +398,7 @@ class forum_Postings extends core_Detail {
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
 		$tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		$tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
-		 
-		$topIcon = $data->ForumTheme->getImage('top.png', '32');
-		$topLink = ht::createLink('Нагоре', getCurrentUrl(), NULL, array('class' => 'forumbtn gotop'));
-		
-		$tpl->replace($topLink, 'topLink');
+
         return $tpl;
 	}
 	
@@ -473,7 +469,7 @@ class forum_Postings extends core_Detail {
 		}
 		
 		$form->setAction($this, 'new');
-		$form->toolbar->addSbBtn('Нова тема');
+		$form->toolbar->addSbBtn('Нова тема', 'default', 'class=forumbtn addComment');
 		$data->form = $form;
 		
 		// Заглавие на формата
