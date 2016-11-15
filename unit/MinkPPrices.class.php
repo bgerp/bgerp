@@ -29,9 +29,9 @@ class unit_MinkPPrices extends core_Manager {
         $res .= "<br>".'MinkPPrices';
         $res .= "  1.".$this->act_EditPriceList();
         $res .= "  2.".$this->act_AddPriceList();
-        $res .= "  3.".$this->act_AddCustomerPriceList();
+        $res .= "  3.".$this->act_AddPriceListDoc();
         $res .= "  4.".$this->act_SetCustomerPriceList();
-        $res .= "  5.".$this->act_AddPriceListDoc();
+        $res .= "  5.".$this->act_AddCustomerPriceList();
         return $res;
     }
     
@@ -77,6 +77,13 @@ class unit_MinkPPrices extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно заредена цена', 'warning');
         }
+        //Задаване на цена без ДДС на артикул от ДДС група 9%
+        $browser->press('Стойност');
+        $browser->setValue('productId', 'Артикул ДДС 9');
+        $browser->setValue('price', '10');
+        $browser->setValue('vat', 'no');
+        $browser->press('Запис');
+        
         //Задаване на цена - марж
         $browser->press('Продуктов марж');
         $browser->setValue('productId', 'Труд');
@@ -137,8 +144,61 @@ class unit_MinkPPrices extends core_Manager {
         }
        
     }
+    
     /**
-     * 3. Добавяне на ценова политика на клиент
+     * 3. Създаване на ценоразпис от менюто
+     */
+    //http://localhost/unit_MinkPPrices/AddPriceListDoc/
+    function act_AddPriceListDoc()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        //създаване на ценоразпис от менюто
+        $browser->click('Ценообразуване');
+        $browser->click('Ценоразписи');
+        $browser->press('Нов запис');
+        $browser->setValue('docunsortedfolderId', 'Ценови политики');
+        $browser->press('Напред');
+        $browser->setValue('policyId', 'Ценова политика 2017');
+        $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
+        $browser->press('Чернова');
+        $browser->press('Активиране');
+        if(strpos($browser->gettext(), 'work час 18,8352')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+        }
+        if(strpos($browser->gettext(), 'dds9 бр. 11,881')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+        }
+    }
+    
+    /**
+     * 4. Избор на ценова политика за клиент
+     */
+    //http://localhost/unit_MinkPPrices/SetCustomerPriceList/
+    function act_SetCustomerPriceList()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Отваряне на корицата на клиент
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = 'Фирма bgErp';
+        $browser->click($Company);
+        $browser->click('Търговия');
+        // Избор на ценова политика "Каталог" за клиента
+        $browser->click('Избор на ценова политика');
+        $fromdate=strtotime("+1 Day");
+        $browser->setValue('validFrom[d]', date('d-m-Y', $fromdate));
+        $browser->setValue('validFrom[t]', '08:00');
+        $browser->press('Запис');
+    
+    }
+    
+    /**
+     * 5. Добавяне на ценова политика на клиент
      */
     //http://localhost/unit_MinkPPrices/AddCustomerPriceList/
     function act_AddCustomerPriceList()
@@ -177,52 +237,4 @@ class unit_MinkPPrices extends core_Manager {
         }
     }
     
-    /**
-     * 4. Избор на ценова политика за клиент
-     */
-    //http://localhost/unit_MinkPPrices/SetCustomerPriceList/
-    function act_SetCustomerPriceList()
-    {
-        // Логване
-        $browser = $this->SetUp();
-    
-        // Отваряне на корицата на клиент
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->click('Търговия');
-        // Избор на ценова политика "Каталог" за клиента
-        $browser->click('Избор на ценова политика');
-        $fromdate=strtotime("+1 Day");
-        $browser->setValue('validFrom[d]', date('d-m-Y', $fromdate));
-        $browser->setValue('validFrom[t]', '08:00');
-        $browser->press('Запис');
-        
-    }
-    
-    /**
-     * 5. създаване на ценоразпис от менюто
-     */
-    //http://localhost/unit_MinkPPrices/AddPriceListDoc/
-    function act_AddPriceListDoc()
-    {
-        // Логване
-        $browser = $this->SetUp();
-        //създаване на ценоразпис от менюто
-        $browser->click('Ценообразуване');
-        $browser->click('Ценоразписи');
-        $browser->press('Нов запис');
-        $browser->setValue('docunsortedfolderId', 'Ценови политики');
-        $browser->press('Напред');
-        $browser->setValue('policyId', 'Ценова политика 2017');
-        $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
-        $browser->press('Чернова');
-        $browser->press('Активиране');
-    
-        if(strpos($browser->gettext(), 'work час 18,8352')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
-        }
-    }
 }
