@@ -1548,8 +1548,8 @@ class type_Richtext extends type_Blob
         }
         
         // Добавяме останалите параметри, които са в часта "път"
-        while($restArr[$pId]) {
-            $params[$restArr[$pId]] = $params[$restArr[$pId+1]];
+        while(isset($restArr[$pId]) && isset($restArr[$pId+1])) {
+            $params[$restArr[$pId]] = $restArr[$pId+1];
             $pId++;
         }
         

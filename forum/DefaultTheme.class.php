@@ -63,7 +63,11 @@ class forum_DefaultTheme extends core_Manager {
      */
     public function getSingleThemeLayout()
     {
-    	return getTplFromFile('forum/themes/default/SingleTheme.shtml');
+        if(Mode::is('screenMode', 'narrow')){
+            return getTplFromFile('forum/themes/default/SingleThemeNarrow.shtml');
+        } else{
+            return getTplFromFile('forum/themes/default/SingleTheme.shtml');
+        }
     }
     
     
@@ -95,7 +99,11 @@ class forum_DefaultTheme extends core_Manager {
      */
 	public function getCommentsLayout()
     {
-    	return getTplFromFile('forum/themes/default/Comments.shtml');
+        if(Mode::is('screenMode', 'narrow')){
+            return getTplFromFile('forum/themes/default/CommentsNarrow.shtml');
+        } else{
+            return getTplFromFile('forum/themes/default/Comments.shtml');
+        }
     }
     
     

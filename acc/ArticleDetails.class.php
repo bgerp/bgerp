@@ -172,21 +172,6 @@ class acc_ArticleDetails extends doc_Detail
     
     
     /**
-     * Извиква се след рендиране на Toolbar-а
-     */
-    protected static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
-    {
-        if ($data->accSelectToolbar) {
-            $form = $data->accSelectToolbar->renderHtml();
-            
-            if($form) {
-                $tpl = $form;
-            }
-        }
-    }
-    
-    
-    /**
      * След подготовка на формата за добавяне/редакция
      */
     protected static function on_AfterPrepareEditForm($mvc, $data)

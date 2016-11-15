@@ -36,6 +36,34 @@ class type_tests_Richtext extends unit_Class
        UT::expectEqual(stripos(" ". $res2, '<b>' . $sample2 . '</b>'), TRUE);
        UT::expectEqual(stripos(" ". $res3, '<b>' . $sample3 . '</b>'), FALSE);
     }
+    
+    
+    /**
+     * Тест за парсира вътрешното URL
+     */
+    function test_parseInternalUrl()
+    {
+        // Всеки елемент от масива е масив със стрингове, които ще се сравняват
+        
+        $pArr = array();
+        $pArr[] = array('/L/S/1/m/xxx/', '/L/S/1/?m=xxx/', '/L/S/?id=1&m=xxx/', '/L/S/?m=xxx&id=1');
+        $pArr[] = array('/L/S/?id=1', '/L/S/1');
+        $pArr[] = array('/L/S/m/xxx', '/L/S/?m=xxx');
+        
+        foreach ($pArr as $p) {
+            $parseArr = array();
+            $key = '';
+            foreach ($p as $v) {
+                $vArr = type_Richtext::parseInternalUrl($v);
+                ksort($vArr);
+                $parseArr[] = $key = serialize($vArr);
+            }
+            
+            foreach ($parseArr as $c) {
+                UT::expectEqual($key, $c);
+            }
+        }
+    }
 
     
     /**

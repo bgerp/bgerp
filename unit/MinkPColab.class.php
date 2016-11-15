@@ -30,9 +30,7 @@ class unit_MinkPColab extends core_Manager {
         $res .= "  1.".$this->act_InstallColab();
         $res .= "  2.".$this->act_CreateColab();
         $res .= "  3.".$this->act_AddRights();
-        //$res .= "  4.".$this->act_CreateBom();
-        //$res .= "  5.".$this->act_CreatePlanningJob();
-        //$res .= "  6.".$this->act_CreateCloning();
+        $res .= "  4.".$this->act_LogColab();
         return $res;
     }
     
@@ -68,7 +66,7 @@ class unit_MinkPColab extends core_Manager {
     /**
      * 1. Инсталиране на пакета colab
      */
-    //http://localhost/unit_MinkPbgERP/InstallColab/
+    //http://localhost/unit_MinkPColab/InstallColab/
     function act_InstallColab()
     {
         // Логване
@@ -76,9 +74,10 @@ class unit_MinkPColab extends core_Manager {
     
         $browser->click('Админ');
         $browser->setValue('search', 'colab');
-        $browser->press('Инсталирай');
-        $browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
-    
+        $browser->press('Филтрирай');
+        //$browser->click('Активирай');
+        $browser->open('http://localhost/core_Packs/install/?pack=colab');
+        //echo $browser->getHtml();
     }
     
     /**
@@ -96,7 +95,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Ново лице');
         $browser->setValue('name', 'Представител на Фирма bgErp');
         $browser->setValue('buzCompanyId', '3');
-        $browser->setValue('Потребители', '9');
+        $browser->setValue('groupList[9]', True);
         $browser->press('Запис');
         // Добавяне на потребител
         $browser->press('Потребител');
@@ -112,7 +111,7 @@ class unit_MinkPColab extends core_Manager {
     }
     
     /**
-     * 3. Даване на права до папката на фирмата 
+     * 3. Даване на права до папката на фирмата и изход
      */
     //http://localhost/unit_MinkPColab/AddRights/
     function act_AddRights()
@@ -127,8 +126,48 @@ class unit_MinkPColab extends core_Manager {
         $browser->click('Свързване на партньор към папката на обекта');
         $browser->setValue('contractorId', 'Представител на Фирма bgErp');
         $browser->press('Запис');
-        //return $browser->getHtml();
+        $browser->click('Изход');
+        //Да се затвори браузъра
         
+    }  
+    
+    /**
+     * 4. Логване на колаборатора, запитване и продажба
+     */
+    //http://localhost/unit_MinkPColab/LogColab/
+    function act_LogColab()
+    {
+        // Логване
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+        
+        //Потребител colab1
+        $browser->click('Вход');
+        $browser->setValue('nick', 'colab1');
+        $browser->setValue('pass', '123456');
+        $browser->press('Вход');
+        //Запитване
+        $browser->click('Теми');
+        $browser->press('Запитване');
+        $browser->setValue('title', 'Запитване от колаборатор');
+        $browser->setValue('inqDescription', 'Чували');
+        $browser->setValue('measureId', 'брой');
+        $browser->press('Запис');
+        //Продажба 
+        $browser->click('Теми');
+        $browser->press('Продажба');
+        $browser->setValue('reff', 'от колаборатор');
+        $browser->press('Запис');
+        
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '100');
+        $browser->press('Запис');
+        $browser->press('Заявка');
+        //return $browser->getHtml();
+       
     }
     
 }
