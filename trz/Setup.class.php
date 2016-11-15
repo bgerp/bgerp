@@ -54,7 +54,6 @@ class trz_Setup extends core_ProtoSetup
             'trz_Sickdays',
             'trz_Trips',
             'trz_Fines',
-            'trz_Orders',
             'trz_Requests',
         );
 
