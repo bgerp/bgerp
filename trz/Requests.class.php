@@ -99,9 +99,9 @@ class trz_Requests extends core_Master
     
     
     /**
-     * Кой може да го види?
+     * Кой може да го активира?
      */
-    public $canView = 'powerUser';
+    public $canActivate = 'ceo,trz';
     
     
     /**
