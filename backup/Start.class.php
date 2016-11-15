@@ -374,6 +374,7 @@ class backup_Start extends core_Manager
         $unArchived = fileman_Data::getUnArchived(100);
 
         foreach ($unArchived as $fileObj) {
+            wp($fileObj->path);
             if (file_exists($fileObj->path)) {
                 if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
                     fileman_Data::setArchived($fileObj->id);
