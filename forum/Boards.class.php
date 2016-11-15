@@ -393,7 +393,7 @@ class forum_Boards extends core_Master {
         	
         	// Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
         	$categoryTpl = $tpl->getBlock("category");
-            $icon = $data->ForumTheme->getImage('Card-file-icon.png', '40');
+            $icon = $data->ForumTheme->getImage('forum-boards.png', '40');
         	
             foreach($data->categories as $category) {
                 

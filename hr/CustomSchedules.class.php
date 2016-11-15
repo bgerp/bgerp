@@ -201,11 +201,6 @@ class hr_CustomSchedules extends core_Master
         if(trz_Sickdays::haveRightFor('single', $rec->docId) && $rec->typePerson == 'sicDay'){
             $row->typePerson = ht::createLink($title, array ('trz_Sickdays', 'single', 'id' => $rec->docId), NULL, 'ef_icon = img/16/sick.png');
         }
-
-        // Ако имаме права да видим документ заповед за отпуска
-        if(trz_Orders::haveRightFor('single', $rec->docId) && $rec->typePerson == 'leave'){
-            $row->typePerson = ht::createLink($title, array ('trz_Orders', 'single', 'id' => $rec->docId), NULL, 'ef_icon = img/16/leaves.png');
-        }
         
         // Ако имаме права да видим документ командировка
         if(trz_Trips::haveRightFor('single', $rec->docId) && $rec->typePerson == 'traveling'){
