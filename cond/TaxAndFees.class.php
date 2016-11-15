@@ -16,6 +16,7 @@
 class cond_TaxAndFees extends core_Manager
 {
     
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -43,7 +44,7 @@ class cond_TaxAndFees extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, type,state';
+    public $listFields = 'id, title, type, state';
     
     
     /**
@@ -83,9 +84,13 @@ class cond_TaxAndFees extends core_Manager
     
     
     /**
-     * В коя номенклатура да се добави при активиране
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
+     * $autoList.
+     *
+     * @see acc_plg_Registry
+     * @var string
      */
-    public $addToListOnActivation = 'taxes';
+    public $autoList = 'taxes';
     
     
     /**
