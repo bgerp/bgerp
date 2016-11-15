@@ -334,21 +334,30 @@ class email_Inboxes extends core_Master
     /**
      * Връща масив с ключове - кутите (имейлите) и стойности - id-тата на сметките към които са
      * Ако е зададена $accId филтрира и оставя само кутиите, които са към посочената сметка
+     * 
+     * @param int $accId
+     * @param boolean $removeRejected
+     * 
+     * @return array
      */
-    static function getAllInboxes($acId = 0)
+    static function getAllInboxes($accId = 0, $removeRejected = TRUE)
     {
-        if (!self::$allBoxes[$acId]) {
+        if (!self::$allBoxes[$accId]) {
             $query = static::getQuery();
             $query->show('id, email, accountId');
             
+            if ($removeRejected) {
+                $query->where("#state != 'rejected'");
+            }
+            
             while ($rec = $query->fetch()) {
                 if(($accId == 0) || ($accId == $rec->accountId)) {
-                    self::$allBoxes[$acId][$rec->email] = $rec->accountId;
+                    self::$allBoxes[$accId][$rec->email] = $rec->accountId;
                 }
             }
         }
         
-        return  self::$allBoxes[$acId];
+        return self::$allBoxes[$accId];
     }
     
     
@@ -1037,7 +1046,7 @@ class email_Inboxes extends core_Master
      * 
      * @return array
      */
-    public static function getAllEmailsArr($removeRejected = FALSE)
+    public static function getAllEmailsArr($removeRejected = TRUE)
     {
         $cacheType = 'emailInboxes';
         $cacheHandle = 'allEmails' . $removeRejected;
@@ -1073,7 +1082,7 @@ class email_Inboxes extends core_Master
      */
     static function removeOurEmails($emailsArr)
     {
-        $emailForRemove = self::getAllEmailsArr(TRUE);
+        $emailForRemove = self::getAllEmailsArr();
         
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);
