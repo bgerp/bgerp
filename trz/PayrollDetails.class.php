@@ -226,31 +226,6 @@ class trz_PayrollDetails extends core_Detail
             }
         }
         
-        $qOrder = trz_Orders::getQuery();
-        $qOrder->where("#leaveFrom >= '{$period->start}' AND #leaveTo <= '{$period->end}'");
-        
-        while($recOrder = $qOrder->fetch()){
-            $debug['order'][] = $recOrder;
-            $index = $masterRec->periodId . "|" . $recOrder->personId;
-        
-            if(!array_key_exists($index, $recs)){
-                $recs[$index] =
-                (object) array ('payrollId' => $masterRec->id,
-                    'periodId' => $masterRec->periodId,
-                    'personId' => $recOrder->personId,
-                    'order' => $recOrder->amount,
-                );
-            }
-            else {
-                 
-                $obj = &$recs[$index];
-                $obj->payrollId = $masterRec->id;
-                $obj->periodId = $masterRec->periodId;
-                $obj->personId = $recOrder->personId;
-                $obj->order += $recOrder->amount;
-            }
-        }
-        
         $qTrip = trz_Trips::getQuery();
         $qTrip->where("#startDate >= '{$period->start}' AND #toDate <= '{$period->end}'"); 
         
