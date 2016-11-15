@@ -69,6 +69,8 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         $content = i18n_Charset::convertToUtf8($content);
         
+        $content = trim($content);
+        
         $valArr = self::parseKmlString($content);
         
         $attr = self::getPreviewWidthAndHeight();
@@ -81,7 +83,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
     
     
     /**
-     * 
+     * Подготвя данните от подадения kml файл
      * 
      * @param string $str
      * 
@@ -95,80 +97,104 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         if (!$xml) return $valArr;
         
-        $cArr = array();
-        
-        if ($coordsArr = $xml->Placemark->Point->coordinates) {
-            
-            // Това е когато има само една точка
-            
-            foreach ((array)$coordsArr as $lineCoord) {
-                $cArr[] = $lineCoord;
-            }
-            $cArr = self::prepareCoordsArr($cArr);
-            $valArr = array(array('coords' => $cArr, 'info' => trim((string)$xml->Placemark->name)));
-        } else {
-            if ($xml->Document->Folder) {
-                
-                // Това е когато има няколко точки от един обект
-                
-                $placemarks = $xml->Document->Folder->Placemark;
-                foreach ($placemarks as $pl) {
-                    foreach ((array)$pl->Point->coordinates as $lineCoord) {
-                        $cArr[] = (string)$lineCoord;
-                    }
-                }
-                
-                $cArr = self::prepareCoordsArr($cArr);
-                $valArr = array(array('coords' => $cArr, 'info' => trim((string)$xml->Document->Folder->Placemark->name)));
-            } else {
-                
-                // Това е в случаите, когато имаме няколко различни координати за няколко различни устройства
-                
-                $placemarks = $xml->Document->Placemark;
-                
-                foreach ($placemarks as $pl) {
-                    $info = trim((string)$pl->name);
-                    foreach ((array)$pl->MultiGeometry as $lineCoord) {
-                        foreach ((array)$lineCoord as $lc) {
-                            $coordStr = (string)$lc->coordinates;
-                            
-                            $cExplodArr = explode("\n", $coordStr);
-                            
-                            $cArr = array();
-                            foreach ($cExplodArr as $v) {
-                                if (!trim($v)) continue;
-                                $cArr[] = $v;
-                            }
-                            $cArr = self::prepareCoordsArr($cArr);
-                            
-                            $valArr[] = array('coords' => $cArr, 'info' => $info);
-                        }
-                    }
-                }
-            }
-        }
+        $valArr = self::prepareXml($xml);
         
         return $valArr;
     }
     
     
     /**
-     * Помощна функция за подготвяне на координатите.
-     * Получава масив от стрингове, преобразува ги в масив и ако е необходимо, ги обръща
+     * Опитва се да извлече данние от xml обекта и да ги подготви във формата на location_Path
      * 
-     * @param array $cArr
-     * @param boolean $reverse
-     * 
+     * @param SimpleXMLElement $xml
      * @return array
      */
-    protected static function prepareCoordsArr($cArr, $reverse = TRUE)
+    protected static function prepareXml($xml)
     {
-        foreach ($cArr as &$c) {
-            $eArr = explode(',', $c);
-            if ($reverse) {
-                $c = array($eArr[1], $eArr[0]);
+        $placemark = array();
+        
+        // В зависимост от структурата определяме променливата
+        if ($xml->Document) {
+            if ($xml->Document->Folder) {
+                if ($xml->Document->Folder->Placemark) {
+                    $placemark = $xml->Document->Folder->Placemark;
+                }
             } else {
-                $c = array($eArr[0], $eArr[1]);
+                $placemark = $xml->Document->Placemark;
+            }
+        } else {
+            $placemark = $xml->Placemark;
+        }
+        
+        // Информация по-подразбиране
+        $info = '';
+        $info = (string)$xml->Document->Placemark->name;
+        if (!$info) {
+            $info = (string)$xml->Placemark->name;
+        }
+        if (!$info) {
+            $info = (string)$xml->Document->name;
+        }
+        
+        $coordinates = $infoArr = array();
+        
+        foreach ($placemark as $pl) {
+            if ($pl->Point) {
+                // В този случай се отнасят за един обект
+                $coordinates[0] .= "\n" . (string)$pl->Point->coordinates;
+                
+                // Опитваме се да намерим по-точна информация
+                $info2 = '';
+                $info2 = (string)$pl->Point->name;
+                if (!$info2) {
+                    $info2 = (string)$pl->name;
+                }
+                $infoArr[0] = $info2 ? $info2 : $info;
+            } elseif ($pl->MultiGeometry->LineString) {
+                foreach ((array)$pl->MultiGeometry as $ls) {
+                    foreach ((array)$ls as $lc) {
+                        $coordinates[] = (string)$lc->coordinates;
+                        
+                        // Опитваме се да намерим по-точна информация
+                        $info2 = '';
+                        $info2 = (string)$lc->comment;
+                        if (!$info2) {
+                            $info2 = (string)$pl->name;
+                        }
+                        $infoArr[] = $info2 ? $info2 : $info;
+                    }
+                }
+            } elseif ($pl->Polygon) {
+                if (!($boundary = $pl->Polygon->outerBoundaryIs)) {
+                    $boundary = $pl->Polygon->innerBoundaryIs;
+                }
+                $coordinates[] = (string)$boundary->LinearRing->coordinates;
+                
+                // Опитваме се да намерим по-точна информация
+                $info2 = '';
+                $info2 = (string)$boundary->name;
+                if (!$info2) {
+                    $info2 = (string)$pl->Polygon->name;
+                }
+                if (!$info2) {
+                    $info2 = (string)$pl->name;
+                }
+                $infoArr[] = $info2 ? $info2 : $info;
+            }
+        }
+        
+        // Преобразуваме масива с координати и информация във формата на location_Path
+        foreach ($coordinates as $i => $c) {
+            $c = trim($c);
+            $cExplode = explode("\n", $c);
+            
+            foreach ($cExplode as $cStr) {
+                if (!$cStr) continue;
+                
+                $eArr = explode(',', $cStr);
+                
+                $cArr[$i]['coords'][] = array($eArr[1], $eArr[0]);
+                $cArr[$i]['info'] = $infoArr[$i];
             }
         }
         
