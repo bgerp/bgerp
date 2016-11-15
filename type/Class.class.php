@@ -120,7 +120,11 @@ class type_Class  extends type_Key {
     function toVerbal($value)
     {
         if (is_numeric($value)) {
-            $value = parent::toVerbal($value);
+        	$value = parent::toVerbal($value);
+        	
+        	if(strpos($value, '||') !== FALSE){
+        		$value = tr($value);
+        	}
         }
         
         return $value;

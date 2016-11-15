@@ -1429,7 +1429,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Филтрирай');
         $browser->click('Информация за перото');
         //echo $browser->getHtml();
-        $purId = "59";
+        $purId = "60";
         ///////$purid - да се зареди ID 
         $purId = $purId .'.17';
         
@@ -1460,7 +1460,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('packPrice', '100');
         
         $browser->setValue('expenseItemId', $purId);
-        //грешка!
+        //грешка - разпределение!
         //$browser->setValue('allocationBy', 'По стойност');
         //$browser->refresh('Запис');
         // Записване на артикула
