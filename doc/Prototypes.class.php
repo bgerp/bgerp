@@ -121,6 +121,8 @@ class doc_Prototypes extends core_Manager
     					$requiredRoles = 'no_one';
     				} elseif(!$doc->canBeTemplate()){
     					$requiredRoles = 'no_one';
+    				} elseif(acc_Items::fetchItem($doc->getInstance(), $doc->that)){
+    					$requiredRoles = 'no_one';
     				}
     			}
     		} else {
