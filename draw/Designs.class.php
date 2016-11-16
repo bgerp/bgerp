@@ -275,7 +275,7 @@ class draw_Designs extends core_Master
             }
 
             $varId = ltrim($params[0], '$ ');
-            if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varId)) {
+            if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/i", $varId)) {
                 $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
 
                 return FALSE;
@@ -289,7 +289,7 @@ class draw_Designs extends core_Master
     public static function cmd_Input($params, &$svg, &$contex, &$error)
     { 
         $varId = ltrim($params[0], '$ ');
-        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varId)) {
+        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/i", $varId)) {
             $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
 
             return FALSE;
@@ -534,7 +534,7 @@ class draw_Designs extends core_Master
         list($x, $y) = $svg->getCP();
         
         $varX = ltrim($params[0], '$ ');
-        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varX)) {
+        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/i", $varX)) {
             $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
 
             return FALSE;
@@ -542,7 +542,7 @@ class draw_Designs extends core_Master
         $contex->{$varX} = $x; 
 
         $varY = ltrim($params[1], '$ ');
-        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/", $varY)) {
+        if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/i", $varY)) {
             $error = "Невалидно име на променлива: \"" . $params[1] . "\"";
 
             return FALSE;
@@ -734,7 +734,6 @@ class draw_Designs extends core_Master
         $svg->setAttr('stroke-width', '0.1');
         $svg->setAttr('font-size', 40);
         $svg->setAttr('stroke-dasharray', '');
-        $svg->setAttr('stroke-opacity', '1');
         $svg->setAttr('stroke-opacity', '1');
         $svg->setAttr('font-size', 40);
 	    $svg->setAttr('font-weight', 'bold');
