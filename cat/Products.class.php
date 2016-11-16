@@ -346,6 +346,7 @@ class cat_Products extends embed_Manager {
     	
     	// Всички позволени мерки
     	$measureOptions = cat_UoM::getUomOptions();
+    	$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=proto|measureId|meta|groups");
     	
     	// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
     	if(isset($rec->folderId)){
@@ -406,6 +407,8 @@ class cat_Products extends embed_Manager {
     				}
     			}
     		}
+    		
+    		//bp($form->rec);
     	}
 
     	// Ако артикула е създаден от източник
