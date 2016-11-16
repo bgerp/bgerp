@@ -223,7 +223,7 @@ class unit_MinkPPrices extends core_Manager {
         
         // Отваряне на папката на клиента
         $browser->click($Company);
-        $browser->press('Папка');
+        //$browser->press('Папка');
         $browser->press('Нов');
         // Създаване на ценоразпис в папката на клиента
         $browser->press('Ценоразпис');
