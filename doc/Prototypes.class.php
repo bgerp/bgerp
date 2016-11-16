@@ -192,6 +192,7 @@ class doc_Prototypes extends core_Manager
     
     
     /**
+     * 
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())

@@ -2512,22 +2512,4 @@ class cat_Products extends embed_Manager {
     	
     	return $this->renderWrapping($form->renderHtml());
     }
-    
-    
-    /**
-     * Дали документа да се добави като шаблон автоматично след създаването му
-     *
-     * @param mixed $id
-     * @return boolean
-     */
-    public static function addAsTemplateAfterCreation($rec)
-    {
-    	$rec = self::fetchRec($rec);
-    	$Cover = doc_Folders::getCover($rec->folderId);
-    	if($Cover->isInstanceOf('cat_Categories')){
-    		return $Cover->fetchField('useAsProto') == 'yes';
-    	}
-    	
-    	return FALSE;
-    }
 }
