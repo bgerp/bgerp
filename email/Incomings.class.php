@@ -210,7 +210,7 @@ class email_Incomings extends core_Master
         $this->FLD('htmlFile', 'key(mvc=fileman_Files)', 'caption=html файл, input=none');
         $this->FLD('uid', 'int', 'caption=Imap UID');
         
-        $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
+        $this->FLD('routeBy', 'enum(thread, file, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
         
         $this->FLD('userInboxes', 'keylist(mvc=email_Inboxes, select=email)', 'caption=Имейли на потребители');
         
@@ -1153,8 +1153,10 @@ class email_Incomings extends core_Master
                 } else {
                     $fromDomain = type_Email::domain($emailArr['address']);
                     
+                    $trimEmail = trim($emailArr['address']);
+                    
                     // Ако няма такъв корпоративен имейл
-                    if ($allCorpEmails && !$allCorpEmails[trim($emailArr['address'])]) {
+                    if (!empty($allCorpEmails) && !$allCorpEmails[$trimEmail]) {
                         $emailsArr[$key]['isWrong'] = TRUE;
                     }
                 }
@@ -1387,43 +1389,46 @@ class email_Incomings extends core_Master
      */
     public function route_(&$rec)
     {
+        // Репортване, ако имаме данни за нишката
+        if ($rec->threadId) wp($rec);
+        
         // Винаги рутираме по номер на тред
-        if(email_Router::doRuleThread($rec)) {
-            if ($rec->threadId) {
+        if (email_Router::doRuleThread($rec)) {
+            $rec->routeBy = 'thread';
+        }
+        
+        // Рутиране по файлове
+        if (!$rec->threadId && self::doRuleFile($rec)) {
+            $rec->routeBy = 'file';
+        }
+        
+        // Входящите имейли да не влизат в оттеглени нишки, в които има документи за контиране
+        if ($rec->threadId && ($rec->routeBy == 'file' || $rec->routeBy == 'thread')) {
+            $tRec = doc_Threads::fetch($rec->threadId);
+            
+            if ($tRec->state == 'rejected') {
                 
-                $tRec = doc_Threads::fetch($rec->threadId);
-                $routeByThread = TRUE;
+                $query = doc_Containers::getQuery();
+                $query->where(array("#threadId = '[#1#]'", $rec->threadId));
+                $query->orderBy('createdOn', 'ASC');
                 
-                // Входящите имейли да не влизат в оттеглени нишки, в които има документи за контиране
-                if ($tRec->state == 'rejected') {
-                    
-                    $query = doc_Containers::getQuery();
-                    $query->where(array("#threadId = '[#1#]'", $rec->threadId));
-                    $query->orderBy('createdOn', 'ASC');
-                    
-                    while ($cRec = $query->fetch()) {
-                        if (($cRec->docClass) && (cls::load($cRec->docClass, TRUE)) && cls::haveInterface('acc_TransactionSourceIntf', $cRec->docClass)) {
-                            
-                            $routeByThread = FALSE;
-                            
-                            break;
-                        }
+                while ($cRec = $query->fetch()) {
+                    if (($cRec->docClass) && (cls::load($cRec->docClass, TRUE)) && cls::haveInterface('acc_TransactionSourceIntf', $cRec->docClass)) {
+                        
+                        unset($rec->threadId);
+                        unset($rec->folderId);
+                        unset($rec->routeBy);
+                        
+                        break;
                     }
                 }
-                
-                if ($routeByThread) {
-                    // Добавяме начина на рутиране
-                    $rec->routeBy = 'thread';
-                    
-                    return;
-                } else {
-                    unset($rec->threadId);
-                }
             }
+            
+            if ($rec->routeBy && $rec->threadId) return ;
         }
         
         // Първо рутираме по ръчно зададените правила
-        if(email_Filters::preroute($rec)) {
+        if (email_Filters::preroute($rec)) {
             
             // Добавяме начина на рутиране
             $rec->routeBy = 'preroute';
@@ -1490,8 +1495,102 @@ class email_Incomings extends core_Master
         
         expect($rec->folderId);
     }
-
-
+    
+    
+    /**
+     * Рутира по файлове
+     * 
+     * @param stdObject $rec
+     */
+    protected static function doRuleFile($rec)
+    {
+        if ($rec->files && ($filesArr = type_Keylist::toArray($rec->files))) {
+            try {
+                $haveRoute = FALSE;
+                foreach ($filesArr as $fileId) {
+                    $fRec = fileman_Files::fetch((int) $fileId);
+                    $ext = fileman_Files::getExt($fRec->name);
+                    
+                    if (!$ext) continue;
+                    $ext = mb_strtolower($ext);
+                    
+                    $allowedExt = mb_strtolower(email_Setup::get('ALLOWED_EXT_FOR_BARCOCE'));
+                    $allowedExtArr = arr::make($allowedExt, TRUE);
+                    
+                    if (!$allowedExtArr[$ext]) continue;
+                    
+                    // Ако е под или над допустимия размер за обработка - прескачаме
+                    if (email_Setup::get('MIN_FILELEN_FOR_BARCOCE') > $fRec->fileLen) continue;
+                    if (email_Setup::get('MAX_FILELEN_FOR_BARCOCE') < $fRec->fileLen) continue;
+                    
+                    try {
+                        $barcodesArr = zbar_Reader::getBarcodesFromFile($fRec->fileHnd);
+                    } catch (fileman_Exception $e) {
+                        
+                        continue;
+                    }
+                    
+                    // Опитваме се да определеим баркода за документ от нашата система
+                    foreach ($barcodesArr as $bCode) {
+                        if (!$bCode->code) continue;
+                        
+                        $cId = doclog_Documents::getDocumentCidFromURL($bCode->code);
+                        
+                        if (!$cId) continue;
+                        
+                        $cRec = doc_Containers::fetch($cId);
+                        
+                        if (!$cRec) continue;
+                        
+//                         if ($cRec->state == 'draft') continue;
+                        
+                        $rec->threadId = $cRec->threadId;
+                        
+                        $haveRoute = TRUE;
+                        
+                        break;
+                    }
+                    
+                    if ($haveRoute) {
+                        
+                        if ($rec->threadId) {
+                            
+                            if($rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId')) {
+                                $coverClass = doc_Folders::getCover($rec->folderId);
+                                
+                                // Ако ще се рутира към пощенска кутия или папка на контрагент
+                                if ($coverClass) {
+                                    if ($coverClass->instance instanceof email_Inboxes ||
+                                        $coverClass->instance instanceof crm_Companies ||
+                                        $coverClass->instance instanceof crm_Persons) {
+                                        
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Ако се стигне до тук, значи нишката не отговаря на условията
+                        unset($rec->threadId);
+                        unset($rec->folderId);
+                    }
+                }
+                
+                if ($haveRoute) return $rec->folderId;
+            } catch (ErrorException $e) {
+                reportException($e);
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param stdObject $rec
+     * 
+     * return boolean
+     */
     static function isCommonToBox($rec)
     {
         $accRec = email_Accounts::fetch($rec->accId);
@@ -1533,8 +1632,8 @@ class email_Incomings extends core_Master
         if($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
             if ($rec->state == 'rejected') {
                 $mvc->removeRouterRules($rec);
-            } elseif (($rec->routeBy != 'thread') && ($rec->routeBy != 'preroute')) {
-                // Ако рутираме по нишка или потребителски филтър да не се създават правила
+            } elseif (($rec->routeBy != 'thread') && ($rec->routeBy != 'preroute') && ($rec->routeBy != 'file')) {
+                // Ако рутираме по нишка или потребителски филтър или файл да не се създават правила
                 $mvc->makeRouterRules($rec);
             }
         }
