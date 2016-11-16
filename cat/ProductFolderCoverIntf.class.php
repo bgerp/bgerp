@@ -48,4 +48,16 @@ class cat_ProductFolderCoverIntf extends doc_FolderIntf
     {
     	return $this->class->getDefaultProductParams($id);
     }
+    
+    
+    /**
+     * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
+     * 
+     * @param mixed $id - ид или запис
+     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     */
+    public function getProductType($id)
+    {
+    	return $this->class->getProductType($id);
+    }
 }

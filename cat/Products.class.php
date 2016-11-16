@@ -49,7 +49,7 @@ class cat_Products extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone,doc_plg_Prototype, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
                      cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
@@ -278,13 +278,19 @@ class cat_Products extends embed_Manager {
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'originId';
+	public $fieldsNotToClone = 'originId,code, name';
 	
 	
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
 	public $hideListFieldsIfEmpty = 'price';
+	
+	
+	/**
+	 * Кое поле съдържа от кой прототип е артикула
+	 */
+	public $protoFieldName = 'proto';
 	
 	
     /**
@@ -337,38 +343,6 @@ class cat_Products extends embed_Manager {
     {
     	$form = &$data->form;
     	$rec = $form->rec;
-    	
-    	// Слагаме полето за драйвър да е 'remember'
-    	if($form->getField($mvc->driverClassField)){
-    		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=proto|measureId|meta|groups");
-            if(!$rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $rec->{$driverField})) {
-                
-            	$protoProducts = cat_Categories::getProtoOptions($drvId);
-            	
-            	if(count($protoProducts)){
-            		$form->setField('proto', 'input');
-            		$form->setOptions('proto', $protoProducts);
-            		
-            		if($proto = Request::get('proto', 'int')) {
-            			if($pRec = self::fetch($proto)) {
-            				
-            				unset($pRec->code);
-            				$Cmd = Request::get('Cmd');
-            				if(is_array($pRec->driverRec)) {
-            					setIfNot($pRec->driverRec['measureId'], $pRec->measureId);
-            					setIfNot($pRec->driverRec['groups'], $pRec->groups);
-            					setIfNot($pRec->driverRec['info'], $pRec->info);
-            					setIfNot($pRec->driverRec['meta'], $pRec->meta);
-            					
-            					foreach ($pRec->driverRec as $name => $value){
-            						$form->setDefault($name, $value);
-            					}
-            				}
-            			}
-            		}
-            	}
-            }
-    	}
     	
     	// Всички позволени мерки
     	$measureOptions = cat_UoM::getUomOptions();
@@ -457,7 +431,8 @@ class cat_Products extends embed_Manager {
     	// Ако има дефолтна мярка, избираме я
     	if(is_object($Driver) && $Driver->getDefaultUomId()){
     		$defaultUomId = $Driver->getDefaultUomId();
-    		$form->setReadOnly('measureId', $defaultUomId);
+    		$form->setDefault('measureId', $defaultUomId);
+    		$form->setField('measureId', 'input=hidden');
     	} else {
     		if($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')){
     			$measureOptions[$defMeasure] = cat_UoM::getTitleById($defMeasure, FALSE);
@@ -524,11 +499,6 @@ class cat_Products extends embed_Manager {
 			    }
     		}
     		
-    		// При добавянето на код на частен артикул слагаме предупреждение
-    		if(isset($rec->id) && $rec->isPublic == 'no' AND !empty($rec->code)){
-    			$form->setWarning('code', 'При добавянето на код на частен артикул, той ще стане публичен');
-    		}
-    		
     		// Ако артикулът е в папка на контрагент, и има вече артикул,
     		// със същото име сетваме предупреждение
     		if(isset($rec->folderId)){
@@ -556,17 +526,21 @@ class cat_Products extends embed_Manager {
     		}
     	}
     	
-    	// Ако кода е празен символ, правим го NULL
-    	if(isset($rec->code)){
-    		$rec->isPublic = ($rec->code != '') ? 'yes' : 'no';
-    		if($rec->code == ''){
-    			$rec->code = NULL;
+    	// Според папката се определя дали артикула е публичен/частен или е шаблон
+    	if(isset($rec->folderId)){
+    		$Cover = doc_Folders::getCover($rec->folderId);
+    		$type = $Cover->getProductType($id);
+    		$rec->isPublic = ($type != 'private') ? 'yes' : 'no';
+    		if($rec->state != 'rejected' && $rec->state != 'closed'){
+    			$rec->state = ($type == 'template') ? 'template' : 'draft';
     		}
     	}
     	
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
     	}
+    	
+    	$rec->code = ($rec->code == '') ? NULL : $rec->code;
     }
     
     
@@ -844,8 +818,7 @@ class cat_Products extends embed_Manager {
         		$data->query->orderBy("#{$order}");
         		break;
         	case 'prototypes':
-        		$folders = cat_Categories::getProtoFolders();
-        		$data->query->in("folderId", $folders);
+        		$data->query->where("#state = 'template'");
         		break;
         	default :
         		$data->query->where("#isPublic = 'yes'");
@@ -1259,13 +1232,6 @@ class cat_Products extends embed_Manager {
     		}
     	}
     	
-    	// Искаме само артикулите, които не са в папки за прототипи
-    	$protoFolders = cat_Categories::getProtoFolders();
-    	if(count($protoFolders)){
-    		$protoFolders = implode(',', $protoFolders);
-    		$query->where("#folderId NOT IN ({$protoFolders})");
-    	}
-    	
     	// Подготвяме опциите
     	while($rec = $query->fetch()){
     		$title = static::getRecTitle($rec, FALSE);
@@ -1525,9 +1491,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if(isset($rec->proto)){
-    			if(!Mode::isReadOnly()){
-    				$row->proto = $mvc->getHyperlink($rec->proto);
-    			}
+    			$row->proto = $mvc->getHyperlink($rec->proto);
     		}
     		
     		if($mvc->haveRightFor('edit', $rec)){
@@ -2547,5 +2511,23 @@ class cat_Products extends embed_Manager {
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Дали документа да се добави като шаблон автоматично след създаването му
+     *
+     * @param mixed $id
+     * @return boolean
+     */
+    public static function addAsTemplateAfterCreation($rec)
+    {
+    	$rec = self::fetchRec($rec);
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->isInstanceOf('cat_Categories')){
+    		return $Cover->fetchField('useAsProto') == 'yes';
+    	}
+    	
+    	return FALSE;
     }
 }

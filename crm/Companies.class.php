@@ -2218,4 +2218,16 @@ class crm_Companies extends core_Master
     	// Ако се стигне до тук, винаги номера е валиден
     	return TRUE;
     }
+    
+    
+    /**
+     * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
+     *
+     * @param mixed $id - ид или запис
+     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     */
+    public function getProductType($id)
+    {
+    	return 'private';
+    }
 }
