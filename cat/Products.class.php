@@ -1104,8 +1104,8 @@ class cat_Products extends embed_Manager {
         			static::createDefaultBom($rec);
         		}
         		
-        		// Ако е създаден артикул, базиран на прототип клонират се споделените му папки
-        		if(isset($rec->proto)){
+        		// Ако е създаден артикул, базиран на прототип клонират се споделените му папки, само ако той е частен
+        		if(isset($rec->proto) && $rec->isPublic == 'no'){
         			cat_products_SharedInFolders::cloneFolders($rec->proto, $rec->id);
         		}
         	}
