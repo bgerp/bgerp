@@ -2500,7 +2500,21 @@ class cat_Products extends embed_Manager {
     	$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
     	$form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
 		
-    	$Driver = static::getDriver($id);
+    	$Driver = self::getDriver($id);
+        
+        // Добавяне на стойностите от записа в $rec-a на формата
+        $rec = self::fetch($id);
+        if($rec) {
+            $fields = self::getDriverFields($Driver);
+            if(is_array($fields)) {
+                foreach($fields as $name => $caption) {
+                    if(isset($rec->{$name})) {
+                        $form->rec->{$name} = $rec->{$name};
+                    }
+                }
+            }
+        }
+
     	$Driver->addFields($form);
     }
     
