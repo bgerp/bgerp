@@ -26,6 +26,18 @@ class doc_PrototypeSourceIntf
 	 */
 	function canBeTemplate($id)
 	{
-		return $this->canBeTemplate($id);
+		return $this->class->canBeTemplate($id);
+	}
+	
+	
+	/**
+	 * Дали документа да се добави като шаблон автоматично след създаването му
+	 *
+	 * @param mixed $id
+	 * @return boolean
+	 */
+	function addAsTemplateAfterCreation($id)
+	{
+		return $this->class->addAsTemplateAfterCreation($id);
 	}
 }

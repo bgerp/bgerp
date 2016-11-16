@@ -187,7 +187,7 @@ class doc_Prototypes extends core_Manager
     {
     	// След като се създаде шаблон, оригиналния документ минава в състояние шаблон
     	$nRec = (object)array('id' => $rec->docId, 'state' => 'template');
-    	cls::get($rec->classId)->save($nRec, 'state');
+    	cls::get($rec->classId)->save_($nRec, 'state');
     }
     
     
@@ -271,5 +271,39 @@ class doc_Prototypes extends core_Manager
     	
     	// Връщане на намерените шаблони
     	return $arr;
+    }
+
+    
+    
+    /**
+     * Създаване на шаблон + смяна на състоянието на документа в 'шаблон'
+     * 
+     * @param string $title                 - име на шаблона
+     * @param mixed $class                  - клас на документа
+     * @param int $docId                    - ид на документа
+     * @param int|NULL $driverClassId       - ид на класа на драйвера
+     * @param string|NULL $sharedWithRoles  - споделени роли
+     * @param string|NULL $sharedWithUsers  - споделени потребители
+     */
+    public static function add($title, $class, $docId, $driverClassId = NULL, $sharedWithRoles = NULL, $sharedWithUsers = NULL)
+    {
+    	$Class = cls::get($class);
+    	
+    	$rec = (object)array('title'           => $title,
+    						 'originId'        => $Class->fetchField($docId, 'containerId'),
+    						 'classId'         => $Class->getClassId(),
+    			             'docId'           => $docId,
+    			             'driverClassId'   => $driverClassId,
+    						 'sharedWithRoles' => $sharedWithRoles,
+    						 'sharedWithUsers' => $sharedWithUsers,
+    			             'state'           => 'active',
+    	);
+    	
+    	cls::get(get_called_class())->isUnique($rec, $fields, $exRec);
+    	if($exRec){
+    		$rec->id = $rec->id;
+    	}
+    	
+    	doc_Prototypes::save($rec);
     }
 }

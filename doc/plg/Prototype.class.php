@@ -191,6 +191,30 @@ class doc_plg_Prototype extends core_Plugin
 			$Details = $mvc->getDetailsToClone($rec);
 			plg_Clone::cloneDetails($Details, $rec->{$mvc->protoFieldName}, $rec->id);
 		}
+		
+		// Ако документа може да се добави като шаблон след създаването
+		if($mvc->addAsTemplateAfterCreation($rec)){
+			
+			// Създаване на шаблон
+			$driverClassId = ($mvc instanceof embed_Manager) ? $rec->{$mvc->driverClassField} : (($mvc instanceof core_Embedder) ? $rec->{$mvc->innerClassField} : NULL);
+			doc_Prototypes::add($mvc->getTitleById($rec->id), $mvc, $rec->id, $driverClassId);
+			
+			$handle = $mvc->getHandle($rec->id);
+			core_Statuses::newStatus("|*#{$handle} |е добавен като шаблон|*");
+		}
+	}
+	
+	
+	/**
+	 * Метод по подразбиране дали документа може да бъде прототип след създаването си
+	 */
+	public static function on_AfterAddAsTemplateAfterCreation($mvc, &$res, $id)
+	{
+		if(!isset($res)){
+			$rec = $mvc->fetchRec($id);
+			
+			$res = TRUE;
+		}
 	}
 	
 	
