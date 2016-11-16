@@ -68,6 +68,14 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'cat_products_Packagings';
+    
+    
+    /**
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '301,302,304,305,306,309,321,323,61101';
@@ -125,12 +133,6 @@ class cat_Products extends embed_Manager {
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-
-
-    /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -407,8 +409,6 @@ class cat_Products extends embed_Manager {
     				}
     			}
     		}
-    		
-    		//bp($form->rec);
     	}
 
     	// Ако артикула е създаден от източник
