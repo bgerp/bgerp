@@ -133,12 +133,12 @@ class unit_MinkPPrices extends core_Manager {
         $browser->setValue('parent', 'Каталог');
         $browser->setValue('discountCompared', 'Каталог');
         $browser->setValue('significantDigits', '4');
-        $browser->setValue('defaultSurcharge', '9');
+        $browser->setValue('defaultSurcharge', '7');
         $browser->setValue('minSurcharge', '15');
         $browser->setValue('maxSurcharge', '19');
         $browser->press('Запис');
         
-        if(strpos($browser->gettext(), 'Надценка по подразбиране 9,00')) {
+        if(strpos($browser->gettext(), 'Надценка по подразбиране 7,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна надценка', 'warning');
         }
@@ -163,11 +163,11 @@ class unit_MinkPPrices extends core_Manager {
         $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
         $browser->press('Чернова');
         $browser->press('Активиране');
-        if(strpos($browser->gettext(), 'work час 18,8352')) {
+        if(strpos($browser->gettext(), 'work час 18,4896')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
-        if(strpos($browser->gettext(), 'dds9 бр. 11,881')) {
+        if(strpos($browser->gettext(), 'dds9 бр. 11,663')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
@@ -198,7 +198,7 @@ class unit_MinkPPrices extends core_Manager {
     }
     
     /**
-     * 5. Добавяне на ценова политика на клиент
+     * 5. Добавяне на ценова политика на клиент; ценоразпис
      */
     //http://localhost/unit_MinkPPrices/AddCustomerPriceList/
     function act_AddCustomerPriceList()
@@ -231,7 +231,12 @@ class unit_MinkPPrices extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Активиране');
         
-        if(strpos($browser->gettext(), 'plik7 бр. 0,67362')) {
+        if(strpos($browser->gettext(), 'plik7 бр. 0,66126')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+        }
+        
+        if(strpos($browser->gettext(), 'dds9 бр. 12,01289')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
