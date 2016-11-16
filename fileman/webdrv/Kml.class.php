@@ -183,6 +183,8 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
             }
         }
         
+        $cArr = array();
+        
         // Преобразуваме масива с координати и информация във формата на location_Path
         foreach ($coordinates as $i => $c) {
             $c = trim($c);

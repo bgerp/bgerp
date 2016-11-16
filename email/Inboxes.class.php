@@ -350,6 +350,8 @@ class email_Inboxes extends core_Master
                 $query->where("#state != 'rejected'");
             }
             
+            self::$allBoxes[$accId] = array();
+            
             while ($rec = $query->fetch()) {
                 if(($accId == 0) || ($accId == $rec->accountId)) {
                     self::$allBoxes[$accId][$rec->email] = $rec->accountId;

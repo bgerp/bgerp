@@ -374,10 +374,15 @@ class backup_Start extends core_Manager
         $unArchived = fileman_Data::getUnArchived(100);
 
         foreach ($unArchived as $fileObj) {
-            if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
-                fileman_Data::setArchived($fileObj->id);
+            wp($fileObj->path);
+            if (file_exists($fileObj->path)) {
+                if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
+                    fileman_Data::setArchived($fileObj->id);
+                } else {
+                    self::logErr("backup не записва файл {$fileObj->path} в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
+                }
             } else {
-                self::logErr("backup не записва файл {$fileObj->path} в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
+                self::logWarning("backup: несъществуващ файл във файлмен-а: {$fileObj->path}");
             }
         }
     }

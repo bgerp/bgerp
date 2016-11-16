@@ -29,9 +29,9 @@ class unit_MinkPPrices extends core_Manager {
         $res .= "<br>".'MinkPPrices';
         $res .= "  1.".$this->act_EditPriceList();
         $res .= "  2.".$this->act_AddPriceList();
-        $res .= "  3.".$this->act_AddCustomerPriceList();
+        $res .= "  3.".$this->act_AddPriceListDoc();
         $res .= "  4.".$this->act_SetCustomerPriceList();
-        $res .= "  5.".$this->act_AddPriceListDoc();
+        $res .= "  5.".$this->act_AddCustomerPriceList();
         return $res;
     }
     
@@ -51,20 +51,6 @@ class unit_MinkPPrices extends core_Manager {
         return $browser;
     }
   
-    /**
-     * Избор на фирма
-     */
-    public function SetFirm()
-    {
-        $browser = $this->SetUp();
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->press('Папка');
-        return $browser;
-    }
-   
     /**
      * 1. Редакция на ценова политика
      */
@@ -91,6 +77,13 @@ class unit_MinkPPrices extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно заредена цена', 'warning');
         }
+        //Задаване на цена без ДДС на артикул от ДДС група 9%
+        $browser->press('Стойност');
+        $browser->setValue('productId', 'Артикул ДДС 9');
+        $browser->setValue('price', '10');
+        $browser->setValue('vat', 'no');
+        $browser->press('Запис');
+        
         //Задаване на цена - марж
         $browser->press('Продуктов марж');
         $browser->setValue('productId', 'Труд');
@@ -151,69 +144,9 @@ class unit_MinkPPrices extends core_Manager {
         }
        
     }
-    /**
-     * 3. Добавяне на ценова политика на клиент
-     */
-    //http://localhost/unit_MinkPPrices/AddCustomerPriceList/
-    function act_AddCustomerPriceList()
-    {
-        // Логване
-        $browser = $this->SetUp();
-    
-        // Отваряне на папка Ценова политика
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма с локация';
-        $browser->click($Company);
-        $browser->click('Търговия');
-        $browser->click('Избор на ценова политика');
-        $browser->press('Нови правила');
-        $browser->setValue('title', 'Ценова политика за Фирма с локация');
-        $browser->setValue('parent', 'Ценова политика 2017');
-        $browser->setValue('discountCompared', 'Каталог');
-        $browser->setValue('defaultSurcharge', '3');
-        $browser->press('Чернова');
-        $browser->click($Company);
-        //return $browser->getHtml();
-        $browser->press('Папка');
-        $browser->press('Нов');
-        //създаване на ценоразпис в папката на клиента
-        $browser->press('Ценоразпис');
-        $browser->setValue('title', 'Ценоразпис за Фирма с локация');
-        $browser->press('Чернова');
-        $browser->press('Активиране');
-        
-        if(strpos($browser->gettext(), 'plik7 бр. 0,67362')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
-        }
-    }
     
     /**
-     * 4. Избор на ценова политика за клиент
-     */
-    //http://localhost/unit_MinkPPrices/SetCustomerPriceList/
-    function act_SetCustomerPriceList()
-    {
-        // Логване
-        $browser = $this->SetUp();
-    
-        // Отваряне на папка Ценова политика
-        $browser->click('Визитник');
-        $browser->click('F');
-        $Company = 'Фирма bgErp';
-        $browser->click($Company);
-        $browser->click('Търговия');
-        $browser->click('Избор на ценова политика');
-        $fromdate=strtotime("+1 Day");
-        $browser->setValue('validFrom[d]', date('d-m-Y', $fromdate));
-        $browser->setValue('validFrom[t]', '08:00');
-        $browser->press('Запис');
-        
-    }
-    
-    /**
-     * 5. създаване на ценоразпис от менюто
+     * 3. Създаване на ценоразпис от менюто
      */
     //http://localhost/unit_MinkPPrices/AddPriceListDoc/
     function act_AddPriceListDoc()
@@ -230,10 +163,78 @@ class unit_MinkPPrices extends core_Manager {
         $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
         $browser->press('Чернова');
         $browser->press('Активиране');
-    
         if(strpos($browser->gettext(), 'work час 18,8352')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
+        if(strpos($browser->gettext(), 'dds9 бр. 11,881')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+        }
     }
+    
+    /**
+     * 4. Избор на ценова политика за клиент
+     */
+    //http://localhost/unit_MinkPPrices/SetCustomerPriceList/
+    function act_SetCustomerPriceList()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Отваряне на корицата на клиент
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = 'Фирма bgErp';
+        $browser->click($Company);
+        $browser->click('Търговия');
+        // Избор на ценова политика "Каталог" за клиента
+        $browser->click('Избор на ценова политика');
+        $fromdate=strtotime("+1 Day");
+        $browser->setValue('validFrom[d]', date('d-m-Y', $fromdate));
+        $browser->setValue('validFrom[t]', '08:00');
+        $browser->press('Запис');
+    
+    }
+    
+    /**
+     * 5. Добавяне на ценова политика на клиент
+     */
+    //http://localhost/unit_MinkPPrices/AddCustomerPriceList/
+    function act_AddCustomerPriceList()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Отваряне на корицата на клиент
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = 'Фирма с локация';
+        $browser->click($Company);
+        $browser->click('Търговия');
+        // Създаване на ценова политика за клиента
+        $browser->click('Избор на ценова политика');
+        $browser->press('Нови правила');
+        $browser->setValue('title', 'Ценова политика за Фирма с локация');
+        $browser->setValue('parent', 'Ценова политика 2017');
+        $browser->setValue('discountCompared', 'Каталог');
+        $browser->setValue('defaultSurcharge', '3');
+        $browser->press('Чернова');
+        
+        // Отваряне на папката на клиента
+        $browser->click($Company);
+        $browser->press('Папка');
+        $browser->press('Нов');
+        // Създаване на ценоразпис в папката на клиента
+        $browser->press('Ценоразпис');
+        $browser->setValue('title', 'Ценоразпис за Фирма с локация');
+        $browser->press('Чернова');
+        $browser->press('Активиране');
+        
+        if(strpos($browser->gettext(), 'plik7 бр. 0,67362')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+        }
+    }
+    
 }

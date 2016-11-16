@@ -167,6 +167,10 @@ class core_Html
             }
 
             unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
+            
+            if(!Mode::is('javascript', 'no')) {
+                $attr['style'] .= ';visibility: hidden;';
+            }
 
             $tpl->prepend(self::createSelect($name, $options, $value, $attr));
         }
