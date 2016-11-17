@@ -560,7 +560,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
                 	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'startTime');
                 	break;
             }
-            bp($time);
+
             $time = $Double->fromVerbal($time);
             $persons = keylist::toArray($rec->employees);
             
