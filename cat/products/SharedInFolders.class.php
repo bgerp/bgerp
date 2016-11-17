@@ -179,9 +179,7 @@ class cat_products_SharedInFolders extends core_Manager
     public function prepareShared($data)
     {
     	$masterRec = $data->masterData->rec;
-    	
-    	$folders = cat_Categories::getProtoFolders();
-    	$data->isProto = in_array($masterRec->folderId, $folders);
+    	$data->isProto = ($masterRec->state == 'template');
     	
     	if(($masterRec->isPublic == 'yes' && !$data->isProto) && !self::fetch("#productId = {$masterRec->id}")){
     		$data->hide = TRUE;
@@ -235,7 +233,7 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	if($data->masterData->rec->isPublic == 'yes'){
     		if($data->isProto === TRUE){
-    			$tpl->append("<div style='margin-bottom:5px'><b>" . tr('Създадените на база прототипа артикули, ще са споделени в папките на') . "</b></div>", 'content');
+    			$tpl->append("<div style='margin-bottom:5px'><b>" . tr('Създадените на база прототипа артикули, ще са споделени в следните папки') . ":</b></div>", 'content');
     		} else {
     			$tpl->append("<div><b>" . tr('Артикулът е стандартен и е достъпен във всички папки.') . "</b></div>", 'content');
     			$tpl->append("<div style='margin-bottom:5px'><i><small>" . tr('Като частен е бил споделен в папките на:') . "</small></i></div>", 'content');

@@ -807,7 +807,7 @@ class acc_Items extends core_Manager
         	while ($cRec = $query->fetch()){
             
             	// Ако е документ и е чернова, не може да стане перо
-            	if($isDoc && $cRec->state == 'draft') continue;
+            	if($isDoc && $cRec->state != 'active') continue;
             	$suggestions[$cRec->id] = $Class->getRecTitle($cRec);
         	}
         	core_Mode::pop('text');

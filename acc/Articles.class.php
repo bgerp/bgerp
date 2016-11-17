@@ -553,8 +553,8 @@ class acc_Articles extends core_Master
     	expect(is_array($debitArr));
     	expect(count($debitArr) == 5);
     	
-    	expect($debitAccRec = acc_Accounts::getRecBySystemId($debitArr[0]), "Няма сметка с това sysId '{$arr[0]}'");
-    	expect($creditAccRec = acc_Accounts::getRecBySystemId($creditArr[0]), "Няма сметка с това sysId '{$arr[0]}'");
+    	expect($debitAccRec = acc_Accounts::getRecBySystemId($debitArr[0]), "Няма сметка с това sysId '{$debitArr[0]}'");
+    	expect($creditAccRec = acc_Accounts::getRecBySystemId($creditArr[0]), "Няма сметка с това sysId '{$creditArr[0]}'");
     	
     	// Дали се изисква само количество
     	$quantityOnly = ($debitAccRec->type == 'passive' && $debitAccRec->strategy) ||

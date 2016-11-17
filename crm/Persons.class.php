@@ -2845,4 +2845,16 @@ class crm_Persons extends core_Master
     	
     	return $options;
     }
+    
+    
+    /**
+     * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
+     *
+     * @param mixed $id - ид или запис
+     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     */
+    public function getProductType($id)
+    {
+    	return 'private';
+    }
 }

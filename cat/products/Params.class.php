@@ -335,8 +335,6 @@ class cat_products_Params extends doc_Detail
         		} elseif($rec->classId == cat_Products::getClassId()){
         			$requiredRoles = 'cat,ceo';
         		}
-        		
-        		
         	}
         }
        
@@ -360,7 +358,7 @@ class cat_products_Params extends doc_Detail
         			}
         		}
         		
-        		if($pRec->state != 'active' && $pRec->state != 'draft'){
+        		if($pRec->state != 'active' && $pRec->state != 'draft' && $pRec->state != 'template'){
         			$requiredRoles = 'no_one';
         		}
         		 
