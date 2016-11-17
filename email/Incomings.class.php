@@ -1593,6 +1593,8 @@ class email_Incomings extends core_Master
      */
     static function isCommonToBox($rec)
     {
+        expect($rec->accId, $rec);
+
         $accRec = email_Accounts::fetch($rec->accId);
         
         $isCommon = ($accRec->email == $rec->toBox && $accRec->type != 'single');
@@ -1626,7 +1628,7 @@ class email_Incomings extends core_Master
      * @param mixed $saveFileds
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
-    {
+    {  
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
         if($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
@@ -1764,7 +1766,7 @@ class email_Incomings extends core_Master
         /* @var $query core_Query */
         if ($rec->fromEml) {
             $query = static::getQuery();
-            $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
+            $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected' AND #accId > 0");
             $query->orderBy('createdOn', 'DESC');
             $query->limit(3);     // 3 писма
             while ($mrec = $query->fetch()) {
