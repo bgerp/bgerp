@@ -179,7 +179,7 @@ class cat_products_SharedInFolders extends core_Manager
     public function prepareShared($data)
     {
     	$masterRec = $data->masterData->rec;
-    	$data->isProto = ($masterRec->state == 'template');
+    	$data->isProto = ($masterRec->state == 'template' || $masterRec->brState == 'template');
     	
     	if(($masterRec->isPublic == 'yes' && !$data->isProto) && !self::fetch("#productId = {$masterRec->id}")){
     		$data->hide = TRUE;

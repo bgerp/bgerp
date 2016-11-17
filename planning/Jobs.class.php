@@ -756,7 +756,7 @@ class planning_Jobs extends core_Master
     		$data->notManifacturable = TRUE;
     	}
     	
-    	if(!haveRole('ceo,planning,job') || ($data->notManifacturable === TRUE && !count($data->rows)) || $data->masterData->rec->state == 'template'){
+    	if(!haveRole('ceo,planning,job') || ($data->notManifacturable === TRUE && !count($data->rows)) || $data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template'){
     		$data->hide = TRUE;
     		return;
     	}
