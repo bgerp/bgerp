@@ -824,7 +824,7 @@ class cat_Products extends embed_Manager {
         		$data->query->where("#state = 'template'");
         		break;
         	default :
-        		$data->query->where("#isPublic = 'yes'");
+        		$data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");
         		$data->query->orderBy("#state,#{$order}");
         		break;
         }
