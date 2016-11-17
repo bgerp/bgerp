@@ -353,6 +353,7 @@ class cat_Products extends embed_Manager {
     	// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
     	if(isset($rec->folderId)){
     		$cover = doc_Folders::getCover($rec->folderId);
+    		$isTemplate = ($cover->getProductType() == 'template');
     		
     		$defMetas = array();
     		if(isset($rec->proto)){
@@ -374,8 +375,11 @@ class cat_Products extends embed_Manager {
     		// Ако корицата не е на контрагент
     		if(!$cover->haveInterface('crm_ContragentAccRegIntf')){
     			
-    			// Правим кода на артикула задължителен
-    			$form->setField('code', 'mandatory');
+    			// Правим кода на артикула задължителен, ако не е шаблон
+    			if($isTemplate === FALSE){
+    				$form->setField('code', 'mandatory');
+    			}
+    			
     			if($cover->isInstanceOf('cat_Categories')){
     				
     				// Ако корицата е категория слагаме дефолтен код и мерки
@@ -505,10 +509,14 @@ class cat_Products extends embed_Manager {
     		// Ако артикулът е в папка на контрагент, и има вече артикул,
     		// със същото име сетваме предупреждение
     		if(isset($rec->folderId)){
-    			$coverClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    			if(cls::haveInterface('crm_ContragentAccRegIntf', $coverClassId)){
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
     				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
     					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
+    				}
+    			} elseif($Cover->getProductType() == 'template' && empty($rec->code)){
+    				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
+    					$form->setError('name', 'Има вече шаблон с това име');
     				}
     			}
     		}
