@@ -545,22 +545,22 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
             
             switch($rec->type){
                 case 'input':
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'startTime');
                     break;
                 case 'waste':
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');;
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'startTime');
                 	break;
                 case 'product':
-                	$time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
-                	break;
-                case 'start':
                 	$time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
                 	break;
+                case 'start':
+                	$time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
+                	break;
                 default:
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'startTime');
                 	break;
             }
-            
+            bp($time);
             $time = $Double->fromVerbal($time);
             $persons = keylist::toArray($rec->employees);
             
