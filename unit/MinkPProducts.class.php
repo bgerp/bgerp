@@ -2,7 +2,7 @@
 
 
 /**
- *  Клас  'unit_MinkPProducts' - PHP тестове - стандартни
+ *  Клас  'unit_MinkPProducts' - PHP тестове за артикули
  *
  * @category  bgerp
  * @package   tests
