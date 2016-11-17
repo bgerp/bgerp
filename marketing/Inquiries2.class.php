@@ -228,7 +228,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
     		$uomId = $form->rec->measureId;
-    		if($uomId != cat_UoM::fetchBySysId('pcs')->id){
+    		if(isset($uomId) && $uomId != cat_UoM::fetchBySysId('pcs')->id){
     			$uom = cat_UoM::getShortName($uomId);
     		} else {
     			$uom = '';
@@ -909,9 +909,6 @@ class marketing_Inquiries2 extends embed_Manager
     	// Ако няма потребител, но има бисквитка зареждаме данни от нея
     	if(!$cu){
     		$this->setFormDefaultFromCookie($form);
-    		//$form->setField('name', 'mandatory');
-    		//$form->setField('country', 'mandatory');
-    		//$form->setField('email', 'mandatory');
     	}
     	 
     	return $form;

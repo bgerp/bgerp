@@ -1614,7 +1614,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
-            	if(!($oRec->state == 'active' && $mvc->canEditActivated === TRUE)){
+            	if(!(($oRec->state == 'active'  || $oRec->state == 'template') && $mvc->canEditActivated === TRUE)){
             		$requiredRoles = 'no_one';
             	} else {
             		// Ако потребителя няма достъп до сингъла, той не може и да редактира записа

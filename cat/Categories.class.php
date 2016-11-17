@@ -166,8 +166,16 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+    	
     	$suggestions = cat_UoM::getUomOptions();
-    	$data->form->setSuggestions('measures', $suggestions);
+    	$form->setSuggestions('measures', $suggestions);
+    	
+    	if(isset($form->rec->folderId)){
+    		if(cat_Products::fetchField("#folderId = {$form->rec->folderId}")){
+    			$form->setReadOnly('useAsProto');
+    		}
+    	}
     }
     
     
