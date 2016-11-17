@@ -513,9 +513,51 @@ class cal_Reminders extends core_Master
     {
         // Чернова документи не могат да се променят
         if ($res !== FALSE && $rec->state != 'draft') {
-            
             $res = TRUE;
         } 
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	if ($data->recs) {
+        	foreach((array)$data->recs as $id => $rec){
+    		    $row = $mvc->recToVerbal($rec);
+    		    
+    		    if ($rec->repetitionEach != NULL) {
+    		        if($rec->repetitionEach == "1"){
+    		            switch ($rec->repetitionType){
+    		                case 'days':
+    		                    $row->repetitionType = 'ден';
+    		                break;
+    		                
+    		                case 'weeks':
+    		                    $row->repetitionType = 'седмица';
+    		                break;
+    		                
+    		                case 'months':
+    		                    $row->repetitionType = 'месец';
+    		                break;
+    		                
+    		                case 'weekDay':
+    		                    $row->repetitionType = 'месец';
+    		                break;
+    		                
+    		                case 'monthDay':
+    		                    $row->repetitionType = 'месец';
+    		                break;
+    		            }
+    		        }
+    		        
+    				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
+    		    } else {
+    		    	$data->rows[$id]->repetition = " ";
+    		    }
+    		}
+    	}
     }
     
     
@@ -836,15 +878,18 @@ class cal_Reminders extends core_Master
             switch ($rec->repetitionType) {
                 // дни
                 case 'days' :
-                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach),$rec->timeStart));
+                    if($rec->id == '277') {
+                        bp($rec);
+                    }
+                    $nextStartTime = dt::addDays(($rec->repetitionEach),$rec->timeStart);
                 break;
                 // седмици
                 case 'weeks' :
-                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach * 7),$rec->timeStart));
+                    $nextStartTime = dt::addDays(($rec->repetitionEach * 7),$rec->timeStart);
                 break;
                 // месеци
                 case 'months' :
-                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                    $nextStartTime =  dt::addMonths(($rec->repetitionEach),$rec->timeStart);
                 break;
                 // месеци, като се спазва деня от седмицата
                 case 'weekDay' :
@@ -868,29 +913,24 @@ class cal_Reminders extends core_Master
                     }
        
                     $wDay = $monthsWeek. "-" . $dayOfWeekName;
-                    $nextDate =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
-                  
+                    $nextDate =  dt::addMonths(($rec->repetitionEach),$rec->timeStart);
+                 
                     $nextStartTime = dt::timestamp2Mysql(dt::firstDayOfMonthTms(date("m",dt::mysql2timestamp($nextDate)), date("Y",dt::mysql2timestamp($nextDate)), $wDay));
                 
                 break;
                 // точния ден от месеца
                 case 'monthDay' : 
-                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
                 break;
     
             }
         }
 
         // Ако имаме отбелязано време предварително
-        if($rec->timePreviously !== NULL){ 
-            $nextStartTimeTs = $startTs - $rec->timePreviously ;
+        if($rec->timePreviously != NULL){ 
+            $nextStartTimeTs = $startTs - $rec->timePreviously;
         	$nextStartTime = dt::timestamp2Mysql($nextStartTimeTs);
         }
-        
-        // Ако изчисленото ново време, не е по-долямо от сега или от началната дата,
-        // то продължаваме да го търсим
-        if(dt::mysql2timestamp($nextStartTime) < dt::mysql2timestamp(dt::now())) return;
-       
+
         return $nextStartTime;
     }
 
