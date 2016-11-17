@@ -207,8 +207,10 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	unset($data->rows[0]->tools);
     	
-    	if($this->haveRightFor('add', (object)array('productId' => $masterRec->id))){
-    		$data->addUrl = array($this, 'add', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    	if(!Mode::isReadOnly()){
+    		if($this->haveRightFor('add', (object)array('productId' => $masterRec->id))){
+    			$data->addUrl = array($this, 'add', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    		}
     	}
     }
     
