@@ -1390,7 +1390,10 @@ class email_Incomings extends core_Master
     public function route_(&$rec)
     {
         // Репортване, ако имаме данни за нишката
-        if ($rec->threadId) wp($rec);
+        if ($rec->threadId || $rec->folderId) {
+            wp($rec);
+            return;
+        }
         
         // Винаги рутираме по номер на тред
         if (email_Router::doRuleThread($rec)) {
