@@ -1493,7 +1493,7 @@ class email_Incomings extends core_Master
         // Добавяме начина на рутиране
         $rec->routeBy = 'toBox';
         
-        expect($rec->folderId);
+        expect($rec->folderId, $rec);
     }
     
     
