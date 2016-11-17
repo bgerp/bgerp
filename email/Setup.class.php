@@ -8,6 +8,24 @@ defIfNot('EMAIL_MAX_FETCHING_TIME', 30);
 
 
 /**
+ * Минимална дължина над която ще се проверява за баркод при сваляне на файл
+ */
+defIfNot('EMAIL_MIN_FILELEN_FOR_BARCOCE', 15000);
+
+
+/**
+ * Максимална дължина пок която ще се проверява за баркод при сваляне на файл
+ */
+defIfNot('EMAIL_MAX_FILELEN_FOR_BARCOCE', 250000);
+
+
+/**
+ * Разширения, в които ще се търси баркод при сваляне на имейл
+ */
+defIfNot('EMAIL_ALLOWED_EXT_FOR_BARCOCE', "pdf,tif,tiff,jpg,jpeg");
+
+
+/**
  * Период за сваляне на имейли
  */
 defIfNot('EMAIL_DOWNLOAD_PERIOD', 120);

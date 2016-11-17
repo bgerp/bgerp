@@ -405,7 +405,7 @@ class cat_Boms extends core_Master
     			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
     			
     			// Трябва да е активиран
-    			if($productRec->state != 'active'){
+    			if($productRec->state != 'active' && $productRec->state != 'template'){
     				$res = 'no_one';
     			}
     			

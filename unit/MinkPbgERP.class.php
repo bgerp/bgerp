@@ -55,6 +55,9 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkPColab');
         $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPPrices');
+        $res .= $inst->act_Run();
+        
         return $res;
     }
     
@@ -622,7 +625,7 @@ class unit_MinkPbgERP extends core_Manager {
         // Създаване на лице
         $browser->click('Визитник');
         $browser->click('Лица');
-        $person = "Стела Донева 4";
+        $person = "Стела Донева";
         if(strpos($browser->gettext(), $person)) {
             //има такова лице - редакция
             $browser->click($person);

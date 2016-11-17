@@ -169,7 +169,7 @@ class eshop_Products extends core_Master
     	
     	$isMandatoryMeasure = FALSE;
     	if($form->rec->coDriver){
-    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
+    		$protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
     	
     		if(count($protoProducts)){
     			$form->setField('proto', 'input');

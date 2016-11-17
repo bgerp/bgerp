@@ -118,6 +118,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::addClassIdToParams',
     		'migrate::updateBomType',
     		'migrate::updateParamStates',
+    		'migrate::migratePrototypes',
         );
 
 
@@ -465,6 +466,43 @@ class cat_Setup extends core_ProtoSetup
     	while($rec = $query->fetch()){
     		$rec->state = 'active';
     		$Params->save_($rec, 'state');
+    	}
+    }
+    
+    
+    /**
+     * Миграция на шаблонните артикули
+     */
+    public function migratePrototypes()
+    {
+    	try{
+    		cls::get('cat_Products')->setupMvc();
+    		$folders = array();
+    		 
+    		// В кои категории може да има прототипни артикули
+    		$query = cat_Categories::getQuery();
+    		$query->where("#useAsProto = 'yes'");
+    		$query->show('folderId');
+    		while($cRec = $query->fetch()) {
+    			$folders[$cRec->folderId] = $cRec->folderId;
+    		}
+    		 
+    		if(count($folders)){
+    			core_App::setTimeLimit(300);
+    			
+    			foreach ($folders as $folderId){
+    				$cQuery = cat_Products::getQuery();
+    				$cQuery->where("#state = 'active'");
+    				$cQuery->where("#folderId = {$folderId}");
+    			
+    				while($rec = $cQuery->fetch()){
+    					$title = cat_Products::getTitleById($rec->id);
+    					doc_Prototypes::add($title, 'cat_Products', $rec->id, $rec->innerClass);
+    				}
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
     	}
     }
 }

@@ -26,6 +26,6 @@ class doc_PrototypeSourceIntf
 	 */
 	function canBeTemplate($id)
 	{
-		return $this->canBeTemplate($id);
+		return $this->class->canBeTemplate($id);
 	}
 }

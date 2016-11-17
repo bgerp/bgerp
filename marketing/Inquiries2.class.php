@@ -279,7 +279,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$form = &$data->form;
 
     	if($form->rec->innerClass){
-    		$protoProducts = cat_Categories::getProtoOptions($form->rec->innerClass);
+    		$protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->innerClass);
             if(count($protoProducts)){
             	$form->setField('proto', 'input');
             	$form->setOptions('proto', $protoProducts);
