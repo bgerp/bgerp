@@ -1863,15 +1863,14 @@ class cat_Products extends embed_Manager {
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-    	if($data->rec->state != 'rejected'){
-    		$tId = $mvc->fetchField($data->rec->id, 'threadId');
-    	
-    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $tId))){
-    			if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на оферта');
-    			} else {
-    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
-    			}
+    	// Ако има чернова оферта към нея, бутон за редакция
+    	if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    		if($mvc->haveRightFor('edit', $qRec)){
+    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на оферта');
+    		}
+    	} elseif($data->rec->state != 'rejected'){
+    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $data->rec->threadId))){
+    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
     		}
     	}
     }
