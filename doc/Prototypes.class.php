@@ -239,7 +239,7 @@ class doc_Prototypes extends core_Manager
     	
     	// Намират се всички активни шаблони за този клас/драйвер
     	$query = self::getQuery();
-    	$condition = "#classId = {$Class->getClassId()} AND #state != 'rejected'";
+    	$condition = "#classId = {$Class->getClassId()} AND #state = 'active'";
     	if(isset($driver)){
     		$Driver = cls::get($driver);
     		$condition .= " AND #driverClassId = '{$Driver->getClassId()}'";
