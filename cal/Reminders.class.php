@@ -788,7 +788,7 @@ class cal_Reminders extends core_Master
     	 $now = dt::verbal2mysql();
     	 $query = self::getQuery();
     	 $query->where("#state = 'active' AND #nextStartTime <= '{$now}' AND (#notifySent = 'no' OR #notifySent = NULL)");
-    	     	 
+
     	 while($rec = $query->fetch()){
              
     	 	 $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
@@ -801,9 +801,9 @@ class cal_Reminders extends core_Master
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
     	 	 }
-    	 	 
-    	 	 $rec->nextStartTime = $this->calcNextStartTime($rec);
-    	 	 
+
+    	 	 $rec->nextStartTime = $this->getNextStartingTime2($rec);
+
     	 	 self::save($rec);
     	 }
     }
@@ -853,14 +853,41 @@ class cal_Reminders extends core_Master
     /**
      * За тестове
      */
-    static public function act_Test()
+    public function act_Test()
     {
     	$rec = new stdClass();
-    	$rec->timeStart = '2013-03-30 18:10';
+    	$rec->timeStart = '2016-10-18 15:10';
     	$rec->repetitionEach = 1;
-    	$rec->repetitionType = 'months';
+    	$rec->repetitionType = 'days';
     	$rec->repetitionAbidance = 'weekDay';
-   	
+    	
+     
+    	$res = self::getNextStartingTime2($rec);    	    	
+     	
+    	bp($res);
+    	
+    	//bp($rec);
+    }
+    
+    
+    static function getNextStartingTime2($rec)
+    {
+        if(empty($rec->repetitionEach)) {
+            return;
+        }
+        
+        $rec2 = clone($rec);
+        
+        if($rec2->nextStartTime) {
+            $rec2->timeStart = $rec2->nextStartTime;
+        }
+        
+        
+        do {
+            $rec2->timeStart = self::calcNextStartTime($rec2);
+        } while($rec2->timeStart <= dt::now());
+
+        return $rec2->timeStart;
     }
     
     
@@ -878,9 +905,6 @@ class cal_Reminders extends core_Master
             switch ($rec->repetitionType) {
                 // дни
                 case 'days' :
-                    if($rec->id == '277') {
-                        bp($rec);
-                    }
                     $nextStartTime = dt::addDays(($rec->repetitionEach),$rec->timeStart);
                 break;
                 // седмици
@@ -916,10 +940,11 @@ class cal_Reminders extends core_Master
                     $nextDate =  dt::addMonths(($rec->repetitionEach),$rec->timeStart);
                  
                     $nextStartTime = dt::timestamp2Mysql(dt::firstDayOfMonthTms(date("m",dt::mysql2timestamp($nextDate)), date("Y",dt::mysql2timestamp($nextDate)), $wDay));
-                
                 break;
+                
                 // точния ден от месеца
                 case 'monthDay' : 
+                    $nextStartTime = dt::addMonths(($rec->repetitionEach),$rec->timeStart);
                 break;
     
             }
@@ -927,7 +952,7 @@ class cal_Reminders extends core_Master
 
         // Ако имаме отбелязано време предварително
         if($rec->timePreviously != NULL){ 
-            $nextStartTimeTs = $startTs - $rec->timePreviously;
+            $nextStartTimeTs = dt::mysql2timestamp($nextStartTime) - $rec->timePreviously;
         	$nextStartTime = dt::timestamp2Mysql($nextStartTimeTs);
         }
 
