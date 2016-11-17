@@ -90,7 +90,7 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
-    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)','caption=Състояние,column=none,input=none,notNull,value=active');
+    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
     	$this->setDbUnique('classId,title');
     	$this->setDbUnique('originId');
@@ -136,13 +136,14 @@ class doc_Prototypes extends core_Manager
     	if(($action == 'add' || $action == 'edit') && isset($rec->originId)){
     		if($requiredRoles != 'no_one'){
     			$doc = doc_Containers::getDocument($rec->originId);
+    			$state = $doc->fetchField('state');
     			
     			// Трябва потребителя да има достъп до документа
     			if(!$doc->haveRightFor('single')){
     				$requiredRoles = 'no_one';
     				
     				// И документа да не е оттеглен
-    			} elseif($doc->fetchField('state') == 'rejected'){
+    			} elseif($state == 'rejected' || $state == 'closed'){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -218,7 +219,8 @@ class doc_Prototypes extends core_Manager
     	$origin = doc_Containers::getDocument($containerId);
     	
     	// Ако оригиналния документ се оттегли, оттегля се и шаблона
-    	$newState = ($origin->fetchField('state') == 'rejected') ? 'rejected' : 'active';
+    	$state = $origin->fetchField('state');
+    	$newState = ($state == 'rejected') ? 'rejected' : (($state == 'closed') ? 'closed' : 'active');
     	self::save((object)array('id' => $rec->id, 'state' => $newState), 'state');
     }
     
@@ -237,7 +239,7 @@ class doc_Prototypes extends core_Manager
     	
     	// Намират се всички активни шаблони за този клас/драйвер
     	$query = self::getQuery();
-    	$condition = "#classId = {$Class->getClassId()} AND #state != 'rejected'";
+    	$condition = "#classId = {$Class->getClassId()} AND #state = 'active'";
     	if(isset($driver)){
     		$Driver = cls::get($driver);
     		$condition .= " AND #driverClassId = '{$Driver->getClassId()}'";

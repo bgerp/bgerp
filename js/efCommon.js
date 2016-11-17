@@ -1966,7 +1966,7 @@ function refreshForm(form, removeFields) {
 
 	var serialized = $.param(filteredParams);
 
-	// form.submit();
+	//form.submit();
 
 	$.ajax({
 		type: frm.attr('method'),
@@ -1993,10 +1993,10 @@ function replaceFormData(frm, data)
         refreshForm.loadedFiles = [];
     }
     var params = frm.serializeArray();
-    
+
 	// Затваря всики select2 елементи
 	if ($.fn.select2) {
-		var selFind = frm.find('select');
+		var selFind = frm.find('.select2-src');
 		if (selFind) {
 			$.each(selFind, function(a, elem){
 				try {
@@ -2004,7 +2004,7 @@ function replaceFormData(frm, data)
 						$(elem).select2().select2("close");
 					}
 				} catch(e) {
-					
+
 				}
 			});
 		}

@@ -123,6 +123,9 @@ class doc_plg_Close extends core_Plugin
     	$rec->state = $state;
     	
     	$mvc->save($rec);
+    	if(cls::haveInterface('doc_DocumentIntf', $mvc)){
+    		doc_Prototypes::sync($rec->containerId);
+    	}
     	$mvc->logWrite($action, $rec->id);
     	
     	$retUrl = getRetUrl();
