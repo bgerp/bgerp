@@ -1391,7 +1391,7 @@ class email_Incomings extends core_Master
     {
         // Репортване, ако имаме данни за нишката
         if ($rec->threadId || $rec->folderId) {
-            wp($rec);
+            if(!Mode::is('isMigrate')) wp($rec);
             return;
         }
         

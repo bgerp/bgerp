@@ -2491,6 +2491,11 @@ class doc_Threads extends core_Manager
      */
     private static function invalidateDocumentCache($id)
     {
+        if (Mode::is('isMigrate')) {
+            
+            return;
+        }
+
     	// Изтриваме от кеша видовете документи в папката и в коша и
     	$folderId = self::fetchField($id, 'folderId');
     	core_Cache::remove("doc_Folders", "folder{$folderId}");

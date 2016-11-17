@@ -757,7 +757,7 @@ class doc_Containers extends core_Manager
             
             
             // Нотификации на абонираните и споделените потребители
-            if($flagJustActived) {
+            if($flagJustActived && !Mode::is('isMigrate')) {
                 
                 // Масис със споделените потребители
                 $sharedArr = keylist::toArray($shared);
