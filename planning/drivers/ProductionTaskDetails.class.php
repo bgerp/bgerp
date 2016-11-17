@@ -545,19 +545,21 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
             
             switch($rec->type){
                 case 'input':
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'startTime');
+                    bp($time,planning_Tasks::getTaskInfo($rec->taskId),planning_drivers_ProductionTaskProducts::fetch($rec->taskProductId));
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                	
                     break;
                 case 'waste':
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'startTime');
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
                 	break;
                 case 'product':
-                	$time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
-                	break;
-                case 'start':
                 	$time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
                 	break;
+                case 'start':
+                	$time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
+                	break;
                 default:
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'startTime');
+                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
                 	break;
             }
 
