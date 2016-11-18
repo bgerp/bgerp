@@ -515,8 +515,8 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Изтрива от кеша html представянето на документа
-        $key = 'Doc' . $rec->id . '%';
-        core_Cache::remove($mvc->className, $key);
+        // $key = 'Doc' . $rec->id . '%';
+        // core_Cache::remove($mvc->className, $key);
         
         // Намира контейнера на документа
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetch($rec->id)->containerId;
@@ -527,7 +527,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($rec->threadId && $rec->state != 'rejected') {
             doc_Threads::restoreThread($rec->threadId);
         }
-        
+       
         // Ако е намерен контейнера - обновява го
         if($containerId) {
             
@@ -1614,7 +1614,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
-            	if(!($oRec->state == 'active' && $mvc->canEditActivated === TRUE)){
+            	if(!(($oRec->state == 'active'  || $oRec->state == 'template') && $mvc->canEditActivated === TRUE)){
             		$requiredRoles = 'no_one';
             	} else {
             		// Ако потребителя няма достъп до сингъла, той не може и да редактира записа

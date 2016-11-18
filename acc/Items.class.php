@@ -1078,6 +1078,7 @@ class acc_Items extends core_Manager
     	$listId = acc_Lists::fetchField("#systemId = '{$listSystemId}'", 'id');
     	$query->like('lists', "|{$listId}|");
     	$query->show('id');
+    	$query->limit(1);
     	
     	$res = ($query->fetch()) ? TRUE : FALSE;
     	

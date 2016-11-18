@@ -46,7 +46,7 @@ class cat_PriceDetails extends core_Manager
      */
 	public function preparePrices($data)
     {
-    	if(!haveRole($this->canSeeprices)){
+    	if(!haveRole($this->canSeeprices) || $data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template'){
     		$data->hide = TRUE;
     		return;
     	}
