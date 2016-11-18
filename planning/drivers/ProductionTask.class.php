@@ -371,7 +371,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		// Изчисляваме колко % от зададеното количество е направено
 		$rec->progress = 0;
 		if (!empty($rec->plannedQuantity)) {
-		    $rec->progress = round($rec->totalQuantity / $rec->plannedQuantity, 2);
+		    $percent = ($rec->totalQuantity - $rec->scrappedQuantity) / $rec->plannedQuantity;
+			$rec->progress = round($percent, 2);
 		}
 		
 		if($rec->progress < 0){
