@@ -953,6 +953,8 @@ class cal_Reminders extends core_Master
                 break;
     
             }
+        } else {
+            $nextStartTime = $rec->timeStart;
         }
 
         // Ако имаме отбелязано време предварително
