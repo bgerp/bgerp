@@ -445,21 +445,10 @@ class doc_Threads extends core_Manager
                 $cCnt = $cQuery->count();
                 if ($cCnt != $rec->allDocCnt) {
                     self::logNotice("Променен брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
-                    // self::updateThread($rec->id);
                     $resArr['allDocCnt']++;
                 }
                 
-                // Ако се различава броя на документите, видими за партньори
-                $pCQuery->where("#visibleForPartners = 'yes'");
-                $pCCnt = $pCQuery->count();
-                if ($pCCnt != $rec->partnerDocCnt) {
-                    self::logNotice("Променен брой на документите видими за партньори от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
-                    self::updateThread($rec->id);
-                    $resArr['partnerDocCnt']++;
-                }
-                
                 // Поправяме състоянието, ако се е счупило
-                
                 if (!$rec->firstContainerId) continue;
                 
                 try {
@@ -467,6 +456,19 @@ class doc_Threads extends core_Manager
                 } catch (ErrorException $e) {
                     continue;
                 }
+                
+                // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
+                if($cRec->visibleForPartners = 'yes') {
+                    // Ако се различава броя на документите, видими за партньори
+                    $pCQuery->where("#visibleForPartners = 'yes'");
+                    $pCCnt = $pCQuery->count();
+                    if ($pCCnt != $rec->partnerDocCnt) {
+                        self::logNotice("Променен брой на документите видими за партньори от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
+                        self::updateThread($rec->id);
+                        $resArr['partnerDocCnt']++;
+                    }
+                }
+                
                 
                 if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
                 
