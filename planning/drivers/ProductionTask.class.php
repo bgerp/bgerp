@@ -54,7 +54,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Доп. мярка');
 		
 		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
-		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
+		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
 		$fieldset->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
@@ -290,13 +290,14 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$form->setDefault('packagingId', $measureId);
 			
 			$productInfo = cat_Products::getProductInfo($rec->productId);
+			$measureShort = cat_UoM::getShortName($rec->packagingId);
 			if(!isset($productInfo->meta['canStore'])){
-				$measureShort = cat_UoM::getShortName($rec->packagingId);
 				$form->setField('plannedQuantity', "unit={$measureShort}");
 			} else {
 				$form->setField('packagingId', 'input');
 			}
 			
+			$form->setField('startTime', "unit=|за|* 1 {$measureShort}");
 			$jobRec = $origin->fetch();
 			if($rec->productId == $jobRec->productId){
 				$toProduce = $jobRec->quantity - $jobRec->quantityProduced;
