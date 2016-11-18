@@ -171,7 +171,7 @@ class cal_Reminders extends core_Master
     /**
      * 
      */
-    static $suggestions = array("", 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
+    static $suggestions = array("",1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
     
     
     /**
@@ -252,7 +252,10 @@ class cal_Reminders extends core_Master
 		    $mvc->getFieldType(action)->options['notifyNoAns'] = tr("Нотификация-ако няма отговор");
 		}
 
-		$data->form->setSuggestions('repetitionEach', static::$suggestions);
+		$arr = array(""=>"") + static::$suggestions;
+		unset($arr[0]);
+
+		$data->form->setSuggestions('repetitionEach',$arr);
 
         if ($data->form->rec->threadId) {
             //Добавяме в полето Заглавие отговор на съобщението
@@ -437,7 +440,8 @@ class cal_Reminders extends core_Master
     
     
     static function on_AfterInputChanges($mvc, &$oldRec, $newRec) 
-    {
+    {    	
+
     	// Ако не е обект, а е подаден id
         if (!is_object($newRec)) {
             
@@ -500,7 +504,7 @@ class cal_Reminders extends core_Master
     		}
     	}
     }
-    
+
     
 	/**
      * Проверява дали може да се променя записа в зависимост от състоянието на документа
@@ -515,6 +519,7 @@ class cal_Reminders extends core_Master
         if ($res !== FALSE && $rec->state != 'draft') {
             $res = TRUE;
         } 
+
     }
     
     
