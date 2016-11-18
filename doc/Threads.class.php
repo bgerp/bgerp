@@ -445,7 +445,7 @@ class doc_Threads extends core_Manager
                 $cCnt = $cQuery->count();
                 if ($cCnt != $rec->allDocCnt) {
                     self::logNotice("Променен брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
-                    self::updateThread($rec->id);
+                    // self::updateThread($rec->id);
                     $resArr['allDocCnt']++;
                 }
                 
