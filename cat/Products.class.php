@@ -560,8 +560,13 @@ class cat_Products extends embed_Manager {
      */
 	private function routePublicProduct($categorySysId, &$rec)
 	{
-		$categorySysId = ($categorySysId) ? $categorySysId : 'goods';
-		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : NULL;
+		if(!isset($categoryId)){
+			$categoryId = cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+			if(!$categoryId){
+				$categoryId = cat_Categories::fetchField("#sysId = 'goods'", 'id');
+			}
+		}
 		
 		// Ако няма такъв артикул създаваме документа
 		if(!$exRec = $this->fetch("#code = '{$rec->code}'")){
