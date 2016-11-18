@@ -232,7 +232,10 @@ class eshop_Products extends core_Master
             			$defUom = NULL;
             		}
             		
-            		setIfNot($uomId, $mvc->getUomFromDriver($rec), $rec->measureId, $defUom, cat_UoM::fetchBySysId('pcs')->id);
+            		setIfNot($uomId, $mvc->getUomFromDriver($rec), $rec->measureId, $defUom);
+            		if(empty($rec->proto) && !isset($uomId)){
+            			$uomId = cat_UoM::fetchBySysId('pcs')->id;
+            		}
             		$url['measureId'] = $uomId;
             		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             	}
@@ -243,7 +246,7 @@ class eshop_Products extends core_Master
             $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
         }
         
-        if(!cls::load($rec->coDriver, TRUE)){
+        if(isset($rec->coDriver) && !cls::load($rec->coDriver, TRUE)){
         	$row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . "</span>";
         }
     }

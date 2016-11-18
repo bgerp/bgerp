@@ -565,7 +565,7 @@ class email_Inboxes extends core_Master
         $email = strtolower(trim($email));
 
         $rec = static::fetch("#email = '{$email}'");
-        
+      
         if (!$rec) {
             // Ако това е корпоративен имейл - създава кутията и папката към нея
             
@@ -576,11 +576,12 @@ class email_Inboxes extends core_Master
             if(!$corpAccRec) return FALSE;
             
             list($user, $domain) = explode('@', $email);
-            
+    
             if($domain == $corpAccRec->domain) {
-                $powerUsers = email_Inboxes::getPowerUsers();
+                $powerUsers = email_Inboxes::getPowerUsers(); 
+            
                 if($userRec = $powerUsers[$user]) {
-
+ 
                     $rec = new stdClass();
                     $rec->email = $email;
                     $rec->accountId = $corpAccRec;
@@ -1032,8 +1033,8 @@ class email_Inboxes extends core_Master
             $userQuery = core_Users::getQuery();
             $powerRoles = core_Roles::getRolesAsKeylist('executive,officer,manager,ceo');
             $userQuery->likeKeylist('roles', $roles);
-            while($uRec = $userQuery->fetch()) {
-                $powerUsers[$uRec->nick] = $uRec;
+            while($uRec = $userQuery->fetch("#state != 'rejected'")) {
+                $powerUsers[strtolower($uRec->nick)] = $uRec;
             }
         }
 

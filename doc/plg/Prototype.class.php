@@ -173,7 +173,7 @@ class doc_plg_Prototype extends core_Plugin
         // Бутон за редакция на шаблона, ако има такъв
         if($pRec = doc_Prototypes::fetch("#originId = {$rec->containerId}")){
         	if(doc_Prototypes::haveRightFor('edit', $pRec)){
-        		$data->toolbar->addBtn('Шаблон', array('doc_Prototypes', 'edit', $pRec->id, 'ret_url' => TRUE), 'ef_icon=img/16/edit-icon.png, title=Редактиране на шаблона');
+        		$data->toolbar->addBtn('Шаблон', array('doc_Prototypes', 'edit', $pRec->id, 'ret_url' => TRUE), 'ef_icon=img/16/edit.png, title=Редактиране на шаблона');
         	}
         }
 	}
