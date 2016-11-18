@@ -458,7 +458,7 @@ class doc_Threads extends core_Manager
                 }
                 
                 // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
-                if($cRec->visibleForPartners = 'yes') {
+                if($cRec->visibleForPartners == 'yes') {
                     // Ако се различава броя на документите, видими за партньори
                     $pCQuery->where("#visibleForPartners = 'yes'");
                     $pCCnt = $pCQuery->count();
