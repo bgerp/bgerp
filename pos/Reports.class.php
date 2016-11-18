@@ -458,7 +458,7 @@ class pos_Reports extends core_Master {
     	$details = $receipts = array();
     	$query = pos_Receipts::getQuery();
     	$query->where("#pointId = {$pointId}");
-    	$query->where("#state = 'pending'");
+    	$query->where("#state = 'waiting'");
     	
     	// извличаме нужната информация за продажбите и плащанията
     	$this->fetchReceiptData($query, $details, $receipts);
@@ -565,7 +565,7 @@ class pos_Reports extends core_Master {
     			$nextState = 'closed';
     			$msg = 'Приключени';
     		} else {
-    			$nextState = 'pending';
+    			$nextState = 'waiting';
     			$msg = 'Активирани';
     		}
     	
@@ -692,7 +692,7 @@ class pos_Reports extends core_Master {
     {
     	
     	// Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'pending'")){
+    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'waiting'")){
     		
     		return FALSE;
     	}

@@ -61,6 +61,7 @@ class cond_Setup  extends core_ProtoSetup
         	'cond_ConditionsToCustomers',
     		'cond_Payments',
     		'cond_Countries',
+            'cond_TaxAndFees',
     		'migrate::oldPosPayments',
     		'migrate::removePayment',
     		'migrate::deleteOldPaymentTime1',

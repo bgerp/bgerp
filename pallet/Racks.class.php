@@ -440,7 +440,7 @@ class pallet_Racks extends core_Master
                         $stateMovements = $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['stateMovements'];
                         
                         if (!empty($stateMovements)) {
-                            if ($stateMovements == 'pending') {
+                            if ($stateMovements == 'waiting') {
                                 $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
                             }
                             
@@ -499,7 +499,7 @@ class pallet_Racks extends core_Master
                         $stateMovements = $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['stateMovements'];
                         
                         if (!empty($stateMovements)) {
-                            if ($stateMovements == 'pending') {
+                            if ($stateMovements == 'waiting') {
                                 if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['productId']) {
                                     $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
                                 } else {

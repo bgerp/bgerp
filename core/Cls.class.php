@@ -432,22 +432,26 @@ class core_Cls
         
         // Ако има такъв метод в класа или неговото име с долна черта
         if(method_exists($classObj, $methodName) || method_exists($classObj, "{$methodName}_")){
-        	return TRUE;
+        	
+            return TRUE;
         }
         
         // Ако има on_After метод по подразбиране
         if(method_exists($classObj, "on_After{$methodName}")){
-        	return TRUE;
+        	
+            return TRUE;
         }
         
-        $plugins = $classObj->getPlugins();
-        
-        if(count($plugins)){
-        	foreach ($plugins as $name){
-        		if(method_exists($name, "on_After{$methodName}")){
-        			return TRUE;
-        		}
-        	}
+        if(is_a($classObj, 'core_BaseClass')) {
+            $plugins = $classObj->getPlugins();
+            
+            if(count($plugins)){
+                foreach ($plugins as $name){
+                    if(method_exists($name, "on_After{$methodName}")){
+                        return TRUE;
+                    }
+                }
+            }
         }
         
         return FALSE;

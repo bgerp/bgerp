@@ -279,7 +279,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$form = &$data->form;
 
     	if($form->rec->innerClass){
-    		$protoProducts = cat_Categories::getProtoOptions($form->rec->innerClass);
+    		$protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->innerClass);
             if(count($protoProducts)){
             	$form->setField('proto', 'input');
             	$form->setOptions('proto', $protoProducts);
@@ -709,7 +709,14 @@ class marketing_Inquiries2 extends embed_Manager
 
     	if(count($proto)){
     		foreach ($proto as $pId => &$name){
-    			$name = cat_Products::getTitleById($pId, FALSE);
+    			
+    			// Ако прототипа е оттеглен или затворен, маха се от списъка
+    			$pState = cat_Products::fetchField($pId, 'state');
+    			if($pState != 'rejected' && $pState != 'closed'){
+    				$name = cat_Products::getTitleById($pId, FALSE);
+    			} else {
+    				unset($proto[$pId]);
+    			}
     		}
     	}
     	

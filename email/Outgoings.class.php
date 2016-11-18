@@ -36,15 +36,9 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'subject, body, recipient, attn, email, emailCc, tel, fax, country, pcode, place, address, forward';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    public $canClonerec = 'powerUser';
     
     
     /**
@@ -130,7 +124,7 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone';
     
     
     /**
@@ -579,7 +573,7 @@ class email_Outgoings extends core_Master
                 
                 // Добавяме времето на изчкаваме и състоянието
                 $nRec->waiting = $options->waiting;
-                $nRec->state = 'pending';
+                $nRec->state = 'waiting';
                 $saveArray['state'] = 'state';
                 $saveArray['waiting'] = 'waiting';
             }
@@ -932,7 +926,7 @@ class email_Outgoings extends core_Master
         $query->where('#waiting IS NOT NULL');
         
         // В съответните състояние
-        $query->where("#state = 'pending'");
+        $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'wakeup'");
         $query->orWhere("#state = 'closed'");
         
@@ -1404,7 +1398,7 @@ class email_Outgoings extends core_Master
         
         // Ако се препраща
         $isForwarding = (boolean) Request::get('forward');
-        $isCloning = (boolean) Request::get('clone');
+        $isCloning = (boolean) ($data->action == 'clone');
         $isEditing = (boolean) $rec->id;
         
         $faxTo = Request::get('faxto');
@@ -1584,7 +1578,8 @@ class email_Outgoings extends core_Master
             }
         } else {
             if ($isCloning) {
-                $emailLg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
+                $oId = $rec->originId ? $rec->originId : $rec->containerId;
+                $emailLg = email_Outgoings::getLanguage($oId, $rec->threadId, $rec->folderId);
             } else {
                 $emailLg = email_Outgoings::getLanguage($rec->containerId, $rec->threadId, $rec->folderId);
             }
@@ -2096,7 +2091,7 @@ class email_Outgoings extends core_Master
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
         
-        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'pending')) {
+        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
             $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
             $data->row->notifyUser = crm_Profiles::createLink($data->rec->lastSendedBy);
@@ -2310,7 +2305,7 @@ class email_Outgoings extends core_Master
         
         // Вземаме всички чакащи или събудени имейли
         $query = static::getQuery();
-        $query->where("#state = 'pending'");
+        $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'wakeup'");
         
         while ($rec = $query->fetch()) {
@@ -2579,7 +2574,7 @@ class email_Outgoings extends core_Master
         if ($action == 'close' && $rec) {
             
             // Ако не чакащо или събудено състояние, да не може да се затваря
-            if (($rec->state != 'pending') && ($rec->state != 'wakeup')) {
+            if (($rec->state != 'waiting') && ($rec->state != 'wakeup')) {
                 $requiredRoles = 'no_one';
             } else if (!haveRole('admin, ceo')) {
                 

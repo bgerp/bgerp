@@ -125,7 +125,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'collaborator,ceo,sales';
+    public $canPending = 'sales,ceo,collaborator';
     
     
     /**
@@ -277,6 +277,8 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
     	$this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
+    	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
+    	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
     }
     
     
@@ -364,7 +366,7 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+       
         // При клониране
         if($data->action == 'clone'){
         	
@@ -402,7 +404,7 @@ class sales_Sales extends deals_DealMaster
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
-        if($hideRate == 'yes'){
+        if($hideRate == 'yes' && !haveRole('collaborator')){
         	$form->setField('currencyRate', 'input');
         }
         

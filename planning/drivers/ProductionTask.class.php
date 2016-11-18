@@ -205,6 +205,27 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$paramTpl = cat_products_Params::renderParams($data->paramData);
 			$tpl->append($paramTpl, 'PARAMS');
 		}
+		
+		// Ако има записани допълнителни полета от артикула
+		if(is_array($data->rec->additionalFields)){
+			$productFields = planning_Tasks::getFieldsFromProductDriver($data->rec->productId);
+		
+			// Добавяне на допълнителните полета от артикула
+			foreach ($data->rec->additionalFields as $field => $value){
+				if(!isset($value) || $value === '') continue;
+				if(!isset($productFields[$field])) continue;
+				 
+				// Рендират се
+				$block = clone $tpl->getBlock('ADDITIONAL_VALUE');
+				$field1 = $productFields[$field]->caption;
+				$field1 = explode('->', $field1);
+				$field1 = (count($field1) == 2) ? $field1[1] : $field1[0];
+				 
+				$block->placeArray(array('value' => $productFields[$field]->type->toVerbal($value), 'field' => tr($field1)));
+				$block->removePlaces();
+				$tpl->append($block, 'ADDITIONAL');
+			}
+		}
 	}
 	
 	
@@ -286,6 +307,19 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			
 			if(cat_Products::fetchField($rec->productId, 'canStore') === 'yes'){
 				$form->setField('storeId', 'input,mandatory');
+			}
+			
+			// Подаване на формата на драйвера на артикула, ако иска да добавя полета
+			$Driver = cat_Products::getDriver($rec->productId);
+			$Driver->addTaskFields($rec->productId, $form);
+				
+			// Попълване на полетата с данните от драйвера
+			$driverFields = planning_Tasks::getFieldsFromProductDriver($rec->productId);
+			
+			foreach ($driverFields as $name => $f){
+				if(isset($rec->additionalFields[$name])){
+					$rec->{$name} = $rec->additionalFields[$name];
+				}
 			}
 		}
 	}
@@ -412,12 +446,13 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         	$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
         }
         
-        if(!empty($rec->startTime) || !empty($rec->indTime)){
+        if(isset($rec->startTime) || isset($rec->indTime)){
         	if(isset($rec->indTime)){
         		$row->indTime .= "/" . tr($packagingId);
         	}
         	
-        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#startTime#]</div><!--ET_END startTime-->"));
+        	
+        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END indTime--><!--ET_END startTime--><!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#indTime#]</div><!--ET_END indTime-->"));
         }
         
         if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {

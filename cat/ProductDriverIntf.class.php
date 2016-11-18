@@ -238,13 +238,13 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Добавя полетата на заданието за производство на артикула
+	 * Добавя полетата на задачата за производство на артикула
 	 *
 	 * @param int $id                 - ид на артикул
 	 * @param core_Fieldset $fieldset - форма на задание
 	 */
-	public function addJobFields($id, core_Fieldset &$fieldset)
+	public function addTaskFields($id, core_Fieldset &$fieldset)
 	{
-		return $this->class->addJobFields($id, $fieldset);
+		return $this->class->addTaskFields($id, $fieldset);
 	}
 }

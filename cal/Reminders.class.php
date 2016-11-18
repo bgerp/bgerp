@@ -244,21 +244,12 @@ class cal_Reminders extends core_Master
     	$now = dt::now();
         $data->form->setDefault('priority', 'normal');
         $data->form->setDefault('sharedUsers', "|".$cu."|");
-        
-        $folderList = cls::get('doc_Folders');
-		$folderId = $data->form->rec->folderId;
-		$folderClass = $folderList->fetchField("#id = '{$folderId}'", 'coverClass');
-							
-		// Проверка дали папката е фирмена или лична
-		$companies = 'crm_Companies';
-		$idCompanies = core_Classes::getId($companies);
-							
-		$persons = 'crm_Persons';
-		$idPersons = core_Classes::getId($persons);
-							
-		if($folderClass == $idCompanies || $folderClass == $idPersons){
-
-			$mvc->getFieldType(action)->options['notifyNoAns'] = tr("Нотификация-ако няма отговор");
+		
+		$Cover = doc_Folders::getCover($data->form->rec->folderId);
+		
+		// Трябва да е в папка на лице или на фирма
+		if ($Cover->className == 'crm_Persons' && $Cover->className == 'crm_Companies') {
+		    $mvc->getFieldType(action)->options['notifyNoAns'] = tr("Нотификация-ако няма отговор");
 		}
 
 		$data->form->setSuggestions('repetitionEach', static::$suggestions);
@@ -349,12 +340,9 @@ class cal_Reminders extends core_Master
     	$now = dt::now(); 
     	
     	if ($rec->id) {
-    		if (!$rec->timeStart) {
-    			$rec->timeStart = self::fetchField($rec->id, 'timeStart');
-    		}
-    		
-    		if (!$rec->timeStart) {
-    		    $rec->timeStart = dt::now();
+    	    $fullRec = self::fetch($rec->id);
+    		if (!$fullRec->timeStart) { 
+    		    $fullRec->timeStart = dt::now();
     		}
     	}
     }
@@ -396,7 +384,7 @@ class cal_Reminders extends core_Master
         $data->listFilter->input('selectedUsers', 'silent');
                         
         if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+            $data->listFilter->rec->selectedUsers = keylist::addKey($data->listFilter->rec->selectedUsers, $cu);
 	  	}
                         
         if($data->listFilter->rec->selectedUsers) {
@@ -408,106 +396,6 @@ class cal_Reminders extends core_Master
         }
     }
 
-
-    /**
-     * Подготовка за рендиране на единичния изглед
-     * 
-     *  
-     * @param cal_Reminders $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareSingle($mvc, $data)
-    {
-    	if($data->rec->repetitionType == 'days' ) {
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('ден');
-    		}elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		}else {
-    			$data->row->each = tr('на всеки');
-    		}
-    	} elseif($data->rec->repetitionType == 'months'){
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('месец');
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else {
-    			$data->row->each = tr('на всеки');
-    		}
-    		
-    	} elseif($data->rec->repetitionType == 'weeks') {
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всяка');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('седмица');
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else {
-    			$data->row->each = tr('на всеки');
-    		}
-    	} elseif($data->rec->repetitionType == 'weekDay'){
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('месец');
-    			$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else{
-	    		$data->row->each = tr('на всеки');
-	    		$data->row->repetitionType = tr('месеца');
-	    		$data->row->repetitionTypeMonth = tr($data->rec->monthsWeek. " " .$data->rec->weekDayNames). tr(" от месеца");
-    		}
-    	} elseif($data->rec->repetitionType == 'monthDay') {
-    		if($data->rec->repetitionEach == '1'){
-    			$data->row->each = tr('всеки');
-    			$data->row->repetitionEach = '';
-    			$data->row->repetitionType = tr('месец');
-    			$data->row->repetitionTypeMonth = tr('точния ден от месеца');
-    		} elseif ($data->rec->repetitionEach == NULL) {
-    			$data->row->rem = $data->row->nextStartTime;
-    			$data->row->nextStartTime = NULL;
-    		} else {
-	    		$data->row->each = tr('на всеки');
-	    		$data->row->repetitionType = tr('месеца');
-	    		$data->row->repetitionTypeMonth = tr('точния ден от месеца');
-    		}
-    		
-    	}
-    	
-    	if($data->rec->action === 'notifyNoAns') $data->row->action = tr('Нотификация-ако няма отговор');
-
-    	if($data->rec->repetitionEach === NULL){
-    		$data->row->each = '';
-	    	$data->row->repetitionType = '';
-	    	$data->row->repetitionTypeMonth = '';
-    	}
-    }
-    
-    
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-    	if ($data->recs) {
-        	foreach((array)$data->recs as $id => $rec){
-    		    $row = $mvc->recToVerbal($rec);
-    		    
-    		    if ($rec->repetitionEach != NULL) {
-    				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
-    		    } else {
-    		    	$data->rows[$id]->repetition = " ";
-    		    }
-    		}
-    	}
-    }
-    
 
     /**
      *
@@ -673,6 +561,14 @@ class cal_Reminders extends core_Master
     
                 // TODO да се проверява за високосна година
                 $calRec->time = $rec->timeStart;
+                
+                if($rec->nextStartTime) {
+                    // Ключ на събитието
+                    $calRec->key = $prefix . '-Start';
+                    
+                    // TODO да се проверява за високосна година
+                    $calRec->time = $rec->timeStart;
+                }
     
                 $calRec->type = 'alarm_clock';
                 
@@ -691,31 +587,31 @@ class cal_Reminders extends core_Master
                 $events[] = $calRec;
             }
         }
-           
-        if ($rec->nextStartTime && $rec->nextStartTime >= $fromDate && $rec->nextStartTime <= $toDate && ($rec->state == 'active')){
-        
-            $calRec = new stdClass();
+
+        if ($rec->nextStartTime && $rec->nextStartTime >= $rec->timeStart && $rec->nextStartTime <= $toDate && ($rec->state == 'active')){ 
+
+            $remRec = new stdClass();
                
             // Ключ на събитието
-            $calRec->key = $prefix . '-NextStart';
+            $remRec->key = $prefix . '-NextStart';
 
-            $calRec->time = $rec->nextStartTime;
+            $remRec->time = $rec->nextStartTime;
                
-            $calRec->type = 'alarm_clock';
+            $remRec->type = 'alarm_clock';
                
-            $calRec->allDay = 'no';
+            $remRec->allDay = 'no';
                
-            $calRec->state = $rec->state;
+            $remRec->state = $rec->state;
                
-            $calRec->title = $rec->title;
+            $remRec->title = $rec->title;
                
-            $calRec->users =  $rec->sharedUsers;
+            $remRec->users =  $rec->sharedUsers;
                
-            $calRec->url = array('cal_Reminders', 'Single', $id);
+            $remRec->url = array('cal_Reminders', 'Single', $id);
                
-            $calRec->priority = 90;
+            $remRec->priority = 90;
                
-            $events[] = $calRec;
+            $events[] = $remRec;
         }
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
@@ -931,152 +827,71 @@ class cal_Reminders extends core_Master
      */
     static public function calcNextStartTime($rec)
     {
-
-    	$now = dt::verbal2mysql();
-
-    	// Секундите на днешната дата
-    	$nowTs = dt::mysql2timestamp($now) + $rec->timePreviously;
-    	
     	// Секундите на началната дата
         $startTs = dt::mysql2timestamp($rec->timeStart);
-        
-        // Ако искаме напомнянето да се изпълни само един път
-        if($rec->repetitionEach == NULL && $rec->timePreviously !== NULL) {
-        	$nextStartTimeTs = $startTs - $rec->timePreviously ;
-        	$nextStartTime = date("Y-m-d H:i:s", $nextStartTimeTs);
-        	
-        	return $nextStartTime;
-        	
-        } elseif($rec->repetitionEach == NULL && $rec->timePreviously == NULL){
-        	$nextStartTime = $rec->timeStart;
-        	
-        	return $nextStartTime;
-        }
-        
+
+        // Име повторение
         if($rec->repetitionEach !== NULL ) {
-	        // Типа на повторението е ден или седмица
-	        if($rec->repetitionType == 'days' || $rec->repetitionType == 'weeks'){
-	        	
-	        	if($startTs > $nowTs) {
-	        	    $nextStartTime = $startTs; 
-	        	}
-	        	// Намираме интервала в секинди
-		    	$intervalTs = self::getSecOfInterval($rec->repetitionEach, $rec->repetitionType);
-		  
-		    	// Изчисляваме следващата дата в секунди
-		    	$nextStartTimeTs = (floor(($nowTs-$startTs)/$intervalTs) + 1)*$intervalTs;
-		    	
-		    	// Правим mySQL формат на новата дата
-			    $nextStartTime = date("Y-m-d H:i:s", $startTs + $nextStartTimeTs);
-		    	
-		    	if($rec->timePreviously !== NULL){
-		    		$nextStartTimePrev = $nextStartTimeTs - $rec->timePreviously;
-		    		$nextStartTime = date("Y-m-d H:i:s", $startTs + $nextStartTimePrev);
-
-		    	}
-
-		    	//return $nextStartTime;
-	        }
-	        
-	        // Типа на повторението е месец
-	        for ($i = 1; $i <= 10000; $i++){
-	        		
-    	        // Масив с час, сек, мин, ден, месец, год ... на Началната дата
-    	        $data = getdate($startTs);
-    	        	
-    	        // Новия месец който търсим е стария месец + ($i * повторението ни)
-    	        $newMonth = $data['mon'] + ($i * $rec->repetitionEach);
-    	        		
-    	        // Секундите на новия месец
-    	        $newMonthTs = mktime(0, 0, 0, $newMonth, 1, $data[year]);
-	        		
-		        // Търсим съответствие по ден от месеца:
-			    if($rec->repetitionType == 'monthDay' || $rec->repetitionType == 'months'){
-			        		
-				    // НАчалния ни ден
-				    $day = $data[mday];
-				        		
-				    // Новия ни ден
-				    $newDay = 1 + ($day - 1);
-				        		
-				    // Правим mySQL формат на датата от началните час, мин, сек и новия месец, новия ден и началната година
-				    $nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'], $newMonth, $newDay, $data['year']));
-				        		
-				    // Проверяваме броя на дните в новия месец
-				    $numbMonthDay = date('t', $newMonthTs);
-				        		
-				    // Ако новия ден не присъства в новия месец, то взимаме последния ден от новия месец
-				    if($newDay >= $numbMonthDay) {
-				        $nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'], $newMonth, $numbMonthDay, $data['year']));
-				    }
-
-				    if($nextStartTime < $now) continue;
-				    
-				    if($rec->timePreviously !== NULL){
-				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'] - $rec->timePreviously, $newMonth, $newDay, $data['year']));
-				    }
-
-				} elseif($rec->repetitionType == 'weekDay'){
-				        		
-					// Масив с дните от седмицата
-					$weekDayNames = array(
-							            1 => 'monday',
-							            2 => 'tuesday',
-							            3 => 'wednesday',
-							            4 => 'thursday',
-							            5 => 'friday',
-							            6 => 'saturday',
-							            0 => 'sunday');
-							            
-					// Броя на дните в месеца	
-					$numbMonthDay = date('t', $startTs);
-					        	    
-					// Проверки за поредността на деня - 
-					// един ден от седмицата (напр. понеделник) може да има най-много 5 срещания
-					// в дадения месец
-					if ($data[mday] - 7 >= -6 && $data['mday'] - 7 <= 0) {
-					    $monthsWeek = 'first';
-					} elseif($data[mday] - 14 >= -6 && $data['mday'] - 14 <= 0) {
-					    $monthsWeek = 'second'; 
-					} elseif($data[mday] - 21 >= -6 && $data['mday'] - 21 <= 0) {
-					    $monthsWeek = 'third'; 
-					}
-					        		
-					// Ако един ден е намерен за 3 път, проверяваме дали той не е и предпоследен
-					if($data[mday] + 14 > $numbMonthDay && $monthsWeek = 'third') {
-					    $monthsWeek = 'penultimate'; 
-					}
-					        		
-					// Ако един ден е намерен за предпоследен път, проверяваме дали той не е и последен
-					if($data[mday] + 7 > $numbMonthDay && $monthsWeek == 'penultimate'){
-					    $monthsWeek = 'last'; 
-					}
-					        	
-					// Вербалното име на деня, напр. first-monday, penultimate-wednesday
-					$nextStartTimeName = $monthsWeek."-".$weekDayNames[$data['wday']];
-					$nextStartTimeMonth = $newMonth;
-					        		
-					$rec->monthsWeek = $monthsWeek;
-					$rec->weekDayNames = $weekDayNames[$data['wday']];
-					
-					$nextStartTime = date("Y-m-d {$data['hours']}:{$data['minutes']}:{$data['seconds']}", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-					        		
-					if(dt::mysql2timestamp($nextStartTime) < $nowTs) continue;
-					
-					if($rec->timePreviously !== NULL){
-						$nextStartTimeD = date("d", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-						$nextStartTimeM = date("m", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-						$nextStartTimeG = date("Y", dt::firstDayOfMonthTms($nextStartTimeMonth, $data['year'], $nextStartTimeName));
-				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data['hours'], $data['minutes'], $data['seconds'] - $rec->timePreviously, $nextStartTimeM, $nextStartTimeD, $nextStartTimeG));
-					}
-      		
-				}
- 	
-		    }
-		    
-		    return $nextStartTime;
+            // от какъв тип е
+            switch ($rec->repetitionType) {
+                // дни
+                case 'days' :
+                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach),$rec->timeStart));
+                break;
+                // седмици
+                case 'weeks' :
+                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach * 7),$rec->timeStart));
+                break;
+                // месеци
+                case 'months' :
+                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                break;
+                // месеци, като се спазва деня от седмицата
+                case 'weekDay' :
+                    
+                    $dayOfWeekName = strtolower(date("l",$startTs));
+                    
+                    if(date("j",$startTs) >= 1 && date("j",$startTs) <= 7) {
+                        $monthsWeek = 'first';
+                    }
+                    if(date("j",$startTs) >= 8 && date("j",$startTs) <= 14) {
+                        $monthsWeek = 'second';
+                    }
+                    if(date("j",$startTs) >= 15 && date("j",$startTs) <= 21) {
+                        $monthsWeek = 'third';
+                    }
+                    if(date("j",$startTs) >= 22 && date("j",$startTs) <= 28) {
+                        $monthsWeek = 'penultimate';
+                    }
+                    if(date("j",$startTs) >= 29 && date("j",$startTs) <= 31) {
+                        $monthsWeek = 'last';
+                    }
+       
+                    $wDay = $monthsWeek. "-" . $dayOfWeekName;
+                    $nextDate =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                  
+                    $nextStartTime = dt::timestamp2Mysql(dt::firstDayOfMonthTms(date("m",dt::mysql2timestamp($nextDate)), date("Y",dt::mysql2timestamp($nextDate)), $wDay));
+                
+                break;
+                // точния ден от месеца
+                case 'monthDay' : 
+                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                break;
+    
+            }
         }
 
+        // Ако имаме отбелязано време предварително
+        if($rec->timePreviously !== NULL){ 
+            $nextStartTimeTs = $startTs - $rec->timePreviously ;
+        	$nextStartTime = dt::timestamp2Mysql($nextStartTimeTs);
+        }
+        
+        // Ако изчисленото ново време, не е по-долямо от сега или от началната дата,
+        // то продължаваме да го търсим
+        if(dt::mysql2timestamp($nextStartTime) < dt::mysql2timestamp(dt::now())) return;
+       
+        return $nextStartTime;
     }
 
     
@@ -1128,7 +943,54 @@ class cal_Reminders extends core_Master
             unset($resArr['nextStartTime']);
         }
         
-        if ($row->repetitionEach){
+        if($rec->repetitionEach == '1'){
+            switch ($rec->repetitionType) {
+                // дни
+                case 'days' :
+                    $row->repetitionType = tr('ден');
+                    break;
+                    // седмици
+                case 'weeks' :
+                    $row->repetitionType = tr('седмица');
+                    $row->each = tr('всяка');
+                    break;
+                    // месеци
+                case 'months' :
+                    $row->repetitionType = tr('месец');
+                    break;
+                    // месеци, като се спазва деня от седмицата
+                case 'weekDay' :
+                    $row->repetitionType = tr('месец');
+                    $row->repetitionTypeMonth = tr($rec->monthsWeek. " " .$rec->weekDayNames). tr(" от месеца");
+                    break;
+                    // точния ден от месеца
+                case 'monthDay' :
+                    $row->repetitionType = tr('месец');
+                    $row->repetitionTypeMonth = tr('точния ден от месеца');
+                    break;
+        
+            }
+        
+            if(!$row->each) {
+                $row->each = tr('всеки');
+            }
+        
+            $row->repetitionEach = '';
+        
+        } else {
+            $row->each = tr('на всеки');
+        
+            if($rec->repetitionType == 'weekDay'){
+                $row->repetitionType = tr('месеца');
+            }
+        
+            if($rec->repetitionType == 'monthDay'){
+                $row->repetitionType = tr('месеца');
+                $row->repetitionTypeMonth = tr('точния ден от месеца');
+            }
+        }
+
+        if($rec->repetitionEach != NULL ){
             $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }
     }

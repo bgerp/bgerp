@@ -105,7 +105,7 @@ class select2_Adapter
     	
         $select2Str = "
         
-        $('#" . $id . "').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}', minimumResultsForSearch: {$minimumResultsForSearch}";
+        $('#" . $id . "').addClass('select2-src').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}', minimumResultsForSearch: {$minimumResultsForSearch}";
         
         if ($ajaxUrl) {
             $select2Str .= ",ajax: {

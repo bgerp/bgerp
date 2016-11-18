@@ -355,7 +355,7 @@ class cams_Records extends core_Master
         
         core_Locks::get(basename($mp4File), 300, 0, FALSE);
         
-        $cmdTmpl = "ffmpeg -i [#INPUTF#] -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]";
+        $cmdTmpl = "ffmpeg -hide_banner -loglevel panic -i [#INPUTF#] -preset fast -crf 35 -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]";
         $Script = cls::get('fconv_Script');
         
         // Инстанция на класа
@@ -367,10 +367,11 @@ class cams_Records extends core_Master
             'callBack' => $me . '::afterConvert',
             'asynch' => TRUE,
             'createdBy' => core_Users::getCurrent('id'),
+            'errFilePath' => 'err_videoconv.txt'
         );
         $Script->setFile('INPUTF', $mp4Path);
         $Script->setFile('OUTPUTF', $mp4File);
-        $Script->lineExec($cmdTmpl);
+        $Script->lineExec($cmdTmpl, array('errFilePath' => $params['errFilePath']));
         
         $Script->callBack($params['callBack']);
         
@@ -399,6 +400,10 @@ class cams_Records extends core_Master
     {
         copy ($script->tempDir . basename($script->params['mp4File']), $script->params['mp4File']);
         core_Locks::release(basename($script->params['mp4File']));
+        $err = file_get_contents($script->params['errFilePath']);
+        if ($err) {
+            self::logErr("Грешка при конвертиране на видео: $err");
+        }
         
         return TRUE;
     }

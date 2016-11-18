@@ -1,0 +1,28 @@
+<div class="singleView">
+    [#SingleToolbar#]
+
+    <h3>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Скрипт|* <b style="color:green;display:inline-block;word-break:break-all">[#name#]</b></div>
+    </h3>
+    <!--ET_BEGIN lastUsedOn-->
+    <table class="styled-table" style='width:99%'>
+
+        <tr>
+            <td class="title-style">|Последна употреба|*</td>
+            <td>[#lastUsedOn#]</td>
+        </tr>
+
+
+    </table>
+    <!--ET_END lastUsedOn-->
+    [#CODE#]
+
+    <br>
+    <!--ET_BEGIN modify-->
+    [#modify#]
+    <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
+    <!--ET_END modify-->
+    <div style="margin-bottom: 20px;"><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+
+    [#DETAILS#]
+</div>

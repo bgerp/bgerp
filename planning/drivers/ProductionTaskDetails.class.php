@@ -81,7 +81,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=Операция,serial,taskProductId,quantity,scrappedQuantity,packagingId=Мярка,weight,employees,fixedAsset,modified=Модифицирано';
+    public $listFields = 'type=Операция,serial,taskProductId,quantity,scrappedQuantity,packagingId=Мярка,weight=Тегло (кг),employees,fixedAsset,modified=Модифицирано';
     
     
     /**
@@ -107,7 +107,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter,focus');
     	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,mandatory,smartCenter');
     	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
-    	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,smartCenter');
+    	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Обордуване,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
@@ -485,7 +485,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
     		
-    		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
+    		if($state != 'active' && $state != 'waiting' && $state != 'wakeup'){
     			$requiredRoles = 'no_one';
     		} 
     	}

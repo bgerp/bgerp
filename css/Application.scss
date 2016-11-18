@@ -2464,7 +2464,9 @@ fieldset.sharing-history {
 
 .narrow .headerImg {
 	max-width:360px;
+	width: auto;
     height:auto;
+	max-height: 90px;
 	float:left;
 }
 

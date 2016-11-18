@@ -371,7 +371,7 @@ class cal_Tasks extends core_Master
 
         $today = dt::today();
         $oneWeakLater = dt::addDays(7);
-        $data->query->where("#state = 'active' OR (#state = 'pending' AND #timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}')");
+        $data->query->where("#state = 'active' OR (#state = 'waiting' AND #timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}')");
 
         // Време за подредба на записите в портала
         $data->query->XPR('orderDate', 'datetime', "if(#expectationTimeStart AND #expectationTimeStart > '{$now}', #expectationTimeStart, if(#timeStart, #timeStart, '{$today} 00:00:00'))");
@@ -409,7 +409,7 @@ class cal_Tasks extends core_Master
         if (is_array($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 $row = $data->rows[$id];
-                if ($rec->savedState == 'pending') {
+                if ($rec->savedState == 'waiting') {
                     $row->title = "<div class='state-pending-link'>{$row->title}</div>";
                 }
             }
@@ -569,11 +569,12 @@ class cal_Tasks extends core_Master
 
             // при следните условия
             $query->likeKeylist('sharedUsers', $data->rec->sharedUsers);
-            $query->where("('{$taskStart}' > #timeStart AND #timeStart < '{$taskEnd}') OR ('{$taskStart}' > #timeEnd AND #timeEnd < '{$taskEnd}')");
-         
+            $query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskStart}' AND #timeEnd >= '{$taskStart}')
+                            OR
+                           (#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskEnd}' AND #timeEnd >= '{$taskEnd}')");
 
             // и намерим такъв запис
-            if ($query->fetch()) {
+            if ($query->fetch()) { 
                 // променяме бутона "Активиране"
                 $data->toolbar->buttons['Активиране']->warning = "По същото време има и други задачи с някои от същите споделени потребители";
             }
@@ -663,7 +664,7 @@ class cal_Tasks extends core_Master
 
             // ако не може, задачата ставачакаща
         } else {
-            $rec->state = 'pending';
+            $rec->state = 'waiting';
         }
 
         if ($rec->id) {
@@ -712,7 +713,7 @@ class cal_Tasks extends core_Master
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
-        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,pending=Чакащи,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
+        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
         
         $options = array();
         
@@ -805,7 +806,7 @@ class cal_Tasks extends core_Master
             if ($data->listFilter->rec->stateTask != 'all' && $data->listFilter->rec->stateTask != 'actPend') {
                 $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
             } elseif ($data->listFilter->rec->stateTask == 'actPend') {
-                $data->query->where("#state = 'active' OR #state = 'pending'");
+                $data->query->where("#state = 'active' OR #state = 'waiting'");
             } else {
                 $data->query->fetchAll();
             }
@@ -961,9 +962,9 @@ class cal_Tasks extends core_Master
         $prefix = "TSK-{$id}";
         
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending') ||
-           $rec->timeCalc && $rec->timeCalc >= $fromDate && $rec->timeCalc <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending') ||
-           $rec->expectationTimeStart && $rec->expectationTimeStart >= $fromDate && $rec->expectationTimeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending')) {
+        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'waiting') ||
+           $rec->timeCalc && $rec->timeCalc >= $fromDate && $rec->timeCalc <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'waiting') ||
+           $rec->expectationTimeStart && $rec->expectationTimeStart >= $fromDate && $rec->expectationTimeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'waiting')) {
             
             $calRec = new stdClass();
                 
@@ -1002,7 +1003,7 @@ class cal_Tasks extends core_Master
         }
         
         // Подготвяме запис за Крайния срок
-        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending') ) {
+        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'waiting') ) {
             
             $calRec = new stdClass();
                 
@@ -1045,7 +1046,7 @@ class cal_Tasks extends core_Master
      */
     static function getNumbPriority($rec)
     {
-        if($rec->state == 'active' || $rec->state == 'pending') {
+        if($rec->state == 'active' || $rec->state == 'waiting') {
 
             switch($rec->priority) {
                 case 'low':
@@ -1119,7 +1120,7 @@ class cal_Tasks extends core_Master
     {
        // Обикаляме по всички чакащи задачи 
        $query = $this->getQuery();
-       $query->where("#state = 'pending'");
+       $query->where("#state = 'waiting'");
        
 	   $activatedTasks = array ();
 	   $now = dt::verbal2mysql();

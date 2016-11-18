@@ -71,20 +71,11 @@ class bgerp_plg_FLB extends core_Plugin
 		$form->setSuggestions($mvc->canSelectRoleFld, $roles);
 		$form->setSuggestions($mvc->canActivateRoleFld, $roles);
 		
+		// Отговорника на папката трябва да има нужните роли, или да е админ
 		$roles = arr::make($mvc->canActivate);
-		
-		// Отсяване само на потребителите с избраните роли
-		$inCharge = array();
-		foreach ($roles as $role){
-			$roleId = core_Roles::fetchByName($role);
-			$usersWithRole = core_Users::getByRole($roleId);
-			foreach ($usersWithRole as $userId){
-				$inCharge[$userId] = core_Users::fetchField($userId, 'nick');
-			}
-		}
-		
-		// Задаване на потребители по подразбиране за отговорници
-		$form->setOptions('inCharge', $inCharge);
+		$roles[] = 'admin';
+		$roles = implode('|', $roles);
+		$form->setFieldType('inCharge', "user(roles={$roles}, select=nick)");
 	}
 	
 	

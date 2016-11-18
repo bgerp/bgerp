@@ -25,7 +25,7 @@
             </table>
         </li>
         <li class='post-body'>
-            <table class="no-border" style='width:100%'>
+            <table style='width:100%;'>
                 <tr>
                     <td class='user-info' rowspan='2' style='width:15%'>
                         <div >
@@ -48,7 +48,7 @@
         <li style='height:20px'>
             <div class='bottom-pager'>[#PAGER#]</div>
         </li>
-        <li>[#topLink#]</li>
+
         <li class='comment-form'>
             [#COMMENT_FORM#]
         </li>

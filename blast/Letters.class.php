@@ -117,7 +117,7 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
     
     
     /**
@@ -163,15 +163,9 @@ class blast_Letters extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'listId, group, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'ceo, blast';
+    public $canClonerec = 'ceo, blast';
     
     
     /**
@@ -300,7 +294,7 @@ class blast_Letters extends core_Master
         }
         
         // Ако създваме
-        if ((!$rec->id) && (!Request::get('clone'))) {
+        if ((!$rec->id) && ($data->action != 'clone')) {
             
             // Задваме стойности по подразбиране
             $rec->recipient = '[#company#]';

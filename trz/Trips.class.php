@@ -74,9 +74,9 @@ class trz_Trips extends core_Master
     
     
     /**
-     * Кой може да го види?
+     * Кой може да го активира?
      */
-    public $canView = 'ceo,trz';
+    public $canActivate = 'ceo,trz';
     
     
     /**

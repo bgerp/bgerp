@@ -62,6 +62,7 @@ class eshop_Setup extends core_ProtoSetup
             'eshop_Groups',
             'eshop_Products',
     		'migrate::migrateDrivers1',
+            'migrate::migrateOrder',
         );
 
         
@@ -127,6 +128,22 @@ class eshop_Setup extends core_ProtoSetup
     		$pRec->coDriver = $dId;
     		eshop_Products::save($pRec, 'coDriver');
     	}
+    }
+
+
+    /**
+     * Миграция на кода към полето за подредба
+     */
+    public function migrateOrder()
+    {
+    	$pQuery = eshop_Products::getQuery();
+        
+        while($rec = $pQuery->fetch()) {
+            if(preg_match("/[0-9]+/", $rec->code, $matches)) {
+                $rec->order = $matches[0] . '00';
+                eshop_Products::save($rec, 'order');
+            }
+        }
     }
 
 

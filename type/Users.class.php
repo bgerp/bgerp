@@ -111,10 +111,10 @@ class type_Users extends type_Keylist
             
             $teams = keylist::toArray($teams);
             
+            $rolesArr = type_Keylist::toArray($roles);
+            
             $userArr = core_Users::getRolesWithUsers();
-
-           // bp($res);
-
+            
             foreach($teams as $t) {
                 $group = new stdClass();
                 $tRole = core_Roles::fetchById($t);
@@ -131,7 +131,11 @@ class type_Users extends type_Keylist
                     
                     $uRec = $userArr['r'][$uId];
                     $uRec->id = $uId;
-
+                    
+                    if (!empty($rolesArr)) {
+                        if (!type_Keylist::isIn($rolesArr, $uRec->roles)) continue;
+                    }
+                    
                     if ($uRec->state != 'rejected') {
                         $key = $t . '_' . $uId;
                         $this->options[$key] = new stdClass();

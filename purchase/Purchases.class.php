@@ -255,6 +255,8 @@ class purchase_Purchases extends deals_DealMaster
     	$this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
     	$this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
+    	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
+    	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
     }
     
     
@@ -275,7 +277,7 @@ class purchase_Purchases extends deals_DealMaster
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
         $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
-        if($hideRate == 'yes'){
+        if($hideRate == 'yes' && !haveRole('collaborator')){
         	$form->setField('currencyRate', 'input');
         }
         

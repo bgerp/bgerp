@@ -50,7 +50,7 @@ class doc_plg_Close extends core_Plugin
     			$data->toolbar->addBtn("Откриване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnActivate,row=2,ef_icon = img/16/lock_unlock.png,title=Откриване на {$singleTitle}");
     			$data->toolbar->setWarning('btnActivate', $activeMsg);
     		
-    		} elseif($data->rec->state == 'active'){
+    		} elseif($data->rec->state == 'active' || $data->rec->state == 'template'){
     			$data->toolbar->addBtn("Закриване||Close", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnClose,row=2,ef_icon = img/16/lock.png,title=Закриване на {$singleTitle}");
     			$data->toolbar->setWarning('btnClose', $closeMsg);
     		}
@@ -123,6 +123,9 @@ class doc_plg_Close extends core_Plugin
     	$rec->state = $state;
     	
     	$mvc->save($rec);
+    	if(cls::haveInterface('doc_DocumentIntf', $mvc)){
+    		doc_Prototypes::sync($rec->containerId);
+    	}
     	$mvc->logWrite($action, $rec->id);
     	
     	$retUrl = getRetUrl();

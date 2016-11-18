@@ -37,9 +37,9 @@ class trz_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trz_Wrapper, doc_plg_TransferDoc,
+    public $loadList = 'plg_RowTools2, trz_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing,doc_SharablePlg,bgerp_plg_Blank';
+    				 plg_Printing,doc_SharablePlg';
     
     
     /**
@@ -99,9 +99,9 @@ class trz_Requests extends core_Master
     
     
     /**
-     * Кой може да го види?
+     * Кой може да го активира?
      */
-    public $canView = 'powerUser';
+    public $canActivate = 'ceo,trz';
     
     
     /**
@@ -166,7 +166,7 @@ class trz_Requests extends core_Master
     public function description()
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител');
     	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
@@ -208,6 +208,26 @@ class trz_Requests extends core_Master
 	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        }
 	    	$rec->leaveDays = $days->workDays;
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се преди опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc $mvc
+     * @param null|string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_BeforeRenderSingleLayout($mvc, &$res, &$tpl = NULL, $data = NULL)
+    {
+        $curUrl = getCurrentUrl();
+        
+        if($curUrl['Order'] == 'yes') {
+            $mvc->singleLayoutFile = 'trz/tpl/SingleLayoutOrders.shtml';
         }
     }
     
@@ -315,16 +335,18 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
-    	// Ако се опитваме да направим заповед за отпуска
-	    if($action == 'order'){ 
-			if ($rec->id) {
-				    // и нямаме нужните права
-					if(!Users::haveRole('ceo') || !Users::haveRole('trz') ) {
-				        // то не може да я направим
-						$requiredRoles = 'no_one';
-				}
-		    }
-	    }
+
+	     if ($rec->id) {
+	         $oRec = $mvc->fetch($rec->id);
+	        
+	         if ($action == 'order') {
+	             // и нямаме нужните права
+	             if(!Users::haveRole('ceo') || !Users::haveRole('trz') ) {
+	                 // то не може да я направим
+	                 $requiredRoles = 'no_one';
+	             }
+	         }
+	     }
      }
 
     
@@ -341,7 +363,10 @@ class trz_Requests extends core_Master
         if(haveRole('trz, ceo') && $data->rec->state == 'active') {
             
         	// Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array('trz_Requests', 'Print', 'id' => $data->rec->id, 'Printing' => 'yes'), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            //$data->toolbar->addBtn('Заповед', array('trz_Requests', 'Print', 'id' => $data->rec->id, 'Printing' => 'yes'), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            $data->toolbar->addBtn('Заповед', array('trz_Requests', 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
+            'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
+        
         }
         
         // Ако нямаме права за писане в треда
@@ -525,65 +550,5 @@ class trz_Requests extends core_Master
         $title = tr('Молба за отпуска  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
          
         return $title;
-    }
-
-    
-    /**
-     * Разпечатва заповед
-     */
-    public function act_Print()
-    {
-        $id = Request::get('id');
-        $recs = array();
-        $recs[] = self::fetch($id);
-
-        $tpl = self::printOrder($recs);
-
-        return  $this->renderWrapping($tpl);
-    }
-    
-    
-    /**
-     * Подготвя заповед за разпечатване
-     *
-     * @param array $res - Масив от записи за показване
-     * @return core_ET $tpl - Шаблон на обобщението
-     */
-    private static function printOrder($res)
-    {
-        // Зареждаме и подготвяме шаблона
-        $tpl = new ET(tr('|*' . getFileContent("trz/tpl/SingleLayoutOrders.shtml")));
-        
-        $Int = cls::get('type_Int');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        $Text = cls::get(type_Text);
-        $Date = cls::get(type_Date); 
-        $Datetime = cls::get(type_Datetime);
-        $Datetime->params['defaultTime'] = "23:59:59";
-        $me = cls::get(get_called_class());
-        
-        if(count($res)) {
-            foreach($res as $rec) { 
-                $row = new stdClass();
-                $row->id = $Int->toVerbal($rec->id);
-                $row->createdDate =  $Date->toVerbal($rec->createdOn);
-                $row->isPaid = static::$map[$rec->isPaid];
-                $row->personId = $me->getVerbal($rec, 'personId');
-                $row->leaveDays = $Int->toVerbal($rec->leaveDays);
-                $row->useDaysFromYear = $Int->toVerbal($rec->useDaysFromYear);
-                $row->leaveFrom = $Datetime->toVerbal($rec->leaveFrom);
-                $row->leaveTo =  $Datetime->toVerbal($rec->leaveTo);
-                $row->amount = $Double->toVerbal($rec->amount);
-                $row->note = $Text->toVerbal($rec->note);
-                $row->baseCurrencyId = $rec->baseCurrencyId;
-            }
-
-            $tpl->placeObject($row);
-            $tpl->removeBlocks();
-            $tpl->append2master();
-        } 
-
-        return $tpl;
     }
 }

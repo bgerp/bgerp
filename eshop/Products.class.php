@@ -119,6 +119,7 @@ class eshop_Products extends core_Master
     function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
+        $this->FLD('order', 'int', 'caption=Подредба');
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         
@@ -168,7 +169,7 @@ class eshop_Products extends core_Master
     	
     	$isMandatoryMeasure = FALSE;
     	if($form->rec->coDriver){
-    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
+    		$protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
     	
     		if(count($protoProducts)){
     			$form->setField('proto', 'input');
@@ -269,7 +270,7 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->orderBy("#code");
+        $pQuery->orderBy("#order,#code");
         while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');

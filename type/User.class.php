@@ -56,80 +56,82 @@ class type_User extends type_Key
             $this->options = array();
         }
         
-        $part = $this->params['select'];
-        expect($part);
-        
-        // Вариант 1: Потребителя няма права да вижда екипите
-        // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
-        if(!haveRole($this->params['rolesForTeams'])) {
-            if(haveRole($this->params['roles'])) {
-                $userId = core_Users::getCurrent();
-                
-                $userIdKey = self::getUserFromTeams($userId);
-                
-                $userIdKey = reset($userIdKey);
-                
-                if (!$this->options[$userIdKey]) {
-                    $this->options[$userIdKey] = new stdClass();
-                }
-                $this->options[$userIdKey]->title = core_Users::getCurrent($part);
-                $this->options[$userIdKey]->value = $userId;
-            }
-        } else {
+        if (empty($this->options)) {
+            $part = $this->params['select'];
+            expect($part);
             
-            $uQuery = core_Users::getQuery();
-            $uQuery->where("#state = 'active'");
-            $uQuery->orderBy("#names", 'ASC');
-            
-            // Потребителите, които ще покажем, трябва да имат посочените роли
-            $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
-            $uQuery->likeKeylist('roles', $roles);
-            
-            if(haveRole($this->params['rolesForAll'])) {
-                // Показваме всички екипи
-                $teams = core_Roles::getRolesByType('team');
-            } else {
-                // Показваме само екипите на потребителя
-                $teams = core_Users::getUserRolesByType(NULL, 'team');
-            }
-            
-            $teams = keylist::toArray($teams);
-            
-            foreach($teams as $t) {
-                $group = new stdClass();
-                $tRole = core_Roles::getVerbal($t, 'role');
-                $group->title = tr('Екип') . " \"" . $tRole . "\"";
-                $group->attr = array('class' => 'team');
-                $group->group = TRUE;
-                $this->options[$t . ' team'] = $group;
-                
-                $uQueryCopy = clone($uQuery);
-                
-                $uQueryCopy->likeKeylist('roles', "|{$t}|");
-                
-                $teamMembers = '';
-                
-                while($uRec = $uQueryCopy->fetch()) {
-                    $key = $t . '_' . $uRec->id;
-                    if(!$this->options[$key]) {
-                        $this->options[$key] = new stdClass();
-                    }
-
-                    if($part && $this->params['useSelectAsTitle']) {
-                        $this->options[$key]->title = $uRec->$part;
-                    } else {
-                        $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
-                    }
-
-                    $this->options[$key]->value = $uRec->id;
+            // Вариант 1: Потребителя няма права да вижда екипите
+            // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
+            if(!haveRole($this->params['rolesForTeams'])) {
+                if(haveRole($this->params['roles'])) {
+                    $userId = core_Users::getCurrent();
                     
-                    $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
+                    $userIdKey = self::getUserFromTeams($userId);
+                    
+                    $userIdKey = reset($userIdKey);
+                    
+                    if (!$this->options[$userIdKey]) {
+                        $this->options[$userIdKey] = new stdClass();
+                    }
+                    $this->options[$userIdKey]->title = core_Users::getCurrent($part);
+                    $this->options[$userIdKey]->value = $userId;
+                }
+            } else {
+                
+                $uQuery = core_Users::getQuery();
+                $uQuery->where("#state = 'active'");
+                $uQuery->orderBy("#names", 'ASC');
+                
+                // Потребителите, които ще покажем, трябва да имат посочените роли
+                $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
+                $uQuery->likeKeylist('roles', $roles);
+                
+                if(haveRole($this->params['rolesForAll'])) {
+                    // Показваме всички екипи
+                    $teams = core_Roles::getRolesByType('team');
+                } else {
+                    // Показваме само екипите на потребителя
+                    $teams = core_Users::getUserRolesByType(NULL, 'team');
                 }
                 
-                if($teamMembers) {
-                    $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
-                } else {
-                    unset($this->options[$t . ' team']);
+                $teams = keylist::toArray($teams);
+                
+                foreach($teams as $t) {
+                    $group = new stdClass();
+                    $tRole = core_Roles::getVerbal($t, 'role');
+                    $group->title = tr('Екип') . " \"" . $tRole . "\"";
+                    $group->attr = array('class' => 'team');
+                    $group->group = TRUE;
+                    $this->options[$t . ' team'] = $group;
+                    
+                    $uQueryCopy = clone($uQuery);
+                    
+                    $uQueryCopy->likeKeylist('roles', "|{$t}|");
+                    
+                    $teamMembers = '';
+                    
+                    while($uRec = $uQueryCopy->fetch()) {
+                        $key = $t . '_' . $uRec->id;
+                        if(!$this->options[$key]) {
+                            $this->options[$key] = new stdClass();
+                        }
+    
+                        if($part && $this->params['useSelectAsTitle']) {
+                            $this->options[$key]->title = $uRec->$part;
+                        } else {
+                            $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
+                        }
+    
+                        $this->options[$key]->value = $uRec->id;
+                        
+                        $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
+                    }
+                    
+                    if($teamMembers) {
+                        $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
+                    } else {
+                        unset($this->options[$t . ' team']);
+                    }
                 }
             }
         }

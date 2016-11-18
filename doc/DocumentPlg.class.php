@@ -30,7 +30,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     static $stateArr = array(
         'draft'    => 'Чернова',
-        'pending'  => 'Чакащо',
+        'pending'  => 'Заявка',
+    	'waiting'  => 'Чакащо',
         'active'   => 'Активирано',
         'opened'   => 'Отворено',
         'closed'   => 'Приключено',
@@ -274,32 +275,7 @@ class doc_DocumentPlg extends core_Plugin
             	$data->toolbar->removeBtn('btnPrint');
             }
         }
-
-        //Добавяме бутон за клониране ако сме посочили, кои полета ще се клонират
-        if (($mvc->cloneFields) && ($data->rec->id)) {
-            
-            // Ако не е чернова
-            if ($data->rec->state != 'draft') {
-                
-                // Ако имаме права за клониране
-                if ($mvc->haveRightFor('clone', $data->rec->id)) {
-                    
-                    if($mvc->haveRightFor('add', (object)array('cloneId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
-                    	
-                    	// Бутон за клониране
-                    	$data->toolbar->addBtn('Копие', array(
-                    			$mvc,
-                    			'add',
-                    			'cloneId' => $data->rec->containerId,
-                    			'clone' => 'clone',
-                    			'ret_url'=>$retUrl
-                    	),
-                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=' . tr('Клониране на документа'));
-                    } 
-                }
-            }
-        }
-
+        
         if($mvc->haveRightFor('list') && $data->rec->state != 'rejected') { 
         	
         	// По подразбиране бутона всички се показва на втория ред на тулбара
@@ -723,7 +699,7 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Ако в момента не се скрива или показва - показва документа
                     if (!Request::get('showOrHide') && !Request::get('afterReject')) {
-                        doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
+                        doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE, TRUE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
@@ -1133,52 +1109,6 @@ class doc_DocumentPlg extends core_Plugin
             	doc_Threads::requireRightFor('single', $mvc->threadId);
             }
           
-        } elseif (Request::get('clone') && ($cloneId = Request::get('cloneId', 'int'))) {
-            
-            // Ако създаваме копие 
-            
-            // Данните за документната система
-            $containerRec = doc_Containers::fetch($cloneId);
-            
-            // Очакваме да има такъв запис
-            expect($containerRec);
-            
-            // Очакваме да имаме права за клониране
-            expect($mvc->haveRightFor('clone', $containerRec->docId), 'Нямате права за създаване на копие');
-            
-            // Добавяме id' тата на нишките и папките
-            $rec->threadId = $containerRec->threadId;
-            $rec->folderId = $containerRec->folderId;
-            
-            // Първия запис в threada
-            $firstContainerId = doc_Threads::fetch($rec->threadId)->firstContainerId;
-            
-            // Ако копираме първия запис в треда, тогава създаваме нов тред
-            if ($firstContainerId == $cloneId) {
-                
-                // Премахваме id' то на треда за да се създаде нов
-                unset($rec->threadId);
-            }
-            
-            // Записите от БД
-            $mvcRec = $mvc::fetch("#containerId = '{$cloneId}'");
-            
-            // Задаваме originId, на оригиналния документ originId
-            $rec->originId = $mvcRec->originId;
-            
-            //Създаваме масив с всички полета, които ще клонираме
-            $cloneFieldsArr = arr::make($mvc->cloneFields);
-            
-            // Ако има полета за клониране
-            if (count($cloneFieldsArr)) {
-                
-                // Обхождаме всичките
-                foreach ($cloneFieldsArr as $cloneField) {
-                    
-                    // Заместваме съдържанието на всички полета със записите от БД
-                    $rec->$cloneField = $mvcRec->$cloneField;
-                }
-            }
         } elseif ($rec->originId) {
             
             // Ако имаме $originId
@@ -1862,7 +1792,7 @@ class doc_DocumentPlg extends core_Plugin
         	} else {
         		
         		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
-        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'template'){
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting' || $rec->state == 'template'){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -3373,17 +3303,6 @@ class doc_DocumentPlg extends core_Plugin
     		if ($data->rec->state != 'rejected') {
     			unset($data->row->state);
     		}
-    	}
-    }
-    
-    
-    /**
-     * Дали при активиране документа трябва да стане чакащ или активен, метод по подразбиране
-     */
-    public static function on_AfterGetPendingOrActivate($mvc, &$res, $rec)
-    {
-    	if(!$res){
-    		$res = 'activate';
     	}
     }
 

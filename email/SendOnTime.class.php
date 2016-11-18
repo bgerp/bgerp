@@ -79,7 +79,7 @@ class email_SendOnTime extends core_Manager
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         $this->FLD('delay', 'time', 'caption=Отлагане');
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено на');
-        $this->FLD('state', 'enum(pending=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
+        $this->FLD('state', 'enum(waiting=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
         
         $this->FNC('sendOn', 'datetime(format=smartTime)', 'caption=Изпращане->На');
         $this->FNC('emailsTo', 'emails', 'caption=Изпращане->До');
@@ -107,7 +107,7 @@ class email_SendOnTime extends core_Manager
         $rec->objectId = $objectId;
         $rec->data = $data;
         $rec->delay = $delay;
-        $rec->state = 'pending';
+        $rec->state = 'waiting';
         
         return self::save($rec);
     }
@@ -125,7 +125,7 @@ class email_SendOnTime extends core_Manager
         $query = self::getQuery();
         $query->where(array("#objectId = [#1#]", $objectId));
         
-        $query->where("#state = 'pending'");
+        $query->where("#state = 'waiting'");
         $query->orderBy('delay', 'ASC');
         $resArr = array();
         
@@ -226,7 +226,7 @@ class email_SendOnTime extends core_Manager
         
         expect($rec = self::fetch($id));
         
-        expect($rec->state == 'pending');
+        expect($rec->state == 'waiting');
         
         $rec->state = 'stopped';
         
@@ -289,7 +289,7 @@ class email_SendOnTime extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'waiting' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
         $data->query->orderBy('orderByState', 'ASC');
         $data->query->orderBy('delay', 'ASC');
     }

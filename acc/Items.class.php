@@ -171,6 +171,10 @@ class acc_Items extends core_Manager
      */
     protected static function on_CalcTitleNum($mvc, $rec)
     {
+    	if(strpos($rec->title, '||') !== FALSE){
+    		$rec->title = tr($rec->title);
+    	}
+    	
     	$rec->titleNum = $rec->title . " ({$rec->num})";
     }
     
@@ -182,7 +186,11 @@ class acc_Items extends core_Manager
      */
     protected static function on_CalcTitleLink($mvc, $rec)
     {
-        $title = $mvc->getVerbal($rec, 'title');
+    	if(strpos($rec->title, '||') !== FALSE){
+    		$rec->title = tr($rec->title);
+    	}
+    	
+    	$title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
         $rec->titleLink = $title . " ($num)";
     }
@@ -799,7 +807,7 @@ class acc_Items extends core_Manager
         	while ($cRec = $query->fetch()){
             
             	// Ако е документ и е чернова, не може да стане перо
-            	if($isDoc && $cRec->state == 'draft') continue;
+            	if($isDoc && $cRec->state != 'active') continue;
             	$suggestions[$cRec->id] = $Class->getRecTitle($cRec);
         	}
         	core_Mode::pop('text');

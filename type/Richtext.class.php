@@ -1367,14 +1367,14 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"s('* ','', document.getElementById('{$formId}'), 1,0,0,1)\">&#9679;</a>", 'TBL_GROUP2');
 			$emot7 = 'richtext-holder-group-after';
         	$toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf('img/16/table3.png') . " height='15' width='15'></a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf('img/16/table3.png') . " height='15' width='15' alt='Table'></a>", 'TBL_GROUP2');
             $toolbarArr->add("<span id='{$attr['id']}-group7' class='richtext-emoticons7 richtext-holder-group {$emot7}'>", 'TBL_GROUP2');
             $toolbarArr->add("<span class='popup-table-info'><span class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></span><span class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></span><input type='button' id='getTableInfo' onclick=\"createRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Блок') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group5', event)\"> <img src=" . sbf('img/16/quote.png') . " height='15' width='15'></a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Блок') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group5', event)\"> <img src=" . sbf('img/16/quote.png') . " height='15' width='15' alt='Blocks'></a>", 'TBL_GROUP2');
             $emot5 = 'richtext-holder-group-after';
           	$toolbarArr->add("<span id='{$attr['id']}-group5' class='richtext-emoticons5 richtext-holder-group {$emot5}'>", 'TBL_GROUP2');
           	
@@ -1397,9 +1397,9 @@ class type_Richtext extends type_Blob
           	    $maxOneLine = $blockeElement['maxOneLine'] ? $blockeElement['maxOneLine'] : 0;
           	    
           	    // Генерираме текста
-                $toolbarTxt = "<a class='rtbutton' title='" . $blockeElement['title'] .  
+                $toolbarTxt = "<a class='rtbutton' title='" . $blockeElement['title'] .
           	    		"' onclick=\"s('[{$begin}]', '[/{$end}]', document.getElementById('{$formId}'),{$newLine},{$multiline},{$maxOneLine})\">
-          	    		<img src=" . $blockeElement['icon'] . " height='15' width='15'></a>";
+          	    		<img src=" . $blockeElement['icon'] . " height='15' width='15' alt='" .$blockeElement['title'] . "'></a>";
           	    
                 // Ако трябва да се добави разделител за нов ред
           	    if (!($i % $maxBlockElementInLine)) {
@@ -1412,7 +1412,7 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP3');
-            $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group6', event);\"><img src=" . sbf('img/16/paper_clip.png') . " height='15' width='15'></a>", 'TBL_GROUP3');
+            $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group6', event);\"><img src=" . sbf('img/16/paper_clip.png') . " height='15' width='15' alt='Files'></a>", 'TBL_GROUP3');
            
             $emot6 = 'richtext-holder-group-after';
             $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons6 richtext-holder-group {$emot6} addElements left'>", 'TBL_GROUP3');
@@ -1548,8 +1548,8 @@ class type_Richtext extends type_Blob
         }
         
         // Добавяме останалите параметри, които са в часта "път"
-        while($restArr[$pId]) {
-            $params[$restArr[$pId]] = $params[$restArr[$pId+1]];
+        while(isset($restArr[$pId]) && isset($restArr[$pId+1])) {
+            $params[$restArr[$pId]] = $restArr[$pId+1];
             $pId++;
         }
         

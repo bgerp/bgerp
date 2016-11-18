@@ -82,14 +82,15 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	protected static function on_CalcTypeExt($mvc, $rec)
 	{
 		$rec->typeExt = tr($rec->name);
-		 
+		$rec->typeExt = str_replace(array('&lt;', '&amp;'), array("<", "&"), $rec->typeExt);
+		
 		if (!empty($rec->group)) {
 			$group = tr($rec->group);
 			$rec->typeExt = "{$group} » {$rec->typeExt}";
 		}
 		 
 		if (!empty($rec->suffix)) {
-			$rec->typeExt .= ' (' . tr($rec->suffix) . ')';
+			$rec->typeExt .= ' (' . str_replace(array('&lt;', '&amp;'), array("<", "&"), tr($rec->suffix)) . ')';
 		}
 	}
 	
