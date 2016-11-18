@@ -952,7 +952,12 @@ class cal_Reminders extends core_Master
 
         // Ако имаме отбелязано време предварително
         if($rec->timePreviously != NULL){ 
-            $nextStartTimeTs = dt::mysql2timestamp($nextStartTime) - $rec->timePreviously;
+            if($nextStartTime) {
+                $nextStartTimeTs = dt::mysql2timestamp($nextStartTime) - $rec->timePreviously;
+            } else {
+                $nextStartTimeTs = $startTs - $rec->timePreviousl;
+            }
+            
         	$nextStartTime = dt::timestamp2Mysql($nextStartTimeTs);
         }
 
