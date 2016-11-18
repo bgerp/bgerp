@@ -160,8 +160,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->FNC('productId', 'int', 'caption=Артикул,input,before=serial');
     		$form->setOptions('productId', array($taskInfo->productId = cat_Products::getTitleById($taskInfo->productId, FALSE)));
     		$form->setField('taskProductId', 'input=none');
-    		$unit = cat_UoM::getShortName($taskInfo->packagingId);
-    		$form->setField('quantity', "unit={$unit}");
+    		
+    		if($rec->type != 'start'){
+    			$unit = cat_UoM::getShortName($taskInfo->packagingId);
+    			$form->setField('quantity', "unit={$unit}");
+    		} else {
+    			$form->setField('quantity', "input=none");
+    		}
     		
     		if(isset($rec->id)){
     			$form->setReadOnly('serial');
@@ -237,6 +242,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     				$form->setError('serial', $error);
     			}
     		}
+    		
+    		if($rec->type == 'start'){
+    			$rec->quantity = 1;
+    		}
     	}
     }
 
@@ -247,7 +256,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->fixedAsset)){
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if(!Mode::isReadOnly()){
     			$singleUrl = planning_AssetResources::getSingleUrlArray($rec->fixedAsset);
     			$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
     		}
@@ -272,8 +281,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$row->taskProductId = "<div class='nowrap'>" . $row->taskProductId . "</div>";
     	}
     	
-    	$measureId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
-    	$row->packagingId = cat_UoM::getShortName($measureId);
+    	if($rec->type != 'start'){
+    		$measureId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
+    		$row->packagingId = cat_UoM::getShortName($measureId);
+    	} else {
+    		unset($row->quantity);
+    	}
     	
     	if(!empty($rec->notes)){
     		$notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
@@ -284,7 +297,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$taskId = planning_TaskSerials::fetchField("#serial = '{$rec->serial}'", 'taskId');
     		if($taskId != $rec->taskId){
     			
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			if(!Mode::isReadOnly()){
     				$url = planning_Tasks::getSingleUrlArray($taskId);
     				$url['Q'] = $rec->serial;
     				 
@@ -502,6 +515,17 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	
     	if($action == 'edit' && isset($rec)){
     		if($rec->type != 'product' || $rec->state == 'rejected'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	// Ограничаване на броя на пусканията, според конфигурацията
+    	if(($action == 'add' || $action == 'restore') && $rec->type == 'start'){
+    		$counter = core_Packs::getConfigValue('planning', 'PLANNING_TASK_START_COUNTER');
+    		$count = self::count("#taskId = {$rec->taskId} AND #type = 'start' AND #state != 'rejected'");
+    		
+    		// Не може да бъде надминат максималния брой пускания
+    		if($count >= $counter){
     			$requiredRoles = 'no_one';
     		}
     	}

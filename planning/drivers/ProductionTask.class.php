@@ -447,10 +447,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         }
         
         if(isset($rec->startTime) || isset($rec->indTime)){
-        	if(isset($rec->indTime)){
-        		$row->indTime .= "/" . tr($packagingId);
+        	if(isset($rec->startTime)){
+        		$row->startTime .= "/" . tr($packagingId);
         	}
-        	
         	
         	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END indTime--><!--ET_END startTime--><!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#indTime#]</div><!--ET_END indTime-->"));
         }
