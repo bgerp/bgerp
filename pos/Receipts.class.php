@@ -1558,11 +1558,11 @@ class pos_Receipts extends core_Master {
     	$query->where("#state = 'waiting' OR #state = 'draft'");
     	$query->orderBy("#state");
     	
-    	$conf =core_Packs::getConfig('pos');
+    	$conf = core_Packs::getConfig('pos');
     	
     	while($rec = $query->fetch()){
     		$num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
-    		$stateClass = ($rec->state == 'draft') ? "state-opened" : "state-active";
+    		$stateClass = ($rec->state == 'draft') ? "state-draft" : "state-waiting";
     		
     		if($this->haveRightFor('terminal', $rec)){
     			$num = ht::createLink($num, array($this, 'terminal', $rec->id));
@@ -1570,7 +1570,13 @@ class pos_Receipts extends core_Master {
     			$num = ht::createLink($num, array($this, 'single', $rec->id));
     		}
     		
-    		$num = " <span class='open-note {$stateClass}'>{$num}</span>";
+    		if($rec->state == 'draft'){
+    			if($rec->total != 0){
+    				$num = ht::createHint($num, 'Бележката е започната но не е приключена', 'warning', FALSE);
+    			}
+    		}
+    		$num = " <span class='open-note {$stateClass}' style='border:1px solid #a6a8a7'>{$num}</span>";
+    		
     		$data->rows[$rec->id] = $num;
     	}
     }
@@ -1585,7 +1591,7 @@ class pos_Receipts extends core_Master {
     public function renderReceipts($data)
     {
     	$tpl = new ET('');
-    	$str = implode(',', $data->rows);
+    	$str = implode('', $data->rows);
         $tpl->append($str);	
          
     	return $tpl;
