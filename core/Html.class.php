@@ -578,7 +578,7 @@ class core_Html
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
-            $content = $url['id'] ? $url['id'] : $url[2]; 
+            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]); 
             if($content) {
                 $url['Cf'] = core_Request::getSessHash($content); 
             }
@@ -753,7 +753,7 @@ class core_Html
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
-            $content = $url['id'] ? $url['id'] : $url[2]; 
+            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]); 
             if($content) {
                 $url['Cf'] = core_Request::getSessHash($content); 
             }
