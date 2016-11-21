@@ -8,18 +8,12 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class cat_Boms extends core_Master
 {
-   
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_Boms';
 	
 	
    /**
@@ -37,25 +31,19 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт,title=Документ,productId=За артикул,type,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "title=Документ,productId=За артикул,type,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'productId,notes';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -668,7 +656,7 @@ class cat_Boms extends core_Master
     	$rec->modifiedOn = dt::now();
     	$this->save($rec, 'modifiedOn');
     	
-    	return new Redirect(array($this, 'single', $id), '|Себестойността е преизчислена успешно');
+    	return new Redirect(array($this, 'single', $id), 'Себестойността е преизчислена успешно');
     }
     
     
@@ -787,22 +775,17 @@ class cat_Boms extends core_Master
     public function prepareBoms(&$data)
     {
     	$data->rows = array();
-    	$data->hideToolsCol = TRUE;
     	
     	// Намираме неоттеглените задания
     	$query = cat_Boms::getQuery();
+    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+    	
     	$query->where("#productId = {$data->masterId}");
     	$query->where("#state != 'rejected'");
-    	$query->orderBy("id", 'DESC');
+    	$query->orderBy("orderByState", 'ASC');
     	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
-    		if($this->haveRightFor('edit', $rec)){
-    			$data->hideToolsCol = FALSE;
-    		}
-    	}
-    	 
-    	if(Mode::isReadOnly()){
-    		$data->hideToolsCol = TRUE;
     	}
     	
     	$masterInfo = cat_Products::getProductInfo($data->masterId);
@@ -844,13 +827,10 @@ class cat_Boms extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=Количество,createdBy=Oт||By,createdOn=На');
-    	 if($data->hideToolsCol){
-    	 	unset($listFields['tools']);
-    	 }
-    	 
-    	 $table = cls::get('core_TableView', array('mvc' => $this));
-    	 $details = $table->get($data->rows, $listFields);
+    	 $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=Oт||By,createdOn=На');
+		 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+    	 $details = $table->get($data->rows, $data->listFields);
     	 
     	 // Ако артикула не е производим, показваме в детайла
     	 if($data->notManifacturable === TRUE){
@@ -1453,6 +1433,24 @@ class cat_Boms extends core_Master
     		}
     		
     		$rec->quantity = $roundQuantity;
+    		
+    		$firstDocument = doc_Containers::getDocument($rec->originId);
+    		if(empty($rec->id) && $firstDocument->isInstanceOf('planning_Jobs')){
+    			
+    			// Ако има търговска рецепта за друго количество, при създаване на работната
+    			// се добавя предупреждение, ако има разминаване в к-та
+    			$bRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
+    			if(!empty($bRec)){
+    				if($bRec->quantity != $rec->quantity){
+    					$q1 = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($bRec->quantity);
+    					$q2 = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantity);
+    					$uom = cat_Uom::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    					$handle = cat_Boms::getLink($bRec->id, 0);
+    					
+    					$form->setWarning('quantity', "|Данните от търговската рецепта|* {$handle} |няма да се прехвърлят защото тя е за|* <b>{$q1} {$uom}</b>, |а работната рецепта е за|* <b>{$q2} {$uom}</b>");
+    				}
+    			}
+    		}
     	}
     }
 }
