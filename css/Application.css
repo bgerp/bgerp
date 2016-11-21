@@ -553,6 +553,8 @@ tr.row-removed {
     padding: 15px 15px 15px 15px; }
   .user-profile .detail-info {
     background: white; }
+    .user-profile .detail-info .groupTitle {
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, white 100%); }
   .user-profile .detail-info.portal .dt {
     width: 1%;
     min-width: 85px; }
