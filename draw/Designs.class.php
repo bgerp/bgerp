@@ -115,7 +115,13 @@ class draw_Designs extends core_Master
      */
     static function on_AfterPrepareEditform($mvc, &$data)
     {
-        $data->form->setSuggestions('script', array(
+        $pens = array();
+        $query = draw_Pens::getQuery();
+        while($pRec = $query->fetch()){
+            $pens[$pRec->name] = "#" . $pRec->name;
+        }
+
+        $suggestions = array(
             'ArcTo(' => 'ArcTo(',
             'CloseGroup(' => 'CloseGroup(',
             'CloseLayer(' => 'CloseLayer(',
@@ -131,7 +137,10 @@ class draw_Designs extends core_Master
             'PolarLineTo(' => 'PolarLineTo(',
             'SavePoint(' => 'SavePoint(',
             'Set(' => 'Set(',
-            ));
+        );
+        $suggestions = $pens + $suggestions;
+
+        $data->form->setSuggestions('script', $suggestions);
     }
 
 
@@ -444,7 +453,7 @@ class draw_Designs extends core_Master
     {
         if(isset($params[0])) {
 
-            $pen = draw_Pens::fetch(array("#name = '[#1#]'", trim($params[0])));
+            $pen = draw_Pens::fetch(array("#name = '[#1#]'", ltrim($params[0], "#")));
 
             if(!$pen) {
                 $error = "Липсващ молив: \"" . $params[1] . "\"";
@@ -538,7 +547,7 @@ class draw_Designs extends core_Master
     public static function cmd_SavePoint($params, &$svg, &$contex, &$error)
     {
         list($x, $y) = $svg->getCP();
-        
+
         $varX = ltrim($params[0], '$ ');
         if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/i", $varX)) {
             $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
