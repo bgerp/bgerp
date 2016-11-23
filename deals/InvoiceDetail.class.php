@@ -160,33 +160,47 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{	
 		// Ако документа е известие
 		if($rec->type === 'dc_note'){
-			if(count($recs)){
-				// Намираме оригиналните к-ва и цени 
-				$cached = $this->Master->getInvoiceDetailedInfo($rec->originId);
-				
-				// За всеки запис ако е променен от оригиналния показваме промяната
-				$count = 0;
-				foreach($recs as &$dRec){
-					$originRef = $cached->recs[$count][$dRec->productId];
-					
-					$diffQuantity = $dRec->quantity - $originRef['quantity'];
-					$diffPrice = $dRec->packPrice - $originRef['price'];
-					
-					if(round($diffQuantity, 5) != 0){
-						$dRec->quantity = $diffQuantity;
-						$dRec->changedQuantity = TRUE;
-					}
-					
-					if(round($diffPrice, 5) != 0){
-						$dRec->packPrice = $diffPrice;
-						$dRec->changedPrice = TRUE;
-					}
-					$count++;
-				}
-			}
+			self::modifyDcDetails($recs, $rec, $this);
 		}
 		
 		deals_Helper::fillRecs($this->Master, $recs, $rec, $this->map);
+	}
+	
+	
+	/**
+	 * Помощна ф-я за обработката на записите на КИ и ДИ
+	 * 
+	 * @param stdClass $recs
+	 * @param stdClass $rec
+	 */
+	public static function modifyDcDetails(&$recs, $rec, $mvc)
+	{
+		expect($rec->type === 'dc_note');
+		
+		if(count($recs)){
+			// Намираме оригиналните к-ва и цени
+			$cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
+		
+			// За всеки запис ако е променен от оригиналния показваме промяната
+			$count = 0;
+			foreach($recs as &$dRec){
+				$originRef = $cached->recs[$count][$dRec->productId];
+					
+				$diffQuantity = $dRec->quantity - $originRef['quantity'];
+				$diffPrice = $dRec->packPrice - $originRef['price'];
+					
+				if(round($diffQuantity, 5) != 0){
+					$dRec->quantity = $diffQuantity;
+					$dRec->changedQuantity = TRUE;
+				}
+					
+				if(round($diffPrice, 5) != 0){
+					$dRec->packPrice = $diffPrice;
+					$dRec->changedPrice = TRUE;
+				}
+				$count++;
+			}
+		}
 	}
 	
 	
@@ -219,7 +233,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				if($rec->{"changed{$key}"} === TRUE){
 					$changed = TRUE;
 					if($rec->{$fld} < 0){ 
-						$row->{$fld} = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
 						$row->{$fld} = "<span style='color:red'>{$row->{$fld}}</span>";
 					} elseif($rec->{$fld} > 0){
 						$row->{$fld} = "<span style='color:green'>+{$row->{$fld}}</span>";

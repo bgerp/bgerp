@@ -607,7 +607,7 @@ class email_Router extends core_Manager
     {
         $rec->folderId = email_Inboxes::forceFolder($rec->toBox);
 
-        if(!$rec->folder) {
+        if(!$rec->folderId) {
             $accRec = email_Accounts::fetch($rec->accId);
             $rec->folderId = email_Inboxes::forceFolder($accRec->email);
         }
