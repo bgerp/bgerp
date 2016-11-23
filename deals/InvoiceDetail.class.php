@@ -233,7 +233,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				if($rec->{"changed{$key}"} === TRUE){
 					$changed = TRUE;
 					if($rec->{$fld} < 0){ 
-						$row->{$fld} = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
 						$row->{$fld} = "<span style='color:red'>{$row->{$fld}}</span>";
 					} elseif($rec->{$fld} > 0){
 						$row->{$fld} = "<span style='color:green'>+{$row->{$fld}}</span>";
