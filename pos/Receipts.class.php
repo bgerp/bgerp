@@ -1564,15 +1564,17 @@ class pos_Receipts extends core_Master {
     		$num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
     		$stateClass = ($rec->state == 'draft') ? "state-draft" : "state-waiting";
     		
-    		if($this->haveRightFor('terminal', $rec)){
-    			$num = ht::createLink($num, array($this, 'terminal', $rec->id));
-    		} elseif($this->haveRightFor('single', $rec)){
-    			$num = ht::createLink($num, array($this, 'single', $rec->id));
+    		if(!Mode::isReadOnly()){
+    			if($this->haveRightFor('terminal', $rec)){
+    				$num = ht::createLink($num, array($this, 'terminal', $rec->id));
+    			} elseif($this->haveRightFor('single', $rec)){
+    				$num = ht::createLink($num, array($this, 'single', $rec->id));
+    			}
     		}
     		
     		if($rec->state == 'draft'){
     			if($rec->total != 0){
-    				$num = ht::createHint($num, 'Бележката е започната но не е приключена', 'warning', FALSE);
+    				$num = ht::createHint($num, 'Бележката е започната, но не е приключена', 'warning', FALSE);
     			}
     		}
     		$num = " <span class='open-note {$stateClass}' style='border:1px solid #a6a8a7'>{$num}</span>";

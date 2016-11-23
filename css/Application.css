@@ -3530,6 +3530,8 @@ div.location.public {
  */
 .open-note {
   padding: 2px;
+  margin: 1px 0 5px;
+  display: inline-block;
   border-radius: 3px; }
 
 /*
