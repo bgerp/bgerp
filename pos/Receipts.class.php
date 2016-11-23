@@ -1574,7 +1574,7 @@ class pos_Receipts extends core_Master {
     		
     		if($rec->state == 'draft'){
     			if($rec->total != 0){
-    				$num = ht::createHint($num, 'Бележката е започната но не е приключена', 'warning', FALSE);
+    				$num = ht::createHint($num, 'Бележката е започната, но не е приключена', 'warning', FALSE);
     			}
     		}
     		$num = " <span class='open-note {$stateClass}' style='border:1px solid #a6a8a7'>{$num}</span>";
