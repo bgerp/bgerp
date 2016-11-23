@@ -200,6 +200,7 @@ class cal_Reminders extends core_Master
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
         						   notify=Нотификация,
+                                   notifyNoAns = Нотификация-ако няма отговор,
         						   replicateDraft=Чернова-копие на темата,
         						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify,changable');
         
@@ -239,17 +240,11 @@ class cal_Reminders extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	$cu = core_Users::getCurrent();
-    	$currUrl = getCurrentUrl();
-    	$now = dt::now();
-        $data->form->setDefault('priority', 'normal');
-        $data->form->setDefault('sharedUsers', "|".$cu."|");
-		
-		$Cover = doc_Folders::getCover($data->form->rec->folderId);
+ 		$Cover = doc_Folders::getCover($data->form->rec->folderId);
 		
 		// Трябва да е в папка на лице или на фирма
-		if ($Cover->className == 'crm_Persons' && $Cover->className == 'crm_Companies') {
-		    $mvc->getFieldType(action)->options['notifyNoAns'] = tr("Нотификация-ако няма отговор");
+		if (!($Cover->className == 'crm_Persons' && $Cover->className == 'crm_Companies')) {
+		    unset($mvc->getFieldType('repetitionType')->options['notifyNoAns']);
 		}
 
 		$arr = array(""=>"") + static::$suggestions;
@@ -263,30 +258,25 @@ class cal_Reminders extends core_Master
             $for = tr('|За|*: ');
             $title = $for . $title;
               
-            $todey = dt::now();
+        }
+
+        if(!$data->form->rec->id) {
+
+      	    $cu = core_Users::getCurrent();
             $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
             
             $time = strstr($nextWorkDay, " ", TRUE). " 08:00";
   
             $data->form->setDefault('timeStart', $time);
             $data->form->setDefault('title', $title);
+            $data->form->setDefault('priority', 'normal');
+            $data->form->setDefault('sharedUsers', "|".$cu."|");
         }
+
         
 		if(Mode::is('screenMode', 'narrow')){
 			$data->form->fields['priority']->maxRadio = 2;
 		}
-		
-		// Ако правим промянана напомнянето. Слагаме началната дата да е следващото напомняне
-		if ($currUrl['Act'] == 'changeFields') {
-			if ($data->form->rec->id) {
-				
-				$nextStartTime = self::fetchField($data->form->rec->id, 'nextStartTime');
-
-				if ($nextStartTime > $now) { 
-					$data->form->rec->timeStart = $nextStartTime;
-				}
-			}
-		}	
     }
 
 
@@ -308,7 +298,7 @@ class cal_Reminders extends core_Master
     	    if (isset($form->rec->timeStart)) {
         	    if ($form->rec->timeStart < $now){
             		// Добавяме съобщение за грешка
-                    $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
+                    $form->setWarning('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
             	}
     	    } else {
     	        if (!$form->rec->id) {
@@ -326,12 +316,7 @@ class cal_Reminders extends core_Master
     			}
     		}
     		
-        	if (!$form->gotErrors()){
-        		$form->rec->nextStartTime = $mvc->calcNextStartTime($form->rec);
-        	}
         } 
-        
-    	$rec = $form->rec;
     }
     
 
@@ -348,6 +333,9 @@ class cal_Reminders extends core_Master
     		    $fullRec->timeStart = dt::now();
     		}
     	}
+ 
+        $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
+
     }
 
     
@@ -842,38 +830,95 @@ class cal_Reminders extends core_Master
 							}
 							
 						break;
-						
+
+ 						
 						case 'replicateDraft':
+                            self::replicateThread($rec, TRUE);
 						break;
 						
-						case 'replicate':
+						case 'replicate':  
+                            self::replicateThread($rec);
 						break;
 					}
 				}
 			}
 		}
     }
-    
-    
+
+
     /**
-     * За тестове
+     * Функция, която репликира нишката в същата папка
      */
-    public function act_Test()
+    public static function replicateThread($rec, $draft = FALSE, $emulateNextTime = TRUE)
     {
-    	$rec = new stdClass();
-    	$rec->timeStart = '2016-10-18 15:10';
-    	$rec->repetitionEach = 1;
-    	$rec->repetitionType = 'days';
-    	$rec->repetitionAbidance = 'weekDay';
-    	
-     
-    	$res = self::getNextStartingTime2($rec);    	    	
-     	
-    	bp($res);
-    	
-    	//bp($rec);
+        $tRec = doc_Threads::fetch($rec->threadId);
+        $fcRec = doc_Containers::fetch($tRec->firstContainerId);
+
+        $fcMvc = cls::get($fcRec->docClass);
+        
+        // Първият документ в нишката
+        $fdRec = $fcMvc->fetch($fcRec->docId);
+
+        $newRec = clone($fdRec);
+
+        unset($newRec->id, $newRec->threadId, $newRec->containerId, $newRec->createdOn, $newRec->modifiedOn, $newRec->rejectedOn);
+        
+        if($draft) {
+            $newRec->state = 'draft';
+        }
+        
+        $now = dt::now();
+
+        if($emulateNextTime) {
+            $now = $rec->nextStartTime;
+        }
+
+        // Променяме датите, спрямо сегашните
+        $secs = dt::secsBetween($now, $rec->timeStart);
+        
+        // Не правим нищо, ако за първи път сработва нотификацията
+        if($secs - $rec->timePreviously < 100) return;
+
+        foreach($fcMvc->fields as $name => $field) {
+            $type = $field->type;
+            if(($type instanceof type_Date) || ($type instanceof type_DateTime)) {
+                if(isset($newRec->{$name}) && $field->input != 'none' && $field->input != 'hidden') { 
+                    $newRec->{$name} = dt::addSecs($secs, $newRec->{$name});
+                }
+            }
+        }
+        
+        if(isset($newRec->title)) {
+            $tf = 'title';
+        } elseif(isset($newRec->name)) {
+            $tf = 'name';
+        }
+
+        if($tf) {
+            $dateFormats = array(
+                ' d-m-Y ',
+                ' m-Y ',
+                ' M-Y ',
+                ' F-Y ',
+                ' Y ',
+                );
+            
+            foreach($dateFormats as $df) {
+                $trans[dt::mysql2verbal($rec->timeStart, $df, 'bg')] = dt::mysql2verbal($now, $df, 'bg');
+                $trans[dt::mysql2verbal($rec->timeStart, $df, 'en')] = dt::mysql2verbal($now, $df, 'en');
+            }
+ 
+            foreach($trans as $from => $to) {
+                $from = '/' . str_replace('-', '[ \-\.\/\\\]', $from) . '/ui';
+                $to = ' ' . $to . ' ';
+                $newRec->{$tf} = preg_replace($from, $to, ' '. $newRec->{$tf} . ' ');
+            }
+        }
+
+        $fcMvc->save($newRec);
     }
     
+     
     
     static function getNextStartingTime2($rec)
     {
@@ -882,14 +927,13 @@ class cal_Reminders extends core_Master
         }
         
         $rec2 = clone($rec);
-        
-        if($rec2->nextStartTime) {
-            $rec2->timeStart = $rec2->nextStartTime;
+ 
+        if($rec2->timeStart > dt::now()) {
+            return $rec2->timeStart;
         }
         
-        
         do {
-            $rec2->timeStart = self::calcNextStartTime($rec2);
+            $rec2->timeStart = self::calcNextStartTime($rec2); 
         } while($rec2->timeStart <= dt::now());
 
         return $rec2->timeStart;
