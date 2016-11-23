@@ -160,7 +160,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{	
 		// Ако документа е известие
 		if($rec->type === 'dc_note'){
-			self::modifyDcDetails($recs, $rec);
+			self::modifyDcDetails($recs, $rec, $this);
 		}
 		
 		deals_Helper::fillRecs($this->Master, $recs, $rec, $this->map);
@@ -173,13 +173,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 * @param stdClass $recs
 	 * @param stdClass $rec
 	 */
-	public static function modifyDcDetails(&$recs, $rec)
+	public static function modifyDcDetails(&$recs, $rec, $mvc)
 	{
 		expect($rec->type === 'dc_note');
 		
 		if(count($recs)){
 			// Намираме оригиналните к-ва и цени
-			$cached = cls::get('sales_Invoices')->getInvoiceDetailedInfo($rec->originId);
+			$cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
 		
 			// За всеки запис ако е променен от оригиналния показваме промяната
 			$count = 0;
