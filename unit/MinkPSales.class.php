@@ -1236,11 +1236,11 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Discount: USD 20,39')) {
+        if(strpos($browser->gettext(), 'Discount: USD 10,31')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
-        if(strpos($browser->gettext(), 'One hundred and eighty-three USD and 0,55')) {
+        if(strpos($browser->gettext(), 'Five hundred and ninety-two USD and 0,96')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -1256,80 +1256,30 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
     
-        // Кредитно известие - сума
-        $browser->press('Известие');
-        $browser->setValue('changeAmount', '-22.36');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Minus twenty-six USD and 0,83')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в КИ - сума', 'warning');
-        }
-        if(strpos($browser->gettext(), 'Amount reducing')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешка в КИ - текст', 'warning');
-        }
-        // Кредитно известие - количество
+        // Кредитно известие за цялата сума
         $browser->press('Известие');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        $browser->setValue('quantity', '20');
+        $browser->setValue('quantity', '0');
         $browser->press('Запис');
+        
+        return $browser->getHtml();
+        // зануляване на кол. на втория артикул
+        //$browser->click('Редактиране на артикул');
+        //$browser->setValue('quantity', '0');
+        //$browser->press('Запис');
+        
+        
+     
+       
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Minus one hundred and forty-two USD and 0,76')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
         }
     
-        // Кредитно известие - цена
-        $browser->press('Известие');
-        $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '1.3');
-        $browser->press('Запис');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Minus forty-three USD and 0,15')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в КИ - цена', 'warning');
-        }
-    
-        // Дебитно известие - сума
-        $browser->press('Известие');
-        $browser->setValue('changeAmount', '22.20');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Twenty-six USD and 0,64')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - сума', 'warning');
-        }
-        if(strpos($browser->gettext(), 'Amount increasing')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешка в ДИ - текст', 'warning');
-        }
-    
-        // Дебитно известие - количество
-        $browser->press('Известие');
-        $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
-        $browser->setValue('quantity', '100');
-        $browser->press('Запис');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Twenty USD and 0,40')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - количество', 'warning');
-        }
-    
-        // Дебитно известие - цена
-        $browser->press('Известие');
-        $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '1.82');
-        $browser->press('Запис');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Thirteen USD and 0,01')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - цена', 'warning');
-        }
+       
+      
     
     }
     /**
