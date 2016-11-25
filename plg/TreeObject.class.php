@@ -515,6 +515,30 @@ class plg_TreeObject extends core_Plugin
 	
 	
 	/**
+	 * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
+	 */
+	private static function getParents($mvc, $id, $allRecs, &$res = array())
+	{
+		$descendants = array();
+		foreach ($allRecs as $key => $cRec){
+			if($cRec->{$mvc->parentFieldName} == $id){
+				$descendants[$key] = $cRec;
+			}
+		}
+	
+		$res = array_merge($res, $descendants);
+	
+		if(count($descendants)){
+			foreach ($descendants as $dRec){
+				self::getDescendants($mvc, $dRec->id, $allRecs, $res);
+			}
+		}
+	
+		return $res;
+	}
+	
+	
+	/**
 	 * Метод по подразбиране, връщащ обединението на множествата на записите, които
 	 * са наследници на друга група от записи
 	 * 
@@ -558,6 +582,45 @@ class plg_TreeObject extends core_Plugin
 			}
 			
 			// Връщаме намерените резултати
+			$res = $array;
+		}
+	}
+	
+	
+	/**
+	 * Метод по подразбиране, връщащ обединението на множествата на записите, и техните бащи
+	 *
+	 * @param core_Mvc $mvc         - мениджър
+	 * @param array|NULL $res       - намереното обединение
+	 * @param array|string $keylist - кейлист с записи, чиито наследници търсим
+	 */
+	public static function on_AfterGetParentsArray($mvc, &$res, $keylist)
+	{
+		if(!$res){
+				
+			// Подсигуряваме се че работим с масив
+			if(!is_array($keylist)){
+				$keylist = keylist::toArray($keylist);
+			}
+				
+			$array = array();
+				
+			// За всяко от подадените ид-та
+			foreach ($keylist as $id){
+				
+				// Добавяме го към множеството
+				$array[$id] = $id;
+				$rec = $mvc->fetch($id);
+				
+				// Добавяме и всички негови бащи
+				$parent = $rec->{$mvc->parentFieldName};
+				
+				while($parent && ($pRec = $mvc->fetch("#id = {$parent}", "id,{$mvc->parentFieldName}"))) {
+					$array[$pRec->id] = $pRec->id;
+					$parent = $pRec->{$mvc->parentFieldName};
+				}
+			}
+			
 			$res = $array;
 		}
 	}
