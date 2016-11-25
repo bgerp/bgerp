@@ -120,7 +120,6 @@ class draw_Designs extends core_Master
         while($pRec = $query->fetch()){
             $pens[$pRec->name] = "#" . $pRec->name;
         }
-
         $suggestions = array(
             'ArcTo(' => 'ArcTo(',
             'CloseGroup(' => 'CloseGroup(',
@@ -138,6 +137,20 @@ class draw_Designs extends core_Master
             'SavePoint(' => 'SavePoint(',
             'Set(' => 'Set(',
         );
+        $id = Request::get("id", "int");
+
+        if($id) {
+            $rec = self::fetch($id);
+        }
+
+        if($script = $rec->script) {
+            $script = " " . str_replace(array('-', '+', '*', '/', '(', ')', ',', "\n", "\r", "\t"), " ", $script) . " ";
+            preg_match_all("/ (\\$[a-z0-9_]{1,64}) /i", $script, $matches);
+            foreach($matches[1] as $varName) {
+                $suggestions[$varName] = $varName;
+            }
+        }
+
         $suggestions = $pens + $suggestions;
 
         $data->form->setSuggestions('script', $suggestions);

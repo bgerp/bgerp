@@ -2,7 +2,7 @@
     [#SingleToolbar#]
 
     <h3>
-        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Скрипт|* <b style="color:green;display:inline-block;word-break:break-all">[#name#]</b></div>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Скрипт|* <b style="color:green;display:inline-block;">[#name#]</b></div>
     </h3>
     <!--ET_BEGIN lastUsedOn-->
     <table class="styled-table" style='width:99%'>
