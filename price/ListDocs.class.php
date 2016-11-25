@@ -142,6 +142,9 @@ class price_ListDocs extends core_Master
     	$this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
     	$this->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)', 'caption=Шаблон,notNull,default=yes');
+    
+    	$this->FLD('round', 'int', 'caption=Закръгляне на цена->В мярка');
+    	$this->FLD('roundPack', 'int', 'caption=Закръгляне на цена->В опаковка');
     }
     
     
@@ -567,19 +570,23 @@ class price_ListDocs extends core_Master
     private function alignPrices(&$data)
     {
     	$Double = cls::get('type_Double');
+    	
+    	$roundM = $data->rec->round;
+    	$roundP = $data->rec->roundPack;
+    	
     	foreach ($data->rec->products->rows as $groupId => &$products2){
 			foreach ($products2 as $index => &$row){
 				$rec = $data->rec->products->recs[$groupId][$index];
 				
 				if($row->priceM){
 					$round = strlen(substr(strrchr($rec->priceM, "."), 1));
-					$Double->params['decimals'] = ($round < 2) ? 2 : $round;
+					$Double->params['decimals'] = (isset($roundM)) ? $roundM : (($round < 2) ? 2 : $round);
 					$row->priceM = $Double->toVerbal($rec->priceM);
 				}
 				
 				if($row->priceP){
 					$round = strlen(substr(strrchr($rec->priceP, "."), 1));
-					$Double->params['decimals'] = ($round < 2) ? 2 : $round;
+					$Double->params['decimals'] = (isset($roundP)) ? $roundP : (($round < 2) ? 2 : $round);
 					$row->priceP = $Double->toVerbal($rec->priceP);
 				}
 			}
@@ -601,8 +608,13 @@ class price_ListDocs extends core_Master
     	}
     	
     	$fieldset = cls::get('core_FieldSet');
-    	$fieldset->FLD('priceM', 'double(decimals=6)');
-    	$fieldset->FLD('priceP', 'double(decimals=6)');
+    	if(!isset($roundM)){
+    		$fieldset->FLD('priceM', 'double(decimals=6)');
+    	}
+    	
+    	if(!isset($roundP)){
+    		$fieldset->FLD('priceP', 'double(decimals=6)');
+    	}
     	
     	plg_AlignDecimals2::alignDecimals($fieldset, $recs1, $rows1);
     }
