@@ -351,6 +351,8 @@ class price_ListDocs extends core_Master
     	
     	$customerProducts = price_ListRules::getProductOptions();
     	unset($customerProducts['pu']);
+    	
+    	
     	$aGroups = cat_Groups::getDescendantArray($rec->productGroups);
     	
     	if($customerProducts){
@@ -365,7 +367,8 @@ class price_ListDocs extends core_Master
 		    	}
 		    	
 		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
-		    	($arr) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
+		    	$arr = cat_Groups::getParentsArray($arr);
+		    	(count($arr)) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
 		    	
 		    	$rec->details->products[$productRec->id] = (object)array(
 		    								   'productId' => $productRec->id,
@@ -623,7 +626,7 @@ class price_ListDocs extends core_Master
 					// Слагаме името на групата
 					$groupTpl = clone $detailTpl;
 					if($groupId){
-						$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
+						$groupTpl->replace(cat_Groups::getVerbal($groupId, 'name'), 'GROUP_NAME');
 					} else {
 						$groupTpl->replace(tr('Без група'), 'GROUP_NAME');
 					}
