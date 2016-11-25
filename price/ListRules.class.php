@@ -319,7 +319,7 @@ class price_ListRules extends core_Detail
         $query->limit(1);
        
         $rec = $query->fetch();
-       	$listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge');
+       	$listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge,significantDigits,minDecimals');
         $round = TRUE;
        	
         if($rec) {
