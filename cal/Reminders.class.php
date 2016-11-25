@@ -861,7 +861,7 @@ class cal_Reminders extends core_Master
 
         $newRec = clone($fdRec);
 
-        unset($newRec->id, $newRec->threadId, $newRec->containerId, $newRec->createdOn, $newRec->modifiedOn, $newRec->rejectedOn);
+        unset($newRec->id, $newRec->threadId, $newRec->containerId, $newRec->createdOn, $newRec->modifiedOn, $newRec->rejectedOn, $newRec->sharedViews);
         
         if($draft) {
             $newRec->state = 'draft';
@@ -884,6 +884,8 @@ class cal_Reminders extends core_Master
             if(($type instanceof type_Date) || ($type instanceof type_DateTime)) {
                 if(isset($newRec->{$name}) && $field->input != 'none' && $field->input != 'hidden') { 
                     $newRec->{$name} = dt::addSecs($secs, $newRec->{$name});
+                } else {
+                    $newRec->{$name} = NULL;
                 }
             }
         }
