@@ -1263,24 +1263,24 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('quantity', '0');
         $browser->press('Запис');
         
-        return $browser->getHtml();
-        // зануляване на кол. на втория артикул
+        //return $browser->getHtml();
+        //// зануляване на кол. на втория артикул
         //$browser->click('Редактиране на артикул');
         //$browser->setValue('quantity', '0');
         //$browser->press('Запис');
         
-        
+        //// зануляване на кол. на третия артикул
+        //$browser->click('Редактиране на артикул');
+        //$browser->setValue('quantity', '0');
+        //$browser->press('Запис');
      
        
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Minus one hundred and forty-two USD and 0,76')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
-        }
-    
-       
-      
-    
+        //if(strpos($browser->gettext(), 'Minus one hundred and forty-two USD and 0,76')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
+        //}
+     
     }
     /**
      * Продажба - схема с авансово плащане, Включено ДДС в цените
