@@ -4,7 +4,6 @@ class spas_Test extends core_Mvc
 {
     function act_Test()
     {  
-
         $form = cls::get('core_Form');
         $form->FLD('message', 'text', 'caption=MIME съобщение,mandatory');
         $form->toolbar->addSbBtn('Тест');

@@ -22,10 +22,11 @@ class plg_SystemWrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->pageMenu = 'Система';
+        $this->pageMenu = 'Настройки';
         
-        $this->TAB('core_Packs', 'Пакети->Списък', 'admin');
-        $this->TAB('core_Updates', 'Пакети->Версии', 'admin');
+        $this->TAB('core_Packs', 'Код->Пакети', 'admin');
+        $this->TAB('core_Updates', 'Код->Версии', 'admin');
+        $this->TAB('core_Maintenance', 'Код->Поддръжка', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
         $this->TAB('core_Lg', 'Превод', 'admin');

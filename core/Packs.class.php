@@ -240,6 +240,82 @@ class core_Packs extends core_Manager
         return new Redirect($retUrl, $res);
     }
     
+
+
+    public function act_InvalidateMigrations()
+    {
+        $data = self::getConfig('core')->_data;
+        
+        $migrations = $nonValid = array();
+
+
+        $form = cls::get('core_Form');
+        $form->FLD('migrations', 'set()', 'caption=Миграции->Успешни');
+        $form->FLD('nonValid', 'set()', 'caption=Миграции->Невалидни');
+
+        $rec = $form->input();
+        
+        $retUrl = getRetUrl();
+         
+        // Ако формата е успешно изпратена - запис, лог, редирект
+        if ($form->isSubmitted()) {    
+
+            $inv = arr::make($rec->migrations);
+            foreach($inv as $key) {
+                $migName = 'migration_' . $key;
+                $data[$migName] = FALSE;
+            }
+            $inv = arr::make($rec->nonValid);
+            foreach($inv as $key) {
+                $migName = 'migration_' . $key;
+                $data[$migName] = TRUE;
+            }
+      
+            self::setConfig('core', $data);
+        }
+        
+        foreach($data as $key => $true) {
+            if(substr($key, 0, 10) == 'migration_') {
+                $key = substr($key, 10);
+                if($true) {
+                    $migrations[$key] = $key;
+                } else {
+                    $nonValid[$key] = $key;
+                }
+            }
+        }
+        
+        if(count($migrations)) {
+            $form->setSuggestions('migrations', $migrations);
+        } else {
+            $form->setField('migrations', 'input=none');
+        }
+        
+        if(count($nonValid)) {
+            $form->setSuggestions('nonValid', $nonValid);
+        } else {
+            $form->setField('nonValid', 'input=none');
+        }
+
+        if(count($migrations) || count($nonValid)) {
+            $form->toolbar->addSbBtn('Инвалидирай');
+        } else {
+            $form->info = "Все още няма минали миграции";
+        }
+
+        $form->title = 'Инвалидиране на избраните миграции';
+
+        $form->toolbar->addBtn('Отказ', $retUrl);
+        
+        
+        $res = $form->renderHtml();
+        
+        $this->currentTab = 'Пакети->Поддръжка';
+
+        return $this->renderWrapping($res, $form);
+
+
+    }
     
     /**
      * Връща масив с имената на всички инсталирани пакети
@@ -1019,6 +1095,7 @@ class core_Packs extends core_Manager
     
     /**
      * Задаваме стойност за ключ от пакета, ако не е зададен
+     * Може и да се форсира
      * 
      * @param string $pack
      * @param string $dataKey
@@ -1026,7 +1103,7 @@ class core_Packs extends core_Manager
      * 
      * @return boolean
      */
-    static function setIfNotConfigKey($pack, $dataKey, $dataVal)
+    static function setIfNotConfigKey($pack, $dataKey, $dataVal, $force = FALSE)
     {
         // Вземаме конфига
         $confWebkit = core_Packs::getConfig($pack);
@@ -1034,7 +1111,7 @@ class core_Packs extends core_Manager
         $oldVal = core_Packs::getConfigKey($confWebkit, $dataKey);
         
         // Ако не е избрана нищо
-        if (!isset($oldVal)) {
+        if (!isset($oldVal) || $force) {
             
             $data[$dataKey] = $dataVal;
             
@@ -1274,4 +1351,5 @@ class core_Packs extends core_Manager
     	
     	return FALSE; 
     }
+
 }
