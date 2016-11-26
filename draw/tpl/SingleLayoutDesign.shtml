@@ -23,6 +23,5 @@
     <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
     <!--ET_END modify-->
     <div style="margin-bottom: 20px;"><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-
-    [#DETAILS#]
 </div>
+    [#DETAILS#]

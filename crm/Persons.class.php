@@ -2676,23 +2676,30 @@ class crm_Persons extends core_Master
     	$res = array();
     	 
     	$rec = $this->fetch($id);
-    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
-    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
-    	$debitGroupId = crm_Groups::getIdFromSysId('debitors');
-    	$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	
+    	static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
+    	
+    	if(!isset($clientGroupId)) {
+    		$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    		$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    		$debitGroupId = crm_Groups::getIdFromSysId('debitors');
+    		$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	}
+    	
+    	$groupList = crm_Groups::getParentsArray($rec->groupList);
     	
     	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
-    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    	if(in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)){
     		$res[] = 'findeals_Deals';
     	}
     	
     	// Ако е в група на клиент, показваме бутона за продажба
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
-    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
     	}
     	 
