@@ -42,7 +42,7 @@ class crm_CommerceDetails extends core_Manager
 		// Подготвяме клиентските карти
 		$data->Cards->prepareCards($data->cardData);
 		
-		// Подготвяме клиентските карти
+		// Подготвяме листови продукти
 		$data->ProductList->prepareProductList($data->pListData);
 	}
 	
