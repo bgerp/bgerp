@@ -2157,13 +2157,13 @@ class crm_Persons extends core_Master
         $cnt = $rArr['crm_Persons'] + $rArr['crm_Companies'];
         
         if ($cnt == 0) {
-            $msg = '|Няма ключове за поправяне';
+            $msg = '|Няма визитки за ре-индексиране';
         } else {
             
             if ($cnt == 1) {
-                $msg = "|Поправен|* {$cnt} |запис";
+                $msg = "|Ре-индексиран|* {$cnt} |запис";
             } else {
-                $msg = "|Поправени|* {$cnt} |записа";
+                $msg = "|Ре-индексиран|* {$cnt} |записа";
             }
         }
         
