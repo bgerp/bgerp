@@ -17,7 +17,6 @@
 class core_Maintenance extends core_Manager
 {
     
-    
     /**
      * Заглавие на мениджъра
      */
@@ -35,7 +34,6 @@ class core_Maintenance extends core_Manager
      */
     public $loadList = 'plg_SystemWrapper';
 
- 
 
     /**
      *
@@ -60,7 +58,7 @@ class core_Maintenance extends core_Manager
                 }
             }
         }
- 
+        
         return $this->renderWrapping("<div style='display:table-cell'>" . $res . "</div>", $data);
     }
 

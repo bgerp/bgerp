@@ -60,7 +60,7 @@ class core_Packs extends core_Manager
     
     
     /**
-     * 
+     * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_SystemWrapper, plg_Search, plg_State';
     
@@ -310,7 +310,7 @@ class core_Packs extends core_Manager
         
         $res = $form->renderHtml();
         
-        $this->currentTab = 'Пакети->Поддръжка';
+        $this->currentTab = 'Пакети->Миграции';
 
         return $this->renderWrapping($res, $form);
 
