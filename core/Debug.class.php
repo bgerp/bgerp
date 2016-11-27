@@ -112,7 +112,7 @@ class core_Debug
         if (!self::$startMicroTime) {
             self::$startMicroTime = core_DateTime::getMicrotime();
             self::$lastMicroTime = 0;
-        	self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало');
+        	self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало ' . core_DateTime::now());
         }
     }
     
@@ -191,7 +191,7 @@ class core_Debug
         $html = '';
 
         if (count(self::$debugTime)) {
-            self::log('End');
+            self::log('Край ' . core_DateTime::now());
 
             $html .= "\n<div class='debug_block' style=''>" .
             "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul><li style='padding:15px 0px 15px 0px;'>";
