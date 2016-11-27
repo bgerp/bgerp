@@ -110,13 +110,14 @@ class core_Debug
     static function init()
     {
         if (!self::$startMicroTime) {
-            self::$startMicroTime = core_DateTime::getMicrotime();
+            list($usec, $sec) = explode(" ", microtime());
+            self::$startMicroTime = (float) $usec + (float) $sec;
             self::$lastMicroTime = 0;
-        	self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало ' . core_DateTime::now());
+        	self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало ' . date("Y-m-d H:i:s", time()));
         }
     }
-    
-    
+
+
     /**
      * Пускаме хронометъра за посоченото име
      */
