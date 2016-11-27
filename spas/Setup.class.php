@@ -45,7 +45,7 @@ class spas_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    var $startCtr = 'spas_Test';
     
     
     /**
@@ -75,16 +75,5 @@ class spas_Setup extends core_ProtoSetup
         'SPAS_USER' => array ('varchar', 'caption=Връзка със SpamAssassin->User'),
 
      );
-
-    /**
-     * Описание на системните действия
-     */
-    var $systemActions = array(
-        array('title' => 'Ping', 'url' => array ('spas_Test', 'ping', 'ret_url' => TRUE), 'params' => array('title' => 'Пингване на Спас')),
-        array('title' => 'Тест', 'url' => array ('spas_Test', 'test', 'ret_url' => TRUE), 'params' => array('title' => 'Тестване на имейл')),
-        array('title' => 'Обучение', 'url' => array ('spas_Test', 'learn', 'ret_url' => TRUE), 'params' => array('title' => 'Обучение на Спас')),
-    );
-
-    
 
 }

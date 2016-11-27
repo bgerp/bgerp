@@ -2,6 +2,41 @@
 
 class spas_Test extends core_Mvc
 {
+
+    /**
+     * Списък с плъгини
+     */
+    public $loadList = 'plg_SystemWrapper';
+
+    /**
+     * Описание на системните действия
+     */
+    private $systemActions = array(
+        array('title' => 'Ping', 'url' => array ('spas_Test', 'ping', 'ret_url' => TRUE), 'params' => array('title' => 'Пингване на Спас')),
+        array('title' => 'Тест', 'url' => array ('spas_Test', 'test', 'ret_url' => TRUE), 'params' => array('title' => 'Тестване на имейл')),
+        array('title' => 'Обучение', 'url' => array ('spas_Test', 'learn', 'ret_url' => TRUE), 'params' => array('title' => 'Обучение на Спас')),
+    );
+
+
+    /**
+     * Показва менюто с действия на пакета
+     */
+    public function act_Default()
+    {
+        $html = "<div style=''><strong>" . tr("Интеграция със SpamAssassin") . "</strong></div>";
+        
+        foreach($this->systemActions as $a) {
+            $html .= "\n<div style='margin-top:5px;'>" . ht::createBtn($a['title'], $a['url'], NULL, FALSE, $a['params']) . $a['params']['title'] . "</div>";
+        }
+        
+        $data = new stdClass();
+        
+        $this->currentTab = 'Код->Пакети';
+
+        return $this->renderWrapping("<div style='display:table-cell'>" . $html . "</div>", $data);
+    }
+
+
     function act_Test()
     {  
         $form = cls::get('core_Form');
