@@ -905,6 +905,8 @@ class cal_Reminders extends core_Master
                 ' Y ',
                 );
             
+            $trans = array();
+            
             foreach($dateFormats as $df) {
                 $trans[dt::mysql2verbal($rec->timeStart, $df, 'bg')] = dt::mysql2verbal($now, $df, 'bg');
                 $trans[dt::mysql2verbal($rec->timeStart, $df, 'en')] = dt::mysql2verbal($now, $df, 'en');
