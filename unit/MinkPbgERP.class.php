@@ -162,7 +162,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
         $browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
-        
+        //return $browser->getHtml();
     }
     
     /**
@@ -384,10 +384,12 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Каталог');
         $browser->click('Категории');
         $browser->press('Нов запис');
-        $browser->setValue('name', 'Други');
+        $browser->setValue('name', 'Шаблони');
+        $browser->setValue('useAsProto', 'Да');
         $browser->setValue('meta_canStore', 'canStore');
         $browser->setValue('meta_canConvert', 'canConvert');
         $browser->setValue('meta_canManifacture', 'canManifacture');
+        $browser->setValue('meta_canSell', 'canSell');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
@@ -680,6 +682,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Клиенти', '1');
         $browser->setValue('Доставчици', '2');
         $browser->press('Запис');
+        //return $browser->getHtml();
         if (strpos($browser->getText(),"Предупреждение:")){
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
