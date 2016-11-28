@@ -183,7 +183,9 @@ class plg_PrevAndNext extends core_Plugin
         $selKey = static::getModeKey($mvc);
         
         $Cmd = Request::get('Cmd');
-
+        
+        $selArr = array();
+        
         if(is_a($mvc, 'core_Detail')) {
             if($id = Request::get('id', 'int')) {
                 $rec = $mvc->fetch($id);
@@ -204,7 +206,7 @@ class plg_PrevAndNext extends core_Plugin
             $selArr = arr::make($sel);
         }
 
-        if($selArr) {
+        if(!empty($selArr)) {
  
             // Записваме масива в сесията, под уникален за модела ключ
             Mode::setPermanent($selKey, $selArr);
