@@ -1613,7 +1613,14 @@ class blast_Emails extends core_Master
                         $str = "файлове";
                     }
                     
-                    $form->setWarning('attachments', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                    $FileSize = cls::get('fileman_FileSize');
+                    $allowedSize = $mvc->getMaxAttachFileSizeLimit();
+                    $allowedSize = $FileSize->toVerbal($allowedSize);
+                    
+                    $errStr = "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal;
+                    $errStr .= "<br>|Допустимият размер е|*: {$allowedSize}";
+                    
+                    $form->setError('attachments', $errStr);
                 }
             }
         }
@@ -1748,6 +1755,20 @@ class blast_Emails extends core_Master
         if ($form->isSubmitted()) {
             $mvc->checkHost($form, 'body');
         }
+    }
+    
+    
+    /**
+     * Връща допустимия размер на прикачените файлове/докумети
+     * 
+     * @return integer
+     */
+    public static function getMaxAttachFileSizeLimit_()
+    {
+        // 1 МБ
+        $res = 1048576;
+        
+        return $res;
     }
     
     
