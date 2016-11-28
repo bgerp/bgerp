@@ -698,9 +698,9 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        $data->row->script = str_replace("<br>", "\n",$data->row->script);
+        $tempScript = str_replace("<br>", "\n", $data->row->script);
         // Обвиваме съдъжанието на файла в код
-        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->row->script}</code></pre></div>";
+        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$tempScript}</code></pre></div>";
 
 
         $tpl2 = hljs_Adapter::enable('github');
