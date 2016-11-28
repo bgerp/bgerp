@@ -275,18 +275,20 @@ class drdata_Vats extends core_Manager
                 
                 $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
                 @$result = $client->checkVat($params);
-            } catch (ErrorException $e) {
+            } catch (Exception $e) {
                 reportException($e);
                 $result = new stdClass();
             }
             
             $res = self::statusUnknown;
             
-            if ($result->valid === TRUE) {
-                $res = self::statusValid;
-                $info = $result->name . "\n" . $result->address;
-            } elseif ($result->valid === FALSE) {
-                $res = self::statusInvalid;
+            if (is_object($result)) {
+                if ($result->valid === TRUE) {
+                    $res = self::statusValid;
+                    $info = $result->name . "\n" . $result->address;
+                } elseif ($result->valid === FALSE) {
+                    $res = self::statusInvalid;
+                }
             }
         }
         
