@@ -1221,6 +1221,8 @@ class cal_Calendar extends core_Master
     {   
         $t = dt::mysql2timestamp($day);
         
+        list($day, ) = explode(' ', $day);
+        
         switch(strtolower($type)) {
             case 'mon' : 
                 $res = date("N", $t) == 1;
