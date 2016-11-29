@@ -1505,6 +1505,7 @@ class cal_Calendar extends core_Master
 			$idTask = str_replace("-End", " ", $idTask);
 			$getTask = cls::get('cal_Tasks');
 			$imgTask = $getTask->getIcon(trim($idTask));
+
 			$img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
 		
 		} elseif($type == 'end-date'){

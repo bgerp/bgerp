@@ -621,7 +621,7 @@ class callcenter_SMS extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         // Добавяме титлата на формата
         $form->title = "Изпращане на SMS";
@@ -914,7 +914,7 @@ class callcenter_SMS extends core_Master
         }
         
         $form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png, title = Избор');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         $form->input();
         

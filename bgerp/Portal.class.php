@@ -120,7 +120,7 @@ class bgerp_Portal extends core_Manager
         
         // Бутон за смяна от <-> към
         $addUrl = array('cal_Reminders', 'add', 'ret_url' => TRUE);
-        $addBtn = ht::createLink(' ', $addUrl, NULL, array('ef_icon' => 'img/16/rem-plus.png', 'class' => 'addTask', 'title' => 'Добавяне на ново Напомняне'));
+        $addBtn = ht::createLink(' ', $addUrl, NULL, array('ef_icon' => 'img/16/alarm_clock_add.png', 'class' => 'addTask', 'title' => 'Добавяне на ново Напомняне'));
         $tasksTpl->append($addBtn, 'RЕМ_BTN');
         
         $tasksTpl->append(cal_Tasks::renderPortal(), 'TASKS');

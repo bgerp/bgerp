@@ -1109,7 +1109,15 @@ class cal_Tasks extends core_Master
     {
         $rec = self::fetch($id);
 
-        return "img/16/task-" . $rec->priority . ".png";
+        $icon =  "img/16/task-" . $rec->priority . ".png";
+        if(log_Browsers::isRetina()) {
+            if($tempIcon = getFullPath( "img/32/task-" . $rec->priority . ".png", $isAbsolute)) {
+                $icon =  "img/32/task-" . $rec->priority . ".png";;
+            }
+        }
+
+
+        return $icon;
     }
 
     
