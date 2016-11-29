@@ -40,7 +40,7 @@ class spas_Test extends core_Mvc
     function act_Test()
     {  
         $form = cls::get('core_Form');
-        $form->FLD('message', 'text', 'caption=MIME съобщение,mandatory');
+        $form->FLD('message', 'text(1000000)', 'caption=MIME съобщение,mandatory');
         $form->toolbar->addSbBtn('Тест');
         $form->title = 'Тестване на имейл за спам';
 
@@ -83,7 +83,7 @@ class spas_Test extends core_Mvc
     {  
 
         $form = cls::get('core_Form');
-        $form->FLD('message', 'text', 'caption=MIME съобщение,mandatory');
+        $form->FLD('message', 'text(1000000)', 'caption=MIME съобщение,mandatory');
         $form->FLD('type', 'enum(spam=Спам,ham=Салам,forget=Забравяне)', 'caption=Тип,mandatory');
 
         $form->toolbar->addSbBtn('Научи');
