@@ -1,5 +1,12 @@
 <?php
 
+
+/**
+ * 
+ */
+require_once 'client/Result.class.php';
+
+
 /**
  * @category SpamAssassin
  * @package  spas_client
@@ -156,7 +163,8 @@ class spas_Client
         
         return array(trim($headers), trim($message));
     }
-
+    
+    
     /**
      * Parses SpamAssassin output ($header and $message)
      * 
