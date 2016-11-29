@@ -653,7 +653,7 @@ class crm_Locations extends core_Master {
         $form->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Маршрут->Период');
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на търговския обект');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         $form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
         $form->input();

@@ -2133,7 +2133,7 @@ class crm_Persons extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png', array('order' => 1));
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('order' => 10), 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), array('order' => 10), 'ef_icon = img/16/close-red.png');
         
         // Добавяме във формата информация, за да знаем коя визитка добавяме
 //        $form->info = "Извличане на информация за първата визитка";

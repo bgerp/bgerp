@@ -558,7 +558,7 @@ class cat_BomDetails extends doc_Detail
     		
     		// Може ли да се разпъне реда
 	    	if($mvc->haveRightFor('expand', $rec)){
-	    		$link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/toggle-expand.png,title=Направи етап');
+	    		$link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/toggle1.png,title=Направи етап');
 	    		$extraBtnTpl->append($link, 'BTN');
 	    	}
 

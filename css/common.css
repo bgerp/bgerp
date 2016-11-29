@@ -943,7 +943,7 @@ input.more-btn {
   float: left;
   margin-bottom: 0;
   background-position: center center;
-  background-image: url(../img/16/toggle-expand.png) !important;
+  background-image: url(../img/16/toggle1.png) !important;
   background-repeat: no-repeat !important;
   padding-left: 0.3em !important;
   padding-right: 0.3em !important;
@@ -953,7 +953,7 @@ input.more-btn {
 .more-btn:not(.toolbar-btn,
 .transparent) {
   background-repeat: no-repeat !important;
-  background-image: url(../img/16/toggle-expand.png) !important; }
+  background-image: url(../img/16/toggle1.png) !important; }
 
 .toolbar-btn {
   cursor: pointer;
