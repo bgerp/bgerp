@@ -375,7 +375,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	 * @param int $contragentClassId
 	 * @param int $contragentId
 	 */
-	private static function getAll($contragentClassId, $contragentId)
+	public static function getAll($contragentClassId, $contragentId)
 	{
 		$contragentClassId = cls::get($contragentClassId)->getClassId();
 		

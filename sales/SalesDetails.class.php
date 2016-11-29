@@ -333,5 +333,211 @@ class sales_SalesDetails extends deals_DealDetail
     			}
     		}
     	}
+    	
+    	if($action == 'importlisted' && isset($rec)){
+    		
+    		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+    		
+    		if($requiredRoles != 'no_one'){
+    			if(isset($rec)){
+    				$masterRec = sales_Sales::fetch($rec->saleId, 'contragentClassId,contragentId');
+    				if(!crm_ext_ProductListToContragents::fetchField("#contragentClassId = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}")){
+    					$requiredRoles = 'no_one';
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на лист тулбара
+     */
+    public static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+    	if($mvc->haveRightFor('importlisted', (object)array('saleId' => $data->masterId))){
+    		$data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "saleId" => $data->masterId, 'ret_url' => TRUE), "id=btnAddImp-{$masterRec->id},order=14,title=Добавяне на листвани артикули", 'ef_icon = img/16/shopping.png');
+    	}
+    }
+    
+    
+    /**
+     * Импорт на списък от артикули
+     */
+    function act_Importlisted()
+    {
+    	// Проверка на права
+    	$this->requireRightFor('importlisted');
+    	expect($saleId = Request::get('saleId', 'int'));
+    	expect($saleRec = sales_Sales::fetch($saleId));
+    	$this->requireRightFor('importlisted', (object)array('saleId' => $saleId));
+    	
+    	// Инстанциране на формата за добавяне
+    	$form = cls::get('core_Form');
+    	$form->title = 'Импорт на списък към|* ' . sales_Sales::getHyperlink($saleId, TRUE);
+    	$form->method = 'POST';
+    	
+    	// Намират се всички листвани артикули
+    	$listed = crm_ext_ProductListToContragents::getAll($saleRec->contragentClassId, $saleRec->contragentId);
+    	$isColab = core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator');
+    	
+    	// И всички редове от продажбата
+    	$query = $this->getQuery();
+    	$query->where("#saleId = {$saleId}");
+    	$recs = $query->fetchAll();
+    	expect(count($listed));
+    	
+    	// Подготовка на полетата на формата
+    	$this->prepareImportListForm($form, $listed, $recs, $saleRec);
+    	$form->input();
+    	
+    	// Ако формата е събмитната
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		
+    		// Подготовка на записите
+    		$error = $toSave = $toUpdate = array();
+    		foreach ($listed as $lId => $lRec){
+    			$packQuantity = $rec->{"quantity{$lId}"};
+    			$quantityInPack = $rec->{"quantityInPack{$lId}"};
+    			$packPrice = $rec->{"packPrice{$lId}"};
+    			$recId = $rec->{"rec{$lId}"};
+    			$quantity = $packQuantity * $quantityInPack;
+    			$discount = NULL;
+    			$productId = $rec->{"productId{$lId}"};
+    			$packagingId = $rec->{"packagingId{$lId}"};
+    			
+    			// Ако няма к-во пропускане на реда
+    			if(empty($packQuantity)) continue;
+    			
+    			// Ако няма цена, се мъчи да намери от политиката
+    			if(!isset($packPrice)){
+    				$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
+    				$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				
+    				if(!isset($policyInfo->price)){
+    					$error[$lId] = ($isColab == TRUE) ? "quantity{$lId}" : "packPrice{$lId}";
+    				} else {
+    					$packPrice = $policyInfo->price * $quantityInPack;
+    					$discount = $policyInfo->discount;
+    				}
+    			} else {
+    				
+    				// Ако има цена нормализира се
+    				$vat = cat_Products::getVat($productId, $saleRec->valior);
+    				$packPrice = deals_Helper::getPurePrice($packPrice, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    			}
+    			
+    			// Ако няма грешка със записа
+    			if(!array_key_exists($lId, $error)){
+    				$obj = (object)array('quantity'       => $packQuantity * $quantityInPack, 
+    						             'quantityInPack' => $quantityInPack, 
+    						             'price'          => $packPrice / $quantityInPack,
+    									 'discount'       => $discount,
+    						             'productId'      => $productId,
+    									 'packagingId'    => $packagingId,
+    									 'id'             => $recId,
+    									 'saleId'         => $saleRec->id,
+    				);
+    				
+    				// Определяне дали ще се добавя или обновява
+    				if(isset($obj->id)){
+    					$toUpdate[] = $obj;
+    				} else {
+    					$toSave[] = $obj;
+    				}
+    			}
+    		}
+    		
+    		// Ако има грешка сетва се ерор
+    		if(count($error)){
+    			$form->setError(implode(',', $error), 'Артикулът няма цена');
+    		} else {
+    			
+    			// Запис на обновените записи
+    			$this->saveArray($toUpdate, 'id,quantity,price,discount');
+    			$this->saveArray($toSave);
+    			
+    			// Редирект към продажбата
+    			followRetUrl(NULL, 'Списъкът е импортиран успешно');
+    		}
+    	}
+    	
+    	// Добавяне на тулбар
+    	$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import16.png, title = Импорт');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    		
+    	// Рендиране на опаковката
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Подготовка на полетата към формата за листвани артикули
+     * 
+     * @param core_Form $form
+     * @param array $listed
+     * @param array $recs
+     * @param stdClass $saleRec
+     * @return boolean void
+     */
+    private function prepareImportListForm(&$form, $listed, $recs, $saleRec)
+    {
+    	$unit = "|*" . $saleRec->currencyId . ", ";
+    	$unit .= ($saleRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
+    	
+    	$isColab = core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator');
+    	
+    	// За всеки листван артикул
+    	foreach ($listed as $lId => $lRec){
+    		$caption = cat_Products::getTitleById($lRec->productId);
+    		$caption .= " " . cat_UoM::getShortName($lRec->packagingId);
+    	
+    		// Проверка дали вече не просъства в продажбата
+    		$res = array_filter($recs, function (&$e) use ($lRec) {
+    			if($e->productId == $lRec->productId && $e->packagingId == $lRec->packagingId && !isset($e->batch) && !isset($e->discount) && !isset($e->tolerance) && !isset($e->term)){
+    				return TRUE;
+    			}
+    			return FALSE;
+    		});
+    	
+    		$key = key($res);
+    		$exRec = $res[$key];
+    		
+    		// Подготовка на полета за всеки артикул
+    		$form->FLD("productId{$lId}", "int", "caption={$caption}->К-во,input=hidden");
+    		$form->FLD("packagingId{$lId}", "int", "caption={$caption}->К-во,input=hidden");
+    		$form->FLD("rec{$lId}", "int", "caption={$caption}->Ред,input=hidden");
+    		$form->FLD("quantityInPack{$lId}", "double", "caption={$caption}->К-во1,input=hidden");
+    		$form->FLD("quantity{$lId}", "double", "caption={$caption}->К-во");
+    		$form->FLD("packPrice{$lId}", "double", "caption={$caption}->Цена");
+    		$form->setField("packPrice{$lId}", array('unit' => $unit));
+    		$form->setDefault("productId{$lId}", $lRec->productId);
+    		$form->setDefault("packagingId{$lId}", $lRec->packagingId);
+    		
+    		// Ако потребителя е колаборатор не може да сменя цената
+    		if($isColab === TRUE){
+    			$form->setField("packPrice{$lId}", 'input=none');
+    		}
+    		
+    		// Ако иам съшествуващ запис, попълват му се стойностите
+    		if(isset($exRec)){
+    			$form->setDefault("rec{$lId}", $exRec->id);
+    			$form->setDefault("quantity{$lId}", $exRec->packQuantity);
+    			$form->setDefault("quantityInPack{$lId}", $exRec->quantityInPack);
+    			
+    			$vat = cat_Products::getVat($exRec->productId, $saleRec->valior);
+    			$packPrice = deals_Helper::getDisplayPrice($exRec->packPrice, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    				 
+    			$form->setDefault("packPrice{$lId}", $packPrice);
+    		}
+    		
+    		// Задаване на к-то в опаковката
+    		$packRec = cat_products_Packagings::getPack($lRec->productId, $lRec->packagingId);
+    		$quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+    		$form->setDefault("quantityInPack{$lId}", $quantityInPack);
+    	}
     }
 }
