@@ -386,7 +386,7 @@ class email_FaxSent extends core_Manager
             $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'ef_icon = img/16/email_go.png', 'title=Обратно към имейла');    
         }
         
-        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close16.png', 'title=Прекратяване на изпращането');
+        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close-red.png', 'title=Прекратяване на изпращането');
 
         $data->form->input(NULL, 'silent');
 

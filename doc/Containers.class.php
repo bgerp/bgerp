@@ -634,7 +634,7 @@ class doc_Containers extends core_Manager
         	}
         	
         	if(doc_Threads::haveRightFor('single', $data->threadRec)){
-        	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
+        	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon=img/16/alarm_clock_add.png', 'title=Създаване на ново напомняне');
         	}
         }
         
@@ -2829,7 +2829,7 @@ class doc_Containers extends core_Manager
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Поправи', 'repair', 'ef_icon = img/16/hammer_screwdriver.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         return $this->renderWrapping($form->renderHtml());
     }
@@ -3088,7 +3088,7 @@ class doc_Containers extends core_Manager
             $url = array(get_called_class(), 'ShowDocumentInThread', $id);
             
             $attr = array();
-            $attr['ef_icon'] = 'img/16/toggle-expand.png';
+            $attr['ef_icon'] = 'img/16/toggle1.png';
             $attr['class'] = 'settings-show-document';
             $attr['title'] = 'Показване на целия документ';
             $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
