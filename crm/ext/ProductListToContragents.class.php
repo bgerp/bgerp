@@ -297,7 +297,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		}
 		
 		if(isset($data->addImportUrl)){
-			$btn1 = ht::createBtn('Импорт', $data->addImportUrl, NULL, NULL, 'ef_icon=img/16/import16.png,title=Импортиране на арткули');
+			$btn1 = ht::createBtn('Импорт', $data->addImportUrl, NULL, NULL, 'ef_icon=img/16/import.png,title=Импортиране на арткули');
 			$tpl->append($btn1, 'SELLABLE_BTN');
 		}
 		
@@ -595,12 +595,12 @@ class crm_ext_ProductListToContragents extends core_Manager
 		
 		// Ако няма избрани артикули, бутона за импорт е недостъпен
 		if($submit === TRUE){
-			$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import16.png, title = Импорт');
+			$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
 		} else {
-			$form->toolbar->addBtn('Импорт', array(), 'ef_icon = img/16/import16.png, title = Импорт');
+			$form->toolbar->addBtn('Импорт', array(), 'ef_icon = img/16/import.png, title = Импорт');
 		}
 		
-		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 			
 		// Рендиране на опаковката
 		$tpl = $this->renderWrapping($form->renderHtml());
