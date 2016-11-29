@@ -245,7 +245,7 @@ class tcost_FeeZones extends core_Master
     
     	$form->title = 'Пресмятане на навла';
     	$form->toolbar->addSbBtn('Изчисли', 'save', 'ef_icon=img/16/arrow_refresh.png');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHTML());
     }

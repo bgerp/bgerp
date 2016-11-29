@@ -80,7 +80,7 @@ class pos_Points extends core_Master {
     /**
      * Икона за единичен изглед
      */
-    public $singleIcon = 'img/16/cash-register-icon.png';
+    public $singleIcon = 'img/16/cash-register.png';
     
     
     /**

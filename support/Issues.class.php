@@ -341,7 +341,7 @@ class support_Issues extends core_Master
     	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         if(count(getRetUrl())) {
-            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
+            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
         }
         $tpl = $form->renderHtml();
     	

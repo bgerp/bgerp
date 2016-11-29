@@ -211,7 +211,7 @@ class pallet_Pallets extends core_Manager
                 'style' => 'float: right; margin-left: 5px;'));
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px',
                 'style' => 'float: right; margin-left: 5px;'));
-        $imgDel = ht::createElement('img', array('src' => sbf('img/16/delete16.png', ''), 'width' => '16px', 'height' => '16px',
+        $imgDel = ht::createElement('img', array('src' => sbf('img/16/delete.png', ''), 'width' => '16px', 'height' => '16px',
                 'style' => 'float: right; margin-left: 5px;
                                                                                                                       margin-top: 2px '));
         

@@ -365,7 +365,7 @@ class plg_TreeObject extends core_Plugin
 			
 			// Ако обекта има деца, добавяме бутоните за скриване/показване
 			if($rec->_childrenCount > 0){
-				$plusIcon = sbf('img/16/toggle-expand.png', '');
+				$plusIcon = sbf('img/16/toggle1.png', '');
 				$minusIcon = sbf('img/16/toggle2.png', '');
 				$plus = "<img class='toggleBtn plus' src='{$plusIcon}' alt='' width='13' height='13' title='" . tr('Показване на наследниците') . "'/>";
 				$minus = "<img class='toggleBtn minus' src='{$minusIcon}' alt='' width='13' height='13' title='" . tr('Скриване на наследниците') . "'/>";
