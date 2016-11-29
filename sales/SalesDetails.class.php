@@ -483,7 +483,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$caption .= " |" . cat_UoM::getShortName($lRec->packagingId);
     	
     		$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
-    		//$listId = price_ListRules::PRICE_LIST_CATALOG;
+    		
     		$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $lRec->productId, $lRec->packagingId, 1, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
     		$discount = isset($policyInfo->discount) ? $policyInfo->discount : NULL;
     		
@@ -499,11 +499,11 @@ class sales_SalesDetails extends deals_DealDetail
     		$exRec = $res[$key];
     		
     		// Подготовка на полета за всеки артикул
-    		$form->FLD("productId{$lId}", "int", "caption={$caption}->К-во,input=hidden");
-    		$form->FLD("packagingId{$lId}", "int", "caption={$caption}->К-во,input=hidden");
-    		$form->FLD("rec{$lId}", "int", "caption={$caption}->Ред,input=hidden");
-    		$form->FLD("quantityInPack{$lId}", "double", "caption={$caption}->К-во1,input=hidden");
-    		$form->FLD("quantity{$lId}", "double", "caption={$caption}->К-во");
+    		$form->FLD("productId{$lId}", "int", "К-во,input=hidden");
+    		$form->FLD("packagingId{$lId}", "int", "К-во,input=hidden");
+    		$form->FLD("rec{$lId}", "int", "input=hidden");
+    		$form->FLD("quantityInPack{$lId}", "double", "input=hidden");
+    		$form->FLD("quantity{$lId}", "double", "caption={$caption}->Количество");
     		$form->setDefault("productId{$lId}", $lRec->productId);
     		$form->setDefault("packagingId{$lId}", $lRec->packagingId);
     		
