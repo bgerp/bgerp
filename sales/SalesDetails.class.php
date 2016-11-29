@@ -503,7 +503,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$form->FLD("packagingId{$lId}", "int", "К-во,input=hidden");
     		$form->FLD("rec{$lId}", "int", "input=hidden");
     		$form->FLD("quantityInPack{$lId}", "double", "input=hidden");
-    		$form->FLD("quantity{$lId}", "double", "caption={$caption}->Количество");
+    		$form->FLD("quantity{$lId}", "double(min=0)", "caption={$caption}->Количество");
     		$form->setDefault("productId{$lId}", $lRec->productId);
     		$form->setDefault("packagingId{$lId}", $lRec->packagingId);
     		

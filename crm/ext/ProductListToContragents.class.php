@@ -366,6 +366,12 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$row->modified .= " " . tr('от||by') . " " . crm_Profiles::createLink($rec->modifiedBy) . "</div>";
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 	    $row->reff = "<b>{$row->reff}</b>";
+	    
+	    $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($rec->contragentClassId, $rec->contragentId, $rec->productId, $rec->packagingId, 1);
+	    if(!isset($policyInfo->price)){
+	    	$row->productId = ht::createHint($row->productId, 'Артикулът няма цена по ценовата политика на контрагента', 'warning', FALSE);
+	    }
+	   
 	}
 	
 	
