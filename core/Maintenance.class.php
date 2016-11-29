@@ -45,7 +45,9 @@ class core_Maintenance extends core_Manager
         $data = new stdClass();
         $actArr = array();
         $query = core_Packs::getQuery();
-
+        
+        $res = '';
+        
         while($rec = $query->fetch("#state = 'active'")) {
             $stp = $rec->name . '_Setup';
             if(cls::load($stp, TRUE)) {

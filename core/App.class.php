@@ -411,7 +411,7 @@ class core_App
         $maxExecutionTime = ini_get('max_execution_time');
         if (core_Debug::$startMicroTime) {
             if (core_Debug::$startMicroTime) {
-                $executionTime = core_Datetime::getMicrotime() - core_Debug::$startMicroTime;
+                $executionTime = core_DateTime::getMicrotime() - core_Debug::$startMicroTime;
                 
                 $maxExecutionTimePercent = ($executionTime / $maxExecutionTime) * 100;
                 

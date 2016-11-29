@@ -132,7 +132,7 @@ class core_Debug
         	self::$timers[$name] = new stdClass();
         }
         
-        self::$timers[$name]->start = core_Datetime::getMicrotime();
+        self::$timers[$name]->start = core_DateTime::getMicrotime();
     }
     
     
@@ -147,7 +147,7 @@ class core_Debug
         self::init();
   
         if (self::$timers[$name]->start) {
-            $workingTime = core_Datetime::getMicrotime() - self::$timers[$name]->start;
+            $workingTime = core_DateTime::getMicrotime() - self::$timers[$name]->start;
             self::$timers[$name]->workingTime += $workingTime;
             self::$timers[$name]->start = NULL;
         }
@@ -165,7 +165,7 @@ class core_Debug
         self::init();
         
         $rec = new stdClass();
-        $rec->start = core_Datetime::getMicrotime() - self::$startMicroTime;
+        $rec->start = core_DateTime::getMicrotime() - self::$startMicroTime;
         $rec->name  = $name;
 
         self::$debugTime[] = $rec;
@@ -178,7 +178,7 @@ class core_Debug
     static function getExecutionTime()
     {
         self::init();
-        return number_format((core_Datetime::getMicrotime() - self::$startMicroTime), 5);
+        return number_format((core_DateTime::getMicrotime() - self::$startMicroTime), 5);
     }
 
 
@@ -653,7 +653,7 @@ class core_Debug
             $contex['MAX_EXECUTION_TIME'] = ini_get('max_execution_time');
             
             if (self::$startMicroTime) {
-                $contex['DEBUG_LAST_TIMER'] = core_Datetime::getMicrotime() - self::$startMicroTime;
+                $contex['DEBUG_LAST_TIMER'] = core_DateTime::getMicrotime() - self::$startMicroTime;
                 if ($contex['MAX_EXECUTION_TIME']) {
                     $contex['EXECUTION_TIME_PERCENT'] = number_format(($contex['DEBUG_LAST_TIMER'] / $contex['MAX_EXECUTION_TIME']) * 100, 2) . '%';
                 }

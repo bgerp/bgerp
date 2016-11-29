@@ -21,10 +21,32 @@ class draw_Designs extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, plg_Rejected, draw_Wrapper';
-	
-    
-    
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin';
+
+
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'script';
+
+
+    /**
+     * Кой може да променя записа
+     */
+    var $canChangerec = 'draw,admin,ceo';
+
+
+    /**
+     * Кой може да променя записа
+     */
+    var $canChangestate = 'draw,admin,ceo';
+
+
+    /**
+     *
+     */
+    var $canEdit = 'no_one';
+
     /**
      * Заглавие
      */
@@ -89,7 +111,7 @@ class draw_Designs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'order,name,state,lastRun';
+    var $listFields = 'order,name,state';
 
     var $rowToolsField = 'order';
 
@@ -615,6 +637,13 @@ class draw_Designs extends core_Master
 
     public static function on_AfterPrepareSingle($mvc, $res, $data)
     {
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+
+        // Вземаме таблицата с попълнени данни
+        $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
+        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), $fields);
+
         $error = '';
         $contex = new stdClass();
 
@@ -669,8 +698,10 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        $tempScript = str_replace("<br>", "\n", $data->row->script);
         // Обвиваме съдъжанието на файла в код
-        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->rec->script}</code></pre></div>";
+        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$tempScript}</code></pre></div>";
+
 
         $tpl2 = hljs_Adapter::enable('github');
         $tpl2->append($code, 'CODE');
@@ -818,6 +849,5 @@ class draw_Designs extends core_Master
 
         return $form;
     }
-
 
 }

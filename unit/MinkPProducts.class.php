@@ -33,6 +33,7 @@ class unit_MinkPProducts extends core_Manager {
         $res .= "  4.".$this->act_CreateBom();
         $res .= "  5.".$this->act_CreatePlanningJob();
         $res .= "  6.".$this->act_CreateCloning();
+        $res .= "  7.".$this->act_CreateTemplate();
         return $res;
     }
     
@@ -293,7 +294,7 @@ class unit_MinkPProducts extends core_Manager {
     }
  
     /**
-     * 1. Клониране на артикул
+     * 6. Клониране на артикул
      */
     //http://localhost/unit_MinkPProducts/CreateCloning/
     function act_CreateCloning()
@@ -316,6 +317,41 @@ class unit_MinkPProducts extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
         } 
+        //return $browser->getHtml();
+    }
+   
+    /**
+     * 7. Създаване на шаблон и артикул от него
+     */
+    //http://localhost/unit_MinkPProducts/CreateTemplate/
+    function act_CreateTemplate()
+    {
+        // Логване
+        $browser = $this->SetUp();
+         
+        // Създаване на нов артикул - шаблон
+        $browser->click('Каталог');
+        $browser->press('Нов запис');
+        $browser->setValue('catcategorieId', 'Шаблони');
+        $browser->press('Напред');
+        $browser->setValue('name', 'Артикул - шаблон');
+        $browser->setValue('code', 'template');
+        $browser->setValue('measureId', 'брой');
+        $browser->setValue('info', 'шаблон');
+        $browser->setValue('Ценова група » 0', 12);
+        $browser->press('Запис');
+        
+        // Създаване на нов артикул от шаблона
+        $browser->click('Каталог');
+        $browser->press('Нов запис');
+        $browser->setValue('catcategorieId', 'Продукти');
+        $browser->press('Напред');
+        $browser->setValue('proto', 'Артикул - шаблон');
+        $browser->setValue('name', 'Артикул от шаблон');
+        $browser->setValue('code', 'fromtemplate');
+        $browser->setValue('measureId', 'брой');
+        $browser->setValue('info', 'от шаблон');
+        $browser->press('Запис');
         //return $browser->getHtml();
     }
     

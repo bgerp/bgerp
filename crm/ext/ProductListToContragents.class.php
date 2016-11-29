@@ -17,12 +17,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 	
 	
 	/**
-	 * Кой  може да пише?
-	 */
-	public $canWrite = 'ceo, crm';
-	
-	
-	/**
 	 * Кой  може да изтрива?
 	 */
 	public $canDelete = 'ceo, crm';
@@ -55,7 +49,7 @@ class crm_ext_ProductListToContragents extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, crm_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Search,plg_Select';
+    public $loadList = 'plg_Modified, crm_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Search';
     
     
     /**
@@ -114,7 +108,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$mvc->currentTab = ($rec->contragentClassId == crm_Companies::getClassId()) ? 'Фирми' : 'Лица';
 		
 		if(empty($rec->id)){
-			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, 'canSell,canBuy', NULL, NULL, TRUE);
+			$products = cat_Products::getProducts($rec->contragentClassId, $rec->contragentId, NULL, 'canSell', NULL, NULL, TRUE);
 			$products = array('' => '') + $products;
 		} else {
 			$products = array($rec->productId => cat_Products::getRecTitle(cat_Products::fetch($rec->productId), FALSE));
@@ -213,7 +207,8 @@ class crm_ext_ProductListToContragents extends core_Manager
 		
 		// Добавяне на бутони
 		if($this->haveRightFor('add', (object)array('contragentClassId' => $data->contragentClassId, 'contragentId' => $data->masterId))){
-			$data->addSellableUrl = array($this, 'add', 'contragentClassId' => $data->contragentClassId, 'contragentId' => $data->masterId, 'type' => 'sellable', 'ret_url' => TRUE);
+			$data->addSellableUrl = array($this, 'add', 'contragentClassId' => $data->contragentClassId, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
+			$data->addImportUrl = array($this, 'import', 'contragentClassId' => $data->contragentClassId, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
 		}
 	}
 	
@@ -292,14 +287,18 @@ class crm_ext_ProductListToContragents extends core_Manager
 		// Рендиране на таблицата с артикулите
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$this->invoke('BeforeRenderListTable', array($tpl, &$data->sellable));
-		unset($data->sellable->listFields['_checkboxes']);
 		$tableTpl = $table->get($data->sellable->rows, $data->sellable->listFields);
 		$tpl->replace($tableTpl, 'SELLABLE');
 		
 		// Редниране на бутона за добавяне
 		if(isset($data->addSellableUrl)){
 			$btn = ht::createBtn('Артикул', $data->addSellableUrl, NULL, NULL, 'ef_icon=img/16/shopping.png,title=Добавяне на нов артикул за листване в продажба');
-			$tpl->replace($btn, 'SELLABLE_BTN');
+			$tpl->append($btn, 'SELLABLE_BTN');
+		}
+		
+		if(isset($data->addImportUrl)){
+			$btn1 = ht::createBtn('Импорт', $data->addImportUrl, NULL, NULL, 'ef_icon=img/16/import16.png,title=Импортиране на арткули');
+			$tpl->append($btn1, 'SELLABLE_BTN');
 		}
 		
 		// Рендиране на пейджъра
@@ -469,5 +468,219 @@ class crm_ext_ProductListToContragents extends core_Manager
 		
 		// Връща се намерения код
 		return $reff;
+	}
+	
+	
+	/**
+	 * Екшън за импорт на артикули за листване
+	 */
+	function act_Import()
+	{
+		// Проверки за права
+		$this->requireRightFor('add');
+		expect($cClass = Request::get('contragentClassId', 'int'));
+		expect($contragentId = Request::get('contragentId', 'int'));
+		expect(cls::get($cClass)->fetch($contragentId));
+		$this->requireRightFor('add', (object)array('contragentClassId' => $cClass, 'contragentId' => $contragentId));
+			
+		// Подготовка на формата
+		$form = cls::get('core_Form');
+		$form->method = 'POST';
+		$form->title = "Импортиране на артикули за листване в|*" . cls::get($cClass)->getHyperlink($contragentId, TRUE);
+		$form->FLD('contragentClassId', 'int', "input=hidden,silent");
+		$form->FLD('contragentId', 'int', "input=hidden,silent");
+		
+		$form->FLD('from', 'enum(,group=Група,sales=Предишни продажби)', "caption=Избор,removeAndRefreshForm=fromDate|toDate|selected,silent");
+		$form->FLD('code', 'enum(code=Наш код,barcode=Баркод)', "caption=Техен код");
+		$form->FLD('fromDate', 'date', "caption=От,input=hidden,silent,removeAndRefreshForm=category|selected");
+		$form->FLD('toDate', 'date', "caption=До,input=hidden,silent,removeAndRefreshForm=category|selected");
+		$form->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', "caption=Група,input=hidden,silent,removeAndRefreshForm=selected|fromDate|toDate");
+		
+		// Инпутване на скритите полета
+		$form->input(NULL, 'silent');
+		$form->input();
+			
+		$submit = FALSE;
+		
+		// Ако е избран източник на импорт
+		if(isset($form->rec->from)){
+			$rec = $form->rec;
+			
+			// И той  е група
+			if($rec->from == 'group'){
+				
+				// Показваме полето за избор на група и намиране на артикулите във нея
+				$form->setField('group', 'input');
+				if(isset($rec->group)){
+					$products = $this->getFromGroup($rec->group, $cClass, $contragentId);
+				
+					if(!$products ){
+						$form->setError('from,group', 'Няма артикули за импортиране от групата');
+					}
+				}
+			} else {
+				
+				// Ако е избрано от последни продажби, показват се полетата за избор на период
+				$form->setField('fromDate', 'input');
+				$form->setField('toDate', 'input');
+					
+				// И се извличат артикулите от продажбите в този период на контрагента
+				if(!empty($rec->fromDate) || !empty($rec->toDate)){
+					$products = $this->getFromSales($rec->fromDate, $rec->toDate, $cClass, $contragentId);
+				}
+			}
+		
+			// Ако има намерени продукти показват се в друго поле за избор, чекнати по подразбиране
+			if(isset($products) && count($products)){
+				$set = cls::get('type_Set', array('suggestions' => $products));
+				$form->FLD('selected', 'varchar', 'caption=Артикули,mandatory');
+				$form->setFieldType('selected', $set);
+				$form->input('selected');
+				$form->setDefault('selected', $set->fromVerbal($products));
+					
+				$submit = TRUE;
+			}
+		}
+		
+		// Ако е събмитната формата
+		if($form->isSubmitted()){
+			$products = type_Set::toArray($form->rec->selected);
+			expect(count($products));
+			
+			$error = $toSave = array();
+			
+			// Проверяване на избраните артикули
+			foreach($products as $productId){
+				$toSave[$productId]['productId'] = $productId;
+				
+				// Опаковката е основната мярка/опаковка
+				$toSave[$productId]['packagingId'] = key(cat_Products::getPacks($productId));
+				
+				// Ако е избрано кода да е барков се изчлича, ако няма ще се показва грешка
+				if($rec->code == 'barcode'){
+					$pack = cat_products_Packagings::getPack($toSave[$productId]['productId'], $toSave[$productId]['packagingId']);
+					if(isset($pack) && !empty($pack->eanCode)){
+						$toSave[$productId]['reff'] = $pack->eanCode;
+					} else {
+						$error[] = cat_Products::getTitleById($productId, FALSE);
+					}
+				} else {
+					
+					// Ако не се иска баркод, се попълва за код кода на артикула, ако няма ид-то му
+					$code = cat_Products::fetchField($productId, 'code');
+					$toSave[$productId]['reff'] = (!empty($code)) ? $code : $productId;
+				}
+			}
+			
+			// Ако има грешки 
+			if(count($error)){
+				$error = "Артикулите|* <b>" . implode(', ', $error) . "</b> |нямат баркод на тяхната основна опаковка/мярка|*";
+				$form->setError('selected', $error);
+			} else {
+				
+				// Ако няма се добавят избраните артикули
+				$count = 0;
+				foreach ($toSave as $r){
+					$newRec = (object)$r;
+					$newRec->contragentClassId = $rec->contragentClassId;
+					$newRec->contragentId = $rec->contragentId;
+					$this->save($newRec, NULL, 'REPLACE');
+					$count++;
+				}
+				
+				// Редирект
+				followRetUrl(NULL, "Импортирани са|* '{$count}' |артикула|*");
+			}
+		}
+		
+		// Ако няма избрани артикули, бутона за импорт е недостъпен
+		if($submit === TRUE){
+			$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import16.png, title = Импорт');
+		} else {
+			$form->toolbar->addBtn('Импорт', array(), 'ef_icon = img/16/import16.png, title = Импорт');
+		}
+		
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+			
+		// Рендиране на опаковката
+		$tpl = $this->renderWrapping($form->renderHtml());
+		
+		return $tpl;
+	}
+	
+	
+	/**
+	 * Помощен метод извличащ всички артикули за листване от дадена група
+	 * 
+	 * @param int $group
+	 * @param mixed $cClass
+	 * @param int $contragentId
+	 * @return array $products
+	 */
+	private function getFromGroup($group, $cClass, $contragentId)
+	{
+		$products = array();
+		$folderId = cls::get($cClass)->forceCoverAndFolder($contragentId);
+		$cDescendants = cat_Groups::getDescendantArray($group);
+		$alreadyIn = arr::extractValuesFromArray(self::getAll($cClass, $contragentId), 'productId');
+		
+		// Извличане на всички активни, продаваеми артикули от дадената група и нейните подгрупи
+		$query = cat_Products::getQuery();
+		$query->likeKeylist('groups', $cDescendants);
+		$query->notIn('id', $alreadyIn);
+		$query->where("#state = 'active'");
+		$query->where("#isPublic = 'yes' OR #folderId = '{$folderId}'");
+		$query->where("#canSell = 'yes'");
+		$query->show('isPublic,folderId,meta,id,code,name');
+		
+		while($rec = $query->fetch()){
+			$products[$rec->id] = static::getRecTitle($rec, FALSE);
+		}
+		
+		// Връщане на намерените артикули
+		return $products;
+	}
+	
+	
+	/**
+	 * Помщен метод за намиране на всички продадени артикули на контрагента
+	 * 
+	 * @param date $from
+	 * @param date $to
+	 * @param mixed $cClass
+	 * @param int $contragentId
+	 * @return array $products
+	 */
+	public function getFromSales($from, $to, $cClass, $contragentId)
+	{
+		$products = array();
+		$alreadyIn = arr::extractValuesFromArray(self::getAll($cClass, $contragentId), 'productId');
+		
+		// Извличане на всички продавани артикули на контрагента, които не са листвани все още
+		$query = sales_SalesDetails::getQuery();
+		$query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+		$query->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
+		$query->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+		$query->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+		$query->where("#contragentClassId = {$cClass} AND #contragentId = {$contragentId}");
+		$query->where("#state = 'active' || #state = 'closed'");
+		
+		if(!empty($from)){
+			$query->where("#valior >= '{$from}'");
+		}
+		
+		if(!empty($to)){
+			$query->where("#valior <= '{$to}'");
+		}
+		
+		$query->notIn('id', $alreadyIn);
+		$query->show('productId');
+		
+		while($rec = $query->fetch()){
+			$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+		}
+		
+		// Връщане на намерените артикул
+		return $products;
 	}
 }
