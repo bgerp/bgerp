@@ -334,27 +334,25 @@ class unit_MinkPProducts extends core_Manager {
         $browser->press('Нов запис');
         $browser->setValue('catcategorieId', 'Шаблони');
         $browser->press('Напред');
-        $browser->setValue('name', 'Артикул - шаблон 1');
-        $browser->setValue('code', 'template1');
+        $browser->setValue('name', 'Артикул - шаблон');
+        $browser->setValue('code', 'template');
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'шаблон');
         $browser->setValue('Ценова група » 0', 12);
         $browser->press('Запис');
         
         // Създаване на нов артикул от шаблона
-        
         $browser->click('Каталог');
         $browser->press('Нов запис');
         $browser->setValue('catcategorieId', 'Продукти');
         $browser->press('Напред');
-       
         $browser->setValue('proto', 'Артикул - шаблон');
         $browser->setValue('name', 'Артикул от шаблон');
         $browser->setValue('code', 'fromtemplate');
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'от шаблон');
         $browser->press('Запис');
-        return $browser->getHtml();
+        //return $browser->getHtml();
     }
     
 }
