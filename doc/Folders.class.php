@@ -1457,16 +1457,18 @@ class doc_Folders extends core_Master
 
 
         // Връщаме sbf линка до иконата
-        $sbfImg = sbf('img/16/' . $img, '"', $isAbsolute);
+        $imgSrc = 'img/16/' . $img;
 
         if(log_Browsers::isRetina()) {
-            if($tempIcon = getFullPath('img/32/' . $img, '"', $isAbsolute)) {
-                $sbfImg = sbf($tempIcon);
+            $tempIcon = 'img/32/' . $img;
+            if(getFullPath($tempIcon)) {
+                $imgSrc = $tempIcon;
             }
         }
 
+        $sbfImg = sbf($imgSrc, '"', $isAbsolute);
 
-        return $sbfImg;        
+        return $sbfImg;
     }
 
     /**
