@@ -1273,29 +1273,29 @@ class cal_Calendar extends core_Master
 
         $ajustOpt = array(
             '' => '',
-            'ThisOrNext-Mon' => "Този или следващ, Понедленик",
-            'ThisOrNext-Tue' => "Този или следващ, Вторник",
-            'ThisOrNext-Wed' => "Този или следващ, Сряда",
-            'ThisOrNext-Thu' => "Този или следващ, Четвъртък",
-            'ThisOrNext-Fri' => "Този или следващ, Петък",
-            'ThisOrNext-Sat' => "Този или следващ, Събота",
-            'ThisOrNext-Sun' => "Този или следващ, Неделя",
-            'ThisOrNext-Weekend' => "Този или следващ, Уикенд",
-            'ThisOrNext-NotWeekend' => "Този или следващ, Не-Уикенд",
-            'ThisOrNext-NonWorking' => "Този или следващ, Неработен ден",
-            'ThisOrNext-Working' => "Този или следващ, Работен ден",
+            'ThisOrNext-Mon' => "Напред, Понедленик",
+            'ThisOrNext-Tue' => "Напред, Вторник",
+            'ThisOrNext-Wed' => "Напред, Сряда",
+            'ThisOrNext-Thu' => "Напред, Четвъртък",
+            'ThisOrNext-Fri' => "Напред, Петък",
+            'ThisOrNext-Sat' => "Напред, Събота",
+            'ThisOrNext-Sun' => "Напред, Неделя",
+            'ThisOrNext-Working' => "Напред, Работен ден",
+            'ThisOrNext-NonWorking' => "Напред, Неработен ден",
+            'ThisOrNext-NotWeekend' => "Напред, Не-Уикенд",
+            'ThisOrNext-Weekend' => "Напред, Уикенд",
 
-            'ThisOrPrev-Mon' => "Този или предишен, Понедленик",
-            'ThisOrPrev-Tue' => "Този или предишен, Вторник",
-            'ThisOrPrev-Wed' => "Този или предишен, Сряда",
-            'ThisOrPrev-Thu' => "Този или предишен, Четвъртък",
-            'ThisOrPrev-Fri' => "Този или предишен, Петък",
-            'ThisOrPrev-Sat' => "Този или предишен, Събота",
-            'ThisOrPrev-Sun' => "Този или предишен, Неделя",
-            'ThisOrPrev-Weekend' => "Този или предишен, Уикенд",
-            'ThisOrPrev-NotWeekend' => "Този или предишен, Не-Уикенд",
-            'ThisOrPrev-NonWorking' => "Този или предишен, Неработен ден",
-            'ThisOrPrev-Working' => "Този или предишен, Работен ден",
+            'ThisOrPrev-Mon' => "Назад, Понедленик",
+            'ThisOrPrev-Tue' => "Назад, Вторник",
+            'ThisOrPrev-Wed' => "Назад, Сряда",
+            'ThisOrPrev-Thu' => "Назад, Четвъртък",
+            'ThisOrPrev-Fri' => "Назад, Петък",
+            'ThisOrPrev-Sat' => "Назад, Събота",
+            'ThisOrPrev-Sun' => "Назад, Неделя",
+            'ThisOrPrev-Working' => "Назад, Работен ден",
+            'ThisOrPrev-NonWorking' => "Назад, Неработен ден",
+            'ThisOrPrev-NotWeekend' => "Назад, Не-Уикенд",
+            'ThisOrPrev-Weekend' => "Назад, Уикенд",
             
 
             );
@@ -1304,7 +1304,7 @@ class cal_Calendar extends core_Master
         $form->FLD('startOn', 'datetime', 'caption=Начало,mandatory');
         $form->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици|1 месец|2 месецa|3 месецa|4 месецa|5 месецa|6 месецa|12 месецa|24 месецa,min=86400)', 'caption=Период,mandatory');
         $form->FLD('ajust1', 'enum()', 'caption=Напасване');
-        $form->FLD('ajust2', 'enum()', 'caption=Напасване2');
+        $form->FLD('ajust2', 'enum()', 'caption=Или по-близо');
         $form->FLD('after', 'datetime', 'caption=След');
         
         $form->setOptions('ajust1', $ajustOpt);
