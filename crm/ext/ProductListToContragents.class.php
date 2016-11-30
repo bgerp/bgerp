@@ -371,7 +371,6 @@ class crm_ext_ProductListToContragents extends core_Manager
 	    if(!isset($policyInfo->price)){
 	    	$row->productId = ht::createHint($row->productId, 'Артикулът няма цена по ценовата политика на контрагента', 'warning', FALSE);
 	    }
-	   
 	}
 	
 	

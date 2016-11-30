@@ -156,7 +156,7 @@ class acc_ClosePeriods extends core_Master
     	$this->FLD("amountKeepBalance", 'double(decimals=2,min=0)', 'caption=Други разходи->Салдо за поддържане,notNull,default=0');
     	
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)',
+    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
     			'caption=Статус, input=none'
     	);
     }
