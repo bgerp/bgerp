@@ -2069,18 +2069,20 @@ class crm_Companies extends core_Master
             $creditGroupId = crm_Groups::getIdFromSysId("creditors");
         }
     	
+        $groupList = crm_Groups::getParentsArray($rec->groupList);
+    	
     	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
-    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    	if(in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)){
     		$res[] = 'findeals_Deals';
     	}
     	
     	// Ако е в група на клиент, показваме бутона за продажба
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
-    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
     	}
     	 

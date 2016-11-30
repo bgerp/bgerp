@@ -88,7 +88,7 @@ class trz_PayrollDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,periodId,personId,salary,bonus,sickday,order,trip,fines,amount';
+    public $listFields = 'id,personId,salary,bonus,sickday,order,trip,fines,amount';
     
     
     /**

@@ -54,7 +54,7 @@ class fileman_FileType extends type_Varchar {
         $attrInp['style'] = 'padding:5px;font-weight:bold;';
         
         if($fileName) {
-            $crossImg = "<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">";
+            $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" alt=\"\">";
             $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "')\">" . $crossImg . '</a>';
         }
         

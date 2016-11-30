@@ -2133,7 +2133,7 @@ class crm_Persons extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png', array('order' => 1));
-        $form->toolbar->addBtn('Отказ', getRetUrl(), array('order' => 10), 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), array('order' => 10), 'ef_icon = img/16/close-red.png');
         
         // Добавяме във формата информация, за да знаем коя визитка добавяме
 //        $form->info = "Извличане на информация за първата визитка";
@@ -2157,13 +2157,13 @@ class crm_Persons extends core_Master
         $cnt = $rArr['crm_Persons'] + $rArr['crm_Companies'];
         
         if ($cnt == 0) {
-            $msg = '|Няма ключове за поправяне';
+            $msg = '|Няма визитки за ре-индексиране';
         } else {
             
             if ($cnt == 1) {
-                $msg = "|Поправен|* {$cnt} |запис";
+                $msg = "|Ре-индексиран|* {$cnt} |запис";
             } else {
-                $msg = "|Поправени|* {$cnt} |записа";
+                $msg = "|Ре-индексиран|* {$cnt} |записа";
             }
         }
         
@@ -2676,23 +2676,30 @@ class crm_Persons extends core_Master
     	$res = array();
     	 
     	$rec = $this->fetch($id);
-    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
-    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
-    	$debitGroupId = crm_Groups::getIdFromSysId('debitors');
-    	$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	
+    	static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
+    	
+    	if(!isset($clientGroupId)) {
+    		$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    		$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    		$debitGroupId = crm_Groups::getIdFromSysId('debitors');
+    		$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	}
+    	
+    	$groupList = crm_Groups::getParentsArray($rec->groupList);
     	
     	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
-    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    	if(in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)){
     		$res[] = 'findeals_Deals';
     	}
     	
     	// Ако е в група на клиент, показваме бутона за продажба
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
-    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
     	}
     	 

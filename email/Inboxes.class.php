@@ -1033,7 +1033,8 @@ class email_Inboxes extends core_Master
             $userQuery = core_Users::getQuery();
             $powerRoles = core_Roles::getRolesAsKeylist('executive,officer,manager,ceo');
             $userQuery->likeKeylist('roles', $roles);
-            while($uRec = $userQuery->fetch("#state != 'rejected'")) {
+            $userQuery->where("#state != 'rejected'");
+            while($uRec = $userQuery->fetch()) {
                 $powerUsers[strtolower($uRec->nick)] = $uRec;
             }
         }

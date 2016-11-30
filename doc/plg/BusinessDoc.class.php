@@ -94,8 +94,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         $form->title = 'Избор на папка';
         $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'btn-next fright'), 'ef_icon = img/16/move.png, title=Продължи нататък');
-        $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
-        
+
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         

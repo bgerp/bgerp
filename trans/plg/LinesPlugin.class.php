@@ -143,7 +143,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		}
 		
 		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-    	$form->toolbar->addBtn('Отказ', array($mvc, 'single', $id),  'ef_icon = img/16/close16.png');
+    	$form->toolbar->addBtn('Отказ', array($mvc, 'single', $id),  'ef_icon = img/16/close-red.png');
     		 
     	// Рендиране на формата
     	$res = $form->renderHtml();

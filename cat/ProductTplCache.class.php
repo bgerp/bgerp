@@ -224,7 +224,10 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->productId = $rec->id;
 		$cacheRec->type = 'title';
 		$cacheRec->documentType = $documentType;
+		
+		Mode::push('text', 'plain');
 		$cacheRec->cache = cat_Products::getTitleById($rec->id);
+		Mode::pop('text');
 		$cacheRec->lang = $lang;
 		
 		if(isset($time)){

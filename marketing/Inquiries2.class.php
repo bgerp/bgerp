@@ -811,7 +811,7 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
     	$tpl = $form->renderHtml();
     	 
     	// Поставяме шаблона за външен изглед

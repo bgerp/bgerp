@@ -277,13 +277,13 @@ class store_InventoryNoteDetails extends doc_Detail
     			$form->toolbar->addFnBtn('Запис и Нов', "submitShowAddForm(this.form)", "id=saveAjaxAndNew,ef_icon = img/16/disk.png");
     		}
     		$form->toolbar->addFnBtn('Запис', "submitAndCloseForm(this.form)", "id=saveAjax,ef_icon = img/16/disk.png");
-    		$form->toolbar->addFnBtn('Отказ', "cancelForm()", "id=cancelAjax, ef_icon = img/16/close16.png");
+    		$form->toolbar->addFnBtn('Отказ', "cancelForm()", "id=cancelAjax, ef_icon = img/16/close-red.png");
     	} else {
     		
     		// Иначе добавяме нормални бутони
     		//$form->toolbar->addFnBtn('Запис и Нов', "saveAndNew", "id=saveAndNew,ef_icon = img/16/disk.png");
     		$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на документа');
-    		$form->toolbar->addBtn('Отказ', array('store_InventoryNotes', 'single', $noteId),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    		$form->toolbar->addBtn('Отказ', array('store_InventoryNotes', 'single', $noteId),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	}
     	
     	// Получаваме изгледа на формата

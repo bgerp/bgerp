@@ -33,7 +33,7 @@ class core_Updates extends core_Manager
     /**
      * Кои полета ще бъдат показани?
      */
-    public $listFields = 'version,ghPublishedAt,repo,branch,description';
+    public $listFields = 'update=Обновяване,version,ghPublishedAt,repo,branch,description';
 
 
     /**
@@ -57,13 +57,13 @@ class core_Updates extends core_Manager
     /**
      * Кой може да редактира?
      */
-    var $canEdit   = 'debug';
+    var $canEdit   = 'no_one';
 
 
     /**
      * Кой може да изтрива?
      */
-    var $canDelete = 'debug';
+    var $canDelete = 'no_one';
     
     
     /**
@@ -294,10 +294,8 @@ class core_Updates extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if($rec->state == 'opened') {
-            $row->description .= "<div style='margin-top:5px;margin-bottom:5px;'>" .
-                                 ht::createBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), NULL, FALSE,
-                                               'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn') .
-                                 "</div>";
+            $row->update = ht::createBtn('Обнови', array("core_Packs", "systemUpdate"), NULL, FALSE,
+                                               'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
         }
     }
 

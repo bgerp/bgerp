@@ -713,7 +713,7 @@ class forum_Postings extends core_Detail {
 		$data->form->setDefault('boardTo', $data->board->id);
 		$data->form->title = "Местене на тема|* : <b>{$data->row->title}</b>";
 		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), 'ef_icon = img/16/move.png');
-		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close16.png');
+		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close-red.png');
 		
 		$data->navigation = $this->Master->prepareNavigation($data->board->categoryId, $data->rec->boardId, $data->rec->id);
 	}

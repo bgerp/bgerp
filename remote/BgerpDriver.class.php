@@ -228,7 +228,7 @@ class remote_BgerpDriver extends core_Mvc
         $form->FNC('captcha', 'captcha_Type', 'caption=Разпознаване,hint=Въведи кода от картинката,input');
 
         $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'fright'), 'ef_icon = img/16/move.png');
-        $form->toolbar->addBtn('Отказ', toUrl(array('Portal')), 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', toUrl(array('Portal')), 'ef_icon = img/16/close-red.png');
 
         $r = $form->input();
         

@@ -1225,7 +1225,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	$form->toolbar->addSbBtn('Активиране/Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
-    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
     	 
     	// Рендиране на формата
     	$tpl = $this->renderWrapping($form->renderHtml());
@@ -1673,7 +1673,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
     	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
-    	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	if(core_Users::haveRole('collaborator')){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');

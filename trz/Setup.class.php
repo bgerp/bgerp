@@ -70,6 +70,40 @@ class trz_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(2.32, 'Персонал', 'ТРЗ', 'trz_SalaryPayroll', 'default', "trz, ceo"),
         );
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+        array(
+            'systemId' => "Salary Rules",
+            'description' => "Правила за формиране на работна заплата",
+            'controller' => "trz_SalaryRules",
+            'action' => "SalaryRules",
+            'period' => 180,
+            'offset' => 15,
+            'timeLimit' => 100
+        ),
+
+        array(
+            'systemId' => "CollectIndicators",
+            'description' => "Изпращане на данните към показателите за заплатите",
+            'controller' => "trz_SalaryIndicators",
+            'action' => "Indicators",
+            'period' => 180,
+            'offset' => 60,
+        ),
+        
+        array(
+            'systemId' => 'CalculateSalary',
+            'description' => 'Изчисляване на заработката',
+            'controller' => 'trz_SalaryPayroll',
+            'action' => 'CalcSalaryPay',
+            'period' => 1440,
+            'offset' => 23,
+            'timeLimit' => 600,
+        ),
+    );
 
         
     /**

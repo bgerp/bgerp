@@ -34,8 +34,8 @@ class trz_SalaryRules extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected,  plg_SaveAndNew, 
-                    trz_Wrapper';
-    
+                    trz_Wrapper,plg_State2';
+   // plg_Created, plg_RowTools, , cond_Wrapper, acc_plg_Registry
     
     /**
      * Кой има право да чете?
@@ -82,7 +82,7 @@ class trz_SalaryRules extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name, function, indicators, factor';
+    public $listFields = 'id,positionId, name, function, state';
     
     
     /**
@@ -96,10 +96,10 @@ class trz_SalaryRules extends core_Manager
      */
     public function description()
     {
-    	$this->FLD('name',    'varchar(64)', 'caption=Име на правилото,width=100%,mandatory');
-    	$this->FLD('function',    'enum(const=константа, average=средно, summary=сумарно)', 'caption=Функция,width=100%,mandatory');
-    	$this->FLD('indicators',    'varchar', 'caption=Индикатор,width=100%,mandatory');
-    	$this->FLD('factor',    'double(Min=0)', 'caption=Коефициент,width=100%,mandatory');
+    	$this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Позиция, mandatory,oldField=possitionId,autoFilter');
+    	$this->FLD('name',    'varchar', 'caption=Наименование,width=100%,mandatory');
+    	$this->FLD('function',    'text(rows=2)', 'caption=Правило,width=100%,mandatory');
+    	$this->FLD('state', 'enum(active=Активен,closed=Затворен,)', 'caption=Видимост,input=none,notSorting,notNull,value=active');
     }
 
     
@@ -115,7 +115,7 @@ class trz_SalaryRules extends core_Manager
         $indicatorNames = trz_SalaryIndicators::getIndicatorNames();
         
         if(is_array($indicatorNames)) {
-            $data->form->setOptions('indicators', array('' => '') + $indicatorNames);
+           // $data->form->setOptions('indicators', array('' => '') + $indicatorNames);
         }
     }
     
@@ -132,5 +132,22 @@ class trz_SalaryRules extends core_Manager
 
         $row->factor = $Double->toVerbal($rec->factor);
 
+    }
+    
+    
+    public static function applyRule($date)
+    {
+        
+    }
+    
+    
+    /**
+     * Изпращане на данните към показателите
+     */
+    public static function cron_SalaryRules()
+    {
+        $date = dt::now(FALSE);
+         
+        self::applyRule($date);
     }
 }

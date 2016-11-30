@@ -200,12 +200,12 @@ class bgerp_E extends core_Manager
             $form->setField('format, validity', 'input=none');
 			
             $form->toolbar->addBtn('Сваляне', $downloadUrl, "ef_icon = fileman/icons/{$format}.png, title=" . tr('Сваляне на документа'));
-            $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close16.png, title=' . tr('Връщане към документа') . ', class=fright');
+            $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към документа') . ', class=fright');
             
             $form->title = "Линк за сваляне";
         } else {
             $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
-            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title= ' . tr('Прекратяване на действията'));
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title= ' . tr('Прекратяване на действията'));
         }
         
         $tpl = $form->renderHtml();

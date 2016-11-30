@@ -251,7 +251,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$form->toolbar->addBtn('Запис', array(), 'ef_icon = img/16/disk.png, title = Запис');
 			}
 			
-			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 				
 			// Рендиране на опаковката
 			$tpl = $mvc->renderWrapping($form->renderHtml());
