@@ -99,7 +99,7 @@ class acc_plg_Registry extends core_Plugin
     	
     	// Ако обекта е затворен или оттеглен
     	// Отбелязваме перото му, че е за затваряне
-    	if($rec->state == 'rejected' || $rec->state == 'closed'){
+    	if($rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'stopped'){
     		$mvc->closeItems[$rec->id] = $rec; 
     	}
     }
