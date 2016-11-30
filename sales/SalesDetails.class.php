@@ -415,7 +415,9 @@ class sales_SalesDetails extends deals_DealDetail
     				if(!isset($policyInfo->price)){
     					$error[$lId] = "quantity{$lId}";
     				} else {
-    					$packPrice = $policyInfo->price * $quantityInPack;
+    					$vat = cat_Products::getVat($productId, $saleRec->valior);
+    					$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    					$packPrice = $price * $quantityInPack;
     					$discount = $policyInfo->discount;
     				}
     			}
