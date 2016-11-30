@@ -1521,8 +1521,8 @@ class email_Incomings extends core_Master
     {
         if ($rec->files && ($filesArr = type_Keylist::toArray($rec->files))) {
             try {
-                $haveRoute = FALSE;
                 $fCnt = 0;
+                $ratingsArr = array();
                 foreach ($filesArr as $fileId) {
                     
                     // Ако сме достигнали максималния брой на файлове, които да се сканират
@@ -1569,45 +1569,82 @@ class email_Incomings extends core_Master
                         
                         if (!$cRec) continue;
                         
-//                         if ($cRec->state == 'draft') continue;
+                        if (!isset($ratingsArr[$cRec->id])) {
+                            $ratingsArr[$cRec->id] = self::getDocRating($cRec);
+                        }
+                    }
+                }
+                
+                if (!empty($ratingsArr)) {
+                    
+                    arsort($ratingsArr);
+                    
+                    foreach ($ratingsArr as $bestCidId => $rating) {
+                        
+                        if (!$bestCidId) continue;
+                        
+                        $cRec = doc_Containers::fetch($bestCidId);
                         
                         $rec->threadId = $cRec->threadId;
                         
-                        $haveRoute = TRUE;
-                        
-                        break;
-                    }
-                    
-                    if ($haveRoute) {
-                        
                         if ($rec->threadId) {
-                            
+                    
                             if($rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId')) {
                                 $coverClass = doc_Folders::getCover($rec->folderId);
-                                
+                    
                                 // Ако ще се рутира към пощенска кутия или папка на контрагент
                                 if ($coverClass) {
                                     if ($coverClass->instance instanceof email_Inboxes ||
                                         $coverClass->instance instanceof crm_Companies ||
                                         $coverClass->instance instanceof crm_Persons) {
-                                        
+        
                                         break;
                                     }
                                 }
                             }
                         }
-                        
+                    
                         // Ако се стигне до тук, значи нишката не отговаря на условията
                         unset($rec->threadId);
                         unset($rec->folderId);
                     }
                 }
                 
-                if ($haveRoute) return $rec->folderId;
+                if (!empty($ratingsArr) && $rec->folderId) return $rec->folderId;
             } catch (ErrorException $e) {
                 reportException($e);
             }
         }
+    }
+    
+    
+    /**
+     * Определя рейтинга на документа
+     * Последно модифицираните са с най-голям рейтинг, а оттеглените с най-нисък
+     * 
+     * @param integer|stdObject $cId
+     * 
+     * @return NULL|iteger
+     */
+    protected static function getDocRating($cId)
+    {
+        if (!$cId) return ;
+        
+        $cRec = doc_Containers::fetchRec($cId);
+        
+        if (!$cRec) return ;
+        
+        $rating = 0;
+        
+        if ($cRec->modifiedOn) {
+            $rating = dt::mysql2timestamp($cRec->modifiedOn);
+        }
+        
+        if ($rating && ($cRec->state == 'rejected')) {
+            $rating /= 1000;
+        }
+        
+        return $rating;
     }
     
     
