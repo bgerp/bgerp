@@ -708,7 +708,9 @@ class draw_Designs extends core_Master
 
         $tpl->append($tpl2);
         $tpl->append("state-{$data->rec->state}", 'STATE_CLASS');
-        $tpl->append($data->form->renderHtml(), 'DETAILS');
+        if($data->form) {
+            $tpl->append($data->form->renderHtml(), 'DETAILS');
+        }
 
         if(!$data->error) {
             $tpl->append($data->canvas->render(), 'DETAILS');
@@ -832,6 +834,21 @@ class draw_Designs extends core_Master
                 }
                 $caption = $params[2] ? $params[2] : $params[0];
                 $varId = ltrim($params[0], '$');
+
+                // Проверка за валидно име
+                if(!preg_match("/^[a-z][a-zA-Z0-9_]{0,64}$/", $varId)) {
+                    $error = "Невалидно име на входен параметър: \${$varId}";
+
+                    return FALSE;
+                }
+
+                // Проверка за дублиране
+                if($form->fields[$varId]) {
+                    $error = "Повторение на входен параметър: \${$varId}";
+
+                    return FALSE;
+                }
+
                 $form->FLD($varId, 'float', 'silent,caption=' . trim($caption));
                 $form->setDefault($varId, trim($params[1]));
             }
