@@ -261,8 +261,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$form->setDefault($fld, $i + 1);
 		}
 		
-		$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import16.png, title = Импорт');
-		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+		$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 	}
 	
 	
@@ -275,7 +275,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		
 		if($mvc->haveRightFor('import', (object)array("{$mvc->masterKey}" => $masterRec->id))){
 			$data->toolbar->addBtn('Импортиране', array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
-			"id=btnAdd-import,{$error},title=Импортиране на артикули", 'ef_icon = img/16/import16.png,order=15');
+			"id=btnAdd-import,{$error},title=Импортиране на артикули", 'ef_icon = img/16/import.png,order=15');
 		}
 	}
 	

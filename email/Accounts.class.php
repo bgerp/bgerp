@@ -332,6 +332,18 @@ class email_Accounts extends core_Master
     {
         $rec = $form->rec;
         
+        // Да не може да се добавя повече от една активна корпоративна сметка
+        if ($form->isSubmitted()) {
+            if ($form->rec->type == 'corporate' && ($form->rec->state != 'stopped')) {
+                
+                $cAcc = $mvc->getCorporateAcc();
+                
+                if ($cAcc && (!$form->rec->id || $form->rec->id != $cAcc->id)) {
+                    $form->setError('type', 'Можете да имате само една активна корпоративна сметка');
+                }
+            }
+        }
+        
         if($form->isSubmitted()) {
             if (email_Router::isPublicDomain(type_Email::domain($rec->email))) {
                 if($rec->type != 'single') {  

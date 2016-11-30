@@ -281,7 +281,6 @@ class bgerp_Setup extends core_ProtoSetup {
         // Да се изтрият необновените менюта
         $Menu->deleteNotInstalledMenu = TRUE;
         
-        $html .= bgerp_Menu::addOnce(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
         
         $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
 

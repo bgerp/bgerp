@@ -21,10 +21,32 @@ class draw_Designs extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, plg_Rejected, draw_Wrapper';
-	
-    
-    
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin';
+
+
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'script';
+
+
+    /**
+     * Кой може да променя записа
+     */
+    var $canChangerec = 'draw,admin,ceo';
+
+
+    /**
+     * Кой може да променя записа
+     */
+    var $canChangestate = 'draw,admin,ceo';
+
+
+    /**
+     *
+     */
+    var $canEdit = 'no_one';
+
     /**
      * Заглавие
      */
@@ -89,7 +111,7 @@ class draw_Designs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'order,name,state,lastRun';
+    var $listFields = 'order,name,state';
 
     var $rowToolsField = 'order';
 
@@ -120,7 +142,6 @@ class draw_Designs extends core_Master
         while($pRec = $query->fetch()){
             $pens[$pRec->name] = "#" . $pRec->name;
         }
-
         $suggestions = array(
             'ArcTo(' => 'ArcTo(',
             'CloseGroup(' => 'CloseGroup(',
@@ -138,6 +159,20 @@ class draw_Designs extends core_Master
             'SavePoint(' => 'SavePoint(',
             'Set(' => 'Set(',
         );
+        $id = Request::get("id", "int");
+
+        if($id) {
+            $rec = self::fetch($id);
+        }
+
+        if($script = $rec->script) {
+            $script = " " . str_replace(array('-', '+', '*', '/', '(', ')', ',', "\n", "\r", "\t"), " ", $script) . " ";
+            preg_match_all("/ (\\$[a-z0-9_]{1,64}) /i", $script, $matches);
+            foreach($matches[1] as $varName) {
+                $suggestions[$varName] = $varName;
+            }
+        }
+
         $suggestions = $pens + $suggestions;
 
         $data->form->setSuggestions('script', $suggestions);
@@ -602,6 +637,13 @@ class draw_Designs extends core_Master
 
     public static function on_AfterPrepareSingle($mvc, $res, $data)
     {
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+
+        // Вземаме таблицата с попълнени данни
+        $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
+        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), $fields);
+
         $error = '';
         $contex = new stdClass();
 
@@ -656,15 +698,19 @@ class draw_Designs extends core_Master
 
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        $tempScript = str_replace("<br>", "\n", $data->row->script);
         // Обвиваме съдъжанието на файла в код
-        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$data->rec->script}</code></pre></div>";
+        $code = "<div class='richtext'><pre class='rich-text code php'><code>{$tempScript}</code></pre></div>";
+
 
         $tpl2 = hljs_Adapter::enable('github');
         $tpl2->append($code, 'CODE');
 
         $tpl->append($tpl2);
         $tpl->append("state-{$data->rec->state}", 'STATE_CLASS');
-        $tpl->append($data->form->renderHtml(), 'DETAILS');
+        if($data->form) {
+            $tpl->append($data->form->renderHtml(), 'DETAILS');
+        }
 
         if(!$data->error) {
             $tpl->append($data->canvas->render(), 'DETAILS');
@@ -788,6 +834,21 @@ class draw_Designs extends core_Master
                 }
                 $caption = $params[2] ? $params[2] : $params[0];
                 $varId = ltrim($params[0], '$');
+
+                // Проверка за валидно име
+                if(!preg_match("/^[a-z][a-zA-Z0-9_]{0,64}$/", $varId)) {
+                    $error = "Невалидно име на входен параметър: \${$varId}";
+
+                    return FALSE;
+                }
+
+                // Проверка за дублиране
+                if($form->fields[$varId]) {
+                    $error = "Повторение на входен параметър: \${$varId}";
+
+                    return FALSE;
+                }
+
                 $form->FLD($varId, 'float', 'silent,caption=' . trim($caption));
                 $form->setDefault($varId, trim($params[1]));
             }
@@ -805,6 +866,5 @@ class draw_Designs extends core_Master
 
         return $form;
     }
-
 
 }

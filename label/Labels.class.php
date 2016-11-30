@@ -449,7 +449,7 @@ class label_Labels extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         // Рендираме опаковката
         return $this->renderWrapping($form->renderHtml());

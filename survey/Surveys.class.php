@@ -247,7 +247,7 @@ class survey_Surveys extends core_Master {
     	$url = getCurrentUrl();
     	if($mvc::haveRightFor('summarise', $data->rec->id) && !$summary) {
     		$url['summary'] = 'ok';
-    		$data->toolbar->addBtn('Обобщение', $url, 'ef_icon=img/16/chart16.png, title=Виж резултатите от анкетата');
+    		$data->toolbar->addBtn('Обобщение', $url, 'ef_icon=img/16/chart_pie.png, title=Виж резултатите от анкетата');
     	} 
     	
     	if($summary && $data->rec->state == 'active') {

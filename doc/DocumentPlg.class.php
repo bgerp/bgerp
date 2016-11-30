@@ -2047,9 +2047,12 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetMaxAttachFileSizeLimit($mvc, &$max)
     {
-        static $maxSize;
-                
-        if (!$maxSize) {
+        static $maxSizeArr = array();
+        
+        $clsId = $mvc->getClassId();
+        
+        if (!$maxSizeArr[$clsId]) {
+            
             if (!$max) {
                 
                 $conf = core_Packs::getConfig('email');
@@ -2065,11 +2068,13 @@ class doc_DocumentPlg extends core_Plugin
                 $memoryLimit = $FileSize->fromVerbal($memoryLimit) / 3;
                 
                 // Вземаме мининалния размер
-                $maxSize = min($maxAttachedLimit, $memoryLimit);
+                $maxSizeArr[$clsId] = min($maxAttachedLimit, $memoryLimit);
+            } else {
+                $maxSizeArr[$clsId] = $max;
             }
         }
         
-        $max = $maxSize;
+        $max = $maxSizeArr[$clsId];
     }
     
     

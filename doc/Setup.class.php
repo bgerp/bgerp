@@ -148,7 +148,7 @@ class doc_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете')),
+        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Ре-индексиране на документите')),
         array('title' => 'Поправки', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на развалени документи'))
     );
     

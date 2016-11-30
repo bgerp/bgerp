@@ -1454,11 +1454,21 @@ class doc_Folders extends core_Master
         
         // Дали линка да е абсолютен
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Връщаме sbf линка до иконата
-        $sbfImg = sbf('img/16/' . $img, '"', $isAbsolute);
 
-        return $sbfImg;        
+
+        // Връщаме sbf линка до иконата
+        $imgSrc = 'img/16/' . $img;
+
+        if(log_Browsers::isRetina()) {
+            $tempIcon = 'img/32/' . $img;
+            if(getFullPath($tempIcon)) {
+                $imgSrc = $tempIcon;
+            }
+        }
+
+        $sbfImg = sbf($imgSrc, '"', $isAbsolute);
+
+        return $sbfImg;
     }
 
     /**

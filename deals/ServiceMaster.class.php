@@ -243,6 +243,16 @@ abstract class deals_ServiceMaster extends core_Master
     				$row->operationSysId = tr('Отказ от услуга');
     			}
     		}
+
+			// Имената в Получил и Доставил да се пренасят, ако са по-дълги
+			if(strlen($rec->received) > 60) {
+				$row->receivedClass = "wrapText";
+			}
+
+			if(strlen($rec->delivered) > 60) {
+				$row->deliveredClass = "wrapText";
+			}
+
     	}
     }
 

@@ -262,7 +262,7 @@ class label_Prints extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('В опашката', 'save', 'ef_icon = img/16/printer.png, title=Започни да печаташ');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         return $this->renderWrapping($form->renderHtml());
     }

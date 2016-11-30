@@ -703,7 +703,7 @@ class email_Outgoings extends core_Master
         }
         
         // Добавяме бутона отказ
-        $form->toolbar->addBtn('Отказ', getRetUrl(), NULL, array('ef_icon'=>'img/16/close16.png', 'title'=>'Спиране на изпращането'));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), NULL, array('ef_icon'=>'img/16/close-red.png', 'title'=>'Спиране на изпращането'));
         
         // Вкарваме silent полетата
         $form->input(NULL, 'silent');
@@ -2873,7 +2873,7 @@ class email_Outgoings extends core_Master
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Избор', 'default', NULL, array('ef_icon'=>'img/16/disk.png', 'title'=>'Създаване на имейл'));
-        $form->toolbar->addBtn('Отказ', $retUrl, NULL, array('ef_icon'=>'img/16/close16.png', 'title'=>'Спиране на създаване на имейл'));
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, array('ef_icon'=>'img/16/close-red.png', 'title'=>'Спиране на създаване на имейл'));
         
         // Потготвяме заглавието на формата
         $form->title = 'Препращане на имейл';

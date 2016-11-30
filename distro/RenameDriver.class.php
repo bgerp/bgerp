@@ -151,7 +151,7 @@ class distro_RenameDriver extends core_Mvc
     public function getLinkParams()
     {
         
-        return array('ef_icon' => 'img/16/edit16.png');
+        return array('ef_icon' => 'img/16/edit-icon.png');
     }
     
     

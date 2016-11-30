@@ -1419,9 +1419,9 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('search', 'Доставчик');
         $browser->press('Филтрирай');
         $browser->click('Информация за перото');
-        //echo $browser->getHtml();
+        
+        // ID на покупка 1, за да се избере при разпр. на разход 
         $purId = "60";
-        ///////$purid - да се зареди ID 
         $purId = $purId .'.17';
         
         //Покупка 2 - услуги
@@ -1461,7 +1461,8 @@ class unit_MinkPPurchases extends core_Manager {
         //$browser->setValue('action_pay', False);
         $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
-        ///Проверка в разходния обект и фактуриране...//////////
+        
+        ///Проверка в разходния обект и фактуриране
         $browser->click('16 pur');
         
         // Фактура в покупка 1

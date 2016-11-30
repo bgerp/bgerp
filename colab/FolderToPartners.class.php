@@ -400,7 +400,7 @@ class colab_FolderToPartners extends core_Manager
     	}
     	
     	$form->toolbar->addSbBtn('Изпращане', 'save', 'id=save, ef_icon = img/16/lightning.png', 'title=Изпращане на имейл за регистрация на парньори');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
     	 
@@ -572,7 +572,7 @@ class colab_FolderToPartners extends core_Manager
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
     	
     	if ($retUrl = getRetUrl()) {
-    	    $form->toolbar->addBtn('Отказ', $retUrl,  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    	    $form->toolbar->addBtn('Отказ', $retUrl,  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	}
     	
     	if ($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)) {

@@ -937,7 +937,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $urlPie = $curUrl;
         
         $btnPie = ht::createBtn('Графика', $urlPie, NULL, NULL,
-                'ef_icon = img/16/chart16.png');
+                'ef_icon = img/16/chart_pie.png');
         
         $realUrl[$pageBar] = $this->EmbedderRec->that;
         $urlBar = $realUrl;

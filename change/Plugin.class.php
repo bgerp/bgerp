@@ -299,7 +299,7 @@ class change_Plugin extends core_Plugin
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         $form->title = 'Промяна';
         

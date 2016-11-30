@@ -771,7 +771,7 @@ class fileman_Files extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
 
         // Вербалното име на файла
         $fileName = fileman_Files::getVerbal($fRec, 'name');

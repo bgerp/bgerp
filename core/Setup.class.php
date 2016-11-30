@@ -317,6 +317,22 @@ class core_Setup extends core_ProtoSetup {
             EF_TEMP_PATH => 'за временни файлове', // временни файлове
             EF_UPLOADS_PATH => 'за качени файлове',// файлове на потребители
         );
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+        array('title' => 'Миграции', 'url' => array ('core_Packs', 'InvalidateMigrations', 'ret_url' => TRUE), 'params' => array('title' => 'Преглед и инвалидиране на миграциите')),
+    );
+    
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+        array(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin'),
+    );
 
 
     /**

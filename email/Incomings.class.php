@@ -33,6 +33,18 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Максимален брой файлове от имейл, които да се сканират за баркод
+     */
+    protected static $maxScanFileCnt = 10;
+	
+	
+    /**
+     * Максимален брой баркодове, които да се проверяват
+     */
+    protected static $maxScanBarcodeCnt = 10;
+    
+    
+    /**
      * Шаблон (ET) за заглавие на перо
      */
     public $recTitleTpl = '[#subject#]';
@@ -1510,7 +1522,12 @@ class email_Incomings extends core_Master
         if ($rec->files && ($filesArr = type_Keylist::toArray($rec->files))) {
             try {
                 $haveRoute = FALSE;
+                $fCnt = 0;
                 foreach ($filesArr as $fileId) {
+                    
+                    // Ако сме достигнали максималния брой на файлове, които да се сканират
+                    if ($fCnt > self::$maxScanFileCnt) break;
+                    
                     $fRec = fileman_Files::fetch((int) $fileId);
                     $ext = fileman_Files::getExt($fRec->name);
                     
@@ -1527,15 +1544,22 @@ class email_Incomings extends core_Master
                     if (email_Setup::get('MAX_FILELEN_FOR_BARCOCE') < $fRec->fileLen) continue;
                     
                     try {
+                        $fCnt++;
                         $barcodesArr = zbar_Reader::getBarcodesFromFile($fRec->fileHnd);
                     } catch (fileman_Exception $e) {
                         
                         continue;
                     }
                     
+                    $barcodeCnt = 0;
                     // Опитваме се да определеим баркода за документ от нашата система
                     foreach ($barcodesArr as $bCode) {
+                        
+                        if ($barcodeCnt > self::$maxScanBarcodeCnt) break;
+                        
                         if (!$bCode->code) continue;
+                        
+                        $barcodeCnt++;
                         
                         $cId = doclog_Documents::getDocumentCidFromURL($bCode->code);
                         

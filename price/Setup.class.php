@@ -347,8 +347,10 @@ class price_Setup extends core_ProtoSetup
     				core_Users::exitSudo();
     			}
     		}
+    		
     	} catch(core_exception_Expect $e){
     		reportException($e);
+    		expect(FALSE);
     	}
     }
 }

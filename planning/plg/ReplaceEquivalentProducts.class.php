@@ -90,7 +90,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 			$name = cat_Products::getTitleById($rec->{$mvc->replaceProductFieldName});
 			$form->title = "Подмяна на |* <b>{$name}</b> |с друг взаимозаменям артикул|*";
 			$form->toolbar->addSbBtn('Подмяна', 'replaceproduct', 'ef_icon = img/16/star_2.png, title=Подмяна');
-			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 			
 			// Рендиране на формата
 			$form = $form->renderHtml();

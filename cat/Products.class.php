@@ -772,7 +772,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Приключени');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
@@ -902,7 +902,7 @@ class cat_Products extends embed_Manager {
     {
     	if($rec->isPublic == 'no' && empty($rec->code)){
     		$createdOn = ($rec->createdOn) ? $rec->createdOn : (($rec->id) ? static::fetchField($rec->id, 'createdOn') : NULL);
-    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($createdOn, 'd.m', NULL, FALSE);
+    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($createdOn, 'd.m', NULL, FALSE, FALSE);
     	} else {
     		if(empty($rec->code)){
     			$rec->code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;
@@ -2523,7 +2523,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHtml());
     }

@@ -76,7 +76,7 @@ class crm_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array ('crm_Persons', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете'))
+        array('title' => 'Ключови думи', 'url' => array ('crm_Persons', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Ре-индексиране на визитките'))
     );
     
     
