@@ -78,7 +78,7 @@ class acc_plg_Registry extends core_Plugin
     	if(!$added){
     		
     		// Ако е активно състоянието и обекта е перо
-    		if($rec->state != 'closed' && $rec->state != 'rejected'){
+    		if($rec->state != 'closed' && $rec->state != 'rejected' && $rec->state != 'stopped'){
     			
     			// Активираме перото
     			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
