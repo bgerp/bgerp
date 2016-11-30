@@ -21,7 +21,7 @@ class draw_Designs extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin';
+    var $loadList = 'plg_Created, plg_RowTools, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin';
 
 
     /**
