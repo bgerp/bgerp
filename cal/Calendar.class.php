@@ -1273,7 +1273,7 @@ class cal_Calendar extends core_Master
 
         $ajustOpt = array(
             '' => '',
-            'ThisOrNext-Mon' => "Напред, Понедленик",
+            'ThisOrNext-Mon' => "Напред, Понеделник",
             'ThisOrNext-Tue' => "Напред, Вторник",
             'ThisOrNext-Wed' => "Напред, Сряда",
             'ThisOrNext-Thu' => "Напред, Четвъртък",
@@ -1285,7 +1285,7 @@ class cal_Calendar extends core_Master
             'ThisOrNext-NotWeekend' => "Напред, Не-Уикенд",
             'ThisOrNext-Weekend' => "Напред, Уикенд",
 
-            'ThisOrPrev-Mon' => "Назад, Понедленик",
+            'ThisOrPrev-Mon' => "Назад, Понеделник",
             'ThisOrPrev-Tue' => "Назад, Вторник",
             'ThisOrPrev-Wed' => "Назад, Сряда",
             'ThisOrPrev-Thu' => "Назад, Четвъртък",
