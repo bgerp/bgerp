@@ -2759,6 +2759,8 @@ div.richtext ol ol ol {
   -ms-border-radius: 5px;
   border-radius: 5px;
   position: relative; }
+  .richtext-message.no-margin {
+    margin: 0 0 10px 0; }
 
 .richtext-text {
   background-color: rgba(255, 255, 128, 0.3);

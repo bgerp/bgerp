@@ -3020,6 +3020,9 @@ div.richtext ol ol ol {
     background-position: 9px 7px;
     @include border-radius(5px);
     position: relative;
+	&.no-margin {
+		margin: 0 0 10px 0;
+	}
 }
 
 .richtext-text {

@@ -30,7 +30,7 @@
 	<!--ET_END header-->
 	
 	<!--ET_BEGIN STOPPED_INFO-->
-		<div class='no-print'>[#STOPPED_INFO#]</div>
+		<div class='no-print richtext-message richtext-warning no-margin'>[#STOPPED_INFO#]</div>
 	<!--ET_END STOPPED_INFO-->
 	
 	<!--ET_BEGIN ExtState-->
