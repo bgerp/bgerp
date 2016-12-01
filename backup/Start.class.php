@@ -512,4 +512,19 @@ class backup_Start extends core_Manager
         
         return self::saveConf();
     }
+    
+    /**
+     * Връща линк към подадения обект
+     * Тук нямаме обект - предефинираме я за да се излиза коректно име в лог-а на класа
+     *
+     * @param integer $objId
+     *
+     * @return core_ET
+     */
+    
+    public static function getLinkForObject($objId)
+    {
+
+        return new ET(get_called_class());
+    }    
 }
