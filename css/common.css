@@ -922,6 +922,10 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
+a.linkWithIcon.small-padding-icon {
+  padding-left: 15px !important;
+  background-position: 0px center; }
+
 a.linkInTitle {
   color: #004488 !important; }
 
