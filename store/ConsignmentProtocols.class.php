@@ -156,7 +156,7 @@ class store_ConsignmentProtocols extends core_Master
     	$this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
     	$this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
+    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',
     			'caption=Статус, input=none'
     	);
     	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');

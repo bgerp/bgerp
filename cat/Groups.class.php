@@ -62,7 +62,7 @@ class cat_Groups extends core_Manager
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Маркер";
+    public $singleTitle = "Група";
     
     
     /**

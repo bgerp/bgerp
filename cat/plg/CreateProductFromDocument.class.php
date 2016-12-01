@@ -109,7 +109,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			unset($fieldPack->removeAndRefreshForm);
 			
 			// Поле за прототип
-			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance,placeholder=Популярни продукти,mandatory,before=packagingId");
+			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance,placeholder=Популярни продукти,mandatory,before=packagingId");
 			
 			// Наличните прототипи + клонирания
 			$protos = cat_Categories::getProtoOptions(NULL, $mvc->filterProtoByMeta);
