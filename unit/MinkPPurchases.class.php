@@ -444,7 +444,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '3,69')) {
+        if(strpos($browser->gettext(), 'Discount: EUR 3,69')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
