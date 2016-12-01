@@ -194,7 +194,9 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
+    			if(!core_Users::haveRole('collaborator')){
+    				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
+    			}
     		}
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
