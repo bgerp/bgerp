@@ -398,7 +398,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$rec = $form->rec;
     		
     		// Подготовка на записите
-    		$error = $toSave = $toUpdate = array();
+    		$error = $error2 = $toSave = $toUpdate = array();
     		foreach ($listed as $lId => $lRec){
     			$packQuantity = $rec->{"quantity{$lId}"};
     			$quantityInPack = $rec->{"quantityInPack{$lId}"};
@@ -424,6 +424,10 @@ class sales_SalesDetails extends deals_DealDetail
     				}
     			}
     			
+    			if(isset($lRec->moq) && $packQuantity < $lRec->moq){
+    				$error2[$lId] = "quantity{$lId}";
+    			}
+    			
     			// Ако няма грешка със записа
     			if(!array_key_exists($lId, $error)){
     				$obj = (object)array('quantity'       => $packQuantity * $quantityInPack, 
@@ -445,15 +449,24 @@ class sales_SalesDetails extends deals_DealDetail
     			}
     		}
     		
+    		if(count($error2)){
+    			if(haveRole('salesMaster,ceo')){
+    				$form->setWarning(implode(',', $error2), "Количеството е под МКП");
+    			} else {
+    				$form->setError(implode(',', $error2), "Количеството е под МКП");
+    			}
+    		}
+    		
     		// Ако има грешка сетва се ерор
     		if(count($error)){
     			$form->setError(implode(',', $error), 'Артикулът няма цена');
-    		} else {
-    			
+    		}
+    		
+    		if(!count($error) && (!count($error2) || (count($error2) && Request::get('Ignore')))){
     			// Запис на обновените записи
     			$this->saveArray($toUpdate, 'id,quantity');
     			$this->saveArray($toSave);
-    			
+    			 
     			// Редирект към продажбата
     			followRetUrl(NULL, 'Списъкът е импортиран успешно');
     		}
@@ -510,6 +523,10 @@ class sales_SalesDetails extends deals_DealDetail
     		$form->FLD("quantity{$lId}", "double(min=0)", "caption={$caption}->Количество");
     		$form->setDefault("productId{$lId}", $lRec->productId);
     		$form->setDefault("packagingId{$lId}", $lRec->packagingId);
+    		if(isset($lRec->moq)){
+    			$moq = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($lRec->moq);
+    			$form->setField("quantity{$lId}", "unit=|*<i>|МКП||MOQ|* {$moq}</i>");
+    		}
     		
     		// Ако иам съшествуващ запис, попълват му се стойностите
     		if(isset($exRec)){

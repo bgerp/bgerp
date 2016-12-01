@@ -43,7 +43,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,modified=Модифициране';
+    public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,moq,modified=Модифициране';
 			
 
     /**
@@ -92,7 +92,8 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId,caption=Артикул');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,caption=Опаковка,input=hidden,mandatory');
     	$this->FLD('reff', 'varchar(32)', 'caption=Техен код');
-	
+    	$this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
+    	
     	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId');
     	$this->setDbUnique('reff');
 	}
@@ -287,6 +288,8 @@ class crm_ext_ProductListToContragents extends core_Manager
 		// Рендиране на таблицата с артикулите
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$this->invoke('BeforeRenderListTable', array($tpl, &$data->sellable));
+		
+		$data->sellable->listFields = core_TableView::filterEmptyColumns($data->sellable->rows, $data->sellable->listFields, 'moq');
 		$tableTpl = $table->get($data->sellable->rows, $data->sellable->listFields);
 		$tpl->replace($tableTpl, 'SELLABLE');
 		
@@ -370,6 +373,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 	    $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($rec->contragentClassId, $rec->contragentId, $rec->productId, $rec->packagingId, 1);
 	    if(!isset($policyInfo->price)){
 	    	$row->productId = ht::createHint($row->productId, 'Артикулът няма цена по ценовата политика на контрагента', 'warning', FALSE);
+	    	$row->productId = ht::createElement("span", array('style' => 'color:#755101'), $row->productId);
 	    }
 	}
 	
@@ -395,7 +399,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 			
 			// Добавя се всеки запис, групиран според типа
 			while($rec = $query->fetch()){
-				$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff);
+				$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq);
 				self::$cache[$contragentClassId][$contragentId][$rec->id] = $obj;
 			}
 		}
