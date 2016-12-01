@@ -1813,7 +1813,6 @@ class doc_Threads extends core_Manager
      */
     public function act_Startthread()
     {
-    	$this->requireRightFor('startthread');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
     	$firstDocument = doc_Threads::getFirstDocument($rec->id);
@@ -2088,6 +2087,7 @@ class doc_Threads extends core_Manager
         
         // Можели нишката да се стартира
         if($action == 'startthread' && isset($rec)){
+        	$res = $mvc->getRequiredRoles('reject', $rec, $userId);
         	
         	// Трябва да не е оттеглена
         	if($rec->state == 'rejected'){
