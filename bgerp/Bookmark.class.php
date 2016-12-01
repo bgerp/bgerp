@@ -72,8 +72,10 @@ class bgerp_Bookmark extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, url = Линк, modifiedOn = Последно';
+    public $listFields = 'id, url=Линк, modifiedOn=Последно';
     
+
+    static $curRec;
     
     /**
      * Полета на модела
@@ -83,9 +85,33 @@ class bgerp_Bookmark extends core_Manager
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
         $this->FLD('url', 'varchar', 'caption=URL, silent, mandatory');
-        
+        $this->FLD('color', 'color_Type', 'caption=Цвят');
+
         $this->setDbUnique('user, title');
     }
+
+
+    /**
+     * Рендира основното меню на страницата
+     */
+    static function renderBookmarks()
+    {
+        $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
+        
+        $cur = new stdClass();
+        
+        $links = bgerp_Bookmark::getLinks();
+        $title = bgerp_Bookmark::getTitle();
+        $btn = bgerp_Bookmark::getBtn();
+        
+        $tpl->append($title, 'BOOKMARK_TITLE');
+        $tpl->append($links, 'BOOKMARK_LINKS');
+        $tpl->append($btn, 'BOOKMARK_BTN');
+        
+        
+        return $tpl;
+    }
+
     
     
     /**
@@ -119,7 +145,13 @@ class bgerp_Bookmark extends core_Manager
             $sUrl = addslashes($url);
             
             $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
-            
+             
+            if(self::$curRec) {  ;
+                $url = toUrl(array(get_called_class(), 'edit', self::$curRec->id, 'ret_url' => TRUE));
+                $sUrl = addslashes($url);
+            }
+
+
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
 
@@ -157,15 +189,33 @@ class bgerp_Bookmark extends core_Manager
 	    if ($limit) {
 	        $query->limit((int) $limit);
 	    }
-
+        
+        $localUrl = str_replace('/default', '', toUrl(getCurrentUrl(), 'local'));
+ 
 	    $res = '<ul>';
 	    while ($rec = $query->fetch()) {
 	        
 	        $title = self::getVerbal($rec, 'title');
-            $link = self::getLinkFromUrl($rec->url, $title);
-	        
-	        $res .= "<li>" . $link . "</li>";
+            
+            $attr = array();
+
+            if($rec->color) {
+                $attr['style'] = "color:" . $rec->color;
+            }
+
+            //$attr = array();
+
+            $link = self::getLinkFromUrl($rec->url, $title, $attr);
+
+            if(strpos($rec->url, $localUrl)) {
+   	            $attr['class'] = 'active';
+   	            $attr['style'] .= ';background-color:#663399';
+                self::$curRec = $rec;
+            }  
+            $res .= ht::createElement('li', $attr, $link); 
+            
 	    }
+
 	    $res .= '</ul>';
 	    return $res;
 	}
@@ -191,11 +241,10 @@ class bgerp_Bookmark extends core_Manager
 	 * 
 	 * @return string
 	 */
-    public static function getLinkFromUrl($url, $title = NULL)
+    public static function getLinkFromUrl($url, $title = NULL, $attr = array())
     {
         if (!preg_match('/^http[s]?\:\/\//i', $url) && (strpos($url, Request::get('App')) === 0)) {
             
-            $attr = array();
             
             try {
                 
