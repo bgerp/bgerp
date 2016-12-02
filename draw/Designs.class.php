@@ -27,7 +27,7 @@ class draw_Designs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'script';
+    public $changableFields = 'name,script';
 
 
     /**
