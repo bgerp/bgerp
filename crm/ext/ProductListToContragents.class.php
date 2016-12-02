@@ -151,6 +151,12 @@ class crm_ext_ProductListToContragents extends core_Manager
 				if(empty($rec->reff)){
 					$form->setError('reff', 'Трябва да бъде въведен код');
 				}
+				
+				if(!empty($rec->moq)){
+					if(!deals_Helper::checkQuantity($rec->packagingId, $rec->moq, $warning)){
+						$form->setError('moq', $warning);
+					}
+				}
 			}
 			
 			if(!$form->gotErrors()){
