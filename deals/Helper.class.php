@@ -794,8 +794,7 @@ abstract class deals_Helper
 	 */
 	public static function checkQuantity($packagingId, $packQuantity, &$warning = NULL)
 	{
-		$decPoint = core_Packs::getConfigValue('core', 'EF_NUMBER_DEC_POINT');
-		$decLenght = strlen(substr(strrchr($packQuantity, $decPoint), 1));
+		$decLenght = strlen(substr(strrchr($packQuantity, "."), 1));
 		$decimals = cat_UoM::fetchField($packagingId, 'round');
 		 
 		if(isset($decimals) && $decLenght > $decimals){
