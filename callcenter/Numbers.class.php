@@ -698,7 +698,7 @@ class callcenter_Numbers extends core_Manager
      * 
      * @param integer $num - Вътрешен номер
      * 
-     * @return array $userArr - Масив с id' та на потребители, които използват този номер
+     * @return FALSE|stdObject
      */
     public static function getRecForInternalNum($num)
     {
