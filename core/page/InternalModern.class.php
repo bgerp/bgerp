@@ -164,7 +164,7 @@ class core_page_InternalModern extends core_page_Active
     			"[#PAGE_CONTENT#]" .
     			"[#DEBUG#]</div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><div class='inner-fav-panel'>[#core_page_InternalModern::renderBookmarks#]</div></div>"
+    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><div class='inner-fav-panel'>[#bgerp_Bookmark::renderBookmarks#]</div></div>"
 
     	);
     	if(isDebug()) {
@@ -189,27 +189,7 @@ class core_page_InternalModern extends core_page_Active
 
         return $tpl;
     }
-    
-    
-	/**
-     * Рендира основното меню на страницата
-     */
-    static function renderBookmarks()
-    {
-        $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
         
-        $title = bgerp_Bookmark::getTitle();
-        $btn = bgerp_Bookmark::getBtn();
-        $links = bgerp_Bookmark::getLinks();
-        
-        $tpl->append($title, 'BOOKMARK_TITLE');
-        $tpl->append($links, 'BOOKMARK_LINKS');
-        $tpl->append($btn, 'BOOKMARK_BTN');
-        
-        
-        return $tpl;
-    }
-    
     
 	/**
      * Рендира основното меню на страницата

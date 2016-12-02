@@ -423,11 +423,14 @@ class cat_Products extends embed_Manager {
     		$Driver = $document->getDriver();
     		$fields = $document->getInstance()->getDriverFields($Driver);
     		$sourceRec = $document->rec();
-    	
+    	    
+            /* Премахване на такста от запитването, защото цялто запитване се показва отдолу
+
     		if($data->action != 'clone'){
     			$form->info = cls::get('type_Richtext')->toVerbal($sourceRec->inqDescription);
     			$form->info = "<small>{$form->info}</small>";
     		}
+            */
     		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){

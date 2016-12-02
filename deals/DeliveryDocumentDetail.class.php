@@ -123,16 +123,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     			}
 			}
 			
-			// Закръгляме количеството спрямо допустимото от мярката
-			$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId);
-			if($roundQuantity == 0){
-				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-				return;
-			}
-			
-			if($roundQuantity != $rec->packQuantity){
-				$form->setWarning('packQuantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-				$rec->packQuantity = $roundQuantity;
+			// Проверка на к-то
+			if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+				$form->setError('packQuantity', $warning);
 			}
 	
 			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка

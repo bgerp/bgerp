@@ -1748,6 +1748,116 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Метод за спиране на контиращите документи в нишката
+     * 
+     * @param int $id
+     * @return void
+     */
+    public static function stopDocuments($id)
+    {
+    	expect($rec = static::fetch($id));
+    	if($rec->state == 'rejected') return;
+    	
+    	self::groupDocumentsInThread($rec->id, $contable, $notContable);
+    	if(!count($contable)) return;
+    	
+    	foreach ($contable as $cRec){
+    		if($cRec->state != 'active') continue;
+    		if(!cls::load($cRec->docClass, TRUE)) continue;
+    		$Class = cls::get($cRec->docClass);
+    		$docRec = $Class->fetch($cRec->docId);
+    		if($docRec->state == 'active'){
+    			acc_Journal::deleteTransaction($cRec->docClass, $cRec->docId);
+    			$docRec->state = 'stopped';
+    		} else {
+    			$docRec->brState = 'stopped';
+    		}
+    		
+    		$Class->save($docRec, 'state,brState');
+    	}
+    }
+    
+    
+    /**
+     * Стартиране на контиращите документи в нишката
+     * 
+     * @param int $id
+     * @return void
+     */
+    public static function startDocuments($id)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	// Намиране на всички спрени контиращи документи в нишката
+    	self::groupDocumentsInThread($rec->id, $contable, $notContable, 'stopped');
+    	if(!count($contable)) return;
+    	
+    	// За всеки
+    	foreach ($contable as $cRec){
+    		if(!cls::load($cRec->docClass, TRUE)) continue;
+    		$Class = cls::get($cRec->docClass);
+    		$docRec = $Class->fetch($cRec->docId);
+    		
+    		// Ако е спрян се активира, и се реконтира
+    		if($docRec->state == 'stopped'){
+    			$docRec->state = 'active';
+    			$Class->save($docRec, 'state');
+    			acc_Journal::saveTransaction($cRec->docClass, $cRec->docId);
+    		} 
+    	}
+    }
+    
+    
+    /**
+     * Екшън за стартиране на бизнес документите в нишката
+     */
+    public function act_Startthread()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = self::fetch($id));
+    	$firstDocument = doc_Threads::getFirstDocument($rec->id);
+    	$this->requireRightFor('startthread', $rec);
+    	
+    	self::startDocuments($rec->id);
+    	
+    	return new redirect(array($firstDocument->getInstance(), 'single', $firstDocument->that), 'Бизнес документите в нишката са успешно пуснати');
+    }
+    
+    
+    /**
+     * Помощен метод намиращ контиращите и контиращите документи в нипката
+     * 
+     * @param mixed $id
+     * @param array $contable
+     * @param array $notContable
+     * @param string $state
+     * @param int|NULL $limit
+     */
+    public static function groupDocumentsInThread($id, &$contable = array(), &$notContable = array(), $state = 'active', $limit = NULL)
+    {
+    	$rec = static::fetchRec($id);
+    	$classes = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
+    	
+    	$cQuery = doc_Containers::getQuery();
+    	$cQuery->where("#threadId = {$rec->id}");
+    	
+    	if(isset($limit)){
+    		$cQuery->limit($limit);
+    	}
+    	
+    	$cloneQuery = clone $cQuery;
+    	$cloneQuery->where("#state = 'active' || #state = 'pending' || #state = 'waiting' || #state = 'closed'");
+    	$cloneQuery->notIn('docClass', array_keys($classes));
+    	
+    	$cQuery->in('docClass', array_keys($classes));
+    	$cQuery->where("#state = '{$state}'");
+    	
+    	$contable = $cQuery->fetchAll();
+    	$notContable = $cloneQuery->fetchAll();
+    }
+    
+    
+    /**
      * Възстановява цяла нишка, заедно с всички документи в нея 
      * 
      * @param int $id
@@ -1973,6 +2083,25 @@ class doc_Threads extends core_Manager
             } else {
                 $res = 'no_one';
             }
+        }
+        
+        // Можели нишката да се стартира
+        if($action == 'startthread' && isset($rec)){
+        	$res = $mvc->getRequiredRoles('reject', $rec, $userId);
+        	
+        	// Трябва да не е оттеглена
+        	if($rec->state == 'rejected'){
+        		$res = 'no_one';
+        	} else {
+        		
+        		// Имали контиращи спрени документи
+        		self::groupDocumentsInThread($rec, $contable, $notContable, 'stopped', 1);
+        		if(!count($contable)){
+        			$res = 'no_one';
+        		} else{
+        			
+        		}
+        	}
         }
     }
     

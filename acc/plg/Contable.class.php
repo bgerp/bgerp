@@ -200,7 +200,7 @@ class acc_plg_Contable extends core_Plugin
         // Ако има запис в журнала и потребителя има права за него, слагаме бутон
         $journalRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
         
-        if(($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending') && acc_Journal::haveRightFor('read') && $journalRec) {
+        if(($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'stopped') && acc_Journal::haveRightFor('read') && $journalRec) {
             $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
             $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
         }
@@ -271,7 +271,7 @@ class acc_plg_Contable extends core_Plugin
             $requiredRoles = $mvc->getRequiredRoles('restore', $rec);
             
             // Не може да се реконтират само активни и приключени документи
-            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending')) {
+            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped')) {
                 $requiredRoles = 'no_one';
             }
             
@@ -343,7 +343,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Черновите и оттеглените документи немогат да се коригират
-            if ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending') {
+            if ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped') {
                 $requiredRoles = 'no_one';
             }
             

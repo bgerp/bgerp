@@ -12,6 +12,7 @@
 			<div class='docBgIcon' style='[#iconStyle#]'>
 		        <div class='document-title-group'>[#singleTitle#] <b>[#ident#]</b><!--ET_BEGIN state--> ([#state#])<!--ET_END state--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
 				</div>
+				<!--ET_END DocumentSettingsLeft-->
 				<!--ET_BEGIN DocumentSettingsLeft-->
 					<div class='document-settings-left'>
 						[#DocumentSettingsLeft#]
@@ -27,6 +28,10 @@
 		    </div>
 		</div>
 	<!--ET_END header-->
+	
+	<!--ET_BEGIN STOPPED_INFO-->
+		<div class='no-print richtext-message richtext-warning no-margin'>[#STOPPED_INFO#]</div>
+	<!--ET_END STOPPED_INFO-->
 	
 	<!--ET_BEGIN ExtState-->
 	   <div class='extState'>[#ExtState#]</div>

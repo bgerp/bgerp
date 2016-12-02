@@ -429,18 +429,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 			}
 			
-			// Закръгляме количеството спрямо допустимото от мярката
-			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
-			
-			if($roundQuantity == 0 && $masterRec->type != 'dc_note'){
-				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-				return;
-			}
-			
-			if($roundQuantity != $rec->quantity){
-				$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-				$rec->quantity = $roundQuantity;
-			}
+			// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+    			$form->setError('packQuantity', $warning);
+    		}
 	
 			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 			
