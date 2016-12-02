@@ -199,7 +199,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
 		
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка)',
+				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка,stopped=Спряно)',
 				'caption=Статус, input=none'
 		);
 		

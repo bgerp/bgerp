@@ -115,7 +115,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         
-        if($rec->state != 'draft'){
+        if($rec->state != 'draft' && $rec->state != 'stopped'){
             
             // Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
             return $mvc->canRejectOrRestore($id);
@@ -132,7 +132,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
         $ignore = array();
         
         // Ако не може да се възстановява, връща FALSE за да се стопира възстановяването
-        if($rec->brState != 'draft'){
+        if($rec->brState != 'draft' && $rec->brState != 'stopped'){
         	
             // Ако документа не е сделка
             if(!cls::haveInterface('deals_DealsAccRegIntf', $mvc)){
@@ -140,7 +140,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 
                 // и състоянието и е отворено, игнорираме перото и
                 if($firstDoc->fetchField('state') == 'active'){
-                    $ignore[] = acc_items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
+                    $ignore[] = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
                 }
             } else {
             	

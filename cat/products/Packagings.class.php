@@ -136,18 +136,10 @@ class cat_products_Packagings extends core_Detail
     			static::save($packRec);
     		}
     		
-    		$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
-    		if($roundQuantity == 0){
-    			$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-    			return;
+    		// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)){
+    			$form->setError('quantity', $warning);
     		}
-    		
-    		if($roundQuantity != $rec->quantity){
-    			$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки|*</b>|');
-    		}
-    		
-    		// Закръгляме к-то, така че да е в границите на допустимото от мярката
-    		$rec->quantity = $roundQuantity;
     	}
     }
     

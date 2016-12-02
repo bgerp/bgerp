@@ -77,19 +77,19 @@ class price_ListDocs extends core_Master
     /**
      * Кой може да го промени?
      */
-    public $canWrite = 'priceMaster, ceo';
+    public $canWrite = 'price, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'priceMaster,ceo';
+    public $canList = 'price, ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'sales,priceMaster,ceo';
+	public $canSingle = 'price, ceo';
     
     
     /**

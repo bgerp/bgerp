@@ -922,6 +922,10 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
+a.linkWithIcon.small-padding-icon {
+  padding-left: 15px !important;
+  background-position: 0px center; }
+
 a.linkInTitle {
   color: #004488 !important; }
 
@@ -1004,6 +1008,7 @@ a.more-btn {
   padding-left: 22px !important;
   background-repeat: no-repeat !important;
   background-position: 3px center;
+  background-size: 16px 16px;
   padding: 0.1em; }
 
 .narrow .docBgIcon {
@@ -2759,6 +2764,8 @@ div.richtext ol ol ol {
   -ms-border-radius: 5px;
   border-radius: 5px;
   position: relative; }
+  .richtext-message.no-margin {
+    margin: 0 0 10px 0; }
 
 .richtext-text {
   background-color: rgba(255, 255, 128, 0.3);

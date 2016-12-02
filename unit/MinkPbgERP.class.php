@@ -57,7 +57,8 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkPPrices');
         $res .= $inst->act_Run();
-        
+        $inst = cls::get('unit_MinkPTcost');
+        $res .= $inst->act_Run();
         return $res;
     }
     
@@ -838,14 +839,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         // Създаване на нов артикул по запитването
         $browser->press('Артикул');
-        $browser->setValue('name', 'Артикул по запитване1');
+        $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
         $browser->press('Оферта');
         $browser->setValue('Цена', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
         $browser->press('Добавяне');
-        $browser->setValue('productId', 'Артикул по запитване1');
+        $browser->setValue('productId', 'Артикул по запитване');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
         $browser->setValue('packPrice', 4);

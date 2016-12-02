@@ -385,7 +385,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '3,69')) {
+        if(strpos($browser->gettext(), 'Отстъпка: BGN 3,69')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
@@ -2005,7 +2005,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->setValue('amount', '18,78');// - дава грешка
         $browser->press('Чернова');
         $browser->press('Контиране');
-    
+        
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('amountAccrued', '9.60');
