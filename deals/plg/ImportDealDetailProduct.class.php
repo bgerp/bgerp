@@ -162,6 +162,16 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				$err[$i][] = '|Грешно количество|*';
 			}
 			
+			// Проверка за точност на к-то
+			if(isset($obj->quantity)){
+				if($pRec = cat_Products::getByCode($obj->code)){
+					$packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
+					if(!deals_Helper::checkQuantity($packagingId, $obj->quantity, $warning)){
+						$err[$i][] = $warning;
+					}
+				}
+			}
+			
 			$row = clone $obj;
 		}
 		
