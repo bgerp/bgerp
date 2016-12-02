@@ -398,7 +398,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$rec = $form->rec;
     		
     		// Подготовка на записите
-    		$error = $error2 = $toSave = $toUpdate = array();
+    		$error = $error2 = $error3 = $toSave = $toUpdate = array();
     		foreach ($listed as $lId => $lRec){
     			$packQuantity = $rec->{"quantity{$lId}"};
     			$quantityInPack = $rec->{"quantityInPack{$lId}"};
@@ -422,6 +422,10 @@ class sales_SalesDetails extends deals_DealDetail
     					$packPrice = $price * $quantityInPack;
     					$discount = $policyInfo->discount;
     				}
+    			}
+    			
+    			if(!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)){
+    				$error3[$warning][] = "quantity{$lId}";
     			}
     			
     			if(isset($lRec->moq) && $packQuantity < $lRec->moq){
@@ -462,7 +466,13 @@ class sales_SalesDetails extends deals_DealDetail
     			$form->setError(implode(',', $error), 'Артикулът няма цена');
     		}
     		
-    		if(!count($error) && (!count($error2) || (count($error2) && Request::get('Ignore')))){
+    		if(count($error3)){
+    			foreach ($error3 as $msg => $fields){
+    				$form->setError(implode(',', $fields), $msg);
+    			}
+    		}
+    		
+    		if(!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore')))){
     			// Запис на обновените записи
     			$this->saveArray($toUpdate, 'id,quantity');
     			$this->saveArray($toSave);
@@ -520,7 +530,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$form->FLD("packagingId{$lId}", "int", "К-во,input=hidden");
     		$form->FLD("rec{$lId}", "int", "input=hidden");
     		$form->FLD("quantityInPack{$lId}", "double", "input=hidden");
-    		$form->FLD("quantity{$lId}", "double(min=0)", "caption={$caption}->Количество");
+    		$form->FLD("quantity{$lId}", "double(Min=0)", "caption={$caption}->Количество");
     		$form->setDefault("productId{$lId}", $lRec->productId);
     		$form->setDefault("packagingId{$lId}", $lRec->packagingId);
     		if(isset($lRec->moq)){
