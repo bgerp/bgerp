@@ -47,8 +47,17 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	{
 		if($action == 'createproduct'){
 			if(isset($rec)){
-				$requiredRoles = $mvc->getRequiredRoles('add', $rec);
+				if($mvc instanceof sales_SalesDetails){
+					$roles = sales_Setup::get('ADD_BY_CREATE_BTN');
+					if(!haveRole($roles, $userId)){
+						$requiredRoles = 'no_one';
+					}
+				} else {
+					$requiredRoles = $mvc->getRequiredRoles('add', $rec);
+				}
+				
 				if($requiredRoles == 'no_one') return;
+				
 				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
 				
 				$options = cat_Categories::getProtoOptions(NULL, $mvc->filterProtoByMeta, 1);
@@ -66,11 +75,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				if($requiredRoles != 'no_one'){
 					if(count($options)){
-						
 						if(!cat_Products::haveRightFor('add', (object)array('threadId' => $masterRec->threadId))){
 							$requiredRoles = 'no_one';
-						} else {
-							$requiredRoles = $mvc->getRequiredRoles('add', (object)array($mvc->masterKey => $masterRec->id));
 						}
 					} else {
 						$requiredRoles = 'no_one';
@@ -271,14 +277,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		
-			if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id))){
-				$url = array($mvc, 'CreateProduct', $mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id, 'ret_url' => TRUE);
+		if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id))){
+			$url = array($mvc, 'CreateProduct', $mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id, 'ret_url' => TRUE);
 				
-				if($mvc->hasPlugin('plg_RowTools2')){
-					core_RowToolbar::createIfNotExists($row->_rowTools);
-					$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
-				}
+			if($mvc->hasPlugin('plg_RowTools2')){
+				core_RowToolbar::createIfNotExists($row->_rowTools);
+				$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
 			}
+		}
 	}
 }

@@ -125,7 +125,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if(($action == 'delete' || $action == 'add' || $action == 'edit') && isset($rec)){
+        if(($action == 'delete' || $action == 'add' || $action == 'edit' || $action == 'import' || $action == 'createproduct' || $action == 'importlisted') && isset($rec)){
         	$state = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
         	if($state != 'draft'){
         		$requiredRoles = 'no_one';

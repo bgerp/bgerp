@@ -288,8 +288,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		if($requiredRoles == 'no_one') return;
 		
 		if($action == 'import' && isset($rec->{$mvc->masterKey})){
-			if(!$mvc->haveRightFor('add', $rec)){
-				$requiredRoles = 'no_one';
+			if($mvc instanceof sales_SalesDetails){
+				$roles = sales_Setup::get('ADD_BY_IMPORT_BTN');
+				if(!haveRole($roles, $userId)){
+    				$requiredRoles = 'no_one';
+    			}
+			} else {
+				if(!$mvc->haveRightFor('add', $rec)){
+					$requiredRoles = 'no_one';
+				}
 			}
 		}
 	}
