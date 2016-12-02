@@ -782,4 +782,33 @@ abstract class deals_Helper
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Помощна ф-я проверяваща дали подаденото к-во може да се зададе за опаковката
+	 * 
+	 * @param int $packagingId - ид на мярка/опаковка
+	 * @param double $packQuantity - к-во опаковка
+	 * @param string $warning - предупреждение, ако има
+	 * @return boolean - дали к-то е допустимо или не
+	 */
+	public static function checkQuantity($packagingId, $packQuantity, &$warning = NULL)
+	{
+		$decPoint = core_Packs::getConfigValue('core', 'EF_NUMBER_DEC_POINT');
+		$decLenght = strlen(substr(strrchr($packQuantity, $decPoint), 1));
+		$decimals = cat_UoM::fetchField($packagingId, 'round');
+		 
+		if(isset($decimals) && $decLenght > $decimals){
+			if($decimals == 0){
+				$warning = "Количеството трябва да е цяло число";
+			} else {
+				$decimals = cls::get('type_Int')->toVerbal($decimals);
+				$warning = "Количеството трябва да е с точност до|* <b>{$decimals}</b> |цифри след десетичния знак|*";
+			}
+	
+			return FALSE;
+		}
+		 
+		return TRUE;
+	}
 }
