@@ -91,7 +91,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId,caption=Артикул');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,caption=Опаковка,input=hidden,mandatory');
-    	$this->FLD('reff', 'varchar(32)', 'caption=Техен код');
+    	$this->FLD('reff', 'varchar(32)', 'caption=Техен код,smartCenter');
 	
     	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId');
     	$this->setDbUnique('reff');
