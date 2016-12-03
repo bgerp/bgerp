@@ -127,7 +127,7 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
 
-        $img =  ht::createElement('img', array('src' => sbf('img/32/table-bg2.png', ''), 'title' => 'Редактиране на връзките', 'width' => 20, 'height' => 20, 'alt' => 'edit bookmark'));
+        $img =  ht::createElement('img', array('src' => sbf('img/32/edit-fav2.png', ''), 'title' => 'Редактиране на връзките', 'width' => 20, 'height' => 20, 'alt' => 'edit bookmark'));
         $list = ht::createLink($img , $url, NULL, array('class' => 'bookmarkLink listBookmarkLink'));
         $title = "<span class='bookmarkText'>" . tr('Отметки') . "</span>".  $list ;
         
@@ -207,7 +207,7 @@ class bgerp_Bookmark extends core_Manager
 
             $link = self::getLinkFromUrl($rec->url, $title, $attr);
 
-            if(strpos($rec->url, $localUrl)) {
+            if(stripos($rec->url, $localUrl) !== FALSE) {
    	            $attr['class'] = 'active';
    	            $attr['style'] .= ';background-color:#663399';
                 self::$curRec = $rec;

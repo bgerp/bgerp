@@ -129,6 +129,7 @@ class change_Plugin extends core_Plugin
         
         // Всички полета, които ще се показват да се инпутват
         foreach ($fieldsArrShow as $f) {
+            expect(is_object($form->fields[$f]), "Липсващо поле '{$f}'", $form->fields);
             $form->fields[$f]->input = 'input';
         }
         

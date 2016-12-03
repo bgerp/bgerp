@@ -459,7 +459,7 @@ abstract class deals_ClosedDeals extends core_Master
             	
                 $originState = $origin->fetchField('state');
                 
-                if($originState === 'closed'){
+                if($originState === 'closed' || $originState == 'stopped'){
                     $res = 'no_one';
                 }
             }

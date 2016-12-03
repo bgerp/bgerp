@@ -271,7 +271,7 @@ class acc_plg_Contable extends core_Plugin
             $requiredRoles = $mvc->getRequiredRoles('restore', $rec);
             
             // Не може да се реконтират само активни и приключени документи
-            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending')) {
+            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped')) {
                 $requiredRoles = 'no_one';
             }
             
@@ -343,7 +343,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Черновите и оттеглените документи немогат да се коригират
-            if ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending') {
+            if ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped') {
                 $requiredRoles = 'no_one';
             }
             

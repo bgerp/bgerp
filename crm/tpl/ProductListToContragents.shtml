@@ -2,7 +2,7 @@
 [#BLOCK#]
 <div>
 	<!--ET_BEGIN SELLABLE-->
-	<div>[#FILTER#]</div>
+	<div class="inner-form">[#FILTER#]</div>
 	<div>
 		<div>[#SELLABLE#]
 		     [#SELLABLE_PAGER#]

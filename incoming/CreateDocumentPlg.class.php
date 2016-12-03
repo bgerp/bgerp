@@ -44,7 +44,7 @@ class incoming_CreateDocumentPlg extends core_Plugin
 
         // Вземаме всички класове, които имплементират интерфейса
         $classesArr = core_Classes::getOptionsByInterface('incoming_CreateDocumentIntf');
-        
+    
         // Обхождаме всички класове, които наследяват интерфейса
         foreach ($classesArr as $className) {
             
@@ -58,7 +58,7 @@ class incoming_CreateDocumentPlg extends core_Plugin
                 break;
             }    
         }
-        
+      
         // Ако е намерен поне един клас, който да имплементира интерфейса
         if ($canCreate) {
             

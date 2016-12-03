@@ -1,7 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <!--ET_BEGIN body--> 
     <div style='padding:6px 10px 10px;'>
-	    <h3 class='richtext-title'>[#title#]<!--ET_BEGIN number--> - [#number#]<!--ET_END number--></h3>
+	    <h3 class='richtext-title'>[#typeId#]<!--ET_BEGIN number--> - [#number#]<!--ET_END number--></h3>
 	       
 	    <table class='top-table'>
 	        <!--ET_BEGIN fileHnd-->          

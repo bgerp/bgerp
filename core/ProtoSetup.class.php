@@ -135,7 +135,7 @@ class core_ProtoSetup
 
             // Ако мениджърът е миграция - изпълняваме я еднократно
             if (stripos($manager, 'migrate::') === 0) {
-                
+
                 Mode::push('isMigrate', TRUE);
                 
                 list($migrate, $method) = explode('::', $manager);
@@ -157,8 +157,8 @@ class core_ProtoSetup
                         reportException($e);
                     }
                 }
-                
-                Mode::pop('isMigrate');
+
+                Mode::pop('isMigrate', TRUE);
 
                 continue;
             }

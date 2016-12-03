@@ -1421,18 +1421,12 @@ class cat_Boms extends core_Master
     {
     	$rec = &$form->rec;
     	if ($form->isSubmitted()){
-    		$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
     		
-    		if($roundQuantity == 0){
-    			$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-    			return;
+    		// Проверка на к-то
+    		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+    		if(!deals_Helper::checkQuantity($measureId, $rec->quantity, $warning)){
+    			$form->setError('quantity', $warning);
     		}
-    
-    		if($roundQuantity != $rec->quantity){
-    			$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки|*</b>|');
-    		}
-    		
-    		$rec->quantity = $roundQuantity;
     		
     		$firstDocument = doc_Containers::getDocument($rec->originId);
     		if(empty($rec->id) && $firstDocument->isInstanceOf('planning_Jobs')){

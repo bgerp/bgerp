@@ -58,19 +58,19 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Кой има право да чете?
-     * 
-     * @var string|array
-     */
-    public $canRead = 'ceo, sales';
-    
-    
-    /**
      * Кой има право да променя?
      * 
      * @var string|array
      */
-    public $canEdit = 'ceo, sales, collaborator';
+    public $canEdit = 'sales,ceo,collaborator';
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canImportlisted = 'user';
     
     
     /**
@@ -78,7 +78,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canAdd = 'ceo, sales, collaborator';
+    public $canAdd = 'user';
     
     
     /**
@@ -86,7 +86,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'ceo, sales, collaborator';
+    public $canDelete = 'sales,ceo,collaborator';
     
     
     /**
@@ -94,7 +94,16 @@ class sales_SalesDetails extends deals_DealDetail
      *
      * @var string|array
      */
-    public $canImport = 'ceo, sales';
+    public $canImport = 'user';
+    
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canCreateproduct = 'user';
+    
     
     
     /**
@@ -194,7 +203,9 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
+    			if(!core_Users::haveRole('collaborator')){
+    				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
+    			}
     		}
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
@@ -325,17 +336,20 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
-    		
-    		if(core_Users::isPowerUser()){
-    			if(!haveRole('ceo,sales')){
+    	if(($action == 'add') && isset($rec)){
+    		if($requiredRoles != 'no_one'){
+    			$roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
+    			if(!haveRole($roles, $userId)){
     				$requiredRoles = 'no_one';
     			}
     		}
     	}
     	
     	if($action == 'importlisted'){
-    		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+    		$roles = sales_Setup::get('ADD_BY_LIST_BTN');
+    		if(!haveRole($roles, $userId)){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     	
     	if($action == 'importlisted' && isset($rec)){
@@ -396,7 +410,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$rec = $form->rec;
     		
     		// Подготовка на записите
-    		$error = $toSave = $toUpdate = array();
+    		$error = $error2 = $error3 = $toSave = $toUpdate = array();
     		foreach ($listed as $lId => $lRec){
     			$packQuantity = $rec->{"quantity{$lId}"};
     			$quantityInPack = $rec->{"quantityInPack{$lId}"};
@@ -422,6 +436,14 @@ class sales_SalesDetails extends deals_DealDetail
     				}
     			}
     			
+    			if(!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)){
+    				$error3[$warning][] = "quantity{$lId}";
+    			}
+    			
+    			if(isset($lRec->moq) && $packQuantity < $lRec->moq){
+    				$error2[$lId] = "quantity{$lId}";
+    			}
+    			
     			// Ако няма грешка със записа
     			if(!array_key_exists($lId, $error)){
     				$obj = (object)array('quantity'       => $packQuantity * $quantityInPack, 
@@ -443,15 +465,30 @@ class sales_SalesDetails extends deals_DealDetail
     			}
     		}
     		
+    		if(count($error2)){
+    			if(haveRole('salesMaster,ceo')){
+    				$form->setWarning(implode(',', $error2), "Количеството е под МКП");
+    			} else {
+    				$form->setError(implode(',', $error2), "Количеството е под МКП");
+    			}
+    		}
+    		
     		// Ако има грешка сетва се ерор
     		if(count($error)){
     			$form->setError(implode(',', $error), 'Артикулът няма цена');
-    		} else {
-    			
+    		}
+    		
+    		if(count($error3)){
+    			foreach ($error3 as $msg => $fields){
+    				$form->setError(implode(',', $fields), $msg);
+    			}
+    		}
+    		
+    		if(!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore')))){
     			// Запис на обновените записи
     			$this->saveArray($toUpdate, 'id,quantity');
     			$this->saveArray($toSave);
-    			
+    			 
     			// Редирект към продажбата
     			followRetUrl(NULL, 'Списъкът е импортиран успешно');
     		}
@@ -505,9 +542,13 @@ class sales_SalesDetails extends deals_DealDetail
     		$form->FLD("packagingId{$lId}", "int", "К-во,input=hidden");
     		$form->FLD("rec{$lId}", "int", "input=hidden");
     		$form->FLD("quantityInPack{$lId}", "double", "input=hidden");
-    		$form->FLD("quantity{$lId}", "double(min=0)", "caption={$caption}->Количество");
+    		$form->FLD("quantity{$lId}", "double(Min=0)", "caption={$caption}->Количество");
     		$form->setDefault("productId{$lId}", $lRec->productId);
     		$form->setDefault("packagingId{$lId}", $lRec->packagingId);
+    		if(isset($lRec->moq)){
+    			$moq = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($lRec->moq);
+    			$form->setField("quantity{$lId}", "unit=|*<i>|МКП||MOQ|* {$moq}</i>");
+    		}
     		
     		// Ако иам съшествуващ запис, попълват му се стойностите
     		if(isset($exRec)){

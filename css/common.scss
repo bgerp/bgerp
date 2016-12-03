@@ -949,6 +949,11 @@ table .linkWithIcon {
 	}
 }
 
+a.linkWithIcon.small-padding-icon {
+	padding-left: 15px !important;
+	background-position: 0px center;
+}
+
 a.linkInTitle {
 	color: #004488 !important;
 }
@@ -1051,6 +1056,7 @@ a.more-btn {
 	padding-left: 22px !important;  
 	background-repeat: no-repeat !important;
 	background-position: 3px center;
+	background-size: 16px 16px;
  	padding: 0.1em;
 }
 
@@ -3020,6 +3026,9 @@ div.richtext ol ol ol {
     background-position: 9px 7px;
     @include border-radius(5px);
     position: relative;
+	&.no-margin {
+		margin: 0 0 10px 0;
+	}
 }
 
 .richtext-text {

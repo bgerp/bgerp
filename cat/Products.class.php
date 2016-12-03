@@ -2519,7 +2519,7 @@ class cat_Products extends embed_Manager {
     	if($form->isSubmitted()){
     		$fRec = $form->rec;
     		if($fRec->groups != $rec->groups){
-    			$this->save((object)array('id' => $id, 'groups' => $fRec->groups));
+    			$this->save((object)array('id' => $id, 'groups' => $fRec->groups), 'groups');
     		}
     		
     		return followRetUrl();

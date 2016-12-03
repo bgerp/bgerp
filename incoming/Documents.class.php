@@ -25,7 +25,14 @@ class incoming_Documents extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = array(
+        
+            // Интерфейс за документ
+            'doc_DocumentIntf', 
+        
+            // Интерфейс за създаване на входящ документ
+            'incoming_CreateDocumentIntf',
+        );
     
     
     /**
@@ -98,7 +105,7 @@ class incoming_Documents extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'incoming_Wrapper, plg_RowTools, doc_DocumentPlg, doc_plg_BusinessDoc,doc_DocumentIntf,
-         plg_Printing, plg_Sorting, plg_Search, doc_ActivatePlg, bgerp_plg_Blank';
+         plg_Printing, plg_Sorting, plg_Search, doc_ActivatePlg, bgerp_plg_Blank,change_Plugin';
     
     
     /**
@@ -128,19 +135,19 @@ class incoming_Documents extends core_Master
     /**
      * Полето "Заглавие" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'title';
+    var $rowToolsSingleField = 'typeId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, date, total, createdOn, createdBy';
+    var $listFields = 'id, typeId, number, date, total, createdOn, createdBy';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, fileHnd, date, total, keywords';
+    var $searchFields = 'typeId, fileHnd, number, date, total, description';
     
     
     /**
@@ -150,21 +157,33 @@ class incoming_Documents extends core_Master
     
     
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    var $changableFields = 'fileHnd,typeId,number,date,total,description';
+
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
-        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, width=50%, mandatory');
-        $this->FLD('number', 'varchar(15)', 'caption=Номер, width=50%');
-        $this->FLD('date', 'date', 'caption=Дата, width=50%');
-        $this->FLD('total', 'double(decimals=2)', 'caption=Сума, width=50%');
-        $this->FLD('keywords', 'text', 'caption=Описание, width=100%');
+        // $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
+        $this->FLD("typeId", "key(mvc=incoming_Types)", 'caption=Тип,mandatory');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, mandatory');
+        $this->FLD('number', 'varchar(32)', 'caption=Номер, smartCenter');
+        $this->FLD('date', 'date', 'caption=Дата');
+        $this->FLD('total', 'double(decimals=2)', 'caption=Сума');
+        $this->FLD('description', 'richtext(bucket=Notes)', 'caption=Описание,oldFiledName=keywords');
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни, input=none');
         
         $this->setDbUnique('dataId');
     }
     
+
+    function act_Test()
+    {
+        incoming_Setup::addTypes();
+    }
     
     /**
      * @todo Чака за документация...
@@ -180,14 +199,7 @@ class incoming_Documents extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        // Предложения в полето Заглавие
-        $titleSuggestions = array();
-        $titleSuggestions[''] = '';
-        $titleSuggestions['Фактура'] = 'Фактура';
-        $titleSuggestions['Платежно нареждане'] = 'Платежно нареждане';
-        $titleSuggestions['Товарителница'] = 'Товарителница';
-        $data->form->prependSuggestions('title', $titleSuggestions);
-        
+         
         // Манупулатора на файла
         $fileHnd = $mvc->db->escape(Request::get('fh'));
         
@@ -211,40 +223,9 @@ class incoming_Documents extends core_Master
             // Масив с баркодовете
             $barcodesArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
             
-            // Ако има масив и съдържанието е празно
-            if (is_array($barcodesArr) && (!$content)) {
-                foreach ($barcodesArr as $barcodesArrPage) {
-                    
-                    foreach ($barcodesArrPage as $barcodeObj) {
-                        
-                        // Вземаме cid'a на баркода
-                        $cid = doclog_Documents::getDocumentCidFromURL($barcodeObj->code);
-                        
-                        // Ако не може да се намери cid, прескачаме
-                        if (!$cid) continue;
-                        
-                        // Попълваме описанието за файла
-                        $data->form->setDefault('title', "Сканиран");
-                        
-                        // Вземаме данните за контейнера
-                        $cRec = doc_Containers::fetch($cid);
-                        
-                        // Задаваме папката и нишката
-                        $data->form->rec->folderId = $cRec->folderId;
-                        $data->form->rec->threadId = $cRec->threadId;
-                        
-                        // Ако открием съвпадение
-                        // Прекъсваме цикъла
-                        break;
-                    }
-                    
-                    // Ако сме открили съвпадение, прекъсваме цикъла
-                    if ($cid) break;
-                }
-            }
-            
+             
             // Попълваме описанието за файла
-            $data->form->setDefault('keywords', $keyWords);
+            $data->form->setDefault('description', $keyWords);
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
@@ -276,7 +257,7 @@ class incoming_Documents extends core_Master
                 if ($mvc->haveRightFor('single', $dRec)) {
                     
                     // Заглавието на документа
-                    $title = static::getVerbal($dRec, 'title');
+                    $title = static::getVerbal($dRec, 'typeId');
                     
                     // Създаваме линк към single'a на документа
                     $link = ht::createLink($title, array($mvc, 'single', $dRec->id));
@@ -316,51 +297,7 @@ class incoming_Documents extends core_Master
     }
     
     
-    /**
-     * Създава документ от сканиран файл
-     *
-     * @param fileHnd $fh - Манупулатора на файла, за който ще се създаде документ
-     * @param integer $containerId - doc_Containers id' то на файла
-     *
-     * @return integer $id - id' то на записания документ
-     */
-    static function createFromScannedFile($fh, $containerId)
-    {
-        // Записите за файла
-        $fRec = fileman_Files::fetchByFh($fh);
-        
-        // id' то на данните на докуемента
-        $dataId = $fRec->dataId;
-        
-        // Ако има документ със същото id
-        if (static::fetch("#dataId = '{$dataId}'")) {
-            
-            return ;
-        }
-        
-        // Вземаме записите на документа, от който е изпратен файла
-        $docProxy = doc_Containers::getDocument($containerId);
-        $docRow = $docProxy->getDocumentRow();
-        
-        // Вземаме данните законтейнера
-        $cRec = doc_Containers::fetch($containerId);
-        
-        // Създаваме, записа който ще запишем
-        $rec = new stdClass();
-        $rec->title = "Сканиран \"{$docRow->title}\"";
-        $rec->fileHnd = $fh;
-        $rec->keywords = static::getKeywords($fh);
-        $rec->dataId = $dataId;
-        $rec->folderId = $cRec->folderId;
-        $rec->threadId = $cRec->threadId;
-        $rec->state = 'closed';
-        
-        // Създаваме документа
-        $id = static::save($rec);
-        
-        return $id;
-    }
-    
+ 
     
     /**
      * Връща прикачения файл в документа
@@ -409,7 +346,7 @@ class incoming_Documents extends core_Master
         
         $row = new stdClass();
         
-        $row->title = $this->getVerbal($rec, 'title');
+        $row->title = $this->getVerbal($rec, 'typeId');
         
         $row->author = $this->getVerbal($rec, 'createdBy');
         
@@ -417,8 +354,8 @@ class incoming_Documents extends core_Master
         
         $row->state = $rec->state;
         
-        $row->recTitle = $rec->title;
-        
+        $row->recTitle = $this->getVerbal($rec, 'typeId');
+       
         return $row;
     }
     
@@ -486,7 +423,7 @@ class incoming_Documents extends core_Master
         
         // Вземаме всички класове, които имплементират интерфейса
         $classesArr = core_Classes::getOptionsByInterface('incoming_CreateDocumentIntf');
-        
+ 
         // Обхождаме всички класове, които имплементират интерфейса
         foreach ($classesArr as $className) {
             
@@ -535,5 +472,24 @@ class incoming_Documents extends core_Master
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
         return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+
+
+    /**
+     * Метод на интерфейса incoming_CreateDocumentIntf
+     *
+     * Връща масив, от който се създава бутона за създаване на входящ документ
+     * 
+     * @param fileman_Files $rec - Обект са данни от модела
+     * 
+     * @return array $arr - Масив с данните
+     * $arr['class'] - Името на класа
+     * $arr['action'] - Екшъна
+     * $arr['title'] - Заглавието на бутона
+     * $arr['icon'] - Иконата
+     */
+    public static function canCreate($p1)
+    {
+        return TRUE;
     }
 }
