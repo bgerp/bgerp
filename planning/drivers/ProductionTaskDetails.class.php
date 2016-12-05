@@ -589,7 +589,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
             $persons = keylist::toArray($rec->employees);
             
             if(is_array($persons)) {
-                if ($time) {
+                if ($time && count($persons) > 0) { 
                     $timePerson = ($rec->quantity * $time) / count($persons) ;
                 }
 
