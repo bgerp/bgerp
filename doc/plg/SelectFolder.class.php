@@ -50,10 +50,14 @@ class doc_plg_SelectFolder extends core_Plugin
 
         if($_companyId = Request::get('_companyId', 'int')) {
             $cRec = crm_Companies::fetch($_companyId);
-            $folderId = crm_Companies::forceCoverAndFolder($cRec);
+            if($cRec) {
+                $folderId = crm_Companies::forceCoverAndFolder($cRec);
+            }
         } elseif($_personId = Request::get('_personId', 'int')) {
             $pRec = crm_Companies::fetch($_personId);
-            $folderId = crm_Persons::forceCoverAndFolder($pRec);
+            if($pRec) {
+                $folderId = crm_Persons::forceCoverAndFolder($pRec);
+            }
         }
 
  
