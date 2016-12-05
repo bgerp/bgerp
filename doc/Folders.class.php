@@ -455,7 +455,7 @@ class doc_Folders extends core_Master
     	}
        
     	if(doc_UnsortedFolders::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/basket.png', 'title=Създаване на нов проект');
+    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
     	}
     }
     
