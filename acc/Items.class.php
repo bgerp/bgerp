@@ -946,7 +946,7 @@ class acc_Items extends core_Manager
         if(is_array($features)){
         	$row->features = '';
         	foreach ($features as $key => $value){
-        		$row->features .= "{$key}: <i>{$value}</i><br>";
+        		$row->features .= "{$key}: <b><i class='quiet'>{$value}</i></b><br>";
         	}
         }
         
