@@ -447,11 +447,11 @@ class doc_Folders extends core_Master
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if(crm_Companies::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/group.png', 'title=Създаване на нова визитка на фирма');
+    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
     	}
        
     	if(crm_Persons::haveRightFor('add')){
-    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard.png', 'title=Създаване на нова визитка на лице');
+    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
     	}
        
     	if(doc_UnsortedFolders::haveRightFor('add')){
