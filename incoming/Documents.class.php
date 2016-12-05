@@ -104,7 +104,7 @@ class incoming_Documents extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'incoming_Wrapper, plg_RowTools, doc_DocumentPlg, doc_plg_BusinessDoc,doc_DocumentIntf,
+    var $loadList = 'incoming_Wrapper, plg_RowTools2, doc_DocumentPlg, doc_plg_BusinessDoc,doc_DocumentIntf,
          plg_Printing, plg_Sorting, plg_Search, doc_ActivatePlg, bgerp_plg_Blank,change_Plugin';
     
     
@@ -168,7 +168,7 @@ class incoming_Documents extends core_Master
     function description()
     {
         // $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
-        $this->FLD("typeId", "key(mvc=incoming_Types)", 'caption=Тип,mandatory');
+        $this->FLD("typeId", "key(mvc=incoming_Types,allowEmpty)", 'caption=Тип,mandatory');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, mandatory');
         $this->FLD('number', 'varchar(32)', 'caption=Номер, smartCenter');
         $this->FLD('date', 'date', 'caption=Дата');
@@ -180,11 +180,7 @@ class incoming_Documents extends core_Master
     }
     
 
-    function act_Test()
-    {
-        incoming_Setup::addTypes();
-    }
-    
+     
     /**
      * @todo Чака за документация...
      */
@@ -193,6 +189,45 @@ class incoming_Documents extends core_Master
         // $tpl->replace(doclog_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
     
+
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $title = incoming_Types::fetch($rec->typeId)->name . ' ';
+        
+        if(strlen($rec->number)) {
+            $title .= '№' . $rec->number;
+            if(strlen($rec->date)) {
+                $title .= ' / ';
+            }
+        }
+
+        if(strlen($rec->date)) {
+            $title .= self::getVerbal($rec, 'date');
+        }
+
+        if($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+
+        return $title;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $row->title = self::getRecTitle($rec);
+    }
+
     
     /**
      * @todo Чака за документация...
@@ -346,7 +381,7 @@ class incoming_Documents extends core_Master
         
         $row = new stdClass();
         
-        $row->title = $this->getVerbal($rec, 'typeId');
+        $row->title = $this->getRecTitle($rec);
         
         $row->author = $this->getVerbal($rec, 'createdBy');
         
@@ -354,7 +389,7 @@ class incoming_Documents extends core_Master
         
         $row->state = $rec->state;
         
-        $row->recTitle = $this->getVerbal($rec, 'typeId');
+        $row->recTitle = $this->getRecTitle($rec, FALSE);
        
         return $row;
     }
@@ -454,7 +489,7 @@ class incoming_Documents extends core_Master
      *
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
         return array('doc_ContragentDataIntf');
     }

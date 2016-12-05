@@ -1981,6 +1981,39 @@ function refreshForm(form, removeFields) {
 
 
 /**
+ * Изчиства съдържанието на няколко Select2 елемента с посочения клас - cssClass,
+ * Като запазва стойността на текущия елемант, посочен в select2
+ */
+function clearSelect(select2, cssClass) {
+    // Дефиниране статичен семафор за заключване
+    if(typeof clearSelect.semafor == 'undefined') {
+        clearSelect.lock = 0;
+    }
+    
+    // Ако състоянието е блокирано - нищо не правим
+    if(clearSelect.lock == 1) {
+        return;
+    }
+    
+    // Ако съдържанието на текущия елемент е празно - нищо не правим
+    if(select2.value == '') {
+        return;
+    }
+    
+    // Заключваме
+    clearSelect.lock = 1;
+
+    $('.' + cssClass).each(function(i, obj) {
+        if(obj.id == select2.id) return;
+        $('#' + obj.id).val("").trigger("change");
+    });
+
+    // Отключване
+    clearSelect.lock = 0;
+}
+
+
+/**
  * Помощна функция за заместване на формата
  * 
  * @param object

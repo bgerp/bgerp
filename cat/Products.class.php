@@ -1781,7 +1781,7 @@ class cat_Products extends embed_Manager {
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('folderClass' => 'cat_Categories');
     }

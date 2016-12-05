@@ -394,7 +394,7 @@ class store_ConsignmentProtocols extends core_Master
      *
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('crm_ContragentAccRegIntf');
     }

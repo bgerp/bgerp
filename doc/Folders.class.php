@@ -1710,6 +1710,10 @@ class doc_Folders extends core_Master
         if(!$includeHiddens) {
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
+
+        if($params['where']) {
+            $query->where($params['where']);
+        }
 	       
         if(is_array($onlyIds)) {
             if(!count($onlyIds)) {
