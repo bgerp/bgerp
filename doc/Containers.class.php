@@ -393,15 +393,19 @@ class doc_Containers extends core_Manager
         }
         $title->replace($user, 'user');
         
-        // Заглавие на треда
-        $document = $mvc->getDocument($data->threadRec->firstContainerId);
-        $docRow = $document->getDocumentRow();
-        $docTitle = str::limitLenAndHyphen($docRow->title, 70);
-        $title->replace($docTitle, 'threadTitle');
-        
-        $mvc->title = '|*' . str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
-
-        $data->title = $title;
+        try {
+            // Заглавие на треда
+            $document = $mvc->getDocument($data->threadRec->firstContainerId);
+            $docRow = $document->getDocumentRow();
+            $docTitle = str::limitLenAndHyphen($docRow->title, 70);
+            $title->replace($docTitle, 'threadTitle');
+            
+            $mvc->title = '|*' . str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
+            
+            $data->title = $title;
+        } catch (ErrorException $e) {
+            $data->title = 'Грешка при показване';
+        }
     }
     
     
