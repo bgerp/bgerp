@@ -104,7 +104,7 @@ class incoming_Documents extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'incoming_Wrapper, plg_RowTools2, doc_DocumentPlg, doc_plg_BusinessDoc,doc_DocumentIntf,
+    var $loadList = 'incoming_Wrapper, plg_RowTools2, doc_DocumentPlg, doc_plg_SelectFolder,doc_DocumentIntf,
          plg_Printing, plg_Sorting, plg_Search, doc_ActivatePlg, bgerp_plg_Blank,change_Plugin';
     
     
@@ -464,15 +464,16 @@ class incoming_Documents extends core_Master
             
             // Вземаме масива с документите, които може да създаде
             $arrCreate = $className::canCreate($fRec);
-            
-            // Обхождаме масива
-            foreach ((array)$arrCreate as $arr) {
-                
-                // Ако има полета, създаваме бутона
-                if (count($arr)) {
-                    $tpl->append("\n<tr><td>");
-                    $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "ef_icon=" .  $arr['icon'] . ",style=width:100%;text-align:left;"));
-                    $tpl->append("</td></tr>");
+            if(is_array($arrCreate)) {
+                // Обхождаме масива
+                foreach ($arrCreate as $arr) {
+                    
+                    // Ако има полета, създаваме бутона
+                    if (count($arr)) {
+                        $tpl->append("\n<tr><td>");
+                        $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "ef_icon=" .  $arr['icon'] . ",style=width:100%;text-align:left;"));
+                        $tpl->append("</td></tr>");
+                    }
                 }
             }
         }
@@ -511,6 +512,25 @@ class incoming_Documents extends core_Master
 
 
     /**
+     * Преценява дали файла с посоченото име и дължина може да съдържа документ
+     */
+    public static function canKeepDoc($fileName, $fileLen)
+    {
+        static $typeToLen = array();
+        if(!count($typeToLen)) {
+            $typeToLen = arr::make("pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50", TRUE);
+        }
+
+        $ext = fileman_Files::getExt($fileName);
+
+        if(($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
+
+            return TRUE;
+        }
+    }
+
+
+    /**
      * Метод на интерфейса incoming_CreateDocumentIntf
      *
      * Връща масив, от който се създава бутона за създаване на входящ документ
@@ -523,8 +543,18 @@ class incoming_Documents extends core_Master
      * $arr['title'] - Заглавието на бутона
      * $arr['icon'] - Иконата
      */
-    public static function canCreate($p1)
+    public static function canCreate($fRec)
     {
-        return TRUE;
+        if(self::canKeepDoc($fRec->name, $fRec->fileLen)) {
+            // Създаваме масива за съзване на визитка
+            $arr = array();
+            $inst = cls::get('incoming_Documents');
+            $arr['incoming']['class'] = $inst->className;
+            $arr['incoming']['action'] = 'add';
+            $arr['incoming']['title'] = 'Входящ документ';
+            $arr['incoming']['icon'] = $inst->singleIcon;
+        }
+
+        return $arr;
     }
 }

@@ -49,7 +49,8 @@ class incoming_CreateDocumentPlg extends core_Plugin
         foreach ($classesArr as $className) {
             
             // Ако има клас, който може да създава входящ документ
-            if (count($className::canCreate($data->rec))) {
+            $arr = $className::canCreate($data->rec);
+            if (is_array($arr) && count($arr)) {
                 
                 // Сетваме стойността
                 $canCreate = TRUE;
@@ -66,7 +67,7 @@ class incoming_CreateDocumentPlg extends core_Plugin
             $createDocUrl = toUrl(array('incoming_Documents', 'showDocMenu', 'fh' => $data->rec->fileHnd, 'ret_url' => TRUE), FALSE);
             
             // Създаваме бутона за създаване на документ
-            $data->toolbar->addBtn('Документ', $createDocUrl, 'id=btn-New', 'order=50', 'ef_icon = img/16/page_lightning-new.png');
+            $data->toolbar->addBtn('Действие', $createDocUrl, 'id=btn-New,order=50,ef_icon=img/16/bullet_arrow_right.png');
         }
     }
 }

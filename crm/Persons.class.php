@@ -1849,6 +1849,8 @@ class crm_Persons extends core_Master
         // Разширението на файла
         $ext = fileman_Files::getExt($fRec->name);
         
+        $arr = NULL;
+
         // Ако разширението е в допустимите, имамем права за добваня и имаме права за single' а на файла
         if (in_array($ext, $vCardExtArr) && (static::haveRightFor('add') && (fileman_Files::haveRightFor('single', $fRec)))) {
             
@@ -1860,7 +1862,7 @@ class crm_Persons extends core_Master
             $arr['vcard']['icon'] = '/img/16/extract_foreground_objects.png';
         }
 
-        return (array)$arr;
+        return $arr;
     }
     
     
