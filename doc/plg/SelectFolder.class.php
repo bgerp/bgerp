@@ -58,6 +58,11 @@ class doc_plg_SelectFolder extends core_Plugin
             if($pRec) {
                 $folderId = crm_Persons::forceCoverAndFolder($pRec);
             }
+        } elseif($_projectId = Request::get('_projectId', 'key2(mvc=doc_UnsortedFolders)')) {
+            $pRec = doc_UnsortedFolders::fetch($_projectId);
+            if($pRec) {
+                $folderId = doc_UnsortedFolders::forceCoverAndFolder($pRec);
+            }
         }
 
  
@@ -137,6 +142,13 @@ class doc_plg_SelectFolder extends core_Plugin
             $retUrl['_personId'] = crm_Persons::getUrlPlaceholder('id');
             $form->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/vcard-add.png, title=В папка на ново лице");
         }
+        
+        /*
+        if(in_array('doc_UnsortedFolders', $coverArr)) {
+            $retUrl = $retUrlOrg;
+            $retUrl['_projectId'] = doc_UnsortedFolders::getUrlPlaceholder('id');
+            $form->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/vcard-add.png, title=В нов проект");
+        } */
 
         $defaultFolderId = Request::get('defaultFolderId');
         

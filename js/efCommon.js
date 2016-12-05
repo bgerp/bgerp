@@ -510,6 +510,11 @@ function ajaxAutoRefreshOptions(id, selectId, input, params) {
     }
 
     params.q = get$(id).value;
+    
+    if(params.q == '') return;
+    
+    // Не зареждаме нови опции, ако текущо е избрана опция
+    if(isOptionExists(selectId, params.q)) return;
 
     // От параметрите прави УРЛ
     if (typeof(params) == 'object') {
@@ -1994,7 +1999,7 @@ function clearSelect(select2, cssClass) {
     if(clearSelect.lock == 1) {
         return;
     }
-    
+ 
     // Ако съдържанието на текущия елемент е празно - нищо не правим
     if(select2.value == '') {
         return;
@@ -2005,16 +2010,16 @@ function clearSelect(select2, cssClass) {
 
     $('.' + cssClass).each(function(i, obj) {
  
-
-        if(obj.tagName == 'SELECT' && $('#' + obj.id).hasClass('combo')) return;
-
-        if(obj.id == select2.id) return;
+        if(obj.tagName == 'SELECT' && $(obj).hasClass('combo')) return;
+ 
+        if(obj.name == select2.name) return;
     
         if(obj.tagName == 'SELECT') {
-            $('#' + obj.id).val("").trigger("change");
+ 
+            $(obj).val("").trigger("change");
         }
         if(obj.tagName == 'INPUT') {
-            $('#' + obj.id).val("");
+            $(obj).val("");
         }
 
     });
