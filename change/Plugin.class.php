@@ -616,8 +616,13 @@ class change_Plugin extends core_Plugin
         // URL' то за промяна
         $changeUrl = $mvc->getChangeUrl($id);
 
+        $iconSize = 16;
+        if(log_Browsers::isRetina()) {
+            $iconSize = 32;
+        }
+
         // Създаваме линк с загллавието
-        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/16/edit.png"); 
+        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/{$iconSize}/edit.png");
     }
     
     

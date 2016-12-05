@@ -2004,8 +2004,19 @@ function clearSelect(select2, cssClass) {
     clearSelect.lock = 1;
 
     $('.' + cssClass).each(function(i, obj) {
+ 
+
+        if(obj.tagName == 'SELECT' && $('#' + obj.id).hasClass('combo')) return;
+
         if(obj.id == select2.id) return;
-        $('#' + obj.id).val("").trigger("change");
+    
+        if(obj.tagName == 'SELECT') {
+            $('#' + obj.id).val("").trigger("change");
+        }
+        if(obj.tagName == 'INPUT') {
+            $('#' + obj.id).val("");
+        }
+
     });
 
     // Отключване

@@ -665,7 +665,7 @@ class core_Manager extends core_Mvc
 
         $idPlaceholder = self::getUrlPlaceholder('id');
 
-        if($id && is_array($data->retUrl)) {
+        if(is_array($data->retUrl)) {
             foreach($data->retUrl as $key => $value) {
                 if($value == $idPlaceholder) {
                     $data->retUrl[$key] = $id;
