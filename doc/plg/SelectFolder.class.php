@@ -126,9 +126,7 @@ class doc_plg_SelectFolder extends core_Plugin
 
             $retUrl = $retUrlOrg;
             $retUrl['_companyId'] = crm_Companies::getUrlPlaceholder('id');
-            $cInst = cls::get('crm_Companies');
-            $cIcon = $cInst->singleIcon;
-            $form->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => $retUrl), "ef_icon ={$cIcon}, title=В папка на нова фирма");
+            $form->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/office-building-add.png, title=В папка на нова фирма");
         }
         
         if(in_array('crm_Persons', $coverArr)) {
@@ -137,9 +135,7 @@ class doc_plg_SelectFolder extends core_Plugin
             
             $retUrl = $retUrlOrg;
             $retUrl['_personId'] = crm_Persons::getUrlPlaceholder('id');
-            $pInst = cls::get('crm_Persons');
-            $pIcon = $pInst->singleIcon;
-            $form->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => $retUrl), "ef_icon ={$pIcon}, title=В папка на ново лице");
+            $form->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/vcard-add.png, title=В папка на ново лице");
         }
 
         $defaultFolderId = Request::get('defaultFolderId');
