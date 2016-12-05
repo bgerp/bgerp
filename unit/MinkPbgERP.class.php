@@ -1424,6 +1424,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
         // Създаване на задача
         $browser->click('Добавяне на нова Задача');
+        $browser->press('Напред');
         $browser->setValue('title', 'Инвентаризация');
         $browser->setValue('description', 'Да се проведе инвентаризация');
         $startdate=strtotime("+2 Days");
