@@ -73,15 +73,6 @@ class acc_VatGroups extends core_Manager
      */
     public $listFields = 'title,vat,createdOn,createdBy,modifiedOn,modifiedBy,state';
     
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
-     * @var string
-     * @see plg_RowTools
-     */
-    public $rowToolsField = 'tools';
-    
 
     /**
      * Заглавие в единствено число
