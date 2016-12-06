@@ -38,7 +38,7 @@ class acc_Periods extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State, plg_Sorting';
+    var $loadList = 'plg_Created, plg_RowTools2, acc_WrapperSettings, plg_State, plg_Sorting';
     
     
     /**

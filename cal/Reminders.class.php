@@ -171,7 +171,7 @@ class cal_Reminders extends core_Master
     /**
      * 
      */
-    static $suggestions = array("",1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
+    static $suggestions = array("", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
     
     
     /**
@@ -179,7 +179,13 @@ class cal_Reminders extends core_Master
      */
     public $showLetterHead = TRUE;
     
-    
+
+    /**
+     * Масив с id на напомненията, които отварят нишки в този хит
+     */
+    static $opened = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -273,7 +279,6 @@ class cal_Reminders extends core_Master
             $data->form->setDefault('sharedUsers', "|".$cu."|");
         }
 
-        
 		if(Mode::is('screenMode', 'narrow')){
 			$data->form->fields['priority']->maxRadio = 2;
 		}
@@ -422,7 +427,7 @@ class cal_Reminders extends core_Master
 	     	$data->toolbar->removeBtn('btnActivate');
 	     }
 
-
+        /*
         $data->toolbar->addBtn('Сработване',array(
 	             'cal_Reminders', 
 	             'start', 
@@ -432,6 +437,7 @@ class cal_Reminders extends core_Master
 	             array('ef_icon'=>'img/16/run.png', 
 	                    'title'=>'Стартиране на напомнянето'
 	         ));
+         */
 
     }
     
@@ -808,10 +814,9 @@ class cal_Reminders extends core_Master
     	 }
     }
     
-    
     /**
      * Екшън за тестване на сработване на напомнянето
-     */
+     
     public function act_Start()
     {
         requireRole('debug');
@@ -821,7 +826,7 @@ class cal_Reminders extends core_Master
         self::doUsefullyPerformance($rec);
         
         followRetUrl();
-    }
+    } */
     
     
     static public function doUsefullyPerformance($rec)
@@ -840,7 +845,10 @@ class cal_Reminders extends core_Master
 						    break;
 						
 						case 'threadOpen':
+                            self::$opened[$rec->id] = TRUE;
+                            // self::logNotice('Записано състояние opened ' . $rec->id, $rec->id);
 							doc_Threads::save((object)array('id'=>$rec->threadId, 'state'=>'opened'), 'state');
+                            doc_Threads::doUpdateThread($rec->threadId);
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
 						    break;
 						
@@ -1144,4 +1152,25 @@ class cal_Reminders extends core_Master
             $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }
     }
+
+    /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     * Добавянето на сигнал отваря треда
+     */
+    static function getThreadState($id)
+    {
+        if(self::$opened[$id]) {
+            
+            // self::logNotice('Върнато състояние opened ' . $id, $id);
+
+            return 'opened';
+
+        } else {
+            
+            // self::logNotice('Върнато състояние closed ' . $id, $id);
+
+            return 'closed';
+        }
+    }
+
 }
