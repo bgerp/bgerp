@@ -143,7 +143,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $addToListOnActivation = 'workContracts';
     
-    
+
     /**
      * Описание на модела
      */
@@ -862,7 +862,7 @@ class hr_EmployeeContracts extends core_Master
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
         return array('crm_PersonAccRegIntf');
     }

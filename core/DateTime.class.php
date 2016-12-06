@@ -860,7 +860,7 @@ class core_DateTime
         list($d, $t) = explode(' ', $date);
 
         if(!$t) {
-            $t = '00-00-00';
+            $t = '00:00:00';
         }
         
         list($y, $m, $day) = explode('-', $d);

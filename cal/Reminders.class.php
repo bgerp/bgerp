@@ -171,7 +171,7 @@ class cal_Reminders extends core_Master
     /**
      * 
      */
-    static $suggestions = array("",1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
+    static $suggestions = array("", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
     
     
     /**
@@ -179,7 +179,13 @@ class cal_Reminders extends core_Master
      */
     public $showLetterHead = TRUE;
     
-    
+
+    /**
+     * Масив с id на напомненията, които отварят нишки в този хит
+     */
+    static $opened = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -273,7 +279,6 @@ class cal_Reminders extends core_Master
             $data->form->setDefault('sharedUsers', "|".$cu."|");
         }
 
-        
 		if(Mode::is('screenMode', 'narrow')){
 			$data->form->fields['priority']->maxRadio = 2;
 		}
@@ -326,15 +331,12 @@ class cal_Reminders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
     	$now = dt::now(); 
-    	
-    	if ($rec->id) {
-    	    $fullRec = self::fetch($rec->id);
-    		if (!$fullRec->timeStart) { 
-    		    $fullRec->timeStart = dt::now();
-    		}
-    	}
- 
-        $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
+        
+        if($rec->repetitionEach) {
+            $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
+        } else {
+            $rec->nextStartTime = $rec->timeStart;
+        }
 
     }
 
@@ -417,13 +419,26 @@ class cal_Reminders extends core_Master
 	             'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
 	         ), 
 	             array('ef_icon'=>'img/16/snooz.png', 
-	                    'title'=>'Олагане на напомнянето'
+	                    'title'=>'Отлагане на напомнянето'
 	         ));
 	     }
 
 	     if ($data->rec->state == 'closed' || $data->rec->state == 'active') {
 	     	$data->toolbar->removeBtn('btnActivate');
 	     }
+
+        /*
+        $data->toolbar->addBtn('Сработване',array(
+	             'cal_Reminders', 
+	             'start', 
+	             'remId' => $data->rec->id, 
+	             'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
+	         ), 
+	             array('ef_icon'=>'img/16/run.png', 
+	                    'title'=>'Стартиране на напомнянето'
+	         ));
+         */
+
     }
     
     
@@ -780,30 +795,46 @@ class cal_Reminders extends core_Master
     {
     	 $now = dt::verbal2mysql();
     	 $query = self::getQuery();
-    	 $query->where("#state = 'active' AND #nextStartTime <= '{$now}' AND (#notifySent = 'no' OR #notifySent = NULL)");
+    	 $query->where("#state = 'active' AND if(#nextStartTime, #nextStartTime, #timeStart) <= '{$now}' AND (#notifySent = 'no' OR #notifySent IS NULL)");
 
     	 while($rec = $query->fetch()){
              
-    	 	 $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
-    	 	 $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-    	 	 $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
-    	 	 
     	 	 self::doUsefullyPerformance($rec);
     	 	
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
-    	 	 }
+                $fields = 'state,notifySent';
+    	 	 } else {
+    	 	    $rec->nextStartTime = $this->getNextStartingTime2($rec);
+                $fields = 'nextStartTime';
+             }
 
-    	 	 $rec->nextStartTime = $this->getNextStartingTime2($rec);
-
-    	 	 self::save($rec);
+    	 	 self::save($rec, $fields);
     	 }
     }
     
+    /**
+     * Екшън за тестване на сработване на напомнянето
+     
+    public function act_Start()
+    {
+        requireRole('debug');
+        $id = Request::get('remId');
+        expect($rec = $this->fetch($id));
+        
+        self::doUsefullyPerformance($rec);
+        
+        followRetUrl();
+    } */
+    
     
     static public function doUsefullyPerformance($rec)
-    {   
+    {
+        $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
+        $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
+
     	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 		if(count($subscribedArr)) { 
 			foreach($subscribedArr as $userId) {  
@@ -811,12 +842,15 @@ class cal_Reminders extends core_Master
 					switch($rec->action){
 						case 'notify':
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						break;
+						    break;
 						
 						case 'threadOpen':
+                            self::$opened[$rec->id] = TRUE;
+                            // self::logNotice('Записано състояние opened ' . $rec->id, $rec->id);
 							doc_Threads::save((object)array('id'=>$rec->threadId, 'state'=>'opened'), 'state');
+                            doc_Threads::doUpdateThread($rec->threadId);
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						break;
+						    break;
 						
 						case 'notifyNoAns':
 							// Търсим дали има пристигнало писмо
@@ -829,16 +863,15 @@ class cal_Reminders extends core_Master
 								bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
 							}
 							
-						break;
-
+						    break;
  						
 						case 'replicateDraft':
                             self::replicateThread($rec, TRUE);
-						break;
+						    break;
 						
 						case 'replicate':  
                             self::replicateThread($rec);
-						break;
+						    break;
 					}
 				}
 			}
@@ -1119,4 +1152,25 @@ class cal_Reminders extends core_Master
             $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }
     }
+
+    /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     * Добавянето на сигнал отваря треда
+     */
+    static function getThreadState($id)
+    {
+        if(self::$opened[$id]) {
+            
+            // self::logNotice('Върнато състояние opened ' . $id, $id);
+
+            return 'opened';
+
+        } else {
+            
+            // self::logNotice('Върнато състояние closed ' . $id, $id);
+
+            return 'closed';
+        }
+    }
+
 }

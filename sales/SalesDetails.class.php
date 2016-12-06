@@ -58,19 +58,19 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Кой има право да чете?
-     * 
-     * @var string|array
-     */
-    public $canRead = 'ceo, sales';
-    
-    
-    /**
      * Кой има право да променя?
      * 
      * @var string|array
      */
-    public $canEdit = 'ceo, sales, collaborator';
+    public $canEdit = 'sales,ceo,collaborator';
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canImportlisted = 'user';
     
     
     /**
@@ -78,7 +78,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canAdd = 'ceo, sales, collaborator';
+    public $canAdd = 'user';
     
     
     /**
@@ -86,7 +86,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'ceo, sales, collaborator';
+    public $canDelete = 'sales,ceo,collaborator';
     
     
     /**
@@ -94,7 +94,16 @@ class sales_SalesDetails extends deals_DealDetail
      *
      * @var string|array
      */
-    public $canImport = 'ceo, sales';
+    public $canImport = 'user';
+    
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canCreateproduct = 'user';
+    
     
     
     /**
@@ -327,17 +336,20 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
-    		
-    		if(core_Users::isPowerUser()){
-    			if(!haveRole('ceo,sales')){
+    	if(($action == 'add') && isset($rec)){
+    		if($requiredRoles != 'no_one'){
+    			$roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
+    			if(!haveRole($roles, $userId)){
     				$requiredRoles = 'no_one';
     			}
     		}
     	}
     	
     	if($action == 'importlisted'){
-    		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+    		$roles = sales_Setup::get('ADD_BY_LIST_BTN');
+    		if(!haveRole($roles, $userId)){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     	
     	if($action == 'importlisted' && isset($rec)){

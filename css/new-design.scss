@@ -924,6 +924,13 @@ form[method="post"] input[type="submit"] {
 	}
 }
 
+.inner-form form[method="post"] input[type="submit"] {
+  background-color: #ddd;
+  &:hover {
+    background-color: #e5e5e5;
+  }
+}
+
 .toolbar {
   form[method=post] input[type=button], form[method=post] a.button {
     background-color: #aaa;

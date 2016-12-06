@@ -315,7 +315,7 @@ class trans_Lines extends core_Master
      * 
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('trans_LinesFolderCoverIntf');
     }

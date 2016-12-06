@@ -125,7 +125,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if(($action == 'delete' || $action == 'add' || $action == 'edit') && isset($rec)){
+        if(($action == 'delete' || $action == 'add' || $action == 'edit' || $action == 'import' || $action == 'createproduct' || $action == 'importlisted') && isset($rec)){
         	$state = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
         	if($state != 'draft'){
         		$requiredRoles = 'no_one';
@@ -291,9 +291,9 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		if(Request::get('Act') != 'CreateProduct'){
     			// Ако има такъв запис, сетваме грешка
-    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
+    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, NULL, $rec->notes);
     			if($exRec){
-    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
+    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch,notes', 'Вече съществува запис със същите данни');
     				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
     			}
     		}

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,13 +19,13 @@ class batch_Movements extends core_Detail {
     /**
      * Заглавие
      */
-    public $title = 'Движения на партида';
+    public $title = 'Движения на партиди';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_AlignDecimals2,batch_Wrapper, plg_RowNumbering, plg_Sorting, plg_Created';
+    public $loadList = 'plg_AlignDecimals2,batch_Wrapper, plg_RowNumbering, plg_Sorting, plg_Created, plg_SelectPeriod';
     
     
     /**
@@ -127,10 +127,10 @@ class batch_Movements extends core_Detail {
     	$data->listFilter->FLD('from', 'date', 'caption=От,silent');
     	$data->listFilter->FLD('to', 'date', 'caption=До,silent');
     	
-    	$showFields = arr::make('batch,productId,storeId,action,from,to', TRUE);
-    	
+    	$showFields = arr::make('batch,productId,storeId,action,from,to,selectPeriod', TRUE);
+    	$data->listFilter->showFields = $showFields;
     	if(haveRole('batch,ceo')){
-    		$data->listFilter->showFields = 'batch,productId,storeId,action,from,to';
+    		$data->listFilter->showFields = 'batch,productId,storeId,action,from,to,selectPeriod';
     	} else {
     		if(Request::get('batch', 'varchar')){
     			$data->listFilter->setField('batch', 'input=hidden');

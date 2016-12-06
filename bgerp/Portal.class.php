@@ -115,7 +115,7 @@ class bgerp_Portal extends core_Manager
         
         // Бутон за смяна от <-> към
         $addUrl = array('cal_Tasks', 'SwitchByTo');
-        $addBtn = ht::createLink(' ', $addUrl, NULL, array('ef_icon' => 'img/16/arrow-switch-270.png', 'class' => 'addTask', 'title' => '|*' . $switchTitle, 'id' => 'switchTasks'));
+        $addBtn = ht::createLink(' ', $addUrl, NULL, array('ef_icon' => 'img/16/arrow_switch.png', 'class' => 'addTask', 'title' => '|*' . $switchTitle, 'id' => 'switchTasks'));
         $tasksTpl->append($addBtn, 'SWITCH_BTN');
         
         // Бутон за смяна от <-> към

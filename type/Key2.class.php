@@ -235,6 +235,7 @@ class type_Key2 extends type_Int
             $handler = $this->getHandler();
 
             foreach($options as $key => $title) {
+                if(is_object($title)) continue;
                 $title = $title . ' (' . $key . ')';
                 $comboOpt[$title] = $title;
                 if($key == $value) {
