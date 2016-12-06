@@ -119,18 +119,17 @@ class batch_Movements extends core_Detail {
     	
     	$data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
     	$data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-    	//$data->listFilter->FLD('Protected', 'varchar(128)', 'input=hidden,silent');
-    	
     	$data->listFilter->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+    	$data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
     	$data->listFilter->setOptions('productId', array('' => '') + batch_Items::getProductsWithDefs());
     	$data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
     	$data->listFilter->FLD('from', 'date', 'caption=От,silent');
     	$data->listFilter->FLD('to', 'date', 'caption=До,silent');
     	
-    	$showFields = arr::make('batch,productId,storeId,action,from,to,selectPeriod', TRUE);
+    	$showFields = arr::make('batch,productId,storeId,action,from,to,selectPeriod,document', TRUE);
     	$data->listFilter->showFields = $showFields;
     	if(haveRole('batch,ceo')){
-    		$data->listFilter->showFields = 'batch,productId,storeId,action,from,to,selectPeriod';
+    		$data->listFilter->showFields = $showFields;
     	} else {
     		if(Request::get('batch', 'varchar')){
     			$data->listFilter->setField('batch', 'input=hidden');
@@ -144,6 +143,19 @@ class batch_Movements extends core_Detail {
     		
     		$data->listFilter->showFields = implode(',', $showFields);
     		Request::setProtected('batch');
+    	}
+    	
+    	$documentSuggestions = array();
+    	$query = $mvc->getQuery();
+    	$query->show("docType,docId");
+    	$query->groupBy("docType,docId");
+    	while($r = $query->fetch()){
+    		$handle = "#" . cls::get($r->docType)->getHandle($r->docId);
+    		$documentSuggestions[$handle] = $handle;
+    	}
+    	
+    	if(count($documentSuggestions)){
+    		$data->listFilter->setSuggestions('document', array('' => '') + $documentSuggestions);
     	}
     	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -182,6 +194,13 @@ class batch_Movements extends core_Detail {
     		
     		if(isset($fRec->to)){
     			$data->query->where("#date <= '{$fRec->to}'");
+    		}
+    		
+    		if(isset($fRec->document)){
+    			$document = doc_Containers::getDocumentByHandle($fRec->document);
+    			if(is_object($document)){
+    				$data->query->where("#docType = {$document->getClassId()} AND #docId = {$document->that}");
+    			}
     		}
     	}
     }
