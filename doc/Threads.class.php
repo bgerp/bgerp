@@ -443,7 +443,7 @@ class doc_Threads extends core_Manager
                 
                 // Ако се различава броя на документите
                 $cCnt = $cQuery->count();
-                if ($cCnt && ($cCnt != $rec->allDocCnt)) {
+                if (($cCnt || (!$cCnt && $rec->state == 'rejected')) && ($cCnt != $rec->allDocCnt)) {
                     self::logNotice("Променен брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
                     self::updateThread($rec->id);
                     $resArr['allDocCnt']++;
