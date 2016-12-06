@@ -798,11 +798,13 @@ class cal_Reminders extends core_Master
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
+                $fields = 'state,notifySent';
     	 	 } else {
     	 	    $rec->nextStartTime = $this->getNextStartingTime2($rec);
+                $fields = 'nextStartTime';
              }
 
-    	 	 self::save($rec);
+    	 	 self::save($rec, $fields);
     	 }
     }
     
@@ -1088,7 +1090,7 @@ class cal_Reminders extends core_Master
         }
         
         if($rec->timeStart == $rec->nextStartTime) {
-          //  unset($resArr['nextStartTime']);
+            unset($resArr['nextStartTime']);
         }
         
         if($rec->repetitionEach == '1'){
