@@ -1573,7 +1573,10 @@ class doc_Threads extends core_Manager
         if (!$id = $ids) {
             return;
         }
-        
+
+        // Махаме id-то от бъдещо обовяване
+        unset(self::$updateQueue[$id]);
+
         // Вземаме записа на треда
         $rec = self::fetch($id, NULL, FALSE);
         
@@ -2132,7 +2135,7 @@ class doc_Threads extends core_Manager
         
         $rec->state = 'opened';
         
-        $this->save($rec);
+        $this->save($rec, 'state');
         
         $this->updateThread($rec->id);
         
