@@ -32,7 +32,7 @@ class cat_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
     
     
     /**
