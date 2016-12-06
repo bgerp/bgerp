@@ -73,6 +73,16 @@ class batch_Movements extends core_Detail {
     
     
     /**
+     * Подготовка на Детайлите
+     */
+    function prepareDetail_($data)
+    {
+    	$this->unloadPlugin('plg_SelectPeriod');
+    	parent::prepareDetail_($data);	 
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
