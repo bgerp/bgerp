@@ -2,16 +2,16 @@
 
 
 /**
- * OCR обработка на файлове с помощта на ABBYY
+ * OCR обработка на файлове с помощта на Tesseract
  *
  * @category  vendors
- * @package   abbyyocr
+ * @package   tesseract
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class abbyyocr_Converter extends core_Manager
+class tesseract_Converter extends core_Manager
 {
     
     
@@ -30,7 +30,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'abbyy';
+    var $title = 'Tesseract OCR';
     
     
     /**
@@ -48,17 +48,19 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Масив с програмите и функциите за определяне на пътя до тях
      */
-    public $fconvProgramPaths = array('abbyyocr9' => 'abbyyocr_Setup::ABBYYOCR_PATH');
+    public $fconvProgramPaths = array('tesseract' => 'tesseract_Setup::TESSERACT_PATH');
     
     
     /**
      * Кода, който ще се изпълнява
      */
-    public $fconvLineExec = 'abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]';
+    public $fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] -psm [#PSM#]';
     
-    
+	
 	/**
      * Екшъна за извличане на текст чрез OCR
+     * 
+     * @see fileman_OCRIntf
      */
     function act_getTextByOcr()
     {
@@ -94,9 +96,9 @@ class abbyyocr_Converter extends core_Manager
     
     
     /**
-     * 
+     *
      * @param stdObject $fRec
-     * 
+     *
      * @see fileman_OCRIntf
      */
     function getTextByOcr($fRec)
@@ -106,7 +108,7 @@ class abbyyocr_Converter extends core_Manager
         
         // Параметри необходими за конвертирането
         $params = array(
-                'callBack' => $me . '::afterGetTextByAbbyyOcr',
+                'callBack' => $me . '::afterGetTextByTesseract',
                 'dataId' => $fRec->dataId,
                 'asynch' => TRUE,
                 'createdBy' => core_Users::getCurrent('id'),
@@ -154,20 +156,21 @@ class abbyyocr_Converter extends core_Manager
         $Script = cls::get(fconv_Script);
         
         // Пътя до файла, в който ще се записва получения текст
-        $textPath = $Script->tempDir . 'text.txt';
+        $outputFile = $Script->tempDir . 'text';
         
         // Задаваме файловете и параметрите
         $Script->setFile('INPUTF', $fileHnd);
-        $Script->setFile('OUTPUTF', $textPath);
+        $Script->setFile('OUTPUTF', $outputFile);
         
         // Задаваме параметрите
-        $Script->setParam('LANGUAGE', abbyyocr_Setup::get('LANGUAGES'), TRUE);
+        $Script->setParam('LANGUAGE', tesseract_Setup::get('LANGUAGES'), TRUE);
+        $Script->setParam('PSM', tesseract_Setup::get('PAGES_MODE'), TRUE);
         
         // Заместваме програмата с пътя от конфига
-        $Script->setProgram('abbyyocr9', abbyyocr_Setup::get('PATH'));
+        $Script->setProgram('tesseract', tesseract_Setup::get('PATH'));
         $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
         
-        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($textPath);
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outputFile);
         
         // Скрипта, който ще конвертира
         $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
@@ -178,11 +181,11 @@ class abbyyocr_Converter extends core_Manager
         $params['errFilePath'] = $errFilePath;
         
         // Други допълнителни параметри
-        $params['outFilePath'] = $textPath;
+        $params['outFilePath'] = $outputFile . '.txt';
         $params['fh'] = $fileHnd;
         $Script->params = $params;
         
-        $Script->setCheckProgramsArr('abbyyocr9');
+        $Script->setCheckProgramsArr('tesseract');
         // Стартираме скрипта Aсинхронно
         if ($Script->run($params['asynch']) === FALSE) {
             fileman_Indexes::createError($params);
@@ -200,24 +203,24 @@ class abbyyocr_Converter extends core_Manager
      * 
      * @param boolean
      */
-    function afterGetTextByAbbyyOcr($script)
+    function afterGetTextByTesseract($script)
     {
         // Десериализираме нужните помощни данни
         $params = $script->params;
-        
-        // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
-            
-            // Отключваме процеса
-            core_Locks::release($params['lockId']);
-            
-            return FALSE;
-        }
         
         // Вземаме съдържанието на файла
         $params['content'] = file_get_contents($params['outFilePath']);
         
         $params['content'] = trim($params['content']);
+        
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (!$params['content'] && fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
+        
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+        
+            return FALSE;
+        }
         
         // Записваме данните
         $saveId = fileman_Indexes::saveContent($params);
@@ -226,7 +229,7 @@ class abbyyocr_Converter extends core_Manager
         core_Locks::release($params['lockId']);
         
         if ($saveId) {
-
+			
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
@@ -239,7 +242,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Проверява дали файл с даденото име може да се екстрактва
      * 
-     * @param stdObject $fRec
+     * @param stdClass $fRec
      * 
      * @return boolean - Дали може да се екстрактва от файла
      * 
@@ -247,7 +250,6 @@ class abbyyocr_Converter extends core_Manager
      */
     static function canExtract($fRec)
     {
-        //Разширението на файла
         $ext = strtolower(fileman_Files::getExt($fRec->name));
         
         // Ако разширението е в позволените
@@ -272,9 +274,10 @@ class abbyyocr_Converter extends core_Manager
      * 
      * @see fileman_OCRIntf
      */
-    function haveTextForOcr($fRec)
+    public static function haveTextForOcr($fRec)
     {
-    
+        // @todo psm=0
+        
         return TRUE;
     }
     

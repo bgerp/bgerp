@@ -13,17 +13,23 @@
  */
 class fileman_OCRIntf
 {
-
+    
     
     /**
-     * Добавя бутон в тулбара за стартиране на OCR процеса
      * 
-     * @param core_Toolbar $toolbar
      */
-    function addOcrBtn($toolbar)
+    public $ocrType = 'textOcr';
+    
+    
+    /**
+     * Проверка дали може да се пуска OCR обработка
+     * 
+     * @param stdObject $fRec
+     */
+    function canExtract($fRec)
     {
         
-        return $this->class->convertDoc($toolbar);
+        return $this->class->canExtract($fRec);
     }
 
     
@@ -33,6 +39,30 @@ class fileman_OCRIntf
     function act_getTextByOcr()
     {
         
-        return $this->class->acr_getTextByOcr();
+        return $this->class->act_getTextByOcr();
+    }
+
+    
+    /**
+     * Функция за извличане на текст
+     * 
+     * @param stdObject $fRec
+     */
+    function getTextByOcr($fRec)
+    {
+        
+        return $this->class->getTextByOcr($fRec);
+    }
+
+    
+    /**
+     * Бърза проврка дали има смисъл от OCR-ване на текста
+     * 
+     * @param stdObject $fRec
+     */
+    function haveTextForOcr($fRec)
+    {
+        
+        return $this->class->haveTextForOcr($fRec);
     }
 }
