@@ -326,15 +326,12 @@ class cal_Reminders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
     	$now = dt::now(); 
-    	
-    	if ($rec->id) {
-    	    $fullRec = self::fetch($rec->id);
-    		if (!$fullRec->timeStart) { 
-    		    $fullRec->timeStart = dt::now();
-    		}
-    	}
- 
-        $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
+        
+        if($rec->repetitionEach) {
+            $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
+        } else {
+            $rec->nextStartTime = $rec->timeStart;
+        }
 
     }
 
@@ -417,13 +414,25 @@ class cal_Reminders extends core_Master
 	             'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
 	         ), 
 	             array('ef_icon'=>'img/16/snooz.png', 
-	                    'title'=>'Олагане на напомнянето'
+	                    'title'=>'Отлагане на напомнянето'
 	         ));
 	     }
 
 	     if ($data->rec->state == 'closed' || $data->rec->state == 'active') {
 	     	$data->toolbar->removeBtn('btnActivate');
 	     }
+
+
+        $data->toolbar->addBtn('Сработване',array(
+	             'cal_Reminders', 
+	             'start', 
+	             'remId' => $data->rec->id, 
+	             'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
+	         ), 
+	             array('ef_icon'=>'img/16/run.png', 
+	                    'title'=>'Стартиране на напомнянето'
+	         ));
+
     }
     
     
@@ -780,30 +789,45 @@ class cal_Reminders extends core_Master
     {
     	 $now = dt::verbal2mysql();
     	 $query = self::getQuery();
-    	 $query->where("#state = 'active' AND #nextStartTime <= '{$now}' AND (#notifySent = 'no' OR #notifySent = NULL)");
+    	 $query->where("#state = 'active' AND if(#nextStartTime, #nextStartTime, #timeStart) <= '{$now}' AND (#notifySent = 'no' OR #notifySent IS NULL)");
 
     	 while($rec = $query->fetch()){
              
-    	 	 $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
-    	 	 $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-    	 	 $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
-    	 	 
     	 	 self::doUsefullyPerformance($rec);
     	 	
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
-    	 	 }
-
-    	 	 $rec->nextStartTime = $this->getNextStartingTime2($rec);
+    	 	 } else {
+    	 	    $rec->nextStartTime = $this->getNextStartingTime2($rec);
+             }
 
     	 	 self::save($rec);
     	 }
     }
     
     
+    /**
+     * Екшън за тестване на сработване на напомнянето
+     */
+    public function act_Start()
+    {
+        requireRole('debug');
+        $id = Request::get('remId');
+        expect($rec = $this->fetch($id));
+        
+        self::doUsefullyPerformance($rec);
+        
+        followRetUrl();
+    }
+    
+    
     static public function doUsefullyPerformance($rec)
-    {   
+    {
+        $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
+        $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
+
     	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 		if(count($subscribedArr)) { 
 			foreach($subscribedArr as $userId) {  
@@ -811,12 +835,12 @@ class cal_Reminders extends core_Master
 					switch($rec->action){
 						case 'notify':
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						break;
+						    break;
 						
 						case 'threadOpen':
 							doc_Threads::save((object)array('id'=>$rec->threadId, 'state'=>'opened'), 'state');
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						break;
+						    break;
 						
 						case 'notifyNoAns':
 							// Търсим дали има пристигнало писмо
@@ -829,16 +853,15 @@ class cal_Reminders extends core_Master
 								bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
 							}
 							
-						break;
-
+						    break;
  						
 						case 'replicateDraft':
                             self::replicateThread($rec, TRUE);
-						break;
+						    break;
 						
 						case 'replicate':  
                             self::replicateThread($rec);
-						break;
+						    break;
 					}
 				}
 			}
@@ -1065,7 +1088,7 @@ class cal_Reminders extends core_Master
         }
         
         if($rec->timeStart == $rec->nextStartTime) {
-            unset($resArr['nextStartTime']);
+          //  unset($resArr['nextStartTime']);
         }
         
         if($rec->repetitionEach == '1'){
