@@ -1048,6 +1048,10 @@ function prepareContextMenu() {
 
         var vertAdjust = $(this).outerHeight();
         var horAdjust = -30;
+        if($(this).hasClass("textBtn")) {
+            horAdjust -= $(this).width() + 9;
+
+        }
 
         if($(el).hasClass("twoColsContext")) {
             vertAdjust += 2;
@@ -1945,7 +1949,7 @@ function getType (val) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-	
+
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 	
