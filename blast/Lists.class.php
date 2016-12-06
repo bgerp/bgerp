@@ -44,7 +44,7 @@ class blast_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search, bgerp_plg_Blank, plg_Clone';
+    var $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, bgerp_plg_Blank, plg_Clone';
     
     
     /**
