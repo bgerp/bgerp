@@ -427,7 +427,7 @@ class cal_Reminders extends core_Master
 	     	$data->toolbar->removeBtn('btnActivate');
 	     }
 
-
+        /*
         $data->toolbar->addBtn('Сработване',array(
 	             'cal_Reminders', 
 	             'start', 
@@ -437,6 +437,7 @@ class cal_Reminders extends core_Master
 	             array('ef_icon'=>'img/16/run.png', 
 	                    'title'=>'Стартиране на напомнянето'
 	         ));
+         */
 
     }
     
@@ -813,10 +814,9 @@ class cal_Reminders extends core_Master
     	 }
     }
     
-    
     /**
      * Екшън за тестване на сработване на напомнянето
-     */
+     
     public function act_Start()
     {
         requireRole('debug');
@@ -826,7 +826,7 @@ class cal_Reminders extends core_Master
         self::doUsefullyPerformance($rec);
         
         followRetUrl();
-    }
+    } */
     
     
     static public function doUsefullyPerformance($rec)
