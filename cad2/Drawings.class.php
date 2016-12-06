@@ -17,7 +17,7 @@ class cad2_Drawings extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';  
+    public $loadList = 'plg_RowTools2, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';  
                     
 
     
