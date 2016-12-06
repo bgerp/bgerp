@@ -189,6 +189,8 @@ class store_ConsignmentProtocols extends core_Master
     {
     	$rec = $this->fetch($id);
     	
+    	if (!$rec) return ;
+    	
     	$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
     	$dRec1->where("#protocolId = {$rec->id}");
     	$measuresSend = $this->getMeasures($dRec1->fetchAll());
