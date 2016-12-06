@@ -276,6 +276,6 @@ class trz_SalaryPayroll extends core_Manager
      */
     function cron_CalcSalaryPay()
     {
-        $this->calculateSalary();
+        //$this->calculateSalary();
     }
 }

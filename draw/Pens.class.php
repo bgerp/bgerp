@@ -75,7 +75,7 @@ class draw_Pens extends core_Master
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/pencil.png';
+    var $singleIcon = 'img/16/edit.png';
 
  
     var $rowToolsField = 'name';

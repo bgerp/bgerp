@@ -839,7 +839,7 @@ class price_ListDocs extends core_Master
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('crm_ContragentAccRegIntf', 'price_PriceListFolderCoverIntf');
     }
@@ -853,7 +853,7 @@ class price_ListDocs extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-    	$allowedIntfs = static::getAllowedFolders();
+    	$allowedIntfs = self::getCoversAndInterfacesForNewDoc();
     	$cover = doc_Folders::getCover($folderId);
     	foreach ($allowedIntfs as $intf){
     		if($cover->haveInterface($intf)){

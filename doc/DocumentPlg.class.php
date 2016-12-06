@@ -2685,7 +2685,7 @@ class doc_DocumentPlg extends core_Plugin
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    function on_AfterGetAllowedFolders($mvc, &$res)
+    function getCoversAndInterfacesForNewDoc($mvc, &$res)
     {
     	if(empty($res)){
     		return NULL;

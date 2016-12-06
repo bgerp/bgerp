@@ -332,7 +332,7 @@ class accda_Da extends core_Master
     /**
      * В корици на папки с какви интерфейси може да се слага
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
         return array('accda_DaFolderCoverIntf');
     }

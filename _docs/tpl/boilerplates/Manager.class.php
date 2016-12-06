@@ -104,7 +104,7 @@ class boilerplate_Manager extends core_Manager
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      * 
      * @var string
-     * @see plg_RowTools
+     * @see plg_RowTools2
      */
     public $rowToolsField;
     

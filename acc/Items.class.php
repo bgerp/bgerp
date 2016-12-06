@@ -26,7 +26,7 @@ class acc_Items extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, plg_Search,
+    var $loadList = 'plg_Created, plg_State2, plg_RowTools2, editwatch_Plugin, plg_Search,
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_Sorting';
     
     
@@ -81,13 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'titleLink=Наименование,num,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id,titleLink=Наименование,num,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
     
     
     /**
@@ -946,7 +940,7 @@ class acc_Items extends core_Manager
         if(is_array($features)){
         	$row->features = '';
         	foreach ($features as $key => $value){
-        		$row->features .= "{$key}: <i>{$value}</i><br>";
+        		$row->features .= "{$key}: <b><i class='quiet'>{$value}</i></b><br>";
         	}
         }
         

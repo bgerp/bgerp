@@ -171,7 +171,7 @@ abstract class deals_ManifactureMaster extends core_Master
      * 
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('store_AccRegIntf');
     }

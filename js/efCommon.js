@@ -510,6 +510,11 @@ function ajaxAutoRefreshOptions(id, selectId, input, params) {
     }
 
     params.q = get$(id).value;
+    
+    if(params.q == '') return;
+    
+    // Не зареждаме нови опции, ако текущо е избрана опция
+    if(isOptionExists(selectId, params.q)) return;
 
     // От параметрите прави УРЛ
     if (typeof(params) == 'object') {
@@ -1977,6 +1982,50 @@ function refreshForm(form, removeFields) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
 	});
+}
+
+
+/**
+ * Изчиства съдържанието на няколко Select2 елемента с посочения клас - cssClass,
+ * Като запазва стойността на текущия елемант, посочен в select2
+ */
+function clearSelect(select2, cssClass) {
+    // Дефиниране статичен семафор за заключване
+    if(typeof clearSelect.semafor == 'undefined') {
+        clearSelect.lock = 0;
+    }
+    
+    // Ако състоянието е блокирано - нищо не правим
+    if(clearSelect.lock == 1) {
+        return;
+    }
+ 
+    // Ако съдържанието на текущия елемент е празно - нищо не правим
+    if(select2.value == '') {
+        return;
+    }
+    
+    // Заключваме
+    clearSelect.lock = 1;
+
+    $('.' + cssClass).each(function(i, obj) {
+ 
+        if(obj.tagName == 'SELECT' && $(obj).hasClass('combo')) return;
+ 
+        if(obj.name == select2.name) return;
+    
+        if(obj.tagName == 'SELECT') {
+ 
+            $(obj).val("").trigger("change");
+        }
+        if(obj.tagName == 'INPUT') {
+            $(obj).val("");
+        }
+
+    });
+
+    // Отключване
+    clearSelect.lock = 0;
 }
 
 

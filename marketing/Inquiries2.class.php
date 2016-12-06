@@ -678,7 +678,7 @@ class marketing_Inquiries2 extends embed_Manager
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('crm_ContragentAccRegIntf');
     }

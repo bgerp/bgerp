@@ -671,6 +671,9 @@ class html2text_Converter
             break;
         }
         
+        if($alert) bp($matches, $link, $display, $linkArr, $schema, $path);
+
+
         return $display . $additional;
     }
     
