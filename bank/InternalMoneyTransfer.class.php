@@ -45,20 +45,14 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_Contable,
+    var $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_Contable,
          plg_Sorting, doc_DocumentPlg, plg_Printing, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy, modifiedOn, modifiedBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = "valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy, modifiedOn, modifiedBy";
     
     
     /**
