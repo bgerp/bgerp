@@ -3125,7 +3125,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
     			
         		if (getEfae().AJAXErrorRepaired) return ;
         		
-	        	if (typeof showToast != 'undefined') {
+	        	if (typeof showToast != 'undefined' && $().toastmessage) {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
 		                    timeOut: 1,
@@ -3349,7 +3349,7 @@ efae.prototype.resetTimeout = function() {
  * data.type - типа на статуса
  */
 function render_showToast(data) {
-    if (typeof showToast != 'undefined') {
+    if (typeof showToast != 'undefined' && $().toastmessage) {
         showToast({
             timeOut: data.timeOut,
             text: data.text,
