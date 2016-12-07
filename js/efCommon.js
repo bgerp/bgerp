@@ -651,7 +651,9 @@ function openWindow(url, name, args) {
 // Редактор за BBCode текст: показва ...
 function sc(text) {
     if (typeof(text.createTextRange) != 'undefined') {
-        text.caretPos = document.selection.createRange().duplicate();
+    	if (document.selection && document.selection.createRange) {
+    		text.caretPos = document.selection.createRange().duplicate();
+    	}
     }
 }
 
@@ -3123,7 +3125,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
     			
         		if (getEfae().AJAXErrorRepaired) return ;
         		
-	        	if (typeof showToast != 'undefined') {
+	        	if (typeof showToast != 'undefined' && $().toastmessage) {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
 		                    timeOut: 1,
@@ -3347,7 +3349,7 @@ efae.prototype.resetTimeout = function() {
  * data.type - типа на статуса
  */
 function render_showToast(data) {
-    if (typeof showToast != 'undefined') {
+    if (typeof showToast != 'undefined' && $().toastmessage) {
         showToast({
             timeOut: data.timeOut,
             text: data.text,

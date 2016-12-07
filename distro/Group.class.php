@@ -96,7 +96,7 @@ class distro_Group extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
+    public $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools2, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
     
     
     /**

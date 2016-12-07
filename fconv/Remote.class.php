@@ -37,7 +37,7 @@ class fconv_Remote extends core_Manager
     /**
      * Плъгини, които ще се зареждат
      */
-    public $loadList = 'plg_Created, fconv_Wrapper, plg_RowTools';
+    public $loadList = 'plg_Created, fconv_Wrapper, plg_RowTools2';
     
     
     /**
