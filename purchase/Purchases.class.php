@@ -515,6 +515,7 @@ class purchase_Purchases extends deals_DealMaster
             }
         }
        
+        $result->set('dealProducts', $agreed);
         $agreed = deals_Helper::normalizeProducts(array($agreed));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
