@@ -532,25 +532,14 @@ abstract class deals_Helper
 		// Ако има забележки
 		if(!empty($notes)){
 			
-			// Намират се всички записи, и ще се сравнява по тяхната забележка
+			// Сравняване на хеша на забележките с този на новата забележка
 			$query = $mvc->getQuery();
+			$query->XPR('hashNotes', 'double', 'MD5(#notes)');
+			$notes = md5(gzcompress($notes));
+			$cond .= " AND #hashNotes = '{$notes}'";
 			$query->where($cond);
-			$allRecs = $query->fetchAll();
-			$notes = md5(trim($notes));
 			
-			// Филтрираме записите на които хеша назабележката отговаря на този на забележката
-			//@TODO да бъде заменено с SQL решение, поради невъзможноста от търсене в Mysql в компресирано блоб поле, 
-			$filtered = array_filter($allRecs, function (&$e) use ($notes) {
-				if(md5(trim($e->notes)) == $notes){
-					return TRUE;
-				}
-			
-				return FALSE;
-			});
-			
-			// Ако има поне един запис, значи има съществуващ детайл
-			return (count($filtered)) ? $filtered[key($filtered)] : FALSE;
-			
+			return $query->fetch();
 		} else {
 			$cond .= " AND (#notes = '' OR #notes IS NULL)";
 		}
