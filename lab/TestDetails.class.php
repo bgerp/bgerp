@@ -25,9 +25,9 @@ class lab_TestDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_RowNumbering,
+    var $loadList = 'plg_Created, plg_RowTools2, plg_RowNumbering,
                           plg_Printing, lab_Wrapper, plg_Sorting, 
-                          Tests=lab_Tests, Params=lab_Parameters, Methods=lab_Methods';
+                          Tests=lab_Tests, Params=lab_Parameters, Methods=lab_Methods,plg_PrevAndNext';
     
     
     /**
@@ -39,14 +39,8 @@ class lab_TestDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Ред,methodId,paramName,value,error';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+    var $listFields = 'methodId,paramName,value,error';
+
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
