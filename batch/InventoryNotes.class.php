@@ -189,15 +189,6 @@ class batch_InventoryNotes extends core_Master {
     
     
     /**
-     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
-     */
-    protected static function on_AfterPrepareEditToolbar($mvc, $data)
-    {
-    	$data->form->toolbar->removeBtn('activate');
-    }
-    
-    
-    /**
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
@@ -273,6 +264,23 @@ class batch_InventoryNotes extends core_Master {
     	if($error === TRUE){
     		core_Statuses::newStatus('Не може да се активира докато има редове, чието количество е над наличното', 'error');
     		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'activate'){
+    		if(isset($rec)){
+    			if(!batch_InventoryNoteDetails::fetchField("#noteId = {$rec->id}")){
+    				$res = 'no_one';
+    			}
+    		} else {
+    			$res = 'no_one';
+    		}
     	}
     }
 }

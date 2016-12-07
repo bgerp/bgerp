@@ -38,19 +38,13 @@ class batch_InventoryNoteDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_AlignDecimals2, plg_RowTools2';
+    public $loadList = 'plg_AlignDecimals2, plg_RowTools2,plg_RowNumbering';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, packQuantity, batchOut, batchIn';
-    
-    
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'batchIn,batchOut';
     
     
     /**
