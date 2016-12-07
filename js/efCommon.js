@@ -651,7 +651,9 @@ function openWindow(url, name, args) {
 // Редактор за BBCode текст: показва ...
 function sc(text) {
     if (typeof(text.createTextRange) != 'undefined') {
-        text.caretPos = document.selection.createRange().duplicate();
+    	if (document.selection && document.selection.createRange) {
+    		text.caretPos = document.selection.createRange().duplicate();
+    	}
     }
 }
 
