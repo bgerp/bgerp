@@ -1098,8 +1098,9 @@ class cat_Products extends embed_Manager {
         if(isset($rec->folderId)){
         	$Cover = doc_Folders::getCover($rec->folderId);
         	$type = $Cover->getProductType($rec->id);
+        	$isPublic = isset($rec->isPublic) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
         	
-        	if($type == 'public'){
+        	if($type == 'public' && $isPublic == 'no'){
         		$rec->isPublic = 'yes';
         		$mvc->save_($rec, 'isPublic');
         	}
