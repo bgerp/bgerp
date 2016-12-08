@@ -38,7 +38,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,cat_Wrapper';
+    public $loadList = 'plg_RowTools2,cat_Wrapper';
     
     
     /**
@@ -51,14 +51,8 @@ class batch_CategoryDefinitions extends embed_Manager {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'tools=Пулт, categoryId, classId';
-    
-    
-    /**
-     * Поле за показване на пулта за редакция
-     */
-    public $rowToolsField = 'tools';
-    
+    public $listFields = 'categoryId, classId';
+
     
     /**
      * Кой има право да чете?

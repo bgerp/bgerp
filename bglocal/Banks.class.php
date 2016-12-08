@@ -19,19 +19,13 @@ class bglocal_Banks extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bglocal_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools2, bglocal_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name, bic , tools=Пулт';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'name, bic';
     
     
     /**

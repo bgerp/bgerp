@@ -41,20 +41,14 @@ class help_Log extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'help_Wrapper, plg_RowTools';
+    var $loadList = 'help_Wrapper, plg_RowTools2';
     
     
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,userId,infoId,seeOn,seeCnt,closedOn';
-
-
-    /**
-     * Поле за инструментите на реда
-     */
-    var $rowToolsField = '✍';
+    var $listFields = 'userId,infoId,seeOn,seeCnt,closedOn';
     
     
     /**

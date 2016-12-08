@@ -26,7 +26,7 @@ class lab_Tests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, doc_ActivatePlg,
+    var $loadList = 'plg_RowTools2, doc_ActivatePlg,
                      doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting, bgerp_plg_Blank';
     
     
@@ -40,14 +40,8 @@ class lab_Tests extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, title,type,batch,origin,
-                       assignor,activatedOn=Активиран,lastChangedOn=Последно,tools=Пулт';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+                       assignor,activatedOn=Активиран,lastChangedOn=Последно';
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него

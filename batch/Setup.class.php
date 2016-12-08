@@ -63,6 +63,8 @@ class batch_Setup extends core_ProtoSetup
     		'batch_Items',
     		'batch_Movements',
     		'batch_CategoryDefinitions',
+    		'batch_InventoryNotes',
+    		'batch_InventoryNoteDetails',
         );
     
 

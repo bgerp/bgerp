@@ -29,19 +29,13 @@ class forum_Boards extends core_Master {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting'; 
-	
-	
-	/**
-	 * Поле за лентата с инструменти
-	 */
-	var $rowToolsField = 'tools';
-	
+	var $loadList = 'plg_RowTools2, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting'; 
+
 	
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields = 'tools=Пулт, title, category, shortDesc, themesCnt, commentsCnt, boardType, shared, lastComment, lastCommentedTheme, lastCommentBy, createdOn, createdBy';
+	var $listFields = 'title, category, shortDesc, themesCnt, commentsCnt, boardType, shared, lastComment, lastCommentedTheme, lastCommentBy, createdOn, createdBy';
 	
 	
 	/**

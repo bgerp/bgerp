@@ -22,7 +22,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
     
     
     /**

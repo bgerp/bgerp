@@ -847,6 +847,11 @@ form[method="post"] input[type="submit"] {
     form[method="post"] input[type="submit"]:hover.btn-disabled {
       background-color: #888888; }
 
+.inner-form form[method="post"] input[type="submit"] {
+  background-color: #dddddd; }
+  .inner-form form[method="post"] input[type="submit"]:hover {
+    background-color: #e5e5e5; }
+
   .toolbar form[method=post] input[type=button],
   .toolbar form[method=post] a.button {
     background-color: #aaaaaa;

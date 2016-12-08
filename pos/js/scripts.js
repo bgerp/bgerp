@@ -135,7 +135,7 @@ function posActions() {
 			$("#addProductBtn").trigger(event);
 			
 			// Ако приложението не е отворено на таблет, слагаме фокус на полето за кода
-			if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+			if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
 				$("input[name=ean]").focus();
 			}
 	    }
@@ -305,7 +305,7 @@ function posActions() {
 		inpVal += currentAttrValue;
 		$("#select-input-pos").val(inpVal);
 		
-		if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+		if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
 			$("#select-input-pos").focus();
 		}
 		// Задействаме евент 'keyup' в инпут полето
@@ -319,7 +319,7 @@ function posActions() {
 		var inpValLength = $("#select-input-pos").val().length;
 		var newVal = $("#select-input-pos").val().substr(0, inpValLength-1);
 		$("#select-input-pos").val(newVal);
-		if(!((pageWidth > 800 && pageWidth < 1400) && is_touch_device())){
+		if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
 			$("#select-input-pos").focus();
 		}
 		var e = jQuery.Event("keyup");
