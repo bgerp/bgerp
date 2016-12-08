@@ -245,7 +245,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param stdClass $data
 	 * @return core_ET $tpl
 	 */
-	protected function renderProductDescription($data)
+	public function renderProductDescription($data)
 	{   
         $title = tr($this->singleTitle);
 
