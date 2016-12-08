@@ -488,7 +488,8 @@ class sales_SalesDetails extends deals_DealDetail
     			// Запис на обновените записи
     			$this->saveArray($toUpdate, 'id,quantity');
     			$this->saveArray($toSave);
-    			 
+    			$this->Master->invoke('AfterUpdateDetail', array($saleId, $this));
+    			
     			// Редирект към продажбата
     			followRetUrl(NULL, 'Списъкът е импортиран успешно');
     		}
