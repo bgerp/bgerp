@@ -38,7 +38,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_Sorting, planning_plg_ReplaceEquivalentProducts';
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_Sorting, 
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
     
     
     /**

@@ -26,7 +26,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
     
     
     /**
@@ -62,13 +62,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,likeProductId=Влагане като';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'likeProductId=Влагане като';
     
     
     /**
