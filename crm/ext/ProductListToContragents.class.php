@@ -95,7 +95,7 @@ class crm_ext_ProductListToContragents extends core_Manager
     	$this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
     	
     	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId');
-    	$this->setDbUnique('reff');
+    	$this->setDbUnique('contragentClassId,contragentId,reff');
 	}
 	
 	
