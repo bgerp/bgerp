@@ -37,7 +37,7 @@ class hr_ContractTypes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
+    public $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper, plg_Printing,
                      plg_SaveAndNew, WorkingCycles=hr_WorkingCycles, plg_Modified';
     
     
@@ -81,13 +81,7 @@ class hr_ContractTypes extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, name,createdBy,modifiedOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
-    
+
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата

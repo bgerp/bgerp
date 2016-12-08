@@ -33,7 +33,7 @@ class budget_Assets extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
+    var $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew, 
                     budget_Wrapper';
     
     
@@ -82,14 +82,8 @@ class budget_Assets extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, number, period, project, sume, currency, rate, company, person, state, location, department, activity';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+    var $listFields = 'number, period, project, sume, currency, rate, company, person, state, location, department, activity';
+
     
     /**
      * Описание на модела (таблицата)

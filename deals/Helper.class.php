@@ -493,7 +493,7 @@ abstract class deals_Helper
 	 * @param NULL|varchar $batch
 	 * @return FALSE|stdClass
 	 */
-	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL, $expenseItemId = NULL)
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL, $expenseItemId = NULL, $notes = NULL)
 	{
 		$cond = "#{$mvc->masterKey} = $masterId";
 		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -527,6 +527,21 @@ abstract class deals_Helper
 			} else {
 				$cond .= " AND #expenseItemId IS NULL";
 			}
+		}
+		
+		// Ако има забележки
+		if(!empty($notes)){
+			
+			// Сравняване на хеша на забележките с този на новата забележка
+			$query = $mvc->getQuery();
+			$query->XPR('hashNotes', 'double', 'MD5(#notes)');
+			$notes = md5(gzcompress($notes));
+			$cond .= " AND #hashNotes = '{$notes}'";
+			$query->where($cond);
+			
+			return $query->fetch();
+		} else {
+			$cond .= " AND (#notes = '' OR #notes IS NULL)";
 		}
 		
 		return $mvc->fetch($cond);

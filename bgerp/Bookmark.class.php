@@ -66,7 +66,7 @@ class bgerp_Bookmark extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools, plg_Search, plg_Sorting';
+    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Search, plg_Sorting';
     
     
     /**

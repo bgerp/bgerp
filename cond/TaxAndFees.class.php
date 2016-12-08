@@ -38,7 +38,7 @@ class cond_TaxAndFees extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, plg_State2, cond_Wrapper, acc_plg_Registry';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, cond_Wrapper, acc_plg_Registry';
     
     
     /**

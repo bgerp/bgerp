@@ -185,9 +185,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 			
 			// Ако има такъв запис, сетваме грешка
-			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId);
+			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId, $rec->notes);
 			if($exRec){
-				$form->setError('productId,packagingId,packPrice,discount,batch', 'Вече съществува запис със същите данни');
+				$form->setError('productId,packagingId,packPrice,discount,batch,notes', 'Вече съществува запис със същите данни');
 				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
 			}
 			

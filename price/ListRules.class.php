@@ -451,6 +451,10 @@ class price_ListRules extends core_Detail
         	$form->setReadOnly('productId');
         } else {
         	$availableProducts = self::getProductOptions();
+        	if(isset($rec->productId) && !array_key_exists($rec->productId, $availableProducts)){
+        		$availableProducts[$rec->productId] = cat_Products::getRecTitle(cat_Products::fetch($rec->productId, 'id,name,isPublic,code,createdOn'), FALSE);
+        	}
+        	
         	if(count($availableProducts)){
         		$form->setOptions('productId', array('' => '') + $availableProducts);
         	} else {
@@ -675,7 +679,7 @@ class price_ListRules extends core_Detail
         
         // Област
         if($rec->productId) {
-        	$row->domain = cat_Products::getHyperlink($rec->productId, TRUE);
+        	$row->domain = cat_Products::getShortHyperlink($rec->productId);
         	
         	if(cat_Products::fetchField($rec->productId, 'state') == 'rejected'){
         		$row->domain = "<span class= 'state-rejected-link'>{$row->domain}</span>";
@@ -721,16 +725,24 @@ class price_ListRules extends core_Detail
                 break;
         }        
         
-        if($state == 'active') {
-            $row->rule = "<b>{$row->rule}</b>";
-        }
-
         // Линк към продукта
         if(isset($rec->productId)) {
             $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         }
 
+        if($rec->productId) {
+        	$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
+        	if($isPublic == 'no'){
+        		$row->domain = ht::createHint($row->domain, 'Артикулът е нестандартен и цената му вече не се определя от ценовата политика', 'warning', FALSE);
+        		$state = 'closed';
+        	}
+        }
+        
         $row->ROW_ATTR['class'] .= " state-{$state}";
+        
+        if($state == 'active') {
+        	$row->rule = "<b>{$row->rule}</b>";
+        }
     }
 	
 	

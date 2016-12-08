@@ -107,9 +107,17 @@
   background-image: none !important;
 }
 
-input.button.more-btn {
+input.button.more-btn.arrowDown {
   background-position: center !important;
   background-image: url(../../img/16/arrow_down3.png) !important;
+}
+input.button.more-btn.textBtn {
+    padding:0.3em 0.3em 0.3em 26px !important;
+    width: auto;
+}
+
+input.button.more-btn.textBtn.arrowDown {
+     background-position: 4px center !important;
 }
 
 .separator {

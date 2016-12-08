@@ -544,7 +544,11 @@ class cat_Products extends embed_Manager {
     	if(isset($rec->folderId)){
     		$Cover = doc_Folders::getCover($rec->folderId);
     		$type = $Cover->getProductType($id);
-    		$rec->isPublic = ($type != 'private') ? 'yes' : 'no';
+    		
+    		if(!isset($rec->id)){
+    			$rec->isPublic = ($type != 'private') ? 'yes' : 'no';
+    		}   
+    		
     		if($rec->state != 'rejected' && $rec->state != 'closed'){
     			$rec->state = ($type == 'template') ? 'template' : 'draft';
     		}
@@ -555,6 +559,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$rec->code = ($rec->code == '') ? NULL : $rec->code;
+    	
     }
     
     
@@ -1088,6 +1093,17 @@ class cat_Products extends embed_Manager {
         
         if(isset($rec->originId)){
         	doc_DocumentCache::cacheInvalidation($rec->originId);
+        }
+        
+        if(isset($rec->folderId)){
+        	$Cover = doc_Folders::getCover($rec->folderId);
+        	$type = $Cover->getProductType($rec->id);
+        	$isPublic = isset($rec->isPublic) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
+        	
+        	if($type == 'public' && $isPublic == 'no'){
+        		$rec->isPublic = 'yes';
+        		$mvc->save_($rec, 'isPublic');
+        	}
         }
     }
     

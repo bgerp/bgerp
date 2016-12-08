@@ -24,7 +24,7 @@ class cat_ProductTplCache extends core_Master
 	/**
 	 * Необходими плъгини
 	 */
-	public $loadList = 'plg_RowTools, cat_Wrapper';
+	public $loadList = 'plg_RowTools2, cat_Wrapper';
 	 
 	
 	/**

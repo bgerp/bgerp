@@ -269,9 +269,9 @@ class acc_Articles extends core_Master
         $dQuery->show('articleId, sumAmount');
         $dQuery->groupBy('articleId');
         
-        $result = NULL;
-        
         $rec = $this->fetch($id);
+        
+        if (!$rec) return NULL;
         
         if ($r = $dQuery->fetch("#articleId = {$id}")) {
             $rec->totalAmount = $r->sumAmount;
