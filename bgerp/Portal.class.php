@@ -128,7 +128,7 @@ class bgerp_Portal extends core_Manager
         $tpl->append($tasksTpl, 'RIGHT_COLUMN');
         
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" style="background-color:#efe;">' . tr('Календар') . '</div>
+            <div class="legend" id="calendarPortal" style="background-color:#efe;">' . tr('Календар') . '</div>
             [#CALENDAR_DETAILS#]
             </div>');
         

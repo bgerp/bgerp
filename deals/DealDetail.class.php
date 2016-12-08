@@ -325,6 +325,8 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
+    		core_RowToolbar::createIfNotExists($row->_rowTools);
+    		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->Master->getClassId(), $masterRec->id);
     		
     		// Показване на вашия реф, ако има
     		$row->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);

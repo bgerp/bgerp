@@ -95,7 +95,6 @@ class crm_ext_ProductListToContragents extends core_Manager
     	$this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
     	
     	$this->setDbUnique('contragentClassId,contragentId,productId,packagingId');
-    	$this->setDbUnique('reff');
 	}
 	
 	
@@ -151,13 +150,18 @@ class crm_ext_ProductListToContragents extends core_Manager
 				if(empty($rec->reff)){
 					$form->setError('reff', 'Трябва да бъде въведен код');
 				}
-				
-				if(!empty($rec->moq)){
-					if(!deals_Helper::checkQuantity($rec->packagingId, $rec->moq, $warning)){
-						$form->setError('moq', $warning);
-					}
+			} else {
+				if($mvc->fetch("#contragentClassId = {$rec->contragentClassId} AND #contragentId = {$rec->contragentId} AND #reff = '{$rec->reff}' AND #id != '{$rec->id}'")){
+					$form->setError('reff', 'Този код вече е зает от друг листван артикул');
 				}
 			}
+			
+			if(!empty($rec->moq)){
+				if(!deals_Helper::checkQuantity($rec->packagingId, $rec->moq, $warning)){
+					$form->setError('moq', $warning);
+				}
+			}
+			
 			
 			if(!$form->gotErrors()){
 				if(!empty($rec->reff)){
