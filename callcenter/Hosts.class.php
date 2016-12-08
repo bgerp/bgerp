@@ -90,7 +90,7 @@ class callcenter_Hosts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Created, plg_Modified, plg_Rejected';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Created, plg_Modified, plg_Rejected';
     
     
 	/**

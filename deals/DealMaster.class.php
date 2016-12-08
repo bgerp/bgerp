@@ -1753,6 +1753,36 @@ abstract class deals_DealMaster extends deals_DealBase
     		$details[] = $dRec;
     	}
     	
+    	if(is_array($info->dealProducts)){
+    		$replaced = array();
+    		
+    		foreach ($details as $index => $d1){
+    			$totalSum = $totalQuantity = 0;
+    			$pId = $d1->productId;
+    			
+    			// Сумиране на договорените артикули
+    			$res = array_filter($info->dealProducts, function (&$e) use ($pId, &$totalSum, &$totalQuantity) {
+    				if($e->productId == $pId){
+    					$totalSum += ($e->quantity * $e->price * (1 - $e->discount));
+    					$totalQuantity += $e->quantity;
+    					$e->quantity /= $e->quantityInPack;
+    					return TRUE;
+    				}
+    				
+    				return FALSE;
+    			});
+    			
+    			// Ако сумата и к-во им отговарят точно на това от счетоводството подменят се
+    			if(round($totalSum, 5) == round($d1->amount, 5) && round($totalQuantity, 5) == round($d1->quantity, 5)){
+    				$replaced = array_merge($replaced, $res);
+    			} else {
+    				$replaced[] = $d1;
+    			}
+    		}
+    		
+    		return $replaced;
+    	}
+    	
     	return $details;
     }
     

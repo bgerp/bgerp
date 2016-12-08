@@ -31,7 +31,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	public $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
+	public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
 	
 	
 	/** 
@@ -50,18 +50,12 @@ class forum_Postings extends core_Detail {
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'forum, ceo, admin, cms';
-	
-	
-	/**
-	 * Поле за лентата с инструменти
-	 */
-	public $rowToolsField = 'tools';
-	
+
 	
 	/**
 	 * Полета за изглед
 	 */
-	public $listFields = 'tools=Пулт, id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
+	public $listFields = 'id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
 	
 	
 	/**

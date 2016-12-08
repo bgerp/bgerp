@@ -2021,7 +2021,7 @@ class doc_Containers extends core_Manager
                         $dRec->originId = NULL;
                         
                         try {
-                            $clsInst->save($dRec, 'originId');
+                            $clsInst->save_($dRec, 'originId');
                         } catch (ErrorException $e) {
                             reportException($e);
                         }

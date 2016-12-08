@@ -18,7 +18,7 @@ class email_Accounts extends core_Master
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, plg_RowTools, plg_CryptStore';
+    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, plg_RowTools2, plg_CryptStore';
     
     
     /**

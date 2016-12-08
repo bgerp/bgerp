@@ -96,19 +96,13 @@ class label_Counters extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Rejected';
+    var $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'name, min, max, step, createdOn, createdBy';
-    
-    
-    /**
-     * 
-     */
-    var $rowToolsField = 'name';
 
     
     /**

@@ -41,7 +41,7 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_RowZebra';
+    var $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_RowZebra, plg_PrevAndNext';
     
     /**
      * Полета, които ще се показват в листов изглед
