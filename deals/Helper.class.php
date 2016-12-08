@@ -133,7 +133,9 @@ abstract class deals_Helper
         	}
 
         	if($rec->{$map['discount']}){
-        		$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
+        		if(!($masterRec->type === 'dc_note' && $rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE)){
+        			$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
+        		}
         	}
         	
         	// Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
@@ -209,7 +211,7 @@ abstract class deals_Helper
 	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$arr = array();
-		
+	
 		$values = (array)$values;
 		$arr['currencyId'] = $currencyId;                          // Валута на документа
 		
