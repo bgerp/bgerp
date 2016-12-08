@@ -34,7 +34,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext';
                     
  
     /**
