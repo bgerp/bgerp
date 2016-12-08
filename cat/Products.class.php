@@ -2546,4 +2546,21 @@ class cat_Products extends embed_Manager {
     	
     	return $this->renderWrapping($form->renderHtml());
     }
+    
+    
+    /**
+     * Метод позволяващ на артикула да добавя бутони към rowtools-а на документ
+     * 
+     * @param int $id - ид на артикул
+     * @param core_RowToolbar $toolbar - тулбара
+     * @param mixed $docClass - класа документа
+     * @param int $docId - ид на документа
+     * @return void
+     */
+    public static function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+    {
+    	if($Driver = self::getDriver($id)){
+    		$Driver->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+    	}
+    }
 }
