@@ -514,7 +514,7 @@ class cal_Calendar extends core_Master
         // генериране на линк към него
         $prevtLink['cal_month'] = $pm;
         $prevtLink['cal_year'] = $py;
-        $prevtLink = toUrl($prevtLink);
+        $prevtLink = toUrl($prevtLink) . "#calendarPortal";
         
         // генериране на един месец напред
         $nm = $month+1;
@@ -529,7 +529,7 @@ class cal_Calendar extends core_Master
         // генериране на линк към него
         $nextLink['cal_month'] = $nm;
         $nextLink['cal_year'] = $ny;
-        $nextLink = toUrl($nextLink);
+        $nextLink = toUrl($nextLink) . "#calendarPortal";
         
         // взимаме текущия месец и го добавяме и него
         $now = dt::today();
@@ -537,8 +537,8 @@ class cal_Calendar extends core_Master
         $yearToday  = date("Y", dt::mysql2timestamp($now));
         $today['cal_month'] = $monthToday;
         $today['cal_year'] = $yearToday;
-        $today = toUrl($today);
-        $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday;
+        $today = toUrl($today) . "#calendarPortal";
+        $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday ;
         
         $attr['value'] = $today;
         $attr['style'] .= 'color:#00F;';
@@ -563,10 +563,10 @@ class cal_Calendar extends core_Master
         	}
         	$prev['cal_month'] = $pm;
         	$prev['cal_year'] = $py;
-        	$prev = toUrl($prev);
+        	$prev = toUrl($prev) . "#calendarPortal";
         	$prevM = tr(dt::$months[$pm-1]) . " " .$py;
         	$options[$prev] = $prevM;
-        	
+
         	if($prevM == $thisMonth) {
         		$attr['value'] = $prevM;
         		$attr['style'] .= 'color:#00F;';
@@ -611,11 +611,11 @@ class cal_Calendar extends core_Master
         	}
         	$next['cal_month'] = $nm;
         	$next['cal_year'] = $ny;
-        	$next = toUrl($next);
-        	$nextM = tr(dt::$months[$nm-1]) . " " .$ny;
+        	$next = toUrl($next) . "#calendarPortal";
+        	$nextM = tr(dt::$months[$nm-1]) . " " .$ny ;
         	
         	$options[$next] = $nextM;
-        	
+
         	if($nextM == $thisMonth) {
         		$attr['value'] = $nextM;
         		$attr['style'] .= 'color:#00F;';
@@ -625,8 +625,7 @@ class cal_Calendar extends core_Master
         	}
 
         }
-        
-        //bp($options);
+
         $select = ht::createSelect('dropdown-cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
        
         // правим заглавието на календара, 
