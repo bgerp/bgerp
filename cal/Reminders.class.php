@@ -197,7 +197,10 @@ class cal_Reminders extends core_Master
                                      high=Висок,
                                      critical=Критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,changable');
-        
+        if(Mode::is('screenMode', 'narrow')) {
+            $this->setField('priority', "columns=2");
+            $this->setFieldTypeParams('priority',"columns=2" );
+        }
         $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable,silent');
 
         // Споделяне
