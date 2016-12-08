@@ -247,4 +247,19 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->addTaskFields($id, $fieldset);
 	}
+	
+	
+	/**
+	 * Метод позволяващ на артикула да добавя бутони към rowtools-а на документ
+	 *
+	 * @param int $id - ид на артикул
+	 * @param core_RowToolbar $toolbar - тулбара
+	 * @param mixed $docClass - класа документа
+	 * @param int $docId - ид на документа
+	 * @return void
+	 */
+	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+	{
+		return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+	}
 }

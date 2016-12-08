@@ -101,7 +101,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
 			
 			foreach (array('packagingId', 'notes', 'discount') as $fld){
-				$data->form->setField($fld, 'input=hidden');
+				$data->form->setField($fld, 'input=none');
 			}
 			$data->form->setFieldTypeParams('quantity', array('min' => 0));
 			$data->form->setFieldTypeParams('packPrice', array('min' => 0));
@@ -384,7 +384,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$rec = &$form->rec;
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
-	
+		
 		if($form->rec->productId && $masterRec->type != 'dc_note'){
 			$vat = cat_Products::getVat($rec->productId);
 			$productInfo = cat_Products::getProductInfo($rec->productId);
@@ -411,7 +411,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		} else {
 			$form->setReadOnly('packagingId');
 		}
-	
+		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
 			if(!isset($rec->quantity)){
 				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
@@ -529,8 +529,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
 				}
 			}
-			
-			$originRef = $cached[$dRec->productId][$dRec->packagingId];
 		}
 	}
 }
