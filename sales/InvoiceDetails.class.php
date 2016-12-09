@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -85,5 +85,65 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
+    }
+    
+    
+    /**
+     * След подготовка на лист тулбара
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	// Добавяне на бутон за импортиране на артикулите директно от договора
+    	if($mvc->haveRightFor('importfromsale', (object)array("{$mvc->masterKey}" => $data->masterId))){
+    		$data->toolbar->addBtn('От договора', array($mvc, 'importfromsale', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
+    		"id=btnImportFromSale-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора", 'ef_icon = img/16/shopping.png');
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'importfromsale'){
+    		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+    		
+    		// Ако има поне един детайл да не могат да се импортират артикулите от договора
+    		if($requiredRoles != 'no_one' && isset($rec->{$mvc->masterKey})){
+    			if(sales_InvoiceDetails::count("#{$mvc->masterKey} = {$rec->{$mvc->masterKey}}")){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Импортиране на артикулите от договора във фактурата
+     */
+    function act_Importfromsale()
+    {
+    	// Проверки
+    	$this->requireRightFor('importfromsale');
+    	expect($id = Request::get("{$this->masterKey}", 'int'));
+    	expect($invoiceRec = $this->Master->fetch($id));
+    	$this->requireRightFor('importfromsale', (object)array("{$this->masterKey}" => $id));
+    	
+    	// Извличане на дийл интерфейса от договора-начало на нишка
+    	$firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
+    	$dealInfo = $firstDoc->getAggregateDealInfo();
+    	
+    	// За всеки артикул от договора, копира се 1:1
+    	$productsToSave =  $dealInfo->dealProducts;
+    	if(is_array($dealInfo->dealProducts)){
+    		foreach ($dealInfo->dealProducts as $det){
+    			$det->{$this->masterKey} = $id;
+    			$this->save($det);
+    		}
+    	}
+    	
+    	// Редирект обратно към фактурата
+    	return followRetUrl(NULL, 'Артикулите от сделката са копирани успешно');
     }
 }

@@ -72,7 +72,7 @@ class bgerp_Bookmark extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, url=Линк, modifiedOn=Последно';
+    public $listFields = 'url=Линк, color, modifiedOn=Последно';
     
 
     static $curRec;
