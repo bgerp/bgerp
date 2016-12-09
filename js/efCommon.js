@@ -1073,6 +1073,35 @@ function prepareContextMenu() {
     });
 }
 
+/**
+ * Действия на табовете в мобилен
+ */
+function portalTabs()
+{
+    var current;
+    if($(location.hash).length) {
+        current = $(location.hash);
+    } else {
+        current = $('.narrowPortalBlocks').first();
+    }
+    $(current).addClass('activeTab');
+    $(current).siblings().removeClass('activeTab');
+    var id = $(current).attr('id');
+    var tab = $('li[data-tab="' + id + '"]');
+    $(tab).addClass('activeTab');
+    $(tab).siblings().removeClass('activeTab');
+
+    $('ul.portalTabs li').click(function(){
+        var tab_id = $(this).attr('data-tab');
+
+        $('ul.portalTabs li').removeClass('activeTab');
+        $('.narrowPortalBlocks').removeClass('activeTab');
+
+        $(this).addClass('activeTab');
+        $("#"+tab_id).addClass('activeTab');
+    });
+}
+
 
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id) {
