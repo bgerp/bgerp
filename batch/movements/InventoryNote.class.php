@@ -76,7 +76,8 @@ class batch_movements_InventoryNote
 				}
 			}
 		}
-		//bp($entries);
-		return $entries;
+
+
+        return $entries;
     }
 }

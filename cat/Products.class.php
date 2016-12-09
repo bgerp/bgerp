@@ -414,7 +414,7 @@ class cat_Products extends embed_Manager {
     			}
     		}
     	}
-
+    	
     	// Ако артикула е създаден от източник
     	if(isset($rec->originId)){
     		$document = doc_Containers::getDocument($rec->originId);
@@ -423,14 +423,6 @@ class cat_Products extends embed_Manager {
     		$Driver = $document->getDriver();
     		$fields = $document->getInstance()->getDriverFields($Driver);
     		$sourceRec = $document->rec();
-    	    
-            /* Премахване на такста от запитването, защото цялто запитване се показва отдолу
-
-    		if($data->action != 'clone'){
-    			$form->info = cls::get('type_Richtext')->toVerbal($sourceRec->inqDescription);
-    			$form->info = "<small>{$form->info}</small>";
-    		}
-            */
     		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
@@ -2490,28 +2482,32 @@ class cat_Products extends embed_Manager {
      * @param int $id - ид на артикул
      * @return void
      */
-    public static function setAutoCloneFormFields(&$form, $id)
+    public static function setAutoCloneFormFields(&$form, $id, $driverId = NULL)
     {
-    	$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,silent,refreshForm,after=id,input=hidden");
     	$form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
     	$form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
     	$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
     	$form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
-		
-    	$Driver = self::getDriver($id);
-        
-        // Добавяне на стойностите от записа в $rec-a на формата
-        $rec = self::fetch($id);
-        if($rec) {
-            $fields = self::getDriverFields($Driver);
-            if(is_array($fields)) {
-                foreach($fields as $name => $caption) {
-                    if(isset($rec->{$name})) {
-                        $form->rec->{$name} = $rec->{$name};
-                    }
-                }
-            }
-        }
+    	$form->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
+    	
+    	if(isset($id)){
+    		$Driver = self::getDriver($id);
+    		
+    		// Добавяне на стойностите от записа в $rec-a на формата
+    		$rec = self::fetch($id);
+    		if($rec) {
+    			$fields = self::getDriverFields($Driver);
+    			if(is_array($fields)) {
+    				foreach($fields as $name => $caption) {
+    					if(isset($rec->{$name})) {
+    						$form->rec->{$name} = $rec->{$name};
+    					}
+    				}
+    			}
+    		}
+    	} else {
+    		$Driver = cls::get($driverId);
+    	}
 
     	$Driver->addFields($form);
     }

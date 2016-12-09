@@ -213,8 +213,6 @@ class core_Html
                 $groups[$lastGroup = trim($group)][$index] = trim($caption);
         	}
             
-            // bp($groups);
-
         	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
         	if(count($groups)){
         		if(isset($groups[''])) {

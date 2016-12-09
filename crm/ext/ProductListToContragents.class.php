@@ -307,12 +307,12 @@ class crm_ext_ProductListToContragents extends core_Manager
 		
 		// Редниране на бутона за добавяне
 		if(isset($data->addSellableUrl)){
-			$btn = ht::createBtn('Артикул', $data->addSellableUrl, NULL, NULL, 'ef_icon=img/16/shopping.png,title=Добавяне на нов артикул за листване в продажба');
+			$btn = ht::createBtn('Артикул', $data->addSellableUrl, NULL, NULL, 'ef_icon=img/16/shopping.png,title=Добавяне на нов артикул за листване');
 			$tpl->append($btn, 'SELLABLE_BTN');
 		}
 		
 		if(isset($data->addImportUrl)){
-			$btn1 = ht::createBtn('Импорт', $data->addImportUrl, NULL, NULL, 'ef_icon=img/16/import.png,title=Импортиране на арткули');
+			$btn1 = ht::createBtn('Импорт', $data->addImportUrl, NULL, NULL, 'ef_icon=img/16/import.png,title=Импортиране на артикули');
 			$tpl->append($btn1, 'SELLABLE_BTN');
 		}
 		
@@ -407,7 +407,7 @@ class crm_ext_ProductListToContragents extends core_Manager
 			// Кои са листваните артикули за контрагента
 			$query = self::getQuery();
 			$query->where("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}");
-			$query->orderBy('id', 'DESC');
+			$query->orderBy('id', 'ASC');
 			
 			// Добавя се всеки запис, групиран според типа
 			while($rec = $query->fetch()){

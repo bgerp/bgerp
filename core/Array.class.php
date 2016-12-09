@@ -395,7 +395,7 @@ class core_Array
                 $arr1[$fld] = $vars[$fld];
             } else {
                 // Некоректен параметър
-                bp($arr1);
+                error('Некоректен параметър', $arr1);
             }
         }
     }

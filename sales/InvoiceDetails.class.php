@@ -39,7 +39,8 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Sorting, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=price_ListToCustomers, LastPricePolicy=sales_SalesLastPricePolicy';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=price_ListToCustomers, 
+                        LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext';
     
     
     /**
@@ -96,7 +97,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     	// Добавяне на бутон за импортиране на артикулите директно от договора
     	if($mvc->haveRightFor('importfromsale', (object)array("{$mvc->masterKey}" => $data->masterId))){
     		$data->toolbar->addBtn('От договора', array($mvc, 'importfromsale', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
-    		"id=btnImportFromSale-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора", 'ef_icon = img/16/shopping.png');
+    		"id=btnImportFromSale-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора,warning=Артикулите ще бъдат точно копирани от договора|*!", 'ef_icon = img/16/shopping.png');
     	}
     }
     

@@ -91,7 +91,7 @@ class doclog_Used extends core_Manager
     {
         // За да се гарантира извикването на on_Shutdown
         cls::get(get_called_class());
-        if (!$cid || !$usedCid) bp($cid, $usedCid);
+        if (!$cid || !$usedCid) error('Липсва стойност', $cid, $usedCid);
         self::$usedArr[] = array('cid' => $cid, 'usedCid' => $usedCid);
     }
     

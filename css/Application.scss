@@ -3467,7 +3467,7 @@ fieldset.sharing-history {
 
 .rowtoolsGroup{
 	&.modal-toolbar.iw-contextMenu {
-		padding: 4px 5px 8px 5px;
+		padding: 5px 6px 4px 5px;
 		max-width: 160px;
 	}
 	a {
@@ -3837,6 +3837,49 @@ div.location.public {
 	border: none;
 	background-position: center 2px;
 }
+.portalTabs {
+	display: none;
+}
+
+.narrowPortalBlocks {
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
+.modern-theme .narrowPortalBlocks {
+	display: none;
+	margin: 0 0 5px;
+	&.activeTab {
+		display: block;
+	}
+}
+.modern-theme .portalTabs {
+	display: block;
+	padding-left: 10px;
+	margin-top: -10px;
+	margin-bottom: 0;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	.tab-link {
+		cursor: pointer;
+		display: inline-block;
+		padding: 5px 5px 8px 5px;
+		border-radius: 5px 5px 0 0;
+		list-style: none;
+		border: 1px solid #ccc;
+		border-bottom: none;
+		background: #ccc;
+		font-size: 0.9em;
+		position: relative;
+		bottom: -12px;
+		&.activeTab, &:hover {
+			background: #f1f1f1;
+			z-index: 20;
+		}
+	}
+}
+
 /*край на търсене в портала*/
 
 
@@ -3942,7 +3985,7 @@ div.location.public {
 
 .fileman_Indexes table.listTable > tbody > tr > td, .fileman_Data table.listTable > tbody > tr > td,
  .doclog_Documents table.listTable > tbody > tr > td, .core_Cache table.listTable > tbody > tr > td {
-	max-width: none !important;	
+	max-width: none !important;
 }
 
 .calendar table {
@@ -4038,8 +4081,8 @@ div.location.public {
 }
 
 .eshop-group-button {
-    float: left; 
-    width: 46%; 
+    float: left;
+    width: 46%;
     min-height: 140px;
     height: auto \9;
     margin: 10px 2% 25px;
@@ -4048,7 +4091,7 @@ div.location.public {
         margin-top: 2px;
         a{
 	        color: #048;
-        } 
+        }
     }
     .eshop-group-button-img img{
         width: 100% \9;
@@ -4098,7 +4141,7 @@ div.location.public {
 .eshop-product-labels > a {
 	font-weight:bold;
 }
- 
+
 .narrow .eshop-group-button-title {
 	  margin-top: 2px;
 }
@@ -4160,7 +4203,7 @@ div.location.public {
     bottom: 3%;
     font-size: 8em;
     text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-    
+
 }
 
 .narrow .app-name{
@@ -4632,7 +4675,7 @@ body.narrow {
             max-width: 258px;
         }
     }
-    
+
     #all h2{
         font-size: 1.2em;
     }
@@ -4737,7 +4780,7 @@ body.narrow {
 		text-transform: uppercase;
 	}
 }
- 
+
 .wide .external .vertical .formTable {
     box-shadow: none !important;
 }
@@ -4847,7 +4890,7 @@ body.narrow {
 		padding: 3px;
 	}
 	table.mc-calendar td.mc-day {
-		color: #333; 
+		color: #333;
 	}
 	.richtextHide {
 		display: block !important;
@@ -5005,7 +5048,7 @@ body.narrow {
 	}
 	.innerTable td{
 	   vertical-align: top;
-	} 
+	}
 	.antetka{
 	   margin: 5px 0;
 	   border: none;
@@ -5038,7 +5081,7 @@ body.narrow {
     }
     .footerDocInfo{
         display: table-row !important;
-    } 
+    }
     .footerDocBlock{
         display: block !important;
     }
@@ -5116,7 +5159,7 @@ body.narrow {
 }
 
 .summary-block td{
-    padding:3px;    
+    padding:3px;
 }
 
 .summary-block td.summary-cell{
@@ -5189,7 +5232,7 @@ body.narrow {
 }
 
 .plus-icon{
-	display: inline-block; 
+	display: inline-block;
 	position: relative;
 	top: 2px;
 }
@@ -5250,7 +5293,7 @@ body.narrow {
 .logs-type-info, .logs-type-read {
     background-color: #fffef4;
 }
- 
+
 /* Стилове за езика във външната част*/
 .wide .langSelect{
 	margin:10px 20px;
@@ -5361,10 +5404,10 @@ body.narrow {
     }
 }
 .debug_block {
-    padding:5px; 
-    margin:10px; 
-    border:solid 1px #777; 
-    background-color:#FFFF99; 
+    padding:5px;
+    margin:10px;
+    border:solid 1px #777;
+    background-color:#FFFF99;
     display:table;
     color:black;
 }
@@ -5453,7 +5496,7 @@ body.narrow {
 	-webkit-animation: blink 1s linear infinite;
 }
 
-@keyframes blink {  
+@keyframes blink {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }

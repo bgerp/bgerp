@@ -130,8 +130,6 @@ class type_Datetime extends type_Date {
 
         $val1 = trim(trim($value['d']) . ' ' . $time);
         
-         
-        // if(strpos($this->params['defaultTime'], '59')) bp($val1, $this, $time);
 
         if(!$val1) return NULL;
 

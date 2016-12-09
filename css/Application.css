@@ -3120,7 +3120,7 @@ span.sharing-history-title {
   line-height: 120%; }
 
   .rowtoolsGroup.modal-toolbar.iw-contextMenu {
-    padding: 4px 5px 8px 5px;
+    padding: 5px 6px 4px 5px;
     max-width: 160px; }
   .rowtoolsGroup a {
     text-align: left;
@@ -3447,6 +3447,44 @@ div.location.public {
   right: 0 !important;
   border: none;
   background-position: center 2px; }
+
+.portalTabs {
+  display: none; }
+
+.narrowPortalBlocks {
+  margin-top: 20px;
+  margin-bottom: 10px; }
+
+.modern-theme .narrowPortalBlocks {
+  display: none;
+  margin: 0 0 5px; }
+  .modern-theme .narrowPortalBlocks.activeTab {
+    display: block; }
+
+.modern-theme .portalTabs {
+  display: block;
+  padding-left: 10px;
+  margin-top: -10px;
+  margin-bottom: 0;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none; }
+  .modern-theme .portalTabs .tab-link {
+    cursor: pointer;
+    display: inline-block;
+    padding: 5px 5px 8px 5px;
+    border-radius: 5px 5px 0 0;
+    list-style: none;
+    border: 1px solid #cccccc;
+    border-bottom: none;
+    background: #cccccc;
+    font-size: 0.9em;
+    position: relative;
+    bottom: -12px; }
+    .modern-theme .portalTabs .tab-link.activeTab,
+    .modern-theme .portalTabs .tab-link:hover {
+      background: #f1f1f1;
+      z-index: 20; }
 
 /*
  * край на търсене в портала

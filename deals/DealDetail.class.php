@@ -173,11 +173,16 @@ abstract class deals_DealDetail extends doc_Detail
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
             // напълно определен продукт (клас и ид), който да не може да се променя във формата
             // и полето цена да стане задължително
-            $form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+            $form->setOptions('productId', array($rec->productId => cat_Products::getTitleById($rec->productId, FALSE)));
         }
         
         if (!empty($rec->packPrice)) {
-        	$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+        	if(Request::get('Act') != 'CreateProduct'){
+        		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+        	} else {
+        		$vat =  acc_Periods::fetchByDate($masterRec->valior)->vatRate;
+        	}
+        	
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
         

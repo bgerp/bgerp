@@ -246,21 +246,39 @@ class bgerp_Bookmark extends core_Manager
     public static function getLinkFromUrl($url, $title = NULL, $attr = array())
     {
         if (!preg_match('/^http[s]?\:\/\//i', $url) && (strpos($url, Request::get('App')) === 0)) {
-            
-            
             try {
-                
                 $urlArr = parseLocalUrl($url);
-                
                 $lUrl = toUrl($urlArr);
-                
                 $attr['class'] = 'bookmark-local-url';
             } catch (core_exception_Expect $e) {
                 $lUrl = array();
-                
                 $attr['class'] = 'bookmark-wrong-url';
             }
 	    } else {
+ 
+            if(core_Packs::isInstalled('remote')) {
+                
+                static $auths;
+
+                expect($cu = core_Users::getCurrent());
+                if(!$auths) {
+                    $aQuery = remote_Authorizations::getQuery();
+                    while($aRec = $aQuery->fetch("#userId = {$cu}")) {
+                        if(is_object($aRec->data) && $aRec->data->lKeyCC) {
+                            $aUrl = rtrim(strtolower($aRec->url), '/ ');
+                            $auths[$aRec->id] = $aUrl;
+                        }
+                    }
+                }
+
+                foreach($auths as $id => $aUrl) {
+                    if(strpos($url, $aUrl) === 0) {
+                        $url =  array('remote_BgerpDriver', 'Autologin', $id, 'url' => $url);
+                        break;
+                    }
+                }
+            }
+
 	        $lUrl = $url;
 	        
             $attr['class'] = 'bookmark-external-url';
