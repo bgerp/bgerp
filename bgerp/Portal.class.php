@@ -145,8 +145,8 @@ class bgerp_Portal extends core_Manager
 
             jquery_Jquery::run($tpl, "portalTabs();");
         } else {
-            $tpl->append($calendarHeader, 'RIGHT_COLUMN');
             $tpl->append($tasksTpl, 'RIGHT_COLUMN');
+            $tpl->append($calendarHeader, 'RIGHT_COLUMN');
         }
 
         $tpl->push('js/PortalSearch.js', 'JS');
