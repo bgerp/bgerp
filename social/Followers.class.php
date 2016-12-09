@@ -31,20 +31,14 @@ class social_Followers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools, cms_DomainPlg';
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools2, cms_DomainPlg';
     
     
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,title,url,icon,followersCnt,state,order';
+    var $listFields = 'title,url,icon,followersCnt,state,order';
 
-
-    /**
-     * Поле за инструментите на реда
-     */
-    var $rowToolsField = '✍';
-    
     
     /**
      * Кой има право да чете?

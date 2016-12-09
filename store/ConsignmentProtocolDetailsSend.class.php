@@ -38,8 +38,8 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy';
+    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext';
     
     
     /**
@@ -70,13 +70,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId=Дадено, packagingId, packQuantity, packPrice, amount';
-    
-        
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'RowNumb';
-    
+
     
 	/**
      * Полета свързани с цени

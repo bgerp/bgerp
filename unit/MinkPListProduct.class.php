@@ -25,8 +25,8 @@ class unit_MinkPListProduct extends core_Manager {
         $res .= '<br>'.'MinkPListProduct';
         $res .=  " 1.".$this->act_CreateListProducts();
         $res .=  " 2.".$this->act_CreateSaleList();
-        $res .= "  3.".$this->act_CreateListProductsImport();
-        $res .= "  4.".$this->act_CreateSaleList1();
+        //$res .= "  3.".$this->act_ImportListProducts();
+        //$res .= "  4.".$this->act_CreateSaleList1();
         
         return $res;
     }
@@ -71,7 +71,7 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->click('N');
         $Company = 'NEW INTERNATIONAL GMBH';
         $browser->click($Company);
-        $browser->press('Папка');
+        //$browser->press('Папка');
         return $browser;
     }
     
@@ -91,7 +91,7 @@ class unit_MinkPListProduct extends core_Manager {
         
       
         $browser->click('Търговия');
-        //return $browser->getHtml();
+       
         // Добавяне на артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Плик 7 л');
@@ -144,8 +144,11 @@ class unit_MinkPListProduct extends core_Manager {
         // Добавяне на артикули
         $browser->press('Списък');
         /// Количества на двата артикула
-        $browser->setValue('Количество(1)', '100');
-        $browser->setValue('Количество[2]', '50');
+      
+        $browser->setValue('quantity1', '100');
+        //return $browser->getHtml();
+        $browser->setValue('quantity2', '50');
+        
         // Записване артикулите
         $browser->press('Импорт');
        
@@ -153,23 +156,48 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        ///if(strpos($browser->gettext(), 'Тридесет и три BGN и 0,19')) {
-        ///} else {
-        ///    return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
-        ///}
+        if(strpos($browser->gettext(), 'Шестдесет и един BGN и 0,73')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
     
         //Проверка на статистиката
-        ///if(strpos($browser->gettext(), '218,67 218,67 218,67 218,67')) {
-        ///} else {
-        ///    return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
-        ///}
+        if(strpos($browser->gettext(), '61,73 61,73 0,00 0,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
         
     }
      
     /**
-     * Добавяне на артикули за листване към фирма от предишни продажби
+     * Добавяне на артикули за листване към фирма от група/предишни продажби
      */
+    //http://localhost/unit_MinkPListProduct/ImportListProducts/
+    function act_ImportListProducts()
+    {
     
+        // Логване
+        $browser = $this->SetUp();
+        //return $browser->getHtml();
+        //Отваряне корицата на фирмата
+        $browser = $this->SetFirmEUR();
+       
+        $browser->click('Търговия');
+       
+        // Добавяне на артикул
+        $browser->press('Импорт');
+     
+        $browser->setValue('from', 'Група');
+        //return $browser->getHtml(); 
+        $browser->refresh('Импорт');
+       
+        return $browser->getHtml();
+        $browser->setValue('group', 'Ценова група » Промоция');
+      
+        // Записване на списъка
+        $browser->press('Импорт');
+    
+    }
     
     /**
      * Продажба - артикули по списък от предишни продажби

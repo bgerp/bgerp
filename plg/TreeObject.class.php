@@ -206,7 +206,7 @@ class plg_TreeObject extends core_Plugin
 		foreach ($data->recs as $br){
 			$tree[$br->parentId][] = $br;
 		}
-		//bp($data->recs,$tree);
+
 		// Подготвяме дървото започвайки от обектите без бащи (корените)
 		$tree = self::createTree($tree, $tree[NULL]);
 		

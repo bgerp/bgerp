@@ -37,20 +37,13 @@ class social_Sharings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
-    
-    
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools2';
+
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,name,url,icon,sharedCnt,state,order';
-
-
-    /**
-     * Поле за инструментите на реда
-     */
-    var $rowToolsField = '✍';
+    var $listFields = 'name,url,icon,sharedCnt,state,order';
     
     
     /**

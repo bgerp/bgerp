@@ -592,8 +592,6 @@ class crm_Companies extends core_Master
                     if($folderId) {
                         $fRec = doc_Folders::fetch($folderId);
                         
-                       // bp($fRec, $folderId, $email, core_Classes::getId('crm_Companies'));
-
                         if($fRec->coverClass == core_Classes::getId('crm_Companies')) {
                             $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
                             $fieldsArr['email'] = 'email';

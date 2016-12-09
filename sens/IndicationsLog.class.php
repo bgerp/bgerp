@@ -21,7 +21,7 @@ class sens_IndicationsLog extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sens_Wrapper, plg_Sorting,
+    var $loadList = 'plg_RowTools2, sens_Wrapper, plg_Sorting,
                       plg_Chart, Params=sens_Params, plg_RefreshRows';
     
     

@@ -322,7 +322,7 @@ class commformat_Plugin extends core_Plugin
         if(!trim($match[3])) {
             return $match[0];
         }
-        //bp($match);
+
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
         

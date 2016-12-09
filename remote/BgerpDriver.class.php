@@ -98,7 +98,7 @@ class remote_BgerpDriver extends core_Mvc
         } else {
             
             if ($rec->userId == core_Users::getCurrent()) {
-                $row->url = ht::createLink($rec->url, array($driver, 'Autologin', $rec->id));
+                $row->url = ht::createLink($rec->url, array($driver, 'Autologin', $rec->id, 'url' => $rec->url));
             }
             
             $row->auth = ht::createLink('Получена', NULL, NULL, 'ef_icon=img/16/checked-green.png');
@@ -367,14 +367,23 @@ class remote_BgerpDriver extends core_Mvc
     {
         expect($id = Request::get('id', 'int'));
         
-        $userId = core_Users::getCurrent();
-        bgerp_Notifications::clear(array($this, 'Autologin', $id), $userId);
+        expect($userId = core_Users::getCurrent());
+
+        $url = Request::get('url', 'type_Url');
+        
+        $arr = array();
+
+        if(!$url) {
+            bgerp_Notifications::clear(array($this, 'Autologin', $id), $userId);
+        } else {
+            $arr['url'] = $url;
+        }
         
         expect($auth = remote_Authorizations::fetch($id));
 
         expect($auth->userId == $userId);
         
-        $url = self::prepareQuestionUrl($auth, __CLASS__, 'Autologin');
+        $url = self::prepareQuestionUrl($auth, __CLASS__, 'Autologin', $arr);
         
         remote_Authorizations::logLogin('Автоматично логване', $id);
 
@@ -403,15 +412,21 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Генерира редирект за автоматично логване в отдаличена система
      */
-    function remote_Autologin($auth)
+    function remote_Autologin($auth, $args)
     {
+        expect($auth);
+
         expect($auth =  self::prepareAuth($auth));
-        
+ 
         if(!haveRole('user')) {
             core_Users::loginUser($auth->userId);
         }
-
-        redirect(array('bgerp_Portal', 'Show'));
+ 
+        if($url = $args['url']) {
+            redirect($url);
+        } else {
+            redirect(array('bgerp_Portal', 'Show'));
+        }
     }
 
 

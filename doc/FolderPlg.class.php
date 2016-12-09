@@ -352,9 +352,11 @@ class doc_FolderPlg extends core_Plugin
             expect($mvc->className != 'doc_Folders');
             
             if(is_numeric($rec)) {
-                $rec = $mvc->fetch($rec);
+                expect($exRec = $mvc->fetch($rec), $rec);
+                $rec = $exRec;
             } elseif($rec->id) {
-                $rec = $mvc->fetch($rec->id);
+                expect($exRec = $mvc->fetch($rec->id), $rec);
+                $rec = $exRec;
             } else {
                 $res = $mvc->isUnique($rec, $fields, $exRec);
                

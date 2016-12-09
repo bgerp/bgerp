@@ -68,7 +68,7 @@ class spcheck_Dictionary extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'spcheck_Wrapper, plg_RowTools, plg_State2, plg_Created, plg_Modified, plg_Search, plg_Sorting';
+    public $loadList = 'spcheck_Wrapper, plg_RowTools2, plg_State2, plg_Created, plg_Modified, plg_Search, plg_Sorting';
     
     
     /**

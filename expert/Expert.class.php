@@ -816,7 +816,7 @@ class expert_Expert extends core_FieldSet {
         }
 
         // Няма междинен резултат ...
-        bp($this);
+        error('Няма междинен резултат', $this);
     }
     
     
@@ -1258,7 +1258,7 @@ class expert_Expert extends core_FieldSet {
             $opt = 'Array';
         } else {
             // Wrong expert
-            bp($kRec);
+            error('Wrong expert', $kRec);
         }
         
         $res = arr::make($res);
@@ -1400,7 +1400,7 @@ class expert_Expert extends core_FieldSet {
                 
                 if(!$this->calcExpr($value, $res)) {
                     // Не може да се сметне
-                    bp($value);
+                    error('Не може да се сметне', $value);
                 }
 
                 $value = $res;
@@ -1424,7 +1424,7 @@ class expert_Expert extends core_FieldSet {
             
             if(!$this->calcExpr($msg, $res)) {
                 // Не може да се калкулира
-                bp($msg);
+                error('Не може да се калкулира', $msg);
             }
             
             return $res;
@@ -1512,7 +1512,7 @@ class expert_Expert extends core_FieldSet {
     {
         if(!strlen($name)) {
             // Липсващо име на променлива
-            bp($name);
+            error('Липсващо име на променлива', $name);
         }
         
         $prefix = $name{0};
@@ -1552,7 +1552,7 @@ class expert_Expert extends core_FieldSet {
         if(!@eval('return TRUE;' . $expr1)) {
             $this->log[] = 'Syntax error: ' . $expr1 ;
             // Некоректен израз
-            bp($expr1);
+            error('Некоректен израз', $expr1);
         }
 
         $result = eval($expr1);
@@ -1602,12 +1602,12 @@ class expert_Expert extends core_FieldSet {
                     if($c > ' ' && $bc) {
                         if($bc == 'expect' && $c != '(') {
                             // Липсва отваряща скоба
-                            bp($c);
+                            error('Липсва отваряща скоба', $c);
                         }
                         
                         if($bc == 'noExpect' && $c == '(') {
                             // Неочаквана отваряща скоба
-                            bp(500, $expr, $res);
+                            error('Неочаквана отваряща скоба', $expr, $res);
                         }
 
                         $bc = FALSE;
@@ -1624,10 +1624,7 @@ class expert_Expert extends core_FieldSet {
                     } elseif ($c == "'") {
                         $state = 'str1';
                     } elseif ($c == '$') {
-                        bp("\$");
-                        
-                        // В израза не може да се използва символа $
-                        return FALSE;;
+                        error("В израза не може да се използва символа $");
                     }
                     
                     break;
@@ -1663,7 +1660,7 @@ class expert_Expert extends core_FieldSet {
                         
                         if(!$intFuncName) {
                             
-                            bp('Липсваща функция', $intFuncName, $userFuncName, $this);
+                            error('Липсваща функция', $intFuncName, $userFuncName, $this);
                             
                             return FALSE;     // Липсваща функция
                         }
@@ -1684,7 +1681,7 @@ class expert_Expert extends core_FieldSet {
                         
                         // Променливата задължително трябва да има поне 1 символ
                         if(!strlen($var)) {
-                            bp('minLen');
+                            expect($var, 'minLen');
                             
                             return FALSE;
                         }

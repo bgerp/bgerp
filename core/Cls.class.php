@@ -105,7 +105,7 @@ class core_Cls
             
             if (!$silent) {
                 // Няма такъв клас
-                bp($className);
+                error('Няма такъв клас', $className);
             }
             
             return FALSE;

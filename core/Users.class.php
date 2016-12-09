@@ -1667,9 +1667,7 @@ class core_Users extends core_Manager
         if($requiredRoles !== 'every_one'){
         	
         	if(EF_HTTPS == 'MANDATORY' && $connection == 'HTTP' && $_GET){
-        		//bp(EF_HTTPS == 'MANDATORY', $connection == 'HTTP', $_GET, $_POST);
         		static::redirectToEnableHttps();
-
         	}
         }
         

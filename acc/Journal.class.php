@@ -362,7 +362,7 @@ class acc_Journal extends core_Master
             Mode::pop("saveTransaction");
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
-            bp($ex->getMessage(), $tr);
+            error($ex->getMessage(), $tr);
         }
         
         $transaction->rec->docType = $mvc->getClassId();

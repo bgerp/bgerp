@@ -715,8 +715,6 @@ class cad2_SvgCanvas extends cad2_Canvas {
             if ($tag->attr && count($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
                   
-                  //if(is_array($val)) bp($tag);
-
                     if(strlen($val) == 0) continue;
 
                     if (is_string($val)) {
