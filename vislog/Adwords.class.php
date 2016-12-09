@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   vislog
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Последни документи и папки
@@ -28,7 +28,7 @@ class vislog_Adwords extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'vislog_Wrapper, plg_RowTools, plg_Search, plg_RefreshRows, plg_Created';
+    var $loadList = 'vislog_Wrapper, plg_RowTools2, plg_Search, plg_RefreshRows, plg_Created';
     
     
     /**
@@ -53,6 +53,7 @@ class vislog_Adwords extends core_Manager
      * Кой може да го разглежда?
      */
     var $canList = 'admin,cms,ceo';
+    
     
     public $listFields = 'id,ip,match,keywords,ad,createdOn,createdBy';
      
