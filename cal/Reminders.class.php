@@ -402,8 +402,7 @@ class cal_Reminders extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {  
-   
-     	if ($mvc->haveRightFor('stop', $data->rec)) { 
+        if ($mvc->haveRightFor('single', $data->rec)) { 
 	            $data->toolbar->addBtn('Затваряне', array(
 	                    $mvc,
 	                    'Stop',
@@ -486,7 +485,7 @@ class cal_Reminders extends core_Master
     	if ($rec->id) {
     		$oRec = $mvc->fetch($rec->id);
     	    		
-    		if ($action == 'stop') {
+    		if ($action == 'stop') { 
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($rec->state !== 'active') { 
                     	$requiredRoles = 'no_one';

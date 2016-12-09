@@ -3103,7 +3103,7 @@ class doc_Containers extends core_Manager
             $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
             $dRow->DocumentSettings->append($showDocument);
         }
-        
+        $dRow->STATE_CLASS .= ' hidden-document';
         $tpl->placeObject($dRow);
         
         $tpl->removeBlocks();

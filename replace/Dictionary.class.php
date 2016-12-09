@@ -15,7 +15,7 @@ class replace_Dictionary extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_RowTools,plg_State2,replace_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools2,plg_State2,replace_Wrapper';
     
     
     /**

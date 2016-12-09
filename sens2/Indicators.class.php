@@ -29,7 +29,7 @@ class sens2_Indicators extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_RowTools, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State';
+    var $loadList = 'plg_RowTools2, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State';
     
     
     /**

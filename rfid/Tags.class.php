@@ -70,7 +70,7 @@ class rfid_Tags extends Core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_RowTools,rfid_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools2,rfid_Wrapper';
     
     
     /**

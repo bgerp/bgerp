@@ -42,7 +42,7 @@ class sales_SaleRequestDetails extends deals_DealDetail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_AlignDecimals2, plg_RowNumbering, sales_Wrapper, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_AlignDecimals2, plg_RowNumbering, sales_Wrapper, doc_plg_HidePrices, plg_PrevAndNext';
     
     
     /**

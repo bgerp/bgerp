@@ -1773,7 +1773,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			});
     			
     			// Ако сумата и к-во им отговарят точно на това от счетоводството подменят се
-    			if(round($totalSum, 5) == round($d1->amount, 5) && round($totalQuantity, 5) == round($d1->quantity, 5)){
+    			if(round($totalSum, 2) == round($d1->amount, 2) && round($totalQuantity, 5) == round($d1->quantity, 5)){
     				$replaced = array_merge($replaced, $res);
     			} else {
     				$replaced[] = $d1;

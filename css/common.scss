@@ -1286,6 +1286,10 @@ a.profile {
     }
 }
 
+.hidden-document.state-rejected{
+	opacity: 0.6;
+}
+
 .state-template {
 	background-color: #A5AAFF;
 	background-color: rgba(165, 170, 255, 0.7);
