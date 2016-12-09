@@ -177,7 +177,12 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-        	$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+        	if(Request::get('Act') != 'CreateProduct'){
+        		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+        	} else {
+        		$vat =  acc_Periods::fetchByDate($date)->vatRate;
+        	}
+        	
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
         
