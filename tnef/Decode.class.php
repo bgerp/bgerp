@@ -48,7 +48,7 @@ class tnef_Decode extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created';
+    public $loadList = 'plg_RowTools2, plg_Created';
     
     
     /**
