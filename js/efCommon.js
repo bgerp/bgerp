@@ -1076,16 +1076,23 @@ function prepareContextMenu() {
 /**
  * Действия на табовете в мобилен
  */
-function portalTabs()
-{
+function portalTabs() {
+    if(!$('body').hasClass('modern-theme')) return;
     var current;
-    if($(location.hash).length) {
+    // взимаме данните за портала в бисквитката
+    var portalTabs = getCookie('portalTabs');
+    if($("#" +  portalTabs).length) {
+        current = $("#" + portalTabs );
+    } else if($(location.hash).length) {
+        // взимаме таба от # в url-то
         current = $(location.hash);
     } else {
+        // първия таб да е активен
         current = $('.narrowPortalBlocks').first();
     }
     $(current).addClass('activeTab');
     $(current).siblings().removeClass('activeTab');
+
     var id = $(current).attr('id');
     var tab = $('li[data-tab="' + id + '"]');
     $(tab).addClass('activeTab');
@@ -1093,15 +1100,15 @@ function portalTabs()
 
     $('ul.portalTabs li').click(function(){
         var tab_id = $(this).attr('data-tab');
-
         $('ul.portalTabs li').removeClass('activeTab');
         $('.narrowPortalBlocks').removeClass('activeTab');
 
         $(this).addClass('activeTab');
         $("#"+tab_id).addClass('activeTab');
+        setCookie('portalTabs', tab_id);
     });
-}
 
+}
 
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id) {
