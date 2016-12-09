@@ -154,4 +154,15 @@ class acc_plg_Registry extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * Метод по подразбиране за връщане на сметките, върху които може да се задават лимити на перото
+     */
+    public static function on_AfterGetLimitAccounts($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$res = (isset($mvc->balanceRefAccounts)) ? arr::make($mvc->balanceRefAccounts, TRUE) : array();
+    	}
+    }
 }

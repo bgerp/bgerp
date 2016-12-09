@@ -78,7 +78,7 @@ class cat_Products extends embed_Manager {
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '301,302,304,305,306,309,321,323,61101';
+    public $balanceRefAccounts = '321,323,61101,60201';
     
     
     /**
@@ -2562,5 +2562,28 @@ class cat_Products extends embed_Manager {
     	if($Driver = self::getDriver($id)){
     		$Driver->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
     	}
+    }
+    
+    
+    /**
+     * Връща сметките, върху които може да се задават лимити на перото
+     *
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getLimitAccounts($rec)
+    {
+    	$rec = $this->fetchRec($rec, 'canStore,canConvert');
+    	
+    	$accounts = '';
+    	if($rec->canStore == 'yes'){
+    		$accounts .= ($rec->canConvert == 'yes') ? '321,323,61101' : '321,323';
+    	} else {
+    		$accounts .= ($rec->canConvert == 'yes') ? '61101,60201' : '60201';
+    	}
+    	
+    	$accounts = arr::make($accounts, TRUE);
+    	
+    	return $accounts;
     }
 }
