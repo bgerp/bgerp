@@ -401,6 +401,7 @@ class purchase_Purchases extends deals_DealMaster
         // Извличаме продуктите на покупката
         $dQuery = purchase_PurchasesDetails::getQuery();
         $dQuery->where("#requestId = {$rec->id}");
+        $dQuery->orderBy("id", 'ASC');
         $detailRecs = $dQuery->fetchAll();
         
         // Ако платежния метод няма авансова част, авансовите операции 
