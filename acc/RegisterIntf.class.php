@@ -62,4 +62,16 @@ class acc_RegisterIntf
     {
         return $this->class->itemInUse($objectId, $inUse);
     }
+    
+    
+    /**
+     * Връща сметките, върху които може да се задават лимити на перото
+     * 
+     * @param stdClass $rec
+     * @return array
+     */
+    public static function getLimitAccounts($rec)
+    {
+    	return $this->class->getLimitAccounts($rec);
+    }
 }
