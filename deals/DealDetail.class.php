@@ -180,7 +180,7 @@ abstract class deals_DealDetail extends doc_Detail
         	if(Request::get('Act') != 'CreateProduct'){
         		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
         	} else {
-        		$vat =  acc_Periods::fetchByDate($date)->vatRate;
+        		$vat =  acc_Periods::fetchByDate($masterRec->valior)->vatRate;
         	}
         	
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
