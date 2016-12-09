@@ -132,7 +132,7 @@ class callcenter_Talks extends core_Master
     /**
      * 
      */
-    var $listFields = '_rowTools, externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration, uniqId';
+    var $listFields = '_rowTools, externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration';
     
     
     /**
