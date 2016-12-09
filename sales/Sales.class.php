@@ -567,6 +567,7 @@ class sales_Sales extends deals_DealMaster
         // Извличаме продуктите на продажбата
         $dQuery = sales_SalesDetails::getQuery();
         $dQuery->where("#saleId = {$rec->id}");
+        $dQuery->orderBy("id", 'ASC');
         $detailRecs = $dQuery->fetchAll();
        
         $downPayment = NULL;
