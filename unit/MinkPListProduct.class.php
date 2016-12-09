@@ -25,7 +25,7 @@ class unit_MinkPListProduct extends core_Manager {
         $res .= '<br>'.'MinkPListProduct';
         $res .=  " 1.".$this->act_CreateListProducts();
         $res .=  " 2.".$this->act_CreateSaleList();
-        //$res .= "  3.".$this->act_CreateListProductsImport();
+        //$res .= "  3.".$this->act_ImportListProducts();
         //$res .= "  4.".$this->act_CreateSaleList1();
         
         return $res;
@@ -71,7 +71,7 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->click('N');
         $Company = 'NEW INTERNATIONAL GMBH';
         $browser->click($Company);
-        $browser->press('Папка');
+        //$browser->press('Папка');
         return $browser;
     }
     
@@ -170,9 +170,34 @@ class unit_MinkPListProduct extends core_Manager {
     }
      
     /**
-     * Добавяне на артикули за листване към фирма от предишни продажби
+     * Добавяне на артикули за листване към фирма от група/предишни продажби
      */
+    //http://localhost/unit_MinkPListProduct/ImportListProducts/
+    function act_ImportListProducts()
+    {
     
+        // Логване
+        $browser = $this->SetUp();
+        //return $browser->getHtml();
+        //Отваряне корицата на фирмата
+        $browser = $this->SetFirmEUR();
+       
+        $browser->click('Търговия');
+       
+        // Добавяне на артикул
+        $browser->press('Импорт');
+     
+        $browser->setValue('from', 'Група');
+        //return $browser->getHtml(); 
+        $browser->refresh('Импорт');
+       
+        return $browser->getHtml();
+        $browser->setValue('group', 'Ценова група » Промоция');
+      
+        // Записване на списъка
+        $browser->press('Импорт');
+    
+    }
     
     /**
      * Продажба - артикули по списък от предишни продажби
