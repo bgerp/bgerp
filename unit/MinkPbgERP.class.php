@@ -59,6 +59,9 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkPTcost');
         $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPListProduct');
+        $res .= $inst->act_Run();
+        
         return $res;
     }
     
