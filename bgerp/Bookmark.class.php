@@ -270,11 +270,13 @@ class bgerp_Bookmark extends core_Manager
                         }
                     }
                 }
-
-                foreach($auths as $id => $aUrl) {
-                    if(strpos($url, $aUrl) === 0) {
-                        $url =  array('remote_BgerpDriver', 'Autologin', $id, 'url' => $url);
-                        break;
+                
+                if($auths && is_array($auths)) {
+                    foreach($auths as $id => $aUrl) {
+                        if(strpos($url, $aUrl) === 0) {
+                            $url =  array('remote_BgerpDriver', 'Autologin', $id, 'url' => $url);
+                            break;
+                        }
                     }
                 }
             }
