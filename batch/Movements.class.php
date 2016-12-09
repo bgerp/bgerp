@@ -248,7 +248,7 @@ class batch_Movements extends core_Detail {
 		} catch(core_exception_Expect $e){
 			
 			// Ако има проблем, показваме грешката
-			bp($e->getMessage(), $e->getDump(), $entries);
+			error($e->getMessage(), $e->getDump(), $entries);
 		}
 		
 		$result = TRUE;

@@ -1079,7 +1079,7 @@ class core_Query extends core_FieldSet
             return "`" . $name . "`";
         } else {
             // Непознат тип поле ($field->kind)
-            bp($field);
+            error($field);
         }
         
         $res = "`{$tableName}`.`{$mysqlName}`";

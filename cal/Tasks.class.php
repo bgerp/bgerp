@@ -2124,7 +2124,7 @@ class cal_Tasks extends core_Master
 	    
     	// ако задачата няма начало и край
 	    if ($timeStart == NULL && $timeEnd == NULL && $rec->timeDuration == NULL) { 
-//		    	/bp();
+
 			$expStart = $now;
 			$expEnd = $now;
 		    	

@@ -596,7 +596,7 @@ class core_Packs extends core_Manager
                 }
             } else {
                 // Не може да се отвори директорията
-                bp($dir, $dh);
+                error('Не може да се отвори директорията', $dir, $dh);
             }
         }
         
