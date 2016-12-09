@@ -3448,19 +3448,28 @@ div.location.public {
   border: none;
   background-position: center 2px; }
 
-.narrowPortalBlocks {
+.portalTabs {
   display: none; }
-  .narrowPortalBlocks.activeTab {
+
+.narrowPortalBlocks {
+  margin-top: 20px;
+  margin-bottom: 10px; }
+
+.modern-theme .narrowPortalBlocks {
+  display: none;
+  margin: 0 0 5px; }
+  .modern-theme .narrowPortalBlocks.activeTab {
     display: block; }
 
-.portalTabs {
+.modern-theme .portalTabs {
+  display: block;
   padding-left: 10px;
   margin-top: -10px;
   margin-bottom: 0;
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none; }
-  .portalTabs .tab-link {
+  .modern-theme .portalTabs .tab-link {
     cursor: pointer;
     display: inline-block;
     padding: 5px 5px 8px 5px;
@@ -3472,8 +3481,8 @@ div.location.public {
     font-size: 0.9em;
     position: relative;
     bottom: -12px; }
-    .portalTabs .tab-link.activeTab,
-    .portalTabs .tab-link:hover {
+    .modern-theme .portalTabs .tab-link.activeTab,
+    .modern-theme .portalTabs .tab-link:hover {
       background: #f1f1f1;
       z-index: 20; }
 

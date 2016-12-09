@@ -3837,14 +3837,24 @@ div.location.public {
 	border: none;
 	background-position: center 2px;
 }
+.portalTabs {
+	display: none;
+}
 
 .narrowPortalBlocks {
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
+.modern-theme .narrowPortalBlocks {
 	display: none;
+	margin: 0 0 5px;
 	&.activeTab {
 		display: block;
 	}
 }
-.portalTabs {
+.modern-theme .portalTabs {
+	display: block;
 	padding-left: 10px;
 	margin-top: -10px;
 	margin-bottom: 0;
