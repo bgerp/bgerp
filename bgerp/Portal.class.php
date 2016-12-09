@@ -142,16 +142,16 @@ class bgerp_Portal extends core_Manager
         if(Mode::is('screenMode', 'narrow')) {
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
             $tpl->append($tasksTpl, 'TASK_COLUMN');
+
+            jquery_Jquery::run($tpl, "portalTabs();");
         } else {
             $tpl->append($calendarHeader, 'RIGHT_COLUMN');
             $tpl->append($tasksTpl, 'RIGHT_COLUMN');
         }
 
-        
         $tpl->push('js/PortalSearch.js', 'JS');
         jquery_Jquery::run($tpl, "portalSearch();");
-        jquery_Jquery::run($tpl, "portalTabs();");
-        
+
         bgerp_LastTouch::set('portal');
         
         self::logRead('Разглеждане на портала');
