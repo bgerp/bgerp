@@ -1459,6 +1459,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'черен');
         $browser->setValue('meta_canBuy', 'canBuy');
+        $browser->setValue('Ценова група » Промоция', 15);
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
