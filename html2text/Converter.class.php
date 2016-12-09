@@ -670,9 +670,6 @@ class html2text_Converter
             $additional = '';
             break;
         }
-        
-        if($alert) bp($matches, $link, $display, $linkArr, $schema, $path);
-
 
         return $display . $additional;
     }

@@ -203,8 +203,10 @@ class crm_ext_ProductListToContragents extends core_Manager
 		$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
 		
 		$data->contragentClassId = $data->masterMvc->getClassId();
-		$data->isClient = keylist::isIn($clientGroupId, $data->masterData->rec->groupList);
-		$data->isSupplier = keylist::isIn($supplierGroupId, $data->masterData->rec->groupList);
+		$groupList = crm_Groups::getParentsArray($data->masterData->rec->groupList);
+		
+		$data->isClient = in_array($clientGroupId, $groupList);
+		$data->isSupplier = in_array($supplierGroupId, $groupList);
 		$Tab = core_Request::get('Tab', 'varchar');
 		
 		// Ако контагента не е доставчик или клиент и няма листвани артикули или не е отворен таба, не се подготвя нищо
