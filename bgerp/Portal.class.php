@@ -65,19 +65,19 @@ class bgerp_Portal extends core_Manager
         Mode::set('pageMenuKey', '_none_');
         
         if(Mode::is('screenMode', 'narrow')) {
-            $tpl = new ET("
+            $tpl = new ET(tr("|*
           	<ul class='portalTabs'>
-                <li class='tab-link' data-tab='notificationsPortal'>Известия</li>
-                <li class='tab-link' data-tab='calendarPortal'>Календар</li>
-                <li class='tab-link' data-tab='taskPortal'>Задачи</li>
-                <li class='tab-link' data-tab='recentlyPortal'>Последно</li>
+                <li class='tab-link' data-tab='notificationsPortal'>|Известия|*</li>
+                <li class='tab-link' data-tab='calendarPortal'>|Календар|*</li>
+                <li class='tab-link' data-tab='taskPortal'>|Задачи|*</li>
+                <li class='tab-link' data-tab='recentlyPortal'>|Последно|*</li>
             </ul>
             <div class='portalContent'>
                 <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS#]</div>
                 <div class='narrowPortalBlocks' id='calendarPortal'>[#CALENDAR_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='taskPortal'>[#TASK_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='recentlyPortal'>[#LEFT_COLUMN#]</div>
-            </div>");
+            </div>"));
         } else {
             $tpl = new ET("
             <table style='width:100%' class='top-table large-spacing'>
@@ -132,9 +132,15 @@ class bgerp_Portal extends core_Manager
         $tasksTpl->append($addBtn, 'RЕМ_BTN');
         
         $tasksTpl->append(cal_Tasks::renderPortal(), 'TASKS');
+        
+        if(!Mode::is('screenMode', 'narrow')) {  
+            $calTitle = tr('Календар');
+        } else {
+            $calTitle = '&nbsp;';
+        }
 
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" id="calendarPortal" style="background-color:#efe;">' . tr('Календар') . '</div>
+            <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '</div>
             [#CALENDAR_DETAILS#]
             </div>');
         
