@@ -509,16 +509,31 @@ class core_Html
             Request::doProtect($hiddens);
 
             foreach ($hiddens as $name => $value) {
+                if(is_array($value)) {
+                    foreach($value as $key => $v) {
+                        self::addHiden($tpl, $name . '[' . $key . ']', $v);
+                    }
+                    continue;
+                }
                 expect(is_scalar($value) || !($value), gettype($value));
-                $attr = array();
-                $attr['name'] = $name;
-                $attr['value'] = $value;
-                $attr['type'] = 'hidden';
-                $tpl->append(self::createElement('input', $attr));
+                self::addHiden($tpl, $name, $value);
             }
         }
 
         return $tpl;
+    }
+    
+
+    /**
+     * Добавя hidden input към шаблона
+     */
+    static function addHiden($tpl, $name, $value) 
+    {
+        $attr = array();
+        $attr['name'] = $name;
+        $attr['value'] = $value;
+        $attr['type'] = 'hidden';
+        $tpl->append(self::createElement('input', $attr));
     }
 
 

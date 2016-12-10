@@ -355,7 +355,7 @@ class crm_Groups extends core_Master
         // END масив с данни за инициализация
         
         
-        $nAffected = 0;
+        $nAffected = $nUpdated = 0;
         
         // BEGIN За всеки елемент от масива
         foreach ($data as $newData) {
@@ -363,13 +363,16 @@ class crm_Groups extends core_Master
             $newRec = (object) $newData;
             
             $rec = $mvc->fetch("#sysId = '{$newRec->sysId}'");
-            
+            $flagChange = FALSE;
+
             if(!$rec) {
                 $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->name}')");
+                $flagChange = TRUE;
             }
             
             if(!$rec) {
                 $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->exName}')");
+                $flagChange = TRUE;
             }
             
             if(!$rec) {
@@ -387,15 +390,24 @@ class crm_Groups extends core_Master
             if(!$rec->id) {
                 $nAffected++;
             }
+
+            if($flagChange) {
+                $nUpdated++;
+            }
             
-            $mvc->save($rec, NULL, 'IGNORE');
+            $mvc->save($rec);
         }
         
         // END За всеки елемент от масива
         
         if ($nAffected) {
-            $res .= "<li style='color:green;'>Добавени са {$nAffected} групи.</li>";
+            $res .= "<li class='debug-new'>Добавени са {$nAffected} групи.</li>";
         }
+
+        if ($flagChange) {
+            $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
+        }
+
     }
     
     
