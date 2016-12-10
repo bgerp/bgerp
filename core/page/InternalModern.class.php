@@ -76,7 +76,7 @@ class core_page_InternalModern extends core_page_Active
 
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
-        $url  = toUrl(array('bgerp_Portal', 'Show'));
+        $url  = toUrl(array('bgerp_Portal', 'Show', '#' => 'notificationsPortal'));
         $attr = array('id' => 'nCntLink', 'title' => 'Неразгледани известия');
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото

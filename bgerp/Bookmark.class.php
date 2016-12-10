@@ -255,7 +255,8 @@ class bgerp_Bookmark extends core_Manager
                 $attr['class'] = 'bookmark-wrong-url';
             }
 	    } else {
- 
+            $target = '_blank';
+
             if(core_Packs::isInstalled('remote')) {
                 
                 static $auths;
@@ -275,6 +276,7 @@ class bgerp_Bookmark extends core_Manager
                     foreach($auths as $id => $aUrl) {
                         if(strpos($url, $aUrl) === 0) {
                             $url =  array('remote_BgerpDriver', 'Autologin', $id, 'url' => $url);
+                            $target = NULL;
                             break;
                         }
                     }
@@ -282,7 +284,9 @@ class bgerp_Bookmark extends core_Manager
             }
 
 	        $lUrl = $url;
-	        
+            if($target) {
+	            $attr['target'] = $target;
+            }
             $attr['class'] = 'bookmark-external-url';
 	    }
 	    

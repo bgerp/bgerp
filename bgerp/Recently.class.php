@@ -323,8 +323,10 @@ class bgerp_Recently extends core_Manager
             // Подготвяме редовете на таблицата
             $Recently->prepareListRows($data);
             
-            // Подготвяме заглавието на таблицата
-            $data->title = tr("Последно||Recently");
+            if(!Mode::is('screenMode', 'narrow')) {  
+                // Подготвяме заглавието на таблицата
+                $data->title = tr("Последно||Recently");
+            }
             
             // Подготвяме лентата с инструменти
             $Recently->prepareListToolbar($data);

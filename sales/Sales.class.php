@@ -131,7 +131,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
                              dealerId, initiatorId,paymentState,
                              createdOn, createdBy';
 
@@ -1116,6 +1116,13 @@ class sales_Sales extends deals_DealMaster
     	if(isset($rec->priceListId)){
     		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
+
+        if(isset($fields['-list'])){  
+            $row->title .= "<div>{$row->folderId}</div>";
+
+      
+        }
+
     	
     	if(isset($fields['-single'])){
     		

@@ -357,7 +357,6 @@ class bgerp_Notifications extends core_Manager
  
         if(!$tpl || $modifiedOn != $lastRec->modifiedOn) {
 
-        
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -434,12 +433,12 @@ class bgerp_Notifications extends core_Manager
     function renderPortal($data)
     {
         $Notifications = cls::get('bgerp_Notifications');
-        
+    
         // Ако се вика по AJAX
         if (!Request::get('ajax_mode')) {
             
             $divId = $Notifications->getDivId();
-            
+          
             $tpl = new ET("
                 <div class='clearfix21 portal' style='background-color:#fff8f8'>
                 <div style='background-color:#fee' class='legend'><div style='float:left'>[#PortalTitle#]</div>
@@ -457,7 +456,9 @@ class bgerp_Notifications extends core_Manager
             ");
             
             // Попълваме титлата
-            $tpl->append($data->title, 'PortalTitle');
+            if(!Mode::is('screenMode', 'narrow')) {  
+                $tpl->append($data->title, 'PortalTitle');
+            }
             
             // Попълваме горния страньор
             $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
