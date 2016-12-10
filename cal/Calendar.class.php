@@ -1949,13 +1949,13 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createTask(dt)
     	{
-    		document.location = '{$url}?timeStart[d]=' + dt;
+    		document.location = '{$url}?timeStart=' + dt;
 		}";
     	    	
     	$jsDblFnc = "
     	function createDblTask(dt)
     	{
-    		document.location = '{$url}?timeStart[d]=' + dt;
+    		document.location = '{$url}?timeStart=' + dt;
 		}";
 
     	
@@ -2064,13 +2064,13 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createWeekTask(dt)
     	{
-    		document.location = '{$urlWeek}?timeStart[d]=' + dt;
+    		document.location = '{$urlWeek}?timeStart=' + dt;
 		}";
     	
     	$jsDblFnc = "
     	function createDblWeekTask(dt)
     	{
-    		document.location = '{$urlWeek}?timeStart[d]=' + dt;
+    		document.location = '{$urlWeek}?timeStart=' + dt;
 		}";
     	
     	$urlCal = toUrl(array('cal_Calendar', 'week'));
