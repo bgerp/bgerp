@@ -370,7 +370,7 @@ abstract class deals_DealBase extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->title = $mvc->getLink($rec->id, 0);
+    		$row->title = $mvc->getLink($rec->id, 0) . "<div style='font-size:0.7em;'>" . doc_Folders::getTitleById($rec->folderId) . "</div>";
     	}
     }
     
