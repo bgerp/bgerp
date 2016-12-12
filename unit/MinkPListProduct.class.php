@@ -25,7 +25,7 @@ class unit_MinkPListProduct extends core_Manager {
         $res .= '<br>'.'MinkPListProduct';
         $res .=  " 1.".$this->act_CreateListProducts();
         $res .=  " 2.".$this->act_CreateSaleList();
-        //$res .= "  3.".$this->act_ImportListProducts();
+        $res .= "  3.".$this->act_ImportListProducts();
         //$res .= "  4.".$this->act_CreateSaleList1();
         
         return $res;
@@ -151,9 +151,10 @@ class unit_MinkPListProduct extends core_Manager {
         
         // Записване артикулите
         $browser->press('Импорт');
-       
+        //return $browser->getHtml();
         // активиране на продажбата
         $browser->press('Активиране');
+       
         $browser->press('Активиране/Контиране');
          
         if(strpos($browser->gettext(), 'Шестдесет и един BGN и 0,73')) {
