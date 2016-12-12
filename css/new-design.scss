@@ -436,7 +436,11 @@ body {
             &:hover{
                 color: #fefdd6;
             }
+            &.out {
+              background: url("../img/12/star-out.png") 4px 3px no-repeat;
+            }
         }
+
        
     }
 }
