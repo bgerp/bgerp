@@ -4289,7 +4289,11 @@ only screen and (max-width: 320px) {
   .narrow #cmsMenu a {
     padding-left: 2px;
     padding-right: 2px;
-    margin-left: 4px !important; } }
+    margin-left: 4px !important; }
+
+  .narrow.modern-theme .portalTabs .tab-link {
+    font-size: 0.8em !important;
+    padding: 3px 3px 6px 3px; } }
 
 .footerDocInfo {
   padding-top: 10px;
