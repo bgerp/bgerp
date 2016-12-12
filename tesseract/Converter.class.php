@@ -209,7 +209,7 @@ class tesseract_Converter extends core_Manager
         $params = $script->params;
         
         // Вземаме съдържанието на файла
-        $params['content'] = file_get_contents($params['outFilePath']);
+        $params['content'] = @file_get_contents($params['outFilePath']);
         
         $params['content'] = trim($params['content']);
         
@@ -254,13 +254,8 @@ class tesseract_Converter extends core_Manager
         
         // Ако разширението е в позволените
         if ($ext && in_array($ext, self::$allowedExt)) {
-            
-            // Проверяваме дали има права за екстрактване
-            if (haveRole(self::$canOCR)) {
-                
-                // Ако всичко е OK връщаме TRUE
-                return TRUE;
-            }
+            // Ако всичко е OK връщаме TRUE
+            return TRUE;
         }
         
         return FALSE;
