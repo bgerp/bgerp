@@ -52,6 +52,7 @@ class rack_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var  $managers = array(
+            'rack_Products',
             'rack_Movements',
             'rack_Pallets',
             'rack_Racks',

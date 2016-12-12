@@ -106,9 +106,9 @@ class rack_Racks extends core_Master
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('comment', 'richtext(rows=5)', 'caption=Коментар');
-        $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter');
-        $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter');
-        $this->FLD('reserved', 'int', 'caption=Палет-места->Резервирани,smartCenter');
+        $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
+        $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
+        $this->FLD('reserved', 'int', 'caption=Палет-места->Резервирани,smartCenter,input=none');
 
         $this->FLD('constrColumnsStep', 'int', 'caption=Брой палети между две колони->Палети,smartCenter');
         
