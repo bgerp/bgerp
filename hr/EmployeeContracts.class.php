@@ -56,7 +56,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc, doc_SharablePlg, bgerp_plg_Blank';
+                     doc_plg_SelectFolder, doc_SharablePlg, bgerp_plg_Blank';
     
     
     /**
@@ -143,6 +143,12 @@ class hr_EmployeeContracts extends core_Master
      */
     public $addToListOnActivation = 'workContracts';
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+
 
     /**
      * Описание на модела
