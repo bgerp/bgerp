@@ -3867,13 +3867,14 @@ div.location.public {
 		padding: 5px 5px 8px 5px;
 		border-radius: 5px 5px 0 0;
 		list-style: none;
-		border: 1px solid #ccc;
+		border: 1px solid #aaa;
 		border-bottom: none;
-		background: #ccc;
+		background: #bbb;
 		font-size: 0.9em;
 		position: relative;
 		bottom: -12px;
 		&.activeTab, &:hover {
+			border-color: #ccc;
 			background: #f1f1f1;
 			z-index: 20;
 		}

@@ -3475,14 +3475,15 @@ div.location.public {
     padding: 5px 5px 8px 5px;
     border-radius: 5px 5px 0 0;
     list-style: none;
-    border: 1px solid #cccccc;
+    border: 1px solid #aaaaaa;
     border-bottom: none;
-    background: #cccccc;
+    background: #bbbbbb;
     font-size: 0.9em;
     position: relative;
     bottom: -12px; }
     .modern-theme .portalTabs .tab-link.activeTab,
     .modern-theme .portalTabs .tab-link:hover {
+      border-color: #cccccc;
       background: #f1f1f1;
       z-index: 20; }
 
