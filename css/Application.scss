@@ -3873,9 +3873,11 @@ div.location.public {
 		font-size: 0.9em;
 		position: relative;
 		bottom: -12px;
+		color: #444;
 		&.activeTab, &:hover {
 			border-color: #ccc;
-			background: #f1f1f1;
+			color: #000;
+			background: #fafafa;
 			z-index: 20;
 		}
 	}

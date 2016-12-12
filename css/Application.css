@@ -3480,11 +3480,13 @@ div.location.public {
     background: #bbbbbb;
     font-size: 0.9em;
     position: relative;
-    bottom: -12px; }
+    bottom: -12px;
+    color: #444444; }
     .modern-theme .portalTabs .tab-link.activeTab,
     .modern-theme .portalTabs .tab-link:hover {
       border-color: #cccccc;
-      background: #f1f1f1;
+      color: black;
+      background: #fafafa;
       z-index: 20; }
 
 /*
