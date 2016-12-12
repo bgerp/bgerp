@@ -656,13 +656,21 @@ class type_Keylist extends core_Type {
      * 
      * @return type_Keylist $newKlist
      */
-    static function merge($klist1, $klist2)
+    static function merge($klist1, $klist2, $klist3 = NULL, $klist4 = NULL)
     {
         $klist1Arr = self::toArray($klist1);
         $klist2Arr = self::toArray($klist2);
         
         $newArr = $klist1Arr + $klist2Arr;
+
+        if($klist3) {
+            $newArr += self::toArray($klist3);
+        }
         
+        if($klist4) {
+            $newArr += self::toArray($klist4);
+        }
+      
         $newKlist = self::fromArray($newArr);
         
         return $newKlist;
