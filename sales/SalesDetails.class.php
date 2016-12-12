@@ -371,7 +371,7 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if($mvc->haveRightFor('importlisted', (object)array('saleId' => $data->masterId))){
-    		$data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "saleId" => $data->masterId, 'ret_url' => TRUE), "id=btnAddImp-{$masterRec->id},order=14,title=Добавяне на листвани артикули", 'ef_icon = img/16/shopping.png');
+    		$data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "saleId" => $data->masterId, 'ret_url' => TRUE), "id=btnAddImp-{$data->masterId},order=14,title=Добавяне на листвани артикули", 'ef_icon = img/16/shopping.png');
     	}
     }
     

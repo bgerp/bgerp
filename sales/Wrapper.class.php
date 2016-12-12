@@ -32,6 +32,8 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('dec_Materials', 'Декларации->Материали', 'ceo,dec');
         $this->TAB('sales_ClosedDeals', 'Приключвания', 'ceo,sales');
         $this->TAB('sales_Routes', 'Маршрути', 'ceo,sales');
+        $this->TAB('sales_PrimeCostByDocument', 'Делти', 'admin,ceo,debug');
+        
         
         $this->title = 'Продажби « Търговия';
         Mode::set('menuPage', 'Търговия:Продажби');
