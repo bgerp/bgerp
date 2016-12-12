@@ -1585,7 +1585,7 @@ a.tOld {
 
 .narrow .docBgIcon {
 	font-size: 0.9em;
-	padding-right: 20px;
+	padding-right: 5px;
 }
 
 .narrow .document-settings-left span {
@@ -3867,14 +3867,17 @@ div.location.public {
 		padding: 5px 5px 8px 5px;
 		border-radius: 5px 5px 0 0;
 		list-style: none;
-		border: 1px solid #ccc;
+		border: 1px solid #aaa;
 		border-bottom: none;
-		background: #ccc;
+		background: #bbb;
 		font-size: 0.9em;
 		position: relative;
 		bottom: -12px;
+		color: #444;
 		&.activeTab, &:hover {
-			background: #f1f1f1;
+			border-color: #ccc;
+			color: #000;
+			background: #fafafa;
 			z-index: 20;
 		}
 	}
@@ -4690,6 +4693,10 @@ body.narrow {
         padding-right:2px;
         margin-left:4px !important;
     }
+	.narrow.modern-theme .portalTabs .tab-link {
+		font-size: 0.8em !important;
+		padding: 3px 3px 6px 3px;
+	}
 }
 .footerDocInfo{
     padding-top: 10px;

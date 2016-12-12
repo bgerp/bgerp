@@ -187,7 +187,7 @@ body {
     margin-left: -15px;
     margin-right: -15px;
     padding: 10px 15px 10px;
-    background: #f1f1f1 !important;
+    background: #fafafa !important;
     border: none;
     position: relative;
     top: 0;
@@ -396,6 +396,8 @@ body {
           color: #febb44; }
       .bookmark-links ul a:hover {
         color: #fefdd6; }
+      .bookmark-links ul a.out {
+        background: url("../img/12/star-out.png") 4px 3px no-repeat; }
 
 .bookmark-wrong-url {
   color: #bb1111; }

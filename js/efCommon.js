@@ -1081,12 +1081,12 @@ function portalTabs() {
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
-    if($("#" +  portalTabs).length) {
-        current = $("#" + portalTabs );
-    } else if($(location.hash).length) {
+    if($(location.hash).length) {
         // взимаме таба от # в url-то
         current = $(location.hash);
-    } else {
+    } else if($("#" +  portalTabs).length) {
+        current = $("#" + portalTabs );
+    }  else {
         // първия таб да е активен
         current = $('.narrowPortalBlocks').first();
     }

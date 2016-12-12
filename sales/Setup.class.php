@@ -214,6 +214,7 @@ class sales_Setup extends core_ProtoSetup
             'sales_InvoiceDetails',
     		'sales_Proformas',
     		'sales_ProformaDetails',
+    		'sales_PrimeCostByDocument',
     		'migrate::cacheInvoicePaymentType',
         );
 
