@@ -2033,7 +2033,7 @@ function refreshForm(form, removeFields) {
         // Възстановяваме запазените пароли
         setTimeout(function(){
             for (var k in savedPwd) { 
-                if($('[name=' + k + ']').val(savedPwd[k]) == '') 
+                if($('[name=' + k + ']').val() == '') 
                     $('[name=' + k + ']').val(savedPwd[k]);}
         },  600);
 	});
