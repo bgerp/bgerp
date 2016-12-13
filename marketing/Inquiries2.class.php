@@ -163,6 +163,12 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+     */
+    public $canWriteExternal = 'agent';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
