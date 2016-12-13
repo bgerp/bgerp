@@ -49,7 +49,10 @@ class colab_plg_CreateDocument extends core_Plugin
 			if($addContractor === TRUE){
 				$property = ucfirst($action);
 				$property = "can{$property}";
-				$mvc->{$property} .= ",partner";
+				
+				// Ако не са зададени специфични роли за външни потребители се взима по дефолт партньор
+				$externalRoles = isset($mvc->canWriteExternal) ? $mvc->canWriteExternal : 'partner';
+				$mvc->{$property} .= ",{$externalRoles}";
 			}
 		}
 	}
