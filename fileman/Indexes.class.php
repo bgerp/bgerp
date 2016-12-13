@@ -69,6 +69,24 @@ class fileman_Indexes extends core_Manager
     
     
     /**
+     * 
+     */
+    public $interfaces = 'fileman_ProcessIntf';
+    
+    
+    /**
+     * Масив с разширенията и минималните размери, на които ще се пускат обработки за OCR, при генериране на ключови думи
+     */
+    protected static $ocrIndexArr = array('jpg' => 10000, 'jpeg' => 10000, 'png' => 10000, 'bmp' => 50000, 'tif' => 20000, 'tiff' => 20000, 'pdf' => 20000);
+    
+    
+    /**
+     * Максимален размер на файлове, на които ще се пуска OCR
+     */
+    protected static $ocrMax = 20000000;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -496,5 +514,179 @@ class fileman_Indexes extends core_Manager
     {
         // Изтриваме всички записи със съответното dataId
         fileman_Indexes::delete(array("#dataId = [#1#]", $dataId));
+        
+        fileman_Data::resetProcess($dataId);
+    }
+    
+    
+    /**
+     * Пуска обработка на текстовата част и пълним ключовите думи
+     *
+     * @param stdObject $dRec
+     * @param datetime $endOn
+     * 
+     * @return boolean
+     */
+    function processFile($dRec, $endOn)
+    {
+        if (dt::now() >= $endOn) return FALSE;
+        
+        // Намираме всички файлове
+        $fQuery = fileman_Files::getQuery();
+        $fQuery->where(array("#dataId = '[#1#]'", $dRec->id));
+        $fQuery->orderBy('createdOn', 'DESC');
+        
+        // Имената на файловете да са в ключовите полета
+        $fArr = array();
+        $fNameStr = '';
+        while ($fRec = $fQuery->fetch()) {
+            $fArr[$fRec->fileHnd] = $fRec;
+            $fNameStr .= ' ' . $fRec->name;
+        }
+        
+        // Правим обработка, докато намерим някоя съдържание на файл
+        $extArr = array();
+        $content = FALSE;
+        $break = FALSE;
+        foreach ($fArr as $hnd => $fRec) {
+            
+            if (dt::now() >= $endOn) {
+                $break = TRUE;
+                break;
+            }
+            
+            if (!$fRec) continue;
+            
+            $fName = $fRec->name;
+            
+            if (!$fRec) continue;
+        	
+            $ext = fileman_Files::getExt($fName);
+            
+            // Няма нужда за същото разширение да се прави обработка
+            if ($extArr[$ext]) continue;
+            $extArr[$ext] = $ext;
+            
+            // Ако от преди това е извличано текстовата част, използваме нея
+            $content = self::getTextForIndex($hnd);
+            if ($content === FALSE) {
+                
+                // Намираме драйвера
+                $webdrvArr = self::getDriver($ext);
+                if (empty($webdrvArr)) continue;
+                $drvInst = FALSE;
+                foreach ($webdrvArr as $drv) {
+                    if (!$drv) continue;
+        			
+                    if (!method_exists($drv, 'extractText')) continue;
+        			
+                    $drvInst = $drv;
+        			
+                    break;
+                }
+                
+                if (!$drvInst) continue;
+                
+                try {
+                    // Извличаме текстовата част от драйвера
+                    $drvInst->extractText($fRec);
+                } catch (ErrorException $e) {
+                    reportException($e);
+                }
+                
+                // Заключваме процеса и изчакваме докато се отключи
+                $lockId = fileman_webdrv_Generic::getLockId('text', $fRec->dataId);
+                while (core_Locks::isLocked($lockId)) {
+                    if (dt::now() >= $endOn) {
+                        $break = TRUE;
+                        break;
+                    }
+                    usleep(500000);
+                }
+                
+                // Ако не може да се определи текстова част
+                // И ако отговора на условията, извличаме текстовата част с OCR
+                $content = self::getTextForIndex($hnd);
+                $minSize = self::$ocrIndexArr[$ext];
+                if (($content === FALSE || !trim($content)) && isset($minSize) && ($dRec->fileLen > $minSize) && ($dRec->fileLen < self::$ocrMax)) {
+                    
+                    $filemanOcr = fileman_Setup::get('OCR');
+                    
+                    if (!$filemanOcr || !cls::load($filemanOcr, TRUE)) continue;
+                    
+                    $intf = cls::getInterface('fileman_OCRIntf', $filemanOcr);
+                    
+                    if (!$intf) continue;
+                    if (!$intf->canExtract($fRec)) continue;
+                    if (!$intf->haveTextForOcr($fRec)) continue;
+                    
+                    try {
+                        $intf->getTextByOcr($fRec);
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    }
+                    
+                    // Изчакваме докато завърши обработката
+                    $lockId = fileman_webdrv_Generic::getLockId('textOcr', $fRec->dataId);
+                    while (core_Locks::isLocked($lockId)) {
+                        if (dt::now() >= $endOn) {
+                            $break = TRUE;
+                            break;
+                        }
+                        usleep(500000);
+                    }
+                    
+                    $content = self::getTextForIndex($hnd);
+                    
+                    fileman_Data::logDebug('OCR обработка на данни', $dRec->id);
+                }
+            }
+            
+            // Ако открием текстова част, спираме процеса
+            if ($content !== FALSE) break;
+            
+            if ($break) break;
+        }
+        
+        if ($break) return FALSE;
+        
+        if ($content === FALSE) {
+            $content = '';
+        }
+        
+        $content .= $fNameStr;
+        
+        $dRec->searchKeywords = plg_Search::normalizeText($content);
+        
+        fileman_Data::logDebug('Добавени ключови полета с дължина ' . strlen($dRec->searchKeywords) . ' символа', $dRec->id);
+        
+        fileman_Data::save($dRec, 'searchKeywords');
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * 
+     * @param string $fh
+     * 
+     * @return FALSE|string
+     */
+    protected static function getTextForIndex($fh)
+    {
+        $text = fileman_Indexes::getInfoContentByFh($fh, 'text');
+        $textOcr = fileman_Indexes::getInfoContentByFh($fh, 'textOcr');
+        
+        $content = FALSE;
+        
+        if ($text !== FALSE && is_string($text)) {
+            $content = $text;
+        }
+        
+        if ($textOcr !== FALSE && is_string($textOcr)) {
+            $content = $textOcr;
+        }
+        
+        return $content;
     }
  }
