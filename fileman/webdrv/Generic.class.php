@@ -126,7 +126,7 @@ class fileman_webdrv_Generic extends core_Manager
         $ocrContent = fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr');
 
         // Ако има OCR съдържание
-        if ($ocrContent !== FALSE) {
+        if ($ocrContent !== FALSE && !is_object($ocrContent)) {
             
             // Тогава съдържанието е равно на него
             $content = $ocrContent;

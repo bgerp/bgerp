@@ -89,6 +89,10 @@ class abbyyocr_Converter extends core_Manager
             $retUrl = array('fileman_Files', 'single', $fRec->fileHnd);
         }
         
+        if ($fRec->dataId && ($dRec = fileman_Data::fetch((int) $fRec->dataId))) {
+            fileman_Data::resetProcess($dRec);
+        }
+        
         return new Redirect($retUrl);
     }
     
@@ -215,7 +219,7 @@ class abbyyocr_Converter extends core_Manager
         }
         
         // Вземаме съдържанието на файла
-        $params['content'] = file_get_contents($params['outFilePath']);
+        $params['content'] = @file_get_contents($params['outFilePath']);
         
         $params['content'] = trim($params['content']);
         
@@ -253,12 +257,8 @@ class abbyyocr_Converter extends core_Manager
         // Ако разширението е в позволените
         if ($ext && in_array($ext, self::$allowedExt)) {
             
-            // Проверяваме дали има права за екстрактване
-            if (haveRole(self::$canOCR)) {
-                
-                // Ако всичко е OK връщаме TRUE
-                return TRUE;
-            }
+            // Ако всичко е OK връщаме TRUE
+            return TRUE;
         }
         
         return FALSE;

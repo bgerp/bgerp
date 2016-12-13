@@ -1039,16 +1039,8 @@ class fileman_Files extends core_Master
             $btnParams['order'] = 60;
             $btnParams['title'] = 'Разпознаване на текст';
             
-            $Setup = cls::get('tesseract_Setup');
-            $checkConf = $Setup->checkConfig();
-            
-            $url = array();
-            if ($checkConf === NULL) {
-                // URL за създаване
-                $url = toUrl(array($OcrInst->class, 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
-            } else {
-                $btnParams['title'] = $checkConf;
-            }
+            // URL за създаване
+            $url = toUrl(array($OcrInst->class, 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
             
             // Ако вече е извлечена текстовата част
             $paramsOcr = array();

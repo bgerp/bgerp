@@ -183,7 +183,7 @@ class social_Sharings extends core_Master
         $urlDecoded = urldecode($url);
 
         // Очакваме в началото на url-то за споделяне да има валиден протокол
-        expect(strpos($urlDecoded, 'http://') === 0 || strpos($urlDecoded, 'https://') === 0);
+        expect(strpos($urlDecoded, 'http://') === 0 || strpos($urlDecoded, 'https://') === 0, $urlDecoded, $rec);
         
     	// Заглавието на обекта
     	$title = Request::get('socTitle');
