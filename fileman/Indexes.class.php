@@ -766,3 +766,4 @@ class fileman_Indexes extends core_Manager
         return $content;
     }
  }
+ 
