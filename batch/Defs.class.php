@@ -235,14 +235,16 @@ class batch_Defs extends embed_Manager {
     /**
      * Форсира партидна дефиниция на артикула ако може
      * Партидната дефиниция се намира по следния приоритет:
+     * 
      * 1. Ако артикула е базиран на прототип неговата партидна дефиниция
      * 2. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
      * 3. От драйвера на артикула, ако върне подходящ клас
+     * 4. Ако има дефолтна партида форсира се тя
      * 
      * @param int $productId - ид на артикул
-     * @return int $id - форсирания запис
+     * @return int|NULL $id - форсирания запис, или NULL ако няма такъв
      */
-    public static function force($productId)
+    public static function force($productId, $defaultDef = NULL)
     {
     	// Трябва да е подаден складируем артикул
     	expect($productRec = cat_Products::fetchRec($productId));
@@ -269,7 +271,7 @@ class batch_Defs extends embed_Manager {
     		if($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")){
     			unset($categoryDefRec->id, $categoryDefRec->categoryId);
     			$categoryDefRec->productId = $productRec->id;
-    				
+    			
     			// Записваме точно копие на дефиницията от категорията
     			return self::save($categoryDefRec);
     		}
@@ -283,6 +285,15 @@ class batch_Defs extends embed_Manager {
     		$rec = (object)array('driverClass' => $BatchType->getClassId(), 'productId' => $productRec->id);
     	
     		// Записваме дефолтната партида
+    		return self::save($rec);
+    	}
+    	
+    	// Ако има дефолтна партида форсира се
+    	if(isset($defaultDef)){
+    		expect($Class = cls::get($defaultDef), 'Невалиден клас');
+    		expect($Class instanceof batch_definitions_Proto, "Не наследява 'batch_definitions_Proto'");
+    		$rec = (object)array('productId' => $productRec->id, 'driverClass' => $Class->getClassId());
+    		
     		return self::save($rec);
     	}
     }
