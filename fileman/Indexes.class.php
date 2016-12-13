@@ -661,23 +661,23 @@ class fileman_Indexes extends core_Manager
                     break;
                 }
                 
-                if (!$drvInst) continue;
-                
-                try {
-                    // Извличаме текстовата част от драйвера
-                    $drvInst->extractText($fRec);
-                } catch (ErrorException $e) {
-                    reportException($e);
-                }
-                
-                // Заключваме процеса и изчакваме докато се отключи
-                $lockId = fileman_webdrv_Generic::getLockId('text', $fRec->dataId);
-                while (core_Locks::isLocked($lockId)) {
-                    if (dt::now() >= $endOn) {
-                        $break = TRUE;
-                        break;
+                if ($drvInst) {
+                    try {
+                        // Извличаме текстовата част от драйвера
+                        $drvInst->extractText($fRec);
+                    } catch (ErrorException $e) {
+                        reportException($e);
                     }
-                    usleep(500000);
+                    
+                    // Заключваме процеса и изчакваме докато се отключи
+                    $lockId = fileman_webdrv_Generic::getLockId('text', $fRec->dataId);
+                    while (core_Locks::isLocked($lockId)) {
+                        if (dt::now() >= $endOn) {
+                            $break = TRUE;
+                            break;
+                        }
+                        usleep(500000);
+                    }
                 }
                 
                 // Ако не може да се определи текстова част
