@@ -68,6 +68,12 @@ class cond_Parameters extends bgerp_ProtoParam
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,cond';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

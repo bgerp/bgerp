@@ -340,6 +340,14 @@ class cond_ConditionsToCustomers extends core_Manager
        			}
        		}
        }
+       
+       // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
+       if(($action == 'edit' || $action == 'delete') && $res != 'no_one' && isset($rec)){
+       		$roles = cond_Parameters::fetchField($rec->conditionId, 'roles');
+       		if(!empty($roles) && !haveRole($roles, $userId)){
+       			$res = 'no_one';
+       		}
+       }
     }
     
     
