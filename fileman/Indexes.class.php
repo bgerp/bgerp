@@ -519,6 +519,82 @@ class fileman_Indexes extends core_Manager
     }
     
     
+    
+    /**
+     * Регенериране на ключови думи и индексирани записи
+     */
+    function act_Regenerate()
+    {
+        requireRole('admin');
+        
+        $retUrl = getRetUrl();
+        
+        // Вземаме празна форма
+        $form = cls::get('core_Form');
+        
+        $form->FNC('rType', 'enum(all=Всички, indexes=Индекси, keywords=Ключови думи)', 'caption=На, input=input, mandatory');
+        $form->FNC('rLimit', 'int(min=0)', 'caption=Ограничение, input=input');
+        
+        $form->input('rType, rLimit', TRUE);
+        
+        $form->setDefault('rLimit', 1000);
+        
+        if ($form->isSubmitted()) {
+            
+            core_App::setTimeLimit(300);
+            
+            $type = $form->rec->rType;
+            $limit = $form->rec->rLimit;
+            
+            $res = '';
+            
+            // Изтриваме индексите
+            if ($type == 'all' || $type == 'indexes') {
+                $iQuery = self::getQuery();
+                $iQuery->orderBy('createdOn', 'DESC');
+                if ($limit) {
+                    $iQuery->limit($limit);
+                }
+                
+                while ($iRec = $iQuery->fetch()) {
+                    
+                    fileman_Data::resetProcess($iRec->dataId);
+                    
+                    self::delete($iRec->id);
+                }
+            }
+            
+            // Премахваме флага, че е обработен на ключовите думи
+            if ($type == 'all' || $type == 'keywords') {
+                $dQuery = fileman_Data::getQuery();
+                $dQuery->where("#processed = 'yes'");
+                
+                $dQuery->orderBy('lastUse', 'DESC');
+                $dQuery->orderBy('createdOn', 'DESC');
+                
+                if ($limit) {
+                    $dQuery->limit($limit);
+                }
+                
+                while ($dRec = $dQuery->fetch()) {
+                    $dRec->processed = 'no';
+                    fileman_Data::save($dRec, 'processed');
+                }
+            }
+            
+            return new Redirect($retUrl, 'Данните са добавени в списъка за регенерация по крон');
+        }
+        
+        $form->title = 'Регенериране на ключови думи и индексирани записи';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Регенериране', 'repair', 'ef_icon = img/16/hammer_screwdriver.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
     /**
      * Пуска обработка на текстовата част и пълним ключовите думи
      *
