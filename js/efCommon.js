@@ -2013,7 +2013,7 @@ function refreshForm(form, removeFields) {
 
 	var serialized = $.param(filteredParams);
 
-	form.submit();
+	//form.submit();
 
 	$.ajax({
 		type: frm.attr('method'),
