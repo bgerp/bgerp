@@ -283,4 +283,35 @@ class batch_InventoryNotes extends core_Master {
     		}
     	}
     }
+    
+    
+    /**
+     * Функция за създаване на чернова документ за инвентаризация на партидност в склад.
+     * Документа се създава в папката на склада
+     * 
+     * @param int $storeId - ид на склад
+     * @param date|NULL $valior - вальор
+     */
+    public static function createDraft($storeId, $valior = NULL)
+    {
+    	// Проверка на датата
+    	if(!$valior){
+    		$valior = dt::today();
+    	} else {
+    		$Date = cls::get('type_Date');
+    		$valior = $Date->fromVerbal($valior);
+    		expect($valior, 'Невалидна дата');
+    	}
+    	
+    	expect(store_Stores::fetch($storeId), 'Няма такъв склад');
+    	
+    	// Подготовка на записа
+    	$rec = (object)array('valior'   => $valior, 
+    			             'storeId'  => $storeId, 
+    			             'state'    => 'draft',
+    			             'folderId' => store_Stores::forceCoverAndFolder($storeId));
+    	
+    	// Запис
+    	self::save($rec);
+    }
 }
