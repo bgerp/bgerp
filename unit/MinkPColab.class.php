@@ -104,7 +104,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('passRe', '123456');
         $browser->setValue('email', 'colab1@abv.bg');
         $browser->setValue('Headquarter', False);
-        $browser->setValue('collaborator', True);
+        $browser->setValue('partner', True);
         $browser->press('Запис');
         //return $browser->getHtml();
         

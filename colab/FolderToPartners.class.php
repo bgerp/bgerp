@@ -106,10 +106,8 @@ class colab_FolderToPartners extends core_Manager
 	{
 		$uQuery = core_Users::getQuery();
 		$uQuery->where("#state = 'active'");
-		$cId = core_Roles::fetchByName('contractor');
-		$pUserId = core_Roles::fetchByName('powerUser');
+		$cId = core_Roles::fetchByName('partner');
 		$uQuery->like('roles', "|{$cId}|");
-		$uQuery->like('roles', "|{$pUserId}|", FALSE);
 		$uQuery->show('id,names');
 		
 		$options = array();
@@ -279,7 +277,7 @@ class colab_FolderToPartners extends core_Manager
     public static function renderPartners($data, &$tpl)
     {
 		//if(!cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)) return;
-     
+  
 		$me = cls::get(get_called_class());
 		
 		$dTpl = getTplFromFile('colab/tpl/PartnerDetail.shtml');
@@ -523,7 +521,7 @@ class colab_FolderToPartners extends core_Manager
     	
     	// Задаваме дефолтните роли
     	$defRoles = array();
-    	foreach (array('collaborator') as $role){
+    	foreach (array('partner') as $role){
     		$id = core_Roles::fetchByName($role);
     		$defRoles[$id] = $id;
     	}

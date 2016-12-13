@@ -125,7 +125,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'sales,ceo,collaborator';
+    public $canPending = 'sales,ceo,partner';
     
     
     /**
@@ -404,7 +404,7 @@ class sales_Sales extends deals_DealMaster
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
-        if($hideRate == 'yes' && !haveRole('collaborator')){
+        if($hideRate == 'yes' && !haveRole('partner')){
         	$form->setField('currencyRate', 'input');
         }
         
@@ -834,7 +834,7 @@ class sales_Sales extends deals_DealMaster
     	core_Lg::push($rec->tplLang);
     	
     	$hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
-    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::haveRole('collaborator')){
+    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::haveRole('partner')){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     }

@@ -213,7 +213,7 @@ class bgerp_E extends core_Manager
         // Ако е колаборатор, рендираме неговия врапер
         $isContractor = FALSE;
         if (core_Packs::isInstalled('colab')){
-    		if (core_Users::haveRole('collaborator')) {
+    		if (core_Users::haveRole('partner')) {
     		    
     			$inst->currentTab = 'Нишка';
     			plg_ProtoWrapper::changeWrapper($inst, 'cms_ExternalWrapper');

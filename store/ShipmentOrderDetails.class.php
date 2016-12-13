@@ -199,7 +199,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			if(!core_Users::haveRole('collaborator')){
+    			if(!core_Users::haveRole('partner')){
     				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     			}
     		}

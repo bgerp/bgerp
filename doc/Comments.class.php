@@ -296,7 +296,7 @@ class doc_Comments extends core_Master
 	    
 	    if (core_Packs::isInstalled('colab')) {
 	        $rec = self::fetch($id);
-	        if (core_Users::haveRole('collaborator', $rec->createdB)) {
+	        if (core_Users::haveRole('partner', $rec->createdB)) {
 	            $res = 'opened';
 	        } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
 	            $res = 'closed';

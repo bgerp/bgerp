@@ -336,7 +336,7 @@ purchase_Services,list,bg,"Тук се съдържа списък на всич
 purchase_Services,edit,bg,Това е форма за редактиране/добавяне на Приемателен протокол. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Logistika-Dostavki/]Логистика » Доставки[/link]
 purchase_ClosedDeals,list,bg,"Тук се съдържа списък на всички ""Документи за приключване на покупка"". За повече информация прочетете: [link=http://www.bgerp.com/Bg/Logistika-Dostavki/]Логистика » Доставки[/link]"
 purchase_ClosedDeals,edit,bg,Това е форма за редактиране/добавяне на Документи за приключване на покупка. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Logistika-Dostavki/]Логистика » Доставки[/link]
-store_Products,list,bg,Тук се съдържа списък на палетираните в склада продукти. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
+store_Products,list,bg,Тук се съдържа списък на наличностите в склада. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
 store_Stores,list,bg,Тук се съдържа списък на всички складове на фирмата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
 store_Stores,edit,bg,Това е форма за редактиране/добавяне на склад на фирмата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
 store_Stores,single,bg,Това е общ изглед на складa на фирмата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
