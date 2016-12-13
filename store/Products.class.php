@@ -292,7 +292,7 @@ class store_Products extends core_Manager
      */
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if(haveRole('admin,debug')){
+    	if(haveRole('debug')){
     		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
     	}
     }
@@ -303,7 +303,7 @@ class store_Products extends core_Manager
      */
     public function act_Truncate()
     {
-    	requireRole('admin,debug');
+    	requireRole('debug');
     	 
     	// Изчистваме записите от моделите
     	store_Products::truncate();
