@@ -73,6 +73,12 @@ class cat_Params extends bgerp_ProtoParam
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,admin';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
