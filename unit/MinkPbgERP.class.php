@@ -186,10 +186,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('passRe', '123456');
         $browser->setValue('names', 'User1');
         $browser->setValue('email', 'u1@abv.bg');
-        //$browser->setValue('rolesInput[71]', '71');
-        $browser->setValue('admin', '1');
-        $browser->setValue('ceo', '12');
+        $browser->setValue('roleRank', 'ceo');
+        $browser->refresh('Запис');
+        $browser->setValue('roleTeams[15]', '15');
         $browser->press('Запис');
+        //дава грешка на паролите
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на потребител', 'info');
@@ -214,10 +215,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('passRe', '123456');
         $browser->setValue('names', 'Потребител 2');
         $browser->setValue('email', 'u2@abv.bg');
-        $browser->setValue('officer', '10');
+        $browser->setValue('roleRank', 'officer');
+        $browser->refresh('Запис');
+        $browser->setValue('roleTeams[15]', '15');
         //$browser->setValue('Дилър', '79');
-        //$browser->setValue('Главен офис', '13');
-        $browser->setValue('Headquarter', '15');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
