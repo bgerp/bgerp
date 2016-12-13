@@ -116,7 +116,13 @@ class sales_Sales extends deals_DealMaster
 	public $canSingle = 'ceo,sales';
     
 
-    /**
+	/**
+	 * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+	 */
+	public $canWriteExternal = 'distributor';
+	
+	
+	/**
      * Кой може да го активира?
      */
     public $canConto = 'ceo,sales,acc';
@@ -125,7 +131,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'sales,ceo,partner';
+    public $canPending = 'sales,ceo,distributor';
     
     
     /**
