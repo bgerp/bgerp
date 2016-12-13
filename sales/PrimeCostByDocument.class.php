@@ -104,8 +104,9 @@ class sales_PrimeCostByDocument extends core_Manager
 		$query->where("#{$Detail->masterKey} = {$id}");
 		$query->show('id');
 		$ids = arr::extractValuesFromArray($query->fetchAll(), 'id');
-		$ids = implode(',', $ids);
+		if(!count($ids)) return;
 		
+		$ids = implode(',', $ids);
 		self::delete("#detailClassId = {$Detail->getClassId()} AND #detailRecId IN ({$ids})");
 	}
 	
