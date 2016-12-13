@@ -84,7 +84,9 @@ class sales_PrimeCostByDocument extends core_Manager
 	 */
 	public static function on_CalcDelta(core_Mvc $mvc, $rec)
 	{
-		$rec->delta = ($rec->sellCost - $rec->primeCost) * $rec->quantity;
+		if(isset($rec->primeCost)){
+			$rec->delta = ($rec->sellCost - $rec->primeCost) * $rec->quantity;
+		}
 	}
 	
 	
