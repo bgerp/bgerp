@@ -622,6 +622,7 @@ class core_Users extends core_Manager
     		$data->form->title = 'Първоначална регистрация на администратор';
             cls::load('crm_Setup');
             $data->form->setDefault('country', drdata_Countries::getIdByName(BGERP_OWN_COMPANY_COUNTRY));
+            unset($mvc->_plugins['plg_SystemWrapper']);
     	}
     }
     
