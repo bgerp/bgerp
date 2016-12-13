@@ -206,7 +206,15 @@ class fileman_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = "fileman_reports_FileInfo";
-         
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+            array('title' => 'Регенериране', 'url' => array ('fileman_Indexes', 'regenerate', 'ret_url' => TRUE), 'params' => array('title' => 'Регенериране на ключови думи и индексирани записи')),
+    );
+    
     
     /**
      * Инсталиране на пакета

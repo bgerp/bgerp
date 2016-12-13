@@ -598,6 +598,8 @@ class cal_Tasks extends core_Master
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         $mvc->updateTaskToCalendar($rec->id);
+     
+        $mvc->calculateExpectationTime($rec);
     }
 
     
@@ -2156,7 +2158,7 @@ class cal_Tasks extends core_Master
 	    	$expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) - $rec->timeDuration);
 	    	$expEnd = $timeEnd;
 	    }
-	    
+
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
     }
