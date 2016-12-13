@@ -557,8 +557,8 @@ class core_Users extends core_Manager
                         array('external' => (object) array('title' => "Външен достъп", 'group' => TRUE)), 
                         $roleTypes['external']);
                 if(count($roleTypes['external'])) {
+                	$form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                     $form->setSuggestions('roleOthers', $otherRoles);
-                    $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                 }
             } elseif($rec->roleRank) {
                 $form->FNC('roleTeams', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Екипи,after=roleRang,input,mandatory');
