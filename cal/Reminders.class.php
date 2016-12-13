@@ -33,7 +33,7 @@ class cal_Reminders extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
-    				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin';
+    				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin,doc_plg_Close';
     
 
     /**
@@ -402,17 +402,7 @@ class cal_Reminders extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {  
-        if ($mvc->haveRightFor('single', $data->rec)) { 
-	            $data->toolbar->addBtn('Затваряне', array(
-	                    $mvc,
-	                    'Stop',
-	                    $data->rec->id
-	               ),
-	                array('ef_icon'=>'img/16/gray-close.png',
-	                	'title'=>'Спиране на напомнянето'
-	                ));     
-	     }
-	     
+       
 	     if ($mvc->haveRightFor('snooz', $data->rec)) {
 	         $data->toolbar->addBtn('Отлагане',array(
 	             'cal_ReminderSnoozes', 
@@ -423,10 +413,6 @@ class cal_Reminders extends core_Master
 	             array('ef_icon'=>'img/16/snooz.png', 
 	                    'title'=>'Отлагане на напомнянето'
 	         ));
-	     }
-
-	     if ($data->rec->state == 'closed' || $data->rec->state == 'active') {
-	     	$data->toolbar->removeBtn('btnActivate');
 	     }
 
         /*
@@ -498,11 +484,7 @@ class cal_Reminders extends core_Master
     		    if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
     		        $requiredRoles = 'no_one';
     		    }  
-    		    
-        		if($rec->state !== 'closed') {
-        		    $requiredRoles = 'no_one';
-        		}
-        		
+
         		if ($rec->notifySent !== 'yes' && !($rec->nextStartTime >= $last7days && $rec->nextStartTime <= dt::now())){
                     $requiredRoles = 'no_one';
         		}
@@ -667,36 +649,6 @@ class cal_Reminders extends core_Master
         }
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
-    }
-    
-    
-    /**
-     * Екшън за спиране
-     */
-    function act_Stop()
-    {
-        //Права за работа с екшън-а
-        requireRole('powerUser');
-       
-        //Очакваме да има такъв запис
-        expect($id = Request::get('id', 'int'));
-        
-        expect($rec = $this->fetch($id));
-        
-        //Очакваме потребителя да има права за спиране
-        $this->haveRightFor('stop', $rec);
-         
-        $link = array('cal_Reminders', 'single', $rec->id);
-        
-        //Променяме статуса на спрян
-        $recUpd = new stdClass(); 
-        $recUpd->id = $rec->id;
-        $recUpd->state = 'closed';
-        
-       	cal_Reminders::save($recUpd);
-       
-        // Редиректваме
-        return new Redirect($link, "|Успешно спряхте напомнянето");
     }
 
     
