@@ -525,6 +525,11 @@ class core_Users extends core_Manager
         
         if(!self::isUsersEmpty()) {
             $roleTypes = core_Roles::getGroupedOptions();
+            asort($roleTypes['job']);
+            asort($roleTypes['system']);
+            asort($roleTypes['position']);
+            asort($roleTypes['external']);
+
      
             $form->FNC('roleRank', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Ранг,after=rolesInput,input,mandatory,silent,refreshForm');
 
@@ -550,7 +555,6 @@ class core_Users extends core_Manager
             }
 
             $partnerR = core_Roles::fetchByName('partner');
-
 
             if($rec->roleRank == $partnerR) {
                 $otherRoles = arr::combine(

@@ -1998,6 +1998,12 @@ function refreshForm(form, removeFields) {
 	frm.find('input, select, textarea').css('cursor', 'wait');
     frm.find('#save, #saveAndNew').prop( "disabled", true );
 	
+    // Запазваме всички пароли преди ajax
+    var savedPwd = [];
+    $('input[type=password]').each(function(){
+      savedPwd[$(this).attr('name')] =  $(this).val();
+    });
+
 	var params = frm.serializeArray();
 
 	// Блокираме посочените полета да не се субмитват
@@ -2023,6 +2029,13 @@ function refreshForm(form, removeFields) {
 	}).done( function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
+     
+        // Възстановяваме запазените пароли
+        setTimeout(function(){
+            for (var k in savedPwd) { 
+                if($('[name=' + k + ']').val(savedPwd[k]) == '') 
+                    $('[name=' + k + ']').val(savedPwd[k]);}
+        },  600);
 	});
 }
 
