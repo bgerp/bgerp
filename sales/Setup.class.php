@@ -344,11 +344,14 @@ class sales_Setup extends core_ProtoSetup
      */
     function migrateRoles()
     {
-    	// Добавяне на дефолтни роли за бутоните
-    	foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
-    		$roles = ($const == 'SALES_ADD_BY_IMPORT_BTN') ? 'sales,ceo' : 'sales,ceo,distributor';
-    		$keylist = core_Roles::getRolesAsKeylist($roles);
-    		core_Packs::setConfig('sales', array($const => $keylist));
+    	if(core_Packs::isInstalled('colab')){
+    		
+    		// Добавяне на дефолтни роли за бутоните
+    		foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
+    			$roles = ($const == 'SALES_ADD_BY_IMPORT_BTN') ? 'sales,ceo' : 'sales,ceo,distributor';
+    			$keylist = core_Roles::getRolesAsKeylist($roles);
+    			core_Packs::setConfig('sales', array($const => $keylist));
+    		}
     	}
     }
     
