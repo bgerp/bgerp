@@ -314,4 +314,56 @@ class batch_InventoryNotes extends core_Master {
     	// Запис
     	self::save($rec);
     }
+    
+    
+    /**
+     * Добавя ред към документа за инвентаризация на партиди
+     * 
+     * @param int $noteId            - ид на документ
+     * @param mixed $productId       - ид/запис на артикул
+     * @param int $packagingId       - ид на опаковка/мярка
+     * @param double $packQuantity   - к-во на опаковката/мярката
+     * @param double $quantityInPack - к-во във опаковката/мярката
+     * @param string|NULL $batchOut  - изходяща партида
+     * @param string|NULL $batchIn   - входяща партида
+     * @return int                   - ид на записа
+     */
+    public static function addRow($noteId, $productId, $packagingId, $packQuantity, $quantityInPack, $batchOut = NULL, $batchIn = NULL)
+    {
+    	// Проверки на подадените параметри
+    	expect($rec = self::fetch($noteId), "Несъществуващ документ с ид {$noteId}");
+    	expect($rec->state == 'draft', 'Документа трябва да е чернова');
+    	
+    	expect($productRec = cat_Products::fetchRec($productId, 'id,measureId,canStore'), "Несъществуващ артикул '{$productRec->id}'");
+    	expect($productRec->canStore == 'yes', "Артикулът не е складируем");
+    	expect(cat_UoM::fetch($packagingId), "Несъществуваща опаковка '{$packagingId}'");
+    	expect($packagingId == $productRec->measureId || cat_products_Packagings::getPack($productRec->id, $packagingId), "Артикулът не поддържа такава опаковка/мярка");
+    	
+    	// Ако артикула няма партида, форсира му се
+    	batch_Defs::force($productRec->id, 'batch_definitions_Varchar');
+    	expect(isset($batchOut) || isset($batchIn), 'Няма подадена партида');
+    	$Double = cls::get('type_Double');
+    	expect($packQuantity = $Double->fromVerbal($packQuantity), 'Невалидно количество');
+    	expect($quantityInPack = $Double->fromVerbal($quantityInPack), 'Невалидно количество');
+    	
+    	// Подадените партиди трябва да са валидни
+    	foreach (array($batchIn, $batchOut) as $batch){
+    		if(isset($batch)){
+    			$Def = batch_Defs::getBatchDef($productRec->id);
+    			expect($Def->isValid($batch, $packQuantity * $quantityInPack, $msg), tr($msg));
+    		}
+    	}
+    	
+    	// Подготовка на записа
+    	$rec = (object)array('noteId'         => $noteId, 
+    			             'productId'      => $productRec->id, 
+    			             'packagingId'    => $packagingId, 
+    			             'quantityInPack' => $quantityInPack, 
+    			             'quantity'       => $packQuantity * $quantityInPack, 
+    			             'batchOut'       => $batchOut, 
+    			             'batchIn'        => $batchIn);
+    	
+    	// Запис
+    	return batch_InventoryNoteDetails::save($rec);
+    }
 }
