@@ -495,7 +495,7 @@ class colab_FolderToPartners extends core_Manager
     	
     	$form = $Users->getForm();
     	$form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory,after=names');
-    	$companyName = crm_Companies::getVerbal($companyId, 'name');
+    	$companyName = crm_Companies::getHyperlink($companyId, TRUE);
     	$form->title = "Нов партньор от|* <b>{$companyName}</b>";
     	
     	$form->setDefault('country', $companyRec->country);
@@ -526,11 +526,15 @@ class colab_FolderToPartners extends core_Manager
     		$defRoles[$id] = $id;
     	}
     	
+    	$form->setDefault('roleRank', core_Roles::fetchByName('partner'));
     	$Users->invoke('AfterPrepareEditForm', array((object)array('form' => $form), (object)array('form' => $form)));
     	$form->setDefault('state', 'active');
+    	$form->setField('roleRank', 'input=hidden');
+    	$form->setField('roleOthers', "caption=Достъп за външен потребител->Роли");
     	
     	if(!$Users->haveRightFor('add')){
     		$form->setField('rolesInput', 'input=hidden');
+    		$form->setField('roleOthers', 'input=hidden');
     		$form->setField('state', 'input=hidden');
     	}
     	
