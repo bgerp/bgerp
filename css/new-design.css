@@ -794,9 +794,11 @@ button {
 .narrow .dimension input.button {
   border: none !important; }
 
-input.linkWithIcon,
-a.linkWithIcon {
+input.linkWithIcon {
   padding-left: 25px !important; }
+
+a.linkWithIcon {
+  padding-left: 22px !important; }
 
 .small .linkWithIcon {
   height: 16px !important;
