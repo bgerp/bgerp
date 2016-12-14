@@ -188,14 +188,18 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('email', 'u1@abv.bg');
         $browser->setValue('roleRank', 'ceo');
         $browser->refresh('Запис');
-        $browser->setValue('roleTeams[15]', '15');
+        //$browser->setValue('roleTeams[13]', '13');
+        $browser->setValue('Headquarter', '13');
+        //return $browser->getHtml();
+        //Повтаряне на паролите, 
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
         $browser->press('Запис');
-        //дава грешка на паролите
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на потребител', 'info');
         }
-        //return $browser->getHtml();
+        return $browser->getHtml();
     }
     
     /**
@@ -217,14 +221,18 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('email', 'u2@abv.bg');
         $browser->setValue('roleRank', 'officer');
         $browser->refresh('Запис');
-        $browser->setValue('roleTeams[15]', '15');
-        //$browser->setValue('Дилър', '79');
+        $browser->setValue('roleTeams[13]', '13');
+        $browser->setValue('Дилър', '79');
+        //Повтаряне на паролите, 
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
+         
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на потребител', 'info');
         }
-        //return $browser->getHtml();
+        return $browser->getHtml();
     }
     
     /**
