@@ -53,6 +53,11 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
+		// Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
+		if(batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))){
+			return TRUE;
+		}
+		
 		$serials = $this->normalize($value);
 		$serials = $this->makeArray($serials);
 		$count = count($serials);

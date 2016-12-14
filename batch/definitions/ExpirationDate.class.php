@@ -69,6 +69,11 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	{
 		if($value == $this->getAutoValueConst()) return TRUE;
 		
+		// Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
+		if(batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))){
+			return TRUE;
+		}
+		
 		// Карта
 		$map = array();
 		$map['m'] = "(?'month'[0-9]{2})";

@@ -113,6 +113,7 @@ class batch_Defs extends embed_Manager {
     	// Сортиране на записите по num
     	$data->query->orderBy('id');
     }
+  
     
     /**
      * Преди показване на форма за добавяне/промяна
