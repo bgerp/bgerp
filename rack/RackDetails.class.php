@@ -68,6 +68,8 @@ class rack_RackDetails extends core_Detail
      */
     var $canDelete = 'ceo, rackMaster';
     
+
+    var $listFields = 'row,col,status';
     
     /**
      * Описание на модела
@@ -75,11 +77,42 @@ class rack_RackDetails extends core_Detail
     function description()
     {
         $this->FLD('rackId', 'key(mvc=rack_Racks)', 'caption=Стелаж, input=hidden');
-        $this->FLD('row', 'varchar(1)', 'caption=Ред');
-        $this->FLD('col', 'int', 'caption=Колона');
+        $this->FLD('row', 'varchar(1)', 'caption=Ред,smartCenter');
+        $this->FLD('col', 'int', 'caption=Колона,smartCenter');
         $this->FLD('status', 'enum(usable=Използваемо,
                                    unusable=Неизползваемо,
                                    reserved=Резервирано                                     
-                                   )', 'caption=Състояние');
+                                   )', 'caption=Състояние,smartCenter');
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+
+        expect($rec->rackId);
+        $rRec = rack_Racks::fetch($rec->rackId);
+
+        $r = 'A';
+        do {
+            $o[$r] = $r;
+            $r = chr(ord($r)+1);
+        } while($r <= $rRec->rows);
+        $form->setOptions('row', $o);
+
+        $c = 1;
+        do {
+            $o2[$c] = $c;
+            $c++;
+        } while($c <= $rRec->columns);
+        $form->setOptions('col', $o2);
+
     }
 }
