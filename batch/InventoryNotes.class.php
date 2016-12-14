@@ -25,7 +25,7 @@ class batch_InventoryNotes extends core_Master {
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper,batch_plg_DocumentMovement, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, batch_Wrapper,batch_plg_DocumentMovement, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, doc_plg_SelectFolder';
     
     
     /**
@@ -38,6 +38,14 @@ class batch_InventoryNotes extends core_Master {
      * Групиране на документите
      */
     public $newBtnGroup = "4.9|Логистика";
+    
+    
+    /**
+     * Интерфейси които да имат кориците на документа
+     * 
+     * @see doc_plg_SelectFolder
+     */
+    public $coversAndInterfacesForNewDoc = 'store_Stores';
     
     
     /**
