@@ -306,7 +306,7 @@ function scrollToHash(){
 
 
 function disableScale() {
-    if (isTouchDevice() && $('body').hasClass('narrow')) {
+    if (isTouchDevice()) {
         $('meta[name=viewport]').remove();
         $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
     }
