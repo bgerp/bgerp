@@ -71,7 +71,7 @@ function initElements() {
 	$('#nav-panel li a').on('click', function(e){
 		setMenuCookie();
 	});
-	
+
 	$(window).focus(function() {
 		setCookie('menuInfo', currentMenuInfo);
 	});
@@ -306,7 +306,7 @@ function scrollToHash(){
 
 
 function disableScale() {
-    if (isTouchDevice()) {
+    if (isTouchDevice() && $('body').hasClass('narrow')) {
         $('meta[name=viewport]').remove();
         $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
     }

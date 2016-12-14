@@ -1073,10 +1073,7 @@ function prepareContextMenu() {
     });
 }
 
-/**
- * Действия на табовете в мобилен
- */
-function portalTabs() {
+function openCurrentTab(){
     if(!$('body').hasClass('modern-theme')) return;
     var current;
     // взимаме данните за портала в бисквитката
@@ -1098,6 +1095,12 @@ function portalTabs() {
     $(tab).addClass('activeTab');
     $(tab).siblings().removeClass('activeTab');
 
+    portalTabsChange();
+}
+/**
+ * Действия на табовете в мобилен
+ */
+function portalTabsChange() {
     $('ul.portalTabs li').click(function(){
         var tab_id = $(this).attr('data-tab');
         $('ul.portalTabs li').removeClass('activeTab');
@@ -1506,7 +1509,6 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
-
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
