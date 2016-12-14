@@ -3369,7 +3369,8 @@ div.location.public {
 
 .narrow .portal-filter {
   margin-left: 5px;
-  min-width: 20px; }
+  min-width: 20px;
+  float: left; }
 
 .portal-filter .hFormField {
   width: 7.5em;
@@ -3475,18 +3476,17 @@ div.location.public {
     padding: 5px 5px 8px 5px;
     border-radius: 5px 5px 0 0;
     list-style: none;
-    border: 1px solid #aaaaaa;
+    border: 1px solid #cccccc;
     border-bottom: none;
-    background: #bbbbbb;
+    background: #eeeeee;
     font-size: 0.9em;
     position: relative;
     bottom: -12px;
-    color: #444444; }
+    color: #888888; }
     .modern-theme .portalTabs .tab-link.activeTab,
     .modern-theme .portalTabs .tab-link:hover {
-      border-color: #cccccc;
       color: black;
-      background: #fafafa;
+      background: white;
       z-index: 20; }
 
 /*

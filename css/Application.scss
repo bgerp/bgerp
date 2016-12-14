@@ -3752,6 +3752,7 @@ div.location.public {
 .narrow .portal-filter {
 	margin-left: 5px;
 	min-width: 20px;
+	float: left;
 }
 
 .portal-filter .hFormField {
@@ -3867,17 +3868,16 @@ div.location.public {
 		padding: 5px 5px 8px 5px;
 		border-radius: 5px 5px 0 0;
 		list-style: none;
-		border: 1px solid #aaa;
+		border: 1px solid #ccc;
 		border-bottom: none;
-		background: #bbb;
+		background: #eee;
 		font-size: 0.9em;
 		position: relative;
 		bottom: -12px;
-		color: #444;
+		color: #888;
 		&.activeTab, &:hover {
-			border-color: #ccc;
 			color: #000;
-			background: #fafafa;
+			background: #fff;
 			z-index: 20;
 		}
 	}

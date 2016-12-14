@@ -187,13 +187,32 @@ body {
     margin-left: -15px;
     margin-right: -15px;
     padding: 10px 15px 10px;
-    background: #fafafa !important;
+    background: #f1f1f1 !important;
     border: none;
     position: relative;
     top: 0;
     border-radius: 0 !important;
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
+
+.narrow .portal {
+  box-shadow: none;
+  border: none !important; }
+  .narrow .portal .legend {
+    background: white !important;
+    border: 1px solid #cccccc;
+    box-shadow: none; }
+  .narrow .portal .portal-filter {
+    margin-bottom: 3px;
+    margin-left: -6px; }
+  .narrow .portal .hFormField {
+    border-color: #e1e1e1; }
+  .narrow .portal input {
+    padding: 2px 5px;
+    height: auto !important;
+    box-shadow: none; }
+  .narrow .portal .SearchBtnPortal {
+    margin-right: 5px !important; }
 
 .portal.acc-summary {
   background: none !important;
