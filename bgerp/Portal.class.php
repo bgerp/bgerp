@@ -149,7 +149,7 @@ class bgerp_Portal extends core_Manager
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
             $tpl->append($tasksTpl, 'TASK_COLUMN');
 
-            jquery_Jquery::run($tpl, "portalTabs();");
+            jquery_Jquery::run($tpl, "openCurrentTab();");
         } else {
             $tpl->append($tasksTpl, 'RIGHT_COLUMN');
             $tpl->append($calendarHeader, 'RIGHT_COLUMN');

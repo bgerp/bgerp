@@ -446,6 +446,13 @@ input[type="search"]::-webkit-search-decoration {
     -webkit-appearance: none;
 }
 
+/**
+ * Remove the arrow in input when there is list
+ */
+input::-webkit-calendar-picker-indicator {
+	display: none;
+}
+
 #simpleSearch {
 	width:15em;
 	max-width:100%;
