@@ -45,7 +45,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
      */
     function isValid($value, $quantity, &$msg)
     {
-    	return $this->class->isValid($value, $msg);
+    	return $this->class->isValid($value, $quantity, $msg);
     }
     
     
