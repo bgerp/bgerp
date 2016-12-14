@@ -41,9 +41,11 @@ class doc_plg_Close extends core_Plugin
             if($mvc->hasPlugin('doc_FolderPlg')) {
                 $activeMsg = 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея|*?';
                 $closeMsg = 'Сигурни ли сте, че искате да закриете тази папка и да не може да се добавят документи в нея|*?';
+                $closeBtn = "Закриване||Close";
             } else {
                 $activeMsg = 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея|*?';
                 $closeMsg = 'Сигурни ли сте, че искате да закриете тази нишка и да не може да се добавят документи в нея|*?';
+            	$closeBtn = "Затваряне||Close";
             }
 
     		if($data->rec->state == 'closed'){
@@ -51,7 +53,7 @@ class doc_plg_Close extends core_Plugin
     			$data->toolbar->setWarning('btnActivate', $activeMsg);
     		
     		} elseif($data->rec->state == 'active' || $data->rec->state == 'template'){
-    			$data->toolbar->addBtn("Закриване||Close", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnClose,row=2,ef_icon = img/16/lock.png,title=Закриване на {$singleTitle}");
+    			$data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnClose,row=2,ef_icon = img/16/gray-close.png,title=Закриване на {$singleTitle}");
     			$data->toolbar->setWarning('btnClose', $closeMsg);
     		}
     	}
