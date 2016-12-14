@@ -326,7 +326,6 @@ class sales_Setup extends core_ProtoSetup
     		core_Packs::setConfig('sales', array('SALE_INVOICE_DEF_TPL_EN' => $key));
     	}
     	
-    	
     	$defRoles = (core_Packs::isInstalled('colab')) ? 'sales,ceo,distributor' : 'sales,ceo';
     	
     	// Добавяне на дефолтни роли за бутоните

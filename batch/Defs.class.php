@@ -31,7 +31,13 @@ class batch_Defs extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId';
     
     
     /**
@@ -88,6 +94,27 @@ class batch_Defs extends embed_Manager {
     
     
     /**
+     * Подредба на записите
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->FLD('type', "class(interface={$mvc->driverInterface},select=title,allowEmpty)", 'caption=Тип,silent');
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search,type';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input();
+    	
+    	if($data->listFilter->isSubmitted()){
+    		if($type = $data->listFilter->rec->type){
+    			$data->query->where("#driverClass = {$type}");
+    		}
+    	}
+    	
+    	// Сортиране на записите по num
+    	$data->query->orderBy('id');
+    }
+    
+    /**
      * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
@@ -96,6 +123,12 @@ class batch_Defs extends embed_Manager {
     	
     	$storable = cat_Products::getByProperty('canStore');
     	$form->setOptions('productId', array('' => '') + $storable);
+    	
+    	if(isset($form->rec->productId)){
+    		if(batch_Items::fetchField("#productId = {$form->rec->productId}")){
+    			$form->setReadOnly('productId');
+    		}
+    	}
     }
     
     
@@ -295,6 +328,19 @@ class batch_Defs extends embed_Manager {
     		$rec = (object)array('productId' => $productRec->id, 'driverClass' => $Class->getClassId());
     		
     		return self::save($rec);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec)){
+    		if(batch_Items::fetchField("#productId = {$rec->productId}")){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
 }
