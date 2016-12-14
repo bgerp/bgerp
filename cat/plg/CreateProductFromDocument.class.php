@@ -92,6 +92,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			// Поле за прототип
 			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,mandatory,silent,before=proto,removeAndRefreshForm=proto|packPrice|discount|packagingId|tolerance,mandatory");
 			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,before=packagingId");
+			$form->setField('packPrice', 'mandatory');
 			
 			if(isset($cloneRec)){
 				$innerClass = cat_Products::fetchField($cloneRec->productId, 'innerClass');
