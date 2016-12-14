@@ -494,12 +494,10 @@ class colab_FolderToPartners extends core_Manager
     	}
     	
     	$form = $Users->getForm();
-    	$form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory,after=names');
     	$companyName = crm_Companies::getHyperlink($companyId, TRUE);
     	$form->title = "Нов партньор от|* <b>{$companyName}</b>";
     	
     	$form->setDefault('country', $companyRec->country);
-    	$form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
 
         // Ако имаме хора от crm_Persons, които принадлежат на тази компания, и нямат свързани профили,
         // добавяме поле, преди nick, за избор на такъв човек. Ако той се подаде, данните за потребителя се вземат частично

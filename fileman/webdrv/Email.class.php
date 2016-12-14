@@ -158,7 +158,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     {
         // Текстовата част
         $textPart = $mime->justTextPart;
-         
+        
         if(!$textPart && $mime->textPart) {
             Mode::push('text', 'plain');
             $rt = new type_Richtext();
@@ -238,6 +238,11 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Инстанция на класа
         $mime = cls::get('email_Mime');
         
+        // Вземаме съдържанието на eml файла
+        $source = static::getSource($fRec);
+        
+        $mime->parseAll($source);
+        
         // В зависимост от типа пускаме различни методи
         switch ($type) {
             
@@ -310,5 +315,29 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     static function checkTextPart($mime)
     {
         if (trim($mime->getJustTextPart())) return TRUE;
+    }
+    
+    
+	/**
+     * Извлича текстовата част от файла
+     * 
+     * @param object $fRec - Записите за файла
+     */
+    static function extractText($fRec)
+    {
+        // Вземаме текстовата част
+        $textPart = static::getInfoContentByFh($fRec->fileHnd, 'text');
+        
+        $textPart = mb_strcut($textPart, 0, 1000000);
+        
+        $textPart = i18n_Charset::convertToUtf8($textPart);
+        
+        $params = array();
+        $params['dataId'] = $fRec->dataId;
+        $params['type'] = 'text';
+        $params['createdBy'] = core_Users::getCurrent();
+        $params['content'] = $textPart;
+        
+        fileman_Indexes::saveContent($params);
     }
 }

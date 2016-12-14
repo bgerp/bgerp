@@ -161,4 +161,28 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         return $content;
     }
+    
+    
+	/**
+     * Извлича текстовата част от файла
+     * 
+     * @param object $fRec - Записите за файла
+     */
+    static function extractText($fRec)
+    {
+        // Вземаме текстовата част
+        $htmlPart = static::getInfoContentByFh($fRec->fileHnd, 'text');
+        
+        $htmlPart = mb_strcut($htmlPart, 0, 1000000);
+        
+        $htmlPart = i18n_Charset::convertToUtf8($htmlPart);
+        
+        $params = array();
+        $params['dataId'] = $fRec->dataId;
+        $params['type'] = 'text';
+        $params['createdBy'] = core_Users::getCurrent();
+        $params['content'] = $htmlPart;
+        
+        fileman_Indexes::saveContent($params);
+    }
 }
