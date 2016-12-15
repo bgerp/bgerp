@@ -175,7 +175,18 @@ class core_Users extends core_Manager
      */
     public $runCron = FALSE;
     
+
+    /**
+     * Кой има право да променя потребителите, създадени от системата?
+     */
+    public $canEditsysdata = 'admin';
     
+    
+    /**
+     * Кой има право да изтрива потребителите, създадени от системата?
+     */
+    public $canDeletesysdata = 'admin';
+
     
     /**
      * Описание на полетата на модела
@@ -376,7 +387,7 @@ class core_Users extends core_Manager
         
         if (is_null($rec)) return FALSE;
         
-        if (!is_object($rec)) {
+        if (is_numeric($rec)) {
             $rec = self::fetch($rec);
         }
         
