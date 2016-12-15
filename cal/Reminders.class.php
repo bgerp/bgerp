@@ -33,7 +33,7 @@ class cal_Reminders extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
-    				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin,doc_plg_Close';
+    				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin,doc_plg_Close,doc_plg_SelectFolder';
     
 
     /**
@@ -184,6 +184,12 @@ class cal_Reminders extends core_Master
      * Масив с id на напомненията, които отварят нишки в този хит
      */
     static $opened = array();
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
 
 
     /**
