@@ -116,7 +116,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
-        return $browser->getHtml();
+        //return $browser->getHtml();
         
     }
     
@@ -159,7 +159,7 @@ class unit_MinkPColab extends core_Manager {
         //Запитване
         $browser->click('Теми');
         $browser->press('Запитване');
-        $browser->setValue('title', 'Запитване от колаборатор');
+        $browser->setValue('title', 'Запитване от агент');
         $browser->setValue('inqDescription', 'Чували');
         $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
@@ -195,14 +195,18 @@ class unit_MinkPColab extends core_Manager {
         //$browser->setValue('Headquarter', False);
         //$browser->setValue('partner', True);
         $browser->setValue('roleRank', 'partner');
+        $browser->refresh('Запис');
         $browser->setValue('roleOthers[85]', '85');
+        //Повтаряне на паролите,
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
         $browser->press('Запис');
         //return $browser->getHtml();
     
     }
     
     /**
-     * 3. Даване на права до папката на фирмата и изход
+     * 6. Даване на права до папката на фирмата и изход
      */
     //http://localhost/unit_MinkPColab/AddDistrRights/
     function act_AddDistrRights()
@@ -223,7 +227,7 @@ class unit_MinkPColab extends core_Manager {
     }
     
     /**
-     * 4. Логване на колаборатора, запитване и продажба
+     * 7. Логване на distr, запитване и продажба
      */
     //http://localhost/unit_MinkPColab/LogDistr/
     function act_LogDistr()
@@ -242,10 +246,12 @@ class unit_MinkPColab extends core_Manager {
         //Продажба 
         $browser->click('Теми');
         $browser->press('Продажба');
-        $browser->setValue('reff', 'от колаборатор');
+        $browser->setValue('reff', 'от distr');
         $browser->press('Запис');
         
         // Добавяне на артикул
+        //За целта трябва distributor да има права за добавяне на артикули в продажба
+        // Да се добавят!
         $browser->press('Артикул');
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
