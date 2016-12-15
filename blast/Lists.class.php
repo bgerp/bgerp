@@ -44,7 +44,8 @@ class blast_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, bgerp_plg_Blank, plg_Clone';
+    var $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, 
+                     bgerp_plg_Blank, plg_Clone, doc_plg_SelectFolder';
     
     
     /**
@@ -154,6 +155,12 @@ class blast_Lists extends core_Master
      */
     public $showLetterHead = TRUE;
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+   
     
     /**
      * Описание на модела (таблицата)

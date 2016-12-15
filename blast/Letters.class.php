@@ -117,7 +117,8 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, 
+                     change_Plugin, plg_Printing, plg_Clone, doc_plg_SelectFolder';
     
     
     /**
@@ -167,6 +168,12 @@ class blast_Letters extends core_Master
      */
     public $canClonerec = 'ceo, blast';
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела

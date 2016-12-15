@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  *
@@ -160,7 +160,8 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, 
+                        change_Plugin, plg_Search, plg_Clone, doc_plg_SelectFolder';
     
     
     /**
@@ -199,6 +200,12 @@ class blast_Emails extends core_Master
      */
     protected static $cronSytemId = 'SendEmails';
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела
