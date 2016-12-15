@@ -118,7 +118,7 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('limitQuantity', '100');
             $browser->setValue('item1', 'Склад 1 (1 st)');
             //Екип "Headquarter"
-            $browser->setValue('sharedUsers[15_1]', '15_1');
+            $browser->setValue('sharedUsers[13_1]', '13_1');
             $browser->press('Запис');
             
             //Добавяне на себестойност
