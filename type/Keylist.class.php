@@ -168,6 +168,10 @@ class type_Keylist extends core_Type {
         if(!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
+
+        if($value === NULL) {
+            $emptyValue = TRUE;
+        }
         
         if(!$value) {
             $values = array();
@@ -196,6 +200,11 @@ class type_Keylist extends core_Type {
         	
         	$groupOpen = 0;
         	$addKeylistWide = FALSE;
+
+            if(count($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
+                $key = key($this->suggestions);
+                $values[$key] = $key;
+            }
         	
             foreach($this->suggestions as $key => $v) {
                 
