@@ -88,8 +88,6 @@ class unit_MinkPListProduct extends core_Manager {
     
         //Отваряне корицата на фирмата
         $browser = $this->SetFirm();
-        
-      
         $browser->click('Търговия');
        
         // Добавяне на артикул
@@ -157,13 +155,13 @@ class unit_MinkPListProduct extends core_Manager {
        
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Шестдесет и един BGN и 0,73')) {
+        if(strpos($browser->gettext(), 'Деветстотин двадесет и пет BGN и 0,73')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         //Проверка на статистиката
-        if(strpos($browser->gettext(), '61,73 61,73 0,00 0,00')) {
+        if(strpos($browser->gettext(), '925,73 925,73 0,00 0,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
@@ -179,7 +177,6 @@ class unit_MinkPListProduct extends core_Manager {
     
         // Логване
         $browser = $this->SetUp();
-        //return $browser->getHtml();
         //Отваряне корицата на фирмата
         $browser = $this->SetFirmEUR();
        
@@ -190,9 +187,10 @@ class unit_MinkPListProduct extends core_Manager {
      
         $browser->setValue('from', 'Група');
         //return $browser->getHtml(); 
-        $browser->refresh('Импорт');
+        //$browser->refresh('Импорт');
        
-        return $browser->getHtml();
+        //return $browser->getHtml();
+        //$browser->setValue('Ценова група » Промоция', '15');
         $browser->setValue('group', 'Ценова група » Промоция');
       
         // Записване на списъка
