@@ -32,7 +32,7 @@ class survey_Surveys extends core_Master {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, survey_Wrapper,  plg_Printing,plg_Clone,
-     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg';
+     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg, doc_plg_SelectFolder';
     
     
     /**
@@ -118,6 +118,12 @@ class survey_Surveys extends core_Master {
      */
     public $onlyFirstInThread = TRUE;
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела (таблицата)
