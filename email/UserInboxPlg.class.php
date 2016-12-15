@@ -119,7 +119,7 @@ class email_UserInboxPlg extends core_Plugin
             }
             
             //Проверяваме дали имаме папка със същото име и дали някой е собственик
-            expect (!$this->checkFolderCharge($rec), "Моля въведете друг Ник. Папката е заета от друг потребител.");
+            expect (core_Users::isContractor($rec) || !$this->checkFolderCharge($rec), "Моля въведете друг Ник. Папката е заета от друг потребител.");
         }
     } 
     
@@ -138,7 +138,7 @@ class email_UserInboxPlg extends core_Plugin
             //Ако имаме inCharge
             if ($inCharge) {
                 //Ако потребителя не е собственик на новата папка показваме грешка
-                if ($form->rec->id != $inCharge) {
+                if (core_Users::isPowerUser($form->rec) && ($form->rec->id != $inCharge)) {
                     $form->setError('nick', "Моля въведете друг|* '{$form->fields['nick']->caption}'. |Папката е заета от друг потребител.");
                 }
             }
@@ -233,7 +233,7 @@ class email_UserInboxPlg extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
     {
         if($action == 'delete') {
-            if(is_object($uRec) && ($uRec->state != 'draft')) {
+            if(is_object($uRec) && (($uRec->state != 'draft') || $uRec->lastLoginTime || doc_Folders::fetch("#inCharge = {$uRec->id}"))) {
                 $roles = 'no_one';
             }
         }
