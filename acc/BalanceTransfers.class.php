@@ -32,7 +32,7 @@ class acc_BalanceTransfers extends core_Master
 	/**
 	 * Неща, подлежащи на начално зареждане
 	 */
-	public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg';
+	public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_SelectFolder';
 	
 	
 	/**
@@ -120,6 +120,12 @@ class acc_BalanceTransfers extends core_Master
 	 */
 	public $newBtnGroup = "6.7|Счетоводни";
 	
+	
+	/**
+	 * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+	 */
+	public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
 	
 	/**
 	 * Описание на модела

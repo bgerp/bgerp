@@ -39,7 +39,7 @@ class acc_Articles extends core_Master
      */
     public $loadList = 'plg_RowTools2, plg_Clone, plg_Printing, doc_plg_HidePrices,doc_plg_Prototype,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
+                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search, doc_plg_SelectFolder';
     
     
     /**
@@ -145,6 +145,12 @@ class acc_Articles extends core_Master
      */
     public $canUseClosedItems = FALSE;
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела

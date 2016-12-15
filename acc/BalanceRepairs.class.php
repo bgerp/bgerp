@@ -38,7 +38,7 @@ class acc_BalanceRepairs extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools2, plg_Clone, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank';
+                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, doc_plg_SelectFolder';
     
     
     /**
@@ -138,6 +138,12 @@ class acc_BalanceRepairs extends core_Master
      */
     var $newBtnGroup = "6.4|Счетоводни";
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела
