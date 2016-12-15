@@ -124,7 +124,7 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, doc_plg_SelectFolder';
     
     
     /**
@@ -167,6 +167,12 @@ class email_Outgoings extends core_Master
      * Групиране на документите
      */
     var $newBtnGroup = "1.2|Общи";
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = '*';
     
     
     /**
