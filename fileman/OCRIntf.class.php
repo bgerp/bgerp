@@ -24,7 +24,7 @@ class fileman_OCRIntf
     /**
      * Проверка дали може да се пуска OCR обработка
      * 
-     * @param stdObject $fRec
+     * @param stdObject|string $fRec
      */
     function canExtract($fRec)
     {
@@ -46,7 +46,7 @@ class fileman_OCRIntf
     /**
      * Функция за извличане на текст
      * 
-     * @param stdObject $fRec
+     * @param stdObject|string $fRec
      */
     function getTextByOcr($fRec)
     {
@@ -58,7 +58,7 @@ class fileman_OCRIntf
     /**
      * Бърза проврка дали има смисъл от OCR-ване на текста
      * 
-     * @param stdObject $fRec
+     * @param stdObject|string $fRec
      */
     function haveTextForOcr($fRec)
     {

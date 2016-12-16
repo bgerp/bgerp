@@ -233,14 +233,41 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 }
             
                 if (!$drvInst) continue;
-            
+                
+                $eText = '';
                 try {
                     $extractedCnt++;
                     // Извличаме текстовата част от драйвера
-                    $text .= ' ' . $drvInst->extractText($extractedPath);
+                    $eText = $drvInst->extractText($extractedPath);
                 } catch (ErrorException $e) {
                     reportException($e);
                 }
+                
+                // Ако няма текст, правим опит да направим OCR
+                if (!trim($eText)) {
+                    $minSize = fileman_Indexes::$ocrIndexArr[$ext];
+                    $eFileLen = filesize($extractedPath);
+                    if (isset($minSize) && ($eFileLen > $minSize) && ($eFileLen < fileman_Indexes::$ocrMax)) {
+                        
+                        $filemanOcr = fileman_Setup::get('OCR');
+                        
+                        if ($filemanOcr && cls::load($filemanOcr, TRUE)) {
+                            $intf = cls::getInterface('fileman_OCRIntf', $filemanOcr);
+                            
+                            if ($intf && $intf->canExtract($extractedPath) && $intf->haveTextForOcr($extractedPath)) {
+                                try {
+                                    $eText = $intf->getTextByOcr($extractedPath);
+                                    
+                                    fileman_Data::logDebug('OCR обработка на файл в архив - ' . $path, $params['dataId']);
+                                } catch (ErrorException $e) {
+                                    reportException($e);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                $text .= ' ' . $eText;
             }
             
             // Изтриваме временните файлове
