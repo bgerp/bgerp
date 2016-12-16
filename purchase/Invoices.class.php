@@ -92,6 +92,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'purchaseMaster, ceo';
+    
+    
+    /**
      * Кой може да го контира?
      */
     public $canConto = 'ceo,invoicer';

@@ -88,6 +88,13 @@ class purchase_Services extends deals_ServiceMaster
      */
     public $canConto = 'ceo, purchase';
     
+    
+    /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'purchaseMaster, ceo';
+    
+    
     /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */

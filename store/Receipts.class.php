@@ -80,6 +80,12 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'storeMaster, ceo';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canChangeline = 'ceo,store';
