@@ -93,12 +93,6 @@ class findeals_DebitDocuments extends deals_Document
     
     
     /**
-     * Кой може да го оттегля
-     */
-    public $canRevert = 'findeals, ceo';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'findeals/tpl/SingleLayoutDebitDocument.shtml';

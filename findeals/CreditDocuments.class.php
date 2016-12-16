@@ -69,12 +69,6 @@ class findeals_CreditDocuments extends deals_Document
     
     
     /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'findeals, ceo';
-    
-    
-    /**
      * Кой има право да чете?
      */
     public $canRead = 'findeals, ceo';
