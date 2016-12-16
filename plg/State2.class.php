@@ -206,4 +206,23 @@ class plg_State2 extends core_Plugin
     {
         $where .= ($where ? " AND " : "") . " #state = 'active'";
     }
+
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($action == 'changestate' && !isset($mvc->changeState) && $requiredRoles != 'no_one' && is_object($rec) && $rec->id) {
+            $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
+        }
+    }
+
+    
 }
