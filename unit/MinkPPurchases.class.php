@@ -48,8 +48,8 @@ class unit_MinkPPurchases extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
+        //$browser->start('http://localhost/');
+        $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -777,6 +777,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '105');
         $browser->press('Чернова');
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
@@ -790,6 +791,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '106');
         $browser->press('Чернова');
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
@@ -814,6 +816,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '108');
         $browser->press('Чернова');
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
@@ -827,6 +830,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '109');
         $browser->press('Чернова');
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
@@ -916,6 +920,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '112');
         $browser->press('Чернова');
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
@@ -929,6 +934,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '113');
         $browser->press('Чернова');
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
@@ -952,7 +958,8 @@ class unit_MinkPPurchases extends core_Manager {
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->setValue('number', '115');
-        $browser->press('Чернова');
+        $browser->press('Чернова');       
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
@@ -966,6 +973,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '116');
         $browser->press('Чернова');
+        //$browser->click('Edit');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');

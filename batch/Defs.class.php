@@ -31,7 +31,13 @@ class batch_Defs extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId';
     
     
     /**
@@ -88,6 +94,28 @@ class batch_Defs extends embed_Manager {
     
     
     /**
+     * Подредба на записите
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->FLD('type', "class(interface={$mvc->driverInterface},select=title,allowEmpty)", 'caption=Тип,silent');
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search,type';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input();
+    	
+    	if($data->listFilter->isSubmitted()){
+    		if($type = $data->listFilter->rec->type){
+    			$data->query->where("#driverClass = {$type}");
+    		}
+    	}
+    	
+    	// Сортиране на записите по num
+    	$data->query->orderBy('id');
+    }
+  
+    
+    /**
      * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
@@ -96,6 +124,12 @@ class batch_Defs extends embed_Manager {
     	
     	$storable = cat_Products::getByProperty('canStore');
     	$form->setOptions('productId', array('' => '') + $storable);
+    	
+    	if(isset($form->rec->productId)){
+    		if(batch_Items::fetchField("#productId = {$form->rec->productId}")){
+    			$form->setReadOnly('productId');
+    		}
+    	}
     }
     
     
@@ -235,14 +269,16 @@ class batch_Defs extends embed_Manager {
     /**
      * Форсира партидна дефиниция на артикула ако може
      * Партидната дефиниция се намира по следния приоритет:
+     * 
      * 1. Ако артикула е базиран на прототип неговата партидна дефиниция
      * 2. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
      * 3. От драйвера на артикула, ако върне подходящ клас
+     * 4. Ако има дефолтна партида форсира се тя
      * 
      * @param int $productId - ид на артикул
-     * @return int $id - форсирания запис
+     * @return int|NULL $id - форсирания запис, или NULL ако няма такъв
      */
-    public static function force($productId)
+    public static function force($productId, $defaultDef = NULL)
     {
     	// Трябва да е подаден складируем артикул
     	expect($productRec = cat_Products::fetchRec($productId));
@@ -269,7 +305,7 @@ class batch_Defs extends embed_Manager {
     		if($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")){
     			unset($categoryDefRec->id, $categoryDefRec->categoryId);
     			$categoryDefRec->productId = $productRec->id;
-    				
+    			
     			// Записваме точно копие на дефиницията от категорията
     			return self::save($categoryDefRec);
     		}
@@ -284,6 +320,28 @@ class batch_Defs extends embed_Manager {
     	
     		// Записваме дефолтната партида
     		return self::save($rec);
+    	}
+    	
+    	// Ако има дефолтна партида форсира се
+    	if(isset($defaultDef)){
+    		expect($Class = cls::get($defaultDef), 'Невалиден клас');
+    		expect($Class instanceof batch_definitions_Proto, "Не наследява 'batch_definitions_Proto'");
+    		$rec = (object)array('productId' => $productRec->id, 'driverClass' => $Class->getClassId());
+    		
+    		return self::save($rec);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec)){
+    		if(batch_Items::fetchField("#productId = {$rec->productId}")){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
 }

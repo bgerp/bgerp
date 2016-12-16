@@ -50,6 +50,13 @@ class core_Cron extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin';
+	
+	
+	/**
+	 * Кой може да променя състояниет?
+	 * @see plg_State2
+	 */
+	var $canChangestate = 'admin';
     
     
     /**  

@@ -168,7 +168,7 @@ class incoming_Documents extends core_Master
     function description()
     {
         // $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%, mandatory, recently');
-        $this->FLD("typeId", "key(mvc=incoming_Types,allowEmpty)", 'caption=Тип,mandatory');
+        $this->FLD("typeId", "key(mvc=incoming_Types,allowEmpty,select=name)", 'caption=Тип,mandatory');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Файл, mandatory');
         $this->FLD('number', 'varchar(32)', 'caption=Номер, smartCenter');
         $this->FLD('date', 'date', 'caption=Дата');

@@ -196,7 +196,31 @@ body {
        margin-bottom: 20px;
     }
 }
+.narrow .portal {
+  box-shadow: none;
+  border:none !important;
+  .legend {
+      background: #fff !important;
+      border: 1px solid #ccc;
+      box-shadow: none;
 
+  }
+  .portal-filter {
+    margin-bottom: 3px;
+    margin-left: -6px;
+  }
+  .hFormField {
+    border-color: #e1e1e1;
+  }
+  input {
+    padding: 2px 5px;
+    height: auto !important;
+    box-shadow: none;
+  }
+  .SearchBtnPortal {
+    margin-right: 5px !important;
+  }
+}
 .portal.acc-summary {
     background: none !important;
     box-shadow: none;
@@ -436,7 +460,11 @@ body {
             &:hover{
                 color: #fefdd6;
             }
+            &.out {
+              background: url("../img/12/star-out.png") 4px 3px no-repeat;
+            }
         }
+
        
     }
 }
@@ -867,8 +895,12 @@ a.button, input[type="button"], input[type="submit"], button {
     border: none !important;
 }
 
-input.linkWithIcon, a.linkWithIcon {
+input.linkWithIcon{
     padding-left: 25px !important;
+}
+
+a.linkWithIcon {
+  padding-left: 22px !important;
 }
 
 .small .linkWithIcon {

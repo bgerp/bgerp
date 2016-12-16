@@ -1585,7 +1585,7 @@ a.tOld {
 
 .narrow .docBgIcon {
 	font-size: 0.9em;
-	padding-right: 20px;
+	padding-right: 5px;
 }
 
 .narrow .document-settings-left span {
@@ -3752,6 +3752,7 @@ div.location.public {
 .narrow .portal-filter {
 	margin-left: 5px;
 	min-width: 20px;
+	float: left;
 }
 
 .portal-filter .hFormField {
@@ -3869,12 +3870,14 @@ div.location.public {
 		list-style: none;
 		border: 1px solid #ccc;
 		border-bottom: none;
-		background: #ccc;
+		background: #eee;
 		font-size: 0.9em;
 		position: relative;
 		bottom: -12px;
+		color: #888;
 		&.activeTab, &:hover {
-			background: #f1f1f1;
+			color: #000;
+			background: #fff;
 			z-index: 20;
 		}
 	}
@@ -4690,6 +4693,10 @@ body.narrow {
         padding-right:2px;
         margin-left:4px !important;
     }
+	.narrow.modern-theme .portalTabs .tab-link {
+		font-size: 0.8em !important;
+		padding: 3px 3px 6px 3px;
+	}
 }
 .footerDocInfo{
     padding-top: 10px;

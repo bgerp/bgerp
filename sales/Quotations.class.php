@@ -657,7 +657,7 @@ class sales_Quotations extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	if($hasTransport === FALSE || $isReadOnlyMode || core_Users::haveRole('collaborator')){
+    	if($hasTransport === FALSE || $isReadOnlyMode || core_Users::haveRole('partner')){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     	
@@ -1041,7 +1041,7 @@ class sales_Quotations extends core_Master
     		return new Redirect(array('sales_Sales', 'single', $sId));
     	}
     
-    	if(core_Users::haveRole('collaborator')){
+    	if(core_Users::haveRole('partner')){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	

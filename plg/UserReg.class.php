@@ -341,11 +341,10 @@ class plg_UserReg extends core_Plugin
                     }
                     
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
-                    // Добавяме права на потребителя - headquarter, contractor
-                    core_Users::addRole($userId, 2);
-                    core_Users::addRole($userId, 9);
-                    core_Users::addRole($userId, 10);
-                    
+                    // Добавяме права на потребителя - headquarter, partner
+                    core_Users::addRole($userId, 'user');
+                    core_Users::addRole($userId, 'partner');
+                     
                     redirect(array('core_Users','login'));
                 }
             }

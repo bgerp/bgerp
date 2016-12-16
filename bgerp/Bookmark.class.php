@@ -211,7 +211,7 @@ class bgerp_Bookmark extends core_Manager
 
             if(stripos($rec->url, $localUrl) !== FALSE) {
    	            $attr['class'] = 'active';
-   	            $attr['style'] .= ';background-color:#663399';
+   	            $attr['style'] .= ';background-color:#503A66';
                 self::$curRec = $rec;
             }  
             $res .= ht::createElement('li', $attr, $link); 

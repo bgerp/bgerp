@@ -34,34 +34,41 @@ defIfNot('ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT', 104857600);
 class archive_Adapter
 {
     
+    
     /**
      * Инстанция на класа
      */
     protected $inst;
     
+    
     /**
      * Пътя до временния файл на архива
      */
-    protected $path;
+    public $path;
+    
     
     /**
      * Временната директория с временните файлове, екстрактнати от архива
      */
-    protected $dir;
+    public $dir;
     
     
     /**
      * При създаване на инстанция на класа, инициализираме някои променливи
      *
-     * @param fileHandler $fh - Манипулатор на файл
+     * @param array $fArr
      */
-    function init($fh)
+    function init($fArr = array())
     {
         // Вкарваме пакета
         require_once getFullPath("archive/7z/7z.php");
         
-        // Пътя до файла
-        $this->path = fileman::extract($fh);
+        if ($fArr['fileHnd']) {
+            // Пътя до файла
+            $this->path = fileman::extract($fArr['fileHnd']);
+        } else {
+            $this->path = $fArr['path'];
+        }
         
         // Инстанция на архива
         $this->inst = new Archive_7z($this->path);

@@ -57,7 +57,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
@@ -116,7 +116,13 @@ class sales_Sales extends deals_DealMaster
 	public $canSingle = 'ceo,sales';
     
 
-    /**
+	/**
+	 * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+	 */
+	public $canWriteExternal = 'distributor';
+	
+	
+	/**
      * Кой може да го активира?
      */
     public $canConto = 'ceo,sales,acc';
@@ -125,7 +131,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'sales,ceo,collaborator';
+    public $canPending = 'sales,ceo,distributor';
     
     
     /**
@@ -404,7 +410,7 @@ class sales_Sales extends deals_DealMaster
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
-        if($hideRate == 'yes' && !haveRole('collaborator')){
+        if($hideRate == 'yes' && !haveRole('partner')){
         	$form->setField('currencyRate', 'input');
         }
         
@@ -834,7 +840,7 @@ class sales_Sales extends deals_DealMaster
     	core_Lg::push($rec->tplLang);
     	
     	$hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
-    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::haveRole('collaborator')){
+    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::haveRole('partner')){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     }

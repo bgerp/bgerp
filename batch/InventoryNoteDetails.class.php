@@ -36,6 +36,12 @@ class batch_InventoryNoteDetails extends core_Detail
     
     
     /**
+     * Кой може да пише?
+     */
+    public $canWrite = 'batch,ceo,storeMaster';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_AlignDecimals2, plg_RowTools2,plg_RowNumbering';
@@ -98,7 +104,12 @@ class batch_InventoryNoteDetails extends core_Detail
     	}
     	
     	if(!count($productOptions)) return followRetUrl(NULL, 'Няма артикули с партидност в склада, с наличност към избрания период', 'warning');
-    	$form->setOptions('productId', array('' => '') + $productOptions);
+    	$options = isset($rec->id) ? $productOptions : ((count($productOptions) != 1) ? array('' => '') + $productOptions : $productOptions);
+    	$form->setOptions('productId', $options);
+    	
+    	if(count($productOptions) == 1){
+    		$form->setDefault('productId', key($productOptions));
+    	}
     	
     	// Ако има артикул
     	if(isset($rec->productId)){

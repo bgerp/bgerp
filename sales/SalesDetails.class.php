@@ -62,7 +62,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canEdit = 'sales,ceo,collaborator';
+    public $canEdit = 'sales,ceo,partner';
     
     
     /**
@@ -86,7 +86,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'sales,ceo,collaborator';
+    public $canDelete = 'sales,ceo,partner';
     
     
     /**
@@ -203,7 +203,7 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			if(!core_Users::haveRole('collaborator')){
+    			if(!core_Users::haveRole('partner')){
     				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     			}
     		}
@@ -228,7 +228,7 @@ class sales_SalesDetails extends deals_DealDetail
     		
     		// Ако в артикула има срок на доставка, показва се полето
     		$term = cat_Products::getParams($rec->productId, 'term');
-    		if(!empty($term) && !core_Users::haveRole('collaborator')){
+    		if(!empty($term) && !core_Users::haveRole('partner')){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){
     				$form->setDefault('term', $term);
@@ -371,7 +371,7 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if($mvc->haveRightFor('importlisted', (object)array('saleId' => $data->masterId))){
-    		$data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "saleId" => $data->masterId, 'ret_url' => TRUE), "id=btnAddImp-{$masterRec->id},order=14,title=Добавяне на листвани артикули", 'ef_icon = img/16/shopping.png');
+    		$data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "saleId" => $data->masterId, 'ret_url' => TRUE), "id=btnAddImp-{$data->masterId},order=14,title=Добавяне на листвани артикули", 'ef_icon = img/16/shopping.png');
     	}
     }
     

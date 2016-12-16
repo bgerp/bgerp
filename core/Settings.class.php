@@ -588,8 +588,9 @@ class core_Settings extends core_Manager
         if (!$data->cClass) return ;
        
         // Ако текущия потребител е контрактор, показваме обвивката на външната част
-        if(core_Users::haveRole('contractor') && !core_Users::isPowerUser()){
+        if(core_Users::haveRole('partner')){
         	plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+        	$mvc->currentTab = 'Профил';
         } else {
         	// Рендираме изгледа
         	$res = $data->cClass->renderWrapping($tpl, $data);

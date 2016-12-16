@@ -429,6 +429,13 @@ input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {
   -webkit-appearance: none; }
 
+/*
+ * *
+ * * Remove the arrow in input when there is list
+ */
+input::-webkit-calendar-picker-indicator {
+  display: none; }
+
 #simpleSearch {
   width: 15em;
   max-width: 100%;
@@ -1119,11 +1126,11 @@ a.profile {
       color: #886622; }
     a.profile.executive.active {
       color: #dd8800; }
-  a.profile.contractor {
+  a.profile.partner {
     color: #cc0000; }
-    a.profile.contractor.inactive {
+    a.profile.partner.inactive {
       color: #993333; }
-    a.profile.contractor.active {
+    a.profile.partner.active {
       color: red; }
   a.profile.no-one {
     font-style: italic; }

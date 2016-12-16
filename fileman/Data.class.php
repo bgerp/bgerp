@@ -43,7 +43,20 @@ class fileman_Data extends core_Manager {
 	/**
 	 * 
 	 */
-    var $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools2';
+    var $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools2,plg_Search';
+    
+    
+    /**
+     * 
+     */
+    public $searchFields = 'searchKeywords';
+    
+    
+    /**
+     * 
+     */
+    protected static $processFilesSysId = 'processFiles';
+    
     
     
     /**
@@ -51,7 +64,6 @@ class fileman_Data extends core_Manager {
      */
     function description()
     {
-        
         // хеш на съдържанието на файла
         $this->FLD("md5", "varchar(32)", array('caption' => 'MD5'));
         
@@ -67,6 +79,8 @@ class fileman_Data extends core_Manager {
         $this->FLD('archived', 'datetime(format=smartTime)', 'caption=Архивиран ли е?,input=none');
         
         $this->FLD('lastUse', 'datetime(format=smartTime)', 'caption=Последно, input=none');
+        
+        $this->FLD('processed', 'enum(no,yes)', 'caption=Извличане на ключови думу,column=none,single=none,input=none');
         
         $this->setDbUnique('fileLen,md5', 'DNA');
         
@@ -121,6 +135,8 @@ class fileman_Data extends core_Manager {
             } else {
                 error("@Не може да бъде копиран файла", $file, $path);
             }
+        } elseif ($rec->id) {
+            self::resetProcess($rec);
         }
         
         return $rec->id;
@@ -147,6 +163,8 @@ class fileman_Data extends core_Manager {
             
             $rec->links = 0;
             $status = static::save($rec);
+        } elseif ($rec->id) {
+            self::resetProcess($rec);
         }
         
         return $rec->id;
@@ -176,7 +194,7 @@ class fileman_Data extends core_Manager {
         
         if($rec) {
             $rec->links++;
-            static::save($rec, 'links');
+            self::resetProcess($rec);
         }
     }
     
@@ -192,22 +210,8 @@ class fileman_Data extends core_Manager {
             $rec->links--;
             
             if($rec->links < 0) $rec->links = 0;
-            $this->save($rec, 'links');
-        }
-    }
-    
-    
-    /**
-     * След начално установяване(настройка) установява папката за съхранение на файловете
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        if(!is_dir(FILEMAN_UPLOADS_PATH)) {
-            if(!mkdir(FILEMAN_UPLOADS_PATH, 0777, TRUE)) {
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
-            } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
-            }
+            
+            self::resetProcess($rec);
         }
     }
 
@@ -369,6 +373,8 @@ class fileman_Data extends core_Manager {
             // Ако е бил записан вземаме id' то
             $res->id = $rec->id;
             
+            self::resetProcess($rec);
+            
             // Отбелязваме, че е съществуващ файл
             $res->exist = TRUE;
         }
@@ -419,4 +425,109 @@ class fileman_Data extends core_Manager {
         static::save($rec);
     }
     
+    
+    /**
+     * Когато искаме да ресетнем, че файлът е преминал през обработка
+     * 
+     * @param integer|stdObject $rec
+     */
+    public static function resetProcess($rec)
+    {
+        $rec = self::fetchRec($rec);
+        
+        if (!$rec) return FALSE;
+        
+        if ($rec->processed == 'yes') {
+            $rec->processed = 'no';
+            fileman_Data::save($rec, 'processed');
+        }
+    }
+    
+    
+    /**
+     * Преди подготовка на ключовите думи
+     */
+    public static function on_BeforeGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        $searchKeywords = $rec->searchKeywords;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Пуска обработки на файла
+     */
+    function cron_ProcessFiles()
+    {
+        $timeLimit = core_Cron::getTimeLimit(self::$processFilesSysId);
+        $endOn = dt::addSecs($timeLimit);
+        core_App::setTimeLimit($timeLimit + 50);
+        ini_set("memory_limit", fileman_Setup::get('DRIVER_MAX_ALLOWED_MEMORY_CONTENT'));
+        
+        $classesArr = core_Classes::getOptionsByInterface('fileman_ProcessIntf');
+        
+        $query = self::getQuery();
+        $query->where("#processed != 'yes'");
+        $query->orWhere("#processed IS NULL");
+        
+        // По случаен принцип, с по-малък приоритет понякога да почва и от началото
+        if (rand(0, 4) != 2) {
+            $query->orderBy('lastUse', 'DESC');
+            $query->orderBy('createdOn', 'DESC');
+        } else {
+            $query->orderBy('lastUse', 'ASC');
+            $query->orderBy('createdOn', 'ASC');
+        }
+        
+        $query->limit(100);
+        
+        while ($rec = $query->fetch()) {
+            
+            if (dt::now() >= $endOn) break;
+            
+            $procSuccess = NULL;
+            foreach ($classesArr as $classId => $clsName) {
+                
+                if (dt::now() >= $endOn) break;
+                
+                $clsIntf = cls::getInterface('fileman_ProcessIntf', $classId);
+                $procSuccess = $clsIntf->processFile($rec, $endOn);
+                
+                if ($procSuccess === FALSE) break;
+            }
+            
+            if ($procSuccess !== FALSE && $rec->processed != 'yes') {
+                $rec->processed = 'yes';
+                self::save($rec, 'processed');
+            }
+        }
+    }
+    
+    
+    /**
+     * След начално установяване(настройка) установява папката за съхранение на файловете
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        if(!is_dir(FILEMAN_UPLOADS_PATH)) {
+            if(!mkdir(FILEMAN_UPLOADS_PATH, 0777, TRUE)) {
+                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
+            } else {
+                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
+            }
+        }
+        
+        $rec = new stdClass();
+        $rec->systemId = self::$processFilesSysId;
+        $rec->description = 'Обработка на файловете';
+        $rec->controller = $mvc->className;
+        $rec->action = 'ProcessFiles';
+        $rec->period = 3;
+        $rec->offset = rand(0, 2);
+        $rec->delay = 0;
+        $rec->timeLimit = 60;
+        
+        $res .= core_Cron::addOnce($rec);
+    }
 }

@@ -174,6 +174,7 @@ class plg_RefreshRows extends core_Plugin
             $res[] = $resObjReload;
             
             jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
+            jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
             
             // Стойности на плейсхолдера
             $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
@@ -220,6 +221,7 @@ class plg_RefreshRows extends core_Plugin
         $cTpl = clone $tpl;
         
         jquery_Jquery::runAfterAjax($cTpl, 'makeTooltipFromTitle');
+        jquery_Jquery::runAfterAjax($cTpl, 'smartCenter');
         
         // Премахваме празните блокове
         $cTpl->removePlaces();
