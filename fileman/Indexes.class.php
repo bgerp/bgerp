@@ -77,13 +77,13 @@ class fileman_Indexes extends core_Manager
     /**
      * Масив с разширенията и минималните размери, на които ще се пускат обработки за OCR, при генериране на ключови думи
      */
-    protected static $ocrIndexArr = array('jpg' => 10000, 'jpeg' => 10000, 'png' => 10000, 'bmp' => 50000, 'tif' => 20000, 'tiff' => 20000, 'pdf' => 20000);
+    public static $ocrIndexArr = array('jpg' => 10000, 'jpeg' => 10000, 'png' => 10000, 'bmp' => 50000, 'tif' => 20000, 'tiff' => 20000, 'pdf' => 20000);
     
     
     /**
      * Максимален размер на файлове, на които ще се пуска OCR
      */
-    protected static $ocrMax = 20000000;
+    public static $ocrMax = 20000000;
     
     
     /**
