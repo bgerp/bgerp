@@ -9,7 +9,8 @@ defIfNot('UNIT_DEFAULT_USER_PASS', '111111');
  * Сървър по подразбиране
  */
 //defIfNot('UNIT_DEFAULT_HOST', 'http://localhost');
-defIfNot('UNIT_DEFAULT_HOST', 'http://127.0.0.1:8080');
+//defIfNot('UNIT_DEFAULT_HOST', 'http://127.0.0.1:8080');
+defIfNot('UNIT_DEFAULT_HOST', 'http://87.120.200.94:8087');
 
 /**
  * Клас 'unit_Setup'
