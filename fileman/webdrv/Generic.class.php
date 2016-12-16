@@ -484,6 +484,29 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Подготвя стойността за заключване
+     * 
+     * @param string|stdObject $res
+     * 
+     * @return string|boolean
+     */
+    static function prepareLockId($res)
+    {
+        if (is_object($res)) {
+            
+            return $res->dataId;
+        }
+        
+        if (is_file($res)) {
+            
+            return md5_file($res);
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * Генерира и връща уникален стринг за заключване на процес за даден файл
      *
      * @param string $type - Типа, който ще заключим
