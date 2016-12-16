@@ -949,6 +949,11 @@ table .linkWithIcon {
 	}
 }
 
+a.linkWithIcon.small-padding-icon {
+	padding-left: 15px !important;
+	background-position: 0px center;
+}
+
 a.linkInTitle {
 	color: #004488 !important;
 }
@@ -974,7 +979,7 @@ input.more-btn {
 	float: left;
 	margin-bottom: 0;
 	background-position: center center;
-	background-image: url(../img/16/toggle-expand.png) !important;
+	background-image: url(../img/16/toggle1.png) !important;
 	background-repeat: no-repeat !important;
 	padding-left: 0.3em !important;
 	padding-right: 0.3em !important;
@@ -984,7 +989,7 @@ input.more-btn {
 
 .more-btn:not(.toolbar-btn, .transparent) {
 	background-repeat: no-repeat !important;
-	background-image: url(../img/16/toggle-expand.png) !important;
+	background-image: url(../img/16/toggle1.png) !important;
 }
 
 .toolbar-btn {
@@ -1051,6 +1056,7 @@ a.more-btn {
 	padding-left: 22px !important;  
 	background-repeat: no-repeat !important;
 	background-position: 3px center;
+	background-size: 16px 16px;
  	padding: 0.1em;
 }
 
@@ -1278,6 +1284,10 @@ a.profile {
         color: #999 !important;
         text-decoration: none !important;
     }
+}
+
+.hidden-document.state-rejected{
+	opacity: 0.6;
 }
 
 .state-template {
@@ -3020,6 +3030,9 @@ div.richtext ol ol ol {
     background-position: 9px 7px;
     @include border-radius(5px);
     position: relative;
+	&.no-margin {
+		margin: 0 0 10px 0;
+	}
 }
 
 .richtext-text {

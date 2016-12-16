@@ -57,7 +57,8 @@ class cal_Setup extends core_ProtoSetup
             'cal_Holidays',
         	'cal_Reminders',
             'cal_ReminderSnoozes',
-    		'cal_TaskConditions'
+    		'cal_TaskConditions',
+            //'migrate::reCalcNextStart'
         );
 
         
@@ -124,5 +125,29 @@ class cal_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    function reCalcNextStart()
+    {
+
+        $query = cal_Reminders::getQuery();
+        $next12months = dt::addMonths(12, dt::today());
+        $now = dt::now();
+        $query->where("#state = 'active' AND (#nextStartTime <= '{$now}' OR  #nextStartTime IS NULL OR #nextStartTime >= '{$next12months}') AND #notifySent = 'no'");
+
+        $class = cls::get('cal_Reminders');
+        while($rec = $query->fetch()) {
+            
+            $rec->nextStartTime = $class->calcNextStartTime($rec);
+            // Ако изчисленото ново време, не е по-голямо от сега или от началната дата,
+            // то продължаваме да го търсим
+                while(dt::mysql2timestamp($rec->nextStartTime) < dt::mysql2timestamp(dt::now())) {
+                    $rec->timeStart = $rec->nextStartTime;
+                    $rec->nextStartTime = $class->calcNextStartTime($rec);
+                }
+
+            cal_Reminders::save($rec, 'nextStartTime');
+        }
     }
 }

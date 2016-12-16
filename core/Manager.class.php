@@ -637,7 +637,7 @@ class core_Manager extends core_Mvc
     function prepareEditToolbar_($data)
     {
         $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на документа');
-        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
         
         return $data;
     }
@@ -665,7 +665,7 @@ class core_Manager extends core_Mvc
 
         $idPlaceholder = self::getUrlPlaceholder('id');
 
-        if($id && is_array($data->retUrl)) {
+        if(is_array($data->retUrl)) {
             foreach($data->retUrl as $key => $value) {
                 if($value == $idPlaceholder) {
                     $data->retUrl[$key] = $id;

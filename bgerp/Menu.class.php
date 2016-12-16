@@ -26,7 +26,7 @@ class bgerp_Menu extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bgerp_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools2, bgerp_Wrapper';
     
     
     /**

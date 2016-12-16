@@ -611,7 +611,7 @@ class price_Lists extends core_Master
     	 
     	$rInfo = static::$cache[$listRec->id];
     	
-    	// Колко да е точността на разкъглянето
+    	// Колко да е точността на закръгляне
     	$precision =  max($rInfo->minDecimals, round($rInfo->significantDigits - log10(abs($price))));
     	
     	if($verbal === TRUE){

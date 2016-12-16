@@ -125,7 +125,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if(($action == 'delete' || $action == 'add' || $action == 'edit') && isset($rec)){
+        if(($action == 'delete' || $action == 'add' || $action == 'edit' || $action == 'import' || $action == 'createproduct' || $action == 'importlisted') && isset($rec)){
         	$state = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
         	if($state != 'draft'){
         		$requiredRoles = 'no_one';
@@ -173,11 +173,16 @@ abstract class deals_DealDetail extends doc_Detail
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
             // напълно определен продукт (клас и ид), който да не може да се променя във формата
             // и полето цена да стане задължително
-            $form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+            $form->setOptions('productId', array($rec->productId => cat_Products::getTitleById($rec->productId, FALSE)));
         }
         
         if (!empty($rec->packPrice)) {
-        	$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+        	if(Request::get('Act') != 'CreateProduct'){
+        		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+        	} else {
+        		$vat =  acc_Periods::fetchByDate($masterRec->valior)->vatRate;
+        	}
+        	
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
         
@@ -252,18 +257,9 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     		}
     		
-    		// Закръгляме количеството спрямо допустимото от мярката
-    		$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId);
-    		if($roundQuantity == 0){
-    			$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-    			return;
-    		}
-    		
-    		if($roundQuantity != $rec->packQuantity){
-    			$form->setWarning('packQuantity', 'Количеството ще бъде закръглено до указаното в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b>');
-    			
-    			// Закръгляме количеството
-    			$rec->packQuantity = $roundQuantity;
+    		// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+    			$form->setError('packQuantity', $warning);
     		}
     		
     		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
@@ -300,9 +296,9 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		if(Request::get('Act') != 'CreateProduct'){
     			// Ако има такъв запис, сетваме грешка
-    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
+    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, NULL, $rec->notes);
     			if($exRec){
-    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
+    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch,notes', 'Вече съществува запис със същите данни');
     				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
     			}
     		}
@@ -334,6 +330,8 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
+    		core_RowToolbar::createIfNotExists($row->_rowTools);
+    		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->Master->getClassId(), $masterRec->id);
     		
     		// Показване на вашия реф, ако има
     		$row->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);

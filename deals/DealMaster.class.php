@@ -199,7 +199,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
 		
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка)',
+				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка,stopped=Спряно)',
 				'caption=Статус, input=none'
 		);
 		
@@ -1163,6 +1163,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Извличане на позволените операции
     	$options = $this->getContoOptions($rec);
+    	$hasSelectedBankAndCase = !empty($rec->bankAccountId) && !empty($rec->caseId);
+    	if($hasSelectedBankAndCase === TRUE){
+    		$form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
+    	}
     	
     	// Трябва да има избор на действие
     	expect(count($options));
@@ -1184,7 +1188,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Ако има каса и потребителя е логнат в нея, Слагаме отметка
     	if($options['pay'] && $rec->caseId){
-    		if($rec->caseId === $curCaseId){
+    		if($rec->caseId === $curCaseId && $hasSelectedBankAndCase === FALSE){
     			$selected[] = 'pay';
     		}
     	}
@@ -1221,7 +1225,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	$form->toolbar->addSbBtn('Активиране/Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
-    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
     	 
     	// Рендиране на формата
     	$tpl = $this->renderWrapping($form->renderHtml());
@@ -1669,7 +1673,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
     	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
-    	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	if(core_Users::haveRole('collaborator')){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
@@ -1747,6 +1751,36 @@ abstract class deals_DealMaster extends deals_DealBase
     		$dRec->price 		  	= ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
     		$dRec->quantity       	= $quantity / $product->quantityInPack;
     		$details[] = $dRec;
+    	}
+    	
+    	if(is_array($info->dealProducts)){
+    		$replaced = array();
+    		
+    		foreach ($details as $index => $d1){
+    			$totalSum = $totalQuantity = 0;
+    			$pId = $d1->productId;
+    			
+    			// Сумиране на договорените артикули
+    			$res = array_filter($info->dealProducts, function (&$e) use ($pId, &$totalSum, &$totalQuantity) {
+    				if($e->productId == $pId){
+    					$totalSum += ($e->quantity * $e->price * (1 - $e->discount));
+    					$totalQuantity += $e->quantity;
+    					$e->quantity /= $e->quantityInPack;
+    					return TRUE;
+    				}
+    				
+    				return FALSE;
+    			});
+    			
+    			// Ако сумата и к-во им отговарят точно на това от счетоводството подменят се
+    			if(round($totalSum, 2) == round($d1->amount, 2) && round($totalQuantity, 5) == round($d1->quantity, 5)){
+    				$replaced = array_merge($replaced, $res);
+    			} else {
+    				$replaced[] = $d1;
+    			}
+    		}
+    		
+    		return $replaced;
     	}
     	
     	return $details;

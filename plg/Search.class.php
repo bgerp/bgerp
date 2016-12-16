@@ -286,13 +286,20 @@ class plg_Search extends core_Plugin
     {
         $ignoreParamsArr = arr::make($ignoreParamsArr);
         
-        $conf = core_Packs::getConfig('core');
-        
-        // Максимално допустима дължина
-        $maxLen = $conf->PLG_SEACH_MAX_TEXT_LEN;
-        
-        // Ако стринга е над максимума вземаме част от началото и края му
-        $str = str::limitLen($str, $maxLen);
+        if(strlen($str) > 32000) {
+
+            static $maxLen;
+
+            if(!$maxLen) {
+                $conf = core_Packs::getConfig('core');
+                
+                // Максимално допустима дължина
+                $maxLen = $conf->PLG_SEACH_MAX_TEXT_LEN;
+            }
+            
+            // Ако стринга е над максимума вземаме част от началото и края му
+            $str = str::limitLen($str, $maxLen);
+        }
         
         $str = preg_replace('/[ ]+/', ' ', $str);
 

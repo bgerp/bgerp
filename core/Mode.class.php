@@ -72,9 +72,12 @@ class core_Mode
     /**
      * Връща старото състояние на променливата от runtime-обкръжението
      */
-    static function pop($name = NULL)
+    static function pop($name = NULL, $force = NULL)
     {
-        expect($rec = array_shift(self::$stack));
+        do {
+            expect($rec = array_shift(self::$stack));
+        } while($force && $rec->name != $name && count(self::$stack));
+        
         
         if($name) expect($rec->name == $name, "Очаква се Mode::pop('{$rec->name}') а не Mode::pop('{$name}')", self::$stack);
         

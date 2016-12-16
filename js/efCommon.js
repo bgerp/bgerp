@@ -510,6 +510,11 @@ function ajaxAutoRefreshOptions(id, selectId, input, params) {
     }
 
     params.q = get$(id).value;
+    
+    if(params.q == '') return;
+    
+    // Не зареждаме нови опции, ако текущо е избрана опция
+    if(isOptionExists(selectId, params.q)) return;
 
     // От параметрите прави УРЛ
     if (typeof(params) == 'object') {
@@ -646,7 +651,9 @@ function openWindow(url, name, args) {
 // Редактор за BBCode текст: показва ...
 function sc(text) {
     if (typeof(text.createTextRange) != 'undefined') {
-        text.caretPos = document.selection.createRange().duplicate();
+    	if (document.selection && document.selection.createRange) {
+    		text.caretPos = document.selection.createRange().duplicate();
+    	}
     }
 }
 
@@ -1043,6 +1050,10 @@ function prepareContextMenu() {
 
         var vertAdjust = $(this).outerHeight();
         var horAdjust = -30;
+        if($(this).hasClass("textBtn")) {
+            horAdjust -= $(this).width() + 9;
+
+        }
 
         if($(el).hasClass("twoColsContext")) {
             vertAdjust += 2;
@@ -1062,6 +1073,42 @@ function prepareContextMenu() {
     });
 }
 
+/**
+ * Действия на табовете в мобилен
+ */
+function portalTabs() {
+    if(!$('body').hasClass('modern-theme')) return;
+    var current;
+    // взимаме данните за портала в бисквитката
+    var portalTabs = getCookie('portalTabs');
+    if($("#" +  portalTabs).length) {
+        current = $("#" + portalTabs );
+    } else if($(location.hash).length) {
+        // взимаме таба от # в url-то
+        current = $(location.hash);
+    } else {
+        // първия таб да е активен
+        current = $('.narrowPortalBlocks').first();
+    }
+    $(current).addClass('activeTab');
+    $(current).siblings().removeClass('activeTab');
+
+    var id = $(current).attr('id');
+    var tab = $('li[data-tab="' + id + '"]');
+    $(tab).addClass('activeTab');
+    $(tab).siblings().removeClass('activeTab');
+
+    $('ul.portalTabs li').click(function(){
+        var tab_id = $(this).attr('data-tab');
+        $('ul.portalTabs li').removeClass('activeTab');
+        $('.narrowPortalBlocks').removeClass('activeTab');
+
+        $(this).addClass('activeTab');
+        $("#"+tab_id).addClass('activeTab');
+        setCookie('portalTabs', tab_id);
+    });
+
+}
 
 // Скрива или показва съдържанието на div (или друг) елемент
 function toggleDisplay(id) {
@@ -1940,7 +1987,7 @@ function getType (val) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-	
+
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 	
@@ -1977,6 +2024,50 @@ function refreshForm(form, removeFields) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
 	});
+}
+
+
+/**
+ * Изчиства съдържанието на няколко Select2 елемента с посочения клас - cssClass,
+ * Като запазва стойността на текущия елемант, посочен в select2
+ */
+function clearSelect(select2, cssClass) {
+    // Дефиниране статичен семафор за заключване
+    if(typeof clearSelect.semafor == 'undefined') {
+        clearSelect.lock = 0;
+    }
+    
+    // Ако състоянието е блокирано - нищо не правим
+    if(clearSelect.lock == 1) {
+        return;
+    }
+ 
+    // Ако съдържанието на текущия елемент е празно - нищо не правим
+    if(select2.value == '') {
+        return;
+    }
+    
+    // Заключваме
+    clearSelect.lock = 1;
+
+    $('.' + cssClass).each(function(i, obj) {
+ 
+        if(obj.tagName == 'SELECT' && $(obj).hasClass('combo')) return;
+ 
+        if(obj.name == select2.name) return;
+    
+        if(obj.tagName == 'SELECT') {
+ 
+            $(obj).val("").trigger("change");
+        }
+        if(obj.tagName == 'INPUT') {
+            $(obj).val("");
+        }
+
+    });
+
+    // Отключване
+    clearSelect.lock = 0;
 }
 
 
@@ -3070,7 +3161,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
     			
         		if (getEfae().AJAXErrorRepaired) return ;
         		
-	        	if (typeof showToast != 'undefined') {
+	        	if (typeof showToast != 'undefined' && $().toastmessage) {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
 		                    timeOut: 1,
@@ -3294,7 +3385,7 @@ efae.prototype.resetTimeout = function() {
  * data.type - типа на статуса
  */
 function render_showToast(data) {
-    if (typeof showToast != 'undefined') {
+    if (typeof showToast != 'undefined' && $().toastmessage) {
         showToast({
             timeOut: data.timeOut,
             text: data.text,

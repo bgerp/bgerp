@@ -989,7 +989,7 @@ class core_Users extends core_Manager
         $Users = cls::get('core_Users');
         
         expect($part);
-        
+
         if($Users->isSystemUser) {
             $rec = new stdClass();
             $rec->nick = core_Setup::get('SYSTEM_NICK');
@@ -999,13 +999,13 @@ class core_Users extends core_Manager
         } else {
             $cRec = Mode::get('currentUserRec');
             if ($escaped) {
-                $res = core_Users::getVerbal($cRec, $part);    
+                $res = core_Users::getVerbal($cRec, $part);
             } elseif(is_object($cRec)) {
-                
-                $res = $cRec->$part;    
+
+                $res = $cRec->$part;
             }
         }
-        
+
         return $res;
     }
     
@@ -1667,9 +1667,7 @@ class core_Users extends core_Manager
         if($requiredRoles !== 'every_one'){
         	
         	if(EF_HTTPS == 'MANDATORY' && $connection == 'HTTP' && $_GET){
-        		//bp(EF_HTTPS == 'MANDATORY', $connection == 'HTTP', $_GET, $_POST);
         		static::redirectToEnableHttps();
-
         	}
         }
         

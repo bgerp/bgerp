@@ -2,7 +2,7 @@
     [#SingleToolbar#]
 
     <h3>
-        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Скрипт|* <b style="color:green;display:inline-block;word-break:break-all">[#name#]</b></div>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Скрипт|* <b style="color:green;display:inline-block;">[#name#]</b></div>
     </h3>
     <!--ET_BEGIN lastUsedOn-->
     <table class="styled-table" style='width:99%'>
@@ -24,5 +24,10 @@
     <!--ET_END modify-->
     <div style="margin-bottom: 20px;"><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
 
-    [#DETAILS#]
+    <!--ET_END CHANGE_LOG-->
+    <div class="change-log">
+        [#CHANGE_LOG#]
+    </div>
+    <!--ET_END CHANGE_LOG-->
 </div>
+    [#DETAILS#]

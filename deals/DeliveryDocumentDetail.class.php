@@ -123,16 +123,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     			}
 			}
 			
-			// Закръгляме количеството спрямо допустимото от мярката
-			$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId);
-			if($roundQuantity == 0){
-				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-				return;
-			}
-			
-			if($roundQuantity != $rec->packQuantity){
-				$form->setWarning('packQuantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-				$rec->packQuantity = $roundQuantity;
+			// Проверка на к-то
+			if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+				$form->setError('packQuantity', $warning);
 			}
 	
 			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
@@ -192,9 +185,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 			
 			// Ако има такъв запис, сетваме грешка
-			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId);
+			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId, $rec->notes);
 			if($exRec){
-				$form->setError('productId,packagingId,packPrice,discount,batch', 'Вече съществува запис със същите данни');
+				$form->setError('productId,packagingId,packPrice,discount,batch,notes', 'Вече съществува запис със същите данни');
 				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
 			}
 			

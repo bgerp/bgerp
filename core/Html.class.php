@@ -213,8 +213,6 @@ class core_Html
                 $groups[$lastGroup = trim($group)][$index] = trim($caption);
         	}
             
-            // bp($groups);
-
         	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
         	if(count($groups)){
         		if(isset($groups[''])) {
@@ -511,16 +509,31 @@ class core_Html
             Request::doProtect($hiddens);
 
             foreach ($hiddens as $name => $value) {
+                if(is_array($value)) {
+                    foreach($value as $key => $v) {
+                        self::addHiden($tpl, $name . '[' . $key . ']', $v);
+                    }
+                    continue;
+                }
                 expect(is_scalar($value) || !($value), gettype($value));
-                $attr = array();
-                $attr['name'] = $name;
-                $attr['value'] = $value;
-                $attr['type'] = 'hidden';
-                $tpl->append(self::createElement('input', $attr));
+                self::addHiden($tpl, $name, $value);
             }
         }
 
         return $tpl;
+    }
+    
+
+    /**
+     * Добавя hidden input към шаблона
+     */
+    static function addHiden($tpl, $name, $value) 
+    {
+        $attr = array();
+        $attr['name'] = $name;
+        $attr['value'] = $value;
+        $attr['type'] = 'hidden';
+        $tpl->append(self::createElement('input', $attr));
     }
 
 
@@ -578,7 +591,7 @@ class core_Html
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
-            $content = $url['id'] ? $url['id'] : $url[2]; 
+            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]); 
             if($content) {
                 $url['Cf'] = core_Request::getSessHash($content); 
             }
@@ -753,7 +766,7 @@ class core_Html
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
-            $content = $url['id'] ? $url['id'] : $url[2]; 
+            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]); 
             if($content) {
                 $url['Cf'] = core_Request::getSessHash($content); 
             }

@@ -670,7 +670,7 @@ class html2text_Converter
             $additional = '';
             break;
         }
-        
+
         return $display . $additional;
     }
     

@@ -122,7 +122,7 @@ class email_Outgoings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
+    var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
         bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone';
     
@@ -703,7 +703,7 @@ class email_Outgoings extends core_Master
         }
         
         // Добавяме бутона отказ
-        $form->toolbar->addBtn('Отказ', getRetUrl(), NULL, array('ef_icon'=>'img/16/close16.png', 'title'=>'Спиране на изпращането'));
+        $form->toolbar->addBtn('Отказ', getRetUrl(), NULL, array('ef_icon'=>'img/16/close-red.png', 'title'=>'Спиране на изпращането'));
         
         // Вкарваме silent полетата
         $form->input(NULL, 'silent');
@@ -1258,12 +1258,14 @@ class email_Outgoings extends core_Master
             $nRec = clone($rec);
         }
         
-        // Обръщението да се записва за
-        $salUserId = email_Salutations::getUserId($nRec->containerId);
-        
-        if ($salUserId === FALSE || ($salUserId == core_Users::getCurrent())) {
-            // Записваме обръщението в модела
-            email_Salutations::add($nRec);
+        if(!Mode::is('isMigrate')) {
+            // Обръщението да се записва за
+            $salUserId = email_Salutations::getUserId($nRec->containerId);
+          
+            if ($salUserId === FALSE || ($salUserId == core_Users::getCurrent())) {
+                // Записваме обръщението в модела
+                email_Salutations::add($nRec);
+            }
         }
         
         // Ако препащме имейла
@@ -2872,7 +2874,7 @@ class email_Outgoings extends core_Master
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Избор', 'default', NULL, array('ef_icon'=>'img/16/disk.png', 'title'=>'Създаване на имейл'));
-        $form->toolbar->addBtn('Отказ', $retUrl, NULL, array('ef_icon'=>'img/16/close16.png', 'title'=>'Спиране на създаване на имейл'));
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, array('ef_icon'=>'img/16/close-red.png', 'title'=>'Спиране на създаване на имейл'));
         
         // Потготвяме заглавието на формата
         $form->title = 'Препращане на имейл';

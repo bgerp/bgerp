@@ -419,9 +419,9 @@ class crm_Companies extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова визитка на фирма'));
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon'=>'img/16/office-building-add.png', 'title'=>'Създаване на нова визитка на фирма'));
             } else {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', array('title'=>'Създаване на нова визитка на фирма', 'ef_icon'=>'img/16/star_2.png'));
+                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', array('title'=>'Създаване на нова визитка на фирма', 'ef_icon'=>'img/16/office-building-add.png'));
             }
         }
     }
@@ -592,8 +592,6 @@ class crm_Companies extends core_Master
                     if($folderId) {
                         $fRec = doc_Folders::fetch($folderId);
                         
-                       // bp($fRec, $folderId, $email, core_Classes::getId('crm_Companies'));
-
                         if($fRec->coverClass == core_Classes::getId('crm_Companies')) {
                             $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
                             $fieldsArr['email'] = 'email';
@@ -2069,18 +2067,20 @@ class crm_Companies extends core_Master
             $creditGroupId = crm_Groups::getIdFromSysId("creditors");
         }
     	
+        $groupList = crm_Groups::getParentsArray($rec->groupList);
+    	
     	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
-    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    	if(in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)){
     		$res[] = 'findeals_Deals';
     	}
     	
     	// Ако е в група на клиент, показваме бутона за продажба
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
-    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
     	}
     	 

@@ -39,7 +39,7 @@ abstract class deals_ManifactureMaster extends core_Master
 		$mvc->FLD('deadline', 'datetime', 'caption=Срок до');
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
+				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',
 				'caption=Статус, input=none'
 		);
 
@@ -171,7 +171,7 @@ abstract class deals_ManifactureMaster extends core_Master
      * 
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('store_AccRegIntf');
     }

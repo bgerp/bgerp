@@ -298,19 +298,9 @@ class acc_CostAllocations extends core_Manager
 				// Проверяване дали е въведено допустимо к-во само ако реда не е за 1 брой
 				if(!($maxQuantity == 1 && $uomId == cat_UoM::fetchBySinonim('pcs')->id)){
 					
-					// Проверка дали въведеното к-во е допустимо
-					$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
-					if($roundQuantity == 0){
-						$form->setError('quantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-						return;
-					}
-						
-					if(trim($roundQuantity) != trim($rec->quantity)){
-						$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-							
-						if(!$form->gotErrors()){
-							$rec->quantity = $roundQuantity;
-						}
+					// Проверка на к-то
+					if(!deals_Helper::checkQuantity($uomId, $rec->quantity, $warning)){
+						$form->setError('quantity', $warning);
 					}
 				}
 			}

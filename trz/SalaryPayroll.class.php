@@ -143,7 +143,6 @@ class trz_SalaryPayroll extends core_Manager
         if($data->listFilter->rec->rule) {
             $data->query->where("#rule = '{$data->listFilter->rec->rule}'");
         }
-
     }
     
     
@@ -277,24 +276,6 @@ class trz_SalaryPayroll extends core_Manager
      */
     function cron_CalcSalaryPay()
     {
-        $this->calculateSalary();
-    }
-    
-    
-    /**
-     * Изпълнява се след начално установяване
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $rec = new stdClass();
-        $rec->systemId = "CalculateSalary";
-        $rec->description = "Изчисляване на заработката";
-        $rec->controller = "trz_SalaryPayroll";
-        $rec->action = "CalcSalaryPay";
-        $rec->period = 1440;
-        $rec->offset = rand(1, 23);
-        $rec->timeLimit = 600;
-        
-        $res .= core_Cron::addOnce($rec);
+        //$this->calculateSalary();
     }
 }

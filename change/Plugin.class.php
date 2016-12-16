@@ -129,6 +129,7 @@ class change_Plugin extends core_Plugin
         
         // Всички полета, които ще се показват да се инпутват
         foreach ($fieldsArrShow as $f) {
+            expect(is_object($form->fields[$f]), "Липсващо поле '{$f}'", $form->fields);
             $form->fields[$f]->input = 'input';
         }
         
@@ -299,7 +300,7 @@ class change_Plugin extends core_Plugin
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         $form->title = 'Промяна';
         
@@ -615,8 +616,13 @@ class change_Plugin extends core_Plugin
         // URL' то за промяна
         $changeUrl = $mvc->getChangeUrl($id);
 
+        $iconSize = 16;
+        if(log_Browsers::isRetina()) {
+            $iconSize = 32;
+        }
+
         // Създаваме линк с загллавието
-        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/16/edit.png"); 
+        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/{$iconSize}/edit.png");
     }
     
     

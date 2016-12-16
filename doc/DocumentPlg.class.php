@@ -205,6 +205,25 @@ class doc_DocumentPlg extends core_Plugin
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
+
+        if($data->rec->state != 'rejected'){
+        	$tRec = doc_Threads::fetch($data->rec->threadId);
+        	$info = tr('Счетоводното отразяване на тази стопанска операция е спряно');
+        	
+        	if($tRec->firstContainerId == $data->rec->containerId) {
+        		if(doc_Threads::haveRightFor('startthread', $tRec)){
+        			$info = tr('Счетоводното отразяване на стопанските операции в тази нишка е спряно');
+        			$info .=  ". " .tr('За да го включите, натиснете') . " ";
+        			$data->row->STOPPED_INFO = $info . ht::createLink('Пускане', array('doc_Threads', 'startthread', 'id' => $data->rec->threadId, 'retUrl' => TRUE), 'Наистина ли искате да включите счетоводното отразяване на всички спрени документи в нишката|*?', 'class=small-padding-icon, ef_icon=img/16/stock_data_next.png, title=Пускане на счетоводното отразяване на всички спрени документи в нишката');
+        		}
+        	} 
+        	
+        	if($data->rec->state == 'stopped' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
+        		if(empty($data->row->STOPPED_INFO)){
+        			$data->row->STOPPED_INFO = $info;
+        		}
+        	}
+        }
     }
     
     
@@ -515,8 +534,8 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Изтрива от кеша html представянето на документа
-        $key = 'Doc' . $rec->id . '%';
-        core_Cache::remove($mvc->className, $key);
+        // $key = 'Doc' . $rec->id . '%';
+        // core_Cache::remove($mvc->className, $key);
         
         // Намира контейнера на документа
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetch($rec->id)->containerId;
@@ -527,7 +546,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($rec->threadId && $rec->state != 'rejected') {
             doc_Threads::restoreThread($rec->threadId);
         }
-        
+       
         // Ако е намерен контейнера - обновява го
         if($containerId) {
             
@@ -745,20 +764,65 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
        
+        // Екшън за избор на действие при оттегляне
+        if($action == 'selectaction'){
+        	$id  = Request::get('id', 'int');
+        	$rec = $mvc->fetch($id);
+        	$mvc->requireRightFor('selectaction', $rec);
+        	
+        	// Подготовка на формата
+        	$form = cls::get('core_Form');
+        	$form->setAction(array($mvc, 'selectaction', $rec->id));
+        	$form->title = 'Избор на действие при оттегляне на нишка|* <b>' . doc_Threads::getThreadTitle($rec->threadId) . "</b>";
+        	
+        	$form->info = new core_ET(tr("|*[#stopBtn#] |на счетоводното отразяване на операциите в тази нишка|*<br> [#rejBtn#] |на всички документи от тази нишка|*"));
+        	$form->info->append(ht::createBtn('Спиране', array($mvc, 'selectAction', $rec->id, 'type' => 'stopped'), FALSE, FALSE, 'ef_icon=img/16/stop.png'), 'stopBtn');
+        	$form->info->append(ht::createBtn('Оттегляне', array($mvc, 'selectAction', $rec->id, 'type' => 'rejected'), FALSE, FALSE, 'ef_icon=img/16/reject.png'), 'rejBtn');
+        	
+        	// Ако има избрано действие в урл-то
+        	$type = Request::get('type', 'enum(stopped,rejected)');
+        	if(isset($type)){
+        		
+        		// Спиране на документите
+        		doc_Threads::stopDocuments($rec->threadId);
+        		
+        		// Редирект
+        		if($type == 'stopped'){
+        			redirect(array($mvc, 'single', $rec->id));
+        		} else {
+        			redirect(array($mvc, 'reject', $rec->id, 'stop' => 1));
+        		}
+        	}
+        	
+        	$form->toolbar->addBtn('Отказ', array($mvc, 'single', $rec->id), 'ef_icon = img/16/close-red.png, title = Прекратяване на действията');
+        	$res = $form->renderHtml();
+        	
+        	return FALSE;
+        }
+        
         if ($action == 'reject') {
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
            
             if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
+            	$tRec = doc_Threads::fetch($rec->threadId);
+            	
+            	// Ако потребителя трябва да избере действие преди оттегляне
+            	if($mvc->haveRightFor('selectaction', $rec) && !Request::get('stop', 'int')){;
+            		$res = Request::forward(array('Ctr' => $mvc, 'Act' => 'selectaction', 'id' => $rec->id));
+            		
+            		return FALSE;
+            	}
+            	
                 // Оттегляме документа + нишката, ако се налага
                 if ($mvc->reject($rec)) {
-                    $tRec = doc_Threads::fetch($rec->threadId);
-                    
+                   
                     // Ако оттегляме първия документ в нишка, то оттегляме цялата нишка
                     if ($tRec->firstContainerId == $rec->containerId) {
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
+                    
                     doc_Prototypes::sync($rec->containerId);
                     doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
                     $mvc->logInAct('Оттегляне', $rec);
@@ -1614,7 +1678,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
-            	if(!($oRec->state == 'active' && $mvc->canEditActivated === TRUE)){
+            	if(!(($oRec->state == 'active'  || $oRec->state == 'template') && $mvc->canEditActivated === TRUE)){
             		$requiredRoles = 'no_one';
             	} else {
             		// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
@@ -1792,7 +1856,7 @@ class doc_DocumentPlg extends core_Plugin
         	} else {
         		
         		// Ако документа е чернова, затворен или оттеглен, не може да се добави като разходен обект
-        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting' || $rec->state == 'template'){
+        		if($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'pending' || $rec->state == 'waiting' || $rec->state == 'template'){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -1822,6 +1886,33 @@ class doc_DocumentPlg extends core_Plugin
         			$requiredRoles = 'no_one';
         		} elseif(!$mvc->haveRightFor('single', $rec)){
         			$requiredRoles = 'no_one';
+        		}
+        	}
+        }
+        
+        // Ако действието е за избор на действие при оттегляне
+        if($action == 'selectaction' && isset($rec)){
+        	$requiredRoles = $mvc->getRequiredRoles('reject', $rec, $userId);
+        	
+        	// Трябва поребителя да може да оттегля документа
+        	if($requiredRoles != 'no_one'){
+        		$tRec = doc_Threads::fetch($rec->threadId);
+        		
+        		// И да има достъп до нишката
+        		if(!doc_Threads::haveRightFor('single', $tRec)){
+        			$requiredRoles = 'no_one';
+        			
+        			// И да е първия документ в нея
+        		} elseif ($tRec->firstContainerId != $rec->containerId) {
+        			$requiredRoles = 'no_one';
+        		} elseif(acc_Items::fetchItem($mvc, $rec->id)->state == 'closed'){
+        			$requiredRoles = 'no_one';
+        		} else {
+        			// И да има активни контиращи документи и неконтиращи
+        			doc_Threads::groupDocumentsInThread($rec->threadId, $contable, $notContable, 'active', 1);
+        			if(!(count($contable) && count($notContable))){
+        				$requiredRoles = 'no_one';
+        			}
         		}
         	}
         }
@@ -2047,9 +2138,12 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetMaxAttachFileSizeLimit($mvc, &$max)
     {
-        static $maxSize;
-                
-        if (!$maxSize) {
+        static $maxSizeArr = array();
+        
+        $clsId = $mvc->getClassId();
+        
+        if (!$maxSizeArr[$clsId]) {
+            
             if (!$max) {
                 
                 $conf = core_Packs::getConfig('email');
@@ -2065,11 +2159,13 @@ class doc_DocumentPlg extends core_Plugin
                 $memoryLimit = $FileSize->fromVerbal($memoryLimit) / 3;
                 
                 // Вземаме мининалния размер
-                $maxSize = min($maxAttachedLimit, $memoryLimit);
+                $maxSizeArr[$clsId] = min($maxAttachedLimit, $memoryLimit);
+            } else {
+                $maxSizeArr[$clsId] = $max;
             }
         }
         
-        $max = $maxSize;
+        $max = $maxSizeArr[$clsId];
     }
     
     
@@ -2589,7 +2685,7 @@ class doc_DocumentPlg extends core_Plugin
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    function on_AfterGetAllowedFolders($mvc, &$res)
+    function getCoversAndInterfacesForNewDoc($mvc, &$res)
     {
     	if(empty($res)){
     		return NULL;

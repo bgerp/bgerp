@@ -43,7 +43,7 @@ class survey_Options extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,  plg_Created, survey_Wrapper, plg_SaveAndNew';
+    var $loadList = 'plg_RowTools2,  plg_Created, survey_Wrapper, plg_SaveAndNew';
     
     
     /**

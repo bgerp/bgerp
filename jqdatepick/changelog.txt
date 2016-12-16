@@ -1,2 +1,3 @@
 jquery.datepick-bg.js: сменени текстове на линковете за напред и назад
 jquery.datepick.js: работещ бутон днес: добавено '$('.datepick-today').click(); $(this).blur();' в action: function(inst) { plugin.showMonth(this); }
+jquery.datepick.js: работещ onchange: https://github.com/bgerp/bgerp/commit/032328f62b53db0b3f7bf5da0e367519c422aed7

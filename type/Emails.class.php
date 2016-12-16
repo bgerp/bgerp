@@ -153,7 +153,7 @@ class type_Emails extends type_Varchar {
         $str = trim($str);
         
         //Ескейпваме стринга
-        $str = parent::escape($str);
+//         $str = parent::escape($str);
         
         //ако е празен, връщаме NULL
         if (empty($str)) return NULL;

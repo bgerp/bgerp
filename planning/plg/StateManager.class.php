@@ -323,7 +323,7 @@ class planning_plg_StateManager extends core_Plugin
 		}
 			
 		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 			
 		$res = $form->renderHtml();
 		$res = $mvc->renderWrapping($res);

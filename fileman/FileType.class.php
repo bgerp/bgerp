@@ -54,7 +54,7 @@ class fileman_FileType extends type_Varchar {
         $attrInp['style'] = 'padding:5px;font-weight:bold;';
         
         if($fileName) {
-            $crossImg = "<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">";
+            $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" title=\"" . tr("Премахване на файла") . "\" alt=\"\">";
             $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "')\">" . $crossImg . '</a>';
         }
         
@@ -68,7 +68,7 @@ class fileman_FileType extends type_Varchar {
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name, array('class' => 'noicon')));
+        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => tr('Добавяне или промяна на файл'))));
         
         $this->addJavascript($tpl, $name);
         

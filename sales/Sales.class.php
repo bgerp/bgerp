@@ -131,7 +131,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
                              dealerId, initiatorId,paymentState,
                              createdOn, createdBy';
 
@@ -567,6 +567,7 @@ class sales_Sales extends deals_DealMaster
         // Извличаме продуктите на продажбата
         $dQuery = sales_SalesDetails::getQuery();
         $dQuery->where("#saleId = {$rec->id}");
+        $dQuery->orderBy("id", 'ASC');
         $detailRecs = $dQuery->fetchAll();
        
         $downPayment = NULL;
@@ -681,6 +682,7 @@ class sales_Sales extends deals_DealMaster
             }
          }
          
+         $result->set('dealProducts', $agreed);
          $agreed = deals_Helper::normalizeProducts(array($agreed));
          $result->set('products', $agreed);
          $result->set('contoActions', $actions);
@@ -1114,6 +1116,13 @@ class sales_Sales extends deals_DealMaster
     	if(isset($rec->priceListId)){
     		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
+
+        if(isset($fields['-list'])){  
+            $row->title .= "<div>{$row->folderId}</div>";
+
+      
+        }
+
     	
     	if(isset($fields['-single'])){
     		

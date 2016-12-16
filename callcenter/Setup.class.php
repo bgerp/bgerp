@@ -119,6 +119,7 @@ class callcenter_Setup extends core_ProtoSetup
             'callcenter_Fax',
             'callcenter_SMS',
             'callcenter_Numbers',
+            'callcenter_Hosts',
             'migrate::nullWrongAnswerAndEndTime',
             'migrate::fixDurationField',
             'migrate::clearBrokenNotificaions'

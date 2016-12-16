@@ -250,8 +250,6 @@ class cond_Texts extends core_Manager
             }
             if($rec->group){
                 $data->query->likeKeylist('group', $rec->group);
-//                bp($data->query->where);
-//                $data->query->where(array("#gropu = '[#1#]'", $rec->langWithAllSelect));
             }
         $data->query->orderBy('#createdOn', 'DESC');
     }

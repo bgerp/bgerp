@@ -41,7 +41,9 @@ class batch_plg_DocumentMovement extends core_Plugin
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = NULL)
 	{
 		if($rec->state == 'active'){
-			if(isset($saveFileds)) return;
+			if($mvc->hasPlugin('acc_plg_Contable')){
+				if(isset($saveFileds)) return;
+			}
 			batch_Movements::saveMovement($mvc, $rec->id);
 		} elseif($rec->state == 'rejected'){
 			batch_Movements::removeMovement($mvc, $rec->id);

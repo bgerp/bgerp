@@ -156,7 +156,7 @@ class store_ConsignmentProtocols extends core_Master
     	$this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
     	$this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
+    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',
     			'caption=Статус, input=none'
     	);
     	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
@@ -188,6 +188,8 @@ class store_ConsignmentProtocols extends core_Master
     public function updateMaster_($id)
     {
     	$rec = $this->fetch($id);
+    	
+    	if (!$rec) return ;
     	
     	$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
     	$dRec1->where("#protocolId = {$rec->id}");
@@ -394,7 +396,7 @@ class store_ConsignmentProtocols extends core_Master
      *
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('crm_ContragentAccRegIntf');
     }

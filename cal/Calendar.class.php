@@ -514,7 +514,7 @@ class cal_Calendar extends core_Master
         // генериране на линк към него
         $prevtLink['cal_month'] = $pm;
         $prevtLink['cal_year'] = $py;
-        $prevtLink = toUrl($prevtLink);
+        $prevtLink = toUrl($prevtLink) . "#calendarPortal";
         
         // генериране на един месец напред
         $nm = $month+1;
@@ -529,7 +529,7 @@ class cal_Calendar extends core_Master
         // генериране на линк към него
         $nextLink['cal_month'] = $nm;
         $nextLink['cal_year'] = $ny;
-        $nextLink = toUrl($nextLink);
+        $nextLink = toUrl($nextLink) . "#calendarPortal";
         
         // взимаме текущия месец и го добавяме и него
         $now = dt::today();
@@ -537,8 +537,8 @@ class cal_Calendar extends core_Master
         $yearToday  = date("Y", dt::mysql2timestamp($now));
         $today['cal_month'] = $monthToday;
         $today['cal_year'] = $yearToday;
-        $today = toUrl($today);
-        $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday;
+        $today = toUrl($today) . "#calendarPortal";
+        $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday ;
         
         $attr['value'] = $today;
         $attr['style'] .= 'color:#00F;';
@@ -563,10 +563,10 @@ class cal_Calendar extends core_Master
         	}
         	$prev['cal_month'] = $pm;
         	$prev['cal_year'] = $py;
-        	$prev = toUrl($prev);
+        	$prev = toUrl($prev) . "#calendarPortal";
         	$prevM = tr(dt::$months[$pm-1]) . " " .$py;
         	$options[$prev] = $prevM;
-        	
+
         	if($prevM == $thisMonth) {
         		$attr['value'] = $prevM;
         		$attr['style'] .= 'color:#00F;';
@@ -611,11 +611,11 @@ class cal_Calendar extends core_Master
         	}
         	$next['cal_month'] = $nm;
         	$next['cal_year'] = $ny;
-        	$next = toUrl($next);
-        	$nextM = tr(dt::$months[$nm-1]) . " " .$ny;
+        	$next = toUrl($next) . "#calendarPortal";
+        	$nextM = tr(dt::$months[$nm-1]) . " " .$ny ;
         	
         	$options[$next] = $nextM;
-        	
+
         	if($nextM == $thisMonth) {
         		$attr['value'] = $nextM;
         		$attr['style'] .= 'color:#00F;';
@@ -625,8 +625,7 @@ class cal_Calendar extends core_Master
         	}
 
         }
-        
-        //bp($options);
+
         $select = ht::createSelect('dropdown-cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
        
         // правим заглавието на календара, 
@@ -1119,6 +1118,212 @@ class cal_Calendar extends core_Master
    	
         return $class;
     }
+
+
+    /**
+     * Връща времето на следващото събитие след $after, от редица от събития, определена с начало, период и напасване
+     *
+     * @param datetime  $startOn    Начало на редицата 
+     * @param int       $period     Време на периода в секунди
+     * @param string    $ajust1     Напасване 1
+     * @param string    $ajust2     Напасване 2
+     * @param datetime  $after      Времето, след което се търси първото събитие от редицата
+     * @return datetime
+     */
+    public static function getNextTime($startOn, $period, $ajust1, $ajust2, $after = NULL)
+    {   
+        // Ако не е зададено, търси се следващото време след сега
+        if(!$after) {
+            $after = dt::now();
+        }
+        
+        expect($period > 0, $period);
+
+        $diff = dt::mysql2timestamp($after) - dt::mysql2timestamp($startOn);
+        
+        expect($diff > 0, $diff, $after, $startOn);
+
+        $periodsCnt = (int) ($diff / $period);
+
+        $res = dt::addSecs($period * $periodsCnt, $startOn);
+        
+ 
+        // Връщаме малко назад, докато получим първия период, преди $after
+        while($res > $after) {
+            $res = dt::addSecs(-$period, $res);
+        }
+        
+        // Даваме сега малко напред, за да хванем първия момент, след $after
+        while($res < $after) {
+            $res = dt::addSecs($period, $res);
+        }
+        
+        // До тук сме определили точната дата. Сега трябва да я напаснем
+        
+        // Изчисляваме първото напасване
+        if($ajust1) {
+            $res1 = self::ajustDay($res, $ajust1);
+        }
+        
+        // Изчисляваме второто напасване
+        if($ajust2) {
+            $res2 = self::ajustDay($res, $ajust2);
+        }
+
+        // Определяме, кое напасване е по-близко
+        if($res1 && $res2) {
+            
+            if(abs(dt::mysql2timestamp($res) - dt::mysql2timestamp($res1)) > abs(dt::mysql2timestamp($res) - dt::mysql2timestamp($res2))) {
+                $res = $res2;
+            } else {
+                $res = $res1;
+            }
+        } elseif($res1) {
+            $res = $res1;
+        } elseif($res2) {
+            $res = $res2;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Настройва деня, според модификатора
+     */
+    public static function ajustDay($day, $ajust)
+    {
+        list($direction, $type) = explode('-', $ajust);
+        
+        $direction = strtolower($direction);
+
+        if($direction == 'thisornext') {
+            $d = 24*60*60;
+        } else {
+            expect($direction == 'thisorprev', $direction);
+            $d = -24*60*60;
+        }
+
+
+        while(!self::isDayType($day, $type)) {
+            $day = dt::addSecs($d, $day);
+        }
+
+        return $day;
+    }
+
+    
+    /**
+     *
+     */
+    public static function isDayType($day, $type)
+    {   
+        $t = dt::mysql2timestamp($day);
+        
+        list($day, ) = explode(' ', $day);
+        
+        switch(strtolower($type)) {
+            case 'mon' : 
+                $res = date("N", $t) == 1;
+                break;
+            case 'tue' : 
+                $res = date("N", $t) == 2;
+                break;
+            case 'wed' : 
+                $res = date("N", $t) == 3;
+                break;
+            case 'thu' : 
+                $res = date("N", $t) == 4;
+                break;
+            case 'fri' : 
+                $res = date("N", $t) == 5;
+                break;
+            case 'sat' : 
+                $res = date("N", $t) == 6;
+                break;
+            case 'sun' : 
+                $res = date("N", $t) == 7;
+                break;
+            case 'weekend' : 
+                $res = date("N", $t) == 6 || date("N", $t) == 7;
+                break;
+            case 'notweekend' : 
+                $res = date("N", $t) != 6 && date("N", $t) != 7;
+                break;
+            case 'nonworking':
+                $status = self::getDayStatus($day);
+                $res = ($status->isHoliday || $status->specialDay == 'non-working' || $status->specialDay == 'weekend');
+                break;
+            case 'working':
+                $status = self::getDayStatus($day);
+                $res = ($status->specialDay == 'working') || (!$status->isHoliday && $status->specialDay != 'non-working' && $status->specialDay != 'weekend');
+                break;
+           default:
+               expect(FALSE, $type);
+        }
+
+        return $res;
+    }
+
+
+    function act_Test()
+    {
+        requireRole('admin');
+
+        $ajustOpt = array(
+            '' => '',
+            'ThisOrNext-Mon' => "Напред, Понеделник",
+            'ThisOrNext-Tue' => "Напред, Вторник",
+            'ThisOrNext-Wed' => "Напред, Сряда",
+            'ThisOrNext-Thu' => "Напред, Четвъртък",
+            'ThisOrNext-Fri' => "Напред, Петък",
+            'ThisOrNext-Sat' => "Напред, Събота",
+            'ThisOrNext-Sun' => "Напред, Неделя",
+            'ThisOrNext-Working' => "Напред, Работен ден",
+            'ThisOrNext-NonWorking' => "Напред, Неработен ден",
+            'ThisOrNext-NotWeekend' => "Напред, Не-Уикенд",
+            'ThisOrNext-Weekend' => "Напред, Уикенд",
+
+            'ThisOrPrev-Mon' => "Назад, Понеделник",
+            'ThisOrPrev-Tue' => "Назад, Вторник",
+            'ThisOrPrev-Wed' => "Назад, Сряда",
+            'ThisOrPrev-Thu' => "Назад, Четвъртък",
+            'ThisOrPrev-Fri' => "Назад, Петък",
+            'ThisOrPrev-Sat' => "Назад, Събота",
+            'ThisOrPrev-Sun' => "Назад, Неделя",
+            'ThisOrPrev-Working' => "Назад, Работен ден",
+            'ThisOrPrev-NonWorking' => "Назад, Неработен ден",
+            'ThisOrPrev-NotWeekend' => "Назад, Не-Уикенд",
+            'ThisOrPrev-Weekend' => "Назад, Уикенд",
+            
+
+            );
+
+        $form = cls::get('core_Form');
+        $form->FLD('startOn', 'datetime', 'caption=Начало,mandatory');
+        $form->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици|1 месец|2 месецa|3 месецa|4 месецa|5 месецa|6 месецa|12 месецa|24 месецa,min=86400)', 'caption=Период,mandatory');
+        $form->FLD('ajust1', 'enum()', 'caption=Напасване');
+        $form->FLD('ajust2', 'enum()', 'caption=Или по-близо');
+        $form->FLD('after', 'datetime', 'caption=След');
+        
+        $form->setOptions('ajust1', $ajustOpt);
+        $form->setOptions('ajust2', $ajustOpt);
+
+        $rec = $form->input();
+
+        if($form->isSubmitted()) {
+            $res = self::getNextTime($rec->startOn, $rec->period, $rec->ajust1, $rec->ajust2, $rec->after);
+            
+            $form->info = "<b style='color:green'>Следващото събитие е на: " . $res . "</b>";
+        }
+        
+        $form->title = "Тестване на периодичност";
+
+        
+        $form->toolbar->addSbBtn("Тест");
+
+        return $form->renderHtml();
+    }
     
     
     /**
@@ -1301,6 +1506,7 @@ class cal_Calendar extends core_Master
 			$idTask = str_replace("-End", " ", $idTask);
 			$getTask = cls::get('cal_Tasks');
 			$imgTask = $getTask->getIcon(trim($idTask));
+
 			$img = "<img class='calImg' src=". sbf($imgTask) .">&nbsp;";
 		
 		} elseif($type == 'end-date'){
@@ -1743,13 +1949,13 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createTask(dt)
     	{
-    		document.location = '{$url}?timeStart[d]=' + dt;
+    		document.location = '{$url}?timeStart=' + dt;
 		}";
     	    	
     	$jsDblFnc = "
     	function createDblTask(dt)
     	{
-    		document.location = '{$url}?timeStart[d]=' + dt;
+    		document.location = '{$url}?timeStart=' + dt;
 		}";
 
     	
@@ -1858,13 +2064,13 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createWeekTask(dt)
     	{
-    		document.location = '{$urlWeek}?timeStart[d]=' + dt;
+    		document.location = '{$urlWeek}?timeStart=' + dt;
 		}";
     	
     	$jsDblFnc = "
     	function createDblWeekTask(dt)
     	{
-    		document.location = '{$urlWeek}?timeStart[d]=' + dt;
+    		document.location = '{$urlWeek}?timeStart=' + dt;
 		}";
     	
     	$urlCal = toUrl(array('cal_Calendar', 'week'));

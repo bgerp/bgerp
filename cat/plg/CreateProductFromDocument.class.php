@@ -47,34 +47,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	{
 		if($action == 'createproduct'){
 			if(isset($rec)){
-				$requiredRoles = $mvc->getRequiredRoles('add', $rec);
-				if($requiredRoles == 'no_one') return;
-				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-				
-				$options = cat_Categories::getProtoOptions(NULL, $mvc->filterProtoByMeta, 1);
-				
-				if(isset($rec->cloneId)){
-					$cloneRec = $mvc->fetch($rec->cloneId);
-					$isPublic = cat_Products::fetchField($cloneRec->productId, 'isPublic');
-					
-					if($isPublic == 'no'){
-						$options[$cloneRec->productId] = $cloneRec->productId;
-					} else {
+				if($mvc instanceof sales_SalesDetails){
+					$roles = sales_Setup::get('ADD_BY_CREATE_BTN');
+					if(!haveRole($roles, $userId)){
 						$requiredRoles = 'no_one';
 					}
-				}
-				
-				if($requiredRoles != 'no_one'){
-					if(count($options)){
-						
-						if(!cat_Products::haveRightFor('add', (object)array('threadId' => $masterRec->threadId))){
-							$requiredRoles = 'no_one';
-						} else {
-							$requiredRoles = $mvc->getRequiredRoles('add', (object)array($mvc->masterKey => $masterRec->id));
-						}
-					} else {
-						$requiredRoles = 'no_one';
-					}
+				} else {
+					$requiredRoles = $mvc->getRequiredRoles('add', $rec);
 				}
 			} else {
 				$requiredRoles = $mvc->getRequiredRoles('add');
@@ -99,25 +78,43 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			
 			$mvc->requireRightFor('createproduct', (object)array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id));
 			$Products = cls::get('cat_Products');
+			unset($Products->doc_plg_Prototype);
 			
 			$detailFields = $productFields = array();
 			
 			// Взимаме формата на детайла
 			$form = $mvc->getForm();
+			
 			$form->setField($mvc->masterKey, 'input=hidden');
 			$fieldPack = $form->getField('packagingId');
 			unset($fieldPack->removeAndRefreshForm);
 			
 			// Поле за прототип
-			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance,placeholder=Популярни продукти,mandatory,before=packagingId");
+			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,mandatory,silent,before=proto,removeAndRefreshForm=proto|packPrice|discount|packagingId|tolerance,mandatory");
+			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,before=packagingId");
+			
+			if(isset($cloneRec)){
+				$innerClass = cat_Products::fetchField($cloneRec->productId, 'innerClass');
+				$form->setDefault('innerClass', $innerClass);
+			}
+			
+			$form->input(NULL, 'silent');
 			
 			// Наличните прототипи + клонирания
-			$protos = cat_Categories::getProtoOptions(NULL, $mvc->filterProtoByMeta);
+			if(isset($form->rec->innerClass)){
+				$protos = cat_Categories::getProtoOptions($form->rec->innerClass, $mvc->filterProtoByMeta);
+			} else {
+				$protos = array();
+			}
 			
 			if(isset($cloneRec)){
 				$protos[$cloneRec->productId] = cat_Products::getTitleById($cloneRec->productId, FALSE);
 			}
-			$form->setOptions('proto', $protos);
+			
+			if(count($protos)){
+				$form->setOptions('proto', $protos);
+				$form->setField('proto', 'input');
+			}
 			
 			// Инпутваме silent полетата
 			$form->input(NULL, 'silent');
@@ -127,7 +124,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				unset($form->fields[$f]);
 			}
 			
-			$form->setField('productId', 'input=hidden');
+			$form->setField('productId', 'input=none');
+			$form->setField('packagingId', 'input=none');
 			if(isset($cloneRec)){
 				$form->setField('proto', 'input=hidden');
 				$form->setDefault('proto', $cloneRec->productId);
@@ -153,42 +151,74 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			}
 			
 			// Ако е инпутнат прототип
-			if(isset($form->rec->proto)){
+			if(isset($form->rec->proto) || isset($form->rec->innerClass)){
 				
 				// Взимаме от драйвера нужните полета
 				$proto = $form->rec->proto;
-				cat_Products::setAutoCloneFormFields($form, $proto);
+				cat_Products::setAutoCloneFormFields($form, $proto, $form->rec->innerClass);
 				$form->setDefault('productId', $form->rec->proto);
-				
+				//
 				// Зареждаме данни от прототипа (или артикула който клонираме)
-				$protoRec = cat_Products::fetch($proto);
-				$productFields = array_diff_key($form->fields, $detailFields);
-				$protoName = cat_Products::getTitleById($protoRec->id);
-				foreach ($productFields as $n1 => $fld){
-					if(isset($protoRec->{$n1})){
-						$form->setDefault($n1, $protoRec->{$n1});
+				if($proto){
+					$protoRec = cat_Products::fetch($proto);
+					$productFields = array_diff_key($form->fields, $detailFields);
+					$protoName = cat_Products::getTitleById($protoRec->id);
+					foreach ($productFields as $n1 => $fld){
+						if(isset($protoRec->{$n1})){
+							$form->setDefault($n1, $protoRec->{$n1});
+						}
+							
+						$caption = $fld->caption;
+						if(strpos($fld->caption, '->') === FALSE){
+							$caption = (isset($cloneRec)) ? "Клониране на" : "Персонализиране на";
+							$caption .= "|* <b>{$protoName}</b>->{$fld->caption}";
+						}
+							
+						$form->setField($n1, "caption={$caption}");
 					}
 					
-					$caption = $fld->caption;
-					if(strpos($fld->caption, '->') === FALSE){
-						$caption = (isset($cloneRec)) ? "Клониране на" : "Персонализиране на";
-						$caption .= "|* <b>{$protoName}</b>->{$fld->caption}";
-					}
-					
-					$form->setField($n1, "caption={$caption}");
+					// Допустимите мерки са сред производните на тази на прототипа
+					$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
+					$form->setOptions('measureId', $sameMeasures);
 				}
 				
-				// Допустимите мерки са сред производните на тази на прототипа
-				$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
-				$form->setOptions('measureId', $sameMeasures);
 				$form->rec->folderId = $masterRec->folderId;
 				$form->rec->threadId = $masterRec->threadId;
 				
 				// Извикваме в класа и драйвера нужните ивенти
-				$Driver = cat_Products::getDriver($proto);
+				if($proto){
+					$Driver = cat_Products::getDriver($proto);
+				} else {
+					$Driver = cls::get($form->rec->innerClass);
+					$cover = doc_Folders::getCover($form->rec->folderId);
+					$defMetas = $cover->getDefaultMeta();
+					$defMetas = $Driver->getDefaultMetas($defMetas);
+					
+					if(count($defMetas)){
+						$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+					}
+					
+					if($Driver->getDefaultUomId()){
+						$defaultUomId = $Driver->getDefaultUomId();
+						$form->setDefault('measureId', $defaultUomId);
+						$form->setField('measureId', 'input=hidden');
+					} else {
+						$measureOptions = cat_UoM::getUomOptions();
+						if($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')){
+							$measureOptions[$defMeasure] = cat_UoM::getTitleById($defMeasure, FALSE);
+							$form->setDefault('measureId', $defMeasure);
+						}
+						$form->setOptions('measureId', array('' => '') + $measureOptions);
+					}
+				}
+				
 				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form)));
-			
+				
 				$form->input();
+				if(empty($form->rec->packagingId)){
+					$form->rec->packagingId = $form->rec->measureId;
+				}
+				
 				$Products->invoke('AfterInputEditForm', array($form));
 				$mvc->invoke('AfterInputEditForm', array($form));
 				
@@ -203,7 +233,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				// Ако не клонираме прототипа е скрит
 				$fields = $form->selectFields();
 				foreach ($fields as $name => $fl1){
-					if($name != 'proto'){
+					if($name != 'proto' && $name != 'innerClass'){
 						$form->setField($name, 'input=none');
 					}
 				}
@@ -224,9 +254,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$pRec->folderId = $masterRec->folderId;
 				$pRec->threadId = $masterRec->threadId;
 				$pRec->isPublic = 'no';
-				
-				$protoRec = cat_Products::fetch($rec->productId);
-				$pRec->meta = $protoRec->meta;
+				$pRec->innerClass = $rec->innerClass;
+				$pRec->meta = $rec->meta;
 				
 				// Създаваме артикула
 				$productId = $Products->save($pRec);
@@ -245,13 +274,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			$folderTitle = doc_Folders::recToVerbal(doc_Folders::fetch($masterRec->folderId))->title;
 			$form->title = "Създаване на нов нестандартен артикул в|* {$folderTitle}";
 				
-			if(isset($form->rec->proto)){
+			if(isset($form->rec->innerClass)){
 				$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис');
 			} else {
 				$form->toolbar->addBtn('Запис', array(), 'ef_icon = img/16/disk.png, title = Запис');
 			}
 			
-			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 				
 			// Рендиране на опаковката
 			$tpl = $mvc->renderWrapping($form->renderHtml());
@@ -271,14 +300,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		
-			if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id))){
-				$url = array($mvc, 'CreateProduct', $mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id, 'ret_url' => TRUE);
+		if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id))){
+			$url = array($mvc, 'CreateProduct', $mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id, 'ret_url' => TRUE);
 				
-				if($mvc->hasPlugin('plg_RowTools2')){
-					core_RowToolbar::createIfNotExists($row->_rowTools);
-					$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
-				}
+			if($mvc->hasPlugin('plg_RowTools2')){
+				core_RowToolbar::createIfNotExists($row->_rowTools);
+				$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
 			}
+		}
 	}
 }

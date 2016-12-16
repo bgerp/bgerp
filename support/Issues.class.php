@@ -120,7 +120,7 @@ class support_Issues extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
+    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
     				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc, plg_Clone';
     
     
@@ -341,7 +341,7 @@ class support_Issues extends core_Master
     	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         if(count(getRetUrl())) {
-            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
+            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
         }
         $tpl = $form->renderHtml();
     	
@@ -924,7 +924,7 @@ class support_Issues extends core_Master
      * 
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
         
     	return array('support_IssueIntf');

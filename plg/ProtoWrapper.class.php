@@ -106,7 +106,7 @@ class plg_ProtoWrapper extends core_Plugin
         if ($isCurrentTabSet = $invoker->currentTab  ) {
             $currentTab = $invoker->currentTab;
         }  
-        
+
         $ctr = cls::getClassName(Request::get('Ctr'));
         $act = Request::get('Act');
         $id  = Request::get('id');

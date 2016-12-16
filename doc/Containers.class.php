@@ -393,15 +393,19 @@ class doc_Containers extends core_Manager
         }
         $title->replace($user, 'user');
         
-        // Заглавие на треда
-        $document = $mvc->getDocument($data->threadRec->firstContainerId);
-        $docRow = $document->getDocumentRow();
-        $docTitle = str::limitLenAndHyphen($docRow->title, 70);
-        $title->replace($docTitle, 'threadTitle');
-        
-        $mvc->title = '|*' . str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
-
-        $data->title = $title;
+        try {
+            // Заглавие на треда
+            $document = $mvc->getDocument($data->threadRec->firstContainerId);
+            $docRow = $document->getDocumentRow();
+            $docTitle = str::limitLenAndHyphen($docRow->title, 70);
+            $title->replace($docTitle, 'threadTitle');
+            
+            $mvc->title = '|*' . str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
+            
+            $data->title = $title;
+        } catch (ErrorException $e) {
+            $data->title = 'Грешка при показване';
+        }
     }
     
     
@@ -634,7 +638,7 @@ class doc_Containers extends core_Manager
         	}
         	
         	if(doc_Threads::haveRightFor('single', $data->threadRec)){
-        	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
+        	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon=img/16/alarm_clock_add.png', 'title=Създаване на ново напомняне');
         	}
         }
         
@@ -757,7 +761,7 @@ class doc_Containers extends core_Manager
             
             
             // Нотификации на абонираните и споделените потребители
-            if($flagJustActived) {
+            if($flagJustActived && !Mode::is('isMigrate')) {
                 
                 // Масис със споделените потребители
                 $sharedArr = keylist::toArray($shared);
@@ -2017,7 +2021,7 @@ class doc_Containers extends core_Manager
                         $dRec->originId = NULL;
                         
                         try {
-                            $clsInst->save($dRec, 'originId');
+                            $clsInst->save_($dRec, 'originId');
                         } catch (ErrorException $e) {
                             reportException($e);
                         }
@@ -2829,7 +2833,7 @@ class doc_Containers extends core_Manager
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Поправи', 'repair', 'ef_icon = img/16/hammer_screwdriver.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         return $this->renderWrapping($form->renderHtml());
     }
@@ -2855,13 +2859,13 @@ class doc_Containers extends core_Manager
         }
         
         if (empty($rArr)) {
-            $msg = '|Няма ключове за поправяне';
+            $msg = '|Няма документи за ре-индексиране';
         } else {
             $cnt = $rArr[0];
             if ($cnt == 1) {
-                $msg = "|Поправен|* {$cnt} |документ";
+                $msg = "|Ре-индексиран|* 1 |документ";
             } else {
-                $msg = "|Поправени|* {$cnt} |документа";
+                $msg = "|Ре-индексирани|* {$cnt} |документа";
             }
         }
         
@@ -3088,7 +3092,7 @@ class doc_Containers extends core_Manager
             $url = array(get_called_class(), 'ShowDocumentInThread', $id);
             
             $attr = array();
-            $attr['ef_icon'] = 'img/16/toggle-expand.png';
+            $attr['ef_icon'] = 'img/16/toggle1.png';
             $attr['class'] = 'settings-show-document';
             $attr['title'] = 'Показване на целия документ';
             $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
@@ -3099,7 +3103,7 @@ class doc_Containers extends core_Manager
             $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
             $dRow->DocumentSettings->append($showDocument);
         }
-        
+        $dRow->STATE_CLASS .= ' hidden-document';
         $tpl->placeObject($dRow);
         
         $tpl->removeBlocks();

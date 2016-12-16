@@ -54,7 +54,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
                      doc_plg_BusinessDoc, doc_SharablePlg, bgerp_plg_Blank';
     
@@ -143,7 +143,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $addToListOnActivation = 'workContracts';
     
-    
+
     /**
      * Описание на модела
      */
@@ -862,7 +862,7 @@ class hr_EmployeeContracts extends core_Master
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
         return array('crm_PersonAccRegIntf');
     }

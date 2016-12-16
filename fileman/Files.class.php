@@ -91,6 +91,12 @@ class fileman_Files extends core_Master
     
     
     /**
+     * 
+     */
+    public $canOcr = 'powerUser';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -771,7 +777,7 @@ class fileman_Files extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
 
         // Вербалното име на файла
         $fileName = fileman_Files::getVerbal($fRec, 'name');
@@ -996,21 +1002,73 @@ class fileman_Files extends core_Master
         $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
         $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
         
-        // Вземаме конфигурацията за fileman
-        $conf = core_Packs::getConfig('fileman');
         try {
-            
-            // Ако има зададен клас
-            if (trim($conf->FILEMAN_OCR)) {
-                
-                // Опитваме се да вземаме инстанция на класа
-                $OcrInst = cls::get($conf->FILEMAN_OCR);
-                
-                // Добавяме бутон в тулбара
-                $OcrInst->addOcrBtn($data->toolbar, $data->rec);
-            }
+            $mvc->addOcrBtn($data->toolbar, $data->rec);
         } catch (core_exception_Expect $e) {
             reportException($e);
+        }
+    }
+	
+    
+    /**
+     * Добавя бутон за стартиране на OCR процеса
+     * 
+     * @param core_Toolbar $toolbar
+     * @param stdObject $rec
+     */
+    protected static function addOcrBtn(&$toolbar, $rec)
+    {
+        $ocrClass = fileman_Setup::get('OCR');
+        
+        if (!cls::load($ocrClass, TRUE)) return FALSE;
+        
+        $OcrInst = cls::getInterface('fileman_OCRIntf', $ocrClass);
+        
+        if (!$OcrInst) return FALSE;
+        
+        try {
+            
+            $ext = strtolower(fileman_Files::getExt($rec->name));
+            
+            if (!self::haveRightFor('ocr')) return FALSE;
+            
+            if (!$OcrInst->canExtract($rec)) return FALSE;
+            
+            $btnParams = array();
+            
+            $btnParams['order'] = 60;
+            $btnParams['title'] = 'Разпознаване на текст';
+            
+            $Setup = cls::get('tesseract_Setup');
+            $checkConf = $Setup->checkConfig();
+            
+            $url = array();
+            if ($checkConf === NULL) {
+                // URL за създаване
+                $url = toUrl(array($OcrInst->class, 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
+            } else {
+                $btnParams['title'] = $checkConf;
+            }
+            
+            // Ако вече е извлечена текстовата част
+            $paramsOcr = array();
+            $paramsOcr['type'] = $OcrInst->class->ocrType;
+            $paramsOcr['dataId'] = $rec->dataId;
+            $procTextOcr = fileman_Indexes::isProcessStarted($paramsOcr);
+            if ($procTextOcr) {
+                // Правим бутона на disabled
+                $btnParams['disabled'] = 'disabled';
+                $btnParams['title'] = 'Файлът е преминал през разпознаване на текст';
+            }
+            
+            // Добавяме бутона
+            $toolbar->addBtn('OCR', $url, 
+            	array('ef_icon' => 'img/16/scanner.png'), 
+                $btnParams
+            ); 
+        } catch (ErrorException $e) {
+            
+            return FALSE;
         }
     }
     

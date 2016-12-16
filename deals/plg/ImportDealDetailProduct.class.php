@@ -162,6 +162,16 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				$err[$i][] = '|Грешно количество|*';
 			}
 			
+			// Проверка за точност на к-то
+			if(isset($obj->quantity)){
+				if($pRec = cat_Products::getByCode($obj->code)){
+					$packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
+					if(!deals_Helper::checkQuantity($packagingId, $obj->quantity, $warning)){
+						$err[$i][] = $warning;
+					}
+				}
+			}
+			
 			$row = clone $obj;
 		}
 		
@@ -261,8 +271,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$form->setDefault($fld, $i + 1);
 		}
 		
-		$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import16.png, title = Импорт');
-		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+		$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 	}
 	
 	
@@ -275,7 +285,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		
 		if($mvc->haveRightFor('import', (object)array("{$mvc->masterKey}" => $masterRec->id))){
 			$data->toolbar->addBtn('Импортиране', array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
-			"id=btnAdd-import,{$error},title=Импортиране на артикули", 'ef_icon = img/16/import16.png,order=15');
+			"id=btnAdd-import,{$error},title=Импортиране на артикули", 'ef_icon = img/16/import.png,order=15');
 		}
 	}
 	
@@ -288,8 +298,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		if($requiredRoles == 'no_one') return;
 		
 		if($action == 'import' && isset($rec->{$mvc->masterKey})){
-			if(!$mvc->haveRightFor('add', $rec)){
-				$requiredRoles = 'no_one';
+			if($mvc instanceof sales_SalesDetails){
+				$roles = sales_Setup::get('ADD_BY_IMPORT_BTN');
+				if(!haveRole($roles, $userId)){
+    				$requiredRoles = 'no_one';
+    			}
+			} else {
+				if(!$mvc->haveRightFor('add', $rec)){
+					$requiredRoles = 'no_one';
+				}
 			}
 		}
 	}

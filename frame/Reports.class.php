@@ -23,7 +23,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_plg_Prototype,doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype,doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
                       
     
     /**
@@ -156,6 +156,12 @@ class frame_Reports extends core_Embedder
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,title=Документ,source,earlyActivationOn,createdOn,createdBy,modifiedOn,modifiedBy';
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
     
     
     /**

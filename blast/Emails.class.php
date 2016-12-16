@@ -160,7 +160,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
     
     
     /**
@@ -1112,7 +1112,7 @@ class blast_Emails extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
-        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
         $form->title = "Стартиране на масово разпращане";
@@ -1613,7 +1613,14 @@ class blast_Emails extends core_Master
                         $str = "файлове";
                     }
                     
-                    $form->setWarning('attachments', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                    $FileSize = cls::get('fileman_FileSize');
+                    $allowedSize = $mvc->getMaxAttachFileSizeLimit();
+                    $allowedSize = $FileSize->toVerbal($allowedSize);
+                    
+                    $errStr = "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal;
+                    $errStr .= "<br>|Допустимият размер е|*: {$allowedSize}";
+                    
+                    $form->setError('attachments', $errStr);
                 }
             }
         }
@@ -1748,6 +1755,20 @@ class blast_Emails extends core_Master
         if ($form->isSubmitted()) {
             $mvc->checkHost($form, 'body');
         }
+    }
+    
+    
+    /**
+     * Връща допустимия размер на прикачените файлове/докумети
+     * 
+     * @return integer
+     */
+    public static function getMaxAttachFileSizeLimit_()
+    {
+        // 1 МБ
+        $res = 1048576;
+        
+        return $res;
     }
     
     
@@ -2032,7 +2053,7 @@ class blast_Emails extends core_Master
      * @param core_ET $res
      * @param integer $id
      * @param string $mode
-     * @param object $options
+     * @param object|NULL $options
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
@@ -2046,6 +2067,10 @@ class blast_Emails extends core_Master
         core_Lg::push(self::getLanguage($emailRec->body, $emailRec->lg));
         
         $detDataArr = array();
+        
+        if (is_null($options)) {
+            $options = new stdClass();
+        }
         
         // Опитваме се да извлечен масива с данните
         if ($options->__detArr) {

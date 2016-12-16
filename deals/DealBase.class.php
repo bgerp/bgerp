@@ -347,7 +347,7 @@ abstract class deals_DealBase extends core_Master
     	}
     
     	$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
-    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
     	
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
@@ -370,7 +370,7 @@ abstract class deals_DealBase extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->title = $mvc->getLink($rec->id, 0);
+    		$row->title = $mvc->getLink($rec->id, 0) . "<div style='font-size:0.7em;'>" . doc_Folders::getTitleById($rec->folderId) . "</div>";
     	}
     }
     

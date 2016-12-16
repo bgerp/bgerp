@@ -31,7 +31,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, cal_Wrapper, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
+    public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
     				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone';
 
 
@@ -147,6 +147,12 @@ class cal_Tasks extends core_Master
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'cal/tpl/SingleLayoutTasks.shtml';
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = '*';
 
 
     /**
@@ -222,6 +228,10 @@ class cal_Tasks extends core_Master
                                     high=Висок,
                                     critical=Критичен)',
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
+        if(Mode::is('screenMode', 'narrow')) {
+            $this->setField('priority', "columns=2");
+            $this->setFieldTypeParams('priority',"columns=2" );
+        }
         $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
 
         // Споделяне
@@ -1109,7 +1119,16 @@ class cal_Tasks extends core_Master
     {
         $rec = self::fetch($id);
 
-        return "img/16/task-" . $rec->priority . ".png";
+        $icon =  "img/16/task-" . $rec->priority . ".png";
+
+        if(log_Browsers::isRetina()) {
+            $tempIcon = "img/32/task-" . $rec->priority . ".png";
+            if(getFullPath($tempIcon)) {
+                $icon =  $tempIcon;
+            }
+        }
+
+        return $icon;
     }
 
     
@@ -2105,7 +2124,7 @@ class cal_Tasks extends core_Master
 	    
     	// ако задачата няма начало и край
 	    if ($timeStart == NULL && $timeEnd == NULL && $rec->timeDuration == NULL) { 
-//		    	/bp();
+
 			$expStart = $now;
 			$expEnd = $now;
 		    	

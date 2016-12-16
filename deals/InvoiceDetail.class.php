@@ -101,7 +101,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
 			
 			foreach (array('packagingId', 'notes', 'discount') as $fld){
-				$data->form->setField($fld, 'input=hidden');
+				$data->form->setField($fld, 'input=none');
 			}
 			$data->form->setFieldTypeParams('quantity', array('min' => 0));
 			$data->form->setFieldTypeParams('packPrice', array('min' => 0));
@@ -160,33 +160,47 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{	
 		// Ако документа е известие
 		if($rec->type === 'dc_note'){
-			if(count($recs)){
-				// Намираме оригиналните к-ва и цени 
-				$cached = $this->Master->getInvoiceDetailedInfo($rec->originId);
-				
-				// За всеки запис ако е променен от оригиналния показваме промяната
-				$count = 0;
-				foreach($recs as &$dRec){
-					$originRef = $cached->recs[$count][$dRec->productId];
-					
-					$diffQuantity = $dRec->quantity - $originRef['quantity'];
-					$diffPrice = $dRec->packPrice - $originRef['price'];
-					
-					if(round($diffQuantity, 5) != 0){
-						$dRec->quantity = $diffQuantity;
-						$dRec->changedQuantity = TRUE;
-					}
-					
-					if(round($diffPrice, 5) != 0){
-						$dRec->packPrice = $diffPrice;
-						$dRec->changedPrice = TRUE;
-					}
-					$count++;
-				}
-			}
+			self::modifyDcDetails($recs, $rec, $this);
 		}
 		
 		deals_Helper::fillRecs($this->Master, $recs, $rec, $this->map);
+	}
+	
+	
+	/**
+	 * Помощна ф-я за обработката на записите на КИ и ДИ
+	 * 
+	 * @param stdClass $recs
+	 * @param stdClass $rec
+	 */
+	public static function modifyDcDetails(&$recs, $rec, $mvc)
+	{
+		expect($rec->type === 'dc_note');
+		
+		if(count($recs)){
+			// Намираме оригиналните к-ва и цени
+			$cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
+		
+			// За всеки запис ако е променен от оригиналния показваме промяната
+			$count = 0;
+			foreach($recs as &$dRec){
+				$originRef = $cached->recs[$count][$dRec->productId];
+					
+				$diffQuantity = $dRec->quantity - $originRef['quantity'];
+				$diffPrice = $dRec->packPrice - $originRef['price'];
+					
+				if(round($diffQuantity, 5) != 0){
+					$dRec->quantity = $diffQuantity;
+					$dRec->changedQuantity = TRUE;
+				}
+					
+				if(round($diffPrice, 5) != 0){
+					$dRec->packPrice = $diffPrice;
+					$dRec->changedPrice = TRUE;
+				}
+				$count++;
+			}
+		}
 	}
 	
 	
@@ -219,7 +233,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				if($rec->{"changed{$key}"} === TRUE){
 					$changed = TRUE;
 					if($rec->{$fld} < 0){ 
-						$row->{$fld} = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
 						$row->{$fld} = "<span style='color:red'>{$row->{$fld}}</span>";
 					} elseif($rec->{$fld} > 0){
 						$row->{$fld} = "<span style='color:green'>+{$row->{$fld}}</span>";
@@ -371,7 +384,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$rec = &$form->rec;
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
-	
+		
 		if($form->rec->productId && $masterRec->type != 'dc_note'){
 			$vat = cat_Products::getVat($rec->productId);
 			$productInfo = cat_Products::getProductInfo($rec->productId);
@@ -398,7 +411,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		} else {
 			$form->setReadOnly('packagingId');
 		}
-	
+		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
 			if(!isset($rec->quantity)){
 				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
@@ -416,18 +429,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 			}
 			
-			// Закръгляме количеството спрямо допустимото от мярката
-			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
-			
-			if($roundQuantity == 0 && $masterRec->type != 'dc_note'){
-				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-				return;
-			}
-			
-			if($roundQuantity != $rec->quantity){
-				$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-				$rec->quantity = $roundQuantity;
-			}
+			// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+    			$form->setError('packQuantity', $warning);
+    		}
 	
 			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 			
@@ -485,9 +490,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
 			
 			// Ако има такъв запис, сетваме грешка
-			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount);
+			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, NULL, NULL, $rec->notes);
 			if($exRec){
-				$form->setError('productId,packagingId,packPrice,discount', 'Вече съществува запис със същите данни');
+				$form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
 				unset($rec->packPrice, $rec->price, $rec->quantityInPack);
 			}
 			
@@ -525,8 +530,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
 				}
 			}
-			
-			$originRef = $cached[$dRec->productId][$dRec->packagingId];
 		}
 	}
 }

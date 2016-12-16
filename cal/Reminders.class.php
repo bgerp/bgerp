@@ -32,7 +32,7 @@ class cal_Reminders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
+    public $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
     				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin';
     
 
@@ -171,7 +171,7 @@ class cal_Reminders extends core_Master
     /**
      * 
      */
-    static $suggestions = array("", 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
+    static $suggestions = array("", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
     
     
     /**
@@ -179,7 +179,13 @@ class cal_Reminders extends core_Master
      */
     public $showLetterHead = TRUE;
     
-    
+
+    /**
+     * Масив с id на напомненията, които отварят нишки в този хит
+     */
+    static $opened = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -191,7 +197,10 @@ class cal_Reminders extends core_Master
                                      high=Висок,
                                      critical=Критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,changable');
-        
+        if(Mode::is('screenMode', 'narrow')) {
+            $this->setField('priority', "columns=2");
+            $this->setFieldTypeParams('priority',"columns=2" );
+        }
         $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable,silent');
 
         // Споделяне
@@ -200,6 +209,7 @@ class cal_Reminders extends core_Master
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
         						   notify=Нотификация,
+                                   notifyNoAns = Нотификация-ако няма отговор,
         						   replicateDraft=Чернова-копие на темата,
         						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify,changable');
         
@@ -239,20 +249,17 @@ class cal_Reminders extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	$cu = core_Users::getCurrent();
-    	$currUrl = getCurrentUrl();
-    	$now = dt::now();
-        $data->form->setDefault('priority', 'normal');
-        $data->form->setDefault('sharedUsers', "|".$cu."|");
-		
-		$Cover = doc_Folders::getCover($data->form->rec->folderId);
+ 		$Cover = doc_Folders::getCover($data->form->rec->folderId);
 		
 		// Трябва да е в папка на лице или на фирма
-		if ($Cover->className == 'crm_Persons' && $Cover->className == 'crm_Companies') {
-		    $mvc->getFieldType(action)->options['notifyNoAns'] = tr("Нотификация-ако няма отговор");
+		if (!($Cover->className == 'crm_Persons' && $Cover->className == 'crm_Companies')) {
+		    unset($mvc->getFieldType('repetitionType')->options['notifyNoAns']);
 		}
 
-		$data->form->setSuggestions('repetitionEach', static::$suggestions);
+		$arr = array(""=>"") + static::$suggestions;
+		unset($arr[0]);
+
+		$data->form->setSuggestions('repetitionEach',$arr);
 
         if ($data->form->rec->threadId) {
             //Добавяме в полето Заглавие отговор на съобщението
@@ -260,30 +267,24 @@ class cal_Reminders extends core_Master
             $for = tr('|За|*: ');
             $title = $for . $title;
               
-            $todey = dt::now();
+        }
+
+        if(!$data->form->rec->id) {
+
+      	    $cu = core_Users::getCurrent();
             $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
             
             $time = strstr($nextWorkDay, " ", TRUE). " 08:00";
   
             $data->form->setDefault('timeStart', $time);
             $data->form->setDefault('title', $title);
+            $data->form->setDefault('priority', 'normal');
+            $data->form->setDefault('sharedUsers', "|".$cu."|");
         }
-        
+
 		if(Mode::is('screenMode', 'narrow')){
 			$data->form->fields['priority']->maxRadio = 2;
 		}
-		
-		// Ако правим промянана напомнянето. Слагаме началната дата да е следващото напомняне
-		if ($currUrl['Act'] == 'changeFields') {
-			if ($data->form->rec->id) {
-				
-				$nextStartTime = self::fetchField($data->form->rec->id, 'nextStartTime');
-
-				if ($nextStartTime > $now) { 
-					$data->form->rec->timeStart = $nextStartTime;
-				}
-			}
-		}	
     }
 
 
@@ -305,7 +306,7 @@ class cal_Reminders extends core_Master
     	    if (isset($form->rec->timeStart)) {
         	    if ($form->rec->timeStart < $now){
             		// Добавяме съобщение за грешка
-                    $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
+                    $form->setWarning('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
             	}
     	    } else {
     	        if (!$form->rec->id) {
@@ -323,12 +324,7 @@ class cal_Reminders extends core_Master
     			}
     		}
     		
-        	if (!$form->gotErrors()){
-        		$form->rec->nextStartTime = $mvc->calcNextStartTime($form->rec);
-        	}
         } 
-        
-    	$rec = $form->rec;
     }
     
 
@@ -338,13 +334,13 @@ class cal_Reminders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
     	$now = dt::now(); 
-    	
-    	if ($rec->id) {
-    	    $fullRec = self::fetch($rec->id);
-    		if (!$fullRec->timeStart) { 
-    		    $fullRec->timeStart = dt::now();
-    		}
-    	}
+        
+        if($rec->repetitionEach) {
+            $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
+        } else {
+            $rec->nextStartTime = $rec->timeStart;
+        }
+
     }
 
     
@@ -406,8 +402,7 @@ class cal_Reminders extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {  
-   
-     	if ($mvc->haveRightFor('stop', $data->rec)) { 
+        if ($mvc->haveRightFor('single', $data->rec)) { 
 	            $data->toolbar->addBtn('Затваряне', array(
 	                    $mvc,
 	                    'Stop',
@@ -426,18 +421,32 @@ class cal_Reminders extends core_Master
 	             'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
 	         ), 
 	             array('ef_icon'=>'img/16/snooz.png', 
-	                    'title'=>'Олагане на напомнянето'
+	                    'title'=>'Отлагане на напомнянето'
 	         ));
 	     }
 
 	     if ($data->rec->state == 'closed' || $data->rec->state == 'active') {
 	     	$data->toolbar->removeBtn('btnActivate');
 	     }
+
+        /*
+        $data->toolbar->addBtn('Сработване',array(
+	             'cal_Reminders', 
+	             'start', 
+	             'remId' => $data->rec->id, 
+	             'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
+	         ), 
+	             array('ef_icon'=>'img/16/run.png', 
+	                    'title'=>'Стартиране на напомнянето'
+	         ));
+         */
+
     }
     
     
     static function on_AfterInputChanges($mvc, &$oldRec, $newRec) 
-    {
+    {    	
+
     	// Ако не е обект, а е подаден id
         if (!is_object($newRec)) {
             
@@ -476,7 +485,7 @@ class cal_Reminders extends core_Master
     	if ($rec->id) {
     		$oRec = $mvc->fetch($rec->id);
     	    		
-    		if ($action == 'stop') {
+    		if ($action == 'stop') { 
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($rec->state !== 'active') { 
                     	$requiredRoles = 'no_one';
@@ -500,7 +509,7 @@ class cal_Reminders extends core_Master
     		}
     	}
     }
-    
+
     
 	/**
      * Проверява дали може да се променя записа в зависимост от състоянието на документа
@@ -513,9 +522,52 @@ class cal_Reminders extends core_Master
     {
         // Чернова документи не могат да се променят
         if ($res !== FALSE && $rec->state != 'draft') {
-            
             $res = TRUE;
         } 
+
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	if ($data->recs) {
+        	foreach((array)$data->recs as $id => $rec){
+    		    $row = $mvc->recToVerbal($rec);
+    		    
+    		    if ($rec->repetitionEach != NULL) {
+    		        if($rec->repetitionEach == "1"){
+    		            switch ($rec->repetitionType){
+    		                case 'days':
+    		                    $row->repetitionType = 'ден';
+    		                break;
+    		                
+    		                case 'weeks':
+    		                    $row->repetitionType = 'седмица';
+    		                break;
+    		                
+    		                case 'months':
+    		                    $row->repetitionType = 'месец';
+    		                break;
+    		                
+    		                case 'weekDay':
+    		                    $row->repetitionType = 'месец';
+    		                break;
+    		                
+    		                case 'monthDay':
+    		                    $row->repetitionType = 'месец';
+    		                break;
+    		            }
+    		        }
+    		        
+    				$data->rows[$id]->repetition = $row->repetitionEach . " " . $row->repetitionType;
+    		    } else {
+    		    	$data->rows[$id]->repetition = " ";
+    		    }
+    		}
+    	}
     }
     
     
@@ -745,30 +797,46 @@ class cal_Reminders extends core_Master
     {
     	 $now = dt::verbal2mysql();
     	 $query = self::getQuery();
-    	 $query->where("#state = 'active' AND #nextStartTime <= '{$now}' AND (#notifySent = 'no' OR #notifySent = NULL)");
-    	     	 
+    	 $query->where("#state = 'active' AND if(#nextStartTime, #nextStartTime, #timeStart) <= '{$now}' AND (#notifySent = 'no' OR #notifySent IS NULL)");
+
     	 while($rec = $query->fetch()){
              
-    	 	 $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
-    	 	 $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-    	 	 $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
-    	 	 
     	 	 self::doUsefullyPerformance($rec);
     	 	
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
-    	 	 }
-    	 	 
-    	 	 $rec->nextStartTime = $this->calcNextStartTime($rec);
-    	 	 
-    	 	 self::save($rec);
+                $fields = 'state,notifySent';
+    	 	 } else {
+    	 	    $rec->nextStartTime = $this->getNextStartingTime2($rec);
+                $fields = 'nextStartTime';
+             }
+
+    	 	 self::save($rec, $fields);
     	 }
     }
     
+    /**
+     * Екшън за тестване на сработване на напомнянето
+     
+    public function act_Start()
+    {
+        requireRole('debug');
+        $id = Request::get('remId');
+        expect($rec = $this->fetch($id));
+        
+        self::doUsefullyPerformance($rec);
+        
+        followRetUrl();
+    } */
+    
     
     static public function doUsefullyPerformance($rec)
-    {   
+    {
+        $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
+        $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
+
     	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 		if(count($subscribedArr)) { 
 			foreach($subscribedArr as $userId) {  
@@ -776,12 +844,15 @@ class cal_Reminders extends core_Master
 					switch($rec->action){
 						case 'notify':
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						break;
+						    break;
 						
 						case 'threadOpen':
+                            self::$opened[$rec->id] = TRUE;
+                            // self::logNotice('Записано състояние opened ' . $rec->id, $rec->id);
 							doc_Threads::save((object)array('id'=>$rec->threadId, 'state'=>'opened'), 'state');
+                            doc_Threads::doUpdateThread($rec->threadId);
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						break;
+						    break;
 						
 						case 'notifyNoAns':
 							// Търсим дали има пристигнало писмо
@@ -794,31 +865,117 @@ class cal_Reminders extends core_Master
 								bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
 							}
 							
-						break;
-						
+						    break;
+ 						
 						case 'replicateDraft':
-						break;
+                            self::replicateThread($rec, TRUE);
+						    break;
 						
-						case 'replicate':
-						break;
+						case 'replicate':  
+                            self::replicateThread($rec);
+						    break;
 					}
 				}
 			}
 		}
     }
-    
-    
+
+
     /**
-     * За тестове
+     * Функция, която репликира нишката в същата папка
      */
-    static public function act_Test()
+    public static function replicateThread($rec, $draft = FALSE, $emulateNextTime = TRUE)
     {
-    	$rec = new stdClass();
-    	$rec->timeStart = '2013-03-30 18:10';
-    	$rec->repetitionEach = 1;
-    	$rec->repetitionType = 'months';
-    	$rec->repetitionAbidance = 'weekDay';
-   	
+        $tRec = doc_Threads::fetch($rec->threadId);
+        $fcRec = doc_Containers::fetch($tRec->firstContainerId);
+
+        $fcMvc = cls::get($fcRec->docClass);
+        
+        // Първият документ в нишката
+        $fdRec = $fcMvc->fetch($fcRec->docId);
+
+        $newRec = clone($fdRec);
+
+        unset($newRec->id, $newRec->threadId, $newRec->containerId, $newRec->createdOn, $newRec->modifiedOn, $newRec->rejectedOn, $newRec->sharedViews);
+        
+        if($draft) {
+            $newRec->state = 'draft';
+        }
+        
+        $now = dt::now();
+
+        if($emulateNextTime) {
+            $now = $rec->nextStartTime;
+        }
+
+        // Променяме датите, спрямо сегашните
+        $secs = dt::secsBetween($now, $rec->timeStart);
+        
+        // Не правим нищо, ако за първи път сработва нотификацията
+        if($secs - $rec->timePreviously < 100) return;
+
+        foreach($fcMvc->fields as $name => $field) {
+            $type = $field->type;
+            if(($type instanceof type_Date) || ($type instanceof type_DateTime)) {
+                if(isset($newRec->{$name}) && $field->input != 'none' && $field->input != 'hidden') { 
+                    $newRec->{$name} = dt::addSecs($secs, $newRec->{$name});
+                } else {
+                    $newRec->{$name} = NULL;
+                }
+            }
+        }
+        
+        if(isset($newRec->title)) {
+            $tf = 'title';
+        } elseif(isset($newRec->name)) {
+            $tf = 'name';
+        }
+
+        if($tf) {
+            $dateFormats = array(
+                ' d-m-Y ',
+                ' m-Y ',
+                ' M-Y ',
+                ' F-Y ',
+                ' Y ',
+                );
+            
+            $trans = array();
+            
+            foreach($dateFormats as $df) {
+                $trans[dt::mysql2verbal($rec->timeStart, $df, 'bg')] = dt::mysql2verbal($now, $df, 'bg');
+                $trans[dt::mysql2verbal($rec->timeStart, $df, 'en')] = dt::mysql2verbal($now, $df, 'en');
+            }
+ 
+            foreach($trans as $from => $to) {
+                $from = '/' . str_replace('-', '[ \-\.\/\\\]', $from) . '/ui';
+                $to = ' ' . $to . ' ';
+                $newRec->{$tf} = preg_replace($from, $to, ' '. $newRec->{$tf} . ' ');
+            }
+        }
+
+        $fcMvc->save($newRec);
+    }
+    
+     
+    
+    static function getNextStartingTime2($rec)
+    {
+        if(empty($rec->repetitionEach)) {
+            return;
+        }
+        
+        $rec2 = clone($rec);
+ 
+        if($rec2->timeStart > dt::now()) {
+            return $rec2->timeStart;
+        }
+        
+        do {
+            $rec2->timeStart = self::calcNextStartTime($rec2); 
+        } while($rec2->timeStart <= dt::now());
+
+        return $rec2->timeStart;
     }
     
     
@@ -836,15 +993,15 @@ class cal_Reminders extends core_Master
             switch ($rec->repetitionType) {
                 // дни
                 case 'days' :
-                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach),$rec->timeStart));
+                    $nextStartTime = dt::addDays(($rec->repetitionEach),$rec->timeStart);
                 break;
                 // седмици
                 case 'weeks' :
-                    $nextStartTime = dt::verbal2mysql(dt::addDays(($rec->repetitionEach * 7),$rec->timeStart));
+                    $nextStartTime = dt::addDays(($rec->repetitionEach * 7),$rec->timeStart);
                 break;
                 // месеци
                 case 'months' :
-                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                    $nextStartTime =  dt::addMonths(($rec->repetitionEach),$rec->timeStart);
                 break;
                 // месеци, като се спазва деня от седмицата
                 case 'weekDay' :
@@ -868,29 +1025,32 @@ class cal_Reminders extends core_Master
                     }
        
                     $wDay = $monthsWeek. "-" . $dayOfWeekName;
-                    $nextDate =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
-                  
+                    $nextDate =  dt::addMonths(($rec->repetitionEach),$rec->timeStart);
+                 
                     $nextStartTime = dt::timestamp2Mysql(dt::firstDayOfMonthTms(date("m",dt::mysql2timestamp($nextDate)), date("Y",dt::mysql2timestamp($nextDate)), $wDay));
-                
                 break;
+                
                 // точния ден от месеца
                 case 'monthDay' : 
-                    $nextStartTime =  dt::verbal2mysql(dt::addMonths(($rec->repetitionEach),$rec->timeStart));
+                    $nextStartTime = dt::addMonths(($rec->repetitionEach),$rec->timeStart);
                 break;
     
             }
+        } else {
+            $nextStartTime = $rec->timeStart;
         }
 
         // Ако имаме отбелязано време предварително
-        if($rec->timePreviously !== NULL){ 
-            $nextStartTimeTs = $startTs - $rec->timePreviously ;
+        if($rec->timePreviously != NULL){ 
+            if($nextStartTime) {
+                $nextStartTimeTs = dt::mysql2timestamp($nextStartTime) - $rec->timePreviously;
+            } else {
+                $nextStartTimeTs = $startTs - $rec->timePreviousl;
+            }
+            
         	$nextStartTime = dt::timestamp2Mysql($nextStartTimeTs);
         }
-        
-        // Ако изчисленото ново време, не е по-долямо от сега или от началната дата,
-        // то продължаваме да го търсим
-        if(dt::mysql2timestamp($nextStartTime) < dt::mysql2timestamp(dt::now())) return;
-       
+
         return $nextStartTime;
     }
 
@@ -994,4 +1154,25 @@ class cal_Reminders extends core_Master
             $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }
     }
+
+    /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     * Добавянето на сигнал отваря треда
+     */
+    static function getThreadState($id)
+    {
+        if(self::$opened[$id]) {
+            
+            // self::logNotice('Върнато състояние opened ' . $id, $id);
+
+            return 'opened';
+
+        } else {
+            
+            // self::logNotice('Върнато състояние closed ' . $id, $id);
+
+            return 'closed';
+        }
+    }
+
 }

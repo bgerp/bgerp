@@ -32,19 +32,13 @@ class acc_ClosePeriods extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт,title=Заглавие,periodId,state,createdOn,createdBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = "title=Заглавие,periodId,state,createdOn,createdBy";
     
     
     /**
@@ -156,7 +150,7 @@ class acc_ClosePeriods extends core_Master
     	$this->FLD("amountKeepBalance", 'double(decimals=2,min=0)', 'caption=Други разходи->Салдо за поддържане,notNull,default=0');
     	
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)',
+    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
     			'caption=Статус, input=none'
     	);
     }

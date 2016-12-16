@@ -58,7 +58,7 @@ abstract class deals_PaymentDocument extends core_Master {
 				$title = tr("Активиране на|* ") .  mb_strtolower($mvc->singleTitle) . " №{$rec->id}";
 					
 				$url = array('cal_Reminders', 'add', 'originId' => $rec->containerId, 'timeStart' => $timeStart, 'sharedUsers' => $sharedUsers, 'description' => $description, 'title' => $title, 'ret_url' => TRUE);
-				$data->toolbar->addBtn('Напомняне', $url, 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
+				$data->toolbar->addBtn('Напомняне', $url, 'ef_icon=img/16/alarm_clock_add.png', 'title=Създаване на ново напомняне');
 			}
 		}
 	}

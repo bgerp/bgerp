@@ -1,0 +1,305 @@
+<?php
+
+
+/**
+ * OCR обработка на файлове с помощта на Tesseract
+ *
+ * @category  vendors
+ * @package   tesseract
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2013 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class tesseract_Converter extends core_Manager
+{
+    
+    
+    /**
+     * 
+     */
+    public $ocrType = 'textOcr';
+    
+    
+    /**
+     * Интерфейсни методи
+     */
+    var $interfaces = 'fileman_OCRIntf';
+    
+    
+    /**
+     * Заглавие
+     */
+    var $title = 'Tesseract OCR';
+    
+    
+    /**
+     * Кои потребители имат права за OCR на докуемент
+     */
+    static $canOCR = 'powerUser';
+    
+    
+    /**
+     * Позволените разширения
+     */ 
+    static $allowedExt = array('pdf', 'bmp', 'pcx', 'dcx', 'jpeg', 'jpg', 'tiff', 'tif', 'gif', 'png');
+    
+    
+    /**
+     * Масив с програмите и функциите за определяне на пътя до тях
+     */
+    public $fconvProgramPaths = array('tesseract' => 'tesseract_Setup::TESSERACT_PATH');
+    
+    
+    /**
+     * Кода, който ще се изпълнява
+     */
+    public $fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] -psm [#PSM#]';
+    
+	
+	/**
+     * Екшъна за извличане на текст чрез OCR
+     * 
+     * @see fileman_OCRIntf
+     */
+    function act_getTextByOcr()
+    {
+        // Манипулатора на файла
+        $fh = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        expect($fRec);
+        
+        // Очакваме да може да се извлича
+        expect(static::canExtract($fRec));
+        
+        fileman_Files::requireRightFor('single', $fRec);
+        
+        fileman_Files::requireRightFor('single', $fRec);
+        
+        $this->getTextByOcr($fRec);
+        
+        // URL' то където ще редиректваме
+        $retUrl = getRetUrl();
+        
+        // Ако не може да се определи
+        if (empty($retUrl)) {
+            
+            // URL' то където ще редиректваме
+            $retUrl = array('fileman_Files', 'single', $fRec->fileHnd);
+        }
+        
+        return new Redirect($retUrl);
+    }
+    
+    
+    /**
+     *
+     * @param stdObject $fRec
+     *
+     * @see fileman_OCRIntf
+     */
+    function getTextByOcr($fRec)
+    {
+        // Инстанция на класа
+        $me = get_called_class();
+        
+        // Параметри необходими за конвертирането
+        $params = array(
+                'callBack' => $me . '::afterGetTextByTesseract',
+                'dataId' => $fRec->dataId,
+                'asynch' => TRUE,
+                'createdBy' => core_Users::getCurrent('id'),
+                'type' => $this->ocrType,
+        );
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $fRec->dataId);
+        
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (fileman_Indexes::isProcessStarted($params)) {
+        
+            // Добавяме съобщение
+            status_Messages::newStatus('|Процеса вече е бил стартиран');
+        } else {
+        
+            // Заключваме процеса за определено време
+            if (core_Locks::get($params['lockId'], 300, 0, FALSE)) {
+        
+                // Стартираме извличането
+                static::getText($fRec->fileHnd, $params);
+            }
+        }
+    }
+    
+    
+    /**
+     * Вземаме текстова част от подадения файл
+     * 
+     * @param fileHnd $fileHnd - Манипулатора на файла
+     * @param array $params - Допълнителни параметри
+     */
+    static function getText($fileHnd, $params)
+    {
+        // Вземам записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има такъв запис
+        expect($fRec);
+        
+        // Очакваме да може да се извлече информация от файла
+        expect(static::canExtract($fRec));
+        
+        // Инстанция на класа
+        $Script = cls::get(fconv_Script);
+        
+        // Пътя до файла, в който ще се записва получения текст
+        $outputFile = $Script->tempDir . 'text';
+        
+        // Задаваме файловете и параметрите
+        $Script->setFile('INPUTF', $fileHnd);
+        $Script->setFile('OUTPUTF', $outputFile);
+        
+        // Задаваме параметрите
+        $Script->setParam('LANGUAGE', tesseract_Setup::get('LANGUAGES'), TRUE);
+        $Script->setParam('PSM', tesseract_Setup::get('PAGES_MODE'), TRUE);
+        
+        // Заместваме програмата с пътя от конфига
+        $Script->setProgram('tesseract', tesseract_Setup::get('PATH'));
+        $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
+        
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outputFile);
+        
+        // Скрипта, който ще конвертира
+        $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
+        
+        // Функцията, която ще се извика след приключване на операцията
+        $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
+        
+        // Други допълнителни параметри
+        $params['outFilePath'] = $outputFile . '.txt';
+        $params['fh'] = $fileHnd;
+        $Script->params = $params;
+        
+        $Script->setCheckProgramsArr('tesseract');
+        // Стартираме скрипта Aсинхронно
+        if ($Script->run($params['asynch']) === FALSE) {
+            fileman_Indexes::createError($params);
+        }
+        
+        // Добавяме съобщение
+        status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
+    }
+    
+    
+    /**
+     * Изпълнява се след приключване на обработката
+     * 
+     * @param fconv_Script $script - Обект с данние
+     * 
+     * @param boolean
+     */
+    function afterGetTextByTesseract($script)
+    {
+        // Десериализираме нужните помощни данни
+        $params = $script->params;
+        
+        // Вземаме съдържанието на файла
+        $params['content'] = file_get_contents($params['outFilePath']);
+        
+        $params['content'] = trim($params['content']);
+        
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (!$params['content'] && fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
+        
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+        
+            return FALSE;
+        }
+        
+        // Записваме данните
+        $saveId = fileman_Indexes::saveContent($params);
+        
+        // Отключваме процеса
+        core_Locks::release($params['lockId']);
+        
+        if ($saveId) {
+			
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // и записа от таблицата fconv_Process
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Проверява дали файл с даденото име може да се екстрактва
+     * 
+     * @param stdClass $fRec
+     * 
+     * @return boolean - Дали може да се екстрактва от файла
+     * 
+     * @see fileman_OCRIntf
+     */
+    static function canExtract($fRec)
+    {
+        $ext = strtolower(fileman_Files::getExt($fRec->name));
+        
+        // Ако разширението е в позволените
+        if ($ext && in_array($ext, self::$allowedExt)) {
+            
+            // Проверяваме дали има права за екстрактване
+            if (haveRole(self::$canOCR)) {
+                
+                // Ако всичко е OK връщаме TRUE
+                return TRUE;
+            }
+        }
+        
+        return FALSE;
+    }
+    
+
+    /**
+     * Бърза проврка дали има смисъл от OCR-ване на текста
+     *
+     * @param stdObject $fRec
+     * 
+     * @see fileman_OCRIntf
+     */
+    public static function haveTextForOcr($fRec)
+    {
+        // @todo psm=0
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * След началното установяване на този мениджър
+     */
+    static function loadSetupData()
+    {
+        // Вземаме конфига
+    	$conf = core_Packs::getConfig('fileman');
+    	
+    	$data = array();
+    	
+    	// Ако няма запис в модела
+    	if (!$conf->_data['FILEMAN_OCR']) {
+    	    
+            // Да използваме текущия клас
+	        $data['FILEMAN_OCR'] = core_Classes::getId(get_called_class());
+
+	        // Добавяме в записите
+            core_Packs::setConfig('fileman', $data);
+    	}
+    }
+}

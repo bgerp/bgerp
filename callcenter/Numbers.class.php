@@ -72,7 +72,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg';
     
     
     /**
@@ -98,6 +98,7 @@ class callcenter_Numbers extends core_Manager
         $this->FLD('type', 'enum(tel=Телефон, mobile=Мобилен, fax=Факс, internal=Вътрешен)', 'caption=Тип');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
+        $this->FLD('host', 'key(mvc=callcenter_Hosts, select=name, allowEmpty)', 'caption=Хост');
         $this->FNC('contragent', 'varchar', 'caption=Контрагент');
         
         $this->setDbUnique('number, type, classId, contragentId');
@@ -689,6 +690,47 @@ class callcenter_Numbers extends core_Manager
         }
         
         return $userArr;
+    }
+    
+    
+    /**
+     * Връща записа за номера
+     * 
+     * @param integer $num - Вътрешен номер
+     * 
+     * @return FALSE|stdObject
+     */
+    public static function getRecForInternalNum($num)
+    {
+        // id на профилите
+        $profileId = core_Classes::getId('crm_Profiles');
+        
+        $rec = self::fetch(array("#number = '[#1#]' AND #type = 'internal' AND #classId = '[#2#]'", $num, $profileId));
+        
+        return $rec;
+    }
+    
+    
+    /**
+     * Дали може да се използва хоста за подадения номер
+     * 
+     * @param integer $num
+     * 
+     * @return boolean
+     */
+    public static function canUseHostForNum($num)
+    {
+        if (!$num) return FALSE;
+        
+        $rec = self::getRecForInternalNum($num);
+        
+        if (!$rec) return FALSE;
+        
+        if (!$rec->host) return FALSE;
+        
+        if (!callcenter_Hosts::haveRightFor('use', $rec->host)) return FALSE;
+        
+        return TRUE;
     }
     
     

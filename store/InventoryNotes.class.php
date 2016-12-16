@@ -386,7 +386,7 @@ class store_InventoryNotes extends core_Master
     	
     	// Добавяме бутони
     	$form->toolbar->addSbBtn('Продажба', 'save', 'id=save, ef_icon = img/16/cart_go.png', 'title=Създаване на продажба');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	
     	// Рендираме формата
     	$tpl = $form->renderHtml();

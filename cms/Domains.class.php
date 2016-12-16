@@ -30,7 +30,7 @@ class cms_Domains extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, cms_Wrapper, plg_Created,plg_Current';
+    public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created,plg_Current';
                       
     
     /**

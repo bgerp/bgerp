@@ -320,24 +320,8 @@ class trz_SalaryIndicators extends core_Manager
     		$indicatorsName[$rec->indicator] = $rec->indicator;
     	}
     	
-    	$arrayIndicator = array(""=>"") + $indicatorsName;
+    	$arrayIndicator = $indicatorsName;
     	
     	return $arrayIndicator;
-    }
-
-    
-    /**
-     * Изпълнява се след начално установяване
-     */
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $rec = new stdClass();
-        $rec->systemId = "CollectIndicators";
-        $rec->description = "Изпращане на данните към показателите за заплатите";
-        $rec->controller = "trz_SalaryIndicators";
-        $rec->action = "Indicators";
-        $rec->period = 3*60;
-        $rec->offset = mt_rand(0,60);
-        $res .= core_Cron::addOnce($rec);
     }
 }

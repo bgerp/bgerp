@@ -156,7 +156,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
     	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно)', 
             'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
@@ -227,7 +227,7 @@ class cash_InternalMoneyTransfer extends core_Master
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png, title=Продължете напред');
-        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
        	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
        	if(!doc_Folders::haveRightToObject($folderId)){

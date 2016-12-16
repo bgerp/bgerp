@@ -154,7 +154,7 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно)', 'caption=Състояние,input=none');
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
     
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
@@ -269,9 +269,9 @@ class acc_Articles extends core_Master
         $dQuery->show('articleId, sumAmount');
         $dQuery->groupBy('articleId');
         
-        $result = NULL;
-        
         $rec = $this->fetch($id);
+        
+        if (!$rec) return NULL;
         
         if ($r = $dQuery->fetch("#articleId = {$id}")) {
             $rec->totalAmount = $r->sumAmount;

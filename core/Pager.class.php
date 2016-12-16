@@ -280,133 +280,21 @@ class core_Pager extends core_BaseClass
         expect(isset($resCnt));
 
         $this->itemsCount = $resCnt;
-        
  
-       $query = $qWork;
+        $query = $qWork;
  
         $this->calc();
+
         if($idCnt) {
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
-
-           //if($query->mvc->className == 'bgerp_Recently')  bp($ids, $this->rangeEnd - $this->rangeStart);
             $ids = implode(',', $ids);
             $query->where("#id IN ($ids)");
         } else {
-            //$this->itemsCount = 0;
             $this->calc();
             $query->limit(0);
         }
 
         return;
-
-
-        // Вземаме резултатите за станица и половина
- 
-        if($query->mvc->db->countRows($query->mvc->dbTableName) < 50000) {
-            
-            $qCnt = clone ($query);
-            $qCnt->orderBy = array();
-
-            $qCnt->show('id');
-            $this->itemsCount = $qCnt->count();
-            $this->calc();
-            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit($this->rangeEnd - $this->rangeStart);
-                $q->startFrom($this->rangeStart);
-                $q->show('id');
-                $q->select();
-                while($rec = $q->fetch()) {
-                    $ids[] = $rec->id;
-                }
-            }
-            if(count($ids)) {
-                $ids = implode(',', $ids);
-                $query = $query->mvc->getQuery();
-                $query->where("#id IN ($ids)");
-            } else {
-                $this->itemsCount = 0;
-                $this->calc();
-                $query->limit(0);
-            } 
-        } elseif((!Request::get('V')) || Request::get('V') == 2) {
-            $qCnt = clone ($query);
-            
-            setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
-    
-            // Опитваме да извлечем резултатите от кеша
-            $cntAll = core_QueryCnts::getFromChache($qCnt);
-            if($cntAll === FALSE) {
-                $cntAll = $this->itemsPerPage*($this->page+9);
-                $autoCnt = TRUE;
-            } elseif($cntAll === 0) {
-                $cntAll = $this->itemsPerPage;
-                $autoCnt = FALSE;
-            }
-
-            $this->itemsCount = $cntAll;
-            $this->calc(); 
-            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit($this->rangeEnd - $this->rangeStart);
-                $q->startFrom($this->rangeStart);
-                $q->show('id');
-                $q->select();
-                while($rec = $q->fetch()) {
-                    $ids[] = $rec->id;
-                }
-            }
-
-            if($cntIds = count($ids)) {
-                $ids = implode(',', $ids);
-                $query = $query->mvc->getQuery();
-                $query->where("#id IN ($ids)");
-            } else {
-                $this->itemsCount = 0;
-                $this->calc();
-                $query->limit(0);
-            }
-            
-            // Точно сме определили колко резултата имаме
-            if(($cntIds > 0 && $cntIds < $this->rangeEnd - $this->rangeStart) || ($cntIds == 0 && $this->rangeStart == 0)) {
-                $cntAll = $this->rangeStart + $cntIds;
-                $this->itemsCount = $cntAll;
-                $this->calc(); 
-                core_QueryCnts::set($qCnt, $cntAll);
-            } else {
-                // Залагаме да броим резултатите
-                $Cache = cls::get('core_Cache');
-                core_QueryCnts::delayCount($qCnt);
-
-                if($autoCnt && $cntIds > 0 && $cntIds == $this->rangeEnd - $this->rangeStart) {
-                    $this->autoCnt = TRUE;
-                }
-            }
-
-
-       } elseif(Request::get('V') == 3) {
-            $q = clone ($query);
-
-            $this->itemsCount = 100000000;
-            $this->calc();
-            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit(1000);
-                $q->startFrom($this->rangeStart); 
-                $cnt = $this->rangeStart + $q->select();
-                $i = 0;
-                while(($rec = $q->fetch()) && $i++ < ($this->rangeEnd-$this->rangeStart)) {
-                    $ids[] = $rec->id;
-                }
-            }
-            
-            $this->itemsCount  = $cnt;  
-            $this->calc();
-            
-            if(count($ids)) {
-                $ids = implode(',', $ids);
-                $query->where("#id IN ($ids)");
-            } else {
-                $query->limit(0);
-            }
-        }
     }
 
 

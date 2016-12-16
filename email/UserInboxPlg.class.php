@@ -78,7 +78,7 @@ class email_UserInboxPlg extends core_Plugin
             
             // Опитваме се да вземем от request
             $personId = Request::get('personId', 'int');
-        }
+        }  
         
         if ($personId) {
            crm_Profiles::save(
@@ -86,7 +86,10 @@ class email_UserInboxPlg extends core_Plugin
                    'personId' => $personId,
                    'userId'   => $user->id
                )
-           ); 
+           );
+
+           // Обратно синхронизиране
+           crm_Profiles::syncUser(crm_Persons::fetch($personId));
         }
     }
     
@@ -174,22 +177,37 @@ class email_UserInboxPlg extends core_Plugin
         }
     }
     
-    
+
+    /**
+     * Попълва данните на формата със подадената визитка
+     */
     public static function on_AfterPrepareEditForm(core_Users $mvc, $data)
     {
         if (empty($data->form->rec->id)) {
             $personId  = Request::get('personId', 'int');
             if (!empty($personId) && $personRec = crm_Persons::fetch($personId)) {
               
-                $emails = type_Emails::toArray($personRec->email, type_Emails::VALID);
+                $emails = type_Emails::toArray($personRec->email . ' ' . $personRec->buzEmail, type_Emails::VALID);
                 $email  = $nick = '';
                 if (!empty($emails[0])) {
                     $email = $emails[0];
-                    $nick  = substr($email, strpos($email, '@'));
+                    $data->form->setDefault('email', $email);
+                }
+                
+                $emails = type_Emails::toArray($personRec->buzEmail . ' ' . $personRec->email, type_Emails::VALID);
+                if (!empty($emails[0])) {
+                    $tN = cls::get('type_Nick');
+                    list($nick, ) = explode('@', $emails[0]);
+
+                    if($nick) {
+                        $nick = $tN->normalize($nick);
+                        if($tN->isValid($nick) && !core_Users::fetch(array("LOWER(#nick) = '[#1#]'", $nick))) { 
+                            $data->form->setDefault('nick', $nick);
+                        }
+                    }
                 }
                 
                 $data->form->setDefault('names', $personRec->name);
-                $data->form->setDefault('email', $email);
 
                 Request::push(array('names' => $personRec->name, 'email' => $personRec->email));
                 $data->form->setField('names', 'input=hidden');

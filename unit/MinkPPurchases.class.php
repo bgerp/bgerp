@@ -444,7 +444,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '3,69')) {
+        if(strpos($browser->gettext(), 'Discount: EUR 3,69')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
@@ -652,7 +652,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '5');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '1.3');
+        $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), ' Минус тридесет и един BGN и 0,20 ')) {
@@ -687,7 +687,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '8');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '2.3');
+        $browser->setValue('packPrice', '2.5556');
         $browser->press('Запис');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), ' Шестнадесет BGN и 0,80 ')) {
@@ -791,7 +791,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '106');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '1.3');
+        $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Минус четиридесет и един EUR и 0,60')) {
@@ -828,7 +828,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '109');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '2.4');
+        $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Два EUR и 0,40')) {
@@ -930,7 +930,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '113');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '1.3');
+        $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Минус четиридесет и един EUR и 0,60')) {
@@ -967,7 +967,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '116');
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
-        $browser->setValue('packPrice', '2.4');
+        $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Два EUR и 0,40')) {
@@ -1419,9 +1419,9 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('search', 'Доставчик');
         $browser->press('Филтрирай');
         $browser->click('Информация за перото');
-        //echo $browser->getHtml();
+        
+        // ID на покупка 1, за да се избере при разпр. на разход 
         $purId = "60";
-        ///////$purid - да се зареди ID 
         $purId = $purId .'.17';
         
         //Покупка 2 - услуги
@@ -1461,7 +1461,8 @@ class unit_MinkPPurchases extends core_Manager {
         //$browser->setValue('action_pay', False);
         $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
-        ///Проверка в разходния обект и фактуриране...//////////
+        
+        ///Проверка в разходния обект и фактуриране
         $browser->click('16 pur');
         
         // Фактура в покупка 1

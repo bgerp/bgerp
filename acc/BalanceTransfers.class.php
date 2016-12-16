@@ -32,20 +32,14 @@ class acc_BalanceTransfers extends core_Master
 	/**
 	 * Неща, подлежащи на начално зареждане
 	 */
-	public $loadList = 'plg_RowTools, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg';
+	public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg';
 	
 	
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = "tools=Пулт,valior=Вальор,fromAccount=От,toAccount=Към,createdOn,createdBy";
-	
-	
-	/**
-	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-	 */
-	public $rowToolsField = 'tools';
-	
+	public $listFields = "valior=Вальор,fromAccount=От,toAccount=Към,createdOn,createdBy";
+
 	
 	/**
 	 * Може ли да се контира въпреки, че има приключени пера в транзакцията

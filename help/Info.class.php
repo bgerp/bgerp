@@ -31,20 +31,14 @@ class help_Info extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    var $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools2';
     
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,class,action,lg,text,createdOn,createdBy';
+    var $listFields = 'class,action,lg,text,createdOn,createdBy';
 
-
-    /**
-     * Поле за инструментите на реда
-     */
-    var $rowToolsField = '✍';
-    
     
     /**
      * Кой има право да чете?

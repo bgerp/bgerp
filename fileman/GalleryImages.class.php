@@ -49,7 +49,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
+    var $loadList = "plg_RowTools2,fileman_Wrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
     
     
     /**
@@ -453,11 +453,11 @@ class fileman_GalleryImages extends core_Manager
         if ($retUrl) {
             
             // При отказ да се върне към предишния запис
-            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         } else {
             
             // При отказ да се затвори прозореца
-            $form->toolbar->addFnBtn('Отказ', 'self.close();', 'ef_icon = img/16/close16.png');
+            $form->toolbar->addFnBtn('Отказ', 'self.close();', 'ef_icon = img/16/close-red.png');
         }
         
         // Рендираме формата
@@ -551,7 +551,7 @@ class fileman_GalleryImages extends core_Manager
                 if ($this->haveRightFor('edit', $data->recs[$id])) {
                     
                     // Изображение за редактиране
-                    $img = ht::createElement('img', array('src' => sbf('img/16/edit16.png', '')));
+                    $img = ht::createElement('img', array('src' => sbf('img/16/edit-icon.png', '')));
                     
                     // Линк, който сочи към добавяне на изображения в диалов прозрец, с данните на това изображение
                     $data->rows[$id]->tools = ht::createLink($img, array($this, 'addImgDialog', $id, 'callback' => $data->callback, 'ret_url' => TRUE));

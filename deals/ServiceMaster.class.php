@@ -50,7 +50,7 @@ abstract class deals_ServiceMaster extends core_Master
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
+				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -243,6 +243,16 @@ abstract class deals_ServiceMaster extends core_Master
     				$row->operationSysId = tr('Отказ от услуга');
     			}
     		}
+
+			// Имената в Получил и Доставил да се пренасят, ако са по-дълги
+			if(strlen($rec->received) > 60) {
+				$row->receivedClass = "wrapText";
+			}
+
+			if(strlen($rec->delivered) > 60) {
+				$row->deliveredClass = "wrapText";
+			}
+
     	}
     }
 

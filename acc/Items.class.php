@@ -26,7 +26,7 @@ class acc_Items extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, plg_Search,
+    var $loadList = 'plg_Created, plg_State2, plg_RowTools2, editwatch_Plugin, plg_Search,
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_Sorting';
     
     
@@ -81,13 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'titleLink=Наименование,num,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id,titleLink=Наименование,num,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
     
     
     /**
@@ -732,7 +726,7 @@ class acc_Items extends core_Manager
        
         // Добавяне на бутони
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite("Добавяне на обекти, като пера");
@@ -946,7 +940,7 @@ class acc_Items extends core_Manager
         if(is_array($features)){
         	$row->features = '';
         	foreach ($features as $key => $value){
-        		$row->features .= "{$key}: <i>{$value}</i><br>";
+        		$row->features .= "{$key}: <b><i class='quiet'>{$value}</i></b><br>";
         	}
         }
         
@@ -1078,6 +1072,7 @@ class acc_Items extends core_Manager
     	$listId = acc_Lists::fetchField("#systemId = '{$listSystemId}'", 'id');
     	$query->like('lists', "|{$listId}|");
     	$query->show('id');
+    	$query->limit(1);
     	
     	$res = ($query->fetch()) ? TRUE : FALSE;
     	

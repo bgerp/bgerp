@@ -447,15 +447,15 @@ class doc_Folders extends core_Master
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if(crm_Companies::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/group.png', 'title=Създаване на нова визитка на фирма');
+    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
     	}
        
     	if(crm_Persons::haveRightFor('add')){
-    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard.png', 'title=Създаване на нова визитка на лице');
+    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
     	}
        
     	if(doc_UnsortedFolders::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/basket.png', 'title=Създаване на нов проект');
+    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
     	}
     }
     
@@ -1454,11 +1454,21 @@ class doc_Folders extends core_Master
         
         // Дали линка да е абсолютен
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Връщаме sbf линка до иконата
-        $sbfImg = sbf('img/16/' . $img, '"', $isAbsolute);
 
-        return $sbfImg;        
+
+        // Връщаме sbf линка до иконата
+        $imgSrc = 'img/16/' . $img;
+
+        if(log_Browsers::isRetina()) {
+            $tempIcon = 'img/32/' . $img;
+            if(getFullPath($tempIcon)) {
+                $imgSrc = $tempIcon;
+            }
+        }
+
+        $sbfImg = sbf($imgSrc, '"', $isAbsolute);
+
+        return $sbfImg;
     }
 
     /**
@@ -1699,6 +1709,10 @@ class doc_Folders extends core_Master
 	    
         if(!$includeHiddens) {
             $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+
+        if($params['where']) {
+            $query->where($params['where']);
         }
 	       
         if(is_array($onlyIds)) {

@@ -3,7 +3,7 @@
  * Клас 'doc_plg_BusinessDoc'
  *
  * Плъгин за избор на папка в която да се въздава документ.
- * Класа трябва да има метод getAllowedFolders който връща масив от интерфейси
+ * Класа трябва да има метод getCoversAndInterfacesForNewDoc който връща масив от интерфейси
  * на които трябва да отговарят папките които могат да са корици на документи, или име на клас.
  * След това се рендира форма за избор на запис от всеки клас отговарящ на
  * интерфейса. Трябва да се определи точно една папка, не е позволено да се 
@@ -94,8 +94,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         $form->title = 'Избор на папка';
         $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'btn-next fright'), 'ef_icon = img/16/move.png, title=Продължи нататък');
-        $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
-        
+
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         
@@ -134,7 +133,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     private static function prepareReasonForm(core_Mvc $mvc)
     {
     	// Между какви корици трябва да се избира
-    	$interfaces = $mvc::getAllowedFolders();
+    	$interfaces = $mvc::getCoversAndInterfacesForNewDoc();
     	
     	// Ако няма корици се прескача плъгина
     	if(!count($interfaces)) return NULL;

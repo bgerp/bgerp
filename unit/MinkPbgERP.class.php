@@ -57,6 +57,10 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkPPrices');
         $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPTcost');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPListProduct');
+        $res .= $inst->act_Run();
         
         return $res;
     }
@@ -162,7 +166,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
         $browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
-        
+        //return $browser->getHtml();
     }
     
     /**
@@ -384,10 +388,12 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Каталог');
         $browser->click('Категории');
         $browser->press('Нов запис');
-        $browser->setValue('name', 'Други');
+        $browser->setValue('name', 'Шаблони');
+        $browser->setValue('useAsProto', 'Да');
         $browser->setValue('meta_canStore', 'canStore');
         $browser->setValue('meta_canConvert', 'canConvert');
         $browser->setValue('meta_canManifacture', 'canManifacture');
+        $browser->setValue('meta_canSell', 'canSell');
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
@@ -680,6 +686,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Клиенти', '1');
         $browser->setValue('Доставчици', '2');
         $browser->press('Запис');
+        //return $browser->getHtml();
         if (strpos($browser->getText(),"Предупреждение:")){
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
@@ -835,14 +842,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         // Създаване на нов артикул по запитването
         $browser->press('Артикул');
-        $browser->setValue('name', 'Артикул по запитване1');
+        $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
         $browser->press('Оферта');
         $browser->setValue('Цена', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
         $browser->press('Добавяне');
-        $browser->setValue('productId', 'Артикул по запитване1');
+        $browser->setValue('productId', 'Артикул по запитване');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
         $browser->setValue('packPrice', 4);
@@ -1420,6 +1427,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
         // Създаване на задача
         $browser->click('Добавяне на нова Задача');
+        $browser->press('Напред');
         $browser->setValue('title', 'Инвентаризация');
         $browser->setValue('description', 'Да се проведе инвентаризация');
         $startdate=strtotime("+2 Days");
@@ -1451,6 +1459,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'черен');
         $browser->setValue('meta_canBuy', 'canBuy');
+        $browser->setValue('Ценова група » Промоция', 15);
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){

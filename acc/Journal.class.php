@@ -362,7 +362,7 @@ class acc_Journal extends core_Master
             Mode::pop("saveTransaction");
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
-            bp($ex->getMessage(), $tr);
+            error($ex->getMessage(), $tr);
         }
         
         $transaction->rec->docType = $mvc->getClassId();
@@ -781,7 +781,7 @@ class acc_Journal extends core_Master
     	}
     	
     	$form->toolbar->addSbBtn('Реконтиране', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Реконтиране');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
     	

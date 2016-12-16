@@ -39,7 +39,7 @@ class accda_Da extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, doc_DocumentPlg, plg_Search,
+    public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, doc_DocumentPlg, plg_Search,
                      bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_BusinessDoc';
     
     
@@ -124,14 +124,8 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,valior,handler=Документ,title,num,serial,createdOn,createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
+    public $listFields = 'valior,handler=Документ,title,num,serial,createdOn,createdBy';
+
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -332,7 +326,7 @@ class accda_Da extends core_Master
     /**
      * В корици на папки с какви интерфейси може да се слага
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
         return array('accda_DaFolderCoverIntf');
     }

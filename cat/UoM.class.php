@@ -22,7 +22,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
     
     
     /**
@@ -107,6 +107,21 @@ class cat_UoM extends core_Manager
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	if(empty($rec->showContents)){
+    		$row->showContents = $mvc->getFieldType('showContents')->toVerbal('no');
+    	}
+    }
+    
+    
+    /**
      * Връща опции с опаковките
      */
     public static function getPackagingOptions()
@@ -171,7 +186,7 @@ class cat_UoM extends core_Manager
     		if($uomRec->baseUnitId){
     			
     			/*
-    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. bp($round);
+    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка.
     			 * Например ако базовата мярка е килограм и имаме нова мярка - грам, която 
     			 * е 1/1000 от базовата, то точността по подразбиране е 3/3 = 1, където числителя 
     			 * е точността на мярката килограм, а в знаменателя - log(1000).
@@ -467,6 +482,8 @@ class cat_UoM extends core_Manager
     		$mvc->currentTab = 'Мерки->Опаковки';
     		$data->form->setField('name', 'caption=Опаковка');
     	}
+    	
+    	$data->form->setDefault('showContents', 'no');
     	
     	// Ако записа е създаден от системния потребител, може да се 
     	if($rec->createdBy == core_Users::SYSTEM_USER){

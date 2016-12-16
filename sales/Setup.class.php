@@ -104,6 +104,30 @@ defIfNot('SALE_INVOICES_SHOW_DEAL', 'yes');
 
 
 /**
+ * Роли за добавяне на артикул в продажба от бутона 'Артикул'
+ */
+defIfNot('SALES_ADD_BY_PRODUCT_BTN', '');
+
+
+/**
+ * Роли за добавяне на артикул в продажба от бутона 'Създаване'
+ */
+defIfNot('SALES_ADD_BY_CREATE_BTN', '');
+
+
+/**
+ * Роли за добавяне на артикул в продажба от бутона 'Списък'
+ */
+defIfNot('SALES_ADD_BY_LIST_BTN', '');
+
+
+/**
+ * Роли за добавяне на артикул в продажба от бутона 'Импорт'
+ */
+defIfNot('SALES_ADD_BY_IMPORT_BTN', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -166,6 +190,11 @@ class sales_Setup extends core_ProtoSetup
 			
 			'SALES_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
 			'SALES_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
+			
+			'SALES_ADD_BY_PRODUCT_BTN' => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Артикул'),
+			'SALES_ADD_BY_CREATE_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
+			'SALES_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
+			'SALES_ADD_BY_IMPORT_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
 	);
 	
 	
@@ -293,6 +322,15 @@ class sales_Setup extends core_ProtoSetup
     	if(strlen($config->SALE_INVOICE_DEF_TPL_EN) === 0){
     		$key = key(sales_Invoices::getTemplateEnOptions());
     		core_Packs::setConfig('sales', array('SALE_INVOICE_DEF_TPL_EN' => $key));
+    	}
+    	
+    	// Добавяне на дефолтни роли за бутоните
+    	foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
+    		$roles = ($const == 'SALES_ADD_BY_IMPORT_BTN') ? 'sales,ceo' : 'sales,ceo,collaborator';
+    		if(strlen($config->{$const}) === 0){
+    			$keylist = core_Roles::getRolesAsKeylist($roles);
+    			core_Packs::setConfig('sales', array($const => $keylist));
+    		}
     	}
     	
     	return $res;

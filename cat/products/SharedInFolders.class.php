@@ -170,6 +170,22 @@ class cat_products_SharedInFolders extends core_Manager
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($action == 'changepublicstate'){
+    		$requiredRoles = cat_Products::getRequiredRoles('edit', $rec, $userId);
+    		
+    		if($requiredRoles != 'no_one' && isset($rec->productId)){
+    			$pRec = cat_Products::fetch($rec->productId, 'state,folderId');
+    			if($pRec->state != 'active'){
+    				$requiredRoles = 'no_one';
+    			} else{
+    				$folderCover = doc_Folders::fetchCoverClassName($pRec->folderId);
+    				if(!cls::haveInterface('crm_ContragentAccRegIntf', $folderCover)){
+    					$requiredRoles = 'no_one';
+    				}
+    			}
+    		}
+    	}
     }
     
     
@@ -179,9 +195,15 @@ class cat_products_SharedInFolders extends core_Manager
     public function prepareShared($data)
     {
     	$masterRec = $data->masterData->rec;
-    	$data->isProto = ($masterRec->state == 'template');
+    	$data->isProto = ($masterRec->state == 'template' || $masterRec->brState == 'template');
     	
-    	if(($masterRec->isPublic == 'yes' && !$data->isProto) && !self::fetch("#productId = {$masterRec->id}")){
+    	if(!Mode::isReadOnly()){
+    		if($this->haveRightFor('changepublicstate', (object)array('productId' => $masterRec->id))){
+    			$data->changeStateUrl = array($this, 'changePublicState', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    		}
+    	}
+    	
+    	if(($masterRec->isPublic == 'yes' && !$data->isProto && !isset($data->changeStateUrl)) && !self::fetch("#productId = {$masterRec->id}")){
     		$data->hide = TRUE;
     		return;
     	}
@@ -207,10 +229,28 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	unset($data->rows[0]->tools);
     	
-    	if($this->haveRightFor('add', (object)array('productId' => $masterRec->id))){
-    		$data->addUrl = array($this, 'add', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    	if(!Mode::isReadOnly()){
+    		if($this->haveRightFor('add', (object)array('productId' => $masterRec->id))){
+    			$data->addUrl = array($this, 'add', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    		}
     	}
     }
+    
+    
+    function act_ChangePublicState()
+    {
+    	$this->requireRightFor('changepublicstate');
+    	expect($productId = Request::get('productId', 'int'));
+    	expect($pRec = cat_Products::fetch($productId));
+    	$this->requireRightFor('changepublicstate', (object)array('productId' => $productId));
+    	
+    	$pRec->isPublic = ($pRec->isPublic == 'yes') ? 'no' : 'yes';
+    	$title = ($pRec->isPublic == 'yes') ? 'стандартен' : 'нестандартен';
+    	cls::get('cat_Products')->save_($pRec, 'isPublic');
+    	
+    	return followRetUrl(array('cat_Products', 'single', $productId), " Артикулат вече е {$title}");
+    }
+    
     
     
     /**
@@ -248,6 +288,17 @@ class cat_products_SharedInFolders extends core_Manager
     		
     			$tpl->append($dTpl, 'content');
     		}
+    	}
+    	
+    	if(isset($data->changeStateUrl)){
+    		$bTitle = ($data->masterData->rec->isPublic == 'no') ? 'стандартен' : 'нестандартен';
+    		$title = "Направи артикула {$bTitle}";
+    		$warning = "Наистина ли искате артикула да стане {$bTitle}";
+    		
+    		$ht = ht::createBtn(str::mbUcfirst($bTitle), $data->changeStateUrl, $warning, NULL, "title={$title},ef_icon=img/16/arrow_refresh.png");
+    		$ht->prepend("<br>");
+    		
+    		$tpl->append($ht, 'content');
     	}
     	
     	return $tpl;

@@ -31,7 +31,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	public $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
+	public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
 	
 	
 	/** 
@@ -50,18 +50,12 @@ class forum_Postings extends core_Detail {
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'forum, ceo, admin, cms';
-	
-	
-	/**
-	 * Поле за лентата с инструменти
-	 */
-	public $rowToolsField = 'tools';
-	
+
 	
 	/**
 	 * Полета за изглед
 	 */
-	public $listFields = 'tools=Пулт, id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
+	public $listFields = 'id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
 	
 	
 	/**
@@ -713,7 +707,7 @@ class forum_Postings extends core_Detail {
 		$data->form->setDefault('boardTo', $data->board->id);
 		$data->form->title = "Местене на тема|* : <b>{$data->row->title}</b>";
 		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), 'ef_icon = img/16/move.png');
-		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close16.png');
+		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close-red.png');
 		
 		$data->navigation = $this->Master->prepareNavigation($data->board->categoryId, $data->rec->boardId, $data->rec->id);
 	}

@@ -245,7 +245,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param stdClass $data
 	 * @return core_ET $tpl
 	 */
-	protected function renderProductDescription($data)
+	public function renderProductDescription($data)
 	{   
         $title = tr($this->singleTitle);
 
@@ -424,6 +424,21 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param core_Fieldset $fieldset - форма на задание
 	 */
 	public function addTaskFields($id, core_Fieldset &$fieldset)
+	{
+	
+	}
+	
+	
+	/**
+	 * Метод позволяващ на артикула да добавя бутони към rowtools-а на документ
+	 *
+	 * @param int $id - ид на артикул
+	 * @param core_RowToolbar $toolbar - тулбара
+	 * @param mixed $docClass - класа документа
+	 * @param int $docId - ид на документа
+	 * @return void
+	 */
+	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
 	{
 	
 	}

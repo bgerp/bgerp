@@ -114,9 +114,14 @@ class type_Datetime extends type_Date {
     /**
      * Конвертира от вербална стойност
      */
-    function fromVerbal($value)
+    function fromVerbal($valueIn)
     {
-        if(!is_array($value)) return NULL;
+        if(is_scalar($valueIn)) {
+            $value = array();
+            list($value['d'], $value['t']) = explode(' ', $valueIn);
+        } elseif(is_array($valueIn)) {
+            $value = $valueIn;
+        }
     
         if(!trim($value['d']) && trim($value['t'])) {
             $value['d'] = date('d-m-Y');
@@ -130,8 +135,6 @@ class type_Datetime extends type_Date {
 
         $val1 = trim(trim($value['d']) . ' ' . $time);
         
-         
-        // if(strpos($this->params['defaultTime'], '59')) bp($val1, $this, $time);
 
         if(!$val1) return NULL;
 

@@ -69,7 +69,7 @@ class marketing_Inquiries2 extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc,Router=marketing_InquiryRouter, drdata_PhonePlg';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,Router=marketing_InquiryRouter, drdata_PhonePlg';
     
     
     /**
@@ -228,7 +228,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
     		$uomId = $form->rec->measureId;
-    		if($uomId != cat_UoM::fetchBySysId('pcs')->id){
+    		if(isset($uomId) && $uomId != cat_UoM::fetchBySysId('pcs')->id){
     			$uom = cat_UoM::getShortName($uomId);
     		} else {
     			$uom = '';
@@ -678,7 +678,7 @@ class marketing_Inquiries2 extends embed_Manager
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('crm_ContragentAccRegIntf');
     }
@@ -811,7 +811,7 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
     	$tpl = $form->renderHtml();
     	 
     	// Поставяме шаблона за външен изглед
@@ -909,9 +909,6 @@ class marketing_Inquiries2 extends embed_Manager
     	// Ако няма потребител, но има бисквитка зареждаме данни от нея
     	if(!$cu){
     		$this->setFormDefaultFromCookie($form);
-    		//$form->setField('name', 'mandatory');
-    		//$form->setField('country', 'mandatory');
-    		//$form->setField('email', 'mandatory');
     	}
     	 
     	return $form;
@@ -1018,5 +1015,14 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         return $contrData;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
     }
 }

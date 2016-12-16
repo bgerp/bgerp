@@ -411,7 +411,7 @@ class core_App
         $maxExecutionTime = ini_get('max_execution_time');
         if (core_Debug::$startMicroTime) {
             if (core_Debug::$startMicroTime) {
-                $executionTime = core_Datetime::getMicrotime() - core_Debug::$startMicroTime;
+                $executionTime = core_DateTime::getMicrotime() - core_Debug::$startMicroTime;
                 
                 $maxExecutionTimePercent = ($executionTime / $maxExecutionTime) * 100;
                 
@@ -656,7 +656,7 @@ class core_App
                     $get[$key[0]][$key[1]] = $value;
                 } else {
                     // Повече от едномерен масив в URL-то не се поддържа
-                    bp($key);
+                    error("Повече от едномерен масив в URL-то не се поддържа", $key);
                 }
             }
             

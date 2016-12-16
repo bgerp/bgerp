@@ -78,7 +78,7 @@ class cat_Products extends embed_Manager {
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '301,302,304,305,306,309,321,323,61101';
+    public $balanceRefAccounts = '321,323,61101,60201';
     
     
     /**
@@ -353,6 +353,7 @@ class cat_Products extends embed_Manager {
     	// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
     	if(isset($rec->folderId)){
     		$cover = doc_Folders::getCover($rec->folderId);
+    		$isTemplate = ($cover->getProductType() == 'template');
     		
     		$defMetas = array();
     		if(isset($rec->proto)){
@@ -374,8 +375,11 @@ class cat_Products extends embed_Manager {
     		// Ако корицата не е на контрагент
     		if(!$cover->haveInterface('crm_ContragentAccRegIntf')){
     			
-    			// Правим кода на артикула задължителен
-    			$form->setField('code', 'mandatory');
+    			// Правим кода на артикула задължителен, ако не е шаблон
+    			if($isTemplate === FALSE){
+    				$form->setField('code', 'mandatory');
+    			}
+    			
     			if($cover->isInstanceOf('cat_Categories')){
     				
     				// Ако корицата е категория слагаме дефолтен код и мерки
@@ -410,7 +414,7 @@ class cat_Products extends embed_Manager {
     			}
     		}
     	}
-
+    	
     	// Ако артикула е създаден от източник
     	if(isset($rec->originId)){
     		$document = doc_Containers::getDocument($rec->originId);
@@ -419,11 +423,6 @@ class cat_Products extends embed_Manager {
     		$Driver = $document->getDriver();
     		$fields = $document->getInstance()->getDriverFields($Driver);
     		$sourceRec = $document->rec();
-    	
-    		if($data->action != 'clone'){
-    			$form->info = cls::get('type_Richtext')->toVerbal($sourceRec->inqDescription);
-    			$form->info = "<small>{$form->info}</small>";
-    		}
     		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
@@ -505,10 +504,14 @@ class cat_Products extends embed_Manager {
     		// Ако артикулът е в папка на контрагент, и има вече артикул,
     		// със същото име сетваме предупреждение
     		if(isset($rec->folderId)){
-    			$coverClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    			if(cls::haveInterface('crm_ContragentAccRegIntf', $coverClassId)){
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
     				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
     					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
+    				}
+    			} elseif($Cover->getProductType() == 'template' && empty($rec->code)){
+    				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
+    					$form->setError('name', 'Има вече шаблон с това име');
     				}
     			}
     		}
@@ -533,7 +536,11 @@ class cat_Products extends embed_Manager {
     	if(isset($rec->folderId)){
     		$Cover = doc_Folders::getCover($rec->folderId);
     		$type = $Cover->getProductType($id);
-    		$rec->isPublic = ($type != 'private') ? 'yes' : 'no';
+    		
+    		if(!isset($rec->id)){
+    			$rec->isPublic = ($type != 'private') ? 'yes' : 'no';
+    		}   
+    		
     		if($rec->state != 'rejected' && $rec->state != 'closed'){
     			$rec->state = ($type == 'template') ? 'template' : 'draft';
     		}
@@ -544,6 +551,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$rec->code = ($rec->code == '') ? NULL : $rec->code;
+    	
     }
     
     
@@ -552,8 +560,13 @@ class cat_Products extends embed_Manager {
      */
 	private function routePublicProduct($categorySysId, &$rec)
 	{
-		$categorySysId = ($categorySysId) ? $categorySysId : 'goods';
-		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : NULL;
+		if(!isset($categoryId)){
+			$categoryId = cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+			if(!$categoryId){
+				$categoryId = cat_Categories::fetchField("#sysId = 'goods'", 'id');
+			}
+		}
 		
 		// Ако няма такъв артикул създаваме документа
 		if(!$exRec = $this->fetch("#code = '{$rec->code}'")){
@@ -824,7 +837,7 @@ class cat_Products extends embed_Manager {
         		$data->query->where("#state = 'template'");
         		break;
         	default :
-        		$data->query->where("#isPublic = 'yes'");
+        		$data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");
         		$data->query->orderBy("#state,#{$order}");
         		break;
         }
@@ -889,7 +902,7 @@ class cat_Products extends embed_Manager {
     {
     	if($rec->isPublic == 'no' && empty($rec->code)){
     		$createdOn = ($rec->createdOn) ? $rec->createdOn : (($rec->id) ? static::fetchField($rec->id, 'createdOn') : NULL);
-    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($createdOn, 'd.m', NULL, FALSE);
+    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($createdOn, 'd.m', NULL, FALSE, FALSE);
     	} else {
     		if(empty($rec->code)){
     			$rec->code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;
@@ -1072,6 +1085,17 @@ class cat_Products extends embed_Manager {
         
         if(isset($rec->originId)){
         	doc_DocumentCache::cacheInvalidation($rec->originId);
+        }
+        
+        if(isset($rec->folderId)){
+        	$Cover = doc_Folders::getCover($rec->folderId);
+        	$type = $Cover->getProductType($rec->id);
+        	$isPublic = isset($rec->isPublic) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
+        	
+        	if($type == 'public' && $isPublic == 'no'){
+        		$rec->isPublic = 'yes';
+        		$mvc->save_($rec, 'isPublic');
+        	}
         }
     }
     
@@ -1765,7 +1789,7 @@ class cat_Products extends embed_Manager {
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('folderClass' => 'cat_Categories');
     }
@@ -2458,28 +2482,32 @@ class cat_Products extends embed_Manager {
      * @param int $id - ид на артикул
      * @return void
      */
-    public static function setAutoCloneFormFields(&$form, $id)
+    public static function setAutoCloneFormFields(&$form, $id, $driverId = NULL)
     {
-    	$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,silent,refreshForm,after=id,input=hidden");
     	$form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
     	$form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
     	$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
     	$form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
-		
-    	$Driver = self::getDriver($id);
-        
-        // Добавяне на стойностите от записа в $rec-a на формата
-        $rec = self::fetch($id);
-        if($rec) {
-            $fields = self::getDriverFields($Driver);
-            if(is_array($fields)) {
-                foreach($fields as $name => $caption) {
-                    if(isset($rec->{$name})) {
-                        $form->rec->{$name} = $rec->{$name};
-                    }
-                }
-            }
-        }
+    	$form->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
+    	
+    	if(isset($id)){
+    		$Driver = self::getDriver($id);
+    		
+    		// Добавяне на стойностите от записа в $rec-a на формата
+    		$rec = self::fetch($id);
+    		if($rec) {
+    			$fields = self::getDriverFields($Driver);
+    			if(is_array($fields)) {
+    				foreach($fields as $name => $caption) {
+    					if(isset($rec->{$name})) {
+    						$form->rec->{$name} = $rec->{$name};
+    					}
+    				}
+    			}
+    		}
+    	} else {
+    		$Driver = cls::get($driverId);
+    	}
 
     	$Driver->addFields($form);
     }
@@ -2503,15 +2531,55 @@ class cat_Products extends embed_Manager {
     	if($form->isSubmitted()){
     		$fRec = $form->rec;
     		if($fRec->groups != $rec->groups){
-    			$this->save((object)array('id' => $id, 'groups' => $fRec->groups));
+    			$this->save((object)array('id' => $id, 'groups' => $fRec->groups), 'groups');
     		}
     		
     		return followRetUrl();
     	}
     	
     	$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Метод позволяващ на артикула да добавя бутони към rowtools-а на документ
+     * 
+     * @param int $id - ид на артикул
+     * @param core_RowToolbar $toolbar - тулбара
+     * @param mixed $docClass - класа документа
+     * @param int $docId - ид на документа
+     * @return void
+     */
+    public static function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+    {
+    	if($Driver = self::getDriver($id)){
+    		$Driver->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+    	}
+    }
+    
+    
+    /**
+     * Връща сметките, върху които може да се задават лимити на перото
+     *
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getLimitAccounts($rec)
+    {
+    	$rec = $this->fetchRec($rec, 'canStore,canConvert');
+    	
+    	$accounts = '';
+    	if($rec->canStore == 'yes'){
+    		$accounts .= ($rec->canConvert == 'yes') ? '321,323,61101' : '321,323';
+    	} else {
+    		$accounts .= ($rec->canConvert == 'yes') ? '61101,60201' : '60201';
+    	}
+    	
+    	$accounts = arr::make($accounts, TRUE);
+    	
+    	return $accounts;
     }
 }

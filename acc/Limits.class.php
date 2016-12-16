@@ -110,7 +110,7 @@ class acc_Limits extends core_Manager
         $this->FLD('when', 'datetime(format=smartTime)', 'caption=Надвишаване,input=none');
         $this->FLD('exceededAmount', 'double(decimals=2)', 'caption=Надвишаване,input=none');
         
-        $this->FLD('classId', 'key(mvc=core_Classes)', 'silent,input=hidden');
+        $this->FLD('classId', 'class(interface=acc_RegisterIntf)', 'silent,input=hidden');
         $this->FLD('objectId', 'int', 'silent,input=hidden');
         
         $this->FLD('status', 'enum(normal=Ненадвишен,exceeded=Надвишен)', 'caption=Видимост,input=none,notSorting,notNull,value=normal');
@@ -133,7 +133,8 @@ class acc_Limits extends core_Manager
         if(isset($rec->classId) && isset($rec->objectId)){
         	
         	$Class = cls::get($rec->classId);
-        	$accounts = arr::make($Class->balanceRefAccounts, TRUE);
+        	$accounts = $Class->getLimitAccounts($rec->objectId);
+        	
         	if(count($accounts)){
         		$options = array();
         		foreach ($accounts as $sysId){

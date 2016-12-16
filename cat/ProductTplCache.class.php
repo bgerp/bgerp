@@ -24,7 +24,7 @@ class cat_ProductTplCache extends core_Master
 	/**
 	 * Необходими плъгини
 	 */
-	public $loadList = 'plg_RowTools, cat_Wrapper';
+	public $loadList = 'plg_RowTools2, cat_Wrapper';
 	 
 	
 	/**
@@ -224,7 +224,10 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->productId = $rec->id;
 		$cacheRec->type = 'title';
 		$cacheRec->documentType = $documentType;
+		
+		Mode::push('text', 'plain');
 		$cacheRec->cache = cat_Products::getTitleById($rec->id);
+		Mode::pop('text');
 		$cacheRec->lang = $lang;
 		
 		if(isset($time)){

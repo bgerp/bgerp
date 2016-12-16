@@ -21,7 +21,7 @@ class sens_Sensors extends core_Master
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2,plg_Rejected,
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2,plg_Rejected,
                      Params=sens_Params, sens_Wrapper';
     
     

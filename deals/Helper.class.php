@@ -133,7 +133,9 @@ abstract class deals_Helper
         	}
 
         	if($rec->{$map['discount']}){
-        		$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
+        		if(!($masterRec->type === 'dc_note' && $rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE)){
+        			$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
+        		}
         	}
         	
         	// Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
@@ -209,7 +211,7 @@ abstract class deals_Helper
 	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$arr = array();
-		
+	
 		$values = (array)$values;
 		$arr['currencyId'] = $currencyId;                          // Валута на документа
 		
@@ -433,7 +435,7 @@ abstract class deals_Helper
 	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
 	{
 		if(cat_products_Packagings::getPack($productId, $packagingId)){
-			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
+			if(cat_UoM::fetchField($packagingId, 'showContents') !== 'no'){
 				$measureId = cat_Products::fetchField($productId, 'measureId');
 				
 				if($quantityInPack < 1 && cat_UoM::fetchBySysId('K pcs')->id == $measureId){
@@ -493,7 +495,7 @@ abstract class deals_Helper
 	 * @param NULL|varchar $batch
 	 * @return FALSE|stdClass
 	 */
-	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL, $expenseItemId = NULL)
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL, $expenseItemId = NULL, $notes = NULL)
 	{
 		$cond = "#{$mvc->masterKey} = $masterId";
 		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -527,6 +529,21 @@ abstract class deals_Helper
 			} else {
 				$cond .= " AND #expenseItemId IS NULL";
 			}
+		}
+		
+		// Ако има забележки
+		if(!empty($notes)){
+			
+			// Сравняване на хеша на забележките с този на новата забележка
+			$query = $mvc->getQuery();
+			$query->XPR('hashNotes', 'double', 'MD5(#notes)');
+			$notes = md5(gzcompress($notes));
+			$cond .= " AND #hashNotes = '{$notes}'";
+			$query->where($cond);
+			
+			return $query->fetch();
+		} else {
+			$cond .= " AND (#notes = '' OR #notes IS NULL)";
 		}
 		
 		return $mvc->fetch($cond);
@@ -781,5 +798,33 @@ abstract class deals_Helper
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Помощна ф-я проверяваща дали подаденото к-во може да се зададе за опаковката
+	 * 
+	 * @param int $packagingId - ид на мярка/опаковка
+	 * @param double $packQuantity - к-во опаковка
+	 * @param string $warning - предупреждение, ако има
+	 * @return boolean - дали к-то е допустимо или не
+	 */
+	public static function checkQuantity($packagingId, $packQuantity, &$warning = NULL)
+	{
+		$decLenght = strlen(substr(strrchr($packQuantity, "."), 1));
+		$decimals = cat_UoM::fetchField($packagingId, 'round');
+		 
+		if(isset($decimals) && $decLenght > $decimals){
+			if($decimals == 0){
+				$warning = "Количеството трябва да е цяло число";
+			} else {
+				$decimals = cls::get('type_Int')->toVerbal($decimals);
+				$warning = "Количеството трябва да е с точност до|* <b>{$decimals}</b> |цифри след десетичния знак|*";
+			}
+	
+			return FALSE;
+		}
+		 
+		return TRUE;
 	}
 }

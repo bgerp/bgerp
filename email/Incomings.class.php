@@ -33,6 +33,18 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Максимален брой файлове от имейл, които да се сканират за баркод
+     */
+    protected static $maxScanFileCnt = 10;
+	
+	
+    /**
+     * Максимален брой баркодове, които да се проверяват
+     */
+    protected static $maxScanBarcodeCnt = 10;
+    
+    
+    /**
      * Шаблон (ET) за заглавие на перо
      */
     public $recTitleTpl = '[#subject#]';
@@ -120,7 +132,7 @@ class email_Incomings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, 
-    				plg_RowTools, plg_Printing, email_plg_Document, 
+    				plg_RowTools2, plg_Printing, email_plg_Document, 
     				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank';
     
     
@@ -1390,7 +1402,10 @@ class email_Incomings extends core_Master
     public function route_(&$rec)
     {
         // Репортване, ако имаме данни за нишката
-        if ($rec->threadId) wp($rec);
+        if ($rec->threadId || $rec->folderId) {
+            if(!Mode::is('isMigrate')) wp($rec);
+            return;
+        }
         
         // Винаги рутираме по номер на тред
         if (email_Router::doRuleThread($rec)) {
@@ -1506,8 +1521,13 @@ class email_Incomings extends core_Master
     {
         if ($rec->files && ($filesArr = type_Keylist::toArray($rec->files))) {
             try {
-                $haveRoute = FALSE;
+                $fCnt = 0;
+                $ratingsArr = array();
                 foreach ($filesArr as $fileId) {
+                    
+                    // Ако сме достигнали максималния брой на файлове, които да се сканират
+                    if ($fCnt > self::$maxScanFileCnt) break;
+                    
                     $fRec = fileman_Files::fetch((int) $fileId);
                     $ext = fileman_Files::getExt($fRec->name);
                     
@@ -1524,15 +1544,22 @@ class email_Incomings extends core_Master
                     if (email_Setup::get('MAX_FILELEN_FOR_BARCOCE') < $fRec->fileLen) continue;
                     
                     try {
+                        $fCnt++;
                         $barcodesArr = zbar_Reader::getBarcodesFromFile($fRec->fileHnd);
                     } catch (fileman_Exception $e) {
                         
                         continue;
                     }
                     
+                    $barcodeCnt = 0;
                     // Опитваме се да определеим баркода за документ от нашата система
                     foreach ($barcodesArr as $bCode) {
+                        
+                        if ($barcodeCnt > self::$maxScanBarcodeCnt) break;
+                        
                         if (!$bCode->code) continue;
+                        
+                        $barcodeCnt++;
                         
                         $cId = doclog_Documents::getDocumentCidFromURL($bCode->code);
                         
@@ -1542,45 +1569,82 @@ class email_Incomings extends core_Master
                         
                         if (!$cRec) continue;
                         
-//                         if ($cRec->state == 'draft') continue;
+                        if (!isset($ratingsArr[$cRec->id])) {
+                            $ratingsArr[$cRec->id] = self::getDocRating($cRec);
+                        }
+                    }
+                }
+                
+                if (!empty($ratingsArr)) {
+                    
+                    arsort($ratingsArr);
+                    
+                    foreach ($ratingsArr as $bestCidId => $rating) {
+                        
+                        if (!$bestCidId) continue;
+                        
+                        $cRec = doc_Containers::fetch($bestCidId);
                         
                         $rec->threadId = $cRec->threadId;
                         
-                        $haveRoute = TRUE;
-                        
-                        break;
-                    }
-                    
-                    if ($haveRoute) {
-                        
                         if ($rec->threadId) {
-                            
+                    
                             if($rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId')) {
                                 $coverClass = doc_Folders::getCover($rec->folderId);
-                                
+                    
                                 // Ако ще се рутира към пощенска кутия или папка на контрагент
                                 if ($coverClass) {
                                     if ($coverClass->instance instanceof email_Inboxes ||
                                         $coverClass->instance instanceof crm_Companies ||
                                         $coverClass->instance instanceof crm_Persons) {
-                                        
+        
                                         break;
                                     }
                                 }
                             }
                         }
-                        
+                    
                         // Ако се стигне до тук, значи нишката не отговаря на условията
                         unset($rec->threadId);
                         unset($rec->folderId);
                     }
                 }
                 
-                if ($haveRoute) return $rec->folderId;
+                if (!empty($ratingsArr) && $rec->folderId) return $rec->folderId;
             } catch (ErrorException $e) {
                 reportException($e);
             }
         }
+    }
+    
+    
+    /**
+     * Определя рейтинга на документа
+     * Последно модифицираните са с най-голям рейтинг, а оттеглените с най-нисък
+     * 
+     * @param integer|stdObject $cId
+     * 
+     * @return NULL|iteger
+     */
+    protected static function getDocRating($cId)
+    {
+        if (!$cId) return ;
+        
+        $cRec = doc_Containers::fetchRec($cId);
+        
+        if (!$cRec) return ;
+        
+        $rating = 0;
+        
+        if ($cRec->modifiedOn) {
+            $rating = dt::mysql2timestamp($cRec->modifiedOn);
+        }
+        
+        if ($rating && ($cRec->state == 'rejected')) {
+            $rating /= 1000;
+        }
+        
+        return $rating;
     }
     
     
@@ -1593,6 +1657,8 @@ class email_Incomings extends core_Master
      */
     static function isCommonToBox($rec)
     {
+        expect($rec->accId, $rec);
+
         $accRec = email_Accounts::fetch($rec->accId);
         
         $isCommon = ($accRec->email == $rec->toBox && $accRec->type != 'single');
@@ -1626,7 +1692,7 @@ class email_Incomings extends core_Master
      * @param mixed $saveFileds
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
-    {
+    {  
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
         if($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
@@ -1764,7 +1830,7 @@ class email_Incomings extends core_Master
         /* @var $query core_Query */
         if ($rec->fromEml) {
             $query = static::getQuery();
-            $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
+            $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected' AND #accId > 0");
             $query->orderBy('createdOn', 'DESC');
             $query->limit(3);     // 3 писма
             while ($mrec = $query->fetch()) {
