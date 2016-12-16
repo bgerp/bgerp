@@ -598,8 +598,6 @@ class cal_Tasks extends core_Master
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         $mvc->updateTaskToCalendar($rec->id);
-     
-        $mvc->calculateExpectationTime($rec);
     }
 
     
