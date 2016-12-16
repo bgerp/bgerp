@@ -332,8 +332,9 @@ class acc_ClosePeriods extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    
-    	return $self->singleTitle . " №{$rec->id}";
+    	$title = acc_Periods::fetchField($rec->periodId, 'title');
+    	
+    	return tr("Приключване на|* \"{$title}\"");
     }
     
     
