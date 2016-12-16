@@ -36,6 +36,12 @@ class batch_InventoryNoteDetails extends core_Detail
     
     
     /**
+     * Кой може да пише?
+     */
+    public $canWrite = 'batch,ceo,storeMaster';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_AlignDecimals2, plg_RowTools2,plg_RowNumbering';
