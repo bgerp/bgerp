@@ -33,7 +33,8 @@ class unit_MinkPColab extends core_Manager {
         $res .= "  4.".$this->act_LogAgent();
         $res .= "  5.".$this->act_CreateDistr();
         $res .= "  6.".$this->act_AddDistrRights();
-        $res .= "  7.".$this->act_LogDistr();
+        //$res .= "  7.".$this->act_LogDistr();
+        $res .= "  7.".'Права на disrtibutor!';
         return $res;
     }
     
@@ -43,8 +44,8 @@ class unit_MinkPColab extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
+        //$browser->start('http://localhost/');
+        $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));

@@ -54,7 +54,8 @@ class unit_MinkBom extends core_Manager
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
+        //$browser->start('http://localhost/');
+        $browser->start($host);
         //потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));

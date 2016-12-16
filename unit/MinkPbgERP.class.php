@@ -69,6 +69,7 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно тестовете от MinkPbgERP 
      */
     //http://localhost/unit_MinkPbgERP/Run/
+    //http://127.0.0.1:8080/unit_MinkPbgERP/Run
     public function act_Run()
     {
 //         try {
