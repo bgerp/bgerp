@@ -333,7 +333,7 @@ class fileman_Indexes extends core_Manager
         if (core_Locks::isLocked($params['lockId'])) return TRUE;
         
         // Ако има такъв запис
-        if ($rec = fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) {
+        if ($params['dataId'] && $rec = fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) {
             
             $conf = core_Packs::getConfig('fileman');
             
@@ -411,6 +411,8 @@ class fileman_Indexes extends core_Manager
      */
     static function saveContent($params)
     {
+        if (!$params['dataId'] && !is_numeric($params['dataId'])) return ;
+        
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
         $rec->type = $params['type'];
@@ -669,8 +671,10 @@ class fileman_Indexes extends core_Manager
                         reportException($e);
                     }
                     
+                    $dId = fileman_webdrv_Generic::prepareLockId($fRec);
+                    
                     // Заключваме процеса и изчакваме докато се отключи
-                    $lockId = fileman_webdrv_Generic::getLockId('text', $fRec->dataId);
+                    $lockId = fileman_webdrv_Generic::getLockId('text', $dId);
                     while (core_Locks::isLocked($lockId)) {
                         if (dt::now() >= $endOn) {
                             $break = TRUE;
@@ -703,7 +707,7 @@ class fileman_Indexes extends core_Manager
                     }
                     
                     // Изчакваме докато завърши обработката
-                    $lockId = fileman_webdrv_Generic::getLockId('textOcr', $fRec->dataId);
+                    $lockId = fileman_webdrv_Generic::getLockId('textOcr', $dId);
                     while (core_Locks::isLocked($lockId)) {
                         if (dt::now() >= $endOn) {
                             $break = TRUE;
