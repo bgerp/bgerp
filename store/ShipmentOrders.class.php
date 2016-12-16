@@ -91,6 +91,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'storeMaster, ceo';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store,sales,purchase';

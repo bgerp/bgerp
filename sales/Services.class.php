@@ -142,6 +142,12 @@ class sales_Services extends deals_ServiceMaster
     
     
     /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'salesMaster, ceo';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'locationId, note, id';
