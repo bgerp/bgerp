@@ -89,9 +89,12 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
      * Извлича текстовата част от файла
      * 
      * @param object $fRec - Записите за файла
+     * 
+     * @return NULL|string
      */
     static function extractText($fRec)
     {
-        fileman_webdrv_Text::extractText($fRec);
+        
+        return fileman_webdrv_Text::extractText($fRec);
     }
 }
