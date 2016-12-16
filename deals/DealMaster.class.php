@@ -1798,4 +1798,21 @@ abstract class deals_DealMaster extends deals_DealBase
     		$mvc->save($rec, 'valior');
     	}
     }
+    
+    
+    /**
+     * Подготвя табовете на задачите
+     */
+    public function prepareDealTabs_(&$data)
+    {
+    	parent::prepareDealTabs_($data);
+    	
+    	if($data->rec->state != 'draft'){
+    		$url = getCurrentUrl();
+    		unset($url['export']);
+    		
+    		$url['dealTab'] = 'DealReport';
+    		$data->tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
+    	}
+    }
 }

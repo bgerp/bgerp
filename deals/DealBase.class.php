@@ -485,11 +485,6 @@ abstract class deals_DealBase extends core_Master
     		}
     	}
     	
-    	if($data->rec->state != 'draft'){
-    		$url['dealTab'] = 'DealReport';
-    		$tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
-    	}
-    	
     	$data->tabs = $tabs;
     }
     
