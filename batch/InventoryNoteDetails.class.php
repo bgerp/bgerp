@@ -104,8 +104,12 @@ class batch_InventoryNoteDetails extends core_Detail
     	}
     	
     	if(!count($productOptions)) return followRetUrl(NULL, 'Няма артикули с партидност в склада, с наличност към избрания период', 'warning');
-    	$productOptions = isset($rec->id) ? $productOptions : array('' => '') + $productOptions;
-    	$form->setOptions('productId', $productOptions);
+    	$options = isset($rec->id) ? $productOptions : ((count($productOptions) != 1) ? array('' => '') + $productOptions : $productOptions);
+    	$form->setOptions('productId', $options);
+    	
+    	if(count($productOptions) == 1){
+    		$form->setDefault('productId', key($productOptions));
+    	}
     	
     	// Ако има артикул
     	if(isset($rec->productId)){
