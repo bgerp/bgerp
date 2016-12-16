@@ -25,7 +25,7 @@ class batch_InventoryNotes extends core_Master {
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper,batch_plg_DocumentMovement, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, batch_Wrapper,batch_plg_DocumentMovement, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, doc_plg_SelectFolder';
     
     
     /**
@@ -38,6 +38,14 @@ class batch_InventoryNotes extends core_Master {
      * Групиране на документите
      */
     public $newBtnGroup = "4.9|Логистика";
+    
+    
+    /**
+     * Интерфейси които да имат кориците на документа
+     * 
+     * @see doc_plg_SelectFolder
+     */
+    public $coversAndInterfacesForNewDoc = 'store_Stores';
     
     
     /**
@@ -282,5 +290,88 @@ class batch_InventoryNotes extends core_Master {
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Функция за създаване на чернова документ за инвентаризация на партидност в склад.
+     * Документа се създава в папката на склада
+     * 
+     * @param int $storeId - ид на склад
+     * @param date|NULL $valior - вальор
+     */
+    public static function createDraft($storeId, $valior = NULL)
+    {
+    	// Проверка на датата
+    	if(!$valior){
+    		$valior = dt::today();
+    	} else {
+    		$Date = cls::get('type_Date');
+    		$valior = $Date->fromVerbal($valior);
+    		expect($valior, 'Невалидна дата');
+    	}
+    	
+    	expect(store_Stores::fetch($storeId), 'Няма такъв склад');
+    	
+    	// Подготовка на записа
+    	$rec = (object)array('valior'   => $valior, 
+    			             'storeId'  => $storeId, 
+    			             'state'    => 'draft',
+    			             'folderId' => store_Stores::forceCoverAndFolder($storeId));
+    	
+    	// Запис
+    	self::save($rec);
+    }
+    
+    
+    /**
+     * Добавя ред към документа за инвентаризация на партиди
+     * 
+     * @param int $noteId            - ид на документ
+     * @param mixed $productId       - ид/запис на артикул
+     * @param int $packagingId       - ид на опаковка/мярка
+     * @param double $packQuantity   - к-во на опаковката/мярката
+     * @param double $quantityInPack - к-во във опаковката/мярката
+     * @param string|NULL $batchOut  - изходяща партида
+     * @param string|NULL $batchIn   - входяща партида
+     * @return int                   - ид на записа
+     */
+    public static function addRow($noteId, $productId, $packagingId, $packQuantity, $quantityInPack, $batchOut = NULL, $batchIn = NULL)
+    {
+    	// Проверки на подадените параметри
+    	expect($rec = self::fetch($noteId), "Несъществуващ документ с ид {$noteId}");
+    	expect($rec->state == 'draft', 'Документа трябва да е чернова');
+    	
+    	expect($productRec = cat_Products::fetchRec($productId, 'id,measureId,canStore'), "Несъществуващ артикул '{$productRec->id}'");
+    	expect($productRec->canStore == 'yes', "Артикулът не е складируем");
+    	expect(cat_UoM::fetch($packagingId), "Несъществуваща опаковка '{$packagingId}'");
+    	expect($packagingId == $productRec->measureId || cat_products_Packagings::getPack($productRec->id, $packagingId), "Артикулът не поддържа такава опаковка/мярка");
+    	
+    	// Ако артикула няма партида, форсира му се
+    	batch_Defs::force($productRec->id, 'batch_definitions_Varchar');
+    	expect(isset($batchOut) || isset($batchIn), 'Няма подадена партида');
+    	$Double = cls::get('type_Double');
+    	expect($packQuantity = $Double->fromVerbal($packQuantity), 'Невалидно количество');
+    	expect($quantityInPack = $Double->fromVerbal($quantityInPack), 'Невалидно количество');
+    	
+    	// Подадените партиди трябва да са валидни
+    	foreach (array($batchIn, $batchOut) as $batch){
+    		if(isset($batch)){
+    			$Def = batch_Defs::getBatchDef($productRec->id);
+    			expect($Def->isValid($batch, $packQuantity * $quantityInPack, $msg), tr($msg));
+    		}
+    	}
+    	
+    	// Подготовка на записа
+    	$rec = (object)array('noteId'         => $noteId, 
+    			             'productId'      => $productRec->id, 
+    			             'packagingId'    => $packagingId, 
+    			             'quantityInPack' => $quantityInPack, 
+    			             'quantity'       => $packQuantity * $quantityInPack, 
+    			             'batchOut'       => $batchOut, 
+    			             'batchIn'        => $batchIn);
+    	
+    	// Запис
+    	return batch_InventoryNoteDetails::save($rec);
     }
 }

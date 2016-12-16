@@ -385,7 +385,7 @@ class doc_Folders extends core_Master
         $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
-        if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+        if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
         	$haveRight = colab_Folders::haveRightFor('single', $rec);
         }
         
@@ -401,7 +401,7 @@ class doc_Folders extends core_Master
         
         if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-            if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator'))){
+            if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner'))){
             	$link = array('doc_Threads', 'list', 'folderId' => $rec->id);
             } else {
             	$link = array('colab_Threads', 'list', 'folderId' => $rec->id);
@@ -926,7 +926,7 @@ class doc_Folders extends core_Master
         $haveRight = static::haveRightFor('single', $rec);
         
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
-            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Folders::haveRightFor('single', $rec);
             }
         }

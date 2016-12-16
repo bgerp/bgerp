@@ -78,7 +78,13 @@ class cat_UoM extends core_Manager
      */
     public $canEditsysdata = 'cat,ceo';
     
+
+    /**
+     * Шаблон за заглавието
+     */
+    public $recTitleTpl = '[#shortName#]';
     
+
     /**
      * Работен кеш
      */

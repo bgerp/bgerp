@@ -277,7 +277,7 @@ class purchase_Purchases extends deals_DealMaster
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
         $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
-        if($hideRate == 'yes' && !haveRole('collaborator')){
+        if($hideRate == 'yes' && !haveRole('partner')){
         	$form->setField('currencyRate', 'input');
         }
         

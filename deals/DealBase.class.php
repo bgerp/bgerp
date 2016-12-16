@@ -370,7 +370,7 @@ abstract class deals_DealBase extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->title = $mvc->getLink($rec->id, 0) . "<div style='font-size:0.7em;'>" . doc_Folders::getTitleById($rec->folderId) . "</div>";
+    		$row->title = $mvc->getLink($rec->id, 0) . "<div style='font-size:0.7em;min-width:20em;'>" . doc_Folders::getTitleById($rec->folderId) . "</div>";
     	}
     }
     
@@ -483,11 +483,6 @@ abstract class deals_DealBase extends core_Master
     			$url['dealTab'] = 'DealHistory';
     			$tabs->TAB('DealHistory', 'Обороти' , $url);
     		}
-    	}
-    	
-    	if($data->rec->state != 'draft'){
-    		$url['dealTab'] = 'DealReport';
-    		$tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
     	}
     	
     	$data->tabs = $tabs;

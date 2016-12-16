@@ -126,7 +126,7 @@ class fileman_webdrv_Generic extends core_Manager
         $ocrContent = fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr');
 
         // Ако има OCR съдържание
-        if ($ocrContent !== FALSE) {
+        if ($ocrContent !== FALSE && !is_object($ocrContent)) {
             
             // Тогава съдържанието е равно на него
             $content = $ocrContent;
@@ -480,6 +480,29 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Връщаме съдържанието
         return $content;
+    }
+    
+    
+    /**
+     * Подготвя стойността за заключване
+     * 
+     * @param string|stdObject $res
+     * 
+     * @return string|boolean
+     */
+    static function prepareLockId($res)
+    {
+        if (is_object($res)) {
+            
+            return $res->dataId;
+        }
+        
+        if (is_file($res)) {
+            
+            return md5_file($res);
+        }
+        
+        return FALSE;
     }
     
     

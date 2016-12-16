@@ -1871,7 +1871,7 @@ class cat_Products extends embed_Manager {
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
     	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    		    if (!core_Users::haveRole('collaborator', $userId)) {
+    		    if (!core_Users::haveRole('partner', $userId)) {
     		        $res = 'no_one';
     		    }
     		}
@@ -1906,7 +1906,7 @@ class cat_Products extends embed_Manager {
     protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
     	// Ако потребителя е контрактор не показваме детайлите
-    	if(core_Users::haveRole('collaborator')){
+    	if(core_Users::haveRole('partner')){
     		$data->noDetails = TRUE;
     		unset($data->row->meta);
     	}
@@ -2044,7 +2044,7 @@ class cat_Products extends embed_Manager {
     	// Ако е инсталиран пакета за партньори и потребителя е партньор
     	// Слагаме за обвивка тази за партньорите
     	if(core_Packs::isInstalled('colab')){
-    		if(core_Users::haveRole('collaborator')){
+    		if(core_Users::haveRole('partner')){
     			$this->load('cms_ExternalWrapper');
     			$this->currentTab = 'Нишка';
     			

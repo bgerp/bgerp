@@ -831,7 +831,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
 	    if($fields['-single']){
-	    	if(core_Users::haveRole('collaborator')){
+	    	if(core_Users::haveRole('partner')){
 	    		unset($row->closedDocuments);
 	    		unset($row->initiatorId);
 	    		unset($row->dealerId);
@@ -853,7 +853,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	}
 	    	
 	    	$cuNames = core_Users::getVerbal($rec->createdBy, 'names');
-	    	(core_Users::haveRole('collaborator', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
+	    	(core_Users::haveRole('partner', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
 	    	
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
@@ -1593,7 +1593,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($action == 'clonerec' && isset($rec)){
     		
     		// Ако е контрактор може да клонира документите в споделените му папки
-    		if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)){
+    		if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)){
     			$colabFolders = colab_Folders::getSharedFolders($userId);
     			
     			if(!in_array($rec->folderId, $colabFolders)){
@@ -1675,7 +1675,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
-    	if(core_Users::haveRole('collaborator')){
+    	if(core_Users::haveRole('partner')){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
@@ -1793,9 +1793,26 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
     	// Ако потребителя е партньор, то вальора на документа става датата на която е станал чакащ
-    	if(core_Users::haveRole('collaborator')){
+    	if(core_Users::haveRole('partner')){
     		$rec->valior = dt::today();
     		$mvc->save($rec, 'valior');
+    	}
+    }
+    
+    
+    /**
+     * Подготвя табовете на задачите
+     */
+    public function prepareDealTabs_(&$data)
+    {
+    	parent::prepareDealTabs_($data);
+    	
+    	if($data->rec->state != 'draft'){
+    		$url = getCurrentUrl();
+    		unset($url['export']);
+    		
+    		$url['dealTab'] = 'DealReport';
+    		$data->tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
     	}
     }
 }

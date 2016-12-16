@@ -157,7 +157,7 @@ class acc_Periods extends core_Manager
         			if(acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")){
         				 
         				// Ако има, периода може да се приключи
-        				$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        				$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
         			} else {
         				 
         				// Ако няма не може докато не бъде контиран такъв
@@ -166,7 +166,7 @@ class acc_Periods extends core_Manager
         		} else {
         		
         			// Ако няма записи, то периода може спокойно да се приключи
-        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
         		}
         	}
         }
@@ -179,6 +179,12 @@ class acc_Periods extends core_Manager
         
         if($rec->end == $curPerEnd){
             $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px', 'title' => 'Текущ период')) . $row->id;
+        }
+        
+        if($rec->state == 'closed'){
+        	if($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')){
+        		$row->close = acc_ClosePeriods::getLink($docId, 0);
+        	}
         }
     }
     
@@ -476,12 +482,10 @@ class acc_Periods extends core_Manager
         
         $res .= "<br>|Активен е период|* <span style=\"color:red;\">{$activeRec->title}</span>";
         
-        $res = new Redirect(array('acc_Periods'), $res);
-        
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite("Затваряне на период", $id);
         
-        return $res;
+        return followRetUrl(NULL, $res);
     }
     
     

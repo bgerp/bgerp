@@ -54,7 +54,7 @@ class bgerp_Portal extends core_Manager
     {
         // Ако е инсталиран пакета за партньори
     	// И текущия потребител е контрактор, но не е powerUser
-    	if(core_Users::haveRole('contractor') && !core_Users::haveRole('powerUser')){
+    	if(core_Users::haveRole('partner')){
         		
     		// Редирект към профила на партньора
     		return new Redirect(array('cms_Profiles', 'single'));
@@ -149,7 +149,7 @@ class bgerp_Portal extends core_Manager
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
             $tpl->append($tasksTpl, 'TASK_COLUMN');
 
-            jquery_Jquery::run($tpl, "portalTabs();");
+            jquery_Jquery::run($tpl, "openCurrentTab();");
         } else {
             $tpl->append($tasksTpl, 'RIGHT_COLUMN');
             $tpl->append($calendarHeader, 'RIGHT_COLUMN');

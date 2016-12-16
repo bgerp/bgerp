@@ -39,7 +39,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, plg_Sorting, sales_plg_CalcPriceDelta, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,plg_Search, doc_SharablePlg';
 
@@ -87,6 +87,13 @@ class purchase_Services extends deals_ServiceMaster
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo, purchase';
+    
+    
+    /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'purchaseMaster, ceo';
+    
     
     /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед

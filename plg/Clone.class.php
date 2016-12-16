@@ -178,16 +178,16 @@ class plg_Clone extends core_Plugin
         // Ако има запис и има права
         if ($rec && $requiredRoles != 'no_one') {
         
-            // Това също се проверява и в plg_Created, но там се изисква canEditsysdata и canDeletesysdata
             // Ако записа е на системен потребител
             if ($rec->createdBy == core_Users::SYSTEM_USER) {
                 
-                // Ако ще изтриваме или редактираме група
-                if ($action == 'delete' || $action == 'edit') {
-                    
-                    // Да не можем да редактираме
-                    $requiredRoles = 'no_one';
-                }
+            	if($action == 'edit') {
+            		$requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
+            	}
+            	
+            	if($action == 'delete') {
+            		$requiredRoles = $mvc->getRequiredRoles('deletesysdata', $rec, $userId);
+            	}
             }
             
             // Ако ще се клонира

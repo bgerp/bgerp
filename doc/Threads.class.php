@@ -2433,7 +2433,7 @@ class doc_Threads extends core_Manager
         $haveRight = static::haveRightFor('single', $rec);
 
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
-            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Threads::haveRightFor('single', $rec);
             }
         }

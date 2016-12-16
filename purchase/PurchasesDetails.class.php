@@ -57,19 +57,19 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, purchase, collaborator';
+    public $canDelete = 'ceo, purchase, partner';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, purchase, collaborator';
+    public $canEdit = 'ceo, purchase, partner';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, purchase, collaborator';
+    public $canAdd = 'ceo, purchase, partner';
     
     
     /**

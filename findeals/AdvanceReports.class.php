@@ -88,6 +88,12 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'pettyCashReport, ceo';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior,title=Документ,amount,currencyId,folderId,createdOn,createdBy';

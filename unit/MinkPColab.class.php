@@ -28,9 +28,13 @@ class unit_MinkPColab extends core_Manager {
         $res = '';
         $res .= "<br>".'MinkPColab';
         $res .= "  1.".$this->act_InstallColab();
-        $res .= "  2.".$this->act_CreateColab();
-        $res .= "  3.".$this->act_AddRights();
-        $res .= "  4.".$this->act_LogColab();
+        $res .= "  2.".$this->act_CreateAgent();
+        $res .= "  3.".$this->act_AddAgentRights();
+        $res .= "  4.".$this->act_LogAgent();
+        $res .= "  5.".$this->act_CreateDistr();
+        $res .= "  6.".$this->act_AddDistrRights();
+        //$res .= "  7.".$this->act_LogDistr();
+        $res .= "  7.".'Права на disrtibutor!';
         return $res;
     }
     
@@ -40,8 +44,8 @@ class unit_MinkPColab extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
+        //$browser->start('http://localhost/');
+        $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -81,10 +85,94 @@ class unit_MinkPColab extends core_Manager {
     }
     
     /**
-     * 2. Създаване на колаборатор и потребител към него
+     * 2. Създаване на Partner-agent и потребител към него
      */
-    //http://localhost/unit_MinkPColab/CreateColab/
-    function act_CreateColab()
+    //http://localhost/unit_MinkPColab/CreateAgent/
+    function act_CreateAgent()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на лице
+        $browser->click('Визитник');
+        $browser->click('Лица');
+        $browser->press('Ново лице');
+        $browser->setValue('name', 'Агент на Фирма bgErp');
+        $browser->setValue('buzCompanyId', '3');
+        $browser->setValue('groupList[9]', True);
+        $browser->press('Запис');
+        //return $browser->getHtml();
+        // Добавяне на потребител
+        $browser->press('Потребител');
+        $browser->setValue('nick', 'agent1');
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
+        $browser->setValue('email', 'agent1@abv.bg');
+        //$browser->setValue('Headquarter', False);
+        //$browser->setValue('partner', True);
+        $browser->setValue('roleRank', 'partner');
+        $browser->refresh('Запис');
+        $browser->setValue('roleOthers[86]', '86');
+        //Повтаряне на паролите,
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
+        $browser->press('Запис');
+        //return $browser->getHtml();
+        
+    }
+    
+    /**
+     * 3. Даване на права до папката на фирмата и изход
+     */
+    //http://localhost/unit_MinkPColab/AddAgentRights/
+    function act_AddAgentRights()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = 'Фирма bgErp';
+        $browser->click($Company);
+        $browser->click('Права');
+        $browser->click('Свързване на партньор към папката на обекта');
+        $browser->setValue('contractorId', 'Агент на Фирма bgErp');
+        $browser->press('Запис');
+        $browser->click('Изход');
+        //Да се затвори браузъра
+        
+    }  
+    
+    /**
+     * 4. Логване на agent и запитване
+     */
+    //http://localhost/unit_MinkPColab/LogAgent/
+    function act_LogAgent()
+    {
+        // Логване
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        //Потребител colab1
+        $browser->click('Вход');
+        $browser->setValue('nick', 'agent1');
+        $browser->setValue('pass', '123456');
+        $browser->press('Вход');
+        //Запитване
+        $browser->click('Теми');
+        $browser->press('Запитване');
+        $browser->setValue('title', 'Запитване от агент');
+        $browser->setValue('inqDescription', 'Чували');
+        $browser->setValue('measureId', 'брой');
+        $browser->press('Запис');
+        
+        //return $browser->getHtml();
+        
+    }
+    /**
+     * 5. Създаване на Partner-distr и потребител към него
+     */
+    //http://localhost/unit_MinkPColab/CreateDistr/
+    function act_CreateDistr()
     {
         // Логване
         $browser = $this->SetUp();
@@ -97,24 +185,32 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('buzCompanyId', '3');
         $browser->setValue('groupList[9]', True);
         $browser->press('Запис');
+        //return $browser->getHtml();
+    
         // Добавяне на потребител
         $browser->press('Потребител');
-        $browser->setValue('nick', 'colab1');
+        $browser->setValue('nick', 'distr1');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
-        $browser->setValue('email', 'colab1@abv.bg');
-        $browser->setValue('Headquarter', False);
-        $browser->setValue('collaborator', True);
+        $browser->setValue('email', 'distr1@abv.bg');
+        //$browser->setValue('Headquarter', False);
+        //$browser->setValue('partner', True);
+        $browser->setValue('roleRank', 'partner');
+        $browser->refresh('Запис');
+        $browser->setValue('roleOthers[85]', '85');
+        //Повтаряне на паролите,
+        $browser->setValue('passNew', '123456');
+        $browser->setValue('passRe', '123456');
         $browser->press('Запис');
         //return $browser->getHtml();
-        
+    
     }
     
     /**
-     * 3. Даване на права до папката на фирмата и изход
+     * 6. Даване на права до папката на фирмата и изход
      */
-    //http://localhost/unit_MinkPColab/AddRights/
-    function act_AddRights()
+    //http://localhost/unit_MinkPColab/AddDistrRights/
+    function act_AddDistrRights()
     {
         // Логване
         $browser = $this->SetUp();
@@ -128,14 +224,14 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Запис');
         $browser->click('Изход');
         //Да се затвори браузъра
-        
-    }  
+    
+    }
     
     /**
-     * 4. Логване на колаборатора, запитване и продажба
+     * 7. Логване на distr, запитване и продажба
      */
-    //http://localhost/unit_MinkPColab/LogColab/
-    function act_LogColab()
+    //http://localhost/unit_MinkPColab/LogDistr/
+    function act_LogDistr()
     {
         // Логване
         $browser = cls::get('unit_Browser');
@@ -143,23 +239,20 @@ class unit_MinkPColab extends core_Manager {
         
         //Потребител colab1
         $browser->click('Вход');
-        $browser->setValue('nick', 'colab1');
+        $browser->setValue('nick', 'distr1');
         $browser->setValue('pass', '123456');
         $browser->press('Вход');
-        //Запитване
         $browser->click('Теми');
-        $browser->press('Запитване');
-        $browser->setValue('title', 'Запитване от колаборатор');
-        $browser->setValue('inqDescription', 'Чували');
-        $browser->setValue('measureId', 'брой');
-        $browser->press('Запис');
+        
         //Продажба 
         $browser->click('Теми');
         $browser->press('Продажба');
-        $browser->setValue('reff', 'от колаборатор');
+        $browser->setValue('reff', 'от distr');
         $browser->press('Запис');
         
         // Добавяне на артикул
+        //За целта трябва distributor да има права за добавяне на артикули в продажба
+        // Да се добавят!
         $browser->press('Артикул');
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');

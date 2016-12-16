@@ -55,8 +55,8 @@ class unit_MinkPSales extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
+        //$browser->start('http://localhost/');
+        $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -774,7 +774,7 @@ class unit_MinkPSales extends core_Manager {
     
         // Записване на артикула
         $browser->press('Запис');
-    
+               
         // активиране на продажбата
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
@@ -817,7 +817,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -829,7 +830,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -855,7 +857,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -867,7 +870,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -963,7 +967,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -975,7 +980,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1001,7 +1007,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1013,7 +1020,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1111,7 +1119,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        //$browser->click('Редактиране на артикул');
+        $browser->click('Edit');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1123,7 +1132,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '0.8');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1149,7 +1159,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '100');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1161,7 +1172,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.3');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1259,7 +1271,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие за цялата сума
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Редактиране на артикул');
+        $browser->click('Edit');
+        //$browser->click('Редактиране');
         $browser->setValue('quantity', '0');
         $browser->press('Запис');
         

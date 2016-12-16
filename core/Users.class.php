@@ -175,7 +175,18 @@ class core_Users extends core_Manager
      */
     public $runCron = FALSE;
     
+
+    /**
+     * Кой има право да променя потребителите, създадени от системата?
+     */
+    public $canEditsysdata = 'admin';
     
+    
+    /**
+     * Кой има право да изтрива потребителите, създадени от системата?
+     */
+    public $canDeletesysdata = 'admin';
+
     
     /**
      * Описание на полетата на модела
@@ -190,9 +201,11 @@ class core_Users extends core_Manager
             //Ако не използвам никовете, тогава полето трябва да е задължително
             $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
         }
+        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
+            'caption=Състояние,notNull,default=draft');
         
-        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
-        $this->FLD('email', 'email(64, ci)', 'caption=Имейл,mandatory,width=100%');
+        $this->FLD('names', 'varchar', 'caption=Лице->Имена,mandatory,width=100%');
+        $this->FLD('email', 'email(64, ci)', 'caption=Лице->Имейл,mandatory,width=100%');
         
         // Поле за съхраняване на хеша на паролата
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
@@ -201,8 +214,6 @@ class core_Users extends core_Manager
         $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang, orderBy=orderByRole)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
         
-        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
-            'caption=Състояние,notNull,default=draft');
         
         $this->FLD('lastLoginTime', 'datetime(format=smartTime)', 'caption=Последно->Логване,input=none');
         $this->FLD('lastLoginIp', 'type_Ip', 'caption=Последно->IP,input=none');
@@ -376,7 +387,7 @@ class core_Users extends core_Manager
         
         if (is_null($rec)) return FALSE;
         
-        if (!is_object($rec)) {
+        if (is_numeric($rec)) {
             $rec = self::fetch($rec);
         }
         
@@ -466,8 +477,8 @@ class core_Users extends core_Manager
         $data->listFilter->showFields = 'search,role';
         
         $rec = $data->listFilter->input('search,role', 'silent');
-        
-    	$data->query->orderBy("lastLoginTime,createdOn", "DESC");
+        $data->query->XPR('orderTime', 'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)');
+    	$data->query->orderBy("orderTime", "DESC");
 
         if($data->listFilter->rec->role) {
             $data->query->where("#roles LIKE '%|{$data->listFilter->rec->role}|%'");
@@ -480,34 +491,36 @@ class core_Users extends core_Manager
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
+        $form = $data->form;
+
         // Ако няма регистрирани потребители, първият задължително е администратор
         if(self::isUsersEmpty()) {
-            $data->form->setOptions('state' , array('active' => 'active'));
+            $form->setOptions('state' , array('active' => 'active'));
             
-            $data->form->setField("state", 'input=none');
-            $data->form->setField("rolesInput", 'input=none');
+            $form->setField("state", 'input=none');
+            $form->setField("rolesInput", 'input=none');
             
             if(EF_USSERS_EMAIL_AS_NICK) {
-                $data->form->setField("nick", 'input=none');    
+                $form->setField("nick", 'input=none');    
             }
         }
 
         // Нова парола и нейния производен ключ
         $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
         if(EF_USSERS_EMAIL_AS_NICK) {
-            $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=email");
+            $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=email");
         } else {
-            $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=nick");
+            $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=nick");
         }
-        $data->form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
+        $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
         // Повторение на новата парола
         $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
-        $data->form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},after=passNew");
+        $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},after=passNew");
 
-        self::setUserFormJS($data->form);
+        self::setUserFormJS($form);
 
-        if($id = $data->form->rec->id) {
+        if($id = $form->rec->id) {
             $exRec = self::fetch($id);
             if($exRec->lastLoginTime) {
                 $stateType = &$mvc->fields['state']->type;
@@ -517,9 +530,97 @@ class core_Users extends core_Manager
             $teamsList = core_Roles::getRolesByType('team');
             $teamsArr = type_Keylist::toArray($teamsList);
             if (count($teamsArr) == 1) {
-                $data->form->setDefault('rolesInput', $teamsArr);
+                $form->setDefault('rolesInput', $teamsArr);
             }
         }
+        
+        if(!self::isUsersEmpty()) {
+            $roleTypes = core_Roles::getGroupedOptions();
+            asort($roleTypes['job']);
+            asort($roleTypes['system']);
+            asort($roleTypes['position']);
+            asort($roleTypes['external']);
+
+     
+            $form->FNC('roleRank', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Ранг,after=rolesInput,input,mandatory,silent,refreshForm');
+
+            $rangs = array();
+            $rangs[core_Roles::fetchByName('ceo')] = 'ceo';
+            $rangs[core_Roles::fetchByName('manager')] = 'manager';
+            $rangs[core_Roles::fetchByName('officer')] = 'officer';
+            $rangs[core_Roles::fetchByName('executive')] = 'executive';
+            $rangs[core_Roles::fetchByName('partner')] = 'partner';
+
+            $form->setOptions('roleRank', $rangs);
+            $rec = $form->input(NULL, 'silent');
+            
+            if($rec->id) {
+                $iRoles = keylist::toArray($rec->rolesInput);
+                foreach($roleTypes['rang'] as $i => $r) {
+                    if($iRoles[$i]) {
+                        $form->setDefault('roleRank', $i);
+                        setIfNot($rec->roleRank, $i);
+                        break;
+                    }
+                }
+            }
+
+            $partnerR = core_Roles::fetchByName('partner');
+
+            if($rec->roleRank == $partnerR) {
+                $otherRoles = arr::combine(
+                        array('external' => (object) array('title' => "Външен достъп", 'group' => TRUE)), 
+                        $roleTypes['external']);
+                if(count($roleTypes['external'])) {
+                	$form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
+                    $form->setSuggestions('roleOthers', $otherRoles);
+                }
+            } elseif($rec->roleRank) {
+                $form->FNC('roleTeams', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Екипи,after=roleRang,input,mandatory');
+                $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
+                
+                $form->setSuggestions('roleTeams', $roleTypes['team']);
+                $otherRoles = arr::combine(
+                    array('job' => (object) array('title' => "Модул", 'group' => TRUE)), 
+                    $roleTypes['job'], 
+                    array('system' => (object) array('title' => "Системни", 'group' => TRUE)), 
+                    $roleTypes['system'],
+                    array('position' => (object) array('title' => "Позиция", 'group' => TRUE)), 
+                    $roleTypes['position']);
+                $form->setSuggestions('roleOthers', $otherRoles);
+
+                if($rec->id) {
+                    $teams = array();
+                    foreach($roleTypes['team'] as $i => $r) {
+                        if($iRoles[$i]) {  
+                            $teams[$i] = $i;
+                        }
+                    }
+                    if(count($teams)) {
+                        $form->setDefault('roleTeams', keylist::fromArray($teams));
+                    }
+                }
+            }
+
+            if($rec->id) {
+                $other = array();
+                if(is_array($otherRoles)) {
+                    foreach($otherRoles as $i => $r) {
+                        if($iRoles[$i]) {  
+                            $other[$i] = $i;
+                        }
+                    }
+                }
+                if(count($other)) {
+                    $form->setDefault('roleOthers', keylist::fromArray($other));
+                }
+            }
+        }
+ 
+
+
+        $form->setField('rolesInput', 'input=none');
+
     }
     
     
@@ -530,6 +631,9 @@ class core_Users extends core_Manager
     {
     	if(self::isUsersEmpty()) {
     		$data->form->title = 'Първоначална регистрация на администратор';
+            cls::load('crm_Setup');
+            $data->form->setDefault('country', drdata_Countries::getIdByName(BGERP_OWN_COMPANY_COUNTRY));
+            unset($mvc->_plugins['plg_SystemWrapper']);
     	}
     }
     
@@ -588,6 +692,18 @@ class core_Users extends core_Manager
                 $form->setError('passNew,passRe', 'Не е зададена парола за достъп на потребителя');
             }
         }
+        
+        $rank = core_Roles::fetchById($rec->roleRank);
+
+        if(in_Array($rank, array('ceo', 'manager', 'officer', 'executive'))) {
+            if(!$rec->roleTeams) {
+                $form->setError('roleTeams', 'Вътрешните потребители трябва да имат поне един екип');
+            }
+        } else {
+            if($rec->roleTeams) {
+                $form->setError('roleTeams', 'Външните потребители не могат да имат роля за екип');
+            }
+        }
 
         if($form->gotErrors()) {
             $rec->passNewHash   = '';
@@ -601,6 +717,8 @@ class core_Users extends core_Manager
             } else {
                 $mvc->addNewUser = TRUE;
             }
+
+            $rec->rolesInput = keylist::merge($rec->roleRank, $rec->roleTeams, $rec->roleOthers);
         }
         
         // Ако регистрираме първия потребител, добавяме му роля `admin`

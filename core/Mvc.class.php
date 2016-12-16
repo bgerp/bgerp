@@ -474,6 +474,8 @@ class core_Mvc extends core_FieldSet
      */
     static function delete($cond, $limit = NULL, $orderBy = NULL)
     {
+        expect($cond !== NULL);
+
         $me = cls::get(get_called_class());
 
         $query = $me->getQuery();

@@ -39,7 +39,8 @@ class acc_ValueCorrections extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank';
+                        doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, 
+                        doc_plg_HidePrices, bgerp_plg_Blank, doc_plg_SelectFolder';
     
     
     /**
@@ -113,6 +114,12 @@ class acc_ValueCorrections extends core_Master
      */
     public $searchFields = 'folderId,notes';
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела

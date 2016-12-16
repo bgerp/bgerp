@@ -86,7 +86,7 @@ class core_Roles extends core_Manager
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory,translate');
         $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\',orderBy=orderByRole)', 'caption=Наследяване,notNull,');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
-        $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
+        $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност,external=Външен достъп)', 'caption=Тип,notNull');
         $this->XPR('orderByRole', 'int', "(CASE #type WHEN 'team' THEN 1 WHEN 'rang' THEN 2 WHEN 'job' THEN 3 WHEN 'position' THEN 4 ELSE 5 END)");
 
         $this->setDbUnique('role');
@@ -94,6 +94,12 @@ class core_Roles extends core_Manager
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
     }
     
+
+    function act_test()
+    {
+        $S = cls::get('doc_Setup');
+        $S->addPartnerRole1();
+    }
     
     /**
      * Добавя посочената роля, ако я няма
@@ -167,7 +173,33 @@ class core_Roles extends core_Manager
         }
     }
     
+
+    /**
+     * Връща масив от групирани по тип опции за ролите
+     */
+    public static function getGroupedOptions()
+    {
+        $query = self::getQuery();
+
+        $types = $query->getFieldType('type')->options;
+        
+        $res = array();
+
+        foreach($types as $t => $n) {
+            $res[$t] = array();
+        }
+
+        while($rec = $query->fetch()) {
+            if($rec->role) {
+                $res[$rec->type][$rec->id] = $rec->role;
+            }
+        }
+
+        return $res;
+    }
     
+
+
     /**
      * Връща id-то на ролята според името и
      */
@@ -309,6 +341,34 @@ class core_Roles extends core_Manager
         }
 
         return $res;
+    }
+
+
+    /**
+     * Премахва посочените във входния масив роли
+     */
+    public static function removeRoles($rArr)
+    {
+        $query = self::getQuery();
+
+        while($rec = $query->fetch()) {
+            $iArr = keylist::toArray($rec->inheritInput);
+            foreach($rArr as $r) {
+                if($r > 0) {
+                    unset($iArr[$r]);
+                }
+            }
+            $rec->inheritInput = keylist::fromArray($iArr);
+            $rec->inherit = keylist::fromArray(self::expand($iArr));
+
+            $query->mvc->save_($rec, 'inheritInput,inherit');
+        }
+
+        foreach($rArr as $r) {
+            if($r>0) {
+                self::delete($r);
+            }
+        }
     }
 
 

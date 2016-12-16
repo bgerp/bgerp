@@ -163,6 +163,12 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+     */
+    public $canWriteExternal = 'agent';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -258,7 +264,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->setDefault('email', $uRec->email);
     	}
     	
-    	$hide = (isset($cu) && core_Users::haveRole('collaborator', $cu)) ? TRUE : FALSE;
+    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
     	
     	$contactFields = $this->selectFields("#class == 'contactData'");
     	if(is_array($contactFields)){

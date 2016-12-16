@@ -40,7 +40,7 @@ class trans_Lines extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_BusinessDoc';
+                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder';
 
     
     
@@ -150,6 +150,12 @@ class trans_Lines extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = TRUE;
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
     
     
     /**

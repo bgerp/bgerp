@@ -32,7 +32,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices, doc_plg_SelectFolder';
     
     
     /**
@@ -133,6 +133,12 @@ class acc_ClosePeriods extends core_Master
      */
     public $priceFields = 'amountFromInvoices, amountVatGroup1, amountVatGroup2, amountVatGroup3, amountVatGroup4, amountWithoutInvoice';
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела
@@ -326,8 +332,9 @@ class acc_ClosePeriods extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    
-    	return $self->singleTitle . " №{$rec->id}";
+    	$title = acc_Periods::fetchField($rec->periodId, 'title');
+    	
+    	return tr("Приключване на|* \"{$title}\"");
     }
     
     

@@ -1073,20 +1073,17 @@ function prepareContextMenu() {
     });
 }
 
-/**
- * Действия на табовете в мобилен
- */
-function portalTabs() {
+function openCurrentTab(){
     if(!$('body').hasClass('modern-theme')) return;
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
-    if($("#" +  portalTabs).length) {
-        current = $("#" + portalTabs );
-    } else if($(location.hash).length) {
+    if($(location.hash).length) {
         // взимаме таба от # в url-то
         current = $(location.hash);
-    } else {
+    } else if($("#" +  portalTabs).length) {
+        current = $("#" + portalTabs );
+    }  else {
         // първия таб да е активен
         current = $('.narrowPortalBlocks').first();
     }
@@ -1098,6 +1095,12 @@ function portalTabs() {
     $(tab).addClass('activeTab');
     $(tab).siblings().removeClass('activeTab');
 
+    portalTabsChange();
+}
+/**
+ * Действия на табовете в мобилен
+ */
+function portalTabsChange() {
     $('ul.portalTabs li').click(function(){
         var tab_id = $(this).attr('data-tab');
         $('ul.portalTabs li').removeClass('activeTab');
@@ -1506,7 +1509,6 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
-
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
@@ -1998,6 +2000,12 @@ function refreshForm(form, removeFields) {
 	frm.find('input, select, textarea').css('cursor', 'wait');
     frm.find('#save, #saveAndNew').prop( "disabled", true );
 	
+    // Запазваме всички пароли преди ajax
+    var savedPwd = [];
+    $('input[type=password]').each(function(){
+      savedPwd[$(this).attr('name')] =  $(this).val();
+    });
+
 	var params = frm.serializeArray();
 
 	// Блокираме посочените полета да не се субмитват
@@ -2023,6 +2031,13 @@ function refreshForm(form, removeFields) {
 	}).done( function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
+     
+        // Възстановяваме запазените пароли
+        setTimeout(function(){
+            for (var k in savedPwd) { 
+                if($('[name=' + k + ']').val() == '') 
+                    $('[name=' + k + ']').val(savedPwd[k]);}
+        },  600);
 	});
 }
 

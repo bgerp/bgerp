@@ -81,15 +81,15 @@ class findeals_DebitDocuments extends deals_Document
     
     
     /**
-     * Кой може да го контира?
+     * Кой може да сторнира
      */
-    public $canConto = 'findeals, ceo';
+    public $canRevert = 'findeals, ceo';
     
     
     /**
-     * Кой може да го оттегля
+     * Кой може да го контира?
      */
-    public $canRevert = 'findeals, ceo';
+    public $canConto = 'findeals, ceo';
     
     
     /**

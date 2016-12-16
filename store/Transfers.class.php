@@ -59,6 +59,12 @@ class store_Transfers extends core_Master
     
     
     /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'storeMaster, ceo';
+    
+    
+    /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = TRUE;

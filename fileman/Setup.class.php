@@ -35,7 +35,7 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 700);
 /**
  * Максималната разрешена памет за използване
  */
-defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '200M');
+defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '1024M');
 
 
 /**
@@ -206,7 +206,15 @@ class fileman_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = "fileman_reports_FileInfo";
-         
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+            array('title' => 'Регенериране', 'url' => array ('fileman_Indexes', 'regenerate', 'ret_url' => TRUE), 'params' => array('title' => 'Регенериране на ключови думи и индексирани записи')),
+    );
+    
     
     /**
      * Инсталиране на пакета
