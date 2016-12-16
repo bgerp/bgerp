@@ -164,6 +164,8 @@ class core_Locks extends core_Manager
      */
     static function release($objectId)
     {
+        $objectId = str::convertToFixedKey($objectId, 32, 4);
+        
         $Locks = cls::get('core_Locks');
         $Locks->delete(array("#objectId = '[#1#]'", $objectId));
     }
