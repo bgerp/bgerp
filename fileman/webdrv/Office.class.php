@@ -99,28 +99,27 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function extractText($fRec)
     {
-        /*
-         * @todo
-         * @see https://github.com/dagwieers/unoconv/issues/73
-           Версия на unoconv 0.3-6
-           Има проблвем с конвертирането на файлове, които съдържат латиница.
-		   Когато се конвертира от .odt или .doc към .txt формат вместо текста се изписват въпросителни.
-		   При конвертиране към .pdf формат или някой друг всичко си работи коректно.
-		   Временно решение може да е да се конвертира към .pdf и от него да се извлече текстовата част.
-         */
-        
-        
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'fileman_webdrv_Office::afterExtractText',
-            'dataId' => $fRec->dataId,
-        	'asynch' => TRUE,
-            'createdBy' => core_Users::getCurrent('id'),
-            'type' => 'text',
+                'callBack' => 'fileman_webdrv_Office::afterExtractText',
+                'createdBy' => core_Users::getCurrent('id'),
+                'type' => 'text',
         );
         
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+            $params['asynch'] = TRUE;
+            $file = $fRec->fileHnd;
+        } else {
+            $params['asynch'] = FALSE;
+            $params['isPath'] = TRUE;
+            $file = $fRec;
+        }
+        
+        $lId = self::prepareLockId($fRec);
+        
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+        $params['lockId'] = static::getLockId($params['type'], $lId);
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) return ;
@@ -128,19 +127,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
-            // Конфигурационните константи
-//            $conf = core_Packs::getConfig('docoffice');
-            // Класа, който ще конвертира
-//            $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
-            
-            // Инстанция на класа
-//            $inst = cls::get($ConvClass);
-            
-            // Стартираме конвертирането
-//            $inst->convertDoc($fRec->fileHnd, 'txt', $params); 
-
             // Извличаме текстовата част с Apache Tika
-            apachetika_Detect::extract($fRec->fileHnd, $params);
+            return apachetika_Detect::extract($file, $params);
         }
     }
     

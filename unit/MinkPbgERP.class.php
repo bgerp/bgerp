@@ -37,10 +37,11 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно всички тестове от Unit 
      */
     //http://localhost/unit_MinkPbgERP/All/
+    //http://127.0.0.1:8080/unit_MinkPbgERP/All/
     
     public function act_All()
     {
-        set_time_limit(600);
+        set_time_limit(6000);
         $res = '';
         $res .= $this->act_Run();
         $inst = cls::get('unit_MinkPSales');
@@ -69,6 +70,7 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно тестовете от MinkPbgERP 
      */
     //http://localhost/unit_MinkPbgERP/Run/
+    //http://127.0.0.1:8080/unit_MinkPbgERP/Run/
     public function act_Run()
     {
 //         try {
@@ -125,9 +127,12 @@ class unit_MinkPbgERP extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
+        //$browser->start('http://localhost/');
+        $browser->start($host);
+       
         //$browser->start('http://' . $_SERVER['HTTP_HOST']);
-        
+         
         //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите')) {
         //$browser->click('☒ Ако приемате лиценза по-долу, може да продължите »');
         //$browser->click('Продължаване без обновяване »');
@@ -137,19 +142,23 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->click('Вход');
         //}
         if(strpos($browser->gettext(), 'Първоначална регистрация на администратор')) {
+            
         //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp  
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
             $browser->setValue('passRe', unit_Setup::get('DEFAULT_USER_PASS'));
             $browser->setValue('names', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('email', 'bgerp@experta.bg');
+            $browser->setValue('country', 'България');
             $browser->press('Запис');
+            //return $browser->getHtml();
         }    
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+        //return $browser->getHtml();
         return $browser;
     }
      
@@ -161,11 +170,11 @@ class unit_MinkPbgERP extends core_Manager {
     {
         // Логване
         $browser = $this->SetUp();
-    
         $browser->click('Админ');
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
-        $browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
+        $browser->open($host.'/core_Packs/deinstall/?pack=select2');
+        //$browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
         //return $browser->getHtml();
     }
     

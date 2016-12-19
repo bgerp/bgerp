@@ -48,9 +48,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 		if($action == 'createproduct'){
 			if(isset($rec)){
 				if($mvc instanceof sales_SalesDetails){
-					$roles = sales_Setup::get('ADD_BY_CREATE_BTN');
-					if(!haveRole($roles, $userId)){
+					if(core_Users::haveRole('partner', $userId)){
 						$requiredRoles = 'no_one';
+					} else {
+						$roles = sales_Setup::get('ADD_BY_CREATE_BTN');
+						if(!haveRole($roles, $userId)){
+							$requiredRoles = 'no_one';
+						}
 					}
 				} else {
 					$requiredRoles = $mvc->getRequiredRoles('add', $rec);

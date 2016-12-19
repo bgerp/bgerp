@@ -24,16 +24,18 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
     {
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'fileman_webdrv_Gvdot::afterExtractText',
-            'dataId' => $fRec->dataId,
-        	'asynch' => TRUE,
-            'createdBy' => core_Users::getCurrent('id'),
-            'type' => 'text',
-            'fileHnd' => $fRec->fileHnd,
+                'createdBy' => core_Users::getCurrent('id'),
+                'type' => 'text',
         );
         
+        $dId = self::prepareLockId($fRec);
+        
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+        }
+        
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+        $params['lockId'] = self::getLockId('text', $dId);
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) return ;
@@ -41,63 +43,28 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
-            $script = new stdClass();
-            $script->params = serialize($params);
-            
-            try {
-                // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-                static::afterExtractText($script);   
-            } catch (core_exception_Expect $e) {
-                
-                return ;
+            if (is_object($fRec)) {
+                $filePath = fileman::extract($fRec->fileHnd);
+            } else {
+                $filePath = $fRec;
             }
-        }
-    }
-    
-    
-    /**
-     * Извиква се след приключване на извличането на текстовата част
-     * 
-     * @param object $script - Данни необходими за извличането и записването на текста
-     * 
-     * @return TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterExtractText($script)
-    {
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
-        
-        // Ако няма подаден манипулатор на файла
-        if (!($fh = $params['fileHnd'])) {
             
-            // Вземаме манипулатора
-            $fh = fileman::idToFh($params['dataId']);
+            $text = @file_get_contents($filePath);
+            
+            if (is_object($fRec)) {
+                
+                fileman::deleteTempPath($filePath);
+                
+                // Обновяваме данните за запис във fileman_Indexes
+                $params['content'] = $text;
+                fileman_Indexes::saveContent($params);
+            }
+        
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+        
+            return $text;
         }
         
-        // Екстрактваме файла и вземаме пътя
-        $filePath = fileman::extract($fh);
-        
-        // Текстовата част
-        $params['content'] = file_get_contents($filePath);
-        
-        // Изтриваме временния файл
-        fileman::deleteTempPath($filePath);
-        
-        // Обновяваме данните за запис във fileman_Indexes
-        $savedId = fileman_Indexes::saveContent($params);
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        // Ако е записан успешно
-        if ($savedId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
-        }
     }
 }
