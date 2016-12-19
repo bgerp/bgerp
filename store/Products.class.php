@@ -78,7 +78,7 @@ class store_Products extends core_Manager
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,remember=info');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        $this->FLD('quantity', 'double', 'caption=Количество');
+        $this->FLD('quantity', 'double', 'caption=Количество,smartCenter');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');

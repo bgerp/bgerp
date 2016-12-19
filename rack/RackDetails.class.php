@@ -76,13 +76,15 @@ class rack_RackDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('rackId', 'key(mvc=rack_Racks)', 'caption=Стелаж, input=hidden');
-        $this->FLD('row', 'varchar(1)', 'caption=Ред,smartCenter');
-        $this->FLD('col', 'int', 'caption=Колона,smartCenter');
+        $this->FLD('rackId', 'key(mvc=rack_Racks)', 'caption=Стелаж, input=hidden,silent');
+        $this->FLD('row', 'varchar(1)', 'caption=Ред,smartCenter,silent');
+        $this->FLD('col', 'int', 'caption=Колона,smartCenter,silent');
         $this->FLD('status', 'enum(usable=Използваемо,
                                    unusable=Неизползваемо,
-                                   reserved=Резервирано                                     
-                                   )', 'caption=Състояние,smartCenter');
+                                   reserved=Запазено                                     
+                                   )', 'caption=Състояние,smartCenter,silent,refreshForm');
+        $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,input=none');
+        $this->setDbUnique('rackId,row,col');
     }
 
 
@@ -95,10 +97,12 @@ class rack_RackDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        $rec = $form->rec;
+        $rec = &$form->rec;
 
         expect($rec->rackId);
         $rRec = rack_Racks::fetch($rec->rackId);
+        expect($rRec);
+        store_Stores::selectCurrent(store_Stores::fetch($rRec->storeId));
 
         $r = 'A';
         do {
@@ -113,6 +117,60 @@ class rack_RackDetails extends core_Detail
             $c++;
         } while($c <= $rRec->columns);
         $form->setOptions('col', $o2);
+        
+        expect($rec->rackId && $rec->row && $rec->col, $rec);
+        $form->setReadOnly('row');
+        $form->setReadOnly('col');
 
+        if(!$rec->id) {
+            if($exRec = self::fetch(array("#rackId = [#1#] AND #row = '[#2#]' AND #col = [#3#]", $rec->rackId, $rec->row, $rec->col))) {
+                $rec = $exRec;
+            }
+        }
+        
+        if($rec->status == 'reserved') {
+            $form->setField('productId', 'input=input');
+        }
+
+        // Ако има палет на това място, или към него е насочено движение
+        // То статусът може да е само 'Използваемо'
+        if(!rack_Pallets::isEmpty("{$data->masterRec->num}-{$rec->row}-{$rec->col}")) {
+            setIfNot($rec->status, 'usable');
+            $form->setReadOnly('status');
+        }
+    }
+
+
+    /**
+     * Връща масив с масиви, отговарящи на запазените и неизползваемите места в склада
+     */
+    public static function getUnusableAndReserved($storeId = NULL)
+    {
+
+        if(!$storeId) {
+            $storeId = store_Stores::getCurrent();
+        }
+
+        if(TRUE || !($res = core_Cache::get('getUnusableAndReserved', $storeId))) {
+            $res = array();
+            $res[0] = array();
+            $res[1] = array();
+            $rQuery = rack_Racks::getQuery();
+            while($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
+                $query = self::getQuery(); 
+                while($rec = $query->fetch("#rackId = {$rRec->id}")) {
+                    $pos = "{$rRec->num}-{$rec->row}-{$rec->col}";
+                    if($rec->status == 'reserved') {
+                        $res[1][$pos] = $rec->productId ? $rec->productId : -1;
+                    } elseif($rec->status == 'unusable') {
+                        $res[0][$pos] = TRUE;
+                    }
+                }
+            }
+
+            core_Cache::set('getUnusableAndReserved', $storeId, $res, 1440);
+        }
+        
+        return $res;
     }
 }
