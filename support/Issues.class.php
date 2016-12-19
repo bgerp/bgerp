@@ -751,13 +751,8 @@ class support_Issues extends core_Master
         
         // Ако е избрана система
         if ($systemId) {
-            
-            // Добавяме външно поле за търсене
-            $data->query->EXT("systemId", 'support_Components', "externalName=systemId");
-
             // Да се показват само сигнали от избраната система
             $data->query->where("#systemId = '{$systemId}'");
-            $data->query->where("#componentId = `support_components`.`id`");
         }
         
         // Вземаме всички компоненти от избраната система
