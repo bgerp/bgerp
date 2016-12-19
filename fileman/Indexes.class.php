@@ -619,7 +619,7 @@ class fileman_Indexes extends core_Manager
         $fNameStr = '';
         while ($fRec = $fQuery->fetch()) {
             $fArr[$fRec->fileHnd] = $fRec;
-            $fNameStr .= ' ' . $fRec->name;
+            $fNameStr .= $fRec->name . ' ';
         }
         
         // Правим обработка, докато намерим някоя съдържание на файл
@@ -734,7 +734,7 @@ class fileman_Indexes extends core_Manager
             $content = '';
         }
         
-        $content .= $fNameStr;
+        $content = $fNameStr . $content;
         
         $dRec->searchKeywords = plg_Search::normalizeText($content);
         
