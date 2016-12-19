@@ -529,25 +529,21 @@ class change_Plugin extends core_Plugin
         // Масива, който ще връщаме
         $allowedFieldsArr = array();
         
+        // Преобразуваме в масив
+        $changableFieldsArr = arr::make($changableFields, TRUE);
+        
         // Обхождаме всички полета
         foreach ($form->fields as $field => $filedClass) {
             
             // Ако могат да се променят
-            if ($filedClass->changable) {
+            if ($filedClass->changable || in_array($field, $changableFieldsArr)) {
                 
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
         }
         
-        // Преобразуваме в масив
-        $changableFieldsArr = arr::make($changableFields, TRUE);
-        
-        // Събираме двата масива
-        $allowedFieldsArr += $changableFieldsArr;
-        
         return $allowedFieldsArr;
-        
     }
     
     
