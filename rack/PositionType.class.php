@@ -32,7 +32,7 @@ class rack_PositionType extends type_Varchar {
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
-    var $tdClass = 'centerCol';
+    // var $tdClass = 'centerCol';
     
         
     /**
@@ -54,7 +54,26 @@ class rack_PositionType extends type_Varchar {
         
         return strtoupper(((int)$matches[1]) . '-' . $matches[2] . '-' . ((int) $matches[3]));
     }
+
+
+    /**
+     * Преобразува позицията във вербален вид
+     */
+    function toVerbal($value)
+    {
+        if(!strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
+
+            return $value;
+        }
+        
+        list($n, $r, $c) = explode('-', $value);
+
+        $res = ht::createLink($value, array('rack_Racks', 'show', $n, 'pos' => "{$n}-{$r}-{$c}"));
+
+        return $res;
+    }
     
+
     /**
      * @todo Чака за документация...
      */
