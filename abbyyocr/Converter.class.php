@@ -224,7 +224,7 @@ class abbyyocr_Converter extends core_Manager
             status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
         }
         
-        return $text
+        return $text;
     }
     
     
