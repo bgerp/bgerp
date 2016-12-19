@@ -876,7 +876,11 @@ class core_Query extends core_FieldSet
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
                     $this->tables[$mvc->dbTableName] = TRUE;
-                }
+                } elseif(isset($fieldRec->remoteKey) && !$isDelete) {
+                	$mvc = cls::get($fieldRec->externalClass);
+                	$remoteKey = str::phpToMysqlName($fieldRec->remoteKey);
+                	$this->where("`{$mvc->dbTableName}`.`{$remoteKey}` = `{$this->mvc->dbTableName}`.`id`");
+               }
             }
         }
         
