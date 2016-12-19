@@ -105,11 +105,12 @@ class doc_Search extends core_Manager
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
     	$data->listFilter->setField('search', 'autoFilter,caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
-    
+        
         $data->listFilter->setDefault('author', 'all_users');
-
+        
         $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, liked, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn('И във файловете', 'files', 'id=filter-files', 'ef_icon = img/16/filter.png');
         
         $data->listFilter->input(NULL, 'silent');
         
@@ -327,6 +328,17 @@ class doc_Search extends core_Manager
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
+            }
+            
+            // Ако се търси и по-съдържание на файла
+            if ($data->listFilter->cmd == 'files') {
+                $data->query->EXT('fCid', 'doc_Files', 'externalName=containerId');
+                $data->query->where("#fCid = #id");
+                
+                $data->query->EXT('fDataId', 'doc_Files', 'externalName=dataId');
+                $data->query->EXT('dSearchKeywords', 'fileman_Data', 'externalName=searchKeywords, externalKey=fDataId');
+                
+                plg_Search::applySearch($filterRec->search, $data->query, 'dSearchKeywords');
             }
         } else {
             // Няма условия за търсене - показваме само формата за търсене, без данни
