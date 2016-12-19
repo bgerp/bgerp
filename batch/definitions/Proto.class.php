@@ -160,4 +160,19 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
     	return static::AUTO_VALUE_STRING;
     }
+    
+    
+    /**
+     * Какви са свойствата на партидата
+     * 
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 	масив с ключ ид на партидна дефиниция и стойност свойството
+     */
+    public function getFeatures($value)
+    {
+    	$classId = $this->getClassId();
+    	
+    	return array($classId => $value);
+    }
 }
