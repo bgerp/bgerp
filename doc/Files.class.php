@@ -233,10 +233,9 @@ class doc_Files extends core_Manager
         
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
-            $query->EXT('containerSearchKeywords', 'doc_Containers', 'externalName=searchKeywords');
-            $query->where('`' . doc_Containers::getDbTableName() . '`.`id`' . ' = ' . '`' . $tableName . '`.`container_id`');
+            $query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
             
-            plg_Search::applySearch($filter->search, $query, 'containerSearchKeywords');
+            plg_Search::applySearch($filter->search, $query, 'searchKeywords');
         }
         $query->orderBy('containerId', 'DESC');
     }
