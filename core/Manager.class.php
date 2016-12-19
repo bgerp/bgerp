@@ -659,7 +659,21 @@ class core_Manager extends core_Mvc
                     'id' => $data->form->rec->id
                 );
             } else {
-                $data->retUrl = array($this, 'list');
+                if(is_a($this, 'core_Detail')) {
+                    if(($masterKey = $this->masterKey) && ($masterId = $data->form->rec->{$masterKey})) {
+                        $master = $mvc->masterClass;
+                        if(!$master) {
+                            $master = $this->getFieldTypeParam($masterKey, 'mvc');
+                        }
+                        if($master) {
+                            $data->retUrl = array($master, 'single', $masterId);
+                        }
+                    }
+                } 
+                
+                if(!$data->retUrl) {
+                    $data->retUrl = array($this, 'list');
+                }
             }
         }
 

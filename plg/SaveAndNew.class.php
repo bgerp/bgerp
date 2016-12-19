@@ -44,12 +44,25 @@ class plg_SaveAndNew extends core_Plugin
             // Записваме в сесията, полетата със запомняне
             $fields = $data->form->selectFields("#remember");
             
+	 
+            // Правим статус за информация на потребителя
+            if(is_a($mvc, 'core_Detail')) {
+                $action = tr("Добавен е нов") . ' ';
+                $obj    = tr("ред");
+            } else {
+                $action = tr("Създаден е нов") . ' ';
+                $obj    = tr("обект");
+            }
+            // status_Messages::newStatus($action . ($mvc->singleTitle ? tr(mb_strtolower($mvc->singleTitle)) : $obj));
+
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
                     Mode::setPermanent($permanentName, $data->form->rec->{$name});
                 }
             }
+
+
         } elseif($data->cmd != 'delete' && $data->form->cmd != 'refresh') {
             
             if (!$data->form->gotErrors()) {
@@ -131,4 +144,7 @@ class plg_SaveAndNew extends core_Plugin
             }
         }
     }
+
+
+
 }
