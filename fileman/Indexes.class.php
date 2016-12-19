@@ -421,6 +421,17 @@ class fileman_Indexes extends core_Manager
         
         $saveId = static::save($rec, NULL, 'IGNORE');
         
+        if (!$saveId && !is_object($params['content'])) {
+            $recOld = self::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $rec->dataId, $rec->type));
+            
+            if ($recOld) {
+                $content = self::decodeContent($recOld->content);
+                if (is_object($content)) {
+                    $saveId = static::save($rec, NULL, 'REPLACE');
+                }
+            }
+        }
+        
         return $saveId;
     }
     
