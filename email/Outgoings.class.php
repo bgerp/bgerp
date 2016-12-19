@@ -124,7 +124,7 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, doc_plg_SelectFolder';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone';
     
     
     /**

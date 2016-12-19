@@ -3610,13 +3610,6 @@ div.location.public {
 /*
  * край на стилове за ротация на елементи
  */
-/*
- * бъгфиксове
- */
-.store_Racks table.listTable > tbody > tr > td,
-.hr_ContractTypes table.listTable > tbody > tr > td {
-  max-width: 700px; }
-
 .fileman_Indexes table.listTable > tbody > tr > td,
 .fileman_Data table.listTable > tbody > tr > td,
 .doclog_Documents table.listTable > tbody > tr > td,
@@ -3802,6 +3795,12 @@ div.location.public {
     height: 1%; }
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
+
+/*
+ * rack
+ */
+td.rack-hl {
+  background-color: yellow; }
 
 .app-name {
   display: block;
