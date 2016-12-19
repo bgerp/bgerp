@@ -1165,7 +1165,7 @@ class fileman_Files extends core_Master
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('fileman/tpl/FilesFilterForm.shtml')));
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('fName', 'varchar', 'caption=Име на файл,input,silent');
+        $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent,autoFilter');
         
@@ -1177,9 +1177,9 @@ class fileman_Files extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'fName, usersSearch, bucket';
+        $data->listFilter->showFields = 'search, usersSearch, bucket';
         
-        $data->listFilter->input('usersSearch, bucket, fName', 'silent');
+        $data->listFilter->input('usersSearch, bucket, search', 'silent');
         
     	// По - новите да са по - напред
         $data->query->orderBy("#modifiedOn", 'DESC');
@@ -1211,13 +1211,12 @@ class fileman_Files extends core_Master
     		}
     		
     		// Тримваме името
-    		$fName = trim($filter->fName);
+    		$search = trim($filter->search);
     		
     		// Ако има съдържание
-    		if (strlen($fName)) {
-    		    
-    		    // Търсим в името
-    		    $data->query->where(array("LOWER(#name) LIKE LOWER('%[#1#]%')", $filter->fName));
+    		if (strlen($search)) {
+    		    $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
+    		    plg_Search::applySearch($search, $data->query, 'searchKeywords');
     		}
     		
     		// Ако има филтър
