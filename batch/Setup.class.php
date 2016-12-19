@@ -40,7 +40,7 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'batch_Defs';
+    var $startCtr = 'batch_Items';
     
     
     /**
@@ -65,6 +65,7 @@ class batch_Setup extends core_ProtoSetup
     		'batch_CategoryDefinitions',
     		'batch_InventoryNotes',
     		'batch_InventoryNoteDetails',
+    		'batch_Features',
         );
     
 
@@ -84,7 +85,7 @@ class batch_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.4, 'Логистика', 'Партиди', 'batch_Defs', 'default', "batch,ceo"),
+            array(3.4, 'Логистика', 'Партиди', 'batch_Items', 'default', "batch,ceo"),
         );
     
         

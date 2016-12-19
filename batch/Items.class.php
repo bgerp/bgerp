@@ -130,6 +130,7 @@ class batch_Items extends core_Master {
     	
     	// Имали запис за тази партида
     	if($rec = self::fetch("#productId = '{$productId}' AND #batch = '{$batch}' AND #storeId = '{$storeId}'")){
+    		batch_Features::sync($rec->id);
     		
     		// Връщаме ид-то на записа
     		return $rec->id;
@@ -138,6 +139,7 @@ class batch_Items extends core_Master {
     	// Ако няма записваме го
     	$rec = (object)array('productId' => $productId, 'batch' => $batch, 'storeId' => $storeId);
     	$id = self::save($rec);
+    	batch_Features::sync($rec->id);
     	
     	// Връщаме ид-то на записа
     	return $id;
