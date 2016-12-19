@@ -105,4 +105,17 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
     	return $this->class->getAutoValueConst();
     }
+    
+    
+    /**
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 	масив с ключ ид на партидна дефиниция и стойност свойството
+     */
+    public function getFeatures($value)
+    {
+    	return $this->class->getFeatures($value);
+    }
 }

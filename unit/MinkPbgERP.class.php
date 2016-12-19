@@ -37,6 +37,7 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно всички тестове от Unit 
      */
     //http://localhost/unit_MinkPbgERP/All/
+    //http://127.0.0.1:8080/unit_MinkPbgERP/All/
     
     public function act_All()
     {
@@ -148,6 +149,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('passRe', unit_Setup::get('DEFAULT_USER_PASS'));
             $browser->setValue('names', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('email', 'bgerp@experta.bg');
+            $browser->setValue('country', 'България');
             $browser->press('Запис');
             //return $browser->getHtml();
         }    
