@@ -23,7 +23,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterDescription($mvc)
     {
         if (!$mvc->fields['visibleForPartners']) {
-            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
+            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none');
         }
     }
     
@@ -48,7 +48,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input');
+                        $data->form->setField('visibleForPartners', 'input=input,changable,after=sharedUsers');
                     }
                     
                     if ($rec->originId) {
