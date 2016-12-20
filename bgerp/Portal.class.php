@@ -138,6 +138,13 @@ class bgerp_Portal extends core_Manager
         } else {
             $calTitle = '&nbsp;';
         }
+        
+        $iconSize = 16;
+        if(log_Browsers::isRetina()) {
+            $iconSize = 32;
+        }
+        
+        $findIcon = sbf("img/{$iconSize}/find.png");
 
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
             <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '
@@ -145,7 +152,7 @@ class bgerp_Portal extends core_Manager
                     <div class="hFormField">
                         <input value="" name="calSearch"  placeholder="Търсене" list="bgerp_Recently" autocomplete="off"/>
                     </div>
-                    <input class="SearchBtnPortal button linkWithIcon" type="submit" style="background-image:url(\'/sbf/bgerp/img/16/find_0711155722.png\');" value="" name="Cmd[]"/>
+                    <input class="SearchBtnPortal button linkWithIcon" type="submit" style="background-image:url(\'/sbf/bgerp/img/16/find.png\');" value="" name="Cmd[]"/>
                     <input type="hidden" name="Cmd[default]" value=1>  
                 </form>
             </div>
