@@ -2305,6 +2305,7 @@ div.alphabet div.tab-page {
       .single-thread .document .tab-top div.alphabet .tab-row .tab.selected {
         padding: 4px;
         top: 0 !important;
+        margin: 0 3px 0 0;
         border: 1px solid #bbbbbb;
         background-color: #ffffcc !important; }
         div.tab-control.deal-history-tab .tab-row .tab:hover a,
