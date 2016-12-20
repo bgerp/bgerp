@@ -114,7 +114,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
     	$value = $this->denormalize($value);
     	
-    	return array($value => $value);
+    	return array($value => $this->toVerbal($value));
     }
     
     
