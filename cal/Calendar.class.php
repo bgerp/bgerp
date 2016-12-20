@@ -263,10 +263,9 @@ class cal_Calendar extends core_Master
             $data->listFilter->showFields = $mvc->searchInputField;
             
             bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
-        } elseif 
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        ($data->action === "list"){
+        } elseif ($data->action === "list"){
+            // Показваме само това поле. Иначе и другите полета 
+            // на модела ще се появят
         	$data->listFilter->showFields = "from, {$mvc->searchInputField}, selectedUsers";
         } else{
         	$data->listFilter->showFields = 'from, selectedUsers';
@@ -764,10 +763,15 @@ class cal_Calendar extends core_Master
         $cu = core_Users::getCurrent();
         $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
+        
+        $Calendar = cls::get('cal_Calendar');
+        if(Request::get($Calendar->searchInputField)) {
+            $from = dt::addDays(-30, $from);
+            $to = dt::addDays(360, $to);
+        }
 
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
 
-        $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
         $Calendar->prepareListFilter($state); 
         $Calendar->prepareListRecs($state); 
