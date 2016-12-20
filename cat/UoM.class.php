@@ -35,6 +35,13 @@ class cat_UoM extends core_Manager
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'cat,ceo';
+	
+	
+	/**
+	 * Кой може сменя състоянието
+	 * @see plg_State2
+	 */
+	public $canChangestate = 'cat,ceo';
 
     
     /**
