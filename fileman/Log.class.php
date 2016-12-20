@@ -349,7 +349,9 @@ class fileman_Log extends core_Manager
             
             // Последно избраното търсене, да е по-подразбиране
             if (is_null($form->rec->fileName)) {
-                $form->rec->fileName = Mode::get('filemanLogFileNameSearch');
+                if (Mode::get('dialogOpened')) {
+                    $form->rec->fileName = Mode::get('filemanLogFileNameSearch');
+                }
             } else {
                 Mode::setPermanent('filemanLogFileNameSearch', $form->rec->fileName);
             }
