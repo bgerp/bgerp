@@ -87,6 +87,12 @@ class fileman_Indexes extends core_Manager
     
     
     /**
+     * Масив с кофи, които да не се индексират
+     */
+    protected static $ignoreBucketsForIndex = array('archive', 'fileIndex');
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -637,6 +643,13 @@ class fileman_Indexes extends core_Manager
         $extArr = array();
         $content = FALSE;
         $break = FALSE;
+        
+        $ignoreBucketIdArr = array();
+        foreach (self::$ignoreBucketsForIndex as $bucketName) {
+            $bucketId = fileman_Buckets::fetchByName($bucketName);
+            $ignoreBucketIdArr[$bucketId] = $bucketId;
+        }
+        
         foreach ($fArr as $hnd => $fRec) {
             
             if (dt::now() >= $endOn) {
@@ -650,6 +663,8 @@ class fileman_Indexes extends core_Manager
             
             if (!$fRec) continue;
         	
+            if ($fRec->bucketId && $ignoreBucketIdArr[$fRec->bucketId]) continue;
+            
             $ext = fileman_Files::getExt($fName);
             
             // Няма нужда за същото разширение да се прави обработка

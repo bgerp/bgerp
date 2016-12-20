@@ -186,7 +186,7 @@ class email_Outgoings extends core_Master
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
         $this->FLD('lastSendedBy', 'key(mvc=core_Users)', 'caption=Изпратено->От, notNull, input=none');
-        $this->FLD('forward', 'enum(no=Не, yes=Да)', 'caption=Препращане, input=hidden');
+        $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
         $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');

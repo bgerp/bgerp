@@ -368,7 +368,7 @@ class rack_Racks extends core_Master
                 }
 
                 // Ако е резервирано за нещо
-                if(!isset($title) && ($pId = $reserved[$posFull])) {
+                if(!isset($title) && ($pId = $reserved[$posFull])) { //if($posFull = '1-A-6') bp($title, $used[$posFull], $used);
                     $title = $pos;
                     $attr['style'] = 'color:#fbb;';
                     $hint = tr('Запазано място');
