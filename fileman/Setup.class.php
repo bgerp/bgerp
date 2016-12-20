@@ -198,7 +198,8 @@ class fileman_Setup extends core_ProtoSetup
             // Установяваме модела за галериите 
             'fileman_GalleryImages',
             
-            'migrate::addFileLen'
+            'migrate::addFileLen',
+            'migrate::bucketRoles',
         );
     
     
@@ -389,6 +390,23 @@ class fileman_Setup extends core_ProtoSetup
             
             $rec->fileLen = $rec->dataSize;
             fileman_Files::save($rec, 'fileLen');
+        }
+    }
+
+    /**
+     * Миграция към keylist на полето за ролите
+     */
+    static function bucketRoles()
+    {
+        $query = fileman_Buckets::getQuery();
+        while($rec = $query->fetch()) {
+            if(strlen($rec->rolesForDownload)) {
+                $rec->rolesForDownload = core_Roles::getRolesAsKeylist($rec->rolesForDownload);
+            }
+            if(strlen($rec->rolesForAdding)) {
+                $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rec->rolesForAdding);
+            }
+            fileman_Buckets::save($rec, 'rolesForDownload,rolesForAdding');
         }
     }
 }
