@@ -119,7 +119,8 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  32.".$this->act_CreatePersonUSA();
         $res .= "  33.".$this->act_CreateSupplier();
         $res .= "  34.".$this->act_CreateContractorGroup();
-        $res .= "  34.".$this->act_CreatePaymentMethod();
+        $res .= "  35.".$this->act_CreatePaymentMethod();
+        $res .= "  36.".$this->act_CreateCondParameter();
         
         return $res;
     }
@@ -1589,6 +1590,27 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('type', 'По банков път');
         $browser->setValue('discountPercent', '2');
         $browser->setValue('discountPeriod', '5');
+        $browser->press('Запис');
+        //return $browser->getHtml();
+    
+    }
+    
+    /**
+     * 1. Създаване на търговско условие
+     */
+    //http://localhost/unit_MinkPbgERP/CreateCondParameter/
+    function act_CreateCondParameter()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на търговско условие
+        $browser->click('Дефиниции');
+        $browser->click('Търговски условия');
+        $browser->press('Нов запис');
+        $browser->setValue('driverClass', 'Време');
+        $browser->setValue('name', 'Доставка до');
+        $browser->setValue('default', '1 ден');
         $browser->press('Запис');
         //return $browser->getHtml();
     
