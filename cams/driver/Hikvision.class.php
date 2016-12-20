@@ -56,31 +56,32 @@ class cams_driver_Hikvision extends cams_driver_IpDevice {
 
     /**
      * Записва снимка от RTSP стрийма на камерата в указан файл
+     * Изпълнява се в родителя - тук е само ако вадим шот-а от стрийма
      */
-    public function getPicture()
-    {
-    	if(!$this->isActive()) {
-    		$img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
-    	} else {
-    		$url = $this->getPictureUrl(); 
+//     public function getPicture()
+//     {
+//     	if(!$this->isActive()) {
+//     		$img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
+//     	} else {
+//     		$url = $this->getPictureUrl(); 
 
-    		// С тази команда вадим скрийншот от RTSP стрийма
-    		$cmd = "avconv -i ". $this->getStreamUrl() . " -vframes 1 -r 1 -f image2 " . $url;
-    		exec($cmd, $output, $return_var);
+//     		// С тази команда вадим скрийншот от RTSP стрийма
+//     		$cmd = "avconv -i ". $this->getStreamUrl() . " -vframes 1 -r 1 -f image2 " . $url;
+//     		exec($cmd, $output, $return_var);
 
-    		// Ако имаме реален файл предполагаме, че е картинка
-    		if (is_file($url)) {
-    			$img = imagecreatefromjpeg($url);
-    		}
+//     		// Ако имаме реален файл предполагаме, че е картинка
+//     		if (is_file($url)) {
+//     			$img = imagecreatefromjpeg($url);
+//     		}
 			
-    		if(!$img) {
+//     		if(!$img) {
     
-    			$img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
-    		}
-    	}
+//     			$img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
+//     		}
+//     	}
     
-    	return $img;
-    }
+//     	return $img;
+//     }
     
     
     /**
