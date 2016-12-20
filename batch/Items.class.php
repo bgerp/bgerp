@@ -88,7 +88,7 @@ class batch_Items extends core_Master {
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory');
-    	$this->FLD('batch', 'varchar(128)', 'caption=Партида,mandatory,smartCenter');
+    	$this->FLD('batch', 'varchar(128)', 'caption=Партида,mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory');
     	$this->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
     	
@@ -178,6 +178,11 @@ class batch_Items extends core_Master {
     		
     		$row->batch = ht::createLink($row->batch, $link);
     	}
+    	
+    	if(isset($rec->featureId)){
+    		$featRec = batch_Features::fetch($rec->featureId, 'classId,value');
+    		$row->featureId = cls::get($featRec->classId)->toVerbal($featRec->value);
+    	}
     }
     
     
@@ -251,7 +256,31 @@ class batch_Items extends core_Master {
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->FLD('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'placeholder=Всички складове');
-    	$data->listFilter->FLD('filterState', 'enum(active=Активни,closed=Затворени,expired=Изтичащ срок)', 'placeholder=Състояние');
+    	$data->listFilter->FLD('filterState', 'varchar', 'placeholder=Състояние');
+    	
+    	$options = arr::make('active=Активни,closed=Затворени', TRUE);
+    	
+    	// Кои са инсталираните партидни дефиниции
+    	$definitions = core_Classes::getOptionsByInterface('batch_BatchTypeIntf');
+    	foreach ($definitions as $def){
+    		$Def = cls::get($def);
+    		
+    		// Какви опции има за филтъра
+    		$defOptions = $Def->getListFilterOptions();
+    		
+    		// Добавяне към ключа на опцията името на класа за да се знае от къде е дошла
+    		$newOptions = array();
+    		foreach ($defOptions as $k => $v){
+    			$k = get_class($Def) . "::{$k}";
+    			$newOptions[$k] = $v;
+    		}
+    		
+    		// Обединяване на опциите
+    		$options = array_merge($options, $newOptions);
+    	}
+    	
+    	// Сетване на новите опции
+    	$data->listFilter->setOptions('filterState', $options);
     	$data->listFilter->showFields = 'search,store,filterState';
     	$data->listFilter->input();
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -265,29 +294,14 @@ class batch_Items extends core_Master {
     		
     		// Филтрираме по състояние
     		if(isset($filter->filterState)){
-    			if($filter->filterState == 'expired'){
+    			if(strpos($filter->filterState, '::')){
+    				list($definition, $filterValue) = explode('::', $filter->filterState);
+    				$Def = cls::get($definition);
+    				$Def->filterItemsQuery($data->query, $filterValue, $featureCaption);
     				
-    				// Намираме всички артикули с дефиниции
-    				$productsWithDates = array();
-    				$classId = batch_definitions_ExpirationDate::getClassId();
-    				$defQuery = batch_Defs::getQuery();
-    				$defQuery->where("#driverClass = '{$classId}'");
-    				$defQuery->show('productId');
-    				while ($defRec = $defQuery->fetch()){
-    					$productsWithDates[$defRec->productId] = $defRec->productId;
+    				if(!empty($featureCaption)) {
+    					$data->listFields['featureId'] = $featureCaption;
     				}
-    				
-    				// Оставяме само тези партиди, които са с тип срок на годност
-    				$data->query->in('productId', $productsWithDates);
-    				$data->query->where("#state = 'active'");
-    				
-    				// Ако няма налични артикули, не искаме да намериме записи
-    				if(!count($productsWithDates)){
-    					$data->query->where("1 != 1");
-    				}
-    				
-    				// Подреждаме ги от най-старата към най-новата
-    				$data->query->orderBy('batch', 'ASC');
     			} else {
     				$data->query->where("#state = '{$filter->filterState}'");
     			}
@@ -365,12 +379,14 @@ class batch_Items extends core_Master {
     public function prepareBatches(&$data)
     {
     	// Ако артикула няма партидност, не показваме таба
-    	if(!batch_Defs::getBatchDef($data->masterId)){
+    	$definition = batch_Defs::getBatchDef($data->masterId);
+    	if(!$definition){
     		$data->hide = TRUE;
     		return;
     	}
     	 
     	// Име на таба
+    	$data->definition = $definition;
     	$data->TabCaption = 'Партиди';
     	$data->Tab = 'top';
     	$data->recs = $data->rows = array();
@@ -442,6 +458,7 @@ class batch_Items extends core_Master {
     	
     	// Кой е шаблона?
     	$tpl = getTplFromFile('batch/tpl/ProductItemDetail.shtml');
+    	$tpl->append(cls::getTitle($data->definition), 'definition');
     	
     	// Ако има филтър форма, показваме я
     	if(isset($data->form)){

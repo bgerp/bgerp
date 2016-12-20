@@ -178,4 +178,61 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
     {
 		return $this->rec->format;
 	}
+	
+	
+	/**
+	 * Връща масив с опции за лист филтъра на партидите
+	 *
+	 * @return array - масив с опции
+	 * 		[ключ_на_филтъра] => [име_на_филтъра]
+	 */
+	public function getListFilterOptions()
+	{
+		return array('expiration' => 'Срок на годност');
+	}
+	
+	
+	/**
+	 * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
+	 *
+	 * @param core_Query $query - заявка към batch_Items
+	 * @param varchar $value -стойност на филтъра
+	 * @param string $featureCaption - Заглавие на колоната на филтъра
+	 * @return void
+	 */
+	public function filterItemsQuery(core_Query &$query, $value, &$featureCaption)
+	{
+		expect($query->mvc instanceof batch_Items, 'Невалидна заявка');
+		$options = $this->getListFilterOptions();
+		expect(array_key_exists($value, $options), "Няма такава опция|* '{$value}'");
+		
+		// Ако е избран филтър за срок на годност
+		if($value == 'expiration'){
+			
+			// Намиране на партидите със свойство 'срок на годност'
+			$featQuery = batch_Features::getQuery();
+			$featQuery->where("#classId = {$this->getClassId()}");
+			$featQuery->orderBy('value', 'ASC');
+			$itemsIds = arr::extractValuesFromArray($featQuery->fetchAll(), 'itemId');
+			$query->in('id', $itemsIds);
+			
+			// Ако има ще бъдат подредени по стойноста на срока им
+			if(is_array($itemsIds)){
+				$count = 1;
+				$case = "CASE #id WHEN ";
+				foreach ($itemsIds as $id){
+					$when = ($count == 1) ? '' : ' WHEN ';
+					$case .= "{$when}{$id} THEN {$count}";
+					$count++;
+				}
+				$case .= " END";
+				$query->XPR('orderById', 'int', "({$case})");
+				$query->orderBy('orderById');
+			}
+			
+			$query->EXT('featureId', 'batch_Features', 'externalName=id,remoteKey=itemId');
+		}
+		
+		$featureCaption = 'Срок на годност';
+	}
 }
