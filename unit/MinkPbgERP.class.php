@@ -119,6 +119,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  32.".$this->act_CreatePersonUSA();
         $res .= "  33.".$this->act_CreateSupplier();
         $res .= "  34.".$this->act_CreateContractorGroup();
+        $res .= "  34.".$this->act_CreatePaymentMethod();
         
         return $res;
     }
@@ -1497,7 +1498,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     /**
-     * 3. Създаване на лице - клиент
+     * 1. Създаване на лице - клиент
      * Select2 трябва да е деинсталиран
      */
     //http://localhost/unit_MinkPbgERP/CreatePersonUSA/
@@ -1526,7 +1527,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Папка');
         //return $browser->getHtml();
     }
-    
     
     /**
      * 1. Създаване на фирма-доставчик 
@@ -1571,4 +1571,26 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('parentId', 'Доставчици');
         $browser->press('Запис');
     }        
+    
+    /**
+     * 1. Създаване на метод на плащане
+     */
+    //http://localhost/unit_MinkPbgERP/CreatePaymentMethod/
+    function act_CreatePaymentMethod()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на метод на плащане
+        $browser->click('Дефиниции');
+        $browser->click('Плащания');
+        $browser->press('Нов запис');
+        $browser->setValue('title', 'До 14 дни след фактуриране');
+        $browser->setValue('type', 'По банков път');
+        $browser->setValue('discountPercent', '2');
+        $browser->setValue('discountPeriod', '5');
+        $browser->press('Запис');
+        //return $browser->getHtml();
+    
+    }
 }
