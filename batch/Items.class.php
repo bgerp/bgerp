@@ -360,10 +360,11 @@ class batch_Items extends core_Master {
     		$query->where("#storeId = {$storeId}");
     	}
     	
-    	$query->show('batch');
+    	$query->show('batch,productId');
     	
     	while($rec = $query->fetch()){
-    		$res[$rec->batch] = self::getVerbal($rec, 'batch');
+    		$Def = batch_Defs::getBatchDef($rec->productId);
+    		$res[$rec->batch] = $Def->toVerbal($rec->batch);
     	}
     	
     	return $res;
