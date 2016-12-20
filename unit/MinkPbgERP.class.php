@@ -41,7 +41,7 @@ class unit_MinkPbgERP extends core_Manager {
     
     public function act_All()
     {
-        set_time_limit(6000);
+        set_time_limit(600);
         $res = '';
         $res .= $this->act_Run();
         $inst = cls::get('unit_MinkPSales');
@@ -118,6 +118,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  31.".$this->act_CreateProductVAT9();
         $res .= "  32.".$this->act_CreatePersonUSA();
         $res .= "  33.".$this->act_CreateSupplier();
+        $res .= "  34.".$this->act_CreateContractorGroup();
         
         return $res;
     }
@@ -1551,5 +1552,23 @@ class unit_MinkPbgERP extends core_Manager {
         // Създаване на папка на новата фирма
         //$browser->press('Папка');
         //return $browser->getHtml();
-    }  
+    }
+    
+    /**
+     * 1. Създаване на група контрагенти
+     */
+    //http://localhost/unit_MinkPbgERP/CreateContractorGroup/
+    function act_CreateContractorGroup()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова група
+        $browser->click('Визитник');
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Доставчици - основни');
+        $browser->setValue('parentId', 'Доставчици');
+        $browser->press('Запис');
+    }        
 }
