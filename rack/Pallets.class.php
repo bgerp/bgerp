@@ -386,15 +386,20 @@ class rack_Pallets extends core_Manager
         expect($productId);
         $query = self::getQuery();
         while($rec = $query->fetch("#productId = {$productId}")) {
+            if(!$storeId) {
+                $storeId = $rec->storeId;
+            }
             $q += $rec->quantity;
         }
         
         rack_Products::save((object) array('id' => $productId, 'quantityOnPallets' => $q));
-
+ 
         // Премахваме кеша за този склад
-        if($rec->storeId) {
-            core_Cache::remove('UsedRacksPossitions', $rec->storeId);
+        if(!$storeId) {
+            $storeId = store_Stores::getCurrent();
         }
+
+        core_Cache::remove('UsedRacksPossitions', $storeId);
     }
 
     
