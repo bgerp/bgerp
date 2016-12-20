@@ -26,7 +26,7 @@ class rack_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_RefreshRows, plg_State';
+    var $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_RefreshRows, plg_State, plg_Sorting';
     
     
     /**
@@ -128,7 +128,7 @@ class rack_Movements extends core_Manager
         }
 
         if($state) {
-            $row->state = $state;
+            $row->workerId .= ' ' . $state;
         }
 
         if($rec->note) {
