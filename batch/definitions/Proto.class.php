@@ -173,7 +173,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
     	$classId = $this->getClassId();
     	
-    	return array($classId => $value, batch_definitions_ExpirationDate::getClassId() => '10/12/2016');
+    	return array($classId => $value);
     }
     
     
