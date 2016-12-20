@@ -61,11 +61,25 @@ class type_Keylist extends core_Type {
     {
         if(empty($value)) return NULL;
         
-        $vals = explode($value{0}, $value);
+        $value = trim($value);
+
+        // Очакваме валиден keylist
+        if(preg_match("/^[0-9\\|]*$/", $value)) {
+            $div = '|';
+        } elseif(preg_match("/^[0-9\\,]*$/", $value)) {
+            $div = ',';
+        } else {
+            error('500 Очакваме валиден keylist');
+        }
+        
+        $value = trim($value, $div);
+
+        $vals = explode($div, $value);
         
         $mvc = cls::get($this->params['mvc']);
-        $div = $value{0};
-        $ids = str_replace($div, ',', trim($value, $div));
+       
+        $ids = str_replace($div, ',', $value);
+        
         if($ids) {  
             $query = $mvc->getQuery();
             $query->where("#id IN ($ids)");
