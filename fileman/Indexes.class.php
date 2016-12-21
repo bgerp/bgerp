@@ -836,6 +836,11 @@ class fileman_Indexes extends core_Manager
             while ($fRec = $fileQuery->fetch()) {
                 $fileLink .= ($fileLink) ? "<br>" : '';
                 $fileLink .= fileman::getLinkToSingle($fRec->fileHnd);
+                
+                if ($fRec->bucketId) {
+                    $bRec = fileman_Buckets::fetch($fRec->bucketId);
+                    $fileLink .= '(' . $bRec->name . ')';
+                }
             }
             $row->dataId .= ': ' . $fileLink;
             $row->searchKeywords = $data->recs[$id]->searchKeywords;
