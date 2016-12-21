@@ -152,6 +152,7 @@ class draw_Designs extends core_Master
             'Input(' => 'Input(',
             'LineTo(' => 'LineTo(',
             'MeasureLine(' => 'MeasureLine(',
+            'MeasureAngle(' => 'MeasureAngle(',
             'MoveTo(' => 'MoveTo(',
             'OpenGroup(' => 'OpenGroup(',
             'OpenLayer(' => 'OpenLayer(',
@@ -430,6 +431,63 @@ class draw_Designs extends core_Master
 
 
         self::drawMeasureLine($svg, $x1, $y1, $x2, $y2, $d, $text);
+    }
+
+
+    public static function cmd_MeasureAngle($params, &$svg, &$contex, &$error)
+    {
+        $x1 =  self::calcExpr($params[0], $contex);
+        if($x1 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
+
+            return FALSE;
+        }
+
+        $y1 =  self::calcExpr($params[1], $contex);
+        if($y1 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
+
+            return FALSE;
+        }
+
+        $x2 =  self::calcExpr($params[2], $contex);
+        if($x2 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
+
+            return FALSE;
+        }
+
+        $y2 =  self::calcExpr($params[3], $contex);
+        if($y2 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[3] . "\"";
+
+            return FALSE;
+        }
+
+        $x3 =  self::calcExpr($params[4], $contex);
+        if($x3 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[4] . "\"";
+
+            return FALSE;
+        }
+
+        $y3 =  self::calcExpr($params[5], $contex);
+        if($y3 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[5] . "\"";
+
+            return FALSE;
+        }
+
+        if(isset($params[6])) {
+            $d =  self::calcExpr($params[6], $contex);
+            if($d === self::CALC_ERROR) {
+                $error = "Грешка при изчисляване на: \"" . $params[4] . "\"";
+
+                return FALSE;
+            }
+        }
+
+        self::drawMeasureAngle($svg, $x1, $y1, $x2, $y2, $x3, $y3);
     }
 
 
@@ -800,6 +858,15 @@ class draw_Designs extends core_Master
 	    $svg->setAttr('font-weight', 'bold');
 	    $svg->setAttr('font-family', 'Arial, Sans-serif');
         cad2_MeasureLine::draw($svg, $Ax, $Ay, $Bx, $By, $dist * 6, $measureText);
+    }
+
+
+    /**
+     * Пресмята ъгъла ABC
+     */
+    static function drawMeasureAngle($svg, $Ax, $Ay, $Bx, $By, $Cx, $Cy)
+    {
+        cad2_MeasureAngle::draw($svg, $Ax, $Ay, $Bx, $By, $Cx, $Cy);
     }
 
 

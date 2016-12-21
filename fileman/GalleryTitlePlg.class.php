@@ -102,16 +102,28 @@ class fileman_GalleryTitlePlg extends core_Plugin
             // Вербализираме вербалното ID - само букви и цифри на латиница или кирилица
             $recTitleNew = $recTitle = static::canonizeTitle($recTitle);
             
+            $dash = '-';
+            
             // Ако има такъв запис
             while ($fRec = ($mvc->fetch("#{$titleFieldName} = '$recTitleNew'"))) {
                 
                 // Ако редактираме текущия запис, да не се порменя
                 if ($fRec->id == $rec->id) break;
                 
-                $i++;
+                if(($dashPos = strrpos($recTitleNew, $dash)) !== FALSE) {
+                    $left = substr($recTitleNew, 0, $dashPos);
+                    $right = substr($recTitleNew, $dashPos+1);
+                    
+                    if (is_numeric($right) && (int)$right == $right) {
+                        $right++;
+                        $recTitleNew = $left . $dash . $right;
+                        continue;
+                    }
+                }
                 
+                $i++;
                 // Добавяме новото име
-                $recTitleNew = $recTitle . '-' . $i;
+                $recTitleNew = $recTitle . $dash . $i;
             }
         }
         

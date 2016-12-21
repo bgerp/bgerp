@@ -41,7 +41,7 @@ class unit_MinkPbgERP extends core_Manager {
     
     public function act_All()
     {
-        set_time_limit(6000);
+        set_time_limit(600);
         $res = '';
         $res .= $this->act_Run();
         $inst = cls::get('unit_MinkPSales');
@@ -118,6 +118,9 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  31.".$this->act_CreateProductVAT9();
         $res .= "  32.".$this->act_CreatePersonUSA();
         $res .= "  33.".$this->act_CreateSupplier();
+        $res .= "  34.".$this->act_CreateContractorGroup();
+        $res .= "  35.".$this->act_CreatePaymentMethod();
+        $res .= "  36.".$this->act_CreateCondParameter();
         
         return $res;
     }
@@ -1496,7 +1499,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     /**
-     * 3. Създаване на лице - клиент
+     * 1. Създаване на лице - клиент
      * Select2 трябва да е деинсталиран
      */
     //http://localhost/unit_MinkPbgERP/CreatePersonUSA/
@@ -1526,7 +1529,6 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     
-    
     /**
      * 1. Създаване на фирма-доставчик 
      */
@@ -1551,5 +1553,66 @@ class unit_MinkPbgERP extends core_Manager {
         // Създаване на папка на новата фирма
         //$browser->press('Папка');
         //return $browser->getHtml();
-    }  
+    }
+    
+    /**
+     * 1. Създаване на група контрагенти
+     */
+    //http://localhost/unit_MinkPbgERP/CreateContractorGroup/
+    function act_CreateContractorGroup()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова група
+        $browser->click('Визитник');
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Доставчици - основни');
+        $browser->setValue('parentId', 'Доставчици');
+        $browser->press('Запис');
+    }        
+    
+    /**
+     * 1. Създаване на метод на плащане
+     */
+    //http://localhost/unit_MinkPbgERP/CreatePaymentMethod/
+    function act_CreatePaymentMethod()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на метод на плащане
+        $browser->click('Дефиниции');
+        $browser->click('Плащания');
+        $browser->press('Нов запис');
+        $browser->setValue('title', 'До 14 дни след фактуриране');
+        $browser->setValue('type', 'По банков път');
+        $browser->setValue('discountPercent', '2');
+        $browser->setValue('discountPeriod', '5');
+        $browser->press('Запис');
+        //return $browser->getHtml();
+    
+    }
+    
+    /**
+     * 1. Създаване на търговско условие
+     */
+    //http://localhost/unit_MinkPbgERP/CreateCondParameter/
+    function act_CreateCondParameter()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на търговско условие
+        $browser->click('Дефиниции');
+        $browser->click('Търговски условия');
+        $browser->press('Нов запис');
+        $browser->setValue('driverClass', 'Време');
+        $browser->setValue('name', 'Доставка до');
+        $browser->setValue('default', '1 ден');
+        $browser->press('Запис');
+        //return $browser->getHtml();
+    
+    }
 }
