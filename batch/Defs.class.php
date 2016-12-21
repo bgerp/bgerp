@@ -87,7 +87,7 @@ class batch_Defs extends embed_Manager {
      */
     function description()
     {
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,before=driverClass');
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,before=driverClass,silent');
     
     	$this->setDbUnique('productId');
     }
