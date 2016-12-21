@@ -338,7 +338,7 @@ class batch_Defs extends embed_Manager {
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'delete' && isset($rec)){
+    	if($action == 'delete' && isset($rec->productId)){
     		if(batch_Items::fetchField("#productId = {$rec->productId}")){
     			$requiredRoles = 'no_one';
     		}
