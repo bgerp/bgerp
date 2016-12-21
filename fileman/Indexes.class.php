@@ -89,7 +89,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Масив с кофи, които да не се индексират
      */
-    protected static $ignoreBucketsForIndex = array('archive', 'fileIndex');
+    protected static $ignoreBucketsForIndex = array('archive' => '*', 'fileIndex' => '*', 'Email' => 'eml,html');
     
     
     /**
@@ -645,9 +645,9 @@ class fileman_Indexes extends core_Manager
         $break = FALSE;
         
         $ignoreBucketIdArr = array();
-        foreach (self::$ignoreBucketsForIndex as $bucketName) {
+        foreach (self::$ignoreBucketsForIndex as $bucketName => $ext) {
             $bucketId = fileman_Buckets::fetchByName($bucketName);
-            $ignoreBucketIdArr[$bucketId] = $bucketId;
+            $ignoreBucketIdArr[$bucketId] = arr::make($ext, TRUE);
         }
         
         foreach ($fArr as $hnd => $fRec) {
@@ -663,9 +663,15 @@ class fileman_Indexes extends core_Manager
             
             if (!$fRec) continue;
         	
-            if ($fRec->bucketId && $ignoreBucketIdArr[$fRec->bucketId]) continue;
-            
             $ext = fileman_Files::getExt($fName);
+            
+            // Игнорираме файлове, не трябва да индексираме
+            if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId])) {
+                
+                if ($ignoreExtArr['*']) continue;
+                
+                if ($ignoreExtArr[$ext]) continue;
+            }
             
             // Няма нужда за същото разширение да се прави обработка
             if ($extArr[$ext]) continue;
