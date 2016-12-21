@@ -373,7 +373,7 @@ class doc_LikesPlg extends core_Plugin
                             $attr['data-url'] = toUrl($dislikeUrl, 'local');
                         }
                         
-                        $attr['ef_icon'] = 'img/16/redheart.png';
+                        $attr['ef_icon'] = 'img/16/heart.png';
                         $attr['class'] = 'liked';
                         $attr['title'] = 'Отказ от харесване';
                         
@@ -393,7 +393,7 @@ class doc_LikesPlg extends core_Plugin
                                 $linkClass .= ' disable';
                             }
                         
-                            $attr['ef_icon'] = 'img/16/grayheart.png';
+                            $attr['ef_icon'] = 'img/16/heart_empty.png';
                             $attr['class'] = $linkClass;
                             $attr['title'] = 'Харесване';
                             

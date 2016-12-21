@@ -360,10 +360,11 @@ class batch_Items extends core_Master {
     		$query->where("#storeId = {$storeId}");
     	}
     	
-    	$query->show('batch');
+    	$query->show('batch,productId');
     	
     	while($rec = $query->fetch()){
-    		$res[$rec->batch] = self::getVerbal($rec, 'batch');
+    		$Def = batch_Defs::getBatchDef($rec->productId);
+    		$res[$rec->batch] = $Def->toVerbal($rec->batch);
     	}
     	
     	return $res;
@@ -379,14 +380,29 @@ class batch_Items extends core_Master {
     public function prepareBatches(&$data)
     {
     	// Ако артикула няма партидност, не показваме таба
-    	$definition = batch_Defs::getBatchDef($data->masterId);
-    	if(!$definition){
+    	$canStore = $data->masterData->rec->canStore;
+    	
+    	if($canStore != 'yes'){
     		$data->hide = TRUE;
     		return;
     	}
     	 
     	// Име на таба
+    	$definition = batch_Defs::getBatchDef($data->masterId);
     	$data->definition = $definition;
+    	
+    	if(empty($data->definition)){
+    		if(batch_Defs::haveRightFor('add', (object)array('productId' => $data->masterId))){
+    			$data->addBatchUrl = array('batch_Defs', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+    		}
+    	} else {
+    		$defIf = batch_Defs::fetch("#productId = '{$data->masterId}'");
+    		
+    		if(batch_Defs::haveRightFor('delete', $defIf)){
+    			$data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => TRUE);
+    		}
+    	}
+    	
     	$data->TabCaption = 'Партиди';
     	$data->Tab = 'top';
     	$data->recs = $data->rows = array();
@@ -457,8 +473,19 @@ class batch_Items extends core_Master {
     	if($data->hide === TRUE) return;
     	
     	// Кой е шаблона?
+    	$title = new core_ET("( [#def#] [#btn#])");
     	$tpl = getTplFromFile('batch/tpl/ProductItemDetail.shtml');
-    	$tpl->append(cls::getTitle($data->definition), 'definition');
+    	if(!empty($data->definition)){
+    		$title->replace(cls::getTitle($data->definition), 'def');
+    		if(isset($data->deleteBatchUrl)){
+    			$ht = ht::createLink('', $data->deleteBatchUrl, 'Искате', 'ef_icon=img/12/close.png,title=Изтриване на нова партидна дефиниция,style=vertical-align: middle;');
+    			$title->replace($ht, 'btn');
+    		}
+    		$tpl->append($title, 'definition');
+    	} elseif($data->addBatchUrl){
+    		$ht = ht::createLink('', $data->addBatchUrl, FALSE, "ef_icon=img/16/add.png,title=Добавяне на нова партидна дефиниция,style=vertical-align: middle;");
+    		$tpl->append($ht, 'definition');
+    	}
     	
     	// Ако има филтър форма, показваме я
     	if(isset($data->form)){

@@ -141,6 +141,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		
 		if(count($res)){
 			$res = array($oldFrom => $oldFrom) + $res;
+			
 			return $res;
 		}
 		
@@ -164,7 +165,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			if(count($vArr) == 2){
 				$rangeArr = $this->getByRange($vArr[0], $vArr[1]);
 				if(is_array($rangeArr)){
-					$res = array_merge($res, $rangeArr);
+					$res = $res + $rangeArr;
 				} else {
 					$res[$v] = FALSE;
 				}
