@@ -1133,11 +1133,11 @@ class core_Mvc extends core_FieldSet
                         $indRec->fields = str_replace(' ', '', $indRec->fields);
 
                         // Ако полетата на съществуващия индекс са същите като на зададения, не се прави нищо
-                        if($exFieldsList == $indRec->fields) {
+                        if(strtolower($exFieldsList) == strtolower($indRec->fields)) {
                             $html .= "<li>Съществуващ индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                             continue;
                         }
-
+                        
                         $act = 'Обновен';
                         $cssClass = 'debug-update';
                     } else {

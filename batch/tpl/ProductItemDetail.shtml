@@ -1,6 +1,6 @@
 <div class='scrolling-holder'>
 	<fieldset class='top-tab-content'>
-	<legend class='groupTitle'>|Партиди|*</legend>
+	<legend class='groupTitle'>|Партиди|* <b class='small' style='color:darkgreen'>[#definition#]</b></legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 		    <div class='groupList clearfix21'>
 		    	[#FILTER#]

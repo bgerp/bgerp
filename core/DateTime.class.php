@@ -897,4 +897,33 @@ class core_DateTime
     {
         return sprintf("%02d%s%02d%s%02d", floor($sec / 3600), $dev, ($sec / 60) % 60, $dev, $sec % 60);
     }
+    
+    
+    /**
+     * Дали дадена дата е във формата на подадената маска
+     * 
+     * @param varchar $date - дата
+     * @param varchar $mask - маска
+     * @return boolean
+     */
+    public static function checkByMask($date, $mask)
+    {
+		// Карта
+    	$map = array();
+    	$map['m'] = "(?'month'[0-9]{2})";
+    	$map['d'] = "(?'day'[0-9]{2})";
+    	$map['y'] = "(?'yearShort'[0-9]{2})";
+    	$map['Y'] = "(?'year'[0-9]{4})";
+    	
+    	// Генерираме регулярен израз спрямо картата
+    	$expr = preg_quote($mask, '/');
+    	$expr = strtr($expr, $map);
+    	
+    	// Проверяваме дали датата отговаря на формата
+    	if(!preg_match("/^{$expr}$/", $date, $matches)){
+    		return FALSE;
+    	}
+    	
+    	return TRUE;
+    }
 }

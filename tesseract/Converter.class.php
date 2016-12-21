@@ -77,8 +77,6 @@ class tesseract_Converter extends core_Manager
         
         fileman_Files::requireRightFor('single', $fRec);
         
-        fileman_Files::requireRightFor('single', $fRec);
-        
         $this->getTextByOcr($fRec);
         
         // URL' то където ще редиректваме

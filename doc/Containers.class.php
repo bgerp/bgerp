@@ -692,8 +692,6 @@ class doc_Containers extends core_Manager
         
         $docRec = $docMvc->fetch($rec->docId);
         
-        $fields = '';
-        
         if ($rec->docClass && $rec->docId) {
             
             if ($docMvc->isVisibleForPartners($docRec)) {
@@ -701,8 +699,6 @@ class doc_Containers extends core_Manager
             } else {
                 $rec->visibleForPartners = 'no';
             }
-            
-            $fields = 'visibleForPartners,';
             
             $mustSave = TRUE;
         }
@@ -712,7 +708,7 @@ class doc_Containers extends core_Manager
         // 2. Промяна на състоянието на документа (активиране, оттегляне, възстановяване)
         // 3. Промяна на папката на документа
         
-        $fields .= 'state,folderId,threadId,containerId,originId';
+        $fields = 'state,folderId,threadId,containerId,originId';
         
         if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
             $fields .= ',searchKeywords';

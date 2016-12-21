@@ -61,7 +61,7 @@ class batch_Features extends core_Manager {
     	$this->FLD('classId', 'class(interface=batch_BatchTypeIntf,select=title)', 'caption=Клас,mandatory');
     	$this->FLD('value', 'varchar(128)', 'mandatory,caption=Стойност');
     	
-    	$this->setDbUnique('itemId,classId,value');
+    	$this->setDbUnique('itemId,classId');
     }
     
     

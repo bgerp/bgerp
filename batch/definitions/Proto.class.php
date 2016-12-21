@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -114,7 +114,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
     	$value = $this->denormalize($value);
     	
-    	return array($value => $value);
+    	return array($value => $this->toVerbal($value));
     }
     
     
@@ -174,5 +174,31 @@ abstract class batch_definitions_Proto extends core_BaseClass
     	$classId = $this->getClassId();
     	
     	return array($classId => $value);
+    }
+    
+    
+    /**
+	 * Връща масив с опции за лист филтъра на партидите
+	 *
+	 * @return array - масив с опции
+	 * 		[ключ_на_филтъра] => [име_на_филтъра]
+	 */
+	public function getListFilterOptions()
+    {
+    	return array();
+    }
+    
+    
+    /**
+	 * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
+	 *
+	 * @param core_Query $query - заявка към batch_Items
+	 * @param varchar $value -стойност на филтъра
+	 * @param string $featureCaption - Заглавие на колоната на филтъра
+	 * @return void
+	 */
+	public function filterItemsQuery(core_Query &$query, $value, &$featureCaption)
+	{
+    	
     }
 }

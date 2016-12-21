@@ -39,6 +39,23 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$data->form->setField('batch', 'input=hidden');
+		$rec = &$data->form->rec;
+		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+		
+		// Задаване на типа на партидата на полето
+		if(isset($rec->{$mvc->productFieldName})){
+			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+			if($BatchClass){
+				$data->form->setFieldType('batch', $BatchClass->getBatchClassType());
+				$options = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
+				
+				if($mvc->Master->batchMovementDocument == 'out'){
+					if(count($options)){
+						$data->form->setOptions('batch', array('' => '') + $options);
+					}
+				}
+			}
+		}
 	}
 	
 	
@@ -59,20 +76,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
 				$form->setField('batch', 'input,class=w50');
-				$options = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
-				
-				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				
 				if(!empty($rec->batch)){
 					$rec->batch = $BatchClass->denormalize($rec->batch);
-				}
-				
-				if($mvc->Master->batchMovementDocument == 'out'){
-					if(count($options)){
-						$form->setOptions('batch', array('' => '') + $options);
-					} else {
-						$form->setField('batch', 'input=none');
-					}
 				}
 			} else {
 				$form->setField('batch', 'input=none');
