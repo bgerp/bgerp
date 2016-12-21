@@ -97,7 +97,7 @@ class fileman_Indexes extends core_Manager
      */
     function description()
     {
-        $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни на файл,notNull');
+        $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Файл,notNull');
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
         $this->FLD('content', 'blob(1000000)', 'caption=Съдържание');
         
@@ -800,6 +800,80 @@ class fileman_Indexes extends core_Manager
         }
         
         return $content;
+    }
+    
+    
+    /**
+     * След извличане на записите от базата данни
+     * 
+     * @param fileman_Indexes $mvc
+     * @param stdObject $data
+     */
+    public static function on_AfterPrepareListRecs(fileman_Indexes $mvc, $data)
+    {
+        foreach ($data->recs as $rec) {
+            $rec->content = $mvc->decodeContent($rec->content);
+            if ($rec->dataId && ($dRec = fileman_Data::fetch($rec->dataId))) {
+                $rec->searchKeywords = $dRec->searchKeywords;
+            }
+        }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     * 
+     * @param fileman_Indexes $mvc
+     * @param stdObject $data
+     */
+    public static function on_AfterPrepareListRows(fileman_Indexes $mvc, $data)
+    {
+        foreach ($data->rows as $id => $row) {
+            $fileQuery = fileman_Files::getQuery();
+            $fileQuery->where(array("#dataId = '[#1#]'", $data->recs[$id]->dataId));
+            
+            $fileLink = '';
+            while ($fRec = $fileQuery->fetch()) {
+                $fileLink .= ($fileLink) ? "<br>" : '';
+                $fileLink .= fileman::getLinkToSingle($fRec->fileHnd);
+            }
+            $row->dataId .= ': ' . $fileLink;
+            $row->searchKeywords = $data->recs[$id]->searchKeywords;
+        }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param fileman_Indexes $mvc
+     * @param stdObject $data
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->view = 'horizontal';
+    	
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип, allowEmpty,autoFilter');
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->showFields = 'indexType';
+        
+        $data->listFilter->input('indexType', 'silent');
+        
+        $data->query->orderBy("#createdOn", 'DESC');
+        
+        if ($data->listFilter->isSubmitted()) {
+            if ($data->listFilter->rec->indexType) {
+                if ($data->listFilter->rec->indexType == 'text') {
+                    
+                    $data->listFields = 'id, dataId, type, searchKeywords=Ключови думи,content, createdOn, createdBy';
+                    
+                    $data->query->where("#type = 'text' OR #type = 'textOcr'");
+                }
+            }
+        }
     }
  }
  
