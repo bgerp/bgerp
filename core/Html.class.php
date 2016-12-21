@@ -853,11 +853,12 @@ class core_Html
 			$title = "{$icon} {$title}";
 			unset($attr['ef_icon']);
 		}
-		
+
 		if ($url !== FALSE && (is_string($url) || (is_array($url) && count($url)))) {
-			$link = self::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
+            $arrowImg = ht::createElement("img", array("src" => sbf("img/16/anchor-image.png", "")));
+			$link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
 		}
-		
+
 		return "{$title}&nbsp;{$link}";
 	}
 	

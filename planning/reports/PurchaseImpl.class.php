@@ -282,11 +282,9 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
                 // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
                 $data->rec->threadId ++;
                 $unique = $data->rec->threadId;
-                
-                $tooltipUrl = toUrl(array('sales_Sales', 'ShowInfo', $idS, 'unique' => $unique), 'local');
-               
-                $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
-                $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
+
+				$arrowImg = ht::createElement("img", array("src" => sbf("img/16/anchor-image.png", "")));
+                $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link'), $arrowImg, TRUE);
    
                 if (isset($data->rows[$id]->quantityToDeliver)) {
                 	$data->rows[$id]->toDelivered = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver;
