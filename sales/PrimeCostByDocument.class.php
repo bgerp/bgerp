@@ -29,6 +29,12 @@ class sales_PrimeCostByDocument extends core_Manager
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    
+    
+    /**
      * Кой може да добавя?
      */
     public $canAdd = 'no_one';
@@ -55,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior=Вальор,detailRecId=Документ,productId,quantity,sellCost,primeCost,delta';
+    public $listFields = 'id,valior=Вальор,detailRecId=Документ,productId,quantity,sellCost,primeCost,delta';
 	
 	
     /**
@@ -130,5 +136,104 @@ class sales_PrimeCostByDocument extends core_Manager
 			$dRec = $Detail->fetch($rec->detailRecId);
 			$row->detailRecId = $Detail->Master->getLink($dRec->{$Detail->masterKey}, 0);
 		}
+	}
+	
+	
+	/**
+	 * Ако в документите не е зададен, кой е дилъра на сделката
+	 * се опитваме да го намерим, от папката
+	 * 
+	 * @param stdClass $rec
+	 * @return int $dealerId
+	 */
+	public static function getDilerId($rec)
+	{
+	    
+	    $Class = cls::get($rec->detailClassId);
+	     
+	    $dRec = $Class->fetch($rec->detailRecId);
+	     
+	    $masterRec = $Class->Master->fetch($dRec->{$Class->masterKey});
+	    
+	    $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+
+	    $dealerId = $firstDoc->rec()->dealerId;
+	    
+	    // Ако няма, но отговорника на папката е търговец - него
+	    if(empty($dealerId)){
+	        $inCharge = doc_Folders::fetchField($firstDoc->rec()->folderId, 'inCharge');
+	        if(core_Users::haveRole('sales', $inCharge)){
+	            $dealerId = $inCharge;
+	        }
+	    } 
+	    
+	    $dealerId = crm_Profiles::fetchField($dealerId,"personId");
+
+	    return $dealerId;
+	}
+	
+	
+	/**
+	 * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+	 *
+	 * @param date $date
+	 * @return array $result
+	 */
+	public static function getSalaryIndicators($date)
+	{
+
+	    $query = self::getQuery();
+	    $Double = cls::get(type_Double);
+	    
+	    $query->where("#valior  <= '{$date}'");
+	    $me = cls::get(get_called_class());
+	    
+	    $result = array();
+
+	    while($rec = $query->fetch()){
+
+	        $Class = cls::get($rec->detailClassId);
+	        $dRec = $Class->fetch($rec->detailRecId);
+	        $dealerId = self::getDilerId($rec);
+	        $key = $dealerId . "|" . $rec->detailClassId . "|" .$dRec->shipmentId;
+
+            // Ако е Експедиционно нареждане
+            // Бърза продажба
+            // Предавателен протокол
+            if($Class instanceof store_ShipmentOrderDetails ||
+	           $Class instanceof store_ShipmentOrderDetails ||
+	           $Class instanceof sales_ServicesDetails) {
+	            // добавяме делтата
+                $sign = "+";
+            // Ако е Приемателен протокол
+            // Складова разписка
+            } elseif($Class instanceof purchase_ServicesDetails ||
+	                 $Class instanceof store_ReceiptDetails) {
+                // вадим делтата
+                $sign = "-";
+            }
+            
+            // Ако нямаме такъв запис, го създаваме
+	        if(!array_key_exists($key, $result)) {  
+    	        $result[$key] = (object)array(
+    	            'date' => $rec->valior,
+    	            'personId' => $dealerId,
+    	            'docId'  => $rec->detailRecId,
+    	            'docClass' => $rec->detailClassId,
+    	            'indicator' => tr("|$me->title|*"),
+    	            'value' => $rec->delta
+    	        );
+    	    // в противен случай го обновяваме
+	        } else {
+	            $obj = &$result[$key];
+	            if ($sign == "+") {
+	               $obj->value += $rec->delta;
+	            } elseif($sign == "-") {
+	               $obj->value -= $rec->delta;
+	            }
+	        }
+	    }
+
+	    return $result;
 	}
 }
