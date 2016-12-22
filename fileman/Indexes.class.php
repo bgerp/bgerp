@@ -778,7 +778,7 @@ class fileman_Indexes extends core_Manager
      * 
      * @return FALSE|string
      */
-    protected static function getTextForIndex($fh)
+    public static function getTextForIndex($fh)
     {
         $text = fileman_Indexes::getInfoContentByFh($fh, 'text');
         $textOcr = fileman_Indexes::getInfoContentByFh($fh, 'textOcr');
