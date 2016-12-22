@@ -1523,7 +1523,7 @@ class cat_Products extends embed_Manager {
     		
     		if($mvc->haveRightFor('edit', $rec)){
     			if(!Mode::isReadOnly()){
-    				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
+    				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
     			}
     		}
     		
