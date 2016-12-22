@@ -26,7 +26,7 @@ class tnef_EmailPlg extends core_Plugin
     {
         $allFiles = $mvc->files;
         
-        $idNewFile = 100 * count($allFiles);
+        $idNewFile = 100 * count((array)$allFiles);
         
         foreach ((array)$mvc->files as $id => $fRec) {
             
