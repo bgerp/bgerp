@@ -498,7 +498,7 @@ class incoming_Documents extends core_Master
     {
         static $typeToLen = array();
         if(!count($typeToLen)) {
-            $typeToLen = arr::make("pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50", TRUE);
+            $typeToLen = arr::make("pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50,csv=1", TRUE);
         }
 
         $ext = fileman_Files::getExt($fileName);
