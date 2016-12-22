@@ -1167,7 +1167,6 @@ class fileman_Files extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
-        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent,autoFilter');
         
         // В хоризонтален вид
         $data->listFilter->view = 'vertical';
@@ -1177,9 +1176,9 @@ class fileman_Files extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch, bucket';
+        $data->listFilter->showFields = 'search, usersSearch';
         
-        $data->listFilter->input('usersSearch, bucket, search', 'silent');
+        $data->listFilter->input('usersSearch, search', 'silent');
         
     	// По - новите да са по - напред
         $data->query->orderBy("#modifiedOn", 'DESC');
@@ -1218,13 +1217,6 @@ class fileman_Files extends core_Master
     		    $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
     		    plg_Search::applySearch($search, $data->query, 'searchKeywords');
     		}
-    		
-    		// Ако има филтър
-            if($filter->bucket) {
-                
-                // Търсим в кофата
-    		    $data->query->where(array("#bucketId = '[#1#]'", $filter->bucket));
-            }
         }
     }
     

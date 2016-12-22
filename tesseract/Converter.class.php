@@ -155,7 +155,7 @@ class tesseract_Converter extends core_Manager
     /**
      * Вземаме текстова част от подадения файл
      * 
-     * @param string $fileHnd - Манипулатора на файла
+     * @param string $fileHnd - Манипулатора на файла и път до файла
      * @param array $params - Допълнителни параметри
      * 
      * @return string
@@ -171,8 +171,37 @@ class tesseract_Converter extends core_Manager
             
             // Очакваме да може да се извлече информация от файла
             expect(static::canExtract($fRec));
+            
+            $ext = fileman_Files::getExt($fRec->name);
         } else {
             expect(static::canExtract($fileHnd));
+            
+            $ext = fileman_Files::getExt($fileHnd);
+        }
+        
+        // Ако е pdf файл, тогава го преобразуваме в tiff
+        if ($ext == 'pdf') {
+            
+            if (!$params['isPath']) {
+                $pdfPath = fileman::extract($fileHnd);
+            } else {
+                $pdfPath = $fileHnd;
+            }
+            
+            $tiffPath .= $pdfPath . '.tiff';
+            
+            $pdfPathEsc = escapeshellarg($pdfPath);
+            $tiffPathEsc = escapeshellarg($tiffPath);
+            
+            exec("convert -density 300 {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
+            
+            if (is_file($tiffPath)) {
+                $fileHnd = $tiffPath;
+            }
+            
+            if (!$params['isPath']) {
+                $params['delPath'] = $pdfPath;
+            }
         }
         
         // Инстанция на класа
@@ -265,6 +294,10 @@ class tesseract_Converter extends core_Manager
         
         if ($saveId) {
 			
+            if ($params['delPath']) {
+                fileman::deleteTempPath($params['delPath']);
+            }
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;

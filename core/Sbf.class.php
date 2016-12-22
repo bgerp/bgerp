@@ -109,6 +109,14 @@ class core_Sbf extends core_Mvc
      */
     public static function getUrl($rPath, $qt = '"', $absolute = FALSE)
     {
+        if(strpos($rPath, 'img/16or32/') !== FALSE) {
+            if(log_Browsers::isRetina()) {
+                $rPath = str_replace('img/16or32/', 'img/32/', $rPath);
+            } else {
+                $rPath = str_replace('img/16or32/', 'img/16/', $rPath);
+            }
+        }
+
         // Ако файла съществува
         if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath{0} != '_') {
             
