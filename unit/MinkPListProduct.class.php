@@ -37,6 +37,7 @@ class unit_MinkPListProduct extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
+        $host = unit_Setup::get('DEFAULT_HOST');
         //$browser->start('http://localhost/');
         $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
@@ -122,7 +123,10 @@ class unit_MinkPListProduct extends core_Manager {
     
         //Отваряне папката на фирмата
          $browser = $this->SetFirm();
+      
          $browser->press('Папка');
+         
+         
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
             $browser->press('Продажба');
@@ -130,10 +134,9 @@ class unit_MinkPListProduct extends core_Manager {
             $browser->press('Нов...');
             $browser->press('Продажба');
         }
-         
         $browser->setValue('reff', 'MinkPListProducts');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPSaleVatInclude');
+        $browser->setValue('note', 'MinkPlistVatInclude');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
@@ -155,13 +158,13 @@ class unit_MinkPListProduct extends core_Manager {
        
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Деветстотин двадесет и пет BGN и 0,73')) {
+        if(strpos($browser->gettext(), 'Шестдесет и един BGN и 0,73')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         //Проверка на статистиката
-        if(strpos($browser->gettext(), '925,73 925,73 0,00 0,00')) {
+        if(strpos($browser->gettext(), '61,73 61,73 0,00 0,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
@@ -178,10 +181,10 @@ class unit_MinkPListProduct extends core_Manager {
         // Логване
         $browser = $this->SetUp();
         //Отваряне корицата на фирмата
-        $browser = $this->SetFirmEUR();
+        $browser = $this->SetFirm();
        
         $browser->click('Търговия');
-       
+        //return $browser->getHtml();
         // Добавяне на артикул
         $browser->press('Импорт');
      
@@ -192,7 +195,7 @@ class unit_MinkPListProduct extends core_Manager {
         //return $browser->getHtml();
         //$browser->setValue('Ценова група » Промоция', '15');
         $browser->setValue('group', 'Ценова група » Промоция');
-      
+        //$browser->setValue('group', '15');
         // Записване на списъка
         $browser->press('Импорт');
     
