@@ -139,22 +139,13 @@ class bgerp_Portal extends core_Manager
             $calTitle = '&nbsp;';
         }
         
-        $iconSize = 16;
-        if(log_Browsers::isRetina()) {
-            $iconSize = 32;
-        }
-        
-        $findIcon = sbf("img/{$iconSize}/find.png");
+        $calMvc = cls::get('cal_Calendar');
+        $searchForm = $calMvc->getForm();
+        self::prepareSearchForm($calMvc, $searchForm);
 
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
             <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '
-                <form class="portal-filter">
-                    <div class="hFormField">
-                        <input value="" name="calSearch"  placeholder="Търсене" list="bgerp_Recently" autocomplete="off"/>
-                    </div>
-                    <input class="SearchBtnPortal button linkWithIcon" type="submit" style="background-image:url(\'/sbf/bgerp/img/16/find.png\');" value="" name="Cmd[]"/>
-                    <input type="hidden" name="Cmd[default]" value=1>  
-                </form>
+            ' . $searchForm->renderHtml() . '
             </div>
             [#CALENDAR_DETAILS#]
             </div>');
@@ -194,14 +185,9 @@ class bgerp_Portal extends core_Manager
         if($search = Request::get($mvc->searchInputField)){
             $form->layout->replace($search, 'VALUE');
         }
-        
-        $iconSize = 16;
-        if(log_Browsers::isRetina()) {
-            $iconSize = 32;
-        }
-        
-        $findIcon = sbf("img/{$iconSize}/find.png");
-        
+
+        $findIcon = sbf("img/16or32/find.png");
+     
         $form->layout->replace($mvc->className, 'LIST');
         $form->layout->replace($findIcon, 'ICON');
         static::prepareSearchDataList($mvc, $form);
@@ -211,7 +197,7 @@ class bgerp_Portal extends core_Manager
         // Зареждаме всички стойности от GET заявката в формата, като
         // пропускаме тези които не са параметри в нея
         foreach(getCurrentUrl() as $key => $value){
-            if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd'){
+            if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd' && !strpos($key, 'Search')){
                 if(!$form->fields[$key]){
                     $form->FNC($key, 'varchar', 'input=hidden');
                     $form->setDefault($key, $value);

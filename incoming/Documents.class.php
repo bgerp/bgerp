@@ -147,7 +147,7 @@ class incoming_Documents extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'typeId, fileHnd, number, date, total, description';
+    var $searchFields = 'typeId, number, date, total, description';
     
     
     /**
@@ -173,9 +173,11 @@ class incoming_Documents extends core_Master
         $this->FLD('number', 'varchar(32)', 'caption=Номер, smartCenter');
         $this->FLD('date', 'date', 'caption=Дата');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума');
-        $this->FLD('description', 'richtext(bucket=Notes)', 'caption=Описание,oldFiledName=keywords');
+        $this->FLD('description', 'text', 'caption=Описание,oldFiledName=keywords');
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни, input=none');
-        
+        $this->FLD('archTomNumber', 'int', 'column=none,caption=Архивиране->Том №,autohide');
+        $this->FLD('archTomYear', 'enum(,2016,2017,2018,2019)', 'column=none,caption=Архивиране->Година,autohide');
+
         $this->setDbUnique('dataId');
     }
     
@@ -238,16 +240,6 @@ class incoming_Documents extends core_Master
         // Манупулатора на файла
         $fileHnd = $mvc->db->escape(Request::get('fh'));
         
-        // Вземаме текстовата част
-        // TODO може и да се направи форматиране - Интервалите да се заменят с един
-        // може и повтарящите думи да се премахнат
-        $content = trim(fileman_Indexes::getInfoContentByFh($fileHnd, 'text'));
-        
-        // Вземаме текста извлечен от OCR
-        $contentOcr = trim(fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr'));
-        
-        // Ключовите думи ги вземаме от OCR текста, ако няма тогава от обикновенния
-        $keyWords = ($contentOcr) ? $contentOcr : $content;
         
         // Ако създаваме документа от файл
         if (($fileHnd) && (!$data->form->rec->id)) {
@@ -256,17 +248,15 @@ class incoming_Documents extends core_Master
             $fileHnd = $mvc->db->escape($fileHnd);
             
             // Масив с баркодовете
-            $barcodesArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
+            $text = fileman_Indexes::getTextForIndex( $fileHnd);
             
              
             // Попълваме описанието за файла
-            $data->form->setDefault('description', $keyWords);
+            $data->form->setDefault('description', $text);
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
             
-            // Файла да е само за четене
-            //            $data->form->setReadOnly('fileHnd'); // TODO след като се промени core_FieldSet
         }
     }
     
@@ -319,17 +309,7 @@ class incoming_Documents extends core_Master
     }
     
     
-    /**
-     * Връща ключовите думи на документа
-     * @todo Да се реализира
-     *
-     * @return;
-     */
-    static function getKeywords($fileHnd)
-    {
-        
-        return "test {$fileHnd}";
-    }
+ 
     
     
  
