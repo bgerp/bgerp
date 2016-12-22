@@ -223,8 +223,8 @@ class fileman_Files2 extends core_Master
         
         // Ако копирането не премине успешно
         if (!$copied) {
+            fileman_Files::logErr("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$copyPath}'", $rec->id);
             expect($copied, 'Не може да бъде копиран файла');
-            self::logErr("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$copyPath}'", $rec->id);
         }
         
         // Времето на екстрактване

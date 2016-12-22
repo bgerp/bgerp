@@ -217,56 +217,6 @@ class batch_Defs extends embed_Manager {
     
     
     /**
-     * Връща масив с ид-та на артикулите с дефиниции на партида
-     * 
-     * @return array $result - масив
-     */
-    public static function getProductsWithDefs()
-    {
-    	$result = array();
-    	
-    	$query = self::getQuery();
-    	$query->show('productId');
-    	while($rec = $query->fetch()){
-    		$result[$rec->productId] = $rec->productId;
-    	}
-    	
-    	return $result;
-    }
-    
-    
-    /**
-     * Пушва информацията за партидите в дийл интерфейса
-     * 
-     * @param int $productId - ид на артикул
-     * @param varchar $batch - партиден номер
-     * @param bgerp_iface_DealAggregator $aggregator - агрегатор на сделката
-     */
-    public static function pushBatchInfo($productId, $batch, bgerp_iface_DealAggregator &$aggregator)
-    {
-    	if(!core_Packs::isInstalled('batch')) return;
-    	
-    	if(!empty($batch)){
-    		if($batches = batch_Defs::getBatchArray($productId, $batch)){
-    			if(is_array($batches)){
-    				foreach ($batches as $b){
-    					if(!isset($aggregator->productBatches)){
-    						$aggregator->productBatches = array();
-    					}
-    					
-    					if(!isset($aggregator->productBatches[$productId])){
-    						$aggregator->productBatches[$productId] = array();
-    					}
-    					
-    					$aggregator->productBatches[$productId][$b] = $b;
-    				}
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Форсира партидна дефиниция на артикула ако може
      * Партидната дефиниция се намира по следния приоритет:
      * 
@@ -338,7 +288,7 @@ class batch_Defs extends embed_Manager {
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'delete' && isset($rec)){
+    	if($action == 'delete' && isset($rec->productId)){
     		if(batch_Items::fetchField("#productId = {$rec->productId}")){
     			$requiredRoles = 'no_one';
     		}

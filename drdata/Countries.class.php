@@ -224,6 +224,11 @@ class drdata_Countries extends core_Manager {
     {
         static $commonNamesArr, $namesArr;
         
+        if(is_numeric($country) && self::fetch($country)) {
+
+            return $country;
+        }
+
         if(!$commonNamesArr) {
             $query = self::getQuery();
             while($rec = $query->fetch()) {

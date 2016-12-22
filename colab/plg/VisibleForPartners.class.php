@@ -48,7 +48,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input,changable,after=sharedUsers');
+                        $data->form->setField('visibleForPartners', 'input=input,changable,before=sharedUsers');
                     }
                     
                     if ($rec->originId) {
@@ -56,7 +56,6 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         
                         // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
                         if (!$rec->id && core_Users::haveRole('partner', $dRec->createdBy)) {
-                            $data->form->setField('visibleForPartners', 'formOrder=0.9');
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
                     }

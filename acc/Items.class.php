@@ -205,8 +205,9 @@ class acc_Items extends core_Manager
         		
         		$id = (is_object($rec)) ? $rec->id : $rec;
         		$tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
-        		
-        		$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за перото')), "", TRUE);
+
+                $arrowImg = ht::createElement("img", array("src" => sbf("img/16/anchor-image.png", "")));
+        		$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за перото')), $arrowImg, TRUE);
         		$arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
         		$num .= "&nbsp;{$arrow}";
         	}

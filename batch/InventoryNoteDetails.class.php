@@ -238,11 +238,12 @@ class batch_InventoryNoteDetails extends core_Detail
     	$options = $productItems = array();
     	
     	// Кои са артикулите с паритиди
-    	$products = batch_Defs::getProductsWithDefs();
-		
+    	$products = batch_Items::getProductsWithDefs();
+    	
     	// Ако няма не се връщат опции
     	if(!$products) return $options;
-		
+    	$products = array_combine(array_keys($products), array_keys($products));
+    	
     	// Извличане на перата на артикулите с дефиниции
 		foreach ($products as $p){
 			if($itemId = acc_Items::fetchItem('cat_Products', $p)->id){

@@ -201,4 +201,19 @@ abstract class batch_definitions_Proto extends core_BaseClass
 	{
     	
     }
+    
+    
+    
+    /**
+     * Подрежда подадените партиди
+     * 
+     * @param array $batches - наличните партиди
+     * 		['batch_name'] => ['quantity']
+     * @param date|NULL $date
+     * return void
+     */
+    public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
+    {
+    	
+    }
 }
