@@ -472,7 +472,7 @@ class incoming_Documents extends core_Master
      */
     public static function getCoversAndInterfacesForNewDoc()
     {
-        return array('doc_ContragentDataIntf');
+        return array('doc_ContragentDataIntf', 'doc_UnsortedFolders');
     }
     
     
@@ -487,7 +487,7 @@ class incoming_Documents extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || ($coverClass == 'doc_UnsortedFolders');
     }
 
 
