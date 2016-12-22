@@ -144,4 +144,18 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
     	return $this->class->filterItemsQuery($query, $value, $featureCaption);
     }
+    
+    
+    /**
+     * Подрежда подадените партиди
+     *
+     * @param array $batches - наличните партиди
+     * 		['batch_name'] => ['quantity']
+     * @param date|NULL $date
+     * return void
+     */
+    public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
+    {
+    	return $this->class->orderBatchesInStore($batches, $storeId, $date);
+    }
 }

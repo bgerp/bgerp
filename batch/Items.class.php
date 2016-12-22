@@ -521,4 +521,55 @@ class batch_Items extends core_Master {
     	// Връщаме шаблона
     	return $tpl;
     }
+    
+    
+    /**
+     * Изчислява количествата на партидите на артикул към дадена дата и склад
+     * 
+     * @param int $productId - ид на артикул
+     * @param int $storeId - ид на склад
+     * @param date|NULL $date - към дата, ако е празно текущата
+     * @param int|NULL $limit - лимит на резултатите
+     * @return array $res - масив с партидите и к-та
+     * 		  ['batch'] => ['quantity']
+     */
+    public static function getBatchQuantitiesInStore($productId, $storeId, $date = NULL, $limit = NULl)
+    {
+    	$date = (isset($date)) ? $date : dt::today();
+    	$res = array();
+    	
+    	$date = dt::addDays(-1, $date);
+    	$date = dt::verbal2mysql($date, FALSE);
+    	
+    	// Намират се всички движения в посочения интервал за дадения артикул в подадения склад
+    	$query = batch_Movements::getQuery();
+    	$query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+    	$query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
+    	$query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+    	$query->where("#date <= '{$date}'");
+    	$query->show("batch,quantity,operation,date");
+    	$query->where("#productId = {$productId} AND #storeId = {$storeId}");
+    	
+    	// Ако е указан лимит
+    	if(isset($limit)){
+    		$query->limit($limit);
+    	}
+    	
+    	// Сумиране на к-то към датата
+    	while($rec = $query->fetch()){
+    		if(array_key_exists($rec->batch, $res)){
+    			$res[$rec->batch] = 0;
+    		}
+    		
+    		$sign = ($rec->operation == 'in') ? 1 : -1;
+    		$res[$rec->batch] += $sign * $rec->quantity;
+    	}
+    	
+    	// Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди
+    	$def = batch_Defs::getBatchDef($productId);
+    	$def->orderBatchesInStore($res, $storeId, $date);
+    	
+    	// Връщане на намерените партиди
+    	return $res;
+    }
 }

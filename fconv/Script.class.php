@@ -113,6 +113,24 @@ class fconv_Script
     
     
     /**
+     * 
+     */
+    public $tempPath;
+    
+    
+    /**
+     * 
+     */
+    public $id;
+    
+    
+    /**
+     * 
+     */
+    public $tempDir;
+    
+    
+    /**
      * Инициализиране на уникално id
      */
     function __construct($tempDir = NULL)
