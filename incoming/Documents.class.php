@@ -160,6 +160,12 @@ class incoming_Documents extends core_Master
      * Полетата, които могат да се променят с change_Plugin
      */
     var $changableFields = 'fileHnd,typeId,number,date,total,description';
+    
+    
+    /**
+     * Кой може да променя записа?
+     */
+    public $canChangerec = 'powerUser';
 
     
     /**
