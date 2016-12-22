@@ -255,8 +255,6 @@ class bgerp_Bookmark extends core_Manager
                 $attr['class'] = 'bookmark-wrong-url';
             }
 	    } else {
-            $target = '_blank';
-
             if(core_Packs::isInstalled('remote')) {
                 
                 static $auths;
