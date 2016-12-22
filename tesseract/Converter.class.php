@@ -188,7 +188,7 @@ class tesseract_Converter extends core_Manager
                 $pdfPath = $fileHnd;
             }
             
-            $tiffPath .= $pdfPath . '.tiff';
+            $tiffPath = $pdfPath . '.tiff';
             
             $pdfPathEsc = escapeshellarg($pdfPath);
             $tiffPathEsc = escapeshellarg($tiffPath);
