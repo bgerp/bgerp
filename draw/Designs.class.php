@@ -21,7 +21,13 @@ class draw_Designs extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin';
+    var $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin, plg_Search';
+
+
+    /**
+     * Поле за търсене
+     */
+    public $searchFields = 'name';
 
 
     /**
@@ -934,4 +940,20 @@ class draw_Designs extends core_Master
         return $form;
     }
 
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        // Сортиране на записите по num
+        $data->query->orderBy('name');
+    }
 }
