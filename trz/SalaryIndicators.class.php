@@ -127,20 +127,27 @@ class trz_SalaryIndicators extends core_Manager
 	    	$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
 	    	$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
     	}
-
-    	$Class = cls::get($rec->docClass);
-
+    	
+    	$Class = cls::get($rec->docClass); 
+    	
+    	$dRec = $Class->fetch($rec->docId);
+    	
     	// Ако имаме права да видим документа от Премиите
     	if($Class::haveRightFor('single', $rec->docId)){
 
     	    if(cls::getClassName($rec->docClass) == 'trz_Bonuses'){
     	        $name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
     	        $row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
-    	    } else {
-    	        $row->doc = $Class->getHyperlink($rec->docId);
+    	    } else{
+    	        if ($Class->masterKey) {
+    	           $row->doc = $Class->Master->getLink($dRec->{$Class->masterKey}, 0);
+    	        } else {
+    	           $row->doc = $Class->getHyperlink($rec->docId);
+    	        }
+    	        
     	    }
     	}
-    	
+
     	$Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
     	$row->value = $Double->toVerbal($rec->value);
@@ -238,7 +245,7 @@ class trz_SalaryIndicators extends core_Manager
     	// Намираме всички класове съдържащи интерфейса
     	$docArr = core_Classes::getOptionsByInterface('trz_SalaryIndicatorsSourceIntf');
     	$indicators = array();
-
+  
     	// Зареждаме всеки един такъв клас
     	foreach ($docArr as $doc){
     		$Class = cls::get($doc);
