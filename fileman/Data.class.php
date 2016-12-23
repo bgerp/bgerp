@@ -471,6 +471,9 @@ class fileman_Data extends core_Manager {
         $query->where("#processed != 'yes'");
         $query->orWhere("#processed IS NULL");
         
+        // Данните с processed==no да са с по-голям приоритет
+        $query->orderBy('processed', 'DESC');
+        
         // По случаен принцип, с по-малък приоритет понякога да почва и от началото
         if (rand(0, 4) != 2) {
             $query->orderBy('lastUse', 'DESC');
