@@ -538,6 +538,9 @@ class batch_Items extends core_Master {
     	$date = (isset($date)) ? $date : dt::today();
     	$res = array();
     	
+    	$def = batch_Defs::getBatchDef($productId);
+    	if(!$def) return $res;
+    	
     	$date = dt::addDays(-1, $date);
     	$date = dt::verbal2mysql($date, FALSE);
     	
@@ -567,7 +570,6 @@ class batch_Items extends core_Master {
     	}
     	
     	// Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди
-    	$def = batch_Defs::getBatchDef($productId);
     	$def->orderBatchesInStore($res, $storeId, $date);
     	
     	// Връщане на намерените партиди
