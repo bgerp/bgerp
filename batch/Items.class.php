@@ -549,6 +549,7 @@ class batch_Items extends core_Master {
     	$query->where("#date <= '{$date}'");
     	$query->show("batch,quantity,operation,date");
     	$query->where("#productId = {$productId} AND #storeId = {$storeId}");
+    	$query->orderBy('id', 'ASC');
     	
     	// Ако е указан лимит
     	if(isset($limit)){
