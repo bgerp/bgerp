@@ -321,4 +321,22 @@ class store_Products extends core_Manager
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
     	
     }
+
+
+
+    public static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
+    {
+        $storeId = store_Stores::getCurrent();
+        $query = self::getQuery();
+        if($where) {
+            $query->where($where);
+        }
+        while($rec = $query->fetch("#storeId = {$storeId}  AND #state = 'active'")) {
+            $options[$rec->id] = self::getVerbal($rec, 'productId');
+        }
+
+        if(!count($options)) {
+            $options[''] = '';
+        }
+    }
 }
