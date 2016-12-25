@@ -69,7 +69,7 @@ class type_Nick extends type_Varchar {
     /**
      * Проверява дали е валиден
      */
-    function isValid($value)
+    public static function isValid($value)
     {
         // Шаблон за потребителско име. 
         // Позволени са малки и големи латински букви, цифри, долни черти и точки.
