@@ -59,6 +59,31 @@ class drdata_PhoneType extends type_Varchar
 
 
     /**
+     * Добавя еднократно новият номер към списъка с номера
+     *
+     * @param   string  $number     Списъка с номера
+     * @param   string  $new        Новия номер
+     * @param   string  $mode       Режим на добавяне - отпред/отзад - prepend/append
+     * @param   string  $devider    Раздлител между номерата
+     */
+    public static function insert($numbers, $new, $mode = 'append', $devider = ',')
+    {
+        $nubersStr = self::getNumberStr($numbers);
+        $newStr    = self::getNumberStr($new, 0);
+
+        if(strpos($nubersStr, $newStr) === FALSE) {
+            if($mode == 'append') {
+                $numbers .= ', ' . $new;
+            } else {
+                 $numbers = $new . ', ' . $numbers;
+            }
+        }
+
+        return $numbers;
+    }
+
+
+    /**
      * Рендиране на input-поле
      */
     public function renderInput_($name, $value = '', &$attr = array())
