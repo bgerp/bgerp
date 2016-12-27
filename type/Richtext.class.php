@@ -801,16 +801,17 @@ class type_Richtext extends type_Blob
      * Заменя елемента [bQuote=???] .... [/bQuote]
      */
     function _catchBQuote($match)
-    {
+    {  
         // Мястото
         $place = $this->getPlace();
 
         // Цитата
         $quote = trim($match[3]);
-        
+
         // Рекурсивно извикване
-        if(strpos($quote, '[bQuote')) {
+        if(stripos($quote, '[bQuote') !== FALSE) {
              $quote = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $quote);
+              
         }  
         
         // Премахваме водещия празен ред
