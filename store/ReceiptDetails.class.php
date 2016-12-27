@@ -102,7 +102,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
-        $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
         
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -147,7 +146,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang);
-    			batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     			
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

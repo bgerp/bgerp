@@ -46,7 +46,7 @@ class planning_ProductionNotes extends planning_ProductionDocument
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ProductionNote,batch_MovementSourceIntf=batch_movements_ProductionDocument';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ProductionNote';
 	
 	
 	/**

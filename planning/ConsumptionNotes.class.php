@@ -45,7 +45,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ConsumptionNote,batch_MovementSourceIntf=batch_movements_ProductionDocument';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ConsumptionNote';
 	
 	
 	/**

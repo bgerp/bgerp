@@ -63,7 +63,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		expect(count($products));
 			
 		if (empty($rec->id)) {
-			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount|packagingId");
+			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount|packagingId|batch");
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
@@ -187,7 +187,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			// Ако има такъв запис, сетваме грешка
 			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId, $rec->notes);
 			if($exRec){
-				$form->setError('productId,packagingId,packPrice,discount,batch,notes', 'Вече съществува запис със същите данни');
+				$form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
 				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
 			}
 			

@@ -231,7 +231,7 @@ class batch_Movements extends core_Detail {
     		
     		// Ако е покупка/продажба трябва да има експедирано/доставено с нея
     		$actions = type_Set::toArray($doc->fetchField('contoActions'));
-    		if(!isset($actions['ship'])) return bp();
+    		if(!isset($actions['ship'])) return;
     	}
     	
     	// Какви партиди са въведени
