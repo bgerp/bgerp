@@ -44,9 +44,12 @@ class batch_plg_DocumentMovement extends core_Plugin
 			if($mvc->hasPlugin('acc_plg_Contable')){
 				if(isset($saveFileds)) return;
 			}
-			batch_Movements::saveMovement($mvc, $rec->id);
+			
+			$containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+			batch_Movements::saveMovement($containerId);
 		} elseif($rec->state == 'rejected'){
-			batch_Movements::removeMovement($mvc, $rec->id);
+			$containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+			batch_Movements::removeMovement($containerId);
 		}
 	}
 }

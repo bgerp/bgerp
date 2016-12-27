@@ -223,73 +223,55 @@ class batch_Movements extends core_Detail {
      * @param mixed $rec   - ид или запис на документа
      * @return boolean     - успех или не
      */
-    public static function saveMovement($class, $rec)
+    public static function saveMovement($containerId)
     {
-    	$mvc = cls::get($class);
+    	// Кой е документа
+    	$doc = doc_Containers::getDocument($containerId);
+    	if($doc->isInstanceOf('deals_DealMaster')){
+    		
+    		// Ако е покупка/продажба трябва да има експедирано/доставено с нея
+    		$actions = type_Set::toArray($doc->fetchField('contoActions'));
+    		if(!isset($actions['ship'])) return bp();
+    	}
     	
-    	// Взимаме класа имплементиращ интерфейса за партидни движения
-    	expect($MovementImpl = cls::getInterface('batch_MovementSourceIntf', $mvc));
-		expect($docRec = $mvc->fetchRec($rec));
-		
-		try{
-			// Взимаме движенията от документа
-			$entries = $MovementImpl->getMovements($docRec);
-			
-			expect(is_array($entries), 'Класа не върна движения');
-			
-			// Проверяваме записите
-			foreach ($entries as $entry){
-				expect(cat_Products::fetchField($entry->productId, 'id'), 'Няма артикул');
-				expect($entry->batch, 'Няма номер на партида');
-				expect(store_Stores::fetchField($entry->storeId, 'id'), 'Няма склад');
-				expect(isset($entry->quantity), 'Няма количество');
-				expect(in_array($entry->operation, array('in', 'out', 'stay')), 'Невалидна операция');
-			}
-		} catch(core_exception_Expect $e){
-			
-			// Ако има проблем, показваме грешката
-			error($e->getMessage(), $e->getDump(), $entries);
-		}
-		
-		$result = TRUE;
-		
-		if(!count($entries)) return $result;
-		
-		// За всяко движение
-		foreach ($entries as $entry2){
-			try{
-				// Форсираме партидата
-				$itemId = batch_Items::forceItem($entry2->productId, $entry2->batch, $entry2->storeId);
-				
-				// Ако има проблем с форсирането сетваме грешка
-				if(!$itemId) {
-					$result = FALSE;
-					break;
-				}	
-				
-				// Движението, което ще запишем
-				$mRec = (object)array('itemId'    => $itemId,
-									  'quantity'  => $entry2->quantity,
-									  'operation' => $entry2->operation,
-									  'docType'   => $mvc->getClassId(),
-									  'docId'     => $docRec->id,
-									  'date'	  => $entry2->date,
-				);
-					
-				// Запис на движението
-				$id = self::save($mRec);
-				
-				// Ако има проблем със записа, сетваме грешка
-				if(!$id){
-					$result = FALSE;
-					break;
-				}
-			} catch(core_exception_Expect $e){
-				
-				// Ако е изникнала грешка
-				$result = FALSE;
-			}
-		}
+    	// Какви партиди са въведени
+    	$jQuery = batch_BatchesInDocuments::getQuery();
+    	$jQuery->where("#containerId = {$containerId}");
+    	
+    	// За всяка
+    	while($jRec = $jQuery->fetch()){
+    		$batches = batch_Defs::getBatchArray($jRec->productId, $jRec->batch);
+    		$quantity = (count($batches) == 1) ? $jRec->quantity : $jRec->quantity / count($batches);
+    		
+    		// Записва се движението и
+    		foreach ($batches as $key => $b){
+    			try{
+    				$itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
+    				 
+    				// Движението, което ще запишем
+    				$mRec = (object)array('itemId'    => $itemId,
+    						'quantity'  => $quantity,
+    						'operation' => $jRec->operation,
+    						'docType'   => $doc->getClassId(),
+    						'docId'     => $doc->that,
+    						'date'	    => $jRec->date,
+    				);
+    				
+    				// Запис на движението
+    				$id = self::save($mRec);
+    				 
+    				// Ако има проблем със записа, сетваме грешка
+    				if(!$id){
+    					$result = FALSE;
+    					break;
+    				}
+    			} catch(core_exception_Expect $e){
+    			
+    				// Ако е изникнала грешка
+    				$result = FALSE;
+    			}
+    		}
+    	}
 		
 		// При грешка изтриваме всички записи до сега
 		if($result === FALSE){
@@ -308,14 +290,11 @@ class batch_Movements extends core_Detail {
      * @param mixed $rec   - ид или запис на документа
      * @return void        - изтрива движенията породени от документа
      */
-    public static function removeMovement($class, $rec)
+    public static function removeMovement($containerId)
     {
-    	$Class = cls::get($class);
-    	$docClassId = $Class->getClassId();
-    	$docId = $Class->fetchRec($rec)->id;
-    	
-    	// Изтриваме записите
-    	static::delete("#docType = {$docClassId} AND #docId = {$docId}");
+    	// Изтриване на записите, породени от документа
+    	$doc = doc_Containers::getDocument($containerId);
+    	static::delete("#docType = {$doc->getInstance()->getClassId()} AND #docId = {$doc->that}");
     }
     
     
