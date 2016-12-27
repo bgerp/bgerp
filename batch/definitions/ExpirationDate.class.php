@@ -54,7 +54,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 * @param date|NULL $date      - дата
 	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	function getAutoValue($documentClass, $id, $storeId, $date = NULL)
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
 		$date = dt::today();
 		if(isset($this->rec->time)){

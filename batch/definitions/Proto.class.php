@@ -78,7 +78,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
 	 * @param date|NULL $date      - дата
 	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	function getAutoValue($documentClass, $id, $storeId, $date = NULL)
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
     {
     	
     }

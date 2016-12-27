@@ -34,7 +34,7 @@ class batch_definitions_Document extends batch_definitions_Varchar
 	 * @param date|NULL $date      - дата
 	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	function getAutoValue($documentClass, $id, $storeId, $date = NULL)
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
 		$Class = cls::get($documentClass);
 		expect($dRec = $Class->fetchRec($id));

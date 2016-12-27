@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,7 +47,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
 	 * @param date|NULL $date      - дата
 	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	function getAutoValue($documentClass, $id, $storeId, $date = NULL)
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
 		return $this->class->getAutoValue($documentClass, $id, $storeId, $date);
 	}
@@ -61,7 +61,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
      * @param string &$msg -текста на грешката ако има
      * @return boolean - валиден ли е кода на партидата според дефиницията или не
      */
-    function isValid($value, $quantity, &$msg)
+    public function isValid($value, $quantity, &$msg)
     {
     	return $this->class->isValid($value, $quantity, $msg);
     }
