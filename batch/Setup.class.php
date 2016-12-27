@@ -137,16 +137,28 @@ class batch_Setup extends core_ProtoSetup
     {
     	$Batches = cls::get('batch_BatchesInDocuments');
     	$Batches->setupMvc();
-    	$documents = array('sales_SalesDetails', 'purchase_PurchasesDetails', 'store_ShipmentOrderDetails', 'purchase_PurchasesDetails', 'planning_ConsumptionNoteDetails', 'store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend', 'store_TransfersDetails');
+    	//$Batches->truncate();
+    
+    	$documents = array('sales_SalesDetails', 
+    			           'purchase_PurchasesDetails', 
+    			           'store_ShipmentOrderDetails', 
+    			           'store_ReceiptDetails', 
+    			           'planning_ConsumptionNoteDetails', 
+    			           'store_ConsignmentProtocolDetailsReceived', 
+    			           'store_ConsignmentProtocolDetailsSend', 
+    			           'store_TransfersDetails');
     	
     	$arr = array();
     	foreach ($documents as $doc){
     		$D = cls::get($doc);
-    		echo "<li>$doc";
+    		
     		$query = $D->getQuery();
     		$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
     		$query->EXT('containerId', cls::getClassName($D->Master), "externalName=containerId,externalKey={$D->masterKey}");
+    		$query->EXT('valior', cls::getClassName($D->Master), "externalName={$D->Master->valiorFld},externalKey={$D->masterKey}");
+    		$query->EXT('storeId', cls::getClassName($D->Master), "externalName={$D->Master->storeFieldName},externalKey={$D->masterKey}");
     		$query->where("#batch IS NOT NULL");
+    		
     		
     		while($dRec = $query->fetch()){
     			if(in_array($doc, array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend'))){
@@ -163,13 +175,15 @@ class batch_Setup extends core_ProtoSetup
     					             'quantityInPack' => $dRec->quantityInPack,
     					             'quantity'       => $quantity,
     					             'batch'          => $dRec->batch,
+    								 'date'           => $dRec->valior,
+    								 'storeId'        => $dRec->storeId,
+    								 'operation'      => ($D->Master->batchMovementDocument == 'out') ? 'out' : 'in',
     			
     			);
     			
     			$arr[] = $obj;
     		}
     	}
-    	
     	
     	$Batches->saveArray($arr);
     }

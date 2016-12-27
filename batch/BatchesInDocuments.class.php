@@ -96,7 +96,13 @@ class batch_BatchesInDocuments extends core_Manager
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		//$mvc->truncate();
-		$row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+		
+		try{
+			$row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+		} catch(core_exception_Expect $e){
+			$row->containerId = "<span class='color:red'>" . tr('Проблем при показването') . "</span>";
+		}
+		
 		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 	}
 	
@@ -260,9 +266,8 @@ class batch_BatchesInDocuments extends core_Manager
 		if(empty($rInfo->storeId)) return FALSE;
 		
 		// Ако операцията е изходяща 
-		if($rInfo->operation == 'out'){
+		if($rInfo->operation == 'out' && $rInfo->state == 'draft'){
 			$storeQuantity = batch_Items::getQuantity($rInfo->productId, $batch, $rInfo->storeId);
-			
 			if($quantity > $storeQuantity) {
 				return 'Недостатъчно количество в склада';
 			}
