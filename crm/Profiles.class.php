@@ -838,15 +838,22 @@ class crm_Profiles extends core_Master
             $mustSave = TRUE;
         }
         
-        
+ 
         if(!empty($user->names) && ($person->name != $user->names)) {
             $person->name = $user->names;
             $mustSave = TRUE;
         }
-        
+         
         // Само ако записа на потребителя има 
         if(!empty($user->email) && (strpos($person->email, $user->email) === FALSE)) {
             $person->email     = type_Emails::prepend($person->email, $user->email);
+         
+            $mustSave = TRUE;
+        }
+        
+        // Само, ако записа на потребителя има мобилен телефон 
+        if(!empty($user->mobile) && ($person->mobile != $user->mobile)) {
+            $person->mobile = $user->mobile;
             $mustSave = TRUE;
         }
         
