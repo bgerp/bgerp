@@ -571,6 +571,17 @@ class batch_Items extends core_Master {
     }
     
     
+    /**
+     * Разпределяне на количество по наличните партиди на даден артикул в склада
+     * Партидите с отрицателни и нулеви количества се пропускат
+     * 
+     * @param array $bacthesArr
+     *    [име_на_партидата] => [к_во_в_склада]
+     * @param double $quantity
+     * @return array $allocatedArr - разпределеното к-во, което да се изпише от партидите
+     * с достатъчно количество в склада
+     * 	  [име_на_партидата] => [к_во_за_изписване]
+     */
     public static function allocateQuantity($bacthesArr, $quantity)
     {
     	expect(is_array($bacthesArr), 'Не е подаден масив');

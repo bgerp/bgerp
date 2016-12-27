@@ -225,6 +225,15 @@ abstract class batch_definitions_Proto extends core_BaseClass
     }
     
     
+    /**
+     * Разпределя количество към наличните партиди в даден склад към дадена дата
+     * 
+     * @param double $quantity - к-во
+     * @param int $storeId     - склад
+     * @param string $date     - дата
+     * @return array $batches  - от коя партида, какво количество да се изпише
+     * 	[име_на_партидата] => [к_во_за_изписване]
+     */
     public function allocateQuantityToBatches($quantity, $storeId, $date = NULL)
     {
     	$batches = array();
