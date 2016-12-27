@@ -45,12 +45,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if(!$storeId) return;
 		
 		if($mvc->Master->batchMovementDocument == 'out') return;
-		$form->FNC('batch', 'text', 'caption=Партида,after=productId');
+		$form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
 		
 		// Задаване на типа на партидата на полето
 		if(isset($rec->{$mvc->productFieldName})){
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
+				$form->setField('batch', 'input');
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				
 				if(isset($BatchClass->fieldPlaceholder)){
