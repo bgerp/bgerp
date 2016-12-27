@@ -223,4 +223,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
     	
     }
+    
+    
+    public function allocateQuantityToBatches($quantity, $storeId, $date = NULL)
+    {
+    	$batches = array();
+    	if(!isset($storeId)) return $batches;
+    	$date = (isset($date)) ? $date : dt::today();
+    	
+    	$quantities = batch_Items::getBatchQuantitiesInStore($this->rec->productId, $storeId, $date);
+    	$batches = batch_Items::allocateQuantity($quantities, $quantity);
+    	
+    	return $batches;
+    }
 }

@@ -169,6 +169,7 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$query = self::getQuery();
 		$query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
+		$query->orderBy('id', "ASC");
 		$rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
 		$batchDef = batch_Defs::getBatchDef($rInfo->productId);
 		
@@ -187,7 +188,7 @@ class batch_BatchesInDocuments extends core_Manager
 				}
 				
 				// Проверка на реда
-				if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->id)){
+				if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->quantity, $rec->id)){
 					$b = ht::createHint($b, $msg, 'warning');
 				}
 			}
@@ -248,10 +249,11 @@ class batch_BatchesInDocuments extends core_Manager
 	 * @param mixed $detailClassId
 	 * @param int $detailRecId
 	 * @param string $batch
+	 * @param string $quantity
 	 * @param int|NULL $id
 	 * @return FALSE|string
 	 */
-	public static function checkBatchRow($detailClassId, $detailRecId, $batch, $id = NULL)
+	public static function checkBatchRow($detailClassId, $detailRecId, $batch, $quantity, $id = NULL)
 	{
 		$Class = cls::get($detailClassId);
 		$rInfo = $Class->getRowInfo($detailRecId);
@@ -259,8 +261,9 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		// Ако операцията е изходяща 
 		if($rInfo->operation == 'out'){
-			$quantity = batch_Items::getQuantity($rInfo->productId, $batch, $rInfo->storeId);
-			if($rInfo->quantity > $quantity) {
+			$storeQuantity = batch_Items::getQuantity($rInfo->productId, $batch, $rInfo->storeId);
+			
+			if($quantity > $storeQuantity) {
 				return 'Недостатъчно количество в склада';
 			}
 		}
@@ -410,9 +413,11 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		$form->input();
+		$saveBatches = array();
 		
 		// След събмит
 		if($form->isSubmitted()){
+			
 			$r = $form->rec;
 			
 			$update = $delete = $fields = $error = array();
@@ -442,21 +447,14 @@ class batch_BatchesInDocuments extends core_Manager
 					$form->setError('serials', "Серийните номера са повече от цялото количество");
 				} else {
 					foreach ($batches as $b){
-						$obj = clone $recInfo;
-						$obj->quantity = 1 / $recInfo->quantityInPack;
-						$obj->batch = $b;
-						if($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $obj->batch)){
-							$obj->id = $id;
-						}
-						$update[$obj->batch] = $obj;
+						$saveBatches[$b] = 1 / $recInfo->quantityInPack;
 					}
 					
 					if(is_array($foundBatches)){
 						foreach ($foundBatches as $fb){
 							if(!array_key_exists($fb, $batches)){
-								if($id = self::getId($recInfo->detailClassId, $recInfo->detailRecId, $recInfo->productId, $fb)){
-									$delete[] = $id;
-								}
+								$delete[] = $fb;
+								unset($saveBatches[$fb]);
 							}
 						}
 					}
@@ -465,22 +463,12 @@ class batch_BatchesInDocuments extends core_Manager
 					
 				// Обработка и проверка на записите
 				foreach (range(0, $batchCount-1) as $i){
-					$obj = clone $recInfo;
-					
-					$obj->quantity = $r->{"quantity{$i}"};
-					$obj->batch = $r->{"batch{$i}"};
-					if($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $obj->batch)){
-						$obj->id = $id;
-					}
-					
-					if(empty($obj->quantity)){
-						if(isset($obj->id)){
-							$delete[] = $obj;
-						}
+					if(empty($r->{"quantity{$i}"})){
+						$delete[] = $r->{"batch{$i}"};
 					} else {
 						$total += $r->{"quantity{$i}"};
 						$fields[] = "quantity{$i}";
-						$update[$obj->batch] = $obj;
+						$saveBatches[$r->{"batch{$i}"}] = $r->{"quantity{$i}"}  * $recInfo->quantityInPack;
 					}
 				}
 				
@@ -492,32 +480,33 @@ class batch_BatchesInDocuments extends core_Manager
 			
 			// Новата партида също ще се добави
 			if(!empty($r->newBatch) && !empty($r->newBatchQuantity)){
-				$obj = clone $recInfo;
-				$obj->quantity = $r->newBatchQuantity;
-				$obj->batch = $Def->normalize($r->newBatch);
-				
-				if(array_key_exists($obj->batch, $update)){
+				$batch = $Def->normalize($r->newBatch);
+				if(array_key_exists($batch, $update)){
 					$form->setError('newBatch', 'Опитвате се да създадете същестуваща партида');
 				} else {
-					$update[] = $obj;
+					$saveBatches[$batch] = $r->newBatchQuantity * $recInfo->quantityInPack;
 				}
 			}
 			
 			if(!$form->gotErrors()){
+				if($form->cmd == 'auto'){
+					$old = $saveBatches;
+					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $recInfo->storeId, $recInfo->date);
+					$intersect = array_diff_key($old, $saveBatches);
+					$delete = (count($intersect)) ? array_keys($intersect) : array();
+				}
+				
+				
 				// Ъпдейт/добавяне на записите, които трябва
-				if(count($update)){
-					foreach ($update as $o){
-						$o->quantity *= $recInfo->quantityInPack;
-					}
-						
-					$this->saveArray($update);
+				if(count($saveBatches)){
+					self::saveBatches($detailClassId, $detailRecId, $saveBatches);
 				}
 					
 				// Изтриване
 				if(count($delete)){
-					foreach ($delete as $o){
+					foreach ($delete as $b){
 						$id = is_numeric($o) ? $o : $o->id;
-						self::delete($id);
+						self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
 					}
 				}
 					
@@ -527,6 +516,7 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		// Добавяне на бутони
 		$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+		$form->toolbar->addSbBtn('Автоматично', 'auto', 'warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		 
 		// Рендиране на формата
@@ -544,6 +534,43 @@ class batch_BatchesInDocuments extends core_Manager
 	 */
 	public static function getId($detailClassId, $detailRecId, $productId, $batch)
 	{
+		$detailClassId = cls::get($detailClassId)->getClassId();
 		return self::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #batch = '{$batch}'");
+	}
+	
+	
+	/**
+	 * Записва масив с партиди и техните количества на ред
+	 * 
+	 * @param mixed $detailClassId
+	 * @param int $detailRecId
+	 * @param array $batchesArr
+	 * @return void
+	 */
+	public static function saveBatches($detailClassId, $detailRecId, $batchesArr)
+	{
+		if(!is_array($batchesArr)) return;
+		$recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
+		$recInfo->detailClassId = cls::get($detailClassId)->getClassId();
+		$recInfo->detailRecId = $detailRecId;
+		
+		// Подготвяне на редовете за обновяване
+		$update = array();
+		foreach ($batchesArr as $b => $q){
+			$obj = clone $recInfo;
+			$obj->quantity = $q;
+			$obj->batch = $b;
+			
+			if($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $obj->batch)){
+				$obj->id = $id;
+			}
+			
+			$update[] = $obj;
+		}
+		
+		// Запис
+		if(count($update)){
+			cls::get(get_called_class())->saveArray($update);
+		}
 	}
 }

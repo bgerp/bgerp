@@ -41,6 +41,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$form = &$data->form;
 		$rec = &$form->rec;
 		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+		if(!$storeId) return;
 		
 		if($mvc->Master->batchMovementDocument == 'out') return;
 		$form->FNC('batch', 'text', 'caption=Партида,after=productId');
@@ -81,6 +82,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if(haveRole('partner')) return;
 		
 		if($mvc->Master->batchMovementDocument == 'out') return;
+		if(!$storeId) return;
 		
 		if(isset($rec->{$mvc->productFieldName})){
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
@@ -118,7 +120,16 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	{
 		if($mvc->Master->batchMovementDocument == 'out'){
 			
+			// След създаване се прави опит за разпределяне на количествата според наличните партиди
+			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+			if(is_object($BatchClass)){
+				$info = $mvc->getRowInfo($rec->id);
+				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->storeId, $info->date);
+				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
+			}
 		} else {
+			
+			// Ако се създава нова партида, прави се опит за автоматичното и създаване
 			if(empty($rec->batch)){
 				$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 				if(is_object($BatchClass)){

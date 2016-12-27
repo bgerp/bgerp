@@ -25,7 +25,7 @@ class batch_Items extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, batch_Wrapper, plg_AlignDecimals2, plg_Search, plg_Sorting, plg_State2';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_AlignDecimals2, plg_Search, plg_Sorting, plg_State2';
     
     
     /**
@@ -37,13 +37,7 @@ class batch_Items extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'id=Пулт, batch, productId, storeId, quantity, state';
-    
-    
-    /**
-     * Поле за показване на пулта за редакция
-     */
-    public $rowToolsField = 'id';
+    public $listFields = 'batch, productId, storeId, quantity, state';
     
     
     /**
@@ -574,5 +568,30 @@ class batch_Items extends core_Master {
     	
     	// Връщане на намерените партиди
     	return $res;
+    }
+    
+    
+    public static function allocateQuantity($bacthesArr, $quantity)
+    {
+    	expect(is_array($bacthesArr), 'Не е подаден масив');
+    	expect(is_numeric($quantity), 'Не е число');
+    	
+    	$allocatedArr = array();
+    	$left = $quantity;
+    	
+    	foreach ($bacthesArr as $b => $q){
+    		if($left <= 0) break;
+    		if($q >= $left){
+    			$allocatedArr[$b] = $left;
+    			$left -= $left;
+    		} elseif($q < $left && $q > 0) {
+    			$allocatedArr[$b] = $q;
+    			$left -= $allocatedArr[$b];
+    		} else {
+    			continue;
+    		}
+    	}
+    	
+    	return $allocatedArr;
     }
 }
