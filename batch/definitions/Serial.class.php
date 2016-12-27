@@ -208,8 +208,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	public function normalize($value)
 	{
 		$value = explode("\n", trim(str_replace("\r", '', $value)));
-		$value = implode('|', $value);
 		
+		$value = implode('|', $value);
 		return ($value == '') ? NULL : $value;
 	}
 	

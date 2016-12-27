@@ -131,4 +131,46 @@ class batch_Setup extends core_ProtoSetup
         
         return $html;
     }
+    
+    
+    function migrateBatches()
+    {
+    	$Batches = cls::get('batch_BatchesInDocuments');
+    	$Batches->setupMvc();
+    	$documents = array('sales_SalesDetails', 'purchase_PurchasesDetails', 'store_ShipmentOrderDetails', 'purchase_PurchasesDetails', 'planning_ConsumptionNoteDetails', 'store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend', 'store_TransfersDetails');
+    	
+    	$arr = array();
+    	foreach ($documents as $doc){
+    		$D = cls::get($doc);
+    		echo "<li>$doc";
+    		$query = $D->getQuery();
+    		$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
+    		$query->EXT('containerId', cls::getClassName($D->Master), "externalName=containerId,externalKey={$D->masterKey}");
+    		$query->where("#batch IS NOT NULL");
+    		
+    		while($dRec = $query->fetch()){
+    			if(in_array($doc, array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend'))){
+    				$quantity = $dRec->packQuantity / $dRec->quantityInPack;
+    			} else {
+    				$quantity = $dRec->quantity;
+    			}
+    			
+    			$obj = (object)array('detailClassId'  => $D->getClassId(), 
+    					             'containerId'    => $dRec->containerId,
+    								 'detailRecId'    => $dRec->id,
+    								 'productId'      => $dRec->productId,
+    								 'packagingId'    => $dRec->packagingId,
+    					             'quantityInPack' => $dRec->quantityInPack,
+    					             'quantity'       => $quantity,
+    					             'batch'          => $dRec->batch,
+    			
+    			);
+    			
+    			$arr[] = $obj;
+    		}
+    	}
+    	
+    	
+    	$Batches->saveArray($arr);
+    }
 }

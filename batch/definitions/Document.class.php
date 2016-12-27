@@ -18,19 +18,23 @@ class batch_definitions_Document extends batch_definitions_Varchar
 	
 	
 	/**
-	 * Автоматичен стринг
+	 * Плейсхолдър на полето
+	 *
+	 * @param string
 	 */
-	const AUTO_VALUE_STRING = 'yyyymmdd-abbr№';
+	public $fieldPlaceholder = 'yyyymmdd-abbr№';
 	
 	
 	/**
 	 * Връща автоматичния партиден номер според класа
-	 *
+	 * 
 	 * @param mixed $documentClass - класа за който ще връщаме партидата
-	 * @param int $id - ид на документа за който ще връщаме партидата
-	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
+	 * @param int $id              - ид на документа за който ще връщаме партидата
+	 * @param int $storeId         - склад
+	 * @param date|NULL $date      - дата
+	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	public function getAutoValue($documentClass, $id)
+	function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
 		$Class = cls::get($documentClass);
 		expect($dRec = $Class->fetchRec($id));
@@ -55,42 +59,12 @@ class batch_definitions_Document extends batch_definitions_Varchar
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
-		if($value != self::AUTO_VALUE_STRING){
-			if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{3}[0-9]+/", $value, $matches)){
-				$date = str_replace('-', '', dt::today());
-					
-				$msg = "Формата трябва да е във вида на|* {$date}-SAL1";
-				return FALSE;
-			}
+		if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{3}[0-9]+/", $value, $matches)){
+			$date = str_replace('-', '', dt::today());
+			$msg = "Формата трябва да е във вида на|* {$date}-SAL1";
+			return FALSE;
 		}
 		
 		return parent::isValid($value, $quantity, $msg);
-	}
-	
-	
-	/**
-	 * Проверява дали стойността е невалидна
-	 *
-	 * @return core_Type - инстанция на тип
-	 */
-	public function getBatchClassType()
-	{
-		$Type = parent::getBatchClassType();
-	
-		$autoConst = $this->getAutoValueConst();
-		$Type->suggestions = array('' => '', $autoConst => $autoConst);
-		
-		return $Type;
-	}
-	
-	
-	/**
-     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
-     *
-     * @return string
-     */
-	public function getAutoValueConst()
-	{
-		return static::AUTO_VALUE_STRING;
 	}
 }

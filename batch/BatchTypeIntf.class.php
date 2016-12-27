@@ -23,15 +23,33 @@ class batch_BatchTypeIntf extends embed_DriverIntf
 	
 	
 	/**
+	 * Плейсхолдър на полето
+	 *
+	 * @param string
+	 */
+	public $fieldPlaceholder;
+	
+	
+	/**
+	 * Име на полето за партида в документа
+	 *
+	 * @param string
+	 */
+	public $fieldCaption;
+	
+	
+	/**
 	 * Връща автоматичния партиден номер според класа
 	 * 
 	 * @param mixed $documentClass - класа за който ще връщаме партидата
-	 * @param int $id - ид на документа за който ще връщаме партидата
-	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
+	 * @param int $id              - ид на документа за който ще връщаме партидата
+	 * @param int $storeId         - склад
+	 * @param date|NULL $date      - дата
+	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	function getAutoValue($documentClass, $id)
+	function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
-		return $this->class->getAutoValue($documentClass, $id);
+		return $this->class->getAutoValue($documentClass, $id, $storeId, $date);
 	}
 	
 	
@@ -93,17 +111,6 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     public function makeArray($value)
     {
     	return $this->class->makeArray($value);
-    }
-    
-    
-    /**
-     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
-     *
-     * @return string
-     */
-    public function getAutoValueConst()
-    {
-    	return $this->class->getAutoValueConst();
     }
     
     
