@@ -31,7 +31,7 @@ class incoming_Documents extends core_Master
             'doc_DocumentIntf', 
         
             // Интерфейс за създаване на входящ документ
-            'incoming_CreateDocumentIntf',
+            'fileman_FileActionsIntf',
         );
     
     
@@ -315,11 +315,6 @@ class incoming_Documents extends core_Master
     }
     
     
- 
-    
-    
- 
-    
     /**
      * Връща прикачения файл в документа
      *
@@ -379,97 +374,7 @@ class incoming_Documents extends core_Master
        
         return $row;
     }
-    
-    
-    /**
-     * Изпълнява се след създаването на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        // Инсталиране на кофата
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
-    }
-    
-    
-    /**
-     * Връща файла, който се използва в документа
-     *
-     * @param object $rec - Запис
-     */
-    function getLinkedFiles($rec)
-    {
-        // Ако не е обект
-        if (!is_object($rec)) {
-            
-            // Извличаваме записа
-            $rec = $this->fetch($rec);
-        }
-        
-        // Вземаме записите за файла
-        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
-        
-        // Добавяме в масива манипулатора и името на файла
-        $fhArr[$rec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
-        
-        return $fhArr;
-    }
-    
-    
-    /**
-     * Показва меню от възможности за създаване на входящи документие
-     */
-    function act_ShowDocMenu()
-    {
-        // Манипулатора на файла
-        $fh = Request::get('fh');
-        
-        // Очаква да има такъв манипулатор
-        expect($fh);
-        
-        // Очакваме да има такъв файл
-        expect($fRec = fileman_Files::fetchByFh($fh));
-        
-        // Изискваме да има права за single на файла
-        fileman_Files::requireRightFor('single', $fRec);
-        
-        // Шаблон
-        $tpl = new ET();
-        
-        // Създаваме заглавие
-        $tpl->append("\n<h3>" . tr('Създаване на входящ документ') . ":</h3>");
-        
-        // Създаваме таблица в шаблона
-        $tpl->append("\n<table>");
-        
-        // Вземаме всички класове, които имплементират интерфейса
-        $classesArr = core_Classes::getOptionsByInterface('incoming_CreateDocumentIntf');
- 
-        // Обхождаме всички класове, които имплементират интерфейса
-        foreach ($classesArr as $className) {
-            
-            // Вземаме масива с документите, които може да създаде
-            $arrCreate = $className::canCreate($fRec);
-            if(is_array($arrCreate)) {
-                // Обхождаме масива
-                foreach ($arrCreate as $arr) {
-                    
-                    // Ако има полета, създаваме бутона
-                    if (count($arr)) {
-                        $tpl->append("\n<tr><td>");
-                        $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "ef_icon=" .  $arr['icon'] . ",style=width:100%;text-align:left;"));
-                        $tpl->append("</td></tr>");
-                    }
-                }
-            }
-        }
-        
-        // Добавяме края на таблицата
-        $tpl->append("\n</table>");
-        
-        return $this->renderWrapping($tpl);
-    }
-    
+
     
     /**
      * В кои корици може да се вкарва документа
@@ -517,26 +422,30 @@ class incoming_Documents extends core_Master
 
 
     /**
-     * Метод на интерфейса incoming_CreateDocumentIntf
-     *
-     * Връща масив, от който се създава бутона за създаване на входящ документ
+     * Интерфейсен метод на fileman_FileActionsIntf
      * 
-     * @param fileman_Files $rec - Обект са данни от модела
+     * Връща масив с действия, които могат да се извършат с дадения файл
+     * 
+     * @param stdObject $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
-     * $arr['class'] - Името на класа
-     * $arr['action'] - Екшъна
+     * $arr['url'] - array URL на действието
      * $arr['title'] - Заглавието на бутона
      * $arr['icon'] - Иконата
      */
-    public static function canCreate($fRec)
+    static function getActionsForFile_($fRec)
     {
         if(self::canKeepDoc($fRec->name, $fRec->fileLen)) {
+
+            $dfRec = doc_files::fetch("#fileHnd = '{$fRec->fileHnd}'");
+
             // Създаваме масива за съзване на визитка
             $arr = array();
             $inst = cls::get('incoming_Documents');
-            $arr['incoming']['class'] = $inst->className;
-            $arr['incoming']['action'] = 'add';
+            $arr['incoming']['url'] = array($inst->className, 'add', 'fh' => $fRec->fileHnd, 'ret_url' => TRUE);
+            if($dfRec) {
+                $arr['incoming']['url']['defaultFolderId'] = $dfRec->folderId;
+            }
             $arr['incoming']['title'] = 'Входящ документ';
             $arr['incoming']['icon'] = $inst->singleIcon;
         }
