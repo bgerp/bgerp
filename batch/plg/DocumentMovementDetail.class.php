@@ -27,6 +27,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	{
 		setIfNot($mvc->productFieldName, 'productId');
 		setIfNot($mvc->storeFieldName, 'storeId');
+		$mvc->declareInterface('batch_MovementSourceIntf');
 	}
 	
 	
