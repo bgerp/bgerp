@@ -911,6 +911,8 @@ class fileman_Files extends core_Master
         } else {
             $ext = '';
         }
+
+        $ext = mb_strtolower($ext);
         
         return $ext;
     }
@@ -1007,6 +1009,31 @@ class fileman_Files extends core_Master
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
+
+        // Очакваме да има такъв файл
+        expect($fRec = $data->rec);
+        
+        // Вземаме всички класове, които имплементират интерфейса
+        $classesArr = core_Classes::getOptionsByInterface('fileman_FileActionsIntf');
+ 
+        // Обхождаме всички класове, които имплементират интерфейса
+        foreach ($classesArr as $className) {
+            
+            // Вземаме масива с документите, които може да създаде
+            $arrCreate = $className::getActionsForFile($fRec);
+
+            if(is_array($arrCreate)) {
+                // Обхождаме масива
+                foreach ($arrCreate as $id => $arr) {
+                    
+                    // Ако има полета, създаваме бутона
+                    if (count($arr)) {
+                        $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id, 'ef_icon=' . $arr['icon']);
+                    }
+                }
+            }
+        }
+
     }
 	
     
