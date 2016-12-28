@@ -221,7 +221,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	
 	
 	/**
-	 * метод по реализация на определянето на движението генерирано от реда
+	 * Метод по реализация на определянето на движението генерирано от реда
 	 * 
 	 * @param core_Mvc $mvc
 	 * @param string $res

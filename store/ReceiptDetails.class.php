@@ -171,4 +171,18 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
     	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     }
+    
+    
+    /**
+     * Определяне на движението генерирано от склада
+     *
+     * @param stdClass $rec
+     * @return string $operation - in|out|stay
+     */
+    public function getBatchMovementDocument($rec)
+    {
+    	$isReverse = store_Receipts::fetchField($rec->receiptId, 'isReverse');
+    	
+    	return ($isReverse == 'yes') ? 'out' : 'in';
+    }
 }
