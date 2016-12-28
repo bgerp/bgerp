@@ -773,13 +773,7 @@ class email_Incomings extends core_Master
                     $haveErr = TRUE;
                 }
             
-                if ($clostStr = $mvc->getClosestEmail($rec->AllTo)) {
-                    if ($row->AllTo instanceof core_ET) {
-                        $row->AllTo->append($clostStr);
-                    } else {
-                        $row->AllTo .= $clostStr;
-                    }
-                }
+                $mvc->addClosestEmailWarning($rec->AllTo, $row->AllTo);
             }
             
             $row->AllCc = self::getVerbalEmail($rec->AllCc);
@@ -789,13 +783,7 @@ class email_Incomings extends core_Master
                     $haveErr = TRUE;
                 }
                 
-                if ($clostStr = $mvc->getClosestEmail($rec->AllCc)) {
-                    if ($row->AllCc instanceof core_ET) {
-                        $row->AllCc->append($clostStr);
-                    } else {
-                        $row->AllCc .= $clostStr;
-                    }
-                }
+                $mvc->addClosestEmailWarning($rec->AllCc, $row->AllCc);
             }
             
             if (trim($rec->fromEml) && $rec->headers) {
@@ -924,10 +912,8 @@ class email_Incomings extends core_Master
      * 
      * @return string
      */
-    protected static function getClosestEmail($emailsArr)
+    protected static function addClosestEmailWarning($emailsArr, &$body)
     {
-        $res = '';
-        
         foreach ((array)$emailsArr as $emailArr) {
                     
             $email = trim($emailArr['address']);
@@ -938,13 +924,20 @@ class email_Incomings extends core_Master
         
         $closestEmail = email_Inboxes::getClosest($allEmailToArr);
         
+        if(is_string($body)) {
+            $isString = TRUE;
+        }
+
         if ($closestEmail) {
             if (!$allEmailToArr[$closestEmail]) {
-                $res = ' (' . tr('до') . ' ' . type_Varchar::escape($closestEmail) . ')';
+                $res = ht::createHint($body, tr("Имейлът е пренасочен към") . " " . type_Varchar::escape($closestEmail), 'warning');
+                if($isString) {
+                    $body = (string) $res;
+                } else {
+                    $body = $res;
+                }
             }
         }
-        
-        return $res;
     }
     
     
