@@ -177,7 +177,7 @@ class batch_Setup extends core_ProtoSetup
     					             'batch'          => $dRec->batch,
     								 'date'           => $dRec->valior,
     								 'storeId'        => $dRec->storeId,
-    								 'operation'      => ($D->Master->batchMovementDocument == 'out') ? 'out' : 'in',
+    								 'operation'      => ($D->batchMovementDocument == 'out') ? 'out' : 'in',
     			
     			);
     			

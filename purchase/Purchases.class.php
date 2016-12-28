@@ -200,14 +200,6 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
-     * Какво движение на партида поражда документа в склада
-     * 
-     * @param out|in|stay - тип движение (излиза, влиза, стои)
-     */
-    public $batchMovementDocument = 'in';
-    
-    
-    /**
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(

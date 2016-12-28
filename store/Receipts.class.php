@@ -172,14 +172,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Какво движение на партида поражда документа в склада
-     *
-     * @param out|in|stay - тип движение (излиза, влиза, стои)
-     */
-    public $batchMovementDocument = 'in';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()

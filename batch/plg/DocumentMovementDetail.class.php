@@ -27,6 +27,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	{
 		setIfNot($mvc->productFieldName, 'productId');
 		setIfNot($mvc->storeFieldName, 'storeId');
+		setIfNot($mvc->batchMovementDocument, 'out');
 		$mvc->declareInterface('batch_MovementSourceIntf');
 	}
 	
@@ -44,7 +45,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 		if(!$storeId) return;
 		
-		if($mvc->Master->batchMovementDocument == 'out') return;
+		if($mvc->batchMovementDocument == 'out') return;
 		$form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
 		
 		// Задаване на типа на партидата на полето
@@ -83,7 +84,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 		if(haveRole('partner')) return;
 		
-		if($mvc->Master->batchMovementDocument == 'out') return;
+		if($mvc->batchMovementDocument == 'out') return;
 		if(!$storeId) return;
 		
 		if(isset($rec->{$mvc->productFieldName})){
@@ -120,7 +121,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		if($mvc->Master->batchMovementDocument == 'out'){
+		if($mvc->batchMovementDocument == 'out'){
 			
 			// След създаване се прави опит за разпределяне на количествата според наличните партиди
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
@@ -169,7 +170,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		if($mvc->Master->batchMovementDocument == 'out') return;
+		if($mvc->batchMovementDocument == 'out') return;
 		batch_BatchesInDocuments::sync($mvc->getClassId(), $rec->id, $rec->batch, $rec->quantity);
 	}
 	
@@ -231,7 +232,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			return;
 		}
 		
-		$operation = ($mvc->Master->batchMovementDocument == 'out') ? 'out' : 'in';
+		$operation = ($mvc->batchMovementDocument == 'out') ? 'out' : 'in';
 		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld}");
 		
 		$res = (object)array('productId'      => $rec->{$mvc->productFieldName},
@@ -262,7 +263,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 			if(!$storeId){
 				$res = 'no_one';
-			} elseif($mvc->Master->batchMovementDocument != 'out'){
+			} elseif($mvc->batchMovementDocument != 'out'){
 				$res = 'no_one';
 			} else {
 				$info = $mvc->getRowInfo($rec);

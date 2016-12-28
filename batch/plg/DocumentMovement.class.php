@@ -26,7 +26,6 @@ class batch_plg_DocumentMovement extends core_Plugin
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
 		setIfNot($mvc->storeFieldName, 'storeId');
-		setIfNot($mvc->batchMovementDocument, 'out');
 	}
 	
 	
