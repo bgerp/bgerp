@@ -830,14 +830,24 @@ class crm_Profiles extends core_Master
                 'access'    => 'private',
                 'email'     => ''
             );
-            $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
-            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
             if(isset($user->country)) {
                 $person->country = drdata_Countries::getIdByName($user->country);
             }
             $mustSave = TRUE;
         }
         
+
+        // Задаваме групата
+        $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
+        $exGroupList = $person->groupList;
+        if($user->state == 'rejected') {
+            $person->groupList = keylist::removeKey($person->groupList, $profilesGroup->id);
+        } else {
+            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
+        }
+        if($person->groupList != $exGroupList) {
+            $mustSave = TRUE;
+        }
  
         if(!empty($user->names) && ($person->name != $user->names)) {
             $person->name = $user->names;
@@ -876,9 +886,10 @@ class crm_Profiles extends core_Master
 
         $person->_skipUserUpdate = TRUE; // Флаг за предотвратяване на безкраен цикъл
         
+
         if($mustSave) {
             crm_Persons::save($person);
-            
+          
             return $person->id;
         }
     }
@@ -906,10 +917,11 @@ class crm_Profiles extends core_Master
             return;
         }
         
+        // Обновяваме имейла, само ако зададения в потребителя, липсва в списъка му с лични
         if (!empty($personRec->email)) {
             // Вземаме първия (валиден!) от списъка с лични имейли на лицето
             $emails = type_Emails::toArray($personRec->email);
-            if (!empty($emails)) {
+            if (!empty($emails) && !in_array($userRec->email, $emails)) {
                 $userRec->email = reset($emails);
             }
         }
@@ -919,7 +931,9 @@ class crm_Profiles extends core_Master
         }
         
         if (!empty($personRec->photo)) {
-            $userRec->avatar = $personRec->photo; 
+            if(is_readable(fileman_Files::fetchByFh($personRec->photo))) {
+                $userRec->avatar = $personRec->photo;
+            }
         }
         
         // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
