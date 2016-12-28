@@ -45,7 +45,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 		if(!$storeId) return;
 		
-		if($mvc->batchMovementDocument == 'out') return;
+		if($mvc->getBatchMovementDocument($rec) == 'out') return;
 		$form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
 		
 		// Задаване на типа на партидата на полето
@@ -84,7 +84,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 		if(haveRole('partner')) return;
 		
-		if($mvc->batchMovementDocument == 'out') return;
+		if($mvc->getBatchMovementDocument($rec) == 'out') return;
 		if(!$storeId) return;
 		
 		if(isset($rec->{$mvc->productFieldName})){
@@ -121,7 +121,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		if($mvc->batchMovementDocument == 'out'){
+		if($mvc->getBatchMovementDocument($rec) == 'out'){
 			
 			// След създаване се прави опит за разпределяне на количествата според наличните партиди
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
@@ -170,7 +170,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		if($mvc->batchMovementDocument == 'out') return;
+		if($mvc->getBatchMovementDocument($rec) == 'out') return;
 		batch_BatchesInDocuments::sync($mvc->getClassId(), $rec->id, $rec->batch, $rec->quantity);
 	}
 	
@@ -219,6 +219,23 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	}
 	
 	
+	
+	/**
+	 * метод по реализация на определянето на движението генерирано от реда
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param string $res
+	 * @param stdClass $rec
+	 * @return void
+	 */
+	public static function on_AfterGetBatchMovementDocument($mvc, &$res, $rec)
+	{
+		if(!$res){
+			$res = $mvc->batchMovementDocument;
+		}
+	}
+	
+	
 	/**
 	 * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
 	 */
@@ -232,7 +249,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			return;
 		}
 		
-		$operation = ($mvc->batchMovementDocument == 'out') ? 'out' : 'in';
+		$operation = ($mvc->getBatchMovementDocument($rec) == 'out') ? 'out' : 'in';
 		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld}");
 		
 		$res = (object)array('productId'      => $rec->{$mvc->productFieldName},
@@ -263,7 +280,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 			if(!$storeId){
 				$res = 'no_one';
-			} elseif($mvc->batchMovementDocument != 'out'){
+			} elseif($mvc->getBatchMovementDocument($rec) != 'out'){
 				$res = 'no_one';
 			} else {
 				$info = $mvc->getRowInfo($rec);
@@ -301,4 +318,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$id}");
 		}
 	}
+	
+	
+	
 }
