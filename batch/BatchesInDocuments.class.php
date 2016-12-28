@@ -126,16 +126,22 @@ class batch_BatchesInDocuments extends core_Manager
 		} 
 		
 		$rec = $Detail->getRowInfo($dRec);
-		$rec->batch = $batch;
-		$rec->quantity = isset($quantity) ? $quantity : $rec->quantity;
-		$rec->detailClassId = $Detail->getClassId();
-		$rec->detailRecId = $dRec->id;
-		
-		if($id = self::fetchField("#detailClassId = {$rec->detailClassId} AND #detailRecId = {$rec->detailRecId}", 'id')){
-			$rec->id = $id;
+		foreach ($rec->operation as $operation => $storeId){
+			$clone = clone $rec;
+			$clone->operation = $operation;
+			$clone->storeId = $storeId;
+			
+			$clone->batch = $batch;
+			$clone->quantity = isset($quantity) ? $quantity : $rec->quantity;
+			$clone->detailClassId = $Detail->getClassId();
+			$clone->detailRecId = $dRec->id;
+			
+			if($id = self::fetchField("#detailClassId = {$clone->detailClassId} AND #detailRecId = {$clone->detailRecId} AND #operation = '{$clone->operation}'", 'id')){
+				$clone->id = $id;
+			}
+			
+			return self::save($clone);
 		}
-		
-		return self::save($rec);
 	}
 	
 	
@@ -172,11 +178,12 @@ class batch_BatchesInDocuments extends core_Manager
 	{
 		$tpl = getTplFromFile('batch/tpl/BatchInfoBlock.shtml');
 		$detailClassId = cls::get($detailClassId)->getClassId();
+		$rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
+		$operation = key($rInfo->operation);
 		
 		$query = self::getQuery();
-		$query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
+		$query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
 		$query->orderBy('id', "ASC");
-		$rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
 		$batchDef = batch_Defs::getBatchDef($rInfo->productId);
 		
 		$count = 0;
@@ -263,11 +270,11 @@ class batch_BatchesInDocuments extends core_Manager
 	{
 		$Class = cls::get($detailClassId);
 		$rInfo = $Class->getRowInfo($detailRecId);
-		if(empty($rInfo->storeId)) return FALSE;
+		if(empty($rInfo->operation[key($rInfo->operation)])) return FALSE;
 		
 		// Ако операцията е изходяща 
 		if($rInfo->operation == 'out' && $rInfo->state == 'draft'){
-			$storeQuantity = batch_Items::getQuantity($rInfo->productId, $batch, $rInfo->storeId);
+			$storeQuantity = batch_Items::getQuantity($rInfo->productId, $batch, $rInfo->operation['out']);
 			if($quantity > $storeQuantity) {
 				return 'Недостатъчно количество в склада';
 			}
@@ -336,9 +343,10 @@ class batch_BatchesInDocuments extends core_Manager
 		$recInfo = $Detail->getRowInfo($detailRecId);
 		$recInfo->detailClassId = $detailClassId;
 		$recInfo->detailRecId = $detailRecId;
+		$storeId = $recInfo->operation[key($recInfo->operation)];
 		
 		// Кои са наличните партиди към момента
-		$batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $recInfo->storeId, $recInfo->date);
+		$batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date);
 		
 		// Кои са въведените партиди от документа
 		$dQuery = self::getQuery();
@@ -358,7 +366,7 @@ class batch_BatchesInDocuments extends core_Manager
 		$form->title = "Задаване на партидности";
 		$form->info = new core_ET(tr("Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#]</b>"));
 		$form->info->replace(cat_Products::getHyperlink($recInfo->productId, TRUE), 'productId');
-		$form->info->replace(store_Stores::getHyperlink($recInfo->storeId, TRUE), 'storeId');
+		$form->info->replace(store_Stores::getHyperlink($storeId, TRUE), 'storeId');
 		$form->info->replace($packName, 'packName');
 		$form->info->append(cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
 		
@@ -495,7 +503,7 @@ class batch_BatchesInDocuments extends core_Manager
 			if(!$form->gotErrors()){
 				if($form->cmd == 'auto'){
 					$old = $saveBatches;
-					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $recInfo->storeId, $recInfo->date);
+					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
 					$intersect = array_diff_key($old, $saveBatches);
 					$delete = (count($intersect)) ? array_keys($intersect) : array();
 				}
@@ -535,11 +543,12 @@ class batch_BatchesInDocuments extends core_Manager
 	 * @param int $detailRecId   - ид на запис
 	 * @param int $productId     - ид на артикул
 	 * @param string $batch      - партида
+	 * @param string $operation  - операция
 	 */
-	public static function getId($detailClassId, $detailRecId, $productId, $batch)
+	public static function getId($detailClassId, $detailRecId, $productId, $batch, $operation)
 	{
 		$detailClassId = cls::get($detailClassId)->getClassId();
-		return self::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #batch = '{$batch}'");
+		return self::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #batch = '{$batch}' AND #operation = '{$operation}'");
 	}
 	
 	
@@ -561,15 +570,20 @@ class batch_BatchesInDocuments extends core_Manager
 		// Подготвяне на редовете за обновяване
 		$update = array();
 		foreach ($batchesArr as $b => $q){
-			$obj = clone $recInfo;
-			$obj->quantity = $q;
-			$obj->batch = $b;
 			
-			if($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $obj->batch)){
-				$obj->id = $id;
+			foreach ($recInfo->operation as $operation => $storeId){
+				$obj = clone $recInfo;
+				$obj->operation = $operation;
+				$obj->storeId = $storeId;
+				$obj->quantity = $q;
+				$obj->batch = $b;
+				
+				if($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $obj->batch, $operation)){
+					$obj->id = $id;
+				}
+				
+				$update[] = $obj;
 			}
-			
-			$update[] = $obj;
 		}
 		
 		// Запис

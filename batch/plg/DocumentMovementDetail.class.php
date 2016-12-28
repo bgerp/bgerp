@@ -127,7 +127,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if(is_object($BatchClass)){
 				$info = $mvc->getRowInfo($rec->id);
-				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->storeId, $info->date);
+				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
 				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
 			}
 		} else {
@@ -257,10 +257,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		                     'quantity'       => $rec->quantity,
 		                     'quantityInPack' => $rec->quantityInPack,
 		                     'containerId'    => $masterRec->containerId,
-		                     'storeId'        => $masterRec->{$mvc->Master->storeFieldName},
 		                     'date'           => $masterRec->{$mvc->Master->valiorFld},
 		                     'state'          => $masterRec->state,
-		                     'operation'      => $operation);
+		                     'operation'      => array($operation => $masterRec->{$mvc->Master->storeFieldName}),
+		                     );
 		
 		$mvc->rowInfo[$rec->id] = $res;
 		$res = $mvc->rowInfo[$rec->id];
@@ -284,7 +284,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				$res = 'no_one';
 			} else {
 				$info = $mvc->getRowInfo($rec);
-				$quantities = batch_Items::getBatchQuantitiesInStore($info->productId, $info->storeId, $info->date);
+				$quantities = batch_Items::getBatchQuantitiesInStore($info->productId, $info->operation['out'], $info->date);
 				
 				if(!count($quantities)){
 					if(!batch_BatchesInDocuments::fetchField("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}")){

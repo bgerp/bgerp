@@ -535,8 +535,8 @@ class batch_Items extends core_Master {
     	$def = batch_Defs::getBatchDef($productId);
     	if(!$def) return $res;
     	
-    	$date = dt::addDays(-1, $date);
-    	$date = dt::verbal2mysql($date, FALSE);
+    	//$date = dt::addDays(1, $date);
+    	//$date = dt::verbal2mysql($date, FALSE);
     	
     	// Намират се всички движения в посочения интервал за дадения артикул в подадения склад
     	$query = batch_Movements::getQuery();
