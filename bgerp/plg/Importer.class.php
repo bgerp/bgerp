@@ -160,7 +160,7 @@ class bgerp_plg_Importer extends core_Plugin
         );
         
         // Създаваме форма с едно поле-файл за качване.
-        $data->form = new core_Form();
+        $data->form = cls::get('core_Form');
         $data->form->FNC('file', 'fileman_FileType(bucket=imports)', 'input,caption=Файл');
         $data->form->title = 'Импорт';
         

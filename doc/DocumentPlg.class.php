@@ -130,6 +130,11 @@ class doc_DocumentPlg extends core_Plugin
         if(!isset($plugins['acc_plg_Registry'])){
         	$mvc->load('acc_plg_Registry');
         }
+        
+        if ($mvc->fetchFieldsBeforeDelete) {
+            $mvc->fetchFieldsBeforeDelete .= ',';
+        }
+        $mvc->fetchFieldsBeforeDelete = 'containerId';
     }
     
     
@@ -967,7 +972,9 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = 'rejected';
         
         $res = static::updateDocumentState($mvc, $rec);
-          doc_Threads::setModification($rec->threadId);
+        doc_Threads::setModification($rec->threadId);
+        
+        doc_Files::recalcFiles($rec->containerId);
     }
     
     
@@ -993,7 +1000,21 @@ class doc_DocumentPlg extends core_Plugin
         
         $res = static::updateDocumentState($mvc, $rec);
         doc_Threads::setModification($rec->threadId);
+        
+        doc_Files::recalcFiles($rec->containerId);
     }
+    
+	
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $id => $rec) {
+            doc_Files::deleteFilesForContainer($rec->containerId);
+        }
+    }
+    
 
 
     /**

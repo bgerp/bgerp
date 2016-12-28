@@ -118,7 +118,7 @@ class fileman_Data extends core_Manager {
      * Абсорбира данните от указания файл и
      * и връща ИД-то на съхранения файл
      */
-    static function absorbFile($file, $create = TRUE)
+    static function absorbFile($file, $create = TRUE, $source = 'path')
     {
         $rec = new stdClass();
         $rec->fileLen = filesize($file);
@@ -126,9 +126,11 @@ class fileman_Data extends core_Manager {
         
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
-        if(!$rec->id && $create) {
+        if($rec) {
             $path = self::getFilePath($rec);
-            
+        }
+
+        if((!$rec->id  && $create) || !file_exists($path)) {
             if(@copy($file, $path)) {
                 $rec->links = 0;
                 $status = static::save($rec);
@@ -154,10 +156,11 @@ class fileman_Data extends core_Manager {
         $rec->md5 = md5($string);
         
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
-        
-        if(!$rec->id && $create) {
-            
+        if($rec) {
             $path = self::getFilePath($rec);
+        }
+        
+        if((!$rec->id  && $create) || !file_exists($path)) {
             
             expect(FALSE !== @file_put_contents($path, $string));
             
