@@ -23,7 +23,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     {
     	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Продукт,notNull,mandatory', 'tdClass=productCell leftCol wrap');
     	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory,tdClass=small-field nowrap,smartCenter,input=hidden');
-    	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
     	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
@@ -141,9 +140,8 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		$rec = &$data->recs[$i];
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     		
-    		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		if($rec->notes){
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes, $rec->batch);
+    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     		
     		// Показваме подробната информация за опаковката при нужда
@@ -193,5 +191,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	$quantity = $rec->packQuantity * $rec->quantityInPack;
     	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $quantity);
     	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $quantity);
+    }
+    
+    
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	
+    	$res->quantity = $rec->packQuantity * $rec->quantityInPack;
     }
 }

@@ -250,7 +250,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		}
 		
 		$operation = ($mvc->getBatchMovementDocument($rec) == 'out') ? 'out' : 'in';
-		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld}");
+		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld},state");
 		
 		$res = (object)array('productId'      => $rec->{$mvc->productFieldName},
 		                     'packagingId'    => $rec->packagingId,
@@ -318,7 +318,4 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$id}");
 		}
 	}
-	
-	
-	
 }

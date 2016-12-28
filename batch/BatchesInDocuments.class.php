@@ -423,7 +423,7 @@ class batch_BatchesInDocuments extends core_Manager
 		// След събмит
 		if($form->isSubmitted()){
 			$r = $form->rec;
-			bp($form);
+			
 			$update = $delete = $fields = $error = array();
 			$total = 0;
 			
