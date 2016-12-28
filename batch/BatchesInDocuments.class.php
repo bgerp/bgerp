@@ -395,7 +395,7 @@ class batch_BatchesInDocuments extends core_Manager
 				$count = 0;
 				foreach ($batches as $batch => $quantity){
 					$verbal = strip_tags($Def->toVerbal($batch));
-					$form->FLD("quantity{$count}", "double(min=0)", "caption=Налични партиди->{$verbal},unit={$packName}");
+					$form->FLD("quantity{$count}", "double(Min=0)", "caption=Налични партиди->{$verbal},unit={$packName}");
 					if($q = self::fetchField("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$batch}'", 'quantity')){
 						$form->setDefault("quantity{$count}", ($q / $recInfo->quantityInPack));
 					}
@@ -422,9 +422,8 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		// След събмит
 		if($form->isSubmitted()){
-			
 			$r = $form->rec;
-			
+			bp($form);
 			$update = $delete = $fields = $error = array();
 			$total = 0;
 			
