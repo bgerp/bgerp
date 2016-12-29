@@ -165,125 +165,16 @@ class fileman_Files extends core_Master
     
     
     /**
-     * Задава файла с посоченото име в посочената кофа
+     * Преименуване на файл
+     * 
+     * @param string $fh - Манипулатор на файла
+     * @param string $newName - Новото име на файла
+     * 
+     * @return string - Новото име на файла
+     * 
+     * @deprecated
      */
-    function setFile($path, $bucket, $fname = NULL, $force = FALSE)
-    {
-        if($fname === NULL) $fname = basename($path);
-        
-        $Buckets = cls::get('fileman_Buckets');
-        
-        expect($bucketId = $Buckets->fetchByName($bucket));
-        
-        $fh = $this->fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId}",
-                $fname,
-            ), "fileHnd");
-        
-        if(!$fh) {
-            $fh = $this->addNewFile($path, $bucket, $fname);
-        } elseif($force) {
-            $this->setContent($fh, $path);
-        }
-        
-        return $fh;
-    }
-    
-    
-    /**
-     * Добавя нов файл в посочената кофа
-     */
-    function addNewFile($path, $bucket, $fname = NULL)
-    {
-        if($fname === NULL) $fname = basename($path);
-        
-        $Buckets = cls::get('fileman_Buckets');
-        
-        $bucketId = $Buckets->fetchByName($bucket);
-        
-        if($dataId = $this->Data->absorbFile($path, FALSE)) {
-            
-            // Проверяваме името на файла
-            $fh = $this->checkFileName($dataId, $bucketId, $fname);
-        }        
-        
-        // Ако няма манипулатор
-        if (!$fh) {
-            $fh = $this->createDraftFile($fname, $bucketId);
-        
-            $this->setContent($fh, $path);
-        }
-        
-        // Ако има манипулатор
-        if ($fh) {
-            
-            // Обновяваме лога за използване на файла 
-            fileman_Log::updateLogInfo($fh, 'upload');
-        }
-        
-        return $fh;
-    }
-    
-    
-    /**
-     * Добавя нов файл в посочената кофа от стринг
-     */
-    function addNewFileFromString($string, $bucket, $fname = NULL)
-    {
-        $me = cls::get('fileman_Files');
-        
-        if($fname === NULL) $fname = basename($path);
-        
-        $Buckets = cls::get('fileman_Buckets');
-        
-        $bucketId = $Buckets->fetchByName($bucket);
-        
-        if($dataId = $this->Data->absorbString($string, FALSE)) {
-
-            // Проверяваме името на файла
-            $fh = $this->checkFileName($dataId, $bucketId, $fname);
-        }        
-        
-        // Ако няма манипулатор
-        if (!$fh) {
-            $fh = $me->createDraftFile($fname, $bucketId);
-        
-            $me->setContentFromString($fh, $string);
-        }
-        
-        // Ако има манипулатор на файла
-        if ($fh) {
-            
-            // Обновяваме лога за използване на файла
-            fileman_Log::updateLogInfo($fh, 'upload');
-        }
-        
-        return $fh;
-    }
-    
-    
-    /**
-     * Създаваме нов файл в посочената кофа
-     */
-    function createDraftFile($fname, $bucketId)
-    {
-        expect($bucketId, 'Очаква се валидна кофа');
-        
-        $rec = new stdClass();
-        $rec->name = $this->getPossibleName($fname, $bucketId);
-        $rec->bucketId = $bucketId;
-        $rec->state = 'draft';
-        
-        $this->save($rec);
-        
-        return $rec->fileHnd;
-    }
-
-
-    /**
-     * Променя името на съществуващ файл
-     * Връща новото име, което може да е различно от желаното ново име
-     */
-    static function rename($id, $newName) 
+    public static function rename($fh, $newName)
     {
         expect($rec = static::fetch($id));
 
@@ -366,76 +257,6 @@ class fileman_Files extends core_Master
     
     
     /**
-     * Ако имаме нови данни, които заменят стари
-     * такива указваме, че старите са стара версия
-     * на файла и ги разскачаме от файла
-     */
-    function setData($fileHnd, $newDataId)
-    {
-        $rec = $this->fetch("#fileHnd = '{$fileHnd}'");
-        
-        // Ако новите данни са същите, като старите 
-        // нямаме смяна
-        if($rec->dataId == $newDataId) return $rec->dataId;
-        
-        // Ако имаме стари данни, изпращаме ги в историята
-        if($rec->dataId) {
-            $verRec->fileHnd = $fileHnd;
-            $verRec->dataId = $rec->dataId;
-            $verRec->from = $rec->modifiedOn;
-            $verRec->to = dt::verbal2mysql();
-            $this->Versions->save($verRec);
-            
-            // Намаляваме с 1 броя на линковете към старите данни
-            $this->Data->decreaseLinks($rec->dataId);
-        }
-        
-        // Записваме новите данни
-        $rec->dataId = $newDataId;
-        $rec->state = 'active';
-        
-        // Генерираме събитие преди съхраняването на записа с добавения dataId
-        $this->invoke('BeforeSaveDataId', array($rec));
-
-        $this->save($rec);
-        
-        // Ако има запис
-        if ($rec) {
-            
-            // Обновяваме лога за използване на файла
-            fileman_Log::updateLogInfo($rec, 'upload');
-        }
-        
-        // Увеличаваме с 1 броя на линковете към новите данни
-        $this->Data->increaseLinks($newDataId);
-        
-        return $rec->dataId;
-    }
-    
-    
-    /**
-     * Задава данните на даден файл от съществуващ файл в ОС
-     */
-    function setContent($fileHnd, $osFile)
-    {
-        $dataId = $this->Data->absorbFile($osFile);
-        
-        return $this->setData($fileHnd, $dataId);
-    }
-    
-    
-    /**
-     * Задава данните на даден файл от стринг
-     */
-    function setContentFromString($fileHnd, $string)
-    {
-        $dataId = $this->Data->absorbString($string);
-        
-        return $this->setData($fileHnd, $dataId);
-    }
-    
-    
-    /**
      * Връща данните на един файл като стринг
      */
     static function getContent($hnd)
@@ -445,19 +266,6 @@ class fileman_Files extends core_Master
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
         
         return @file_get_contents($path);
-    }
-    
-    
-    /**
-     * Копира данните от един файл на друг файл
-     */
-    function copyContent($sHnd, $dHnd)
-    {
-        $sRec = $this->fetch("#fileHnd = '{$sHnd}'");
-        
-        if($sRec->state != 'active') return FALSE;
-        
-        return $this->setData($dHnd, $sRec->dataId);
     }
     
     
@@ -601,50 +409,6 @@ class fileman_Files extends core_Master
         }
         
         return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
-    }
-    
-    
-    /**
-     * Превръща масив с fileHandler' и в масив с id' тата на файловете
-     * 
-     * @param array $fh - Масив с манупулатори на файловете
-     * 
-     * @return array $newArr - Масив с id' тата на съответните файлове
-     */
-    static function getIdFromFh($fh)
-    {
-        //Преобразуваме към масив
-        $fhArr = (array)$fh;
-        
-        //Създаваме променлива за id' тата
-        $newArr = array();
-        
-        foreach ($fhArr as $val) {
-            
-            //Ако няма стойност, прескачаме
-            if (!$val) continue;
-            
-            //Ако стойността не е число
-            if (!is_numeric($val)) {
-                
-                //Вземема id'то на файла
-                try {
-                    $id = static::fetchByFh($val, 'id');
-                } catch (core_exception_Expect $e) {
-                    //Ако няма такъв fh, тогава прескачаме
-                    continue;
-                }   
-            } else {
-                
-                //Присвояваме променливата, като id
-                $id = $val;
-            }
-            
-            //Записваме в масива
-            $newArr[$id] = $id;
-        }
-        
-        return $newArr;
     }
     
     
@@ -1022,52 +786,6 @@ class fileman_Files extends core_Master
             }
         }
 
-    }
-    
-    
-    /**
-     * Проверява дали името на подадения файл не се съдържа в същата кофа със същите данни.
-     * Ако същия файл е бил качен връща манипулатора на файла
-     * 
-     * @param fileman_Data $dataId - id' то на данните на файка
-     * @param fileman_Buckets $bucketId - id' то на кофата
-     * @param string $inputFileName - Името на файла, който искаме да качим
-     * 
-     * @return fileman_Files $fileHnd - Манипулатора на файла
-     */
-    static function checkFileName($dataId, $bucketId, $inputFileName)
-    {
-        // Вземаме всички файлове, които са в съответната кофа и със същите данни
-        $query = static::getQuery();
-        $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
-        $query->show('fileHnd, name');
-        
-        // Масив с името на файла и разширението
-        $inputFileNameArr = static::getNameAndExt($inputFileName);
-        
-        // Обикаляме всички открити съвпадения
-        while ($rec = $query->fetch($where)) {
-
-            // Ако имената са еднакви
-            if ($rec->name == $inputFileName) return $rec->fileHnd;
-            
-            // Вземаме името на файла и разширението
-            $recFileNameArr = static::getNameAndExt($rec->name);
-            
-            // Намираме името на файла до последния '_'
-            if(($underscorePos = mb_strrpos($recFileNameArr['name'], '_')) !== FALSE) {
-                $recFileNameArr['name'] = mb_substr($recFileNameArr['name'], 0, $underscorePos);
-            }
-
-            // Ако двата масива са еднакви
-            if ($inputFileNameArr == $recFileNameArr) {
-                
-                // Връщаме манипулатора на файла
-                return $rec->fileHnd;
-            }
-        }
-        
-        return FALSE;
     }
     
     
@@ -1583,5 +1301,313 @@ class fileman_Files extends core_Master
     	} else {
     		return $tpl;
     	}
+    }
+    
+    
+    /**
+     * Задава файла с посоченото име в посочената кофа
+     * 
+     * @deprecated
+     */
+    function setFile($path, $bucket, $fname = NULL, $force = FALSE)
+    {
+        if($fname === NULL) $fname = basename($path);
+        
+        $Buckets = cls::get('fileman_Buckets');
+        
+        expect($bucketId = $Buckets->fetchByName($bucket));
+        
+        $fh = $this->fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId}",
+                $fname,
+            ), "fileHnd");
+        
+        if(!$fh) {
+            $fh = $this->addNewFile($path, $bucket, $fname);
+        } elseif($force) {
+            $this->setContent($fh, $path);
+        }
+        
+        return $fh;
+    }
+    
+    
+    /**
+     * Добавя нов файл в посочената кофа
+     * 
+     * @deprecated
+     */
+    function addNewFile($path, $bucket, $fname = NULL)
+    {
+        if($fname === NULL) $fname = basename($path);
+        
+        $Buckets = cls::get('fileman_Buckets');
+        
+        $bucketId = $Buckets->fetchByName($bucket);
+        
+        if($dataId = $this->Data->absorbFile($path, FALSE)) {
+            
+            // Проверяваме името на файла
+            $fh = $this->checkFileName($dataId, $bucketId, $fname);
+        }        
+        
+        // Ако няма манипулатор
+        if (!$fh) {
+            $fh = $this->createDraftFile($fname, $bucketId);
+        
+            $this->setContent($fh, $path);
+        }
+        
+        // Ако има манипулатор
+        if ($fh) {
+            
+            // Обновяваме лога за използване на файла 
+            fileman_Log::updateLogInfo($fh, 'upload');
+        }
+        
+        return $fh;
+    }
+    
+    
+    /**
+     * Добавя нов файл в посочената кофа от стринг
+     * 
+     * @deprecated
+     */
+    function addNewFileFromString($string, $bucket, $fname = NULL)
+    {
+        $me = cls::get('fileman_Files');
+        
+        if($fname === NULL) $fname = basename($path);
+        
+        $Buckets = cls::get('fileman_Buckets');
+        
+        $bucketId = $Buckets->fetchByName($bucket);
+        
+        if($dataId = $this->Data->absorbString($string, FALSE)) {
+
+            // Проверяваме името на файла
+            $fh = $this->checkFileName($dataId, $bucketId, $fname);
+        }        
+        
+        // Ако няма манипулатор
+        if (!$fh) {
+            $fh = $me->createDraftFile($fname, $bucketId);
+        
+            $me->setContentFromString($fh, $string);
+        }
+        
+        // Ако има манипулатор на файла
+        if ($fh) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($fh, 'upload');
+        }
+        
+        return $fh;
+    }
+    
+    
+    /**
+     * Създаваме нов файл в посочената кофа
+     * 
+     * @deprecated
+     */
+    function createDraftFile($fname, $bucketId)
+    {
+        expect($bucketId, 'Очаква се валидна кофа');
+        
+        $rec = new stdClass();
+        $rec->name = $this->getPossibleName($fname, $bucketId);
+        $rec->bucketId = $bucketId;
+        $rec->state = 'draft';
+        
+        $this->save($rec);
+        
+        return $rec->fileHnd;
+    }
+    
+    
+    /**
+     * Задава данните на даден файл от съществуващ файл в ОС
+     * 
+     * @deprecated
+     */
+    function setContent($fileHnd, $osFile)
+    {
+        $dataId = $this->Data->absorbFile($osFile);
+        
+        return $this->setData($fileHnd, $dataId);
+    }
+    
+    
+    /**
+     * Задава данните на даден файл от стринг
+     * 
+     * @deprecated
+     */
+    function setContentFromString($fileHnd, $string)
+    {
+        $dataId = $this->Data->absorbString($string);
+        
+        return $this->setData($fileHnd, $dataId);
+    }
+    
+    
+    /**
+     * Ако имаме нови данни, които заменят стари
+     * такива указваме, че старите са стара версия
+     * на файла и ги разскачаме от файла
+     * 
+     * @deprecated
+     */
+    function setData($fileHnd, $newDataId)
+    {
+        $rec = $this->fetch("#fileHnd = '{$fileHnd}'");
+        
+        // Ако новите данни са същите, като старите 
+        // нямаме смяна
+        if($rec->dataId == $newDataId) return $rec->dataId;
+        
+        // Ако имаме стари данни, изпращаме ги в историята
+        if($rec->dataId) {
+            $verRec->fileHnd = $fileHnd;
+            $verRec->dataId = $rec->dataId;
+            $verRec->from = $rec->modifiedOn;
+            $verRec->to = dt::verbal2mysql();
+            $this->Versions->save($verRec);
+            
+            // Намаляваме с 1 броя на линковете към старите данни
+            $this->Data->decreaseLinks($rec->dataId);
+        }
+        
+        // Записваме новите данни
+        $rec->dataId = $newDataId;
+        $rec->state = 'active';
+        
+        // Генерираме събитие преди съхраняването на записа с добавения dataId
+        $this->invoke('BeforeSaveDataId', array($rec));
+
+        $this->save($rec);
+        
+        // Ако има запис
+        if ($rec) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($rec, 'upload');
+        }
+        
+        // Увеличаваме с 1 броя на линковете към новите данни
+        $this->Data->increaseLinks($newDataId);
+        
+        return $rec->dataId;
+    }
+    
+    
+    /**
+     * Копира данните от един файл на друг файл
+     * 
+     * @deprecated
+     */
+    function copyContent($sHnd, $dHnd)
+    {
+        $sRec = $this->fetch("#fileHnd = '{$sHnd}'");
+        
+        if($sRec->state != 'active') return FALSE;
+        
+        return $this->setData($dHnd, $sRec->dataId);
+    }
+    
+    
+    /**
+     * Проверява дали името на подадения файл не се съдържа в същата кофа със същите данни.
+     * Ако същия файл е бил качен връща манипулатора на файла
+     * 
+     * @param fileman_Data $dataId - id' то на данните на файка
+     * @param fileman_Buckets $bucketId - id' то на кофата
+     * @param string $inputFileName - Името на файла, който искаме да качим
+     * 
+     * @return fileman_Files $fileHnd - Манипулатора на файла
+     * 
+     * @deprecated
+     */
+    static function checkFileName($dataId, $bucketId, $inputFileName)
+    {
+        // Вземаме всички файлове, които са в съответната кофа и със същите данни
+        $query = static::getQuery();
+        $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
+        $query->show('fileHnd, name');
+        
+        // Масив с името на файла и разширението
+        $inputFileNameArr = static::getNameAndExt($inputFileName);
+        
+        // Обикаляме всички открити съвпадения
+        while ($rec = $query->fetch($where)) {
+
+            // Ако имената са еднакви
+            if ($rec->name == $inputFileName) return $rec->fileHnd;
+            
+            // Вземаме името на файла и разширението
+            $recFileNameArr = static::getNameAndExt($rec->name);
+            
+            // Намираме името на файла до последния '_'
+            if(($underscorePos = mb_strrpos($recFileNameArr['name'], '_')) !== FALSE) {
+                $recFileNameArr['name'] = mb_substr($recFileNameArr['name'], 0, $underscorePos);
+            }
+
+            // Ако двата масива са еднакви
+            if ($inputFileNameArr == $recFileNameArr) {
+                
+                // Връщаме манипулатора на файла
+                return $rec->fileHnd;
+            }
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Превръща масив с fileHandler' и в масив с id' тата на файловете
+     * 
+     * @param array $fh - Масив с манупулатори на файловете
+     * 
+     * @return array $newArr - Масив с id' тата на съответните файлове
+     * 
+     * @deprecated
+     */
+    static function getIdFromFh($fh)
+    {
+        //Преобразуваме към масив
+        $fhArr = (array)$fh;
+        
+        //Създаваме променлива за id' тата
+        $newArr = array();
+        
+        foreach ($fhArr as $val) {
+            
+            //Ако няма стойност, прескачаме
+            if (!$val) continue;
+            
+            //Ако стойността не е число
+            if (!is_numeric($val)) {
+                
+                //Вземема id'то на файла
+                try {
+                    $id = static::fetchByFh($val, 'id');
+                } catch (core_exception_Expect $e) {
+                    //Ако няма такъв fh, тогава прескачаме
+                    continue;
+                }   
+            } else {
+                
+                //Присвояваме променливата, като id
+                $id = $val;
+            }
+            
+            //Записваме в масива
+            $newArr[$id] = $id;
+        }
+        
+        return $newArr;
     }
 }
