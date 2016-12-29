@@ -237,6 +237,7 @@ class batch_Movements extends core_Detail {
     	// Какви партиди са въведени
     	$jQuery = batch_BatchesInDocuments::getQuery();
     	$jQuery->where("#containerId = {$containerId}");
+    	$jQuery->orderBy('id', 'ASC');
     	
     	// За всяка
     	while($jRec = $jQuery->fetch()){
