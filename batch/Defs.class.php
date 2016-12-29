@@ -128,7 +128,13 @@ class batch_Defs extends embed_Manager {
     {
     	$form = &$data->form;
     	
+    	// От всички складируеми артикули, се махат тези които вече имат партидност
     	$storable = cat_Products::getByProperty('canStore');
+    	$query = self::getQuery();
+    	$query->show('productId');
+    	$alreadyWithDefs = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+    	$storable = array_diff_key($storable, $alreadyWithDefs);
+    	
     	$form->setOptions('productId', array('' => '') + $storable);
     	
     	if(isset($form->rec->productId)){
@@ -297,6 +303,12 @@ class batch_Defs extends embed_Manager {
     {
     	if($action == 'delete' && isset($rec->productId)){
     		if(batch_Items::fetchField("#productId = {$rec->productId}")){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'add' && isset($rec->productId)){
+    		if(self::fetchField("#productId = {$rec->productId}")){
     			$requiredRoles = 'no_one';
     		}
     	}
