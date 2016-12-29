@@ -165,9 +165,6 @@ class tnef_Decode extends core_Manager
         
         if (!$files) return $fileHndArr;
         
-        // Инстанция на класа
-        $Fileman = cls::get('fileman_Files');
-        
         // Обхождаме всички отркити файлове
         foreach ($files as $file) {
             
@@ -176,7 +173,7 @@ class tnef_Decode extends core_Manager
             // Ако възникне грешка при качването на файла (липса на права)
             try {
                 // Качваме файла в кофата и му вземаме манипулатора
-                $fileHnd = $Fileman->addNewFile($script->outputPath . $file, self::$bucket);
+                $fileHnd = fileman::absorb($script->outputPath . $file, self::$bucket);
             } catch (core_exception_Expect $e) {
                 continue;
             }

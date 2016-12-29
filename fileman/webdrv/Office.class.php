@@ -365,9 +365,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);
 
-        // Инстанция на класа
-        $Fileman = cls::get('fileman_Files');
-        
         // Шаблон за намиране на името на файла
         $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
         
@@ -393,7 +390,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             try {
                 
                 // Качваме файла в кофата и му вземаме манипулатора
-                $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+                $fileHnd = fileman::absorb($script->tempDir . $file, 'fileIndex'); 
             } catch (core_exception_Expect $e) {
                 continue;
             }
