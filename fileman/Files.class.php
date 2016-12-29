@@ -136,6 +136,33 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Връща записа за посочения файл или негово поле, ако е указано.
+     * Ако посоченото поле съществува в записа за данните за файла,
+     * връщаната стойност е от записа за данните на посочения файл
+     */
+    public static function fetchByFh($fh, $field = NULL)
+    {
+        $Files = cls::get('fileman_Files');
+        
+        $rec = $Files->fetch(array("#fileHnd = '[#1#]'", $fh));
+        
+        if($field === NULL) return $rec;
+        
+        if(!isset($rec->{$field})) {
+            $Data = cls::get('fileman_Data');
+            
+            $dataFields = $Data->selectFields("");
+            
+            if($dataFields[$field]) {
+                $rec = $Data->fetch($rec->dataId);
+            }
+        }
+        
+        return $rec->{$field};
+    }
+    
+    
+    /**
      * Създаване на файл от файл в ОС. Връща fh на новосъздания файл.
      * 
      * @param string $path - Пътя до файла в ОС
@@ -597,34 +624,6 @@ class fileman_Files extends core_Master
     }
     
     
-	/**
-     * Създава нов файл
-     * 
-     * @param string $name - Името на файла
-     * @param fileman_Buckets $bucketId - Кофата, в която ще създадем
-     * @param fileman_Data $dataId - Данните за файла
-     * 
-     * @return string $rec->fileHnd - Манипуалатор на файла
-     */
-    protected static function createFile($name, $bucketId, $dataId)
-    {
-        // Създаваме записите
-        $rec = new stdClass();
-        $rec->name = fileman_Files::getPossibleName($name, $bucketId);
-        $rec->bucketId = $bucketId;
-        $rec->state = 'active';
-        $rec->dataId = $dataId;
-        
-        // Записваме
-        fileman_Files::save($rec);
-        
-        // Увеличаваме с единица броя на файловете за които отговаря файла
-        fileman_Data::increaseLinks($dataId);
-        
-        return $rec->fileHnd;
-    }
-    
-    
     /**
      * Създава нова директория, където ще се записват файловете
      * 
@@ -696,32 +695,6 @@ class fileman_Files extends core_Master
     }
     
     
-	/**
-	 * 
-	 */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        // Пътя до временните файлове
-        $tempPath = static::getTempDir();
-        
-        // Ако не същестува
-        if(!is_dir($tempPath)) {
-            
-            // Ако не може да се създаде
-            if(!mkdir($tempPath, 0777, TRUE)) {
-                
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . $tempPath . '"</li>';
-            } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . $tempPath . '"</li>';
-            }
-        } else {
-            $res .= '<li>' . tr('Директорията съществува') . ': "' . $tempPath . '"</li>';
-        }
-        
-        return $res;
-    }
-    
-    
     /**
      * Проверява дали файла със съответните данни съществува
      * 
@@ -731,7 +704,7 @@ class fileman_Files extends core_Master
      * 
      * @return string|FALSE - Ако открие съвпадение връща манипулатора на файла
      */
-    static function checkFileNameExist($dataId, $bucketId, $inputFileName)
+    public static function checkFileNameExist($dataId, $bucketId, $inputFileName)
     {
         // Името на файла в долния регистър
         $inputFileName = strtolower($inputFileName);
@@ -784,7 +757,7 @@ class fileman_Files extends core_Master
      * 
      * @return boolean
      */
-    static function isCorrectPath($path)
+    public static function isCorrectPath($path)
     {
         static $isCorrect;
         
@@ -813,7 +786,7 @@ class fileman_Files extends core_Master
      * 
      * @return string - Миме типа на файла
      */
-    static function getMimeTypeFromFilePath($path)
+    public static function getMimeTypeFromFilePath($path)
     {
         // Очакваме да е валиден път иначе се отказваме
         if(!static::isCorrectPath($path)) return FALSE;
@@ -854,7 +827,7 @@ class fileman_Files extends core_Master
      * 
      * @return timeStamp - Времето на последна промяна на файла
      */
-    static function getModificationTimeFromFilePath($path)
+    public static function getModificationTimeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -870,7 +843,7 @@ class fileman_Files extends core_Master
      * 
      * @return timeStamp - Времето на създаване на файла
      */
-    static function getCreationTimeFromFilePath($path)
+    public static function getCreationTimeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -886,7 +859,7 @@ class fileman_Files extends core_Master
      * 
      * @return timeStamp - Времето на последен достъп до файла
      */
-    static function getAccessTimeFromFilePath($path)
+    public static function getAccessTimeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -902,7 +875,7 @@ class fileman_Files extends core_Master
      * 
      * @return integer - Размера на файла в байтове
      */
-    static function getFileSizeFromFilePath($path)
+    public static function getFileSizeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -918,7 +891,7 @@ class fileman_Files extends core_Master
      * 
      * @return string - Типа на файла
      */
-    static function getFileTypeFromFilePath($path)
+    public static function getFileTypeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -943,7 +916,7 @@ class fileman_Files extends core_Master
      * $res['extension'] - Разширението на файла
      * $res['isCorrectExt'] - Дали разширението на файла е в допусмите за миме типа
      */
-    static function getInfoFromFilePath($filePath)
+    public static function getInfoFromFilePath($filePath)
     {
         // Време на последна модификация
         $res['modificationTime'] = static::getModificationTimeFromFilePath($filePath);
@@ -983,7 +956,7 @@ class fileman_Files extends core_Master
      * 
      * @return core_Et - Линк
      */
-    static function getLinkToSingle($fh, $absolute=FALSE, $attr=array(), $name=NULL)
+    public static function getLinkToSingle($fh, $absolute=FALSE, $attr=array(), $name=NULL)
     {
         // Вземаме записа
         $rec = fileman_Files::fetchByFh($fh);
@@ -1049,7 +1022,7 @@ class fileman_Files extends core_Master
      * 
      * @return string - URL към сингъла
      */
-    static function getUrlToSingle($fh, $absolute=FALSE)
+    public static function getUrlToSingle($fh, $absolute=FALSE)
     {
         // Вземаме URL' то
         $url = toUrl(array('fileman_Files', 'single', $fh), $absolute);
@@ -1100,39 +1073,10 @@ class fileman_Files extends core_Master
     
     
     /**
-     * Преди да запишем, генерираме случаен манипулатор
-     */
-    static function on_BeforeSave(&$mvc, &$id, &$rec)
-    {
-        // Ако липсва, създаваме нов уникален номер-държател
-        if(!$rec->fileHnd) {
-            do {
-                
-                if(16 < $i++) error('@Unable to generate random file handler', $rec);
-                
-                $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
-            } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
-         } elseif(!$rec->id && $rec->fileHnd) {
-            $existingRec = $mvc->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd));
-            
-            if ($existingRec) {
-                $rec->id = $existingRec->id;
-            }
-        }
-        
-        if ($rec->dataId) {
-            $dRec = fileman_Data::fetch($rec->dataId);
-            $fileLen = $dRec->fileLen;
-            $rec->fileLen = $fileLen;
-        }
-    }
-    
-    
-    /**
      * Връща първото възможно има, подобно на зададеното, така че в този
      * $bucketId да няма повторение на имената
      */
-    static function getPossibleName($fname, $bucketId)
+    public static function getPossibleName($fname, $bucketId)
     {
         // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
         $fname = static::normalizeFileName($fname);
@@ -1187,7 +1131,7 @@ class fileman_Files extends core_Master
      * 
      * @param string $fname - Името на файла
      */
-    static function normalizeFileName($fname)
+    public static function normalizeFileName($fname)
     {
         // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
         $fname = STR::utf2ascii($fname);
@@ -1200,7 +1144,7 @@ class fileman_Files extends core_Master
     /**
      * Връща данните на един файл като стринг
      */
-    static function getContent($hnd)
+    public static function getContent($hnd)
     {
         log_System::add(get_called_class(), "fileman_Files::getContent('{$hnd}')");
         //expect($path = fileman_Download::getDownloadUrl($hnd));  
@@ -1211,91 +1155,9 @@ class fileman_Files extends core_Master
     
     
     /**
-     * Връща записа за посочения файл или негово поле, ако е указано.
-     * Ако посоченото поле съществува в записа за данните за файла,
-     * връщаната стойност е от записа за данните на посочения файл
-     */
-    static function fetchByFh($fh, $field = NULL)
-    {
-        $Files = cls::get('fileman_Files');
-        
-        $rec = $Files->fetch(array("#fileHnd = '[#1#]'", $fh));
-        
-        if($field === NULL) return $rec;
-        
-        if(!isset($rec->{$field})) {
-            $Data = cls::get('fileman_Data');
-            
-            $dataFields = $Data->selectFields("");
-            
-            if($dataFields[$field]) {
-                $rec = $Data->fetch($rec->dataId);
-            }
-        }
-        
-        return $rec->{$field};
-    }
-    
-    
-    /**
-     * Какви роли са необходими за качване или сваляне?
-     */
-    static function on_BeforeGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
-    {
-        if($action == 'download' && is_object($rec)) {
-            $roles = $mvc->Buckets->fetchField($rec->bucketId, 'rolesForDownload');
-        } elseif($action == 'add' && is_object($rec)) {
-            $roles = $mvc->Buckets->fetchField($rec->bucketId, 'rolesForAdding');
-        } else {
-            
-            return;
-        }
-        
-        return FALSE;
-    }
-    
-    
-    /**
-     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
-     */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {   
-        try {
-			$row->name = static::getLink($rec->fileHnd);
-        } catch(core_Exception_Expect $e) {
-            // Вместо линк използваме името
-        }
-    }
-    
-    
-    /**
      * @todo Чака за документация...
      */
-    function makeBtnToAddFile($title, $bucketId, $callback, $attr = array())
-    {
-        $function = $this->getJsFunctionForAddFile($bucketId, $callback);
-        
-        return ht::createFnBtn($title, $function, NULL, $attr);
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function makeLinkToAddFile($title, $bucketId, $callback, $attr = array())
-    {
-        $attr['onclick'] = $this->getJsFunctionForAddFile($bucketId, $callback);
-        $attr['href'] = $this->getUrLForAddFile($bucketId, $callback);
-        $attr['target'] = 'addFileDialog';
-        
-        return ht::createElement('a', $attr, $title);
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    static function getUrLForAddFile($bucketId, $callback)
+    public static function getUrLForAddFile($bucketId, $callback)
     {
         // Защитаваме променливите
         Request::setProtected('bucketId,callback');
@@ -1304,187 +1166,6 @@ class fileman_Files extends core_Master
         $url = array('fileman_Files', 'AddFile', 'bucketId' => $bucketId, 'callback' => $callback);
         
         return toUrl($url);
-    }
-    
-    
-    /**
-     * Екшън, който редиректва към качването на файл в съответния таб
-     */
-    function act_AddFile()
-    {
-        // Защитаваме променливите
-        Request::setProtected('bucketId,callback');
-        
-        // Името на класа
-        $class = fileman_DialogWrapper::getLastUploadTab();
-        
-        // Инстанция на класа
-        $class = cls::get($class);
-        
-        // Вземаме екшъна
-        $act = $class->getActionForAddFile();
-        
-        // Други допълнителни данни
-        $bucketId = Request::get('bucketId', 'int');
-        $callback = Request::get('callback');
-        
-        $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback);
-        
-        return new Redirect($url);
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function getJsFunctionForAddFile($bucketId, $callback)
-    {
-        $url = $this->getUrLForAddFile($bucketId, $callback);
-        
-        $windowName = 'addFileDialog';
-        
-        if(Mode::is('screenMode', 'narrow')) {
-            $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
-        } else {
-            $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
-        }
-        
-        return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
-    }
-    
-    
-    /**
-     * Изпълнява се преди подготовката на single изглед
-     */
-    function on_BeforeRenderSingle($mvc, $tpl, &$data)
-    {
-        $row = &$data->row;
-        $rec = $data->rec;
-
-        expect($rec->dataId, 'Няма данни за файла');
-        
-        //Разширението на файла
-        $ext = fileman_Files::getExt($rec->name);
-        
-        //Иконата на файла, в зависимост от разширението на файла
-        $icon = "fileman/icons/{$ext}.png";
-        
-        //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
-        if (!is_file(getFullPath($icon))) {
-            $icon = "fileman/icons/default.png";
-        }
-        
-        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = (boolean) Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf');
-        
-        $dangerFileClass = '';
-        if (!$isAbsolute && fileman_Files::isDanger($rec)) {
-            $dangerFileClass .= ' dangerFile';
-        }
-        
-        // Вербалното име на файла
-        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style='margin-left:-7px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
-        
-        // Иконата за редактиране     
-        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
-            
-        // URL' то където ще препрати линка
-        $editUrl = array(
-            $mvc,
-            'editFile',
-            'id' => $rec->fileHnd,
-            'ret_url' => TRUE
-        );
-            
-        // Създаваме линка
-        $editLink = ht::createLink($editImg, $editUrl);
-        
-        // Добавяме линка след името на файла
-        $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
-
-        // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
-        $pathArr = static::getFirstContainerLinks($rec);
-        
-        // Ако има такъв документ
-        if (count($pathArr)) {
-            
-            // Пътя до файла и документа
-            $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];
-        
-            // TODO името на самия документ, където се среща но става много дълго
-            //$pathArr['container']
-            
-            // Пред името на файла добаваме папката и документа, къде е използван
-            $row->fileName .= $path;    
-        }
-
-        // Версиите на файла
-//        $row->versions = static::getFileVersionsString($rec->id);
-    }
-    
-    
-    /**
-     * Екшън за редактиране на файл
-     */
-    function act_EditFile()
-    {
-        // id' то на записа
-        $id = Request::get('id', 'int');
-        
-        // Очакваме да има id
-        expect($id);
-        
-        // Вземаме записите за файла
-        $fRec = fileman_Files::fetch($id);
-        
-        // Очакваме да има такъв запис
-        expect($fRec, 'Няма такъв запис.');
-        
-        // Проверяваме за права
-        $this->requireRightFor('single', $fRec);
-        
-        //URL' то където ще се редиректва при отказ
-        $retUrl = getRetUrl();
-        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fRec->fileHnd));
-        
-        // Вземаме формата към този модел
-        $form = $this->getForm();
-        
-        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
-        $form->input(NULL, 'silent');
-        
-        $form->input('name');
-        
-        // Размера да е максимален
-        $form->setField('name', 'width=100%');
-        
-        // Ако формата е изпратена без грешки
-        if($form->isSubmitted()) {
-            
-            // Преименува файла
-            self::renameFile($fRec, $form->rec->name, TRUE);
-
-            // Редиректваме
-            return new Redirect($retUrl);
-        }
-        
-        // Задаваме по подразбиране да е текущото име на файла
-        $form->setDefault('name', $fRec->name);
-        
-        // Задаваме да се показват само полетата, които ни интересуват
-        $form->showFields = 'name';
-        
-        // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
-
-        // Вербалното име на файла
-        $fileName = fileman_Files::getVerbal($fRec, 'name');
-        
-        // Добавяме титлата на формата
-        $form->title = "Редактиране на файл|*:  {$fileName}";
-        
-        return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -1559,47 +1240,9 @@ class fileman_Files extends core_Master
     
     
     /**
-     * 
-     */
-    function on_AfterPrepareSingle($mvc, &$tpl, $data)
-    {
-        // Манипулатора на файла
-        $fh = $data->rec->fileHnd;
-        
-        // Подготвяме данните
-        fileman_Indexes::prepare($data, $fh);
-        
-        // Задаваме екшъна
-        if (!$data->action) $data->action = 'single';
-    }
-    
-    
-    /**
-     * 
-     */
-    function on_AfterRenderSingle($mvc, &$tpl, &$data)
-    {
-        // Манипулатора на файла
-        $fh = $data->rec->fileHnd;
-        
-        // Текущия таб
-        $data->currentTab = Request::get('currentTab');
-        
-        // Рендираме табовете
-        $fileInfo = fileman_Indexes::render($data);
-        
-        // Добавяме табовете в шаблона
-        $tpl->append($fileInfo, 'fileDetail');
-        
-        // Отбелязваме като разгледан
-        fileman_Log::updateLogInfo($fh, 'preview');
-    }
-    
-    
-    /**
      * Връща разширението на файла, от името му
      */
-    static function getExt($name, $maxLen = 10)
+    public static function getExt($name, $maxLen = 10)
     {
         if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
             $ext =  mb_strtolower(mb_substr($name, $dotPos + 1));
@@ -1624,7 +1267,7 @@ class fileman_Files extends core_Master
      * 
      * @return string - mime типа на файла
      */
-    static function getType($fileName)
+    public static function getType($fileName)
     {
         if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
             
@@ -1642,7 +1285,7 @@ class fileman_Files extends core_Master
     /**
      * Връща стринг с всички версии на файла, който търсим
      */
-    static function getFileVersionsString($id)
+    public static function getFileVersionsString($id)
     {
         // Масив с всички версии на файла
         $fileVersionsArr = fileman_FileDetails::getFileVersionsArr($id);
@@ -1667,7 +1310,7 @@ class fileman_Files extends core_Master
      * 
      * @retun string $name - Името на файла, без разширението
      */
-    static function getFileNameWithoutExt($fh)
+    public static function getFileNameWithoutExt($fh)
     {
         // Ако е подаден път до файла
         if (strstr($fh, '/')) {
@@ -1692,43 +1335,6 @@ class fileman_Files extends core_Master
         return $name;
     }
     
-
-	/**
-     * 
-     */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        // Добавяме бутон за сваляне
-        $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
-        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
-        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
-        
-        // Очакваме да има такъв файл
-        expect($fRec = $data->rec);
-        
-        // Вземаме всички класове, които имплементират интерфейса
-        $classesArr = core_Classes::getOptionsByInterface('fileman_FileActionsIntf');
-        
-        // Обхождаме всички класове, които имплементират интерфейса
-        foreach ($classesArr as $className) {
-            
-            // Вземаме масива с документите, които може да създаде
-            $arrCreate = $className::getActionsForFile($fRec);
-            
-            if(is_array($arrCreate)) {
-                // Обхождаме масива
-                foreach ($arrCreate as $id => $arr) {
-                    
-                    // Ако има полета, създаваме бутона
-                    if (count($arr)) {
-                        $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
-                    }
-                }
-            }
-        }
-
-    }
-    
     
     /**
      * Създава масив с името на разширението на подадения файл
@@ -1739,7 +1345,7 @@ class fileman_Files extends core_Master
      * 		   string $nameArr['name'] - Името на файла, без разширението
      * 		   string $nameArr['ext'] - Разширението на файла
      */
-    static function getNameAndExt($fname)
+    public static function getNameAndExt($fname)
     {
         // Ако има точка в името на файла, вземаме мястото на последната
         if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {
@@ -1761,228 +1367,9 @@ class fileman_Files extends core_Master
     
     
     /**
-     * Преобразува линка към single' на файла richtext линк
-     * 
-     * @param integer $id - id на записа
-     * 
-     * @return string $res - Линка в richText формат
-     */
-    function getVerbalLinkFromClass($id)
-    {
-        $rec = static::fetch($id);
-        $fileHnd = $rec->fileHnd;
-        
-        return static::getLink($fileHnd);
-    }
-    
-    
-    /**
-     * 
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $data->listFilter->layout = new ET(tr('|*' . getFileContent('fileman/tpl/FilesFilterForm.shtml')));
-        
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
-        
-        // В хоризонтален вид
-        $data->listFilter->view = 'vertical';
-        
-        // Добавяме бутон
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch';
-        
-        $data->listFilter->input('usersSearch, search', 'silent');
-        
-    	// По - новите да са по - напред
-        $data->query->orderBy("#modifiedOn", 'DESC');
-        
-        // Ако не е избран потребител по подразбиране
-        if(!$data->listFilter->rec->usersSearch) {
-            
-            // Да е текущия
-            $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
-        }
-        
-        // Ако има филтър
-        if($filter = $data->listFilter->rec) {
-            
-            // Ако филтъра е по потребители
-            if($filter->usersSearch) {
-                
-    			// Ако се търси по всички и има права admin или ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo, admin'))) {
-    			    // Търсим всичко
-                } else {
-                    
-                    // Масив с потребителите
-                    $usersArr = type_Keylist::toArray($filter->usersSearch);
-                    
-                    // Търсим по създатели
-                    $data->query->orWhereArr('createdBy', $usersArr);
-                }
-    		}
-    		
-    		// Тримваме името
-    		$search = trim($filter->search);
-    		
-    		// Ако има съдържание
-    		if (strlen($search)) {
-    		    $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
-    		    plg_Search::applySearch($search, $data->query, 'searchKeywords');
-    		}
-        }
-    }
-    
-    
-    /**
-     * 
-     * 
-     * @param fileman_Files $mvc
-     * @param object $res
-     * @param object $data
-     */
-    static function on_AfterPrepareListSummary($mvc, &$res, &$data)
-    {
-        // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) return ;
-        
-        // Брой записи
-        $fileCnt = $data->listSummary->query->count();
-        
-        // Размер на всички файлове
-        $data->listSummary->query->XPR('sumLen', 'int', 'SUM(#fileLen)');
-        $rec = $data->listSummary->query->fetch();
-        $fileLen = $rec->sumLen;
-        
-        if (!isset($data->listSummary->statVerb)) {
-            $data->listSummary->statVerb = array();
-        }
-        
-        $Files = cls::get('fileman_FileSize');
-        $Int = cls::get('type_Int');
-        
-        // Размер на всички файлове
-        if ($fileLen) {
-            $data->listSummary->statVerb['fileSize'] = $Files->toVerbal($fileLen);
-        }
-        
-        // Броя на файловете
-        if ($fileCnt) {
-            $data->listSummary->statVerb['fileCnt'] = $Int->toVerbal($fileCnt);
-        }
-        
-        // Статистика за БД
-        if (haveRole('ceo, admin, debug')) {
-            $sqlInfo = core_Db::getDBInfo();
-            
-            if ($sqlInfo) {
-                
-                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['Size']);
-                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['Rows']);
-            }
-        }
-    }
-
-    
-    /**
-     * 
-     * 
-     * @param fileman_Files $mvc
-     * @param core_Et $tpl
-     * @param core_Et $data
-     */
-    static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
-    {
-        // Ако няма данни, няма да се показва нищо
-        if (!$data->listSummary->statVerb) return ;
-        
-    	// Зареждаме и подготвяме шаблона
-    	$tpl = getTplFromFile(("fileman/tpl/FilesSummary.shtml"));
-    	
-    	// Заместваме статусите на обажданията
-    	$tpl->placeArray($data->listSummary->statVerb);
-    	
-    	// Премахваме празните блокове
-		$tpl->removeBlocks();
-		$tpl->append2master();
-    }
-    
-    
-    /**
-     * Интерфейсна функция
-     * От манипулатора на файла връща id на записа
-     * 
-     * @param string
-     * @see core_Mvc::unprotectId_()
-     */
-    function unprotectId($id)
-    {
-        // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
-        // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
-        $idLen = mb_strlen($id);
-        if ($idLen > FILEMAN_HANDLER_LEN && (($idLen - EF_ID_CHECKSUM_LEN) == FILEMAN_HANDLER_LEN)) {
-            
-            // Променлива, в която държим старото състояние
-            $old = $this->protectId;
-            
-            // Задаваме да се защитава
-            $this->protectId = TRUE;
-            
-            // Вземаме id' to
-            $id = $this->unprotectId_($id);
-
-            // Връщаме стойността
-            $this->protectId = $old;
-        }
-        
-        // Вземаме записа от манипулатора на файла
-        $rec = static::fetchByFh($id);
-        
-        // Ако няма запис
-        if (!$rec) {
-            
-            sleep(2);
-            Debug::log('Sleep 2 sec. in' . __CLASS__);
-
-            return FALSE;
-        }
-        
-        return $rec->id;
-    }
-    
-    
-    /**
-     * Интерфейсна функция
-     * Ако е подадено число за id го преобразува в манипулатор
-     * 
-     * @see core_Mvc::protectId()
-     */
-    function protectId($id)
-    {   
-        // Ако е подадено id на запис
-        if (is_numeric($id)) {
-            
-            // Вземаме записа
-            $rec = static::fetch($id);
-            
-            // Вместо id използваме манипулатора на файла
-            $id = $rec->fileHnd;
-        }
-        
-        return $id;
-    }
-    
-    
-    /**
      * Ако имаме права за сваляне връща html <а> линк за сваляне на файла.
      */
-    static function getLink($fh, $title=NULL)
+    public static function getLink($fh, $title=NULL)
     {
     	$conf = core_Packs::getConfig('fileman');
     	
@@ -2148,7 +1535,7 @@ class fileman_Files extends core_Master
     /**
      * Прекъсваема функция за генериране на URL от манипулатор на файл
      */
-    static function generateUrl_($fh, $isAbsolute)
+    public static function generateUrl_($fh, $isAbsolute)
     {
         $rec = static::fetchByFh($fh);
         
@@ -2168,11 +1555,255 @@ class fileman_Files extends core_Master
     /**
      * Връща линк за сваляне, според ID-то
      */
-    static function getLinkById($id)
+    public static function getLinkById($id)
     {
         $fh = static::fetchField($id, 'fileHnd');
         
         return static::getLink($fh);
+    }
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    public function makeBtnToAddFile($title, $bucketId, $callback, $attr = array())
+    {
+        $function = $this->getJsFunctionForAddFile($bucketId, $callback);
+        
+        return ht::createFnBtn($title, $function, NULL, $attr);
+    }
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    public function makeLinkToAddFile($title, $bucketId, $callback, $attr = array())
+    {
+        $attr['onclick'] = $this->getJsFunctionForAddFile($bucketId, $callback);
+        $attr['href'] = $this->getUrLForAddFile($bucketId, $callback);
+        $attr['target'] = 'addFileDialog';
+        
+        return ht::createElement('a', $attr, $title);
+    }
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    public function getJsFunctionForAddFile($bucketId, $callback)
+    {
+        $url = $this->getUrLForAddFile($bucketId, $callback);
+        
+        $windowName = 'addFileDialog';
+        
+        if(Mode::is('screenMode', 'narrow')) {
+            $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+        } else {
+            $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+        }
+        
+        return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+    }
+    
+    
+    /**
+     * Преобразува линка към single' на файла richtext линк
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @return string $res - Линка в richText формат
+     */
+    public function getVerbalLinkFromClass($id)
+    {
+        $rec = static::fetch($id);
+        $fileHnd = $rec->fileHnd;
+        
+        return static::getLink($fileHnd);
+    }
+    
+    
+    /**
+     * Интерфейсна функция
+     * От манипулатора на файла връща id на записа
+     * 
+     * @param string
+     * @see core_Mvc::unprotectId_()
+     */
+    public function unprotectId($id)
+    {
+        // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
+        // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
+        $idLen = mb_strlen($id);
+        if ($idLen > FILEMAN_HANDLER_LEN && (($idLen - EF_ID_CHECKSUM_LEN) == FILEMAN_HANDLER_LEN)) {
+            
+            // Променлива, в която държим старото състояние
+            $old = $this->protectId;
+            
+            // Задаваме да се защитава
+            $this->protectId = TRUE;
+            
+            // Вземаме id' to
+            $id = $this->unprotectId_($id);
+
+            // Връщаме стойността
+            $this->protectId = $old;
+        }
+        
+        // Вземаме записа от манипулатора на файла
+        $rec = static::fetchByFh($id);
+        
+        // Ако няма запис
+        if (!$rec) {
+            
+            sleep(2);
+            Debug::log('Sleep 2 sec. in' . __CLASS__);
+
+            return FALSE;
+        }
+        
+        return $rec->id;
+    }
+    
+    
+    /**
+     * Интерфейсна функция
+     * Ако е подадено число за id го преобразува в манипулатор
+     * 
+     * @see core_Mvc::protectId()
+     */
+    public function protectId($id)
+    {   
+        // Ако е подадено id на запис
+        if (is_numeric($id)) {
+            
+            // Вземаме записа
+            $rec = static::fetch($id);
+            
+            // Вместо id използваме манипулатора на файла
+            $id = $rec->fileHnd;
+        }
+        
+        return $id;
+    }
+    
+    
+	/**
+     * Създава нов файл
+     * 
+     * @param string $name - Името на файла
+     * @param fileman_Buckets $bucketId - Кофата, в която ще създадем
+     * @param fileman_Data $dataId - Данните за файла
+     * 
+     * @return string $rec->fileHnd - Манипуалатор на файла
+     */
+    protected static function createFile($name, $bucketId, $dataId)
+    {
+        // Създаваме записите
+        $rec = new stdClass();
+        $rec->name = fileman_Files::getPossibleName($name, $bucketId);
+        $rec->bucketId = $bucketId;
+        $rec->state = 'active';
+        $rec->dataId = $dataId;
+        
+        // Записваме
+        fileman_Files::save($rec);
+        
+        // Увеличаваме с единица броя на файловете за които отговаря файла
+        fileman_Data::increaseLinks($dataId);
+        
+        return $rec->fileHnd;
+    }
+    
+    
+    /**
+     * Екшън, който редиректва към качването на файл в съответния таб
+     */
+    function act_AddFile()
+    {
+        // Защитаваме променливите
+        Request::setProtected('bucketId,callback');
+        
+        // Името на класа
+        $class = fileman_DialogWrapper::getLastUploadTab();
+        
+        // Инстанция на класа
+        $class = cls::get($class);
+        
+        // Вземаме екшъна
+        $act = $class->getActionForAddFile();
+        
+        // Други допълнителни данни
+        $bucketId = Request::get('bucketId', 'int');
+        $callback = Request::get('callback');
+        
+        $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback);
+        
+        return new Redirect($url);
+    }
+    
+    
+    /**
+     * Екшън за редактиране на файл
+     */
+    function act_EditFile()
+    {
+        // id' то на записа
+        $id = Request::get('id', 'int');
+        
+        // Очакваме да има id
+        expect($id);
+        
+        // Вземаме записите за файла
+        $fRec = fileman_Files::fetch($id);
+        
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+        
+        // Проверяваме за права
+        $this->requireRightFor('single', $fRec);
+        
+        //URL' то където ще се редиректва при отказ
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? ($retUrl) : (array('fileman_Files', 'single', $fRec->fileHnd));
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        $form->input('name');
+        
+        // Размера да е максимален
+        $form->setField('name', 'width=100%');
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+            
+            // Преименува файла
+            self::renameFile($fRec, $form->rec->name, TRUE);
+
+            // Редиректваме
+            return new Redirect($retUrl);
+        }
+        
+        // Задаваме по подразбиране да е текущото име на файла
+        $form->setDefault('name', $fRec->name);
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'name';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
+
+        // Вербалното име на файла
+        $fileName = fileman_Files::getVerbal($fRec, 'name');
+        
+        // Добавяме титлата на формата
+        $form->title = "Редактиране на файл|*:  {$fileName}";
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -2242,6 +1873,348 @@ class fileman_Files extends core_Master
     	} else {
     		return $tpl;
     	}
+    }
+    
+    
+    /**
+     * Преди да запишем, генерираме случаен манипулатор
+     */
+    static function on_BeforeSave(&$mvc, &$id, &$rec)
+    {
+        // Ако липсва, създаваме нов уникален номер-държател
+        if(!$rec->fileHnd) {
+            do {
+                
+                if(16 < $i++) error('@Unable to generate random file handler', $rec);
+                
+                $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
+            } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
+         } elseif(!$rec->id && $rec->fileHnd) {
+            $existingRec = $mvc->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd));
+            
+            if ($existingRec) {
+                $rec->id = $existingRec->id;
+            }
+        }
+        
+        if ($rec->dataId) {
+            $dRec = fileman_Data::fetch($rec->dataId);
+            $fileLen = $dRec->fileLen;
+            $rec->fileLen = $fileLen;
+        }
+    }
+    
+    
+    /**
+     * Какви роли са необходими за качване или сваляне?
+     */
+    static function on_BeforeGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($action == 'download' && is_object($rec)) {
+            $roles = $mvc->Buckets->fetchField($rec->bucketId, 'rolesForDownload');
+        } elseif($action == 'add' && is_object($rec)) {
+            $roles = $mvc->Buckets->fetchField($rec->bucketId, 'rolesForAdding');
+        } else {
+            
+            return;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {   
+        try {
+			$row->name = static::getLink($rec->fileHnd);
+        } catch(core_Exception_Expect $e) {
+            // Вместо линк използваме името
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се преди подготовката на single изглед
+     */
+    function on_BeforeRenderSingle($mvc, $tpl, &$data)
+    {
+        $row = &$data->row;
+        $rec = $data->rec;
+
+        expect($rec->dataId, 'Няма данни за файла');
+        
+        //Разширението на файла
+        $ext = fileman_Files::getExt($rec->name);
+        
+        //Иконата на файла, в зависимост от разширението на файла
+        $icon = "fileman/icons/{$ext}.png";
+        
+        //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
+        if (!is_file(getFullPath($icon))) {
+            $icon = "fileman/icons/default.png";
+        }
+        
+        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = (boolean) Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf');
+        
+        $dangerFileClass = '';
+        if (!$isAbsolute && fileman_Files::isDanger($rec)) {
+            $dangerFileClass .= ' dangerFile';
+        }
+        
+        // Вербалното име на файла
+        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style='margin-left:-7px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
+        
+        // Иконата за редактиране     
+        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
+            
+        // URL' то където ще препрати линка
+        $editUrl = array(
+            $mvc,
+            'editFile',
+            'id' => $rec->fileHnd,
+            'ret_url' => TRUE
+        );
+            
+        // Създаваме линка
+        $editLink = ht::createLink($editImg, $editUrl);
+        
+        // Добавяме линка след името на файла
+        $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
+
+        // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
+        $pathArr = static::getFirstContainerLinks($rec);
+        
+        // Ако има такъв документ
+        if (count($pathArr)) {
+            
+            // Пътя до файла и документа
+            $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];
+        
+            // TODO името на самия документ, където се среща но става много дълго
+            //$pathArr['container']
+            
+            // Пред името на файла добаваме папката и документа, къде е използван
+            $row->fileName .= $path;    
+        }
+
+        // Версиите на файла
+//        $row->versions = static::getFileVersionsString($rec->id);
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterPrepareSingle($mvc, &$tpl, $data)
+    {
+        // Манипулатора на файла
+        $fh = $data->rec->fileHnd;
+        
+        // Подготвяме данните
+        fileman_Indexes::prepare($data, $fh);
+        
+        // Задаваме екшъна
+        if (!$data->action) $data->action = 'single';
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    {
+        // Манипулатора на файла
+        $fh = $data->rec->fileHnd;
+        
+        // Текущия таб
+        $data->currentTab = Request::get('currentTab');
+        
+        // Рендираме табовете
+        $fileInfo = fileman_Indexes::render($data);
+        
+        // Добавяме табовете в шаблона
+        $tpl->append($fileInfo, 'fileDetail');
+        
+        // Отбелязваме като разгледан
+        fileman_Log::updateLogInfo($fh, 'preview');
+    }
+    
+
+	/**
+     * 
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        // Добавяме бутон за сваляне
+        $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
+        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
+        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
+        
+        // Очакваме да има такъв файл
+        expect($fRec = $data->rec);
+        
+        // Вземаме всички класове, които имплементират интерфейса
+        $classesArr = core_Classes::getOptionsByInterface('fileman_FileActionsIntf');
+        
+        // Обхождаме всички класове, които имплементират интерфейса
+        foreach ($classesArr as $className) {
+            
+            // Вземаме масива с документите, които може да създаде
+            $arrCreate = $className::getActionsForFile($fRec);
+            
+            if(is_array($arrCreate)) {
+                // Обхождаме масива
+                foreach ($arrCreate as $id => $arr) {
+                    
+                    // Ако има полета, създаваме бутона
+                    if (count($arr)) {
+                        $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('fileman/tpl/FilesFilterForm.shtml')));
+        
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        
+        // В хоризонтален вид
+        $data->listFilter->view = 'vertical';
+        
+        // Добавяме бутон
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'search, usersSearch';
+        
+        $data->listFilter->input('usersSearch, search', 'silent');
+        
+    	// По - новите да са по - напред
+        $data->query->orderBy("#modifiedOn", 'DESC');
+        
+        // Ако не е избран потребител по подразбиране
+        if(!$data->listFilter->rec->usersSearch) {
+            
+            // Да е текущия
+            $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+        }
+        
+        // Ако има филтър
+        if($filter = $data->listFilter->rec) {
+            
+            // Ако филтъра е по потребители
+            if($filter->usersSearch) {
+                
+    			// Ако се търси по всички и има права admin или ceo
+    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo, admin'))) {
+    			    // Търсим всичко
+                } else {
+                    
+                    // Масив с потребителите
+                    $usersArr = type_Keylist::toArray($filter->usersSearch);
+                    
+                    // Търсим по създатели
+                    $data->query->orWhereArr('createdBy', $usersArr);
+                }
+    		}
+    		
+    		// Тримваме името
+    		$search = trim($filter->search);
+    		
+    		// Ако има съдържание
+    		if (strlen($search)) {
+    		    $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
+    		    plg_Search::applySearch($search, $data->query, 'searchKeywords');
+    		}
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param fileman_Files $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    {
+        // Ако няма заявка, да не се изпълнява
+        if (!$data->listSummary->query) return ;
+        
+        // Брой записи
+        $fileCnt = $data->listSummary->query->count();
+        
+        // Размер на всички файлове
+        $data->listSummary->query->XPR('sumLen', 'int', 'SUM(#fileLen)');
+        $rec = $data->listSummary->query->fetch();
+        $fileLen = $rec->sumLen;
+        
+        if (!isset($data->listSummary->statVerb)) {
+            $data->listSummary->statVerb = array();
+        }
+        
+        $Files = cls::get('fileman_FileSize');
+        $Int = cls::get('type_Int');
+        
+        // Размер на всички файлове
+        if ($fileLen) {
+            $data->listSummary->statVerb['fileSize'] = $Files->toVerbal($fileLen);
+        }
+        
+        // Броя на файловете
+        if ($fileCnt) {
+            $data->listSummary->statVerb['fileCnt'] = $Int->toVerbal($fileCnt);
+        }
+        
+        // Статистика за БД
+        if (haveRole('ceo, admin, debug')) {
+            $sqlInfo = core_Db::getDBInfo();
+            
+            if ($sqlInfo) {
+                
+                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['Size']);
+                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['Rows']);
+            }
+        }
+    }
+
+    
+    /**
+     * 
+     * 
+     * @param fileman_Files $mvc
+     * @param core_Et $tpl
+     * @param core_Et $data
+     */
+    static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
+    {
+        // Ако няма данни, няма да се показва нищо
+        if (!$data->listSummary->statVerb) return ;
+        
+    	// Зареждаме и подготвяме шаблона
+    	$tpl = getTplFromFile(("fileman/tpl/FilesSummary.shtml"));
+    	
+    	// Заместваме статусите на обажданията
+    	$tpl->placeArray($data->listSummary->statVerb);
+    	
+    	// Премахваме празните блокове
+		$tpl->removeBlocks();
+		$tpl->append2master();
     }
     
     
@@ -2570,5 +2543,31 @@ class fileman_Files extends core_Master
         }
         
         return $newArr;
+    }
+    
+    
+	/**
+	 * 
+	 */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        // Пътя до временните файлове
+        $tempPath = static::getTempDir();
+        
+        // Ако не същестува
+        if(!is_dir($tempPath)) {
+            
+            // Ако не може да се създаде
+            if(!mkdir($tempPath, 0777, TRUE)) {
+                
+                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . $tempPath . '"</li>';
+            } else {
+                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . $tempPath . '"</li>';
+            }
+        } else {
+            $res .= '<li>' . tr('Директорията съществува') . ': "' . $tempPath . '"</li>';
+        }
+        
+        return $res;
     }
 }
