@@ -209,20 +209,23 @@ class fileman_Files extends core_Master
      * 
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
      * @param string $path - Пътя до новата версия на файла
+     * @param string $type - Типа
      * 
      * @return fileman_Versions $versionId - id от запис
      */
-    public static function addVersion($fh, $path)
+    public static function addVersion($fh, $path, $type = 'file')
     {
-        // Очакваме да има подаден файл
-        expect(is_file($path), 'Не е подаден валиден файл.');
+        if ($type == 'file') {
+            // Очакваме да има подаден файл
+            expect(is_file($path), 'Не е подаден валиден файл.');
+        }
         
         // Очакваме да има такъв файл
         $fRec = fileman_Files::fetchByFh($fh);
         expect($fRec, 'Няма такъв запис');
         
         // Абсорбираме файла
-        $data = fileman_Data::absorb($path, 'file');
+        $data = fileman_Data::absorb($path, $type);
         $dataId = $data->id;
         
         // Ако данните са същите, като на оригиналния файл
@@ -247,23 +250,8 @@ class fileman_Files extends core_Master
      */
     public static function addVersionStr($fh, $data)
     {
-        // Очакваме да има такъв файл
-        $fRec = fileman_Files::fetchByFh($fh);
-        expect($fRec, 'Няма такъв запис');
         
-        // Качваме файла и вземаме id' то на данните
-        $data = fileman_Data::absorb($data, 'string');
-        expect($dataId = $data->id, 'Липсват данни.');
-        
-        // Ако данните са същите, като на оригиналния файл
-        if ($fRec->dataId == $dataId) {
-            // TODO?
-        }
-        
-        // Създаваме версия на файла
-        $versionId = fileman_Versions::createNew($fh, $dataId);
-        
-        return $versionId;
+        return self::addVersion($fh, $data, 'string');
     }
 
     
