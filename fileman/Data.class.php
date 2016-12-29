@@ -115,62 +115,6 @@ class fileman_Data extends core_Manager {
     
     
     /**
-     * Абсорбира данните от указания файл и
-     * и връща ИД-то на съхранения файл
-     */
-    static function absorbFile($file, $create = TRUE, $source = 'path')
-    {
-        $rec = new stdClass();
-        $rec->fileLen = filesize($file);
-        $rec->md5 = md5_file($file);
-        
-        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
-        
-        $path = self::getGoodFilePath($rec);
-
-        if($create && ((!$rec->id) || !file_exists($path))) {
-            if(@copy($file, $path)) {
-                $rec->links = 0;
-                $status = static::save($rec);
-            } else {
-                error("@Не може да бъде копиран файла", $file, $path);
-            }
-        } elseif ($rec->id) {
-            self::resetProcess($rec);
-        }
-        
-        return $rec->id;
-    }
-    
-    
-    /**
-     * Абсорбира данните от от входния стринг и
-     * връща ИД-то на съхранения файл
-     */
-    static function absorbString($string, $create = TRUE)
-    {
-        $rec = new stdClass();
-        $rec->fileLen = strlen($string);
-        $rec->md5 = md5($string);
-        
-        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
-        $path = self::getGoodFilePath($rec);
-        
-        if($create && ((!$rec->id) || !file_exists($path))) {
-            
-            expect(FALSE !== @file_put_contents($path, $string), $path, $rec);
-            
-            $rec->links = 0;
-            $status = static::save($rec);
-        } elseif ($rec->id) {
-            self::resetProcess($rec);
-        }
-        
-        return $rec->id;
-    }
-    
-    
-    /**
      * Изчислява пътя към файла
      */
     static function on_CalcPath($mvc, $rec)
@@ -362,18 +306,16 @@ class fileman_Data extends core_Manager {
         // Намираме id' то на файла, ако е съществувал
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
+        $path = self::getGoodFilePath($rec);
+        
         // Ако не е имал такъв запис
-        if (!$rec->id) {
-            
-            // Пътя до файла
-            $path = self::getFilePath($rec);
+        if (!$rec->id || !@file_exists($path) || (@filesize($path) != $rec->fileLen)) {
             
             // Ако типа е файл
             if ($type == 'file') {
                 
                 // Копираме файла
                 expect(@copy($data, $path), "Не може да бъде копиран файла");
-                
             } else {
                 
                 // Ако е стринг, копираме стринга
@@ -552,5 +494,65 @@ class fileman_Data extends core_Manager {
         $rec->timeLimit = 60;
         
         $res .= core_Cron::addOnce($rec);
+    }
+    
+    
+    /**
+     * Абсорбира данните от указания файл и
+     * и връща ИД-то на съхранения файл
+     * 
+     * @deprecated
+     */
+    static function absorbFile($file, $create = TRUE, $source = 'path')
+    {
+        $rec = new stdClass();
+        $rec->fileLen = filesize($file);
+        $rec->md5 = md5_file($file);
+        
+        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        
+        $path = self::getGoodFilePath($rec);
+
+        if($create && ((!$rec->id) || !file_exists($path))) {
+            if(@copy($file, $path)) {
+                $rec->links = 0;
+                $status = static::save($rec);
+            } else {
+                error("@Не може да бъде копиран файла", $file, $path);
+            }
+        } elseif ($rec->id) {
+            self::resetProcess($rec);
+        }
+        
+        return $rec->id;
+    }
+    
+    
+    /**
+     * Абсорбира данните от от входния стринг и
+     * връща ИД-то на съхранения файл
+     * 
+     * @deprecated
+     */
+    static function absorbString($string, $create = TRUE)
+    {
+        $rec = new stdClass();
+        $rec->fileLen = strlen($string);
+        $rec->md5 = md5($string);
+        
+        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        $path = self::getGoodFilePath($rec);
+        
+        if($create && ((!$rec->id) || !file_exists($path))) {
+            
+            expect(FALSE !== @file_put_contents($path, $string), $path, $rec);
+            
+            $rec->links = 0;
+            $status = static::save($rec);
+        } elseif ($rec->id) {
+            self::resetProcess($rec);
+        }
+        
+        return $rec->id;
     }
 }
