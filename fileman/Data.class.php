@@ -127,7 +127,7 @@ class fileman_Data extends core_Manager {
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
         if($rec) {
-            $path = self::getFilePath($rec);
+            $path = self::getGoodFilePath($rec);
         }
 
         if((!$rec->id  && $create) || !file_exists($path)) {
@@ -157,7 +157,7 @@ class fileman_Data extends core_Manager {
         
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         if($rec) {
-            $path = self::getFilePath($rec);
+            $path = self::getGoodFilePath($rec);
         }
         
         if((!$rec->id  && $create) || !file_exists($path)) {
@@ -179,12 +179,7 @@ class fileman_Data extends core_Manager {
      */
     static function on_CalcPath($mvc, $rec)
     {
-        $rec->path = self::getFilePath($rec, TRUE, FALSE);
-        
-        // Ако директорията е на старото място - не е с поддиректории
-        if (!is_file($rec->path)) {
-            $rec->path = self::getFilePath($rec, FALSE, FALSE);
-        }
+        $rec->path = self::getGoodFilePath($rec);
     }
     
     
@@ -238,6 +233,31 @@ class fileman_Data extends core_Manager {
         $verbalSize = $FileSize->toVerbal($sizeBytes);
         
         return $verbalSize;
+    }
+    
+    
+    /**
+     * Връща пътя до файла на съответния запис
+     * Първо проверява с поддиректория, след това 
+     * 
+     * @param stdObject $rec
+     * 
+     * @return string
+     */
+    public static function getGoodFilePath($rec)
+    {
+        $path = self::getFilePath($rec, TRUE, FALSE);
+        
+        // Ако директорията е на старото място - не е с поддиректории
+        if (!is_file($path)) {
+            $nPath = self::getFilePath($rec, FALSE, FALSE);
+            
+            if (is_file($nPath)) {
+                $path = $nPath;
+            }
+        }
+        
+        return $path;
     }
     
     
