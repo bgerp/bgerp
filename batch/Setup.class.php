@@ -121,8 +121,6 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на производствените документи', 'batch_plg_DocumentMovement', 'deals_ManifactureMaster', 'family');
         $html .= $Plugins->installPlugin('Партидни движения на детайлите на производствените документи', 'batch_plg_DocumentMovementDetail', 'deals_ManifactureDetail', 'family');
         
-        //$html .= $Plugins->installPlugin('Партидни движения на протокола за производство', 'batch_plg_DirectProductionNoteMovement', 'planning_DirectProductionNote', 'private');
-        
         $html .= $Plugins->installPlugin('Партиден детайл на артикулите', 'batch_plg_ProductDetail', 'cat_Products', 'private');
         $html .= $Plugins->installPlugin('Детайл за дефиниции на партиди', 'batch_plg_CategoryDetail', 'cat_Categories', 'private');
         
