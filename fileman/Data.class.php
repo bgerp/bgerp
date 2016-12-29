@@ -505,6 +505,8 @@ class fileman_Data extends core_Manager {
      */
     static function absorbFile($file, $create = TRUE, $source = 'path')
     {
+        wp('deprecated');
+        
         $rec = new stdClass();
         $rec->fileLen = filesize($file);
         $rec->md5 = md5_file($file);
@@ -536,6 +538,8 @@ class fileman_Data extends core_Manager {
      */
     static function absorbString($string, $create = TRUE)
     {
+        wp('deprecated');
+        
         $rec = new stdClass();
         $rec->fileLen = strlen($string);
         $rec->md5 = md5($string);

@@ -35,6 +35,8 @@ class fileman_Files2 extends core_Master
      */
     public static function absorb($path, $bucket, $name = NULL, $type = 'file')
     {
+        wp('deprecated');
+        
         if ($type == 'file') {
             // Очакваме да има валиден файл
             expect(is_file($path), 'Не е подаден валиден файл.');
@@ -87,6 +89,7 @@ class fileman_Files2 extends core_Master
      */
     public static function absorbStr($data, $bucket, $name)
     {
+        wp('deprecated');
         
         return self::absorb($data, $bucket, $name, 'string');
     }

@@ -2264,6 +2264,8 @@ class fileman_Files extends core_Master
      */
     function setFile($path, $bucket, $fname = NULL, $force = FALSE)
     {
+        wp('deprecated');
+        
         if($fname === NULL) $fname = basename($path);
         
         $Buckets = cls::get('fileman_Buckets');
@@ -2291,6 +2293,8 @@ class fileman_Files extends core_Master
      */
     function addNewFile($path, $bucket, $fname = NULL)
     {
+        wp('deprecated');
+        
         if($fname === NULL) $fname = basename($path);
         
         $Buckets = cls::get('fileman_Buckets');
@@ -2328,6 +2332,8 @@ class fileman_Files extends core_Master
      */
     function addNewFileFromString($string, $bucket, $fname = NULL)
     {
+        wp('deprecated');
+        
         $me = cls::get('fileman_Files');
         
         if($fname === NULL) $fname = basename($path);
@@ -2367,6 +2373,8 @@ class fileman_Files extends core_Master
      */
     function createDraftFile($fname, $bucketId)
     {
+        wp('deprecated');
+        
         expect($bucketId, 'Очаква се валидна кофа');
         
         $rec = new stdClass();
@@ -2387,6 +2395,8 @@ class fileman_Files extends core_Master
      */
     function setContent($fileHnd, $osFile)
     {
+        wp('deprecated');
+        
         $dataId = $this->Data->absorbFile($osFile);
         
         return $this->setData($fileHnd, $dataId);
@@ -2400,6 +2410,8 @@ class fileman_Files extends core_Master
      */
     function setContentFromString($fileHnd, $string)
     {
+        wp('deprecated');
+        
         $dataId = $this->Data->absorbString($string);
         
         return $this->setData($fileHnd, $dataId);
@@ -2415,6 +2427,8 @@ class fileman_Files extends core_Master
      */
     function setData($fileHnd, $newDataId)
     {
+        wp('deprecated');
+        
         $rec = $this->fetch("#fileHnd = '{$fileHnd}'");
         
         // Ако новите данни са същите, като старите 
@@ -2463,6 +2477,8 @@ class fileman_Files extends core_Master
      */
     function copyContent($sHnd, $dHnd)
     {
+        wp('deprecated');
+        
         $sRec = $this->fetch("#fileHnd = '{$sHnd}'");
         
         if($sRec->state != 'active') return FALSE;
@@ -2485,6 +2501,8 @@ class fileman_Files extends core_Master
      */
     static function checkFileName($dataId, $bucketId, $inputFileName)
     {
+        wp('deprecated');
+        
         // Вземаме всички файлове, които са в съответната кофа и със същите данни
         $query = static::getQuery();
         $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
@@ -2530,6 +2548,8 @@ class fileman_Files extends core_Master
      */
     static function getIdFromFh($fh)
     {
+        wp('deprecated');
+        
         //Преобразуваме към масив
         $fhArr = (array)$fh;
         
