@@ -190,7 +190,7 @@ class batch_Movements extends core_Detail {
     			unset($data->listFields['storeId']);
     		}
     		
-    		if(isset($fRec->batch)){
+    		if(!empty($fRec->batch)){
     			$data->query->where("#batch = '{$fRec->batch}'");
     		}
     		
