@@ -330,4 +330,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     	}
     }
+    
+    
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	if(empty($rec->storeId)){
+    		unset($res->operation);
+    	}
+    }
 }

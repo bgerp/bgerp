@@ -42,7 +42,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	{
 		$form = &$data->form;
 		$rec = &$form->rec;
-		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+		$storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
 		if(!$storeId) return;
 		
 		if($mvc->getBatchMovementDocument($rec) == 'out') return;
@@ -81,7 +81,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
-		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+		$storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
 		if(haveRole('partner')) return;
 		
 		if($mvc->getBatchMovementDocument($rec) == 'out') return;
@@ -100,6 +100,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			}
 			
 			if($form->isSubmitted()){
+				$rec->isEdited = TRUE;
 				if(is_object($BatchClass)){
 					if(!empty($rec->batch)){
 						$productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
@@ -127,8 +128,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if(is_object($BatchClass)){
 				$info = $mvc->getRowInfo($rec->id);
-				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
-				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
+				if(count($info->operation)){
+					$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
+					batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
+				}
 			}
 		} else {
 			
@@ -171,7 +174,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
 		if($mvc->getBatchMovementDocument($rec) == 'out') return;
-		batch_BatchesInDocuments::sync($mvc->getClassId(), $rec->id, $rec->batch, $rec->quantity);
+		if($rec->isEdited === TRUE){
+			batch_BatchesInDocuments::sync($mvc->getClassId(), $rec->id, $rec->batch, $rec->quantity);
+		}
 	}
 	
 	
@@ -180,6 +185,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterPrepareListRows($mvc, $data)
 	{
+		// Само за детайли
+		if($mvc instanceof core_Master) return;
+		
 		if(!count($data->rows) || haveRole('partner')) return;
 		$storeId = $data->masterData->rec->{$mvc->Master->storeFieldName};
 		if(!$storeId) return;
@@ -203,6 +211,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_BeforeRenderListTable($mvc, &$res, &$data)
 	{
+		if($mvc instanceof core_Master) return;
 		if(!count($data->rows) || haveRole('partner')) return;
 		
 		$rows = &$data->rows;
@@ -250,16 +259,22 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		}
 		
 		$operation = ($mvc->getBatchMovementDocument($rec) == 'out') ? 'out' : 'in';
-		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld},state");
+		if($mvc instanceof core_Detail){
+			$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld},state");
+			$Master = $mvc->Master;
+		} else {
+			$masterRec = $rec;
+			$Master = $mvc;
+		}
 		
 		$res = (object)array('productId'      => $rec->{$mvc->productFieldName},
 		                     'packagingId'    => $rec->packagingId,
 		                     'quantity'       => $rec->quantity,
 		                     'quantityInPack' => $rec->quantityInPack,
 		                     'containerId'    => $masterRec->containerId,
-		                     'date'           => $masterRec->{$mvc->Master->valiorFld},
+		                     'date'           => $masterRec->{$Master->valiorFld},
 		                     'state'          => $masterRec->state,
-		                     'operation'      => array($operation => $masterRec->{$mvc->Master->storeFieldName}),
+		                     'operation'      => array($operation => $masterRec->{$Master->storeFieldName}),
 		                     );
 		
 		$mvc->rowInfo[$rec->id] = $res;
@@ -277,24 +292,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$res = 'no_one';
 		} else {
 			// Ако има склад и документа е входящ, не може
+			$info = $mvc->getRowInfo($rec);
 			$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
-			if(!$storeId){
+			if(!$storeId || !count($info->operation)){
 				$res = 'no_one';
 			} elseif($mvc->getBatchMovementDocument($rec) != 'out'){
 				$res = 'no_one';
 			} else {
-				$info = $mvc->getRowInfo($rec);
-				$quantities = batch_Items::getBatchQuantitiesInStore($info->productId, $info->operation['out'], $info->date);
-				
-				if(!count($quantities)){
-					if(!batch_BatchesInDocuments::fetchField("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}")){
-						$res = 'no_one';
-					} else {
-						$res = $mvc->getRequiredRoles('edit', $rec);
-					}
-				} else {
-					$res = $mvc->getRequiredRoles('edit', $rec);
-				}
+				$res = $mvc->getRequiredRoles('edit', $rec);
 			}
 		}
 	}
@@ -317,5 +322,19 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		foreach ($query->getDeletedRecs() as $id => $rec) {
 			batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$id}");
 		}
+	}
+	
+	
+	/**
+	 * След подготовка на сингъла
+	 */
+	public static function on_AfterPrepareSingle($mvc, &$res, $data)
+	{
+		// Ако документа има сингъл добавя му се информацията за партидата
+		$row = &$data->row;
+		$rec = &$data->rec;
+		
+		$row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
+		$row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName}));
 	}
 }

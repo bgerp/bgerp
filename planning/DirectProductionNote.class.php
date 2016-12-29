@@ -33,7 +33,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,batch_MovementSourceIntf=batch_movements_ProductionDocument';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote';
 	
 	
 	/**
@@ -42,7 +42,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * , acc_plg_Contable
 	 */
 	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank, batch_plg_DocumentMovementDetail';
 	
 	
 	/**
@@ -134,6 +134,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Какво движение на партида поражда документа в склада
+	 *
+	 * @param out|in|stay - тип движение (излиза, влиза, стои)
+	 */
+	public $batchMovementDocument = 'in';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -141,11 +149,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		parent::setDocumentFields($this);
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
-		$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
+		//$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Реж. разходи,after=quantity');
-		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
+		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses,silent,removeAndRefreshForm');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
 		$this->FLD('debitAmount', 'double(smartRound)', 'input=none');
 		$this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Вътрешнофирмен разход->За');
@@ -241,11 +249,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
-		
-		if(!empty($rec->batch)){
-			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
-			$row->batch = cls::get('type_RichText')->toVerbal($batch);
-		}
 		
 		if(isset($rec->debitAmount)){
 			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
@@ -662,5 +665,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		return TRUE;
+	}
+	
+	
+	/**
+	 * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+	 */
+	public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+	{
+		$res->packagingId = cat_Products::fetchField($res->productId, 'measureId');
+		$res->quantityInPack = 1;
 	}
 }

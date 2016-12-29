@@ -24,39 +24,27 @@ class batch_BatchesInDocuments extends core_Manager
     
     
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'batch_Wrapper';
+    
+    
+    /**
      * Единично заглавие
      */
     public $singleTitle = 'Партида';
     
     
     /**
-     * Плъгини за зареждане
+     * Кой може да променя?
      */
-    //public $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew';
-    
-    
-    /**
-     * Кой може да добавя?
-     */
-    //public $canAdd = 'ceo, acc, purchase';
-    
-    
-    /**
-     * Кой може да редактира?
-     */
-    //public $canEdit = 'ceo, acc, purchase';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    //public $canDelete = 'ceo, acc, purchase';
+    public $canWrite = 'no_one';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'admin,debug';
+	public $canList = 'debug';
 	
 	
 	/**
@@ -95,8 +83,6 @@ class batch_BatchesInDocuments extends core_Manager
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		//$mvc->truncate();
-		
 		try{
 			$row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
 		} catch(core_exception_Expect $e){
@@ -105,7 +91,6 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 	}
-	
 	
 	
 	/**
@@ -179,6 +164,7 @@ class batch_BatchesInDocuments extends core_Manager
 		$tpl = getTplFromFile('batch/tpl/BatchInfoBlock.shtml');
 		$detailClassId = cls::get($detailClassId)->getClassId();
 		$rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
+		if(!count($rInfo->operation)) return;
 		$operation = key($rInfo->operation);
 		
 		$query = self::getQuery();
@@ -267,7 +253,7 @@ class batch_BatchesInDocuments extends core_Manager
 	 * @return FALSE|string
 	 */
 	public static function checkBatchRow($detailClassId, $detailRecId, $batch, $quantity, $id = NULL)
-	{
+	{return;
 		$Class = cls::get($detailClassId);
 		$rInfo = $Class->getRowInfo($detailRecId);
 		if(empty($rInfo->operation[key($rInfo->operation)])) return FALSE;
