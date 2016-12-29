@@ -126,11 +126,9 @@ class fileman_Data extends core_Manager {
         
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
-        if($rec) {
-            $path = self::getGoodFilePath($rec);
-        }
+        $path = self::getGoodFilePath($rec);
 
-        if((!$rec->id  && $create) || !file_exists($path)) {
+        if($create && ((!$rec->id) || !file_exists($path))) {
             if(@copy($file, $path)) {
                 $rec->links = 0;
                 $status = static::save($rec);
@@ -156,13 +154,11 @@ class fileman_Data extends core_Manager {
         $rec->md5 = md5($string);
         
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
-        if($rec) {
-            $path = self::getGoodFilePath($rec);
-        }
+        $path = self::getGoodFilePath($rec);
         
-        if((!$rec->id  && $create) || !file_exists($path)) {
+        if($create && ((!$rec->id) || !file_exists($path))) {
             
-            expect(FALSE !== @file_put_contents($path, $string));
+            expect(FALSE !== @file_put_contents($path, $string), $path, $rec);
             
             $rec->links = 0;
             $status = static::save($rec);
@@ -179,7 +175,7 @@ class fileman_Data extends core_Manager {
      */
     static function on_CalcPath($mvc, $rec)
     {
-        $rec->path = self::getGoodFilePath($rec);
+        $rec->path = self::getGoodFilePath($rec, FALSE);
     }
     
     
@@ -241,16 +237,17 @@ class fileman_Data extends core_Manager {
      * Първо проверява с поддиректория, след това 
      * 
      * @param stdObject $rec
+     * @param bolean $createDir - Създва директорията, ако липсва
      * 
      * @return string
      */
-    public static function getGoodFilePath($rec)
+    public static function getGoodFilePath($rec, $createDir = TRUE)
     {
-        $path = self::getFilePath($rec, TRUE, FALSE);
+        $path = self::getFilePath($rec, TRUE, $createDir);
         
         // Ако директорията е на старото място - не е с поддиректории
         if (!is_file($path)) {
-            $nPath = self::getFilePath($rec, FALSE, FALSE);
+            $nPath = self::getFilePath($rec, FALSE, $createDir);
             
             if (is_file($nPath)) {
                 $path = $nPath;
