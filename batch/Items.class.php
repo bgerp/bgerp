@@ -375,26 +375,18 @@ class batch_Items extends core_Master {
     {
     	// Ако артикула няма партидност, не показваме таба
     	$canStore = $data->masterData->rec->canStore;
+    	$definition = batch_Defs::getBatchDef($data->masterId);
     	
-    	if($canStore != 'yes'){
+    	if($canStore != 'yes' || !$definition){
     		$data->hide = TRUE;
     		return;
     	}
     	 
     	// Име на таба
-    	$definition = batch_Defs::getBatchDef($data->masterId);
     	$data->definition = $definition;
-    	
-    	if(empty($data->definition)){
-    		if(batch_Defs::haveRightFor('add', (object)array('productId' => $data->masterId))){
-    			$data->addBatchUrl = array('batch_Defs', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
-    		}
-    	} else {
-    		$defIf = batch_Defs::fetch("#productId = '{$data->masterId}'");
-    		
-    		if(batch_Defs::haveRightFor('delete', $defIf)){
-    			$data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => TRUE);
-    		}
+    	$defIf = batch_Defs::fetch("#productId = '{$data->masterId}'");
+    	if(batch_Defs::haveRightFor('delete', $defIf)){
+    		$data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => TRUE);
     	}
     	
     	$data->TabCaption = 'Партиди';
