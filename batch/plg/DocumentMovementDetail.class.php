@@ -174,8 +174,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
 		if($mvc->getBatchMovementDocument($rec) == 'out') return;
+		
 		if($rec->isEdited === TRUE){
-			batch_BatchesInDocuments::sync($mvc->getClassId(), $rec->id, $rec->batch, $rec->quantity);
+			if(empty($rec->batch)){
+				batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+			} else {
+				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), TRUE);
+			}
 		}
 	}
 	

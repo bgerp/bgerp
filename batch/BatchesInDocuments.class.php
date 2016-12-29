@@ -94,43 +94,6 @@ class batch_BatchesInDocuments extends core_Manager
 	
 	
 	/**
-	 * Синхронизира ред
-	 * 
-	 * @param mixed $detailClassId
-	 * @param int $detailRecId
-	 * @param string $batch
-	 * @param int
-	 */
-	public static function sync($detailClassId, $detailRecId, $batch, $quantity = NULL)
-	{
-		expect($Detail = cls::get($detailClassId));
-		expect($dRec = $Detail->fetch($detailRecId));
-		
-		if(empty($batch)){
-			return self::delete("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$detailRecId}");
-		} 
-		
-		$rec = $Detail->getRowInfo($dRec);
-		foreach ($rec->operation as $operation => $storeId){
-			$clone = clone $rec;
-			$clone->operation = $operation;
-			$clone->storeId = $storeId;
-			
-			$clone->batch = $batch;
-			$clone->quantity = isset($quantity) ? $quantity : $rec->quantity;
-			$clone->detailClassId = $Detail->getClassId();
-			$clone->detailRecId = $dRec->id;
-			
-			if($id = self::fetchField("#detailClassId = {$clone->detailClassId} AND #detailRecId = {$clone->detailRecId} AND #operation = '{$clone->operation}'", 'id')){
-				$clone->id = $id;
-			}
-			
-			return self::save($clone);
-		}
-	}
-	
-	
-	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
 	 *
 	 * @param core_Mvc $mvc
@@ -534,7 +497,12 @@ class batch_BatchesInDocuments extends core_Manager
 	public static function getId($detailClassId, $detailRecId, $productId, $batch, $operation)
 	{
 		$detailClassId = cls::get($detailClassId)->getClassId();
-		return self::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #batch = '{$batch}' AND #operation = '{$operation}'");
+		$where = "#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #operation = '{$operation}'";
+		if(!empty($batch)){
+			$where .= " AND #batch = '{$batch}'";
+		}
+		
+		return self::fetchField($where);
 	}
 	
 	
@@ -544,9 +512,10 @@ class batch_BatchesInDocuments extends core_Manager
 	 * @param mixed $detailClassId
 	 * @param int $detailRecId
 	 * @param array $batchesArr
+	 * @param boolean $sync 
 	 * @return void
 	 */
-	public static function saveBatches($detailClassId, $detailRecId, $batchesArr)
+	public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = FALSE)
 	{
 		if(!is_array($batchesArr)) return;
 		$recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
@@ -564,7 +533,8 @@ class batch_BatchesInDocuments extends core_Manager
 				$obj->quantity = $q;
 				$obj->batch = $b;
 				
-				if($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $obj->batch, $operation)){
+				$b = ($sync === TRUE) ? NULL : $obj->batch;
+				if($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b, $operation)){
 					$obj->id = $id;
 				}
 				
