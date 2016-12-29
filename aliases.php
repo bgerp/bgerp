@@ -9,6 +9,6 @@ class arr extends core_Array {}
 class Redirect extends core_Redirect {}
 class str extends core_String {}
 class Debug extends core_Debug {}
-class Fileman extends fileman_Files2 {}
+class Fileman extends fileman_Files {}
 class Users extends core_Users {}
 class keylist extends type_Keylist {}
