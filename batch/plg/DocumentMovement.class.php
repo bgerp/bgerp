@@ -51,4 +51,15 @@ class batch_plg_DocumentMovement extends core_Plugin
 			batch_Movements::removeMovement($containerId);
 		}
 	}
+	
+	
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	public static function on_AfterPrepareSingleToolbar($mvc, $data)
+	{
+		if(batch_Movements::haveRightFor('list') && $data->rec->state == 'active'){
+			$data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
+		}
+	}
 }

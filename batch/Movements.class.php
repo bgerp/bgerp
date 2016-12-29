@@ -250,11 +250,11 @@ class batch_Movements extends core_Detail {
     				 
     				// Движението, което ще запишем
     				$mRec = (object)array('itemId'    => $itemId,
-    						'quantity'  => $quantity,
-    						'operation' => $jRec->operation,
-    						'docType'   => $doc->getClassId(),
-    						'docId'     => $doc->that,
-    						'date'	    => $jRec->date,
+    						              'quantity'  => $quantity,
+    						              'operation' => $jRec->operation,
+    						              'docType'   => $doc->getClassId(),
+    						              'docId'     => $doc->that,
+    						              'date'	  => $jRec->date,
     				);
     				
     				// Запис на движението
