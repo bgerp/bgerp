@@ -121,7 +121,7 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на производствените документи', 'batch_plg_DocumentMovement', 'deals_ManifactureMaster', 'family');
         $html .= $Plugins->installPlugin('Партидни движения на детайлите на производствените документи', 'batch_plg_DocumentMovementDetail', 'deals_ManifactureDetail', 'family');
         
-        $html .= $Plugins->installPlugin('Партидни движения на протокола за производство', 'batch_plg_DirectProductionNoteMovement', 'planning_DirectProductionNote', 'private');
+        //$html .= $Plugins->installPlugin('Партидни движения на протокола за производство', 'batch_plg_DirectProductionNoteMovement', 'planning_DirectProductionNote', 'private');
         
         $html .= $Plugins->installPlugin('Партиден детайл на артикулите', 'batch_plg_ProductDetail', 'cat_Products', 'private');
         $html .= $Plugins->installPlugin('Детайл за дефиниции на партиди', 'batch_plg_CategoryDetail', 'cat_Categories', 'private');
@@ -133,11 +133,15 @@ class batch_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Миграция на партидите
+     */
     function migrateBatches()
     {
+    	core_Plugins::delete("#plugin = 'batch_plg_DirectProductionNoteMovement'");
+    	
     	$Batches = cls::get('batch_BatchesInDocuments');
     	$Batches->setupMvc();
-    	//$Batches->truncate();
     
     	$documents = array('sales_SalesDetails', 
     			           'purchase_PurchasesDetails', 
@@ -151,6 +155,9 @@ class batch_Setup extends core_ProtoSetup
     	$arr = array();
     	foreach ($documents as $doc){
     		$D = cls::get($doc);
+    		
+    		// Ако няма такова поле не се прави нищо
+    		if(!$D->db->isFieldExists($D->dbTableName, 'batch')) continue;
     		
     		$query = $D->getQuery();
     		$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
@@ -177,7 +184,7 @@ class batch_Setup extends core_ProtoSetup
     					             'batch'          => $dRec->batch,
     								 'date'           => $dRec->valior,
     								 'storeId'        => $dRec->storeId,
-    								 'operation'      => ($D->batchMovementDocument == 'out') ? 'out' : 'in',
+    								 'operation'      => ($D->getBatchMovementDocument($dRec) == 'out') ? 'out' : 'in',
     			
     			);
     			
