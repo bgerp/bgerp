@@ -157,7 +157,7 @@ class fileman_Setup extends core_ProtoSetup
 
        'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при интексиране на файл->Време'), 
 
-       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Коя програма да се използва за OCR обработка->Клас'),
+       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
     );
     
     
