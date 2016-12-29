@@ -40,7 +40,7 @@ class tnef_EmailPlg extends core_Plugin
                 $Fileman = cls::get('fileman_Files');
                 
                 //Вкарваме файла във Fileman
-                $fh = $Fileman->addNewFileFromString($fRec->data, tnef_Decode::$bucket, $fRec->name);
+                $fh = fileman::absorbStr($fRec->data, tnef_Decode::$bucket, $fRec->name);
             } else {
                 $fh = fileman_Files::fetchField($fileId, 'fileHnd');
             }

@@ -487,14 +487,10 @@ class email_Mime extends core_BaseClass
      */
     function addFileToFileman($data, $name)
     {
-        $Fm = cls::get('fileman_Files');
+        $fh = fileman::absorbStr($data, 'Email', $name);
         
-        //Вкарваме файла във Fileman
-        $fh = $Fm->addNewFileFromString($data, 'Email', $name);
+        $id = fileman::fetchByFh($fh, 'id');
         
-        // Вземаме id-то на файла
-        $id = $Fm->fetchField("#fileHnd = '{$fh}'", 'id');
-            
         return $id;
     }
     
