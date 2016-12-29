@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -53,12 +53,6 @@ class batch_Defs extends embed_Manager {
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'batch, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'batch,ceo';
@@ -95,6 +89,7 @@ class batch_Defs extends embed_Manager {
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,before=driverClass,silent,mandatory');
     
+    	$this->FLD('batchCaption', 'varchar(20)', 'caption=Заглавие,input=none,after=driverClass');
     	$this->setDbUnique('productId');
     }
     
@@ -140,6 +135,16 @@ class batch_Defs extends embed_Manager {
     	if(isset($form->rec->productId)){
     		if(batch_Items::fetchField("#productId = {$form->rec->productId}")){
     			$form->setReadOnly('productId');
+    		}
+    	}
+    	
+    	// Ако е избрана дефиниция, полето за заглавие на дефиницията се показва
+    	if(isset($form->rec->driverClass)){
+    		$form->setField('batchCaption', 'input');
+    		
+    		$Class = cls::get($form->rec->driverClass);
+    		if(isset($Class->fieldCaption)){
+    			$form->setField('batchCaption', "placeholder={$Class->fieldCaption}");
     		}
     	}
     }

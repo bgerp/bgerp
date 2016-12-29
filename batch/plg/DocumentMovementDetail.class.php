@@ -59,8 +59,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 					$form->setField('batch', "placeholder={$BatchClass->fieldPlaceholder}");
 				}
 				
-				if(isset($BatchClass->fieldCaption)){
-					$form->setField('batch', "caption={$BatchClass->fieldCaption}");
+				$fieldCaption = $BatchClass->getFieldCaption();
+				if(!empty($fieldCaption)){
+					$form->setField('batch', "caption={$fieldCaption}");
 				}
 				
 				if(isset($rec->id)){

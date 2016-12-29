@@ -18,6 +18,14 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	
 	
 	/**
+	 * Име на полето за партида в документа
+	 *
+	 * @param string
+	 */
+	public $fieldCaption = 'SN';
+	
+	
+	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset

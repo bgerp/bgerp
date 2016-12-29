@@ -159,7 +159,7 @@ class batch_BatchesInDocuments extends core_Manager
 			$block = clone $tpl->getBlock('BLOCK');
 			$total -= $rec->quantity;
 			
-			$label = ($batchDef instanceof batch_definitions_Serial) ? '' : 'lot:';
+			$label = (!empty($batchDef->getFieldCaption())) ? $batchDef->getFieldCaption() . ":" : 'lot:';
 			
 			// Вербализацията на к-то ако е нужно
 			if(count($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))){
@@ -365,7 +365,7 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		// Добавяне на поле за нова партида
-		$caption = ($Def->fieldCaption) ? $Def->fieldCaption : 'Партида';
+		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
 		$form->FLD('newBatch', 'varchar', "caption=Нова партида->{$caption},placeholder={$Def->placeholder},autohide");
 		$form->setFieldType('newBatch', $Def->getBatchClassType());
 		

@@ -16,4 +16,11 @@
 class batch_definitions_Varchar extends batch_definitions_Proto
 {
 	
+	
+	/**
+	 * Име на полето за партида в документа
+	 *
+	 * @param string
+	 */
+	public $fieldCaption = 'lot';
 }

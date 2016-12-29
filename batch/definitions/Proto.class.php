@@ -245,4 +245,10 @@ abstract class batch_definitions_Proto extends core_BaseClass
     	
     	return $batches;
     }
+    
+    
+    public function getFieldCaption()
+    {
+    	return (!empty($this->rec->batchCaption)) ? $this->rec->batchCaption : $this->fieldCaption;
+    }
 }

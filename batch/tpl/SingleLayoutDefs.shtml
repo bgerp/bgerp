@@ -8,6 +8,7 @@
                 <table>
                 	<tr><td class="quiet">|Артикул|*:</td> <td>[#productId#]</td></tr>
                 	<tr><td class="quiet">|Тип|*:</td> <td>[#driverClass#]</td></tr>
+                	<tr><td class="quiet">|Заглавие на партидата|*:</td> <td>[#batchCaption#]</td></tr>
                 	
                 	<!--ET_BEGIN format-->
                 	<tr><td class="quiet">|Формат|*:</td> <td>[#format#]</td></tr>
