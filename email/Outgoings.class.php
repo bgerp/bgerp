@@ -331,7 +331,7 @@ class email_Outgoings extends core_Master
         if (count($rec->attachmentsFh)) {
             
             //Вземаме id'тата на файловете вместо манупулатора име
-            $attachments = fileman_Files::getIdFromFh($rec->attachmentsFh);
+            $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
             
             //Записваме прикачените файлове
             $rec->attachments = keylist::fromArray($attachments);
@@ -462,7 +462,7 @@ class email_Outgoings extends core_Master
                 if (count($rec->documentsFh)) {
                     
                     //Вземаме id'тата на файловете вместо манипулаторите
-                    $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+                    $documents = fileman::fhKeylistToIds($rec->documentsFh);
                     
                     //Записваме прикачените файлове
                     $rec->documents = keylist::fromArray($documents);
