@@ -541,6 +541,10 @@ class change_Plugin extends core_Plugin
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
+
+            if($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
+                unset($allowedFieldsArr[$field]);
+            }
         }
         
         return $allowedFieldsArr;
