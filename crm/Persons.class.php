@@ -39,7 +39,7 @@ class crm_Persons extends core_Master
         'doc_ContragentDataIntf',
         
         // Интерфейс за входящ документ
-        'incoming_CreateDocumentIntf',
+        'fileman_FileActionsIntf',
     		
     	// Интерфейс за корица на папка в която може да се създава артикул
     	'cat_ProductFolderCoverIntf',
@@ -1465,32 +1465,35 @@ class crm_Persons extends core_Master
 
                 $rec->salutation = $vcard->getName('prefix');
                 $rec->birthday   = $vcard->getBday();
-
+ 
                 $address = $vcard->getAddress();
+                
+                if(is_array($address)) {
+                    // За сега използваме първия адрес от първия възможен тип:
+                    $address = reset($address);
 
-                // За сега използваме първия адрес от първия възможен тип:
-                $address = reset($address);
-
-                $rec->place    = $address['locality'];
-
-                //
-                // {{{ Извличане на държавата
-                //
-                $country = $address['country'];
-
-                if (!empty($country) &&
-                    !($rec->country = drdata_Countries::fetchField(array("#formalName = '[#1#]'", $country), 'id')) &&
-                    !($rec->country = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $country), 'id')) ) {
-                    // Ако не можем да определим ключа на държавата, добавяме я към града, за
-                    // да не се загуби напълно
-                    $rec->place .= ", {$country}";
+                    $rec->place    = $address['locality'];
+                
+                    //
+                    // {{{ Извличане на държавата
+                    //
+                    $country = $address['country'];
+                    if (!empty($country) &&
+                        !($rec->country = drdata_Countries::fetchField(array("#formalName = '[#1#]'", $country), 'id')) &&
+                        !($rec->country = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $country), 'id')) ) {
+                        // Ако не можем да определим ключа на държавата, добавяме я към града, за
+                        // да не се загуби напълно
+                        $rec->place .= ", {$country}";
+                    }
+                    //
+                    // Край с държавата }}}
+                    //
+                    $rec->pcode    = $address['code'];
+                    $rec->address  = $address['street'];
                 }
-                //
-                // Край с държавата }}}
-                //
 
-                $rec->pcode    = $address['code'];
-                $rec->address  = $address['street'];
+
+
 
                 if ($organisation = $vcard->getOrganisation()) {
                     $rec->buzCompanyId = crm_Companies::fetchField(array("#name = '[#1#]'", $organisation), 'id');
@@ -1556,20 +1559,22 @@ class crm_Persons extends core_Master
                         }
                     }
                 }
+                
+                if(is_array($tels)) {
+                    // Приемаме, че всички останали телефони са служебни
+                    foreach ($tels as $list) {
+                        $bizTel = array_merge($bizTel, $list);
+                    }
 
-                // Приемаме, че всички останали телефони са служебни
-                foreach ($tels as $list) {
-                    $bizTel = array_merge($bizTel, $list);
+                    $rec->buzTel = implode(', ', array_unique($bizTel));
+                    $rec->buzFax = implode(', ', array_unique($bizFax));
+                    $rec->tel    = implode(', ', array_unique($persTel));
+                    $rec->mobile = implode(', ', array_unique($persMob));
+                    $rec->fax    = implode(', ', array_unique($persFax));
+                    //
+                    // Край с телефоните }}}
+                    //
                 }
-
-                $rec->buzTel = implode(', ', array_unique($bizTel));
-                $rec->buzFax = implode(', ', array_unique($bizFax));
-                $rec->tel    = implode(', ', array_unique($persTel));
-                $rec->mobile = implode(', ', array_unique($persMob));
-                $rec->fax    = implode(', ', array_unique($persFax));
-                //
-                // Край с телефоните }}}
-                //
 
                 //
                 // {{{ Снимка
@@ -1829,19 +1834,18 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Интерфейсен метод на incoming_CreateDocumentIntf
+     * Интерфейсен метод на fileman_FileActionsIntf
      * 
-     * Връща масив, от който се създава бутона за създаване на входящ документ
+     * Връща масив с действия, които могат да се извършат с дадения файл
      * 
      * @param stdObject $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
-     * $arr['class'] - Името на класа
-     * $arr['action'] - Екшъна
+     * $arr['url'] - array URL на действието
      * $arr['title'] - Заглавието на бутона
      * $arr['icon'] - Иконата
      */
-    static function canCreate_($fRec)
+    static function getActionsForFile_($fRec)
     {
         // Позволените разширения, за създаване на визитка 
         $vCardExtArr = array('vcf', 'vcard');
@@ -1856,8 +1860,7 @@ class crm_Persons extends core_Master
             
             // Създаваме масива за съзване на визитка
         	$arr = array();
-            $arr['vcard']['class'] = 'crm_Persons';
-            $arr['vcard']['action'] = 'extractVcard';
+            $arr['vcard']['url'] = array('crm_Persons', 'extractVcard', 'fh' => $fRec->fileHnd, 'ret_url' => TRUE);
             $arr['vcard']['title'] = 'Лице';
             $arr['vcard']['icon'] = '/img/16/extract_foreground_objects.png';
         }

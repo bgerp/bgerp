@@ -664,6 +664,12 @@ class core_App
             if($get['id'] && $unprotect) {
                 expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'));
             }
+
+            if($get['App']) {
+                if($app = Request::get('App')) {
+                    $get['App'] = $app;
+                }
+            }
         }
         
         return $get;

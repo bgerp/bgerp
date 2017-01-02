@@ -16,15 +16,9 @@ class abbyyocr_Converter extends core_Manager
     
     
     /**
-     * 
-     */
-    public $ocrType = 'textOcr';
-    
-    
-    /**
      * Интерфейсни методи
      */
-    var $interfaces = 'fileman_OCRIntf';
+    var $interfaces = 'fileman_OCRIntf, fileman_FileActionsIntf';
     
     
     /**
@@ -55,6 +49,55 @@ class abbyyocr_Converter extends core_Manager
      * Кода, който ще се изпълнява
      */
     public $fconvLineExec = 'abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]';
+
+
+    /**
+     *
+     */
+    public $canOcr = 'powerUser';
+    
+    
+    /**
+     * Интерфейсен метод на fileman_FileActionsIntf
+     *
+     * Връща масив с действия, които могат да се извършат с дадения файл
+     *
+     * @param stdObject $fRec - Обект са данни от модела
+     *
+     * @return array|NULL $arr - Масив с данните
+     * $arr['url'] - array URL на действието
+     * $arr['title'] - Заглавието на бутона
+     * $arr['icon'] - Иконата
+     */
+    static function getActionsForFile_($fRec)
+    {
+        $arr = NULL;
+        
+        if (self::haveRightFor('ocr') && self::canExtract($fRec)) {
+    		
+            $btnParams = array();
+    
+            $btnParams['order'] = 70;
+            $btnParams['title'] = 'Разпознаване на текст с abbyyocr';
+    
+            // Ако вече е извлечена текстовата част
+            $procTextOcr = fileman_Indexes::isProcessStarted(array('type' => 'textOcr', 'dataId' => $fRec->dataId));
+            if ($procTextOcr) {
+                $btnParams['warning'] = 'Файлът е преминал през разпознаване на текст';
+            } elseif (!self::haveTextForOcr($fRec)) {
+                $btnParams['warning'] = 'Няма текст за разпознаване';
+            }
+            
+            $arr = array();
+            $arr['abbyyocr']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => TRUE);
+            $arr['abbyyocr']['title'] = 'OCR';
+            $arr['abbyyocr']['icon'] = 'img/16/scanner.png';
+            $arr['abbyyocr']['btnParams'] = $btnParams;
+        }
+    
+        return $arr;
+    
+    }
     
     
 	/**
@@ -113,7 +156,7 @@ class abbyyocr_Converter extends core_Manager
         $params = array(
             'callBack' => $me . '::afterGetTextByAbbyyOcr',
             'createdBy' => core_Users::getCurrent('id'),
-            'type' => $this->ocrType,
+            'type' => 'textOcr',
         );
         
         if (is_object($fRec)) {
@@ -132,7 +175,7 @@ class abbyyocr_Converter extends core_Manager
         $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $lId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($params)) {
+        if (core_Locks::isLocked($params['lockId'])) {
             
             if ($params['asynch']) {
                 // Добавяме съобщение
@@ -306,7 +349,7 @@ class abbyyocr_Converter extends core_Manager
      * 
      * @see fileman_OCRIntf
      */
-    function haveTextForOcr($fRec)
+    public static function haveTextForOcr($fRec)
     {
     
         return TRUE;

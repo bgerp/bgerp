@@ -721,6 +721,15 @@ class core_Users extends core_Manager
             $rec->rolesInput = keylist::merge($rec->roleRank, $rec->roleTeams, $rec->roleOthers);
         }
         
+        // Aдминистратор не може да премахне сам на себе си ролята `administrator`
+        if($rec->id && $rec->id == core_Users::getCurrent()) {
+            $exRec = self::fetch($rec->id);
+            $adminId = core_Roles::fetchByName('admin');
+            if(keylist::isIn($adminId, $exRec->rolesInput) && !keylist::isIn($adminId, $rec->rolesInput)) {
+                $form->setError('roleOthers', 'Не може да премахнете сам на себе си ролята `administrator`');
+            }
+        }
+
         // Ако регистрираме първия потребител, добавяме му роля `admin`
         if(!$rec->id && $mvc->isUsersEmpty()) {
             $rec->rolesInput = keylist::addKey($rec->rolesInput, $mvc->core_Roles->fetchByName('admin'));
@@ -1014,6 +1023,30 @@ class core_Users extends core_Manager
         if(!$fields || in_array('roles', $fields = arr::make($fields))) {
 
             $rolesArr = keylist::toArray($rec->rolesInput);
+            
+            // Подсигуряваме се, че потребителят ще има точно една роля за ранг
+            $rangs = array();
+            $haveRang = FALSE;
+            $rangs[core_Roles::fetchByName('ceo')] = 'ceo';
+            $rangs[core_Roles::fetchByName('manager')] = 'manager';
+            $rangs[core_Roles::fetchByName('officer')] = 'officer';
+            $rangs[core_Roles::fetchByName('executive')] = 'executive';
+            $rangs[core_Roles::fetchByName('partner')] = 'partner';
+            foreach($rangs as $roleId => $roleName) {
+                if(!$haveRang) {
+                    if($rolesArr[$roleId]) {
+                        $haveRang = TRUE;
+                        continue;
+                    }
+                } else {
+                    unset($rolesArr[$roleId]);
+                }
+            }
+
+            // Ако няма никаква роля за ранг - даваме му 'partner' 
+            if(!$haveRang) {
+                $rolesArr[$roleId] = $roleId;
+            }
             
             $rolesArr = core_Roles::expand($rolesArr);
 

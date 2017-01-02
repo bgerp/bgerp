@@ -42,6 +42,7 @@ class unit_MinkPPrices extends core_Manager {
     {
         $browser = cls::get('unit_Browser');
         //$browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
         $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');

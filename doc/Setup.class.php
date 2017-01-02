@@ -200,7 +200,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
-    	'migrate::migratePending1'
+    	'migrate::migratePending1',
+        'migrate::showFiles'
     );
 	
     
@@ -532,5 +533,50 @@ class doc_Setup extends core_ProtoSetup
 
         // Премахваме стартите роли за контрактор
         core_Roles::removeRoles(array($contractorR, $buyerR, $collaboratorR));
+    }
+    
+    
+    /**
+     * Миграция, за показване/скирване на файловете в документите
+     */
+    public function showFiles()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
+    }
+    
+    
+    /**
+     * Постепенна миграция, която се вика от showFiles и се самонавива
+     */
+    public static function callback_migrateShowFiles()
+    {
+        core_App::setTimeLimit(100);
+        $query = doc_Files::getQuery();
+        $query->where("#show IS NULL");
+        $query->where("#containerId IS NOT NULL");
+        $query->where("#containerId != ''");
+        
+        $query->orderBy('id', 'ASC');
+        
+        $cnt = $query->count();
+        
+        $query->limit(1000);
+        $query->groupBy("dataId");
+        
+        if ($cnt) {
+            $callOn = dt::addSecs(120);
+            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
+        } else {
+            doc_Files::logDebug("Няма повече файлове за миграция в документите");
+            
+            return ;
+        }
+        
+        doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
+        
+        while ($rec = $query->fetch()) {
+            doc_Files::recalcFiles($rec->containerId);
+        }
     }
 }

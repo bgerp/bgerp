@@ -91,12 +91,6 @@ class fileman_Files extends core_Master
     
     
     /**
-     * 
-     */
-    public $canOcr = 'powerUser';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -154,12 +148,12 @@ class fileman_Files extends core_Master
                 
                 $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
             } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
-         } elseif(!$rec->id) {
+         } elseif(!$rec->id && $rec->fileHnd) {
+            $existingRec = $mvc->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd));
             
-              $existingRec = $mvc->fetch("#fileHnd = '{$rec->fileHnd}'");
-
-            
-            $rec->id = $existingRec->id;
+            if ($existingRec) {
+                $rec->id = $existingRec->id;
+            }
         }
         
         if ($rec->dataId) {
@@ -911,6 +905,8 @@ class fileman_Files extends core_Master
         } else {
             $ext = '';
         }
+
+        $ext = mb_strtolower($ext);
         
         return $ext;
     }
@@ -1002,66 +998,30 @@ class fileman_Files extends core_Master
         $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
         $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
         
-        try {
-            $mvc->addOcrBtn($data->toolbar, $data->rec);
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-        }
-    }
-	
-    
-    /**
-     * Добавя бутон за стартиране на OCR процеса
-     * 
-     * @param core_Toolbar $toolbar
-     * @param stdObject $rec
-     */
-    protected static function addOcrBtn(&$toolbar, $rec)
-    {
-        $ocrClass = fileman_Setup::get('OCR');
+        // Очакваме да има такъв файл
+        expect($fRec = $data->rec);
         
-        if (!cls::load($ocrClass, TRUE)) return FALSE;
+        // Вземаме всички класове, които имплементират интерфейса
+        $classesArr = core_Classes::getOptionsByInterface('fileman_FileActionsIntf');
         
-        $OcrInst = cls::getInterface('fileman_OCRIntf', $ocrClass);
-        
-        if (!$OcrInst) return FALSE;
-        
-        try {
+        // Обхождаме всички класове, които имплементират интерфейса
+        foreach ($classesArr as $className) {
             
-            $ext = strtolower(fileman_Files::getExt($rec->name));
+            // Вземаме масива с документите, които може да създаде
+            $arrCreate = $className::getActionsForFile($fRec);
             
-            if (!self::haveRightFor('ocr')) return FALSE;
-            
-            if (!$OcrInst->canExtract($rec)) return FALSE;
-            
-            $btnParams = array();
-            
-            $btnParams['order'] = 60;
-            $btnParams['title'] = 'Разпознаване на текст';
-            
-            // URL за създаване
-            $url = toUrl(array($OcrInst->class, 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
-            
-            // Ако вече е извлечена текстовата част
-            $paramsOcr = array();
-            $paramsOcr['type'] = $OcrInst->class->ocrType;
-            $paramsOcr['dataId'] = $rec->dataId;
-            $procTextOcr = fileman_Indexes::isProcessStarted($paramsOcr);
-            if ($procTextOcr) {
-                // Правим бутона на disabled
-                $btnParams['disabled'] = 'disabled';
-                $btnParams['title'] = 'Файлът е преминал през разпознаване на текст';
+            if(is_array($arrCreate)) {
+                // Обхождаме масива
+                foreach ($arrCreate as $id => $arr) {
+                    
+                    // Ако има полета, създаваме бутона
+                    if (count($arr)) {
+                        $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
+                    }
+                }
             }
-            
-            // Добавяме бутона
-            $toolbar->addBtn('OCR', $url, 
-            	array('ef_icon' => 'img/16/scanner.png'), 
-                $btnParams
-            ); 
-        } catch (ErrorException $e) {
-            
-            return FALSE;
         }
+
     }
     
     

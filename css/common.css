@@ -2742,7 +2742,8 @@ div.richtext ol ol ol {
   color: #444444;
   padding: 2px 0 0 15px;
   border-left: 5px solid #e0e0e0;
-  font-family: Courier New, monospace, serif; }
+  font-family: Courier New, monospace, serif;
+  margin-bottom: 5px; }
 
 .richtext > .richtext-quote {
   font-size: 0.9em; }

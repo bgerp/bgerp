@@ -48,7 +48,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input,changable,before=sharedUsers');
+                        $data->form->setField('visibleForPartners', 'input=input,before=sharedUsers');
                     }
                     
                     if ($rec->originId) {
@@ -67,7 +67,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
                 }
             }
         }
-        
+
+        $data->form->setField('visibleForPartners', 'changable=ifInput');
+
         // Сетваме стойността, ако не е зададена
         if (!$rec->id && !$rec->visibleForPartners) {
             $data->form->setDefault('visibleForPartners', 'no');

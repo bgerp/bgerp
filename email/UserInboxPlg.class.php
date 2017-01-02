@@ -98,11 +98,16 @@ class email_UserInboxPlg extends core_Plugin
      * Изпълнява се след обновяване на информацията за потребител
      */
     public static function on_AfterUpdate($mvc, $rec, $fields = NULL)
-    {   
+    {
         $fieldsArr = $mvc->prepareSaveFields($fields, $rec);
-        if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId')) && $fieldsArr['nick']) { 
-            crm_Profiles::syncPerson($personId, $rec);
-        }
+
+        if($fieldsArr['nick'] && $rec->nick) {
+            if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId'))) { 
+                crm_Profiles::syncPerson($personId, $rec);
+            } else {
+                self::on_AfterCreate($mvc, $rec);
+            }
+        } 
     }
     
     
