@@ -26,6 +26,8 @@ class tnef_EmailPlg extends core_Plugin
     {
         $allFiles = $mvc->files;
         
+        $idNewFile = 100 * count((array)$allFiles);
+        
         foreach ((array)$mvc->files as $id => $fRec) {
             
             $ext = fileman_Files::getExt($fRec->name);
@@ -58,7 +60,7 @@ class tnef_EmailPlg extends core_Plugin
                 $nF = new stdClass();
                 $nF->name = $fRecN->name;
                 $nF->fmId = $fRecN->id;
-                $allFiles[] = $nF;
+                $allFiles[$idNewFile++] = $nF;
             }
         }
         

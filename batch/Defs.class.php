@@ -83,6 +83,12 @@ class batch_Defs extends embed_Manager {
     
     
     /**
+     * Работен кеш
+     */
+    public static $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -151,19 +157,20 @@ class batch_Defs extends embed_Manager {
      */
     public static function getBatchDef($productId)
     {
+    	// Имали кеширана стойност
+    	if(array_key_exists($productId, self::$cache)) return self::$cache[$productId];
+    	self::$cache[$productId] = FALSE;
+    	
     	// Намираме записа за артикула
     	$rec = self::fetch("#productId = '{$productId}'");
-    	
-    	// Опитваме се да върнем инстанцията
     	if(cls::load($rec->driverClass, TRUE)){
     		$BatchClass = cls::get($rec->driverClass);
     		$BatchClass->setRec($rec);
     		
-    		return $BatchClass;
+    		self::$cache[$productId] = $BatchClass;
     	}
     	
-    	// Ако не може да се намери
-    	return FALSE;
+    	return self::$cache[$productId];
     }
     
     

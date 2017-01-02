@@ -654,11 +654,11 @@ class core_Query extends core_FieldSet
      */
     function delete($cond = NULL)
     {
+ 
         if($this->mvc->invoke('BeforeDelete', array(&$numRows, &$this, $cond)) === FALSE) {
             
             return $numRows;
         }
-        
         // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те 
         // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
         if($this->mvc->fetchFieldsBeforeDelete) {
@@ -671,24 +671,19 @@ class core_Query extends core_FieldSet
         
         $this->getShowFields(TRUE);
         
+        
         $orderBy = $this->getOrderBy();
         $limit   = $this->getLimit();
         
-        $dbTableName = '';
-        
-        // Нито ORDER BY, нито LIMIT се допуска при "multiple table syntax"
-        if (empty($orderBy) && empty($limit)) {
-            $tableName = "`" . $this->mvc->dbTableName . "`.* ";
-        }
-        
-        $query = "DELETE " . $this->mvc->db->escape($dbTableName) . "FROM";
+         
+        $query = "DELETE FROM";
         $query .= $this->getTables();
         
         $query .= $wh->w;
         $query .= $wh->h;
         $query .= $orderBy;
         $query .= $limit;
-        
+
         $db = $this->mvc->db;
         
         DEBUG::startTimer(cls::getClassName($this->mvc) . ' DELETE ');
@@ -1006,6 +1001,7 @@ class core_Query extends core_FieldSet
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;
                 case "XPR" :
+                    if($isDelete) break;
                     $fields .= $this->expr2mysql($f->expression);
                     break;
                 default :
@@ -1045,11 +1041,12 @@ class core_Query extends core_FieldSet
     {
         $this->useExpr = FALSE;
         $this->usedFields = array();
-
-        return str::prepareExpression($expr, array(
+        $res = str::prepareExpression($expr, array(
                 &$this,
                 'getMysqlField'
             ));
+        
+        return $res;
     }
     
     

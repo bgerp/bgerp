@@ -26,23 +26,26 @@ class fileman_Files2 extends core_Master
      * 
      * @param string $path - Пътя до файла в ОС
      * @param string $bucket - Името на кофата
-     * @param string|NULL $name - Името на файла 
+     * @param string|NULL $name - Името на файла
+     * @param string $type - Типа
      * 
-     * @return fileHnd $fh - Манипулатора на файла
+     * @return string $fh - Манипулатора на файла
      */
-    public static function absorb($path, $bucket, $name = NULL)
+    public static function absorb($path, $bucket, $name = NULL, $type = 'file')
     {
-        // Очакваме да има валиден файл
-        expect(is_file($path), 'Не е подаден валиден файл.');
+        if ($type == 'file') {
+            // Очакваме да има валиден файл
+            expect(is_file($path), 'Не е подаден валиден файл.');
+            
+            // Опитваме се да определим името на файла
+            if(!$name) $name = basename($path);
+        }
         
         // Очакваме да има такава кофа
         expect($bucketId = fileman_Buckets::fetchByName($bucket), 'Несъществуваща кофа.');
 
-        // Опитваме се да определим името на файла
-        if(!$name) $name = basename($path);
-        
         // Абсорбираме файла
-        $data = fileman_Data::absorb($path, 'file');
+        $data = fileman_Data::absorb($path, $type);
         
         // Очаквамед да има данни
         expect($dataId = $data->id, 'Липсват данни.');
@@ -78,40 +81,12 @@ class fileman_Files2 extends core_Master
      * @param string $bucket - Името на кофата
      * @param string $name - Името на файла 
      * 
-     * @return fileHnd $fh - Манипулатора на файла
+     * @return string $fh - Манипулатора на файла
      */
     public static function absorbStr($data, $bucket, $name)
     {
-        // Очакваме да има валидна кофа
-        expect($bucketId = fileman_Buckets::fetchByName($bucket), 'Несъществуваща кофа');
         
-        // Качваме файла и вземаме id' то на данните
-        $data = fileman_Data::absorb($data, 'string');
-        
-        // Очаквамед да има данни
-        expect($dataId = $data->id, 'Липсват данни.');
-        
-        // Инстанция на този клас
-        $me = cls::get(get_called_class());
-        
-        // Инвокваме функцията
-        $me->invoke('prepareFileName', array(&$name, $dataId));
-        
-        // Проверяваме дали същия файл вече съществува
-        if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
-            
-            // Създаваме запис за файла
-            $fh = static::createFile($name, $bucketId, $dataId);    
-        }
-        
-        // Ако има манипулатор 
-        if ($fh) {
-            
-            // Обновяваме лога за използване на файла
-            fileman_Log::updateLogInfo($fh, 'upload');
-        }
-        
-        return $fh;
+        return self::absorb($data, $bucket, $name, 'string');
     }
 
     
