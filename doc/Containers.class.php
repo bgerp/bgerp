@@ -2763,7 +2763,7 @@ class doc_Containers extends core_Manager
                 ini_set("memory_limit", $newMemLimit);
             }
             
-            set_time_limit(600);
+            core_App::setTimeLimit(1200);
             
             // Ако са объркани датите
             if (isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
