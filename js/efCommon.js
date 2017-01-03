@@ -125,7 +125,7 @@ function showTooltip() {
     $('.tooltip-arrow-link').each(function(){
     	if ($(this).attr("data-useHover")) {
 
-    		$(this).hover(function(){$(this).click();}, function(){$(element).hide();});
+    		$(this).hover(function(){$(this).children().click();}, function(){$(element).hide();});
     	}
     });
 };
