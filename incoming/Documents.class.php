@@ -322,7 +322,7 @@ class incoming_Documents extends core_Master
      *
      * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
      */
-    function getAttachments($rec)
+    public static function getAttachments($rec)
     {
         // Ако не е обект, тогава вземаме записите за съответния документ
         if (!is_object($rec)) {
@@ -453,6 +453,30 @@ class incoming_Documents extends core_Master
         return $arr;
     }
     
+    
+    /**
+     * Връща файла, който се използва в документа
+     * 
+     * @param object $rec
+     * 
+     * @return array
+     */
+    function getLinkedFiles($rec)
+    {
+        $res = array();
+        
+        $rec = $this->fetchRec($rec);
+        
+        if (!$rec || !$rec->fileHnd) return $res;
+        
+        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
+        
+        if (!$fRec) return $res;
+        
+        $res[$rec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
+        
+        return $res;
+    }
     
     
     /**
