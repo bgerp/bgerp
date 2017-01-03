@@ -547,7 +547,7 @@ class batch_Items extends core_Master {
     	
     	// Сумиране на к-то към датата
     	while($rec = $query->fetch()){
-    		if(array_key_exists($rec->batch, $res)){
+    		if(!array_key_exists($rec->batch, $res)){
     			$res[$rec->batch] = 0;
     		}
     		
