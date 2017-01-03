@@ -452,4 +452,17 @@ class incoming_Documents extends core_Master
 
         return $arr;
     }
+    
+    
+    
+    /**
+     * 
+     * @param incoming_Documents $mvc
+     * @param NULL|string $res
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Инсталиране на кофата
+        $res .= fileman_Buckets::createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
+    }
 }
