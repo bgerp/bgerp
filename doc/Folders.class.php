@@ -1750,7 +1750,7 @@ class doc_Folders extends core_Master
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
             }
         }
  
@@ -1769,7 +1769,7 @@ class doc_Folders extends core_Master
         return $res;
     }
     
-    
+
     /**
      * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
      *

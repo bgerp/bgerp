@@ -124,13 +124,6 @@ class ssh_Hosts extends core_Master
         $row->user = $rec->config['user'];
     }
     
-    /**
-     * Извлича запис по име
-     */
-//     public static function fetchByName($name)
-//     {
-//         return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name));
-//     }
     
     /**
      * Връща конфигурацията на хост по id

@@ -20,19 +20,26 @@ defIfNot('CORE_SQL_DEFAULT_ENGINE', 'MYISAM');
 /**
  * Задава кодировката на базата данни по подразбиране
  */
-defIfNot('EF_DB_CHARSET', 'utf8');
+defIfNot('EF_DB_CHARSET', 'utf8mb4');
 
 
 /**
  * Задава колацията на базата данни по подразбиране
  */
-defIfNot('EF_DB_COLLATION', 'utf8_bin');
+defIfNot('EF_DB_COLLATION', 'utf8mb4_bin');
 
 
 /**
  * Задава кодировката на клиента (PHP скрипта) за базата данни по подразбиране
  */
-defIfNot('EF_DB_CHARSET_CLIENT', 'utf8');
+defIfNot('EF_DB_CHARSET_CLIENT', 'utf8mb4');
+
+
+/**
+ * С колко максимално символа да участват в индексите полетата varchar
+ */
+defIfNot('EF_DB_VARCHAR_INDEX_PREFIX', EF_DB_CHARSET == 'utf8mb4' ? 100 : 255);
+
 
 
 /**
@@ -130,6 +137,7 @@ class core_Db extends core_BaseClass
         $this->dbCharset = EF_DB_CHARSET;
         $this->dbCollation = EF_DB_COLLATION;
         $this->dbCharsetClient = EF_DB_CHARSET_CLIENT;
+        $this->varcharIndexPrefix = EF_DB_VARCHAR_INDEX_PREFIX;
         
         parent::init($params);
     }
@@ -172,7 +180,7 @@ class core_Db extends core_BaseClass
             if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== FALSE)) {
                 $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
             }
-            
+
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
                 // Грешка при избиране на база
@@ -401,8 +409,8 @@ class core_Db extends core_BaseClass
         // Установяване на параметрите по подразбиране
         setIfNot($params, array(
                 'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
-                'CHARACTER' => 'utf8',
-                'COLLATION' => 'utf8_bin'
+                'CHARACTER' => $this->dbCharset,
+                'COLLATION' => $this->dbCollation
             ));
 
         // Ако таблицата съществува, връщаме сигнал, че нищо не сме направили
@@ -631,8 +639,15 @@ class core_Db extends core_BaseClass
         
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
-                $f = str::phpToMysqlName($f);
-                $fields .= ($fields ? "," : "") . "`{$f}`\n";
+                list($name, $len) = explode('(', $f);
+
+                $name = str::phpToMysqlName($name);
+
+                if($len) {
+                    $fields .= ($fields ? "," : "") . "`{$name}`({$len}\n";
+                } else {
+                    $fields .= ($fields ? "," : "") . "`{$name}`\n";
+                }
             }
             
             // Създаване на Индекса
@@ -680,6 +695,7 @@ class core_Db extends core_BaseClass
         
         if ($this->numRows($dbRes)) {
             while ($rec = $this->fetchObject($dbRes)) {
+
                 $name = $rec->Key_name;
                 
                 if ($name == 'PRIMARY') {
@@ -692,7 +708,7 @@ class core_Db extends core_BaseClass
                     $type = 'UNIQUE';
                 }
                 
-                $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = TRUE;
+                $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = $rec->Sub_part ? $rec->Sub_part : TRUE;
             }
         }
   
