@@ -185,7 +185,9 @@ class trz_SalaryRules extends core_Manager
         }
         
         $res = array();
-        $res["SUM({$indicator})"] = $value;
+        if(count($res) >= 1) {
+            $res["SUM({$indicator})"] = $value;
+        }
  
         return $res;
     }
@@ -212,7 +214,9 @@ class trz_SalaryRules extends core_Manager
         }
 
         $res = array();
-        $res["AVR{$indicator})"] = $val;
+        if(count($res) >= 1) {
+            $res["AVR{$indicator})"] = $value;
+        }
  
         return $res;
     }
@@ -233,7 +237,9 @@ class trz_SalaryRules extends core_Manager
         }
 
         $res = array();
-        $res["MIN{$indicator})"] = min($value);
+        if(count($res) >= 1) {
+            $res["MIN{$indicator})"] = min($value);
+        }
  
         return $res;
     }
@@ -254,8 +260,10 @@ class trz_SalaryRules extends core_Manager
         }
 
         $res = array();
-        $res["MAX{$indicator})"] = MAX($value);
- 
+        if(count($res) >= 1) {
+            $res["MAX{$indicator})"] = MAX($value);
+        }
+
         return $res;
     }
     
@@ -274,7 +282,9 @@ class trz_SalaryRules extends core_Manager
         }
         
         $res = array();
-        $res["CNT({$indicator})"] = count($value);
+        if(count($res) >= 1) {
+            $res["CNT({$indicator})"] = count($value);
+        }
  
         return $res;
     }
