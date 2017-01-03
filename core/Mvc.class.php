@@ -974,8 +974,6 @@ class core_Mvc extends core_FieldSet
                 
                 if($mfAttr->collation == 'ci') {
                     $mfAttr->collation = $this->db->dbCharset . '_general_ci';
-                } elseif (empty($mfAttr->collation)) {
-                    $mfAttr->collation = $this->db->dbCollation;
                 }
 
                 $mfAttr->field = $dfAttr->field;
