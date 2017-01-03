@@ -365,13 +365,14 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		// Добавяне на поле за нова партида
+		$autohide = count($batches) ? 'autohide' : '';
 		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
-		$form->FLD('newBatch', 'varchar', "caption=Нова партида->{$caption},placeholder={$Def->placeholder},autohide");
+		$form->FLD('newBatch', 'varchar', "caption=Нова партида->{$caption},placeholder={$Def->placeholder},{$autohide}");
 		$form->setFieldType('newBatch', $Def->getBatchClassType());
 		
 		// Ако е сериен номер полето за к-во се скрива
 		if(!($Def instanceof batch_definitions_Serial)){
-			$form->FLD('newBatchQuantity', 'double(min=0)', "caption=Нова партида->К-во,placeholder={$Def->placeholder},autohide,unit={$packName}");
+			$form->FLD('newBatchQuantity', 'double(min=0)', "caption=Нова партида->К-во,placeholder={$Def->placeholder},{$autohide},unit={$packName}");
 		}
 		
 		$form->input();
