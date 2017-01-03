@@ -72,12 +72,18 @@ class core_Lg extends core_Manager
     
     
     /**
+     * 
+     */
+    protected static $keyStringLen = 32;
+    
+    
+    /**
      * Описание на полетата на модела
      */
     function description()
     {
         $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,optionsFunc=core_Lg::getLangOptions, suggestions=');
-        $this->FLD('kstring', 'varchar', 'caption=Стринг,export, width=100%, mandatory');
+        $this->FLD('kstring', 'varchar(' . static::$keyStringLen . ')', 'caption=Стринг,export, width=100%, mandatory');
         $this->FLD('translated', 'text',  'caption=Превод,export, width=100%, class=translated, mandatory');
 
         $this->setDbUnique('kstring,lg');
@@ -481,7 +487,7 @@ class core_Lg extends core_Manager
      */
     static function prepareKey($key)
     {
-        $key = str::convertToFixedKey($key, 32, 4);
+        $key = str::convertToFixedKey($key, self::$keyStringLen, 4);
         
         return $key;
     }
