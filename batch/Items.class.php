@@ -19,7 +19,7 @@ class batch_Items extends core_Master {
     /**
      * Заглавие
      */
-    public $title = 'Партиди';
+    public $title = 'Наличности';
     
     
     /**
@@ -43,7 +43,7 @@ class batch_Items extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Партида";
+    public $singleTitle = "Наличност";
     
     
     /**

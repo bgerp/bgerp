@@ -24,7 +24,7 @@ class batch_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-    	$this->TAB('batch_Items', 'Партиди', 'ceo, batch');
+    	$this->TAB('batch_Items', 'Наличности', 'ceo, batch');
      	
     	if(haveRole('debug')){
     		$this->TAB('batch_Movements', 'Движения->Журнал', 'ceo, batch');

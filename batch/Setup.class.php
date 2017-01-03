@@ -66,6 +66,7 @@ class batch_Setup extends core_ProtoSetup
     		'batch_InventoryNotes',
     		'batch_InventoryNoteDetails',
     		'batch_Features',
+    		//'migrate::migrateBatches',
         );
     
 
