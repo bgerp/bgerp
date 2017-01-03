@@ -26,13 +26,13 @@ defIfNot('EF_DB_CHARSET', 'utf8mb4');
 /**
  * Задава колацията на базата данни по подразбиране
  */
-defIfNot('EF_DB_COLLATION', 'utf8mb4_bin');
+defIfNot('EF_DB_COLLATION',  EF_DB_CHARSET == 'utf8mb4' ? 'utf8mb4_bin' : 'utf8_bin');
 
 
 /**
  * Задава кодировката на клиента (PHP скрипта) за базата данни по подразбиране
  */
-defIfNot('EF_DB_CHARSET_CLIENT', 'utf8mb4');
+defIfNot('EF_DB_CHARSET_CLIENT', EF_DB_CHARSET);
 
 
 /**
