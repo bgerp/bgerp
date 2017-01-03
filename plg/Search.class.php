@@ -31,8 +31,9 @@ class plg_Search extends core_Plugin
         if (!isset($mvc->fields['searchKeywords'])) {
             $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none,single=none,input=none');
         }
-
-        $mvc->setField('searchKeywords', "collation=ascii_bin");
+        
+        $fType = $mvc->getFieldType('searchKeywords');
+        $fType->params['collate'] = 'ascii_bin';
 
         if(empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
             $mvc->setDbIndex('searchKeywords', NULL, 'FULLTEXT');

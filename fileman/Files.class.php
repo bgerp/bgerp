@@ -101,7 +101,7 @@ class fileman_Files extends core_Master
             array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         // Име на файла
-        $this->FLD("name", "varchar(255)",
+        $this->FLD("name", "varchar(255,collate=ascii_bin,indexPrefix=255)",
             array('notNull' => TRUE, 'caption' => 'Файл'));
         
         // Данни (Съдържание) на файла

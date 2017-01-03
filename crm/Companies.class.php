@@ -1075,7 +1075,7 @@ class crm_Companies extends core_Master
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
             }
         }
  

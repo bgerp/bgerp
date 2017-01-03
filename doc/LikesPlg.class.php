@@ -408,7 +408,7 @@ class doc_LikesPlg extends core_Plugin
                         $attr['data-useHover'] = '1';
                         $attr['data-useCache'] = '1';
                         
-                        $likesCntLink = ht::createElement('span', $attr, $likesCnt, TRUE);
+                        $likesCntLink = ht::createElement('span', $attr, "<span>" . $likesCnt . "</span>", TRUE);
                         
                         $likesCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $likesCntLink;
                         
