@@ -33,7 +33,7 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, doc_DocumentPlg';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, doc_DocumentPlg, doc_plg_SelectFolder';
                     
     
     /**
@@ -118,6 +118,12 @@ class price_Lists extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "3.91|Търговия";
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
     
     
     /**
@@ -630,7 +636,7 @@ class price_Lists extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      */
-    public static function canAddToFolder($folderId)
+    /*public static function canAddToFolder($folderId)
     {
     	$cover = doc_Folders::getCover($folderId);
     	
@@ -639,14 +645,14 @@ class price_Lists extends core_Master
     	}
     	
     	return FALSE;
-    }
+    }*/
     
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    /*protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	$data->toolbar->removeBtn('btnAdd');
-    }
+    }*/
 }
