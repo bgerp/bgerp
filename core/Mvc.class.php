@@ -1168,7 +1168,7 @@ class core_Mvc extends core_FieldSet
 
                         // Ако полетата на съществуващия индекс са същите като на зададения, не се прави нищо
                         if(strtolower($exFieldsList) == strtolower($fieldsList)) {
-                            $html .= "<li>Съществуващ индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>'<b>({$exFieldsList})</b>'</li>";
+                            $html .= "<li>Съществуващ индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>'</li>";
                             continue;
                         }
                         
@@ -1181,7 +1181,7 @@ class core_Mvc extends core_FieldSet
                    
                     try{
                     	if($this->db->forceIndex($this->dbTableName, $fieldsList, $indRec->type, $name)){
-                    		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>''<b>({$exFieldsList})</b>'</li>";
+                    		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>'</li>";
                     	}
                     } catch(core_exception_Expect $e){
                         
