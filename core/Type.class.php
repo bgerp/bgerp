@@ -199,6 +199,8 @@ class core_Type extends core_BaseClass
             $res->collation = $this->collation;
         }
         
+        setIfNot($res->indexPrefix, $this->params['indexPrefix']);
+        
         return $res;
     }
 

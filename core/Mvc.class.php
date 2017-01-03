@@ -974,7 +974,9 @@ class core_Mvc extends core_FieldSet
                 
                 if($mfAttr->collation == 'ci') {
                     $mfAttr->collation = $this->db->dbCharset . '_general_ci';
-                }  
+                } elseif (empty($mfAttr->collation)) {
+                    $mfAttr->collation = $this->db->dbCollation;
+                }
 
                 $mfAttr->field = $dfAttr->field;
 
@@ -1119,7 +1121,6 @@ class core_Mvc extends core_FieldSet
  
             // Добавяме индексите
             if (is_array($this->dbIndexes)) {
-                
                 foreach ($this->dbIndexes as $name => $indRec) {
                     
                     // За varchar добавяме ограничение за уникалност на първите 100 символа
@@ -1130,9 +1131,16 @@ class core_Mvc extends core_FieldSet
                         $fName = trim($fName);
 
                         $fType = $this->getFieldType($fName);
-                      
-                        if($fType->dbFieldType == 'varchar' && $fType->getDbFieldSize() > $this->db->varcharIndexPrefix) {
-                            $addLimit = '(' . $this->db->varcharIndexPrefix . ')';
+                        
+                        $mySqlAttr = $fType->getMysqlAttr();
+                        
+                        $dbFieldSize = $fType->getDbFieldSize();
+                        
+                        if($fType->dbFieldType == 'varchar' && $dbFieldSize > $this->db->varcharIndexPrefix && ($dbFieldSize > $mySqlAttr->indexPrefix)) {
+                            
+                            $indPref = NULL;
+                            setIfNot($indPref, $mySqlAttr->indexPrefix, $this->db->varcharIndexPrefix);
+                            $addLimit = '(' . $indPref . ')';
                         } else {
                             $addLimit = '';
                         }
@@ -1160,7 +1168,7 @@ class core_Mvc extends core_FieldSet
 
                         // Ако полетата на съществуващия индекс са същите като на зададения, не се прави нищо
                         if(strtolower($exFieldsList) == strtolower($fieldsList)) {
-                            $html .= "<li>Съществуващ индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>'</li>";
+                            $html .= "<li>Съществуващ индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>'<b>({$exFieldsList})</b>'</li>";
                             continue;
                         }
                         
@@ -1173,7 +1181,7 @@ class core_Mvc extends core_FieldSet
                    
                     try{
                     	if($this->db->forceIndex($this->dbTableName, $fieldsList, $indRec->type, $name)){
-                    		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
+                    		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>''<b>({$exFieldsList})</b>'</li>";
                     	}
                     } catch(core_exception_Expect $e){
                         
