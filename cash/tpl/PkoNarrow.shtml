@@ -3,7 +3,7 @@
             <table class="innerTable border-table paddingCells">
                 <tbody>
                     <tr>
-                        <td colspan = "2" class='centered'>  
+                        <td class='centered'>
                             <div class="document-title">|приходен касов ордер|*</div>
                             <!--ET_BEGIN operationSysId-->
                             <small>( [#operationSysId#] )</small>
@@ -17,17 +17,21 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="cell custom-header-bg" style='width:50%;'><b>|Вносител|*</b></td>
+                        <td class="cell custom-header-bg"><b>|Вносител|*</b></td>
+					</tr>
+					<tr>
+						<td>
+							<b>[#contragentName#]</b>
+							<div class='address-block'>
+								[#contragentAddress#]
+							</div>
+							[#creditAccounts#]
+						</td>
+					</tr>
+					<tr>
                         <td class="cell custom-header-bg"><b>|Получател|*</b></td>
                     </tr>
                     <tr>
-                        <td>
-                            <b>[#contragentName#]</b>
-                            <div class='address-block'>
-                                [#contragentAddress#]
-                            </div>
-                            [#creditAccounts#]
-                        </td>
                         <td>
                             <b>[#MyCompany#]</b>
                             <div class='address-block'>
