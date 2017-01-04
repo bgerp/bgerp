@@ -557,7 +557,7 @@ class doc_Setup extends core_ProtoSetup
         $query->where("#containerId IS NOT NULL");
         $query->where("#containerId != ''");
         
-        $query->orderBy('id', 'ASC');
+        $query->orderBy('id', 'DESC');
         
         $cnt = $query->count();
         

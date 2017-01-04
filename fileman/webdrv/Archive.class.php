@@ -209,7 +209,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 
                 try {
                     $extractedPath = $archiveInst->extractEntry($path);
-                } catch (Archive_7z_Exception $e) {
+                } catch (ErrorException $e) {
                     continue;
                 }
             
