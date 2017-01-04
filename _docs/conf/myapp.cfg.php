@@ -33,7 +33,7 @@ DEFINE('EF_DB_PASS', 'USER_PASSWORD_FOR_DB');
 DEFINE('EF_DB_HOST', 'localhost');
  
 // Кодировка на базата данни
-DEFINE('EF_DB_CHARSET', 'utf8');
+// DEFINE('EF_DB_CHARSET', 'utf8');
 
 
 /**
