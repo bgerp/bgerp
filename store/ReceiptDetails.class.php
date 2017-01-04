@@ -185,4 +185,18 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     	
     	return ($isReverse == 'yes') ? 'out' : 'in';
     }
+    
+    
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	$masterRec = store_Receipts::fetch($rec->receiptId, 'isReverse,storeId');
+    	if($masterRec->isReverse == 'yes'){
+    		$res->operation['in'] = $masterRec->storeId;
+    		unset($res->operation['out']);
+    	}
+    }
 }
