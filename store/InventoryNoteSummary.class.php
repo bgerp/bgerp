@@ -709,7 +709,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	$uRec = (object)array('id' => $data->masterId, 'cache' => $data->cache);
-    	$data->masterMvc->save_($uRec);
+    	$data->masterMvc->save($uRec);
     	
     	// Кешираме $data->rows
     	if($cacheRows === TRUE){

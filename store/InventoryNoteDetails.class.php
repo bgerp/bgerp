@@ -298,7 +298,7 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
-    	$data->form->toolbar->addSbBtn('Запис и нов', 'next', 'id=saveAndNew,order=0.1, ef_icon = img/16/disk.png', 'title=Запис на документа');
+    	$data->form->toolbar->addSbBtn('Запис и следващ', 'next', 'id=saveAndNew,order=0.1, ef_icon = img/16/disk.png', 'title=Запис на документа');
     	
     	$freePacks = $mvc->getFreeProductPacks($data->form->rec->noteId, $data->form->rec->productId);
     	unset($freePacks[$data->form->rec->packagingId]);
@@ -351,8 +351,15 @@ class store_InventoryNoteDetails extends doc_Detail
     		$k = array_search($index, $keys, TRUE);
     		if(!$k){
     			list($sId,) = explode('|', $index);
+    			
+    			$arr = Mode::get("InventoryNotePrevArray{$rec->noteId}");
+    			$prevId = end($arr);
+    			if(isset($prevId) && strpos($prevId, "{$sId}|") !== FALSE){
+    				$sId = $prevId;
+    			}
+    			
     			$values = arr::make($keys, TRUE);
-    			arr::placeInAssocArray($values, array($index), NULL, $sId);
+    			arr::placeInAssocArray($values, $index, NULL, $sId);
     			$keys = array_values($values);
     			$k = array_search($index, $keys, TRUE);
     			
