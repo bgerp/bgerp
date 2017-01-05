@@ -246,7 +246,9 @@ class log_System extends core_Manager
     {
         $row->ROW_ATTR['class'] = "logs-type-{$rec->type}";
         
-        $row->what = log_Data::prepareText($rec->detail, $rec->className, $rec->objectId);
+        $detail = core_Type::escape($rec->detail);
+        
+        $row->what = log_Data::prepareText($detail, $rec->className, $rec->objectId);
     }
     
     
