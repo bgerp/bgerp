@@ -38,13 +38,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'store_Wrapper';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, store';
+    public $loadList = 'store_Wrapper, batch_plg_InventoryNotes';
     
     
     /**
@@ -245,26 +239,25 @@ class store_InventoryNoteDetails extends doc_Detail
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public function prepareEditForm_($data)
     {
+    	parent::prepareEditForm_($data);
+    	
     	$form = &$data->form;
     	$rec = &$form->rec;
     	expect($rec->productId);
-    	
+    	 
     	if(empty($rec->id)){
-    		$packs = $mvc->getFreeProductPacks($rec->noteId, $rec->productId);
+    		$packs = $this->getFreeProductPacks($rec->noteId, $rec->productId);
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
     	} else {
     		$form->setReadOnly('packagingId');
     		$form->setDefault('packQuantity', $rec->quantity / $rec->quantityInPack);
     	}
-    	
+    	 
     	$form->setOptions('productId', array($rec->productId => cat_Products::getTitleByid($rec->productId, FALSE)));
     	$form->setField('productId', $rec->productId);
     }
