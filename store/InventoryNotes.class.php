@@ -469,11 +469,6 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('store/tpl/css/styles.css', 'CSS');
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    		$tpl->push('store/js/InventoryNotes.js', 'JS');
-    		jquery_Jquery::run($tpl, "noteActions();");
-			jqueryui_Ui::enable($tpl);
-		}
     }
     
     
