@@ -649,16 +649,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		$ordered += $rest;
     	}
     	
-    	// След всеки подреден запис, записваме кой следва след него
-    	$orderedValues = array_values($ordered);
-    	for ($i = 0; $i < count($orderedValues); $i++) {
-    		$r = $orderedValues[$i];
-    		$nextId = $orderedValues[$i + 1]->id;
-    	
-    		// Записваме в река ид-то на записа, който е след него
-    		$ordered[$r->id]->nextId = $nextId;
-    	}
-    	
     	// Заместваме намерените записи
     	$recs = $ordered;
     }
