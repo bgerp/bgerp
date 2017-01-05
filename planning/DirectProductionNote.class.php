@@ -216,6 +216,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
 		}
 		
+		$curStore = store_Stores::getCurrent('id', FALSE);
+		$form->setDefault('storeId', $curStore);
+		
 		return $data;
 	}
 	
