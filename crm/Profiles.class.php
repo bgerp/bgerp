@@ -931,7 +931,7 @@ class crm_Profiles extends core_Master
         }
         
         if (!empty($personRec->photo)) {
-            if(is_readable(fileman_Files::fetchByFh($personRec->photo))) {
+            if(is_readable(fileman_Files::fetchByFh($personRec->photo, 'path'))) {
                 $userRec->avatar = $personRec->photo;
             }
         }

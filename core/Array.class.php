@@ -422,7 +422,7 @@ class core_Array
     			 
     			foreach($array as $exName => $exFld) {
     			
-    				if($before == $exName) {
+    				if((string)$before == (string)$exName) {
     					$isSet = TRUE;
     					$newFields[$key] = $value;
     				}
@@ -431,7 +431,7 @@ class core_Array
     					$newFields[$exName] = &$array[$exName];
     				}
     			
-    				if($after == $exName) {
+    				if((string)$after == (string)$exName) {
     					$newFields[$key] = $value;
     					$isSet = TRUE;
     				}
