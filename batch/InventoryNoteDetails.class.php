@@ -44,13 +44,13 @@ class batch_InventoryNoteDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_AlignDecimals2, plg_RowTools2,plg_RowNumbering';
+    public $loadList = 'plg_RowTools2,plg_RowNumbering';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, batchOut, batchIn';
+    public $listFields = 'productId, packagingId, batch=Партида, fromSystem=Количества->По система, final=Количества->Установено, diff=Количества->Разлика';
     
     
     /**
@@ -59,27 +59,11 @@ class batch_InventoryNoteDetails extends core_Detail
     function description()
     {
     	$this->FLD('noteId', 'key(mvc=batch_InventoryNotes,select=id)', 'caption=Протокол,mandatory,silent,input=hidden');
-    	$this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=quantityInPack|packagingId|quantity,tdClass=productCell leftCol wrap');
-    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
-    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
-    	$this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-    	$this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
-    
-    	$this->FLD('batchOut', 'varchar', 'caption=Партидност->По система');
-    	$this->FLD('batchIn', 'varchar', 'caption=Партидност->Установено');
-    }
-    
-    
-    /**
-     * Изчисляване на количеството на реда в брой опаковки
-     */
-    public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
-    {
-    	if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-    		return;
-    	}
-    
-    	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+    	$this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=quantityInPack|packagingId|quantity|batch|newBatch,tdClass=productCell leftCol wrap');
+    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'silent,caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm');
+    	$this->FLD('quantityInPack', 'double(minDecimals=0)', 'input=none,column=none');
+    	$this->FLD('data', 'blob(serialize, compress)', 'input=none');
+    	$this->setDbUnique('noteId,productId');
     }
     
     
@@ -96,11 +80,17 @@ class batch_InventoryNoteDetails extends core_Detail
     	$masterRec = $data->masterRec;
     	
     	// Опции за артикули
-    	$productOptions = self::getProductOptions($masterRec->storeId, $masterRec->valior);
     	if(isset($rec->id)){
-    		if(!array_key_exists($rec->productId, $productOptions)){
-    			$productOptions[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
-    		}
+    		$productOptions = array();
+    		$productOptions[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+    	} else {
+    		$productOptions = self::getProductOptions($masterRec->storeId, $masterRec->valior);
+    		
+    		$query = self::getQuery();
+    		$query->where("#noteId = {$masterRec->id}");
+    		$query->show('productId');
+    		$productIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+    		$productOptions = array_diff_key($productOptions, $productIds);
     	}
     	
     	if(!count($productOptions)) return followRetUrl(NULL, 'Няма артикули с партидност в склада, с наличност към избрания период', 'warning');
@@ -119,25 +109,41 @@ class batch_InventoryNoteDetails extends core_Detail
     		$form->setField('packagingId', 'input');
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
+    		$packName = cat_UoM::getShortName($rec->packagingId);
     		
     		// Зареждане на класа на партидата
-    		expect($BatchClass = batch_Defs::getBatchDef($rec->productId));
-    		$form->setFieldType('batchIn', $BatchClass->getBatchClassType());
-    		$form->setFieldType('batchOut', $BatchClass->getBatchClassType());
+    		expect($Def = batch_Defs::getBatchDef($rec->productId));
     		
-    		$batches = batch_Items::getBatches($rec->productId, $masterRec->storeId);
-    		if(count($batches)){
-    			$form->setSuggestions('batchOut', array('' => '') + $batches);
+    		$quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $masterRec->valior);
+    		$rec->data = (is_array($rec->data)) ? $rec->data : array();
+    		$quantities += $rec->data;
+    		
+    		$form->counts = array();
+    		
+    		if(is_array($quantities)){
+    			$count = 1;
+    			foreach ($quantities as $batch => $quantity){
+    				$form->counts[] = $count;
+					$verbal = strip_tags($Def->toVerbal($batch));
+					$form->FLD("quantity{$count}", "double", "caption=Установени партиди->{$verbal},unit={$packName}");
+					if(array_key_exists($batch, $rec->data)){
+						$form->setDefault("quantity{$count}", $rec->data["{$batch}"] / $rec->quantityInPack);
+					}
+					$form->FLD("batch{$count}", 'varchar', "input=hidden");
+					$form->setDefault("batch{$count}", $batch);
+					$count++;
+				}
     		}
     		
-    		if(isset($rec->id)){
-    			if(!empty($rec->batchIn)){
-    				$rec->batchIn = $BatchClass->denormalize($rec->batchIn);
-    			}
-    			
-    			if(!empty($rec->batchOut)){
-    				$rec->batchOut = $BatchClass->denormalize($rec->batchOut);
-    			}
+    		// Добавяне на поле за нова партида
+    		$autohide = count($quantities) ? 'autohide' : '';
+    		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
+    		$form->FLD('newBatch', 'varchar', "caption=Установена нова партиди->{$caption},placeholder={$Def->placeholder},{$autohide}");
+    		$form->setFieldType('newBatch', $Def->getBatchClassType());
+    		
+    		// Ако е сериен номер полето за к-во се скрива
+    		if(!($Def instanceof batch_definitions_Serial)){
+    			$form->FLD('newBatchQuantity', 'double(min=0)', "caption=Установена нова партиди->К-во,placeholder={$Def->placeholder},unit={$packName},{$autohide}");
     		}
     	}
     }
@@ -155,72 +161,40 @@ class batch_InventoryNoteDetails extends core_Detail
     		$rec = &$form->rec;
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-    		$rec->quantity = $rec->quantityInPack * $rec->packQuantity; 
     		
     		$BatchClass = batch_Defs::getBatchDef($rec->productId);
     		
-    		// Проверка на входящата партида ако има
-    		if(!empty($rec->batchIn)){
-    			if(!$BatchClass->isValid($rec->batchIn, $rec->quantity, $msg)){
-    				$form->setError('batchIn', $msg);
+    		$data = array();
+    		foreach ($form->counts as $count){
+    			if(isset($rec->{"quantity{$count}"})){
+    				$data["{$rec->{"batch{$count}"}}"] = $rec->{"quantity{$count}"};
     			}
     		}
     		
-    		// Проверка на изходящата партида ако има
-    		if(!empty($rec->batchOut)){
-    			if(!$BatchClass->isValid($rec->batchOut, $rec->quantity, $msg)){
-    				$form->setError('batchOut', $msg);
+    		// Ако има нова партида, проверява се
+    		if(!empty($rec->newBatch)){
+    			$normalized = $BatchClass->normalize($rec->newBatch);
+    			$batches = $BatchClass->makeArray($normalized);
+    			
+    			// Трябва да е валидна
+    			if(!$BatchClass->isValid($rec->newBatch, count($batches), $msg)){
+    				$form->setError('newBatch', $msg);
+    			}
+    			
+    			foreach ($batches as $b1 => $b2){
+    				if(!array_key_exists($b1, $data)){
+    					$data["{$b1}"] = ($BatchClass instanceof batch_definitions_Serial) ? 1 : ($rec->newBatchQuantity / count($batches));
+    				} else {
+    					$form->setError('newBatch', 'Опитвате се да създадете същестуваща партида');
+    				}
     			}
     		}
     		
-    		// Трябва да има поне една партида
-    		if(empty($rec->batchIn) && empty($rec->batchOut)){
-    			$form->setError('batchIn,batchOut', 'Трябва да е посочена поне една партида');
+    		foreach ($rec->data as &$q1){
+    			$q1 *= $rec->quantityInPack;
     		}
-    	}
-    }
-    
-    
-    /**
-     * Преди запис на документ
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	// Нормализираме полето за партидата
-    	$BatchClass = batch_Defs::getBatchDef($rec->productId);
-    	$batchFields = array('batchIn', 'batchOut');
-    	foreach ($batchFields as $f){
-    		if(!empty($rec->{$f})){
-    			if($rec->{$f} != $BatchClass->getAutoValueConst()){
-    				$rec->{$f} = $BatchClass->normalize($rec->{$f});
-    			}
-    		} else {
-    			$rec->{$f} = NULL;
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	$BatchClass = batch_Defs::getBatchDef($rec->productId);
-    	$batchFields = array('batchIn', 'batchOut');
-    	
-    	// След запис, ако някоя от партидите трябва да получи автоматична стойност да се попълни
-    	foreach ($batchFields as $f){
-    		if(!empty($rec->{$f})){
-    			if($rec->{$f} == $BatchClass->getAutoValueConst()){
-    				$rec->{$f} = $BatchClass->getAutoValue($mvc->Master, $rec->noteId);
-    				$mvc->save_($rec, $f);
-    			}
-    		}
+    		
+    		$rec->data = $data;
     	}
     }
     
@@ -316,40 +290,83 @@ class batch_InventoryNoteDetails extends core_Detail
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	$rows = &$data->rows;
+    	if(!count($rows)) return;
+    	
+    	$masterRec = $data->masterData->rec;
+    	$newRows = array();
+    	
+    	$makeLink = !Mode::isReadOnly() && haveRole('powerUser');
+    	if(!haveRole('batch,ceo')){
+    		Request::setProtected('batch');
+    	}
+    	
+    	foreach ($data->rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		
+    		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    		
+    		$newRows[] = $row;
+    		
+    		$quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $masterRec->valior);
+    		$BatchClass = batch_Defs::getBatchDef($rec->productId);
+    		
+    		foreach ($rec->data as $batch => $q){
+    			$Double = cls::get('type_Double', array('params' => array('smartRound' => TRUE)));
+    			
+    			$diff = round($q - $quantities["{$batch}"], 2);
+    			
+    			$diff = $Double->toVerbal($diff);
+    			$systemQuantity = $Double->toVerbal($quantities["{$batch}"]);
+    			$finalQuantity = $Double->toVerbal($q);
+    			
+    			if($diff < 0){
+    				$diff = "<span class='red'>{$diff}</span>";
+    			} elseif($diff > 0){
+    				$diff = "<span style='color:green'>+{$diff}</span>";
+    			} else {
+    				$diff = "<span class='quiet'>{$diff}</span>";
+    			}
+    			
+    			$systemQuantity = ($quantities["{$batch}"] < 0) ? "<span class='red'>{$systemQuantity}</span>" : $systemQuantity;
+    			$finalQuantity = ($q < 0) ? "<span class='red'>{$finalQuantity}</span>" : $finalQuantity;
+    			
+    			$batchV = $BatchClass->toVerbal($batch);
+    			if($makeLink){
+    				$batchV = ht::createLink($batchV, array('batch_Movements', 'list', 'batch' => $batch));
+    			}
+    			
+    			$newRow = (object)array('productId'   => "<span class='quiet'>" . cat_Products::getTitleById($rec->productId) . "<span>",
+    						            'batch'       => $batchV,
+    						            'packagingId' => "<span class='quiet'>" . $row->packagingId . "</span>",
+    						            'fromSystem'  => $systemQuantity,
+    						            'final'       => $finalQuantity, 
+    					                'diff'        => $diff
+    			);
+    			
+    			$newRows[] = $newRow;
+    		}
+    	}
+    	
+    	$data->rows = $newRows;
+    	
+    	Request::removeProtected('batch');
+    }
+    
+    
+    /**
 	 * Преди рендиране на таблицата
 	 */
 	protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
 	{
-    	$rows = $data->rows;
-    	if(!count($rows)) return;
-    	$masterRec = $data->masterData->rec;
-    	
-    	foreach ($data->rows as $i => &$row) {
-    		$rec = &$data->recs[$i];
-    		$RichText = cls::get('type_Richtext');
-    		
-    		if(!empty($rec->batchIn)){
-    			unset($notes);
-    			batch_Defs::appendBatch($rec->productId, $rec->batchIn, $notes);
-    			$row->batchIn = "<small>{$RichText->toVerbal($notes)}</small>";
-    		}
-    		
-    		if(!empty($rec->batchOut)){
-    			unset($notes);
-    			batch_Defs::appendBatch($rec->productId, $rec->batchOut, $notes);
-    			$row->batchOut = "<small>{$RichText->toVerbal($notes)}</small>";
-    			
-    			$quantity = batch_Items::getQuantity($rec->productId, $rec->batchOut, $masterRec->storeId);
-    			if($quantity < $rec->quantity){
-    				$row->ROW_ATTR['style'] = 'background-color:rgba(255, 0, 0, 0.3)';
-    				$q = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($quantity);
-    				$row->packQuantity = ht::createHint($row->packQuantity, "По-голямо от наличното количество|*: {$q}", 'error', FALSE);
-    			}
-    		}
-    		
-    		// Показваме подробната информация за опаковката при нужда
-    		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	}
+		$data->listTableMvc->FLD('batch', 'varchar', 'smartCenter');
+		$data->listTableMvc->FLD('fromSystem', 'double');
+		$data->listTableMvc->FLD('final', 'double');
+		$data->listTableMvc->FLD('diff', 'double');
     }
 }

@@ -86,7 +86,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,groupName';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,delta,charge,groupName';
     
         
     /**
@@ -198,11 +198,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
     	}
     	
-    	if(!Mode::is('blank')){
-    		$row->quantitySum = $mvc->renderQuantityCell($rec);
-    		$row->quantitySum = "<div id='summary{$rec->id}'>{$row->quantitySum}</div>";
-    	}
-    	
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
     	$row->modifiedDate = $rec->modifiedOn;
     	$row->groupName = $rec->groupName;
@@ -237,72 +232,6 @@ class store_InventoryNoteSummary extends doc_Detail
     	$deltaRow = "<span class='{$class}'>{$deltaRow}</span>";
     	
     	return new core_ET($deltaRow);
-    }
-    
-    
-    /**
-     * Рендира установеното количество
-     *
-     * @param stdClass $rec - запис
-     * @return core_ET      - стойноста на клетката
-     */
-    public static function renderQuantityCell($rec)
-    {
-    	$rec = self::fetchRec($rec);
-    	$quantity = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->quantity);
-    	$newQuantity = $quantity;
-    	
-    	$quantityArr = array('quantity' => $quantity);
-    	$quantityTpl = new core_ET("<span><b>[#quantity#]</b></span>[#test#]<!--ET_BEGIN link--><span style='margin-left:3px'>[#link#]</span><!--ET_END link--><!--ET_BEGIN history--><div><small>[#history#]</small></div><!--ET_END history-->");
-
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    		if($history = store_InventoryNoteDetails::getHistory($rec)){
-    			$quantityArr['history'] = $history;
-    		}
-    	}
-    
-    	if(!Mode::is('blank')){
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    			if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
-    				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'replaceId' => "inlineform{$rec->id}");
-    				
-    				if(Mode::is('screenMode', 'narrow')){
-    					unset($url['replaceId']);
-    					if(isset($rec->nextId)){
-    						$nextRec = static::fetch($rec->nextId, 'productId,noteId');
-    						$retUrl = $url;
-    						$retUrl['noteId'] = $nextRec->noteId;
-    						$retUrl['productId'] = $nextRec->productId;
-    						$url['ret_url'] = $retUrl;
-    					}
-    					
-    					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на установените количества');
-    				} else {
-    					$url = toUrl($url, 'local');
-    					$attr = array('src'      => sbf('img/16/edit-icon.png', ''),
-    								  'id'       => "inventoryNoteShowAddForm{$rec->id}",
-    								  'data-url' => $url, 
-    								  'class'    => 'inventoryNoteShowAddForm', 
-    								  'title'    => 'Промяна на установените количества');
-    					
-    					if(isset($rec->nextId)){
-    						$attr['data-nextelement'] = "inventoryNoteShowAddForm{$rec->nextId}";
-    					}
-    					
-    					$link = ht::createElement('img', $attr);
-    				}
-
-    				$quantityArr['link'] = "{$link}";
-    			}
-    		}
-    	
-    		$quantityTpl->placeArray($quantityArr);
-    		$quantityTpl->removeBlocks();
-    		$quantityTpl->removePlaces();
-    		$newQuantity = $quantityTpl;
-    	}
-    	
-    	return $newQuantity;
     }
     
     
@@ -370,6 +299,7 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if(!$data->rows) return;
+    	
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
     	$data->listTableMvc->setField('charge', 'tdClass=charge-td');
@@ -431,6 +361,8 @@ class store_InventoryNoteSummary extends doc_Detail
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
     	}
+    	
+    	plg_RowTools2::on_BeforeRenderListTable($mvc, $res, $data);
     }
     
     
@@ -753,7 +685,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$key = store_InventoryNotes::getCacheKey($data->masterData->rec);
     	
     	// Проверяваме имали кеш за $data->rows
-    	$cache = core_Cache::get($this->Master->className, $key);
+    	//$cache = core_Cache::get($this->Master->className, $key);
     	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
     	
     	// Ако има кеш за записите
@@ -782,12 +714,19 @@ class store_InventoryNoteSummary extends doc_Detail
     		
     		// Ако няма кеш подготвяме $data->rows стандартно
     		$data = parent::prepareListRows_($data);
+    		
+    		store_InventoryNoteDetails::getExpandedRows($data->recs, $data->rows, $data->cache);
     	}
+    	
+    	$uRec = (object)array('id' => $data->masterId, 'cache' => $data->cache);
+    	$data->masterMvc->save_($uRec);
     	
     	// Кешираме $data->rows
     	if($cacheRows === TRUE){
     		core_Cache::set($this->Master->className, $key, $data->rows, 1440);
     	}
+    	
+    	Mode::setPermanent("InventoryNotePrevArray{$data->masterId}", array());
     	
     	// Връщаме $data
     	return $data;
@@ -802,5 +741,20 @@ class store_InventoryNoteSummary extends doc_Detail
     	$code = cat_Products::getVerbal($rec->productId, 'code');
     		
     	$res .= " " . plg_Search::normalizeText($code);
+    }
+    
+    
+    public static function recalc($id)
+    {
+    	expect($id);
+    	$rec = self::fetch($id);
+    	$query = store_InventoryNoteDetails::getQuery();
+    	$query->where("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
+    	$query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
+    	
+    	$quantity = $query->fetch()->sumQuantity;
+    	
+    	$sRec = (object)array('id' => $rec->id, 'quantity' => $quantity, 'modifiedOn' => dt::now());
+    	cls::get('store_InventoryNoteSummary')->save_($sRec);
     }
 }
