@@ -247,7 +247,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public function getBatchMovementDocument($rec)
     {
-    	$isReverse = store_Receipts::fetchField($rec->shipmentId, 'isReverse');
+    	$isReverse = store_ShipmentOrders::fetchField($rec->shipmentId, 'isReverse');
     	 
     	return ($isReverse == 'yes') ? 'in' : 'out';
     }
@@ -259,7 +259,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
     	$rec = $mvc->fetchRec($rec);
-    	$masterRec = store_Receipts::fetch($rec->shipmentId, 'isReverse,storeId');
+    	$masterRec = store_ShipmentOrders::fetch($rec->shipmentId, 'isReverse,storeId');
     	if($masterRec->isReverse == 'yes'){
     		$res->operation['out'] = $masterRec->storeId;
     		unset($res->operation['in']);
