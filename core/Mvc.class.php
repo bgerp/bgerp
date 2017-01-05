@@ -39,6 +39,11 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
 class core_Mvc extends core_FieldSet
 {
 
+    /**
+     * Дължината на защитната контролна сума за id-тата на този модел
+     */
+    public $idChecksumLen = EF_ID_CHECKSUM_LEN;
+
 
     /**
      * Името на класа, case sensitive
@@ -1300,7 +1305,7 @@ class core_Mvc extends core_FieldSet
             return $id;
         }
 
-        $hash = substr(base64_encode(md5(EF_SALT . $this->className . $id)), 0, EF_ID_CHECKSUM_LEN);
+        $hash = substr(base64_encode(md5(EF_SALT . $this->className . $id)), 0, $this->idChecksumLen);
         
         return $id . $hash;
     }
@@ -1318,7 +1323,7 @@ class core_Mvc extends core_FieldSet
             return $id;
         }
 
-        $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
+        $idStrip = substr($id, 0, strlen($id) - $this->idChecksumLen);
         $idProt  = $this->protectId($idStrip);
 
         if($id == $idProt) {
