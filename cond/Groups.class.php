@@ -82,6 +82,9 @@ class cond_Groups extends core_Manager
         $rec = new stdClass();
 
         $rec->title = 'Общи';
+        
+        $rec->id = $mvc->fetchField("#title = '{$rec->title}'");
+        
         $id = $mvc->save($rec, 'title', 'IGNORE');
 
         $res .= $id ? "<li>Добавен е един запис успешно!</li>" : "<li>Не е добавено ново поле</li>";

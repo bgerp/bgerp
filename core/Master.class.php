@@ -106,7 +106,7 @@ class core_Master extends core_Manager
         
         $data->details = arr::make($this->details);
         
-        expect($data->rec);
+        expect($data->rec, $data, $id, Request::get('id', 'int'));
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);

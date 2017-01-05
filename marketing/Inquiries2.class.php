@@ -810,9 +810,7 @@ class marketing_Inquiries2 extends embed_Manager
     		    
     			$id = $this->save($rec);
     			
-    			status_Messages::newStatus('|Благодарим Ви за запитването', 'success');
-    			 
-    			return followRetUrl();
+    			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}
     	

@@ -184,7 +184,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
 
             try {
                 $entriesArr = $archiveInst->getEntries();
-            } catch (Archive_7z_Exception $e) {
+            } catch (ErrorException $e) {
                 self::logWarning("Грешка при обработка на архив - {$dId}: " . $e->getMessage());
                 $entriesArr = array();
             }
@@ -209,7 +209,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 
                 try {
                     $extractedPath = $archiveInst->extractEntry($path);
-                } catch (Archive_7z_Exception $e) {
+                } catch (ErrorException $e) {
                     continue;
                 }
             

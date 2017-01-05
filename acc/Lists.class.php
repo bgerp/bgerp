@@ -170,7 +170,9 @@ class acc_Lists extends core_Manager {
      */
     public static function fetchByName($name)
     {
-        return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name));
+        $mvc = self::instance();
+
+        return self::fetch(array ("#name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $name));
     }
     
     

@@ -273,7 +273,7 @@ class vtotal_Checks extends core_Master
                 
                 try {
                     $entriesArr = $archivInst->getEntries();
-                } catch (Archive_7z_Exception $e) {
+                } catch (ErrorException $e) {
                     self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
                     // Проверка във VT
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
@@ -306,7 +306,7 @@ class vtotal_Checks extends core_Master
                     // След като открием файла който ще пратим към VT
                     try {
                         $extractedPath = $archivInst->extractEntry($path);
-                    } catch (Archive_7z_Exception $e) {
+                    } catch (ErrorException $e) {
                         $archiveHaveExt = FALSE;
                         continue;
                     }
