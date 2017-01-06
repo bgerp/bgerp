@@ -524,7 +524,7 @@ class price_ListDocs extends core_Master
 			}
 			
     		$row->pack = $this->cache[$rec->pack];
-    		$row->pack .= "&nbsp;({$Double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
+    		$row->pack .= deals_Helper::getPackMeasure($rec->measureId, $rec->perPack);
 		}
     	
 		$row->code = $Varchar->toVerbal($rec->code);
