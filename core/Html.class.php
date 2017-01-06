@@ -808,7 +808,7 @@ class core_Html
                     }
                 }
                 $icon    = "<img src='$iconSrc' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
-                $title   = "<span class='linkWithIconSpan no-spell-check'>{$icon}{$title}</span>";
+                $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
                 // Добавяме икона на бутона, ако има
                 $attr = self::addBackgroundIcon($attr);
@@ -1266,7 +1266,7 @@ class core_Html
 
         if(!empty($icon) && getFullPath($icon)) {
 
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
             
             $attr['style'] = self::getIconStyle($icon, $attr['style']);
         }
@@ -1291,7 +1291,7 @@ class core_Html
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
             
             $attr = array();
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
             
             $style = rtrim($style, ' ;');
 
