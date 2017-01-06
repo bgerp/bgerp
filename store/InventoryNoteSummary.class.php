@@ -128,6 +128,21 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * Подготовка на Детайлите
+     */
+    function prepareDetail_($data)
+    {
+    	$data->TabCaption = 'Обобщение';
+    	$data->Tab = 'top';
+    	
+    	$tab = Request::get($data->masterData->tabTopParam, 'varchar');
+    	if($tab == '' || $tab == get_called_class() || Mode::is('blank')){
+    		parent::prepareDetail_($data);
+    	}
+    }
+    
+    
+    /**
      * Заявка за редовете за начет към МОЛ
      * 
      * @param int $noteId - ид на протокол
@@ -363,19 +378,6 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	plg_RowTools2::on_BeforeRenderListTable($mvc, $res, $data);
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    	
-    	if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $data->masterId))){
-    		$data->toolbar->addBtn('Артикул', array('store_InventoryNoteDetails', 'insert', 'noteId' => $data->masterId, 'ret_url' => TRUE), 'ef_icon=img/16/star_2.png,title=Добавяне на нов артикул за опис');
-    	}
     }
     
     
@@ -705,18 +707,26 @@ class store_InventoryNoteSummary extends doc_Detail
     		// Ако няма кеш подготвяме $data->rows стандартно
     		$data = parent::prepareListRows_($data);
     		
-    		store_InventoryNoteDetails::getExpandedRows($data->recs, $data->rows, $data->cache);
+    		cls::get('store_InventoryNoteDetails')->expandRows($data->recs, $data->rows, $data->masterData->rec);
+    		
+    		$cache = array();
+    		if(is_array($data->rows)){
+    			foreach ($data->rows as $id => $sRow){
+    				$sRec = $data->recs[$id];
+    				$cache[$id] = $sRec->productId;
+    			}
+    		}
+    		
+    		$uRec = (object)array('id' => $data->masterId, 'cache' => $cache);
+    		$data->masterMvc->save_($uRec);
     	}
-    	
-    	$uRec = (object)array('id' => $data->masterId, 'cache' => $data->cache);
-    	$data->masterMvc->save($uRec);
     	
     	// Кешираме $data->rows
     	if($cacheRows === TRUE){
     		core_Cache::set($this->Master->className, $key, $data->rows, 1440);
     	}
     	
-    	Mode::setPermanent("InventoryNotePrevArray{$data->masterId}", array());
+    	Mode::setPermanent("InventoryNoteNextProduct{$data->masterId}", NULL);
     	
     	// Връщаме $data
     	return $data;
