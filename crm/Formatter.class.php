@@ -86,10 +86,10 @@ class crm_Formatter extends core_Manager
         
         if ($prefix != NULL) {
         	        	
-        	$res = "<span class='linkWithIcon no-spell-check' style=\"{$style}\">" . $prefix. " ". $parsTel . "</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">" . $prefix. " ". $parsTel . "</span>";
 
         } else {
-        	$res = "<span class='linkWithIcon no-spell-check' style=\"{$style}\">". $parsTel ."</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">". $parsTel ."</span>";
         }
  
         return $res;
@@ -127,10 +127,10 @@ class crm_Formatter extends core_Manager
 
 		if ($prefix != NULL) {
 		     	
-			$res = "<span class='linkWithIcon no-spell-check' style=\"{$style}\">" . $prefix. " ". $fax ."</span>";
+			$res = "<span class='linkWithIcon' style=\"{$style}\">" . $prefix. " ". $fax ."</span>";
 
 		} else {
-			$res = "<span class='linkWithIcon no-spell-check' style=\"{$style}\">". $fax ."</span>";
+			$res = "<span class='linkWithIcon' style=\"{$style}\">". $fax ."</span>";
 		}
 
         return $res;
@@ -159,10 +159,10 @@ class crm_Formatter extends core_Manager
 
         if ($prefix != NULL) {
         	        	
-        	$res = "<span class='linkWithIcon no-spell-check' style=\"{$style}\">" . $prefix. " ". $parsTel . "</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">" . $prefix. " ". $parsTel . "</span>";
 
         } else {
-        	$res = "<span class='linkWithIcon no-spell-check' style=\"{$style}\">". $parsTel ."</span>";
+        	$res = "<span class='linkWithIcon' style=\"{$style}\">". $parsTel ."</span>";
         }
  
         return $res;
