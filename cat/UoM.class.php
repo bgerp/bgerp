@@ -286,6 +286,29 @@ class cat_UoM extends core_Manager
     	
     	return $options;
     }
+
+
+    /**
+     * Връща, (ако има) мярка, която е в отношение ratio спрямо текущата
+     */
+    public static function getMeasureByRatio($measureId, $ratio = 0.001)
+    {
+        static $res = array();
+        $key = $measureId. '|' . $ratio;
+        if(!isset($res[$key])) {
+            $res[$key] = FALSE;
+            $mArr = self::getSameTypeMeasures($measureId);
+            foreach($mArr as $id => $name) {
+                if($id == $measureId || empty($id)) continue;
+                if(self::convertValue(1, $id, $measureId) . '' == $ratio . '') {
+                    $res[$key] = $id;
+                    break;
+                }
+            }
+        }
+        
+        return $res[$key];
+    }
     
     
     /**

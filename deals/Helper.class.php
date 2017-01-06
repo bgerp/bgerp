@@ -437,20 +437,40 @@ abstract class deals_Helper
 		if(cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') !== 'no'){
 				$measureId = cat_Products::fetchField($productId, 'measureId');
-				
-				if($quantityInPack < 1 && cat_UoM::fetchBySysId('K pcs')->id == $measureId){
-					$quantityInPack *= 1000;
-					$measureId = cat_UoM::fetchBySysId('pcs')->id;
-				}
-				
-				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
-				
-				$shortUomName = cat_UoM::getShortName($measureId);
-				$packagingRow .= ' <small class="quiet">' . $quantityInPack . ' ' . $shortUomName . '</small>';
-				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
+                $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack);
 			}
 		}
 	}
+
+
+    /**
+     * Връща описание на опаковка, заедно с количеството в нея
+     */
+    public static function getPackMeasure($measureId, $quantityInPack)
+    {
+        $oMeasureId = $measureId;
+        $oQuantityInPack = $quantityInPack;
+
+        if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
+			$quantityInPack *= 1000;
+			$measureId = $downMeasureId;
+		} elseif($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 1000))){
+			$quantityInPack /= 1000;
+			$measureId = $downMeasureId;
+		}
+		
+        if($quantityInPack == 1) {
+		    $quantityInPack = '';
+        } else {
+		    $quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack) . ' ';
+        }
+		
+		$shortUomName = cat_UoM::getShortName($measureId);
+		$res .= ' <small class="quiet">' . $quantityInPack . $shortUomName . '</small>';
+		$res = "<span class='nowrap'>{$res}</span>";
+
+        return $res;
+    }
 	
 	
 	/**
