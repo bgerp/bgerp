@@ -25,7 +25,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
     
     
     /**
@@ -75,11 +75,17 @@ class doc_UnsortedFolders extends core_Master
      */
     public $rowToolsSingleField = 'name';
     
-    
+
+    /**
+     * Кое поле да се използва за линк към нишките на папката
+     */
+    public $listFieldForFolderLink = 'folder';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,description,inCharge,access,shared,createdOn,createdBy';
+    public $listFields = 'name,folder=Папка,inCharge=Отговорник,createdOn,createdBy';
     
     
     /**
@@ -257,6 +263,24 @@ class doc_UnsortedFolders extends core_Master
     	
     	$data->query->orderBy('#createdOn=DESC');
     }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function recToVerbal_($rec, &$fields = array())
+    {
+        $row = parent::recToVerbal_($rec, $fields);
+
+        $row->folder = 'Папка';
+
+        return $row;
+    }
+    
     
     /**
      * След подготовка на тулбара на единичен изглед.
@@ -437,7 +461,8 @@ class doc_UnsortedFolders extends core_Master
     public static function prepareFilter ()
     {
     	$form = cls::get('core_Form');
-    	$form->FNC('order', 'enum(start=По начало,
+    	
+        $form->FNC('order', 'enum(start=По начало,
 					        	  end=По край,
 					        	  alphabetic=Азбучно)', 'caption=Подредба,width=100%,input,silent,autoFilter');
     	
@@ -462,7 +487,7 @@ class doc_UnsortedFolders extends core_Master
      * @param StdClass $folderData
      * @return StdClass
      */
-    public static function prepareGantt ($folderData)
+    public static function prepareGantt($folderData)
     {  
          
     	$idTaskDoc = core_Classes::getId("cal_Tasks");
