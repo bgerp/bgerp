@@ -459,6 +459,10 @@ class core_Manager extends core_Mvc
                 'toolbar' => ht::createSbBtn('Филтър')
             );
             $data->listFilter = $this->getForm($formParams);
+            $mf = $data->listFilter->selectFields('#mandatory');
+            foreach($mf as $name => $field) {
+                $data->listFilter->setField($name, array('mandatory' => NULL));
+            }
         }
         
         if ($data->ListId) {
