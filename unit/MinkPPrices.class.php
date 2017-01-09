@@ -82,6 +82,7 @@ class unit_MinkPPrices extends core_Manager {
         $browser->press('Стойност');
         $browser->setValue('productId', 'Артикул ДДС 9');
         $browser->setValue('price', '10');
+        $browser->setValue('validUntil[d]', Null);
         $browser->setValue('vat', 'no');
         $browser->press('Запис');
         
@@ -216,12 +217,13 @@ class unit_MinkPPrices extends core_Manager {
         // Създаване на ценова политика за клиента
         $browser->click('Избор на ценова политика');
         $browser->press('Нови правила');
+        $browser->setValue('folderId', 'Ценови политики (Проекти)');
+        $browser->press('Напред');
         $browser->setValue('title', 'Ценова политика за Фирма с локация');
         $browser->setValue('parent', 'Ценова политика 2017');
         $browser->setValue('discountCompared', 'Каталог');
         $browser->setValue('defaultSurcharge', '3');
         $browser->press('Чернова');
-        
         // Отваряне на папката на клиента
         $browser->click($Company);
         //$browser->press('Папка');
