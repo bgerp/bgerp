@@ -313,7 +313,7 @@ class batch_Movements extends core_Detail {
     		}
     		
     		if($fRec->batch){
-    			$titles[] = "<b style='color:green'>" . cls::get('type_Varchar')->toVerbal($fRec->batch) . "</b>";
+    			$titles[] = "<b style='color:green'>" . cls::get('type_Varchar')->toVerbal(str_replace('|', '/', $fRec->batch)) . "</b>";
     		}
     		
     		if(isset($fRec->storeId)){
@@ -322,7 +322,7 @@ class batch_Movements extends core_Detail {
     	}
     	
     	if(count($titles)){
-    		$data->title .= " " . implode(' <b>,</b> ', $titles);
+    		$data->title .= " |*" . implode(' <b>,</b> ', $titles);
     	}
     }
     
