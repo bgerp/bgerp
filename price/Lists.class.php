@@ -617,8 +617,13 @@ class price_Lists extends core_Master
     	 
     	$rInfo = static::$cache[$listRec->id];
     	
+    	$p = 0;
+    	if ($price) {
+    	    $p = log10(abs($price));
+    	}
+    	
     	// Колко да е точността на закръгляне
-    	$precision =  max($rInfo->minDecimals, round($rInfo->significantDigits - log10(abs($price))));
+    	$precision =  max($rInfo->minDecimals, round($rInfo->significantDigits - $p));
     	
     	if($verbal === TRUE){
     		$Double = cls::get('type_Double', array('params' => array('decimals' => $precision)));
