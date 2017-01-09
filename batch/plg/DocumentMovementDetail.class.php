@@ -140,8 +140,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			if(empty($rec->batch)){
 				$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 				if(is_object($BatchClass)){
-					$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},{$mvc->Master->valiorFld}");
-					$rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}, $masterRec->{$mvc->Master->storeFieldName}, $masterRec->{$mvc->Master->valiorFld});
+					if($mvc instanceof core_Master){
+						$rec->batch = $BatchClass->getAutoValue($mvc, $rec->id, $rec->{$mvc->storeFieldName}, $rec->{$mvc->valiorFld});
+					} else {
+						$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},{$mvc->Master->valiorFld}");
+						$rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}, $masterRec->{$mvc->Master->storeFieldName}, $masterRec->{$mvc->Master->valiorFld});
+					}
 				}
 			}
 		}
