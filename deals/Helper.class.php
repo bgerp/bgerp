@@ -42,8 +42,13 @@ abstract class deals_Helper
      */
 	public static function roundPrice($price, $minDigits = 7)
 	{
+	    $p = 0;
+	    if ($price) {
+	        $p = round(log10($price));
+	    }
+	    
 	    // Плаваща прецизност
-	    $precision =  max(2, $minDigits - round(log10($price)));
+	    $precision =  max(2, $minDigits - $p);
 		
 	    // Изчисляваме закръглената цена
 	    $price = round($price, $precision);
