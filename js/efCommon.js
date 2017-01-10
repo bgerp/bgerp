@@ -25,7 +25,7 @@ function spr(sel) {
  * Опитваме се да репортнем JS грешките
  */
 window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
-	
+
 	if (typeof $.ajax != 'undefined') {
 		$.ajax({
 			url: "/A/wp/",
@@ -57,7 +57,7 @@ function runOnLoad(functionName) {
  */
 function fadeImages(el, delay){
 	$('.fadein img:gt(0)').hide();
-	setInterval(function(){ 
+	setInterval(function(){
 		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(el).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');
 		$('.fadein :first-child').css({position: 'relative'});
 	}, delay);
@@ -2613,7 +2613,7 @@ function sumOfChildrenWidth() {
 			$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
 
 			var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
-			if(activeOffset.left > $(window).width() - 30) {
+			if(activeOffset && activeOffset.left > $(window).width() - 30) {
 				$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
 			}
 		}
@@ -2930,7 +2930,7 @@ function efae() {
 
     // Кога за последно е стартирана AJAX заявка към сървъра
     efae.prototype.ajaxLastTime = new Date();
-    
+
     // Интервал над който ще се нулира брояча
     // Когато устройството е заспало, да се форсират всички табове след събуждане (30 мин)
     efae.prototype.forceStartInterval = 1800000;
@@ -2949,7 +2949,7 @@ function efae() {
 
     // Флаг, който се вдига преди обновяване на страницата
     Experta.prototype.isReloading = false;
-	
+
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
 }
@@ -3106,11 +3106,11 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         // Добавяме флаг, който указва, че заявката е по AJAX
         dataObj['ajax_mode'] = 1;
-        
+
         // Преди да пратим заявката, вдигаме флага, че е пратена заявката, за да не се прати друга
         // докато не завърши текущата
         this.isWaitingResponse = true;
-        
+
         // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
         $.ajax({
             async: async,
@@ -3173,14 +3173,14 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         	}
 
         	getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
-    		
+
         	getEfae().AJAXHaveError = true;
             getEfae().AJAXErrorRepaired = false;
-        	
+
         	setTimeout(function() {
-    			
+
         		if (getEfae().AJAXErrorRepaired) return ;
-        		
+
 	        	if (typeof showToast != 'undefined' && $().toastmessage) {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
@@ -3201,10 +3201,10 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	            }
         	}, 3000);
         }).always(function(res) {
-        	
+
         	// След приключване на процеса сваляме флага
         	getEfae().isWaitingResponse = false;
-        	
+
         	// Ако е имало грешка и е оправенена, премахваме статуса
         	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
 
@@ -3263,24 +3263,24 @@ efae.prototype.getSubscribed = function() {
         // Променяме флага
         this.isSendedAfterRefresh = true;
     }
-    
+
     // Разликата между текущото време и последното извикване
     var diff = now - this.ajaxLastTime;
-    
+
     // Нулираме брояча, ако дълго време не е стартирано
     // Ако е заспало устройството да се уеднаквят табовете при събуждане
     if (diff >= this.forceStartInterval) {
     	this.resetTimeout();
     }
-    
+
     // След една минута без заявка, не се проверява дали има висяща заявка
     if (diff <= this.maxIncreaseInterval) {
-    	
+
     	// Ако има друга заявка, която все още не е изпълнена изчакваме да приключи
     	// Преди да пратим следваща
     	if (this.isWaitingResponse) return resObj;
     }
-    
+
     // Ако времето от последното извикване и е по - голяма от интервала
     if (diff >= this.ajaxInterval) {
 
@@ -3445,16 +3445,16 @@ function render_scrollTo(docId) {
 
 
 /**
- * 
+ *
  */
 function render_replaceById(data) {
 
     // Неоходимите параметри
     var id = data.id;
     var html = data.html;
-    
+
     var idsArr = data.Ids.split(",");
-    
+
 	var id;
 
 	for (index = 0; index < idsArr.length; ++index) {
@@ -3516,7 +3516,7 @@ function render_html(data) {
             idObj.append(html);
         }
     }
-    
+
     // Зареждаме CSS файловете
     if (dCss) {
     	$.each(dCss, function(i, css) {
@@ -3527,7 +3527,7 @@ function render_html(data) {
     		}).appendTo("head");
     	})
     }
-    
+
     // Зареждаме JS файловете
     if (dJs) {
         if ( typeof refreshForm.loadedFiles == 'undefined' ) {
@@ -3535,7 +3535,7 @@ function render_html(data) {
         }
         loadFiles(data.js, refreshForm.loadedFiles);
     }
-    
+
     scrollLongListTable();
 }
 
@@ -3646,7 +3646,7 @@ function render_removeNarrowScroll() {
 * Може да се комбинира с efae
  */
 function render_showTooltip() {
-	
+
 	showTooltip();
 }
 
@@ -3656,7 +3656,7 @@ function render_showTooltip() {
 * Може да се комбинира с efae
  */
 function render_makeTooltipFromTitle() {
-	
+
 	makeTooltipFromTitle();
 }
 
@@ -3730,7 +3730,7 @@ function render_Notify(data) {
 	// подготвяме фав иконките
 	var newIcon = prepareFavIcon(data.favicon);
 	var oldIcon = prepareFavIcon(oldIconPath);
-	
+
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
 		setTitle(title);
@@ -3776,9 +3776,9 @@ function restoreTitle(oldTitle) {
  * @returns object|false
  */
 function prepareFavIcon(iconPath) {
-	
+
 	if ((!iconPath) || (typeof iconPath == 'undefined')) return false;
-	
+
 	var icon = document.createElement('link');
 	icon.type = 'image/x-icon';
 	icon.rel = 'shortcut icon';
@@ -3968,10 +3968,10 @@ function Experta() {
 
     // id на атрибута в който ще се добавя локацията
     Experta.prototype.geolocationId;
-    
+
     // Име на сесията за id-та на body тага
     Experta.prototype.bodyIdSessName = 'bodyIdArr';
-    
+
     // Име на сесията за id-та на body тага
     Experta.prototype.formSessName = 'refreshFormObj';
 }
@@ -4106,7 +4106,7 @@ Experta.prototype.getSavedSelText = function() {
 Experta.prototype.saveSelTextInTextarea = function(id) {
     // Текстареата
     textarea = document.getElementById(id);
-    
+
     // Ако текстареата е на фокус
     if (textarea && textarea.getAttribute('data-focus') == 'focused') {
 
@@ -4360,21 +4360,21 @@ Experta.prototype.saveBodyId = function() {
     if (typeof sessionStorage == "undefined") return ;
 
     var bodyId = $('body').attr('id');
-    
+
     if (!bodyId) return ;
-    
+
     var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-    
+
     if (bodyIds) {
     	bodyIds =  $.parseJSON(bodyIds);
     } else {
     	bodyIds = new Array();
     }
-    
+
     if ($.inArray(bodyId, bodyIds) == -1) {
     	bodyIds.push(bodyId);
     }
-    
+
     sessionStorage.setItem(this.bodyIdSessName, JSON.stringify(bodyIds));
 };
 
@@ -4386,15 +4386,15 @@ Experta.prototype.checkBodyId = function(bodyId) {
 	if (!bodyId || typeof bodyId == 'undefined') {
 		bodyId = $('body').attr('id');
 	}
-	
+
 	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-	
+
 	if (!bodyIds) return ;
-	
+
 	bodyIds =  $.parseJSON(bodyIds);
-	
+
 	if ($.inArray(bodyId, bodyIds) != -1) {
-    	
+
 		return true;
     }
 };
@@ -4404,48 +4404,48 @@ Experta.prototype.checkBodyId = function(bodyId) {
  * Записва данните за формата в id на страницата
  */
 Experta.prototype.saveFormData = function(formId, data) {
-	
+
 	var maxItemOnSession = 3;
-	
+
 	bodyId = $('body').attr('id');
-	
+
 	if (!bodyId) return ;
-	
+
 	var formObj = sessionStorage.getItem(this.formSessName);
-	
+
 	var maxN = 0;
 	var minN = 0;
 	var minNKey;
-	
+
 	if (!formObj) {
 		formObj = {};
 	} else {
 		formObj = $.parseJSON(formObj);
-		
+
 		// Определяме най-голямата и най-малка стойност
 		// За да ги премахнем от сесията, при достигане на лимита
 		for (var key in formObj) {
 			if (maxN < formObj[key].num) {
 				maxN = formObj[key].num;
 			}
-			
+
 			if ((minN == 0) || minN > formObj[key].num) {
 				minN = formObj[key].num;
 				minNKey = key;
 			}
 		}
 	}
-	
+
 	if (!formObj[bodyId]) {
 		maxN++;
 	}
-	
+
 	if ((minN != maxN) && ((maxN - minN) >= maxItemOnSession)) {
 		delete formObj[minNKey];
 	}
-	
+
 	formObj[bodyId] = {'formId': formId, 'data': data, 'num': maxN};
-	
+
 	sessionStorage.setItem(this.formSessName, JSON.stringify(formObj));
 };
 
@@ -4455,21 +4455,21 @@ Experta.prototype.saveFormData = function(formId, data) {
  * Взема ги от сесията за съответната страница
  */
 Experta.prototype.reloadFormData = function() {
-	
+
 	bodyId = $('body').attr('id');
-	
+
 	if (!bodyId) return ;
-	
+
 	var formObj = sessionStorage.getItem(this.formSessName);
-	
+
 	if (!formObj) return ;
-	
+
 	formObj = $.parseJSON(formObj);
-	
+
 	if (!formObj[bodyId]) return ;
-	
+
 	if (!formObj[bodyId].formId) return ;
-	
+
 	replaceFormData($('#' + formObj[bodyId].formId), formObj[bodyId].data);
 }
 
@@ -4482,7 +4482,7 @@ function reloadOnPageShow() {
         if (getEO().checkBodyId()) {
         	location.reload();
         }
-        
+
         // Заместваме данните от формата с предишно избраната стойност
         getEO().reloadFormData();
     });
@@ -4749,13 +4749,13 @@ function startUrlFromDataAttr(obj, stopOnClick)
 
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
-	
+
 	if (stopOnClick) {
 		$(obj).css('pointer-events', 'none');
 	}
-	
-	getEfae().process(resObj); 
-	
+
+	getEfae().process(resObj);
+
 	return false;
 }
 
