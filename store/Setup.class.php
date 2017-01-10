@@ -74,9 +74,9 @@ class store_Setup extends core_ProtoSetup
     		'store_ConsignmentProtocols',
     		'store_ConsignmentProtocolDetailsSend',
     		'store_ConsignmentProtocolDetailsReceived',
-    		'store_InventoryNoteDetails',
-    		'store_InventoryNoteSummary',
     		'store_InventoryNotes',
+    		'store_InventoryNoteSummary',
+    		'store_InventoryNoteDetails',
     		'migrate::updateConfig',
     		'migrate::updateTransfers',
     		'migrate::inventoryNotes'

@@ -38,7 +38,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'store_Wrapper, batch_plg_InventoryNotes, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,plg_Created';
+    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,plg_Created,plg_Sorting';
     
     
     /**
@@ -57,12 +57,6 @@ class store_InventoryNoteDetails extends doc_Detail
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, storeMaster';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    public $canInsert = 'ceo, storeMaster';
     
     
     /**
@@ -96,6 +90,12 @@ class store_InventoryNoteDetails extends doc_Detail
     
     
     /**
+     * Работен кеш
+     */
+    public $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -117,9 +117,7 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-    	if (!isset($rec->quantity) || !isset($rec->quantityInPack)) {
-    		return;
-    	}
+    	if (!isset($rec->quantity) || !isset($rec->quantityInPack)) return;
     
     	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
@@ -158,60 +156,6 @@ class store_InventoryNoteDetails extends doc_Detail
     }
     
     
-    public function expandRows_(&$summaryRecs, &$summaryRows, $masterRec)
-    {
-    	
-    	return;
-    	
-    	if(!count($summaryRows)) return;
-    	
-    	$res = array();
-    	$recs = array();
-    	foreach ($summaryRows as $id => $sRow){
-    		$sRec = $summaryRecs[$id];
-    		
-    		$cache[$id] = $sRec->productId;
-    		$res[$id] = $sRow;
-    		$recs[$id] = $sRec;
-    		
-    		$query = self::getQuery();
-    		$query->where("#noteId = {$sRec->noteId} AND #productId = {$sRec->productId}");
-    		while($rec = $query->fetch()){
-    			/*$key = "{$id}|{$rec->id}";
-    			$cache[] = $key;
-    			
-    			$newRec = clone $sRec;
-    			unset($newRec->delta, $newRec->blQuantity);
-    			$newRec->quantity = $rec->packQuantity;
-    			
-    			$recs[$key] = $newRec;
-    			$row = clone $sRow;
-    			unset($row->_rowTools);
-    			core_RowToolbar::createIfNotExists($row->_rowTools);
-    			
-    			if(self::haveRightFor('edit', $rec)){
-    				$row->_rowTools->addLink('Редакция', array('store_InventoryNoteDetails', 'edit', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/edit.png,title=Редакция на установено установено количество,id=edit{$rec->id}");
-    			}
-    			
-    			if(self::haveRightFor('delete', $rec)){
-    				$row->_rowTools->addLink('Изтриване', array('store_InventoryNoteDetails', 'delete', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/delete.png,title=Изтриване на установено количество,id=delete{$rec->id},warning=Наистина ли желаете да изтриете реда|*?");
-    			}
-    			
-    			$row->measureId = cat_UoM::getShortName($rec->packagingId);
-    			deals_Helper::getPackInfo($row->measureId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-    			
-    			$row->quantity = cls::get('type_Double')->toVerbal($rec->packQuantity);
-    			unset($row->delta, $row->blQuantity, $row->charge, $row->code, $row->productId);
-    			
-    			$res[$key] = $row;*/
-    		}
-    	}
-    	
-    	$summaryRecs = $recs;
-    	$summaryRows = $res;
-    }
-    
-    
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
@@ -221,6 +165,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
+    	// Кеш на предишния запис
     	$lastId = Mode::get("InventoryNoteLastSavedRow{$rec->noteId}");
     	if($lastId && $lastId != $rec->id){
     		if($lastRec = $this->fetch($lastId)){
@@ -232,18 +177,17 @@ class store_InventoryNoteDetails extends doc_Detail
     	}
     	
     	$form->FNC('keepProduct', 'enum(yes=Да,no=Не)', 'caption=Помни артикула,after=packQuantity,input,maxRadio=2,remember');
-    	
     	$permanentName = cls::getClassName($this) . "_keepProduct";
     	$permanentName = (Mode::get($permanentName)) ? Mode::get($permanentName) : 'no';
     	$form->setDefault('keepProduct', $permanentName);
     	
-    	//bp($form->rec);
     	$products = cat_Products::getByProperty('canStore');
     	$form->setOptions('productId', array('' => '') + $products);
     	
     	$defProduct = Mode::get("InventoryNoteNextProduct{$rec->noteId}");
     	$form->setDefault('productId', $defProduct);
     	
+    	// Рендиране на опаковките
     	if(isset($rec->productId)){
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
@@ -264,8 +208,15 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+    	$rec = $form->rec;
+    	if($form->notMandatoryQ !== TRUE){
+    		$form->setField('packQuantity', 'mandatory');
+    	}
+    	
     	if($form->isSubmitted()){
-    		$rec = $form->rec;
+    		if($form->notMandatoryQ !== TRUE && empty($rec->packQuantity)){
+    			$form->setError('packQuantity', "Непопълнено задължително поле '|*<b>|Количество|*</b>'!");
+    		}
     		
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
@@ -289,6 +240,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	if($data->form->cmd == 'save_n_new'){
     		$rec = $data->form->rec;
     		
+    		// Ако не е избрано за пазене на артикула, се цикли в следващия в списъка
     		if($rec->keepProduct != 'yes'){
     			$cache = store_InventoryNotes::fetchField($rec->noteId, 'cache');
     			$keys = array_values($cache);
@@ -321,6 +273,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	store_InventoryNoteSummary::recalc($summeryId);
     	
     	Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", $rec->id);
+    	$mvc->cache[$rec->noteId] = $rec->noteId;
     }
     
     
@@ -332,7 +285,22 @@ class store_InventoryNoteDetails extends doc_Detail
     	foreach ($query->getDeletedRecs() as $id => $rec) {
     		$summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
     		store_InventoryNoteSummary::recalc($summeryId);
+    		
+    		$mvc->cache[$rec->noteId] = $rec->noteId;
     		Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", NULL);
+    	}
+    }
+    
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->cache)){
+    		foreach ($mvc->cache as $noteId) {
+    			store_InventoryNotes::invalidateCache($noteId);
+    		}
     	}
     }
     

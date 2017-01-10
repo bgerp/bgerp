@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -45,12 +45,6 @@ class store_InventoryNoteSummary extends doc_Detail
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'productId';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, store';
     
     
     /**
@@ -132,8 +126,10 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     function prepareDetail_($data)
     {
-    	$data->TabCaption = 'Обобщение';
-    	$data->Tab = 'top';
+    	if(!Mode::is('blank')){
+    		$data->TabCaption = 'Обобщение';
+    		$data->Tab = 'top';
+    	}
     	
     	$tab = Request::get($data->masterData->tabTopParam, 'varchar');
     	if($tab == '' || $tab == get_called_class() || Mode::is('blank')){
@@ -227,7 +223,12 @@ class store_InventoryNoteSummary extends doc_Detail
     	$row->measureId = cat_UoM::getShortName($measureId);
     	
     	if(!isset($rec->quantity) && !Mode::is('printing')){
-    		$row->ROW_ATTR['class'] = " quiet";
+    		$row->ROW_ATTR['class'] = " note-product-row-no-quantity";
+    		
+    		if(store_InventoryNoteDetails::haveRightFor('add', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
+    			$row->quantity = ht::createLink('', array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png');
+    		}
+    			
     	}
     }
     
@@ -291,10 +292,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	if($masterRec->state != 'rejected'){
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     			if(store_InventoryNotes::haveRightFor('single', $masterRec)){
-    				$blankUrl = array('store_InventoryNotes', 'single', $data->masterId);
-    				$blankUrl['Printing'] = 'yes';
-    				$blankUrl['Blank'] = 'yes';
-    				$blankUrl[$mvc->groupByField] = $groupName;
+    				$blankUrl = array('store_InventoryNotes', 'getBlankForm', $masterRec->id, 'ret_url' => TRUE, "{$mvc->groupByField}" => $groupName);
     			}
     		}
     	}
@@ -368,11 +366,11 @@ class store_InventoryNoteSummary extends doc_Detail
     			}
     		}
     		
-    		if(isset($rec)){
+    		if(isset($rec) && $rec->isBatch !== TRUE){
     			$row->charge = static::renderCharge($rec);
     		}
     		
-    		if($rec->blQuantity < 0 ){
+    		if($rec->blQuantity < 0 && isset($rec->quantity)){
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
     	}
@@ -418,26 +416,6 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Ако няма запис, създаваме го
     	return self::save($sRec);
-    }
-    
-    
-    /**
-     * Връща артикулите, които имат описание
-     * 
-     * @param int $noteId - ид на протокол
-     * @return array $res - масив с артикулите в описанието
-     */
-    public static function getProductsInSummary($noteId)
-    {
-    	$res = array();
-    	$query = self::getQuery();
-    	$query->where("#noteId = {$noteId}");
-    	$query->show('productId');
-    	while($rec = $query->fetch()){
-    		$res[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
-    	}
-    	
-    	return $res;
     }
     
     
@@ -499,7 +477,12 @@ class store_InventoryNoteSummary extends doc_Detail
     	if(Mode::get('blank')){
     		unset($data->listFields['delta']);
     		unset($data->listFields['charge']);
-    		unset($data->listFields['blQuantity']);
+    		unset($data->listFields['quantity']);
+    		
+    		if(Request::get('showBlQuantities') !== '1'){
+    			unset($data->listFields['blQuantity']);
+    		}
+    		
     		$data->listFields['quantitySum'] = 'Количество';
     	}
     }
@@ -544,10 +527,13 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	$rec = static::fetchRec($rec);
     	$charge = '';
+    	
     	$masterRec = store_InventoryNotes::fetch($rec->noteId);
     	
     	$responsibles = array();
     	$chiefs = keylist::toArray(store_Stores::fetchField($masterRec->storeId, 'chiefs'));
+    	$rec->charge = self::fetchField($rec->id, 'charge');
+    	
     	if(isset($rec->charge)){
     		$chiefs[$rec->charge] = $rec->charge;
     	}
@@ -668,65 +654,50 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
     	
-    	// Ако сме в режим за принтиране/бланка не правим кеширане
-    	if(Mode::is('printing')){
-    		return parent::prepareListRows_($data);
-    	}
-    	
     	// Подготвяме ключа за кеширане
     	$key = store_InventoryNotes::getCacheKey($data->masterData->rec);
     	
     	// Проверяваме имали кеш за $data->rows
-    	//$cache = core_Cache::get($this->Master->className, $key);
+    	$cache = core_Cache::get($this->Master->className, $key);
     	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
     	
-    	// Ако има кеш за записите
-    	if(!empty($cache)){
-    		$data->rows = $cache;
-    		
-    		// Обхождаме ги
-    		if(is_array($data->rows)){
-    			foreach ($data->rows as $id => $row){
-    				$rec = $data->recs[$id];
-    				
-    				if(is_null($rec)){
-    					unset($data->rows[$id]);
-    					continue;
-    				}
-    				
-    				// Тези които са с дата на модификация по-малка от тази на река им
-    				if($rec->modifiedOn > $row->modifiedDate){
-    					
-    					// Регенерираме им $row-а наново
-    					$data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
-    				}
-    			}
-    		}
-    	} else {
+    	if(empty($cache)){
     		
     		// Ако няма кеш подготвяме $data->rows стандартно
     		$data = parent::prepareListRows_($data);
+    		if(Mode::is('blank')){
+    			$callExpandRows = (Request::get('showBatches', 'int')) ? TRUE : FALSE;
+    		} else {
+    			$callExpandRows = TRUE;
+    		}
     		
-    		cls::get('store_InventoryNoteDetails')->expandRows($data->recs, $data->rows, $data->masterData->rec);
+    		if($callExpandRows === TRUE){
+    		   cls::get('store_InventoryNoteDetails')->invoke('ExpandRows', array(&$data->recs, &$data->rows, $data->masterData->rec));
+    		}
     		
-    		$cache = array();
+    		$cache1 = array();
     		if(is_array($data->rows)){
     			foreach ($data->rows as $id => $sRow){
     				$sRec = $data->recs[$id];
-    				$cache[$id] = $sRec->productId;
+    				if($sRec->isBatch !== TRUE){
+    					$cache1[$id] = $sRec->productId;
+    				}
     			}
     		}
     		
-    		$uRec = (object)array('id' => $data->masterId, 'cache' => $cache);
+    		$uRec = (object)array('id' => $data->masterId, 'cache' => $cache1);
     		$data->masterMvc->save_($uRec);
+    		
+    		$nCache = (object)array('recs' => $data->recs, 'rows' => $data->rows);
+    		core_Statuses::newStatus('CACHED');
+    		core_Cache::set($this->Master->className, $key, $nCache, 1440);
     	}
     	
-    	// Кешираме $data->rows
-    	if($cacheRows === TRUE){
-    		core_Cache::set($this->Master->className, $key, $data->rows, 1440);
-    	}
+    	$cached = core_Cache::get($this->Master->className, $key);
+    	$data->recs = $cached->recs;
+    	$data->rows = $cached->rows;
     	
-    	Mode::setPermanent("InventoryNoteNextProduct{$data->masterId}", NULL);
+    	Mode::setPermanent("InventoryNoteLastSavedRow{$data->masterId}", NULL);
     	
     	// Връщаме $data
     	return $data;
@@ -744,6 +715,11 @@ class store_InventoryNoteSummary extends doc_Detail
     }
     
     
+    /**
+     * Рекалкулиране на количествата
+     * 
+     * @param int $id
+     */
     public static function recalc($id)
     {
     	expect($id);

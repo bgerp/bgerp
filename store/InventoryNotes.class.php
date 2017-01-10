@@ -321,10 +321,7 @@ class store_InventoryNotes extends core_Master
     	
     	if($rec->state != 'rejected'){
     		if($mvc->haveRightFor('single', $rec->id)){
-    			$url = array($mvc, 'single', $rec->id);
-    			$url['Printing'] = 'yes';
-    			$url['Blank'] = 'yes';
-    			 
+    			$url = array($mvc, 'getBlankForm', $rec->id, 'ret_url' => TRUE);
     			$data->toolbar->addBtn('Бланка||Blank', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
     		}
     	}
@@ -469,6 +466,9 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('store/tpl/css/styles.css', 'CSS');
+    	
+    	$tpl->push('store/js/InventoryNotes.js', 'JS');
+    	jquery_Jquery::run($tpl, "noteActions();");
     }
     
     
@@ -486,6 +486,7 @@ class store_InventoryNotes extends core_Master
     	$query = store_InventoryNoteSummary::getQuery();
     	$query->where("#noteId = {$rec->id}");
     	$query->show('noteId,productId,blQuantity,groups,modifiedOn');
+    	
     	while($dRec = $query->fetch()){
     		$res[] = $dRec;
     	}
@@ -663,6 +664,7 @@ class store_InventoryNotes extends core_Master
     	$key = self::getCacheKey($rec);
     	
     	core_Cache::remove('store_InventoryNotes', $key);
+    	core_Statuses::newStatus("INVALIDATE");
     }
     
     
@@ -717,5 +719,70 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	$data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * Рендиране на формата за избор на настройките на бланката
+     * 
+     * @return core_ET
+     */
+    public function act_getBlankForm()
+    {
+    	// Проверка за входни данни
+    	$this->requireRightFor('single');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('single', $rec);
+    	
+    	$url = array($this, 'single', $id, 'Printing' => TRUE, 'Blank' => TRUE);
+    	$groupName = Request::get('groupName', 'varchar');
+    	if($groupName){
+    		$url['groupName'] = $groupName;
+    	}
+    	
+    	$directRedirect = TRUE;
+    	
+    	// Подготовка на формата
+    	$form = cls::get('core_Form');
+    	$form->title = "Настройки за принтиране на бланка от|* <b>" . static::getHyperlink($id, TRUE) . "</b>";
+    	
+    	if(haveRole('ceo,storeMaster')){
+    		$directRedirect = FALSE;
+    		$form->FLD('showBlQuantities', 'enum(no=Скриване,yes=Показване)', 'caption=Очаквани количества,mandatory');
+    		$form->setDefault('showBlQuantities', 'no');
+    	}
+    	
+    	if(core_Packs::isInstalled('batch')){
+    		$directRedirect = FALSE;
+    		$form->FLD('batches', 'enum(no=Скриване,yes=Показване)', 'caption=Партиди,mandatory');
+    		$form->setDefault('batches', 'yes');
+    	}
+    	
+    	if($directRedirect === TRUE) return new Redirect($url);
+    	
+    	// Изпращане на формата
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		
+    		if($rec->batches == 'yes'){
+    			$url['showBatches'] = TRUE;
+    		}
+    		
+    		if($rec->showBlQuantities == 'yes'){
+    			$url['showBlQuantities'] = TRUE;
+    		}
+    		
+    		// Редирект към урл-то за бланката
+    		return new Redirect($url);
+    	}
+    	
+    	// Добавяне на бутоните на формата
+    	$form->toolbar->addSbBtn('Бланка', 'save', 'ef_icon = img/16/disk.png, title = Генериране на бланка');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	 
+    	// Рендиране на обвивката и формата
+    	return $this->renderWrapping($form->renderHtml());
     }
 }
