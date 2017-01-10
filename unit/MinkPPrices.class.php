@@ -159,7 +159,7 @@ class unit_MinkPPrices extends core_Manager {
         $browser->click('Ценообразуване');
         $browser->click('Ценоразписи');
         $browser->press('Нов запис');
-        $browser->setValue('docunsortedfolderId', 'Ценови политики');
+        $browser->setValue('folderId', 'Ценоразписи');
         $browser->press('Напред');
         $browser->setValue('policyId', 'Ценова политика 2017');
         $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
@@ -217,19 +217,20 @@ class unit_MinkPPrices extends core_Manager {
         // Създаване на ценова политика за клиента
         $browser->click('Избор на ценова политика');
         $browser->press('Нови правила');
-        $browser->setValue('folderId', 'Ценови политики (Проекти)');
+        $browser->setValue('folderId', 'Фирма с локация - България');
         $browser->press('Напред');
         $browser->setValue('title', 'Ценова политика за Фирма с локация');
         $browser->setValue('parent', 'Ценова политика 2017');
         $browser->setValue('discountCompared', 'Каталог');
         $browser->setValue('defaultSurcharge', '3');
         $browser->press('Чернова');
-        // Отваряне на папката на клиента
+        //Отваряне на папката на клиента
         $browser->click($Company);
         //$browser->press('Папка');
         $browser->press('Нов');
         // Създаване на ценоразпис в папката на клиента
         $browser->press('Ценоразпис');
+        $browser->setValue('policyId', 'Ценова политика за Фирма с локация');
         $browser->setValue('title', 'Ценоразпис за Фирма с локация');
         $browser->press('Чернова');
         $browser->press('Активиране');
