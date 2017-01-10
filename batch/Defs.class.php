@@ -202,39 +202,6 @@ class batch_Defs extends embed_Manager {
     
     
     /**
-     * Добавя партидите към стринг
-     * 
-     * @param text $batch - партида или партиди
-     * @param text $string - към кой стринг да се добавят
-     * @return void
-     */
-    public static function appendBatch($productId, $batch, &$string = '')
-    {
-    	if(!empty($batch)){
-    		$batch = self::getBatchArray($productId, $batch);
-    		
-    		foreach ($batch as $key => &$b){
-    			if(!Mode::isReadOnly() && haveRole('powerUser')){
-    				if(!haveRole('batch,ceo')){
-    					Request::setProtected('batch');
-    				}
-    				$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
-    			}
-    		}
-    		
-    		$count = count($batch);
-    		$batch = implode(', ', $batch);
-    		
-    		$batch = "[html]{$batch}[/html]";
-    		$string .= ($string) ? "\n" : '';
-    		
-    		$label = ($count == 1) ? 'lot' : 'serials';
-    		$string .= "{$label}: {$batch}";
-    	}
-    }
-    
-    
-    /**
      * Форсира партидна дефиниция на артикула ако може
      * Партидната дефиниция се намира по следния приоритет:
      * 
