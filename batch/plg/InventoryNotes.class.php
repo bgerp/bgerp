@@ -211,9 +211,10 @@ class batch_plg_InventoryNotes extends core_Plugin
 	 * @param double $expectedQuantity
 	 * @param int $storeId
 	 * @param date $valior
+	 * @param boolean $alwaysShowBatches
 	 * @return array|FALSE
 	 */
-	public static function getBatchSummary($noteId, $productId, $expectedQuantity, $storeId, $valior)
+	public static function getBatchSummary($noteId, $productId, $expectedQuantity, $storeId, $valior, $alwaysShowBatches = FALSE)
 	{
 		$Def = batch_Defs::getBatchDef($productId);
 		if(!$Def) return FALSE;
@@ -231,7 +232,7 @@ class batch_plg_InventoryNotes extends core_Plugin
 				$batches = $Def->makeArray($rec->batch);
 				$quantity = $rec->quantity / count($batches);
 			} else {
-				if($count == 1) return FALSE;
+				if($count == 1 && $alwaysShowBatches !== TRUE) return FALSE;
 				$batches = array('' => '');
 				$quantity = $rec->quantity;
 			}
@@ -245,7 +246,10 @@ class batch_plg_InventoryNotes extends core_Plugin
 		}
 		
 		// Засичане на очакваните колчества с въведените
-		if(!count($batchesInDetail)) return FALSE;
+		if($alwaysShowBatches !== TRUE){
+			if(!count($batchesInDetail)) return FALSE;
+		}
+		
 		$allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior);
 		$allBatches[''] = $expectedQuantity - array_sum($allBatches);
 		
@@ -272,6 +276,7 @@ class batch_plg_InventoryNotes extends core_Plugin
 			$summary[''] = $noBatch;
 		}
 		
+		
 		return $summary;
 	}
 	
@@ -286,6 +291,7 @@ class batch_plg_InventoryNotes extends core_Plugin
 		
 		$storeId = $masterRec->storeId;
 		$valior = $masterRec->valior;
+		$alwaysShowBatches = (Mode::is('blank') && Request::get('showBatches')) ? TRUE : FALSE;
 		
 		$r = array();
 		$recs = array();
@@ -294,7 +300,7 @@ class batch_plg_InventoryNotes extends core_Plugin
 			$recs[$id] = $sRec;
 			$r[$id] = $sRow;
 			
-			$summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior);
+			$summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
 			if(!is_array($summary)) continue;
 			
 			$Def = batch_Defs::getBatchDef($sRec->productId);

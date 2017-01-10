@@ -170,29 +170,6 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$form = $data->form;
-    	if(isset($form->rec->id)){
-    		$form->setField('productId', 'input=none');
-    		$form->setField('groups', 'input=none');
-    	} else {
-    		$form->setOptions('productId', array('' => '') + cat_Products::getByProperty('canStore'));
-    		$form->setField('groups', 'input=hidden');
-    		
-    		if(isset($form->rec->productId)){
-    			$form->setDefault('groups', cat_Products::fetchField($form->rec->productId, 'groups'));
-    		}
-    	}
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
@@ -661,6 +638,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$cache = core_Cache::get($this->Master->className, $key);
     	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
     	if(!empty($data->listFilter->rec->search) || Mode::is('blank')){
+    		$cacheRows = FALSE;
     		$cache = FALSE;
     	}
     	
@@ -697,7 +675,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		}
     	}
     	
-    	if(empty($data->listFilter->rec->search)){
+    	if(empty($data->listFilter->rec->search) && !Mode::is('blank')){
     		$cached = core_Cache::get($this->Master->className, $key);
     		$data->recs = $cached->recs;
     		$data->rows = $cached->rows;
@@ -715,9 +693,11 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-    	$code = cat_Products::getVerbal($rec->productId, 'code');
+    	if(isset($rec->productId)){
+    		$code = cat_Products::getVerbal($rec->productId, 'code');
     		
-    	$res .= " " . plg_Search::normalizeText($code);
+    		$res .= " " . plg_Search::normalizeText($code);
+    	}
     }
     
     
@@ -733,10 +713,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	$query = store_InventoryNoteDetails::getQuery();
     	$query->where("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
     	$query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
-    	
     	$quantity = $query->fetch()->sumQuantity;
+    	$rec->quantity = $quantity;
     	
-    	$sRec = (object)array('id' => $rec->id, 'quantity' => $quantity, 'modifiedOn' => dt::now());
-    	cls::get('store_InventoryNoteSummary')->save_($sRec);
+    	cls::get('store_InventoryNoteSummary')->save($rec, 'quantity');
     }
 }

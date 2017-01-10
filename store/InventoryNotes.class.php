@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -34,12 +34,6 @@ class store_InventoryNotes extends core_Master
      * Абревиатура
      */
     public $abbr = 'Ivn';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
     
     
     /**
@@ -787,5 +781,19 @@ class store_InventoryNotes extends core_Master
     	 
     	// Рендиране на обвивката и формата
     	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	$this->save($rec, 'isContable');
     }
 }

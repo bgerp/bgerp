@@ -80,7 +80,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка,packQuantity=Установено,modifiedOn,modifiedBy,searchKeywords';
+    public $listFields = 'productId, packagingId=Мярка,packQuantity=Установено,modifiedOn,modifiedBy';
     
     
     /**
