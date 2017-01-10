@@ -53,16 +53,18 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
-        
-        // Таб за текстовата част
-        $tabsArr['text'] = (object) 
-			array(
-				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 4,
-			);
+        if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', TRUE, TRUE)) {
+            // URL за показване на текстовата част на файловете
+            $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
+            
+            // Таб за текстовата част
+            $tabsArr['text'] = (object)
+            array(
+                    'title' => 'Текст',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'order' => 4,
+            );
+        }
         
         return $tabsArr;
     }

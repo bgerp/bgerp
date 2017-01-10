@@ -49,14 +49,16 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
 				'order' => 2,
 			);
         
-        // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
-        
-        // Таб за текстовата част
-		$tabsArr['text'] = new stdClass();
-        $tabsArr['text']->title = 'Текст';
-        $tabsArr['text']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></div></iframe></div>";
-        $tabsArr['text']->order = 4;
+		if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', TRUE, TRUE)) {
+		    // URL за показване на текстовата част на файловете
+            $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
+            
+            // Таб за текстовата част
+    		$tabsArr['text'] = new stdClass();
+            $tabsArr['text']->title = 'Текст';
+            $tabsArr['text']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></div></iframe></div>";
+            $tabsArr['text']->order = 4;
+		}
         
         return $tabsArr;
     }
