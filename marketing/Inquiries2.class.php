@@ -291,6 +291,7 @@ class marketing_Inquiries2 extends embed_Manager
             	$form->setOptions('proto', $protoProducts);
             }
     	}
+
    	
     	$mvc->expandEditForm($data);
     }
@@ -754,6 +755,8 @@ class marketing_Inquiries2 extends embed_Manager
     	$data = (object)array('form' => $form);
     	
     	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
+
+            
     		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
     		$data->Driver = $Driver;
     		
@@ -772,7 +775,9 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
-    	
+
+    	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($form->rec->title));
+
     	if(isset($form->rec->title)){
     		$form->setField('title', 'input=hidden');
     	}
@@ -809,7 +814,7 @@ class marketing_Inquiries2 extends embed_Manager
     			}
     		    
     			$id = $this->save($rec);
-    			
+    		 
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}

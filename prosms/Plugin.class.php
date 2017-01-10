@@ -24,7 +24,7 @@ class prosms_Plugin extends core_Plugin
     {
     	$conf = core_Packs::getConfig('prosms');
     	
-        // Записваме в модела данните за СМС-а
+        // Записваме в модела данните за SMS-а
         $rec = new stdClass();
         $rec->gateway = "PRO-SMS";
         $rec->uid = str::getRand('aaa');
@@ -41,7 +41,7 @@ class prosms_Plugin extends core_Plugin
         
         $tpl = new ET($conf->PROSMS_URL);
         
-        // По този начин образуваме уникалният номер на СМС-а, който изпращаме за идентификация
+        // По този начин образуваме уникалният номер на SMS-а, който изпращаме за идентификация
         $uid = "{$rec->id}" . "{$rec->uid}";
         
         $tpl->placeArray(array('USER' => urlencode($conf->PROSMS_USER), 'PASS' => urlencode($conf->PROSMS_PASS), 'FROM' => urlencode($rec->sender), 'ID' => $uid, 'PHONE' => urlencode($rec->number), 'MESSAGE' => urlencode($rec->message)));
@@ -58,7 +58,7 @@ class prosms_Plugin extends core_Plugin
             $mvc->save($rec);
             $res = FALSE;
             
-            return TRUE;  // Ако някой друг може да изпрати СМС-а - да заповяда
+            return TRUE;  // Ако някой друг може да изпрати SMS-а - да заповяда
         }
         
         // Всичко е ОК

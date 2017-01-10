@@ -637,14 +637,14 @@ class doc_FolderPlg extends core_Plugin
         $currUrl = getCurrentUrl();
         
         // Подготовка на линк към папката (или създаване на нова) на корицата
-        if($fField = $mvc->listFieldForFolderLink) {
+        if($fField = $mvc->listFieldForFolderLink) { 
             $folderTitle = $mvc->getFolderTitle($rec->id);
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {   
-                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
+                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) { 
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
-
-                    $row->{$fField} = ht::createLink('',
+ 
+                    $row->{$fField} = ht::createLink($row->{$fField},
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
                             NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn', 'order' => 19));
                 }

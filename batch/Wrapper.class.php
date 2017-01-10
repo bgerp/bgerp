@@ -25,18 +25,18 @@ class batch_Wrapper extends plg_ProtoWrapper
     function description()
     {
     	$this->TAB('batch_Items', 'Наличности', 'ceo, batch');
-     	
+    	
     	if(haveRole('debug')){
     		$this->TAB('batch_Movements', 'Движения->Журнал', 'ceo, batch');
     		$this->TAB('batch_BatchesInDocuments', 'Движения->Чернови', 'debug');
     	} else {
     		$this->TAB('batch_Movements', 'Движения', 'ceo, batch');
     	}
-     	
-     	$this->TAB('batch_InventoryNotes', 'Инвентаризация', 'ceo, batch');
-     	$this->TAB('batch_Defs', 'Дефиниции', 'ceo, batch');
-     	$this->TAB('batch_Features', 'Свойства', 'debug');
-     	
-        $this->title = 'Партиди';
+    	
+    	$this->TAB('batch_InventoryNotes', 'Инвентаризация', 'ceo, batch');
+    	$this->TAB('batch_Defs', 'Дефиниции', 'ceo, batch');
+    	$this->TAB('batch_Features', 'Свойства', 'debug');
+    	
+    	$this->title = 'Партиди';
     }
 }

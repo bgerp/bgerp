@@ -46,7 +46,7 @@ class price_ListDocs extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_SelectFolder';
     	
     
     
@@ -524,7 +524,7 @@ class price_ListDocs extends core_Master
 			}
 			
     		$row->pack = $this->cache[$rec->pack];
-    		$row->pack .= "&nbsp;({$Double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
+    		$row->pack .= deals_Helper::getPackMeasure($rec->measureId, $rec->perPack);
 		}
     	
 		$row->code = $Varchar->toVerbal($rec->code);
