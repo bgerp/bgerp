@@ -565,7 +565,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		}
     	}
     	
-    	if($masterRec->state == 'draft'){
+    	if($masterRec->state == 'draft' && $charge !== ''){
     		$charge = "<span id='charge{$rec->id}'>{$charge}</span>";
     	}
     	
@@ -660,6 +660,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Проверяваме имали кеш за $data->rows
     	$cache = core_Cache::get($this->Master->className, $key);
     	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
+    	if(!empty($data->listFilter->rec->search) || Mode::is('blank')){
+    		$cache = FALSE;
+    	}
     	
     	if(empty($cache)){
     		
@@ -688,14 +691,17 @@ class store_InventoryNoteSummary extends doc_Detail
     		$uRec = (object)array('id' => $data->masterId, 'cache' => $cache1);
     		$data->masterMvc->save_($uRec);
     		
-    		$nCache = (object)array('recs' => $data->recs, 'rows' => $data->rows);
-    		core_Statuses::newStatus('CACHED');
-    		core_Cache::set($this->Master->className, $key, $nCache, 1440);
+    		if($cacheRows === TRUE){
+    			$nCache = (object)array('recs' => $data->recs, 'rows' => $data->rows);
+    			core_Cache::set($this->Master->className, $key, $nCache, 1440);
+    		}
     	}
     	
-    	$cached = core_Cache::get($this->Master->className, $key);
-    	$data->recs = $cached->recs;
-    	$data->rows = $cached->rows;
+    	if(empty($data->listFilter->rec->search)){
+    		$cached = core_Cache::get($this->Master->className, $key);
+    		$data->recs = $cached->recs;
+    		$data->rows = $cached->rows;
+    	}
     	
     	Mode::setPermanent("InventoryNoteLastSavedRow{$data->masterId}", NULL);
     	

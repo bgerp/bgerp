@@ -38,7 +38,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,plg_Created,plg_Sorting';
+    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,plg_Created,plg_Sorting,plg_Search';
     
     
     /**
@@ -80,7 +80,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка,packQuantity=Установено,modifiedOn,modifiedBy';
+    public $listFields = 'productId, packagingId=Мярка,packQuantity=Установено,modifiedOn,modifiedBy,searchKeywords';
     
     
     /**
@@ -92,7 +92,19 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Работен кеш
      */
-    public $cache = array();
+    protected $cache = array();
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId,packagingId';
+    
+    
+    /**
+     * Име на полето за търсене
+     */
+    public $searchInputField = 'searchDetail';
     
     
     /**
@@ -121,6 +133,7 @@ class store_InventoryNoteDetails extends doc_Detail
     
     	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
+    
     
     
     /**
@@ -228,6 +241,18 @@ class store_InventoryNoteDetails extends doc_Detail
     
     
     /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	// Подсигуряване че запис и нов го има дори и при редакция
+    	if(isset($data->form->rec->id)) {
+    		$data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', NULL, array('id'=>'saveAndNew', 'order'=>'1', 'ef_icon'=>'img/16/save_and_new.png', 'title'=>'Запиши документа и създай нов'));
+    	}
+    }
+    
+    
+    /**
      * Логика за определяне къде да се пренасочва потребителския интерфейс.
      *
      * @param core_Manager $mvc
@@ -252,6 +277,9 @@ class store_InventoryNoteDetails extends doc_Detail
     		} else {
     			Mode::setPermanent("InventoryNoteNextProduct{$rec->noteId}", $rec->productId);
     		}
+    		
+    		unset($data->retUrl['id']);
+    		unset($data->retUrl['packagingId']);
     	}
     }
     
@@ -324,6 +352,16 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+    	if($data->masterData->rec->state == 'rejected') return;
+    	
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
+    	$data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
+    	$data->listFilter->FLD("{$data->masterData->tabTopParam}", 'varchar', 'input=hidden');
+    	$data->listFilter->setDefault("{$data->masterData->tabTopParam}", get_called_class());
+    	$data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
+    	$data->listFilter->showFields = $mvc->searchInputField;
+    	$data->listFilter->view = 'horizontal';
+    	
     	$data->query->orderby('id', 'DESC');
     }
 }

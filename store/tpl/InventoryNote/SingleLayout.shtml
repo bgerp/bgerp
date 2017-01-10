@@ -4,7 +4,7 @@
       <tr>
          <td class="cell custom-header-bg" style='width:33%;height:20px;'><b>|Склад|*</b></td>
          <td class="cell centered" rowspan='2' style='width:34%;'>
-            <div class="document-title">|протокол за инвентаризация|* [#modifiedOn#]</div>
+            <div class="document-title">|протокол за инвентаризация|*</div>
             <div style="padding-top:5px;">
                № <span class="bigData">[#id#]</span> / 
                <span class="bigData">[#valior#]</span>
@@ -47,6 +47,7 @@
       [#store_InventoryNoteSummary#]
    </div>
 </div>
+<!--ET_BEGIN COUNTER-->
 <div class="lines"></div>
 <table style="width: 100%;" class="table-border">
     <tr>
@@ -75,7 +76,7 @@
             </span>
         </td>
     </tr>
-
 </table>
+<!--ET_END COUNTER-->
 <div class="clearfix21"></div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

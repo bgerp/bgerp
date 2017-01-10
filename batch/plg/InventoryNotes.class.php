@@ -326,4 +326,21 @@ class batch_plg_InventoryNotes extends core_Plugin
 		$summaryRecs = $recs;
 		$summaryRows = $r;
 	}
+	
+	
+	/**
+	 * Добавя ключови думи за пълнотекстово търсене
+	 */
+	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	{
+		if(isset($rec->batch) && isset($rec->productId)){
+			$BatchClass = batch_Defs::getBatchDef($rec->productId);
+			if(is_object($BatchClass)){
+				$batches = $BatchClass->makeArray($rec->batch);
+				foreach ($batches as $b){
+					$res .= " " . plg_Search::normalizeText($b);
+				}
+			}
+		}
+	}
 }

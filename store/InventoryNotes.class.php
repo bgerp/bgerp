@@ -469,6 +469,10 @@ class store_InventoryNotes extends core_Master
     	
     	$tpl->push('store/js/InventoryNotes.js', 'JS');
     	jquery_Jquery::run($tpl, "noteActions();");
+    	
+    	if(!Mode::is('printing')){
+    		$tpl->removeBlock('COUNTER');
+    	}
     }
     
     
@@ -664,7 +668,6 @@ class store_InventoryNotes extends core_Master
     	$key = self::getCacheKey($rec);
     	
     	core_Cache::remove('store_InventoryNotes', $key);
-    	core_Statuses::newStatus("INVALIDATE");
     }
     
     
