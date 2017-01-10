@@ -61,14 +61,22 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
+		$serials = $this->normalize($value);
+		$serials = $this->makeArray($serials);
+		$count = count($serials);
+		
+		if($count != $quantity){
+			$mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
+			$msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : "Трябва да е въведен само един сериен номер";
+		
+			return FALSE;
+		}
+		
 		// Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
 		if(batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))){
 			return TRUE;
 		}
 		
-		$serials = $this->normalize($value);
-		$serials = $this->makeArray($serials);
-		$count = count($serials);
 		$pattern = '';
 		
 		$errMsg = '|Всички номера трябва да отговарят на формата|*: ';
@@ -96,13 +104,6 @@ class batch_definitions_Serial extends batch_definitions_Proto
 				$msg = $errMsg;
 				return FALSE;
 			}
-		}
-		
-		if($count != $quantity){
-			$mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
-			$msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : "Трябва да е въведен само един сериен номер";
-		
-			return FALSE;
 		}
 		
 		// Ако сме стигнали до тук всичко е наред
