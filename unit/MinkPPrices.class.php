@@ -200,7 +200,7 @@ class unit_MinkPPrices extends core_Manager {
     }
     
     /**
-     * 5. Добавяне на ценова политика на клиент; ценоразпис
+     * 5. Добавяне на ценова политика в папка на клиент; ценоразпис
      */
     //http://localhost/unit_MinkPPrices/AddCustomerPriceList/
     function act_AddCustomerPriceList()

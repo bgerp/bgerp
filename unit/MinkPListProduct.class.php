@@ -172,7 +172,7 @@ class unit_MinkPListProduct extends core_Manager {
     }
      
     /**
-     * Добавяне на артикули за листване към фирма от група/предишни продажби
+     * Добавяне на артикули за листване към фирма от група/предишни продажби - не работи
      */
     //http://localhost/unit_MinkPListProduct/ImportListProducts/
     function act_ImportListProducts()
@@ -184,18 +184,14 @@ class unit_MinkPListProduct extends core_Manager {
         $browser = $this->SetFirm();
        
         $browser->click('Търговия');
-        //return $browser->getHtml();
         // Добавяне на артикул
         $browser->press('Импорт');
      
-        $browser->setValue('from', 'Група');
-        //return $browser->getHtml(); 
-        //$browser->refresh('Импорт');
-       
+        $browser->setValue('from', 'group');
         //return $browser->getHtml();
         //$browser->setValue('Ценова група » Промоция', '15');
-        $browser->setValue('group', 'Ценова група » Промоция');
-        //$browser->setValue('group', '15');
+        //$browser->setValue('group', 'Ценова група » Промоция');
+        $browser->setValue('group', '15');
         // Записване на списъка
         $browser->press('Импорт');
     
