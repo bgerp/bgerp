@@ -444,7 +444,7 @@ class core_Cron extends core_Manager
             $lifeDays = 3;
         }
         
-        log_System::add(get_called_class(), $msg, $id, $type, 7);
+        log_System::add(get_called_class(), $msg, $id, $type, $lifeDays);
         if(haveRole('admin,debug')) {
             echo(core_Debug::getLog());
         }
