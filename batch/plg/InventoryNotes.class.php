@@ -52,6 +52,9 @@ class batch_plg_InventoryNotes extends core_Plugin
 			}
 			
 			// Ако има налични партиди
+			$valior = dt::addDays(-1, $masterRec->valior);
+			$valior = dt::verbal2mysql($valior, FALSE);
+			
 			$quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $masterRec->valior);
 			$selected = $Def->makeArray($rec->batch);
 			if(!empty($rec->batch) && !array_key_exists($rec->batch, $quantities)){
@@ -290,7 +293,9 @@ class batch_plg_InventoryNotes extends core_Plugin
 		$Double = cls::get('type_Double');
 		
 		$storeId = $masterRec->storeId;
-		$valior = $masterRec->valior;
+		$valior = dt::addDays(-1, $masterRec->valior);
+		$valior = dt::verbal2mysql($valior, FALSE);
+		
 		$alwaysShowBatches = (Mode::is('blank') && Request::get('showBatches')) ? TRUE : FALSE;
 		
 		$r = array();
