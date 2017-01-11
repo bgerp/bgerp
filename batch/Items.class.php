@@ -231,7 +231,7 @@ class batch_Items extends core_Master {
     		}
     	}
     	
-    	if($rec->quantity > 0 && $rec->state != 'active'){
+    	if($rec->quantity != 0 && $rec->state != 'active'){
     		$rec->state = 'active';
     	}
     	
