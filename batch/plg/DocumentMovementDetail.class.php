@@ -184,6 +184,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			if(empty($rec->batch)){
 				batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
 			} else {
+				if(!isset($rec->quantity)){
+					$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+				}
+				
 				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), TRUE);
 			}
 		}
