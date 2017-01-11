@@ -128,6 +128,9 @@ class batch_Setup extends core_ProtoSetup
         
         $html .= $Plugins->installPlugin('Партидни движения на протокола за инвентаризация', 'batch_plg_InventoryNotes', 'store_InventoryNoteDetails', 'private');
         
+        $Notes = cls::get('store_InventoryNotes');
+        $html .= $Notes->setupMvc();
+        
         return $html;
     }
     
