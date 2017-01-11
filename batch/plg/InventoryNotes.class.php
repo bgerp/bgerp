@@ -96,7 +96,7 @@ class batch_plg_InventoryNotes extends core_Plugin
 				if(count($quantities)){
 					$options = array();
 					foreach ($quantities as $k => $v){
-						$options[$k] = $Def->toVerbal($k);
+						$options[$k] = strip_tags($Def->toVerbal($k));
 					}
 					
 					$form->setField('batchEx', 'input');
