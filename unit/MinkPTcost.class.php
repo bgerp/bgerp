@@ -113,10 +113,10 @@ class unit_MinkPTcost extends core_Manager {
         // Създаване на транспортна зона 1
         $browser->click('Навла');
         $browser->press('Нов запис');
-        $browser->setValue('name', 'Зона BG 4');
+        $browser->setValue('name', 'Зона BG 1');
         $browser->setValue('deliveryTermId', 'TRR');
         $browser->press('Запис');
-        $browser->click('Зона BG 4');
+        $browser->click('Зона BG 1');
         
         // Добавяне на правило за изчисление към трансп. зона
         $browser->press('Нов запис');
@@ -130,15 +130,20 @@ class unit_MinkPTcost extends core_Manager {
         
         // Добавяне на държава и пощ. код към трансп. зона
         
-        //clearfix21 tcost_Zones -'Нов запис' - втори бутон
-        $browser->press('Нов запис');
-        $browser->setValue('countryId', 'BG');
-        $browser->setValue('pCode', '1000');
-        $browser->press('Запис');
+        //clearfix21 tcost_Zones -'Нов запис' - втори бутон - не работи
+        //$browser->press('Нов запис(2)');
+        //$browser->setValue('countryId', 'BG');
+        //$browser->setValue('pCode', '1000');
+        //$browser->press('Запис');
         
         
         // Създаване на транспортна зона 2
-        //return $browser->getHtml();
+        $browser->click('Навла');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Зона BG 2');
+        $browser->setValue('deliveryTermId', 'TRR');
+        $browser->press('Запис');
+        $browser->click('Зона BG 2');
     
     }
      
