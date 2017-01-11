@@ -372,7 +372,8 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		// Ако е сериен номер полето за к-во се скрива
 		if(!($Def instanceof batch_definitions_Serial)){
-			$form->FLD('newBatchQuantity', 'double(min=0)', "caption=Нова партида->К-во,placeholder={$Def->placeholder},{$autohide},unit={$packName}");
+			$form->FLD('newBatchQuantity', 'double(min=0)', "caption=Нова партида->К-во,placeholder={$Def->placeholder},{$autohide}");
+			$form->setField('newBatchQuantity', "unit={$packName}");
 		}
 		
 		$form->input();
