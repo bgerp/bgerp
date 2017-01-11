@@ -247,6 +247,11 @@ abstract class batch_definitions_Proto extends core_BaseClass
     }
     
     
+    /**
+     * Заглавието на полето за партида
+     * 
+     * @return varchar
+     */
     public function getFieldCaption()
     {
     	return (!empty($this->rec->batchCaption)) ? $this->rec->batchCaption : $this->fieldCaption;

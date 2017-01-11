@@ -229,4 +229,30 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		$this->fieldPlaceholder = $rec->format;
 		$this->rec = $rec;
 	}
+	
+	
+	/**
+	 * Подрежда подадените партиди
+	 *
+	 * @param array $batches - наличните партиди
+	 * 		['batch_name'] => ['quantity']
+	 * @param date|NULL $date
+	 * return void
+	 */
+	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
+	{
+		$dates = array_keys($batches);
+		if(is_array($dates)){
+			usort($dates, function($a, $b) {
+				return (strtotime($a) < strtotime($b)) ? -1 : 1;
+			});
+			
+			$sorted = array();
+			foreach ($dates as $date){
+				$sorted[$date] = $batches[$date];
+			}
+			
+			$batches = $sorted;
+		}
+	}
 }

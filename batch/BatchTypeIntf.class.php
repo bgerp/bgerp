@@ -180,4 +180,15 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
     	return $this->class->allocateQuantityToBatches($quantity, $storeId, $date);
     }
+    
+    
+    /**
+     * Заглавието на полето за партида
+     * 
+     * @return varchar
+     */
+    public function getFieldCaption()
+    {
+    	return $this->class->getFieldCaption();
+    }
 }
