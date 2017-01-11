@@ -387,7 +387,7 @@ class core_Cron extends core_Manager
         
         if (is_a($handlerObject, $class)) {
             if (method_exists($handlerObject, $act)) {
-                self::logInfo("Стартиран процес: " . $rec->action, $rec->id);
+                self::logInfo("Стартиран процес: " . $rec->action, $rec->id, 3);
                 
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
@@ -413,7 +413,7 @@ class core_Cron extends core_Manager
                 
                 $workingTime = round($this->getMicrotime() - $startingMicroTime, 2);
                 
-                self::logInfo("Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $rec->id);
+                self::logInfo("Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $rec->id, 3);
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
@@ -439,6 +439,11 @@ class core_Cron extends core_Manager
      */
     function logThenStop($msg, $id = NULL, $type = 'info')
     {
+        $lifeDays = 7;
+        if ($type == 'info') {
+            $lifeDays = 3;
+        }
+        
         log_System::add(get_called_class(), $msg, $id, $type, 7);
         if(haveRole('admin,debug')) {
             echo(core_Debug::getLog());
