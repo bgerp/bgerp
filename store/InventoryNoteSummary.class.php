@@ -181,13 +181,11 @@ class store_InventoryNoteSummary extends doc_Detail
     	$row->code = $rec->verbalCode;
     	$row->ROW_ATTR['id'] = "row->{$rec->id}";
     	
-    	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    		$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
+    	if(!Mode::isReadOnly()){
+    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	}
     	
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
-    	$row->modifiedDate = $rec->modifiedOn;
     	$row->groupName = $rec->groupName;
     	
     	if(Mode::is('blank')){
@@ -205,7 +203,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		if(store_InventoryNoteDetails::haveRightFor('add', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
     			$row->quantity = ht::createLink('', array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png');
     		}
-    			
     	}
     }
     
@@ -221,6 +218,10 @@ class store_InventoryNoteSummary extends doc_Detail
     	$rec = static::fetchRec($rec);
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	$deltaRow = $Double->toVerbal($rec->delta);
+    	if($rec->delta > 0){
+    		$deltaRow = "+{$deltaRow}";
+    	}
+    	
     	$class = ($rec->delta < 0) ? 'red' : (($rec->delta > 0) ? 'green' : 'quiet');
     	$deltaRow = "<span class='{$class}'>{$deltaRow}</span>";
     	
@@ -234,18 +235,9 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'setresponsibleperson' && isset($rec)){
-    		$state = store_InventoryNotes::fetchField($rec->noteId, 'state');
-    		if($state != 'draft'){
-    			$requiredRoles = 'no_one';
-    		}
-
-    		if($requiredRoles != 'no_one'){
-    			if(!isset($rec->delta) || (isset($rec->delta) && $rec->delta >= 0)){
-    				$requiredRoles = 'no_one';
-    			}
-    		}
+    		$requiredRoles = store_InventoryNotes::getRequiredRoles('edit', $rec->noteId);
     		
-    		if(!store_InventoryNotes::haveRightFor('edit', $rec->noteId)){
+    		if(!isset($rec->delta) || (isset($rec->delta) && $rec->delta >= 0)){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -695,7 +687,6 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	if(isset($rec->productId)){
     		$code = cat_Products::getVerbal($rec->productId, 'code');
-    		
     		$res .= " " . plg_Search::normalizeText($code);
     	}
     }

@@ -357,7 +357,7 @@ class store_InventoryNotes extends core_Master
     		
     		// Кой е избрания потребител?
     		$userId = $form->rec->userId;
-    		$personId = crm_Profiles::fetchField($userId, 'personId');
+    		$personId = crm_Profiles::fetchField("#userId = {$userId}", 'personId');
     		
     		// Създаваме продажба в папката му
     		$fields = array('shipmentStoreId' => $rec->storeId, 'valior' => $rec->valior, 'originId' => $rec->containerId);
@@ -370,7 +370,6 @@ class store_InventoryNotes extends core_Master
     			$quantity = abs($dRec->delta);
     			sales_Sales::addRow($saleId, $dRec->productId, $quantity);
     		}
-    		
     		
     		// Редирект при успех
     		redirect(array('sales_Sales', 'single', $saleId));

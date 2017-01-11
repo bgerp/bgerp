@@ -135,7 +135,6 @@ class store_InventoryNoteDetails extends doc_Detail
     }
     
     
-    
     /**
      * Подготовка на Детайлите
      */
