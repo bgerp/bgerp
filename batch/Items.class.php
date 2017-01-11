@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,7 +37,7 @@ class batch_Items extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'batch, productId, storeId, quantity, state';
+    public $listFields = 'batch, productId, storeId, quantity, nullifiedDate, state';
     
     
     /**
@@ -77,6 +77,14 @@ class batch_Items extends core_Master {
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'nullifiedDate';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -85,6 +93,7 @@ class batch_Items extends core_Master {
     	$this->FLD('batch', 'varchar(128)', 'caption=Партида,mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory');
     	$this->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
+    	$this->FLD('nullifiedDate', 'date(format=smartTime)', 'caption=Изчерпано');
     	
     	$this->setDbUnique('productId,batch,storeId');
     }
@@ -213,34 +222,39 @@ class batch_Items extends core_Master {
     	
     	// Опресняваме количеството
     	$rec->quantity = $quantity;
-    	$fields = 'quantity';
     	
-    	// Ако количеството е 0 проверяваме дали можем да затворим партидата
-    	if($rec->quantity == 0 && $rec->state != 'closed'){
-    		
-    		// Проверяваме имали движения по партидата в зададения интервал
-    		$dQuery1 = batch_Movements::getQuery();
-    		$dQuery1->where("#itemId = {$rec->id}");
-    		$before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
-    		$before = dt::addSecs(-1 * $before, dt::today());
-    		$dQuery1->where("#createdOn >= '{$before}'");
-    		
-    		// Ако няма движения през зададеното време по тази партида, затваряме я
-    		if(!$dQuery1->fetch()){
-    			$rec->state = 'closed';
-    			$fields = 'quantity,state';
-    		}
-    		
+    	if($rec->quantity == 0){
+    		$rec->nullifiedDate = dt::today();
     	} else {
-    		
-    		// Активираме партидата
-    		if($rec->state != 'active'){
-    			$rec->state = 'active';
-    			$fields = 'quantity,state';
+    		if(isset($rec->nullifiedDate)){
+    			$rec->nullifiedDate = NULL;
     		}
     	}
     	
-    	$this->save_($rec, $fields);
+    	if($rec->quantity > 0 && $rec->state != 'active'){
+    		$rec->state = 'active';
+    	}
+    	
+    	$this->save_($rec);
+    }
+    
+    
+    /**
+     * Крон метод за затваряне на старите партиди
+     */
+    public function cron_closeOldBatches()
+    {
+    	$query = self::getQuery();
+    	$query->where("#quantity = 0 AND #state != 'closed'");
+    	$before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
+    	$before = dt::addSecs(-1 * $before, dt::today());
+    	$before = dt::verbal2mysql($before, FALSE);
+    	
+    	$query->where("#nullifiedDate <= '{$before}'");
+    	while($rec = $query->fetch()){
+    		$rec->state = 'closed';
+    		$this->save($rec, 'state');
+    	}
     }
     
     

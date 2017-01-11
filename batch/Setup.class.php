@@ -93,7 +93,23 @@ class batch_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'BATCH_EXPIRYDATE_PERCENT' => array("percent", 'caption=Оцветяване на изтичащите партиди->Преди края'),
-    		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на стари партиди->Без движения')
+    		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на изчерпани партиди->След'),
+    );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    				'systemId' => "Close Old Batches",
+    				'description' => "Затваряне на старите партиди по които не е имало движение",
+    				'controller' => "batch_Items",
+    				'action' => "closeOldBatches",
+    				'period' => 1440,
+    				'offset' => 20,
+    				'timeLimit' => 100
+    		),
     );
     
     
