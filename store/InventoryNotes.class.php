@@ -324,6 +324,8 @@ class store_InventoryNotes extends core_Master
     		$url = array($mvc, 'makeSale', $rec->id, 'ret_url' => TRUE);
     		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
     	}
+    	
+    	$data->toolbar->removeBtn('btnPrint');
     }
     
     
