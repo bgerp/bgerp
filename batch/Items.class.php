@@ -516,10 +516,11 @@ class batch_Items extends core_Master {
      * @param int $storeId - ид на склад
      * @param date|NULL $date - към дата, ако е празно текущата
      * @param int|NULL $limit - лимит на резултатите
+     * @param array $except - кой документ да се игнорира
      * @return array $res - масив с партидите и к-та
      * 		  ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId, $date = NULL, $limit = NULl)
+    public static function getBatchQuantitiesInStore($productId, $storeId, $date = NULL, $limit = NULL, $except = array())
     {
     	$date = (isset($date)) ? $date : dt::today();
     	$res = array();
@@ -536,8 +537,14 @@ class batch_Items extends core_Master {
     	$query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
     	$query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
     	$query->where("#date <= '{$date}'");
-    	$query->show("batch,quantity,operation,date");
+    	$query->show("batch,quantity,operation,date,docType,docId");
     	$query->where("#productId = {$productId} AND #storeId = {$storeId}");
+    	
+    	if(count($except) == 2){
+    		$docType = cls::get($except[0])->getClassId();
+    		$docId = $except[1];
+    	}
+    	
     	$query->orderBy('id', 'ASC');
     	
     	// Ако е указан лимит
@@ -547,6 +554,10 @@ class batch_Items extends core_Master {
     	
     	// Сумиране на к-то към датата
     	while($rec = $query->fetch()){
+    		if(count($except) == 2){
+    			if($rec->docType == $docType && $rec->docId == $docId) continue;
+    		}
+    		
     		if(!array_key_exists($rec->batch, $res)){
     			$res[$rec->batch] = 0;
     		}

@@ -644,6 +644,8 @@ class store_InventoryNotes extends core_Master
     	// Синхронизираме данните само в чернова
     	if($rec->state == 'draft'){
     		$mvc->sync($rec);
+    	} elseif($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')) {
+    		cls::get('store_InventoryNoteDetails')->invoke('AfterContoOrReject', array($rec));
     	}
     	
     	static::invalidateCache($rec);
@@ -795,5 +797,35 @@ class store_InventoryNotes extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	$this->save($rec, 'isContable');
+    }
+    
+    
+    /**
+     * Ре-контиране на счетоводен документ
+     */
+    public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
+    }
+    
+    
+    /**
+     * Контиране на счетоводен документ
+     */
+    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
+    }
+    
+    
+    /**
+     * Оттегляне на документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	cls::get('store_InventoryNoteDetails')->invoke('AfterRejectMaster', array($rec));
     }
 }

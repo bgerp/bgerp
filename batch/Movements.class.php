@@ -91,7 +91,11 @@ class batch_Movements extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->document = cls::get($rec->docType)->getLink($rec->docId, 0);
+    	if(cls::load($rec->docType, TRUE)){
+    		$row->document = cls::get($rec->docType)->getLink($rec->docId, 0);
+    	} else {
+    		$row->document = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+    	}
     	
     	if(isset($rec->productId)){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
@@ -160,6 +164,7 @@ class batch_Movements extends core_Detail {
     	$query->show("docType,docId");
     	$query->groupBy("docType,docId");
     	while($r = $query->fetch()){
+    		if(!cls::load($r->docType, TRUE)) continue;
     		$handle = "#" . cls::get($r->docType)->getHandle($r->docId);
     		$documentSuggestions[$handle] = $handle;
     	}
@@ -291,11 +296,13 @@ class batch_Movements extends core_Detail {
      * @param mixed $rec   - ид или запис на документа
      * @return void        - изтрива движенията породени от документа
      */
-    public static function removeMovement($containerId)
+    public static function removeMovement($class, $rec)
     {
     	// Изтриване на записите, породени от документа
-    	$doc = doc_Containers::getDocument($containerId);
-    	static::delete("#docType = {$doc->getInstance()->getClassId()} AND #docId = {$doc->that}");
+    	$class = cls::get($class);
+    	$rec = $class->fetchRec($rec);
+    	
+    	static::delete("#docType = {$class->getClassId()} AND #docId = {$rec->id}");
     }
     
     

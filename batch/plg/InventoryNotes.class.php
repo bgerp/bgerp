@@ -250,7 +250,7 @@ class batch_plg_InventoryNotes extends core_Plugin
 			if(!count($batchesInDetail)) return FALSE;
 		}
 		
-		$allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior);
+		$allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, NULL, array('store_InventoryNotes', $noteId));
 		$allBatches[''] = $expectedQuantity - array_sum($allBatches);
 		
 		$summary = array();
@@ -348,5 +348,62 @@ class batch_plg_InventoryNotes extends core_Plugin
 				}
 			}
 		}
+	}
+	
+	
+	/**
+	 * След контиране на мастъра
+	 */
+	public static function on_AfterContoMaster($mvc, $rec)
+	{
+		$storeId = isset($rec->storeId) ? $rec->storeId : store_InventoryNotes::fetchField($rec->id, 'storeId');
+		$valior = isset($rec->valior) ? $rec->valior : store_InventoryNotes::fetchField($rec->id, 'valior');
+		$obj = (object)array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
+				
+		$dQuery = store_InventoryNoteSummary::getQuery();
+		$dQuery->where("#noteId = {$rec->id}");
+		while ($dRec = $dQuery->fetch()){
+			try{
+				$summary = self::getBatchSummary($dRec->noteId, $dRec->productId, 0, $storeId, $valior);
+				if(!is_array($summary)) continue;
+		
+				foreach ($summary as $batch => $o){
+					if($batch == '') continue;
+					if($o->delta == 0) continue;
+							
+					$move = clone $obj;
+					$move->operation = ($o->delta < 0) ? 'out' : 'in';
+					$move->quantity = abs($o->delta);
+					$move->itemId = batch_Items::forceItem($dRec->productId, $batch, $storeId);
+							
+					// Запис на движението
+					$id = batch_Movements::save($move);
+							
+					// Ако има проблем със записа, сетваме грешка
+					if(!$id){
+						$result = FALSE;
+						break;
+					}
+				}
+			} catch(core_exception_Expect $e){
+		
+				// Ако е изникнала грешка
+				$result = FALSE;
+			}
+		}
+				
+		// При грешка изтриваме всички записи до сега
+		if($result === FALSE){
+			batch_Movements::removeMovement('store_InventoryNotes', $rec);
+		}
+	}
+	
+	
+	/**
+	 * След оттегляне на мастъра
+	 */
+	public static function on_AfterRejectMaster($mvc, $rec)
+	{
+		batch_Movements::removeMovement('store_InventoryNotes', $rec);
 	}
 }

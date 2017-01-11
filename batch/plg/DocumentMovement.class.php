@@ -48,7 +48,8 @@ class batch_plg_DocumentMovement extends core_Plugin
 			batch_Movements::saveMovement($containerId);
 		} elseif($rec->state == 'rejected'){
 			$containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
-			batch_Movements::removeMovement($containerId);
+			$doc = doc_Containers::getDocument($containerId);
+			batch_Movements::removeMovement($doc->getInstance(), $doc->that);
 		}
 	}
 	
