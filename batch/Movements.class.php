@@ -100,8 +100,9 @@ class batch_Movements extends core_Detail {
     	if(isset($rec->productId)){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	
-    		$Definition = batch_Defs::getBatchDef($rec->productId);
-    		$row->batch = $Definition->toVerbal($rec->batch);
+    		if($Definition = batch_Defs::getBatchDef($rec->productId)){
+    			$row->batch = $Definition->toVerbal($rec->batch);
+    		}
     	}
     	
     	if(isset($rec->storeId)){
