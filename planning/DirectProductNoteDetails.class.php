@@ -340,6 +340,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$rec = $mvc->fetchRec($rec);
     	if(empty($rec->storeId)){
     		unset($res->operation);
+    	} else {
+    		$res->operation[key($res->operation)] = $rec->storeId;
     	}
     }
 }
