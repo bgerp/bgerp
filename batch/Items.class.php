@@ -47,9 +47,9 @@ class batch_Items extends core_Master {
     
     
     /**
-     * Кой има право да чете?
+     * Кой може да променя състоянието на валутата
      */
-    public $canRead = 'batch, ceo';
+    public $canChangestate = 'batch,ceo';
     
     
     /**
@@ -528,9 +528,6 @@ class batch_Items extends core_Master {
     	
     	$def = batch_Defs::getBatchDef($productId);
     	if(!$def) return $res;
-    	
-    	//$date = dt::addDays(1, $date);
-    	//$date = dt::verbal2mysql($date, FALSE);
     	
     	// Намират се всички движения в посочения интервал за дадения артикул в подадения склад
     	$query = batch_Movements::getQuery();
