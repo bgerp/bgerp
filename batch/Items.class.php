@@ -157,8 +157,9 @@ class batch_Items extends core_Master {
     	$row->quantity .= " {$measureShort}";
     	
     	$row->quantity = "<span class='red'>{$row->quantity}</span>";
-    	$Definition = batch_Defs::getBatchDef($rec->productId);
-    	$row->batch = $Definition->toVerbal($rec->batch);
+    	if($Definition = batch_Defs::getBatchDef($rec->productId)){
+    		$row->batch = $Definition->toVerbal($rec->batch);
+    	}
     	
     	if(isset($fields['-single'])){
     		$row->state = $mvc->getFieldType('state')->toVerbal($rec->state);
