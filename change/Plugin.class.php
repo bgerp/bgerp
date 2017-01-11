@@ -235,7 +235,7 @@ class change_Plugin extends core_Plugin
                 // Записваме промени
                 $mvc->save($fRec);
                 
-                $mvc->logInAct('Промяне', $fRec);
+                $mvc->logInAct('Промяна', $fRec);
                 
                 // Записваме лога на промените
                 $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $fRec);
