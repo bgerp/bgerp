@@ -226,7 +226,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	}
     	
     	if($form->isSubmitted()){
-    		if($form->notMandatoryQ !== TRUE && empty($rec->packQuantity)){
+    		if($form->notMandatoryQ !== TRUE && !isset($rec->packQuantity)){
     			$form->setError('packQuantity', "Непопълнено задължително поле '|*<b>|Количество|*</b>'!");
     		}
     		
