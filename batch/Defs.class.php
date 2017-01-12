@@ -3,13 +3,13 @@
 
 
 /**
- * Дефиниции на партиди
+ * Задавания на партиди
  *
  *
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,7 +25,7 @@ class batch_Defs extends embed_Manager {
     /**
      * Заглавие
      */
-    public $title = 'Дефиниции на партиди';
+    public $title = 'Задавания на партиди';
     
     
     /**
@@ -49,7 +49,7 @@ class batch_Defs extends embed_Manager {
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Дефиниция на партидa";
+    public $singleTitle = "Задаване на партидa";
     
     
     /**
@@ -129,6 +129,11 @@ class batch_Defs extends embed_Manager {
     	$query->show('productId');
     	$alreadyWithDefs = arr::extractValuesFromArray($query->fetchAll(), 'productId');
     	$storable = array_diff_key($storable, $alreadyWithDefs);
+    	if(isset($form->rec->id)){
+    		if(!array_key_exists($form->rec->productId, $storable)){
+    			$storable[$form->rec->productId] = cat_Products::getTitleById($form->rec->productId, FALSE);
+    		}
+    	}
     	
     	$form->setOptions('productId', array('' => '') + $storable);
     	
