@@ -455,7 +455,7 @@ class batch_BatchesInDocuments extends core_Manager
 			// Новата партида също ще се добави
 			if(!empty($r->newBatch) && !empty($r->newBatchQuantity)){
 				$batch = $Def->normalize($r->newBatch);
-				if(array_key_exists($batch, $saveBatches)){
+				if(array_key_exists($batch, $batches)){
 					$form->setError('newBatch', 'Опитвате се да създадете същестуваща партида');
 				} else {
 					$saveBatches[$batch] = $r->newBatchQuantity * $recInfo->quantityInPack;
