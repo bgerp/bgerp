@@ -23,4 +23,29 @@ class batch_definitions_Varchar extends batch_definitions_Proto
 	 * @param string
 	 */
 	public $fieldCaption = 'lot';
+	
+	
+	/**
+	 * Добавя полетата на драйвера към Fieldset
+	 *
+	 * @param core_Fieldset $fieldset
+	 */
+	public function addFields(core_Fieldset &$fieldset)
+	{
+		$fieldset->FLD('size', 'int', 'caption=Дължина,placeholder=255');
+	}
+	
+	
+	/**
+	 * Проверява дали стойността е невалидна
+	 *
+	 * @return core_Type - инстанция на тип
+	 */
+	public function getBatchClassType()
+	{
+		$string = !isset($this->rec->size) ? 'varchar' : "varchar({$this->rec->size})";
+		$Type = core_Type::getByName($string);
+	
+		return $Type;
+	}
 }
