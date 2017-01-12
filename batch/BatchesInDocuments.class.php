@@ -389,7 +389,7 @@ class batch_BatchesInDocuments extends core_Manager
 		if($form->isSubmitted()){
 			$r = $form->rec;
 			
-			$update = $delete = $fields = $error = array();
+			$update = $delete = $fields = $error = $error2 = $errorFields = array();
 			$total = 0;
 			
 			// Ако има нова партида, проверява се
@@ -438,6 +438,11 @@ class batch_BatchesInDocuments extends core_Manager
 						$total += $r->{"quantity{$i}"};
 						$fields[] = "quantity{$i}";
 						$saveBatches[$r->{"batch{$i}"}] = $r->{"quantity{$i}"}  * $recInfo->quantityInPack;
+					
+						// Проверка на к-то
+						if(!deals_Helper::checkQuantity($recInfo->packagingId, $r->{"quantity{$i}"}, $warning)){
+							$form->setError("quantity{$i}", $warning);
+						}
 					}
 				}
 				
