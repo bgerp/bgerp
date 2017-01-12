@@ -296,6 +296,12 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		// Кои са наличните партиди към момента
 		$batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date);
+		foreach ($batches as $i => $v){
+			$itemState = batch_Items::fetchField("#productId = {$recInfo->productId} AND #storeId = {$storeId} AND #batch = '{$i}'", 'state');
+			if($itemState == 'closed'){
+				unset($batches[$i]);
+			}
+		}
 		
 		// Кои са въведените партиди от документа
 		$dQuery = self::getQuery();
