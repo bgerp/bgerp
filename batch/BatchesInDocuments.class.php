@@ -444,7 +444,7 @@ class batch_BatchesInDocuments extends core_Manager
 			// Новата партида също ще се добави
 			if(!empty($r->newBatch) && !empty($r->newBatchQuantity)){
 				$batch = $Def->normalize($r->newBatch);
-				if(array_key_exists($batch, $update)){
+				if(array_key_exists($batch, $saveBatches)){
 					$form->setError('newBatch', 'Опитвате се да създадете същестуваща партида');
 				} else {
 					$saveBatches[$batch] = $r->newBatchQuantity * $recInfo->quantityInPack;
@@ -452,6 +452,7 @@ class batch_BatchesInDocuments extends core_Manager
 			}
 			
 			if(!$form->gotErrors()){
+				
 				if($form->cmd == 'auto'){
 					$old = $saveBatches;
 					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
