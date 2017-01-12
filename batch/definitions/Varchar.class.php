@@ -11,7 +11,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title Символи(128)
+ * @title Символи(255)
  */
 class batch_definitions_Varchar extends batch_definitions_Proto
 {
