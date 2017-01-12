@@ -32,7 +32,7 @@ class batch_definitions_Varchar extends batch_definitions_Proto
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('size', 'int', 'caption=Дължина,placeholder=255');
+		$fieldset->FLD('length', 'int', 'caption=Дължина,placeholder=255');
 	}
 	
 	
@@ -43,7 +43,7 @@ class batch_definitions_Varchar extends batch_definitions_Proto
 	 */
 	public function getBatchClassType()
 	{
-		$string = !isset($this->rec->size) ? 'varchar' : "varchar({$this->rec->size})";
+		$string = !isset($this->rec->length) ? 'varchar' : "varchar({$this->rec->length})";
 		$Type = core_Type::getByName($string);
 	
 		return $Type;
