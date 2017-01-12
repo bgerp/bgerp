@@ -221,13 +221,16 @@ class store_InventoryNoteDetails extends doc_Detail
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = $form->rec;
+    	
     	if($form->notMandatoryQ !== TRUE){
     		$form->setField('packQuantity', 'mandatory');
     	}
     	
     	if($form->isSubmitted()){
-    		if($form->notMandatoryQ !== TRUE && !isset($rec->packQuantity)){
-    			$form->setError('packQuantity', "Непопълнено задължително поле '|*<b>|Количество|*</b>'!");
+    		
+    		// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+    			$form->setError('packQuantity', $warning);
     		}
     		
     		$productInfo = cat_Products::getProductInfo($rec->productId);
