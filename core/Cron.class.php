@@ -331,8 +331,8 @@ class core_Cron extends core_Manager
             ob_start();
             session_write_close();
             header("Content-Length: 0");
-            @ob_end_flush();
-            flush();
+            
+            core_App::flushAndClose();
         } else {
             header ('Content-type: text/html; charset=utf-8');
         }
