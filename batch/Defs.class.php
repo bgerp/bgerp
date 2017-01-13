@@ -189,6 +189,7 @@ class batch_Defs extends core_Manager {
     		if(cls::load($template->driverClass, TRUE)){
     			$BatchClass = cls::get($template->driverClass);
     			$template->productId = $productId;
+    			$template->batchCaption = $rec->batchCaption;
     			$BatchClass->setRec($template);
     		
     			self::$cache[$productId] = $BatchClass;
