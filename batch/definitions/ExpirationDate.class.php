@@ -121,11 +121,10 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 */
 	public function toVerbal($value)
 	{
-		$mysqlValue = dt::verbal2mysql($value, FALSE);
 		$today = dt::today();
 		
 		// Ако партидата е изтекла оцветяваме я в червено
-		if($mysqlValue < $today){
+		if(strtotime($value) < strtotime($today)){
 			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
 			$value = new core_ET("<span class='red'>[#value#]</span>");
 			$value->replace($valueHint, 'value');
