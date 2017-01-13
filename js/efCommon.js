@@ -2682,6 +2682,59 @@ function inverseCheckBox(el){
 }
 
 
+function actionsWithSelected() {
+    prepareCheckboxes();
+    $('.checkbox-btn').on('click', function(e){
+        e.preventDefault();
+        if($(this).text() == $("#with_selected").val()) {
+            $("#with_selected").click();
+        }
+        var id = $(this).attr("id").match(/\d+/)[0];
+
+        $(".custom-checkboxes").css("visibility", "visible");
+        $(".custom-checkboxes").css("display", "table-cell");
+
+        $("#cb_" + id).click();
+
+        $(this).closest('.modal-toolbar').css('display', 'none');
+        SetWithCheckedButton();
+        $(".invert-checkboxes").css("display", "table-cell");
+        $(".invert-checkboxes").css("margin-right", "12px");
+        $('.checkbox-btn').text($("#with_selected").val());
+    });
+}
+
+function prepareCheckboxes(){
+    var toggle = $(document.createElement('input')).attr({
+        name: "toggle"
+        ,class: "invert-checkboxes"
+        ,style: "display:none"
+        ,type:  'checkbox'
+        ,onclick: 'toggleAllCheckboxes();'
+    });
+
+    $('.checkbox-btn').each(function(){
+        var id = $(this).attr("id").match(/\d+/)[0];
+        var element = $(document.createElement('input')).attr({
+            id:    'cb_' + id
+            ,name: "R[" + id + "]"
+            ,class: "custom-checkboxes"
+            ,style: "display:none"
+            ,value: 'myValue'
+            ,type:  'checkbox'
+            ,onclick: 'chRwClSb("' + id +'")'
+        });
+        $(this).closest('td').prepend(element);
+        $(this).closest('tr').attr("id", 'lr_' + id);
+
+
+        $(".custom-checkboxes").css("visibility", "hidden");
+        $(".custom-checkboxes").css("display", "none");
+    });
+
+    $('.checkbox-btn').first().closest('table').find('th').first().prepend(toggle);
+}
+
 // проверява дали могат да се съберат 2 документа на една страница
 function checkForPrintBreak(maxHeightPerDoc) {
     if ($(".print-break").height() <= maxHeightPerDoc) {
