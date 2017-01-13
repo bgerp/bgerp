@@ -253,11 +253,12 @@ class batch_Defs extends core_Manager {
     	if($folderClassName == 'cat_Categories'){
     		$folderObjectId = doc_Folders::fetchCoverId($productRec->folderId);
     		if($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")){
-    			unset($categoryDefRec->id, $categoryDefRec->categoryId);
-    			$categoryDefRec->productId = $productRec->id;
+    			$o = array('driverClass' => $categoryDefRec->driverClass) + (array)$categoryDefRec->driverRec;
+    			$templateId = batch_Templates::force($o);
+    			$nRec = (object)array('productId' => $productRec->id, 'templateId' => $templateId);
     			
     			// Записваме точно копие на дефиницията от категорията
-    			return self::save($categoryDefRec);
+    			return self::save($nRec);
     		}
     	}
     	
