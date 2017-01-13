@@ -127,11 +127,12 @@ class batch_Defs extends core_Manager {
     	$query->show('productId');
     	$alreadyWithDefs = arr::extractValuesFromArray($query->fetchAll(), 'productId');
     	$storable = array_diff_key($storable, $alreadyWithDefs);
-    	if(isset($form->rec->id)){
-    		if(!array_key_exists($form->rec->productId, $storable)){
-    			$storable[$form->rec->productId] = cat_Products::getTitleById($form->rec->productId, FALSE);
-    		}
-    		$form->setReadOnly('templateId');
+    	if($productId = Request::get('productId', 'key(mvc=cat_Products)')){
+    		$form->rec->productId = $productId;
+    	}
+    	
+    	if(!array_key_exists($form->rec->productId, $storable)){
+    		$storable[$form->rec->productId] = cat_Products::getTitleById($form->rec->productId, FALSE);
     	}
     	
     	$form->setOptions('productId', array('' => '') + $storable);
