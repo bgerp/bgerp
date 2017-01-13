@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title Хендлър на документ с дата
  */
-class batch_definitions_Document extends batch_definitions_Varchar
+class batch_definitions_Document extends batch_definitions_Proto
 {
 	
 	

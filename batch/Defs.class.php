@@ -13,16 +13,10 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class batch_Defs extends embed_Manager {
+class batch_Defs extends core_Manager {
     
 	
 	/**
-	 * Свойство, което указва интерфейса на вътрешните обекти
-	 */
-	public $driverInterface = 'batch_BatchTypeIntf';
-	
-	
-    /**
      * Заглавие
      */
     public $title = 'Задавания на партиди';
@@ -43,7 +37,7 @@ class batch_Defs extends embed_Manager {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'productId,driverClass=Тип,modifiedOn,modifiedBy';
+    public $listFields = 'productId,templateId=Дефиниция,batchCaption=Кепшън,modifiedOn,modifiedBy';
     
     
     /**
@@ -71,9 +65,11 @@ class batch_Defs extends embed_Manager {
     
     
     /**
-     * Файл с шаблон за единичен изглед
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
      */
-    public $singleLayoutFile = 'batch/tpl/SingleLayoutDefs.shtml';
+    public $hideListFieldsIfEmpty = 'batchCaption';
     
     
     /**
@@ -88,7 +84,8 @@ class batch_Defs extends embed_Manager {
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,before=driverClass,silent,mandatory');
-    
+    	$this->FLD('templateId', 'key(mvc=batch_Templates,select=name, allowEmpty)', 'caption=Дефиниция,mandatory,removeAndRefreshForm=batchCaption,silent');
+    	
     	$this->FLD('batchCaption', 'varchar(20)', 'caption=Заглавие,input=none,after=driverClass');
     	$this->setDbUnique('productId');
     }
@@ -99,7 +96,7 @@ class batch_Defs extends embed_Manager {
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->FLD('type', "class(interface={$mvc->driverInterface},select=title,allowEmpty)", 'caption=Тип,silent');
+    	$data->listFilter->FLD('type', "class(interface=batch_BatchTypeIntf,select=title,allowEmpty)", 'caption=Тип,silent');
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search,type';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -107,6 +104,7 @@ class batch_Defs extends embed_Manager {
     	
     	if($data->listFilter->isSubmitted()){
     		if($type = $data->listFilter->rec->type){
+    			$data->query->EXT('driverClass', 'batch_Templates', 'externalName=driverClass,externalKey=templateId');
     			$data->query->where("#driverClass = {$type}");
     		}
     	}
@@ -133,9 +131,13 @@ class batch_Defs extends embed_Manager {
     		if(!array_key_exists($form->rec->productId, $storable)){
     			$storable[$form->rec->productId] = cat_Products::getTitleById($form->rec->productId, FALSE);
     		}
+    		$form->setReadOnly('templateId');
     	}
     	
     	$form->setOptions('productId', array('' => '') + $storable);
+    	if(isset($form->rec->id)){
+    		$form->setReadOnly('productId');
+    	}
     	
     	if(isset($form->rec->productId)){
     		if(batch_Items::fetchField("#productId = {$form->rec->productId}")){
@@ -144,10 +146,10 @@ class batch_Defs extends embed_Manager {
     	}
     	
     	// Ако е избрана дефиниция, полето за заглавие на дефиницията се показва
-    	if(isset($form->rec->driverClass)){
+    	if(isset($form->rec->templateId)){
     		$form->setField('batchCaption', 'input');
     		
-    		$Class = cls::get($form->rec->driverClass);
+    		$Class = cls::get(batch_Templates::fetchField($form->rec->templateId, 'driverClass'));
     		if(isset($Class->fieldCaption)){
     			$form->setField('batchCaption', "placeholder={$Class->fieldCaption}");
     		}
@@ -162,6 +164,7 @@ class batch_Defs extends embed_Manager {
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	$row->ROW_ATTR['class'] = 'state-active';
+    	$row->templateId = batch_Templates::getHyperlink($rec->templateId, TRUE);
     }
     
     
@@ -179,9 +182,11 @@ class batch_Defs extends embed_Manager {
     	
     	// Намираме записа за артикула
     	$rec = self::fetch("#productId = '{$productId}'");
-    	if(cls::load($rec->driverClass, TRUE)){
-    		$BatchClass = cls::get($rec->driverClass);
-    		$BatchClass->setRec($rec);
+    	$template = batch_Templates::fetch($rec->templateId);
+    	if(cls::load($template->driverClass, TRUE)){
+    		$BatchClass = cls::get($template->driverClass);
+    		$template->productId = $productId;
+    		$BatchClass->setRec($template);
     		
     		self::$cache[$productId] = $BatchClass;
     	}

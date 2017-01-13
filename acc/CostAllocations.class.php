@@ -710,9 +710,4 @@ class acc_CostAllocations extends core_Manager
 		// връщане на редовете
 		return $res;
 	}
-	
-	function act_Test()
-	{
-		cls::get('batch_Setup')->migrateBatches();
-	}
 }

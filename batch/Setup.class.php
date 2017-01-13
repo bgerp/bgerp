@@ -64,7 +64,9 @@ class batch_Setup extends core_ProtoSetup
     		'batch_Movements',
     		'batch_CategoryDefinitions',
     		'batch_Features',
+    		'batch_Templates',
     		'migrate::migrateBatches',
+    		'migrate::migrateDefs',
         );
     
 
@@ -212,5 +214,62 @@ class batch_Setup extends core_ProtoSetup
     	}
     	
     	$Batches->saveArray($arr);
+    }
+    
+    
+    /**
+     * Миграция на дефинициите
+     */
+    public function migrateDefs()
+    {
+    	$Defs = cls::get('batch_Defs');
+    	$Defs->setupMvc();
+    	$Templates = cls::get('batch_Templates');
+    	$Templates->setupMvc();
+    	$Templates->loadSetupData();
+    	
+    	if(!$Defs->db->isFieldExists($Defs->dbTableName, str::phpToMysqlName('driverClass'))) return;
+    	
+    	$templates = array();
+    	$tQuery = $Templates->getQuery();
+    	while($tRec = $tQuery->fetch()){
+    		$t = array('driverClass' => $tRec->driverClass) + (array)$tRec->driverRec;
+    		$templates[$tRec->id] = $t;
+    	}
+    	
+    	$os = array();
+    	$query = $Defs->getQuery();
+    	$query->FLD('driverClass', "class(interface=batch_BatchTypeIntf, allowEmpty, select=title)");
+    	$query->FLD('driverRec', "blob(1000000, serialize, compress)");
+    	$query->where("#templateId IS NULL");
+    	
+    	while($rec = $query->fetch()){
+    		$o = array('driverClass' => $rec->driverClass) + (array)$rec->driverRec;
+    		if($rec->driverClass == batch_definitions_Varchar::getClassId()){
+    			$o['length'] = NULL;
+    		}
+    		
+    		$found = FALSE;
+    		foreach ($templates as $k => $t){
+    			if(arr::areEqual($o, $t)){
+    				$found = $k;
+    				break;
+    			}
+    		}
+    		
+    		if($found){
+    			$rec->templateId = $found;
+    		} else {
+    			$saveRec = (object)$o;
+    			$templateId = batch_Templates::save($saveRec);
+    			$saveRec->name = core_Classes::getTitleById($rec->driverClass) . "({$templateId})";
+    			batch_Templates::save($saveRec, 'id,name');
+    			$rec->templateId = $templateId;
+    			
+    			$templates[] = $o;
+    		}
+    		
+    		$Defs->save($rec, 'id,templateId');
+    	}
     }
 }

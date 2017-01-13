@@ -1,12 +1,11 @@
 <div class='singleView'>
     [#SingleToolbar#]
     <div class="no-cover">
-       <h2 style="padding:5px 2px;" class=" [#STATE_CLASS#]"> |Дефиниция на партида на артикул|*</h2>
+       <h2 style="padding:5px 2px;" class=" [#STATE_CLASS#]"> |Дефиниция на партида|* <span class='green'>"[#name#]"</span></h2>
        <fieldset class="detail-info">
             <legend class="groupTitle">|Информация|*</legend>
             <div class="groupList">
                 <table>
-                	<tr><td class="quiet">|Артикул|*:</td> <td>[#productId#]</td></tr>
                 	<tr><td class="quiet">|Тип|*:</td> <td>[#driverClass#]</td></tr>
                 	
                 	<!--ET_BEGIN batchCaption-->
