@@ -126,4 +126,47 @@ class batch_Templates extends embed_Manager {
     		}
     	}
     }
+    
+    
+    /**
+     * Форсираща функция
+     * 
+     * @param stdClass $params - параметри
+     * @return int $templateId - ид на шаблона
+     */
+    public static function force($params = array())
+    {
+    	$params = (array)$params;
+    	
+    	expect(isset($params['driverClass']), $params);
+    	
+    	$templates = array();
+    	$tQuery = self::getQuery();
+    	while($tRec = $tQuery->fetch()){
+    		$t = array('driverClass' => $tRec->driverClass) + (array)$tRec->driverRec;
+    		$templates[$tRec->id] = $t;
+    	}
+    	
+    	$found = FALSE;
+    	foreach ($templates as $k => $t){
+    		if(arr::areEqual($params, $t)){
+    			$found = $k;
+    			break;
+    		}
+    	}
+    	
+    	if($found){
+    		$templateId = $found;
+    	} else {
+    		$saveRec = (object)$params;
+    		$templateId = batch_Templates::save($saveRec);
+    		
+    		if(empty($saveRec->name)){
+    			$saveRec->name = isset($params['name']) ? $params['name'] : core_Classes::getTitleById($params['driverClass']) . "({$templateId})";
+    			batch_Templates::save($saveRec, 'id,name');
+    		}
+    	}
+    	
+    	return $templateId;
+    }
 }

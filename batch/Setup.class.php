@@ -225,6 +225,7 @@ class batch_Setup extends core_ProtoSetup
     	$Defs = cls::get('batch_Defs');
     	$Defs->setupMvc();
     	$Templates = cls::get('batch_Templates');
+    	$Templates->truncate();
     	$Templates->setupMvc();
     	$Templates->loadSetupData();
     	
@@ -241,6 +242,7 @@ class batch_Setup extends core_ProtoSetup
     	$query = $Defs->getQuery();
     	$query->FLD('driverClass', "class(interface=batch_BatchTypeIntf, allowEmpty, select=title)");
     	$query->FLD('driverRec', "blob(1000000, serialize, compress)");
+    	$query->where("#driverClass IS NOT NULL");
     	$query->where("#templateId IS NULL");
     	
     	while($rec = $query->fetch()){
@@ -249,26 +251,7 @@ class batch_Setup extends core_ProtoSetup
     			$o['length'] = NULL;
     		}
     		
-    		$found = FALSE;
-    		foreach ($templates as $k => $t){
-    			if(arr::areEqual($o, $t)){
-    				$found = $k;
-    				break;
-    			}
-    		}
-    		
-    		if($found){
-    			$rec->templateId = $found;
-    		} else {
-    			$saveRec = (object)$o;
-    			$templateId = batch_Templates::save($saveRec);
-    			$saveRec->name = core_Classes::getTitleById($rec->driverClass) . "({$templateId})";
-    			batch_Templates::save($saveRec, 'id,name');
-    			$rec->templateId = $templateId;
-    			
-    			$templates[] = $o;
-    		}
-    		
+    		$rec->templateId = batch_Templates::force($o);
     		$Defs->save($rec, 'id,templateId');
     	}
     }
