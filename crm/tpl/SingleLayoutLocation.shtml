@@ -19,6 +19,11 @@
                         <span class="gray-title">|Тип|*:</span> [#type#]
                     </li>
                     <!--ET_END type-->
+                    <!--ET_BEGIN mol-->
+                    <li class="info">
+                        <span class="gray-title">|Отговорник|*:</span> [#mol#]
+                    </li>
+                    <!--ET_END mol-->
                     <!--ET_BEGIN tel-->
                     <li class="info">
                         <span class="gray-title">|Телефони|*:</span> [#tel#]
