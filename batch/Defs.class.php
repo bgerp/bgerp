@@ -182,13 +182,16 @@ class batch_Defs extends core_Manager {
     	
     	// Намираме записа за артикула
     	$rec = self::fetch("#productId = '{$productId}'");
-    	$template = batch_Templates::fetch($rec->templateId);
-    	if(cls::load($template->driverClass, TRUE)){
-    		$BatchClass = cls::get($template->driverClass);
-    		$template->productId = $productId;
-    		$BatchClass->setRec($template);
+    	
+    	if(isset($rec->templateId)){
+    		$template = batch_Templates::fetch($rec->templateId);
+    		if(cls::load($template->driverClass, TRUE)){
+    			$BatchClass = cls::get($template->driverClass);
+    			$template->productId = $productId;
+    			$BatchClass->setRec($template);
     		
-    		self::$cache[$productId] = $BatchClass;
+    			self::$cache[$productId] = $BatchClass;
+    		}
     	}
     	
     	return self::$cache[$productId];
