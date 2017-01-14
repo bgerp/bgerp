@@ -791,6 +791,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('dateFld', date('d-m-Y'));
         $browser->setValue('repeat', '1 мес.');
         $browser->press('Запис');
+        //Създаване на папка на фирмата
+        $Company = 'Фирма с локация';
+        $browser->click($Company);
+        $browser->press('Папка');
+        
           
     }
     /**

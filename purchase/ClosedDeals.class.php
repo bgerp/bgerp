@@ -36,7 +36,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      * Плъгини за зареждане
      */
     public $loadList = 'purchase_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
-                    doc_DocumentPlg, doc_plg_HidePrices';
+                    doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
     
     
     /**

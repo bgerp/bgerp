@@ -87,6 +87,33 @@ class fileman_webdrv_Generic extends core_Manager
         return ;
     }
     
+    
+    /**
+     * Дали трябва да се показва съответния таб
+     * 
+     * @param string $fileHnd
+     * @param string $type
+     * @param string $strip
+     * 
+     * @return boolean
+     */
+    public static function canShowTab($fileHnd, $type, $strip=TRUE, $checkExist = FALSE)
+    {
+        $rArr = fileman_Indexes::getInfoContentByFh($fileHnd, $type);
+        
+        if ($checkExist === TRUE && $rArr === FALSE) return FALSE;
+        
+        if (is_array($rArr) && empty($rArr)) return FALSE;
+        
+        if (is_string($rArr) && $strip) {
+            $rArr = strip_tags($rArr);
+            
+            if (!trim($rArr)) return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
         
     /**
      * Връща името на файла за грешките

@@ -205,8 +205,17 @@ class cat_UoM extends core_Manager
     			 * е точността на мярката килограм, а в знаменателя - log(1000).
     			 */
     			$baseRound = static::fetchField($uomRec->baseUnitId, 'round');
-    			$round = $baseRound / log10(pow($uomRec->baseUnitRatio, -1));
-    			$round = abs($round);
+    			
+    			$bRatio = log10(pow($uomRec->baseUnitRatio, -1));
+    			
+    			if (!is_infinite($bRatio) && $bRatio) {
+    			    $round = $baseRound / $bRatio;
+    			    $round = abs($round);
+    			}
+    			
+    			if (!isset($round)) {
+    			    $round = 0;
+    			}
     		} else {
     			
     			// Ако няма базова мярка и няма зададено закръгляне значи е 0

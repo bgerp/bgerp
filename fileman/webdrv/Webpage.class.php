@@ -49,21 +49,26 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         // Подготвяме табовете
         
-        // Таб за информация
-        $tabsArr['html'] = (object) 
-			array(
-				'title' => 'HTML',
-                'html'  => $htmlPart,
-				'order' => 3,
-			);
+        if (trim($htmlPart)) {
+            // Таб за информация
+            $tabsArr['html'] = (object)
+            array(
+                    'title' => 'HTML',
+                    'html'  => $htmlPart,
+                    'order' => 3,
+            );
+        }
         
-        // Таб за текстовата част
-        $tabsArr['text'] = (object) 
-			array(
-				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div>{$textPart}</div></div>",
-				'order' => 4,
-			);
+        $tPart = strip_tags($textPart);
+        if (trim($tPart)) {
+            // Таб за текстовата част
+            $tabsArr['text'] = (object)
+            array(
+                    'title' => 'Текст',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div>{$textPart}</div></div>",
+                    'order' => 4,
+            );
+        }
 			
         return $tabsArr;
     }
