@@ -288,8 +288,14 @@ class cms_Content extends core_Manager
         if($loginLink == FALSE) {
 
             $dRec = cms_Domains::getPublicDomain('form');
-
-            $filePath = 'img/32/login';
+            
+            if(haveRole('user')) {
+                $filePath = 'img/32/inside';
+                $title = "Меню||Menu";
+            } else {
+                $filePath = 'img/32/login';
+                $title = "Вход||Log in";
+            }
 
             if((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) &&  Request::get('Ctr') != 'core_Users') ||
                 (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) &&  Request::get('Ctr') == 'core_Users')) {
@@ -305,7 +311,7 @@ class cms_Content extends core_Manager
             $filePath .= '.png';
 
             $tpl->append(ht::createLink(ht::createImg(array('path' => $filePath)), 
-                array('Portal', 'Show'), NULL, array('title' => "Вход||Log in", 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')));
+                array('Portal', 'Show'), NULL, array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')));
         }
 
 
