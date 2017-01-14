@@ -168,7 +168,7 @@ class rack_Pallets extends core_Manager
         }
 
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
-        $used = self::getUsed();
+        $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
 
         // Ако намерим свободна резервирана позиция за този продукт - вземаме нея
@@ -200,7 +200,7 @@ class rack_Pallets extends core_Manager
         while($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
             $dist = 20;
             for($cInd = 1; $cInd <= $rRec->columns; $cInd++) {
-                for($rInd = 'A'; $rInd < $rRec->rows; $rInd++) {
+                for($rInd = 'A'; $rInd <= $rRec->rows; $rInd++) {
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
 
                     if($used[$pos] == $productId) {
