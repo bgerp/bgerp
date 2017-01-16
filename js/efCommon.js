@@ -2686,6 +2686,8 @@ function inverseCheckBox(el){
 
 function actionsWithSelected() {
     prepareCheckboxes();
+
+
     $('.checkbox-btn').on('click', function(e){
         e.preventDefault();
         if($(this).text() == $("#with_selected").val()) {
@@ -2696,7 +2698,7 @@ function actionsWithSelected() {
         $(".custom-checkboxes").css("visibility", "visible");
         $(".custom-checkboxes").css("display", "table-cell");
 
-        $("#cb_" + id).click();
+        $("#cb_" + id).prop("checked", !$("#cb_" + id).prop("checked"));
 
         $(this).closest('.modal-toolbar').css('display', 'none');
         SetWithCheckedButton();
@@ -2706,6 +2708,14 @@ function actionsWithSelected() {
             $('#check' + id).text($("#with_selected").val());
         }
     });
+
+    $(".custom-checkboxes").on('click', function(e){
+        if($(this).is(':checked')) {
+            var id = $(this).attr("id").match(/\d+/)[0];
+            $('#check' + id).text($("#with_selected").val());
+        }
+    });
+
 }
 
 function prepareCheckboxes(){
