@@ -61,17 +61,15 @@ class plg_ExpandInput extends core_Plugin
      */
     static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
-        if (isset($rec->{$mvc->expandInputFieldName})) {
-            // Вземаме всички въведени от потребителя стойност
-            $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
-            
-            // Намираме всички свъразани
-            $resArr = $mvc->expandInput($inputArr);
-            
-            // Добавяме го към полето, което няма да се показва на потребителите, но ще се извличат данните от това поле
-            $expandField = $mvc->getField($mvc->expandFieldName);
-            $rec->{$mvc->expandFieldName} = $expandField->type->fromArray($resArr);
-        }
+        // Вземаме всички въведени от потребителя стойност
+        $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
+        
+        // Намираме всички свъразани
+        $resArr = $mvc->expandInput($inputArr);
+        
+        // Добавяме го към полето, което няма да се показва на потребителите, но ще се извличат данните от това поле
+        $expandField = $mvc->getField($mvc->expandFieldName);
+        $rec->{$mvc->expandFieldName} = $expandField->type->fromArray($resArr);
     }
     
     
