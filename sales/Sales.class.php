@@ -1137,10 +1137,12 @@ class sales_Sales extends deals_DealMaster
     			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
     		}
     		
-    		$row->transportCurrencyId = $row->currencyId;
-    		$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-    		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-    		$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		if ($rec->currencyRate) {
+    		    $row->transportCurrencyId = $row->currencyId;
+    		    $rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    		    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
+    		    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		}
     		
     		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     		
