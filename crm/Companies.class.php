@@ -84,7 +84,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export';
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput';
     
     
     /**
@@ -229,6 +229,13 @@ class crm_Companies extends core_Master
      * Кои ключове да се тракват, кога за последно са използвани
      */
     var $lastUsedKeys = 'groupList';
+    
+    
+    /**
+     * Полето, което ще се разширява
+     * @see plg_ExpandInput
+     */
+    public $expandFieldName = 'groupList';
     
     
     /**
