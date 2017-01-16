@@ -82,3 +82,18 @@
 .ui-widget-overlay {
 	background: black !important;
 }
+
+.note-batch-product-name {
+	  color: #888888;
+	  font-size:0.8em;
+}
+
+.note-product-batch {
+	font-style:italic;
+	font-size:0.9em;
+}
+
+.note-product-row-no-quantity {
+	background-color:#EEEEEE;
+	color: #AAAAAA;
+}
