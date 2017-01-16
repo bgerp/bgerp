@@ -145,6 +145,7 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на протоколите за отговорно пазене', 'batch_plg_DocumentMovement', 'store_ConsignmentProtocols', 'private');
         
         $html .= $Plugins->installPlugin('Партидни движения на протокола за инвентаризация', 'batch_plg_InventoryNotes', 'store_InventoryNoteDetails', 'private');
+        $html .= $Plugins->installPlugin('Партидни движения на протокола за производство', 'batch_plg_DocumentMovementDetail', 'planning_DirectProductionNote', 'private');
         
         // Обновяване на протокола за инвентаризация да мус е сетъпне модела
         $Notes = cls::get('store_InventoryNotes');
