@@ -159,7 +159,8 @@ class batch_BatchesInDocuments extends core_Manager
 			$block = clone $tpl->getBlock('BLOCK');
 			$total -= $rec->quantity;
 			
-			$label = (!empty($batchDef->getFieldCaption())) ? $batchDef->getFieldCaption() . ":" : 'lot:';
+			$caption = $batchDef->getFieldCaption();
+			$label = (!empty($caption)) ? $caption . ":" : 'lot:';
 			
 			// Вербализацията на к-то ако е нужно
 			if(count($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))){
