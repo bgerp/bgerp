@@ -626,7 +626,7 @@ class blast_ListDetails extends doc_Detail
                     foreach($fieldsArr as $name => $caption) {
                         $id = $exp->getValue("#col{$name}");
                         
-                        if($id == NULL) continue;
+                        if($id === NULL) continue;
                         $rec->{$name} = trim($rowArr[$id-1]);
                     }
                     
