@@ -1185,12 +1185,19 @@ class crm_Companies extends core_Master
     {
         $query = $this->getQuery();
         $groupsCnt = array();
-
+        
         while($rec = $query->fetch()) {
-            $keyArr = keylist::toArray($rec->groupList);
-
+            
+            $keyArr = keylist::toArray($rec->groupList, TRUE);
+            
             foreach($keyArr as $groupId) {
-
+                $gRec = crm_Groups::fetch($groupId);
+                if ($gRec->parentId) {
+                    unset($keyArr[$gRec->parentId]);
+                }
+            }
+            
+            foreach ($keyArr as $groupId) {
                 $groupsCnt[$groupId]++;
             }
         }
