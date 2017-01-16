@@ -173,16 +173,13 @@ class cat_products_Params extends doc_Detail
     	}
     	
         if($form->rec->paramId){
-        	if($Driver = cat_Params::getDriver($form->rec->paramId)){
+        	if($Type = cat_Params::getTypeInstance($form->rec->paramId, $form->rec->paramValue)){
         		$form->setField('paramValue', 'input');
-        		$pRec = cat_Params::fetch($form->rec->paramId);
-        		if($Type = $Driver->getType($pRec, $form->rec->paramValue)){
-        			$form->setFieldType('paramValue', $Type);
-        			
-        			if(!empty($pRec->suffix)){
-        				$suffix = cat_Params::getVerbal($pRec, 'suffix');
-        				$form->setField('paramValue', "unit={$suffix}");
-        			}
+        		$form->setFieldType('paramValue', $Type);
+        		
+        		if(!empty($pRec->suffix)){
+        			$suffix = cat_Params::getVerbal($pRec, 'suffix');
+        			$form->setField('paramValue', "unit={$suffix}");
         		}
         	} else {
         		$form->setError('paramId', 'Има проблем при зареждането на типа');

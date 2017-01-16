@@ -117,13 +117,10 @@ class cond_ConditionsToCustomers extends core_Manager
     	}
     	
     	if($form->rec->conditionId){
-        	if($Driver = cond_Parameters::getDriver($form->rec->conditionId)){
-        		$form->setField('value', 'input');
-        		$pRec = cond_Parameters::fetch($form->rec->conditionId);
-        		if($Type = $Driver->getType($pRec, $form->rec->value)){
-        			$form->setFieldType('value', $Type);
-        		}
-        	} else {
+    		if($Type = cond_Parameters::getTypeInstance($form->rec->conditionId, $form->rec->value)){
+    			$form->setField('value', 'input');
+    			$form->setFieldType('value', $Type);
+    		} else {
         		$form->setError('conditionId', 'Има проблем при зареждането на типа');
         	}
         } else {
