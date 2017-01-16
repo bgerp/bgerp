@@ -16,6 +16,7 @@
 class batch_BatchTypeIntf extends embed_DriverIntf
 {
 
+	
 	/**
 	 * Инстанция на мениджъра имащ интерфейса
 	 */
