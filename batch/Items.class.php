@@ -477,7 +477,7 @@ class batch_Items extends core_Master {
     	$title = new core_ET("( [#def#] [#btn#])");
     	$tpl = getTplFromFile('batch/tpl/ProductItemDetail.shtml');
     	if(!empty($data->definition)){
-    		$title->replace(cls::getTitle($data->definition), 'def');
+    		$title->replace($data->definition->getName(), 'def');
     		if(isset($data->deleteBatchUrl)){
     			$ht = ht::createLink('', $data->deleteBatchUrl, 'Сигурни ли сте, че искате да изтриете партидната дефиниция|*?', 'ef_icon=img/12/close.png,title=Изтриване на нова партидна дефиниция,style=vertical-align: middle;');
     			$title->replace($ht, 'btn');

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -190,5 +190,16 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     public function getFieldCaption()
     {
     	return $this->class->getFieldCaption();
+    }
+    
+    
+    /**
+     * Връща името на дефиницията
+     *
+     * @return varchar - Името на дефиницията
+     */
+    public function getName()
+    {
+    	return $this->class->getName();
     }
 }

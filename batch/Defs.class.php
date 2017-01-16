@@ -220,10 +220,9 @@ class batch_Defs extends core_Manager {
      * Форсира партидна дефиниция на артикула ако може
      * Партидната дефиниция се намира по следния приоритет:
      * 
-     * 1. Ако артикула е базиран на прототип неговата партидна дефиниция
-     * 2. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
-     * 3. От драйвера на артикула, ако върне подходящ клас
-     * 4. Ако има дефолтна партида форсира се тя
+     * 1. От драйвера на артикула, ако върне подходящ клас
+     * 2. Ако артикула е базиран на прототип неговата партидна дефиниция
+     * 3. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
      * 
      * @param int $productId - ид на артикул
      * @return int|NULL $id - форсирания запис, или NULL ако няма такъв
@@ -237,46 +236,40 @@ class batch_Defs extends core_Manager {
     	// Ако има съществуваща дефиниция, не създаваме нова
     	if($id = static::fetchField("#productId = {$productRec->id}", 'id')) return $id;
     	
-    	// Ако артикула е базиран на прототип, който има партида копираме му я
-    	if(isset($productRec->proto)){
-    		if($exRec = static::fetch("#productId = {$productRec->proto}")){
-    			unset($exRec->id,$exRec->modifiedOn,$exRec->modifiedBy);
-    			$exRec->productId = $productRec->id;
-    			
-    			// Записваме точно копие на дефиницията от прототипа
-    			return self::save($exRec);
-    		}
-    	}
-    	
-    	// Ако артикула е в папка на категория, с избрана партида връщаме нея
-    	$folderClassName = doc_Folders::fetchCoverClassName($productRec->folderId);
-    	if($folderClassName == 'cat_Categories'){
-    		$folderObjectId = doc_Folders::fetchCoverId($productRec->folderId);
-    		if($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")){
-    			$o = array('driverClass' => $categoryDefRec->driverClass) + (array)$categoryDefRec->driverRec;
-    			$templateId = batch_Templates::force($o);
-    			$nRec = (object)array('productId' => $productRec->id, 'templateId' => $templateId);
-    			
-    			// Записваме точно копие на дефиницията от категорията
-    			return self::save($nRec);
-    		}
-    	}
-    	
     	// Ако горните условия не са изпълнени, питаме драйвера дали може да върне дефиниция
     	$Driver = cat_Products::getDriver($productRec);
-    	$defTemplate = $Driver->getDefaultBatchTemplate($productRec);
-    	if(isset($defTemplate)){
-    		$nRec = (object)array('productId' => $productRec->id, 'templateId' => $defTemplate);
-    		return self::save($nRec);
+    	$templateId = $Driver->getDefaultBatchTemplate($productRec);
+    	
+    	if(isset($templateId)){
+    		$nRec = (object)array('productId' => $productRec->id, 'templateId' => $templateId);
+    	} else {
+    		
+    		// Ако артикула е базиран на прототип, който има партида копираме му я
+    		if(isset($productRec->proto)){
+    			if($nRec = static::fetch("#productId = {$productRec->proto}")){
+    				unset($nRec->id, $nRec->modifiedOn, $nRec->modifiedBy);
+    				$nRec->productId = $productRec->id;
+    			}
+    		}
     	}
     	
-    	// Ако има дефолтна партида форсира се
-    	if(isset($defaultDef)){
-    		expect($Class = cls::get($defaultDef), 'Невалиден клас');
-    		expect($Class instanceof batch_definitions_Proto, "Не наследява 'batch_definitions_Proto'");
-    		$rec = (object)array('productId' => $productRec->id, 'driverClass' => $Class->getClassId());
+    	if(!isset($nRec)){
     		
-    		return self::save($rec);
+    		// Ако артикула е в папка на категория, с избрана партида връщаме нея
+    		$folderClassName = doc_Folders::fetchCoverClassName($productRec->folderId);
+    		if($folderClassName == 'cat_Categories'){
+    			$folderObjectId = doc_Folders::fetchCoverId($productRec->folderId);
+    			if($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")){
+    				$o = array('driverClass' => $categoryDefRec->driverClass) + (array)$categoryDefRec->driverRec;
+    				$templateId = batch_Templates::force($o);
+    				$nRec = (object)array('productId' => $productRec->id, 'templateId' => $templateId);
+    			}
+    		}
+    	}
+    	
+    	// Ако има запис, записва се
+    	if(isset($nRec)){
+    		return self::save($nRec);
     	}
     }
     

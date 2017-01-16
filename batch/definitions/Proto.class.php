@@ -256,4 +256,15 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
     	return (!empty($this->rec->batchCaption)) ? $this->rec->batchCaption : $this->fieldCaption;
     }
+    
+    
+    /**
+     * Връща името на дефиницията
+     *
+     * @return varchar - Името на дефиницията
+     */
+    public function getName()
+    {
+    	return (isset($this->rec->name)) ? $this->rec->name : cls::getTitle($this);
+    }
 }
