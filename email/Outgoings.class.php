@@ -1061,7 +1061,7 @@ class email_Outgoings extends core_Master
                         $str = "файлове";
                     }
                     
-                    $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                    $form->setError('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
                 }
             }
             
