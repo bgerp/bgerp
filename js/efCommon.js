@@ -1289,8 +1289,10 @@ function toggleAllCheckboxes() {
         var id = $(this).attr('id').replace(/^\D+/g, '');
         if ($(this).is(":checked") == true) {
             $(this).prop('checked',false);
+            $('#check' + id).text("Избор");
         } else {
             $(this).prop('checked',true);
+            $('#check' + id).text($("#with_selected").val());
         }
         chRwCl(id);
     });
@@ -2700,7 +2702,9 @@ function actionsWithSelected() {
         SetWithCheckedButton();
         $(".invert-checkboxes").css("display", "table-cell");
         $(".invert-checkboxes").css("margin-right", "12px");
-        $('.checkbox-btn').text($("#with_selected").val());
+        if($("#cb_" + id).is(':checked')) {
+            $('#check' + id).text($("#with_selected").val());
+        }
     });
 }
 
