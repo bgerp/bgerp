@@ -121,6 +121,8 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 */
 	public function toVerbal($value)
 	{
+		if(Mode::isReadOnly()) return cls::get('type_Html')->toVerbal($value);
+		
 		$today = dt::today();
 		
 		// Ако партидата е изтекла оцветяваме я в червено
