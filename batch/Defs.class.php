@@ -264,13 +264,10 @@ class batch_Defs extends core_Manager {
     	
     	// Ако горните условия не са изпълнени, питаме драйвера дали може да върне дефиниция
     	$Driver = cat_Products::getDriver($productRec);
-    	$batchClass = $Driver->getDefaultBatchDef($productRec);
-    	if(!empty($batchClass)){
-    		$BatchType = cls::get($batchClass);
-    		$rec = (object)array('driverClass' => $BatchType->getClassId(), 'productId' => $productRec->id);
-    	
-    		// Записваме дефолтната партида
-    		return self::save($rec);
+    	$defTemplate = $Driver->getDefaultBatchTemplate($productRec);
+    	if(isset($defTemplate)){
+    		$nRec = (object)array('productId' => $productRec->id, 'templateId' => $defTemplate);
+    		return self::save($nRec);
     	}
     	
     	// Ако има дефолтна партида форсира се
