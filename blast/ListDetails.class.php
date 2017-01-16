@@ -685,7 +685,7 @@ class blast_ListDetails extends doc_Detail
                 // Ако има грешни линни да се добавят в 'csv' файл
                 if (!empty($errLinesArr)) {
                     $fh = fileman::absorbStr(implode("\n", $errLinesArr), 'exportCsv', 'listDetailsExpErr.csv');
-                    status_Messages::newStatus('|Пропуснатите линии са добави в|*: ' . fileman::getLinkToSingle($fh));
+                    status_Messages::newStatus('|Пропуснатите линии са добавени в|*: ' . fileman::getLinkToSingle($fh));
                 }
             } else {
                 $exp->message = tr("Липсват данни за добавяне");
