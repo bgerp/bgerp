@@ -1975,6 +1975,7 @@ class doc_Containers extends core_Manager
                 if (!$dRec->containerId) {
                     if ($dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма containerId на оттеглен документ';
                     }
                 }
                 
@@ -2010,6 +2011,7 @@ class doc_Containers extends core_Manager
                 
                 if (!$dRec->containerId) {
                     $delete = TRUE;
+                    $reason = 'Няма containerId';
                 }
                 
                 // Поправяме originId
@@ -2033,6 +2035,7 @@ class doc_Containers extends core_Manager
                 if (!$delete && !$dRec->threadId) {
                     if ($dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма threadId на оттеглен документ';
                     }
                 }
                 
@@ -2059,6 +2062,7 @@ class doc_Containers extends core_Manager
                         }
                     } else {
                         $delete = TRUE;
+                        $reason = 'Няма запис в doc_Threads за containerId';
                     }
                     
                 }
@@ -2067,6 +2071,7 @@ class doc_Containers extends core_Manager
                 if (!$delete) {
                     if (!$dRec->folderId && $dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма folderId на оттеглен документ';
                     }
                     
                     if (!$delete) {
@@ -2103,6 +2108,7 @@ class doc_Containers extends core_Manager
                             }
                         } else {
                             $delete = TRUE;
+                            $reason = 'Не може да се определи folderId';
                         }
                     }
                 }
@@ -2111,7 +2117,7 @@ class doc_Containers extends core_Manager
                 if ($delete) {
                     try {
                         
-                        $delMsg = 'Изтрит документ';
+                        $delMsg = 'Изтрит документ' . ' - ' . $reason;
                         if ($clsInst instanceof core_Master) {
                             $dArr = arr::make($clsInst->details, TRUE);
                             
@@ -2130,7 +2136,7 @@ class doc_Containers extends core_Manager
                                         $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $dRec->id));
                                     }
                                 }
-                                $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})";
+                                $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})" . ' - ' . $reason;
                             }
                         }
 
