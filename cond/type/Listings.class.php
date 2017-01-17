@@ -44,7 +44,7 @@ class cond_type_Listings extends cond_type_Proto
 			$options[$rec->id] = $rec->title;
 		}
 		
-		$Type = core_Type::getByName("key(mvc=cat_Listings,makeLink)");
+		$Type = core_Type::getByName("key(mvc=cat_Listings,select=title,makeLink)");
 		$options = count($options) ? array('' => '') + $options : $options;
 		$Type->options = $options;
 		

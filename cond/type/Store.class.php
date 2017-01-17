@@ -28,7 +28,7 @@ class cond_type_Store extends cond_type_Proto
 	 */
 	public function getType($rec, $domainClass, $domainId, $value = NULL)
 	{
-		$Type = core_Type::getByName("key(mvc=store_Stores,select=name,allowEmpty)");
+		$Type = core_Type::getByName("key(mvc=store_Stores,select=name,allowEmpty,makeLink)");
 		
 		$sQuery = store_Stores::getQuery();
 		$sQuery->where("#state != 'rejected'");
