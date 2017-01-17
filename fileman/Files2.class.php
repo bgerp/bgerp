@@ -16,6 +16,8 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * 
+ * @deprecated
  */
 class fileman_Files2 extends core_Master 
 {
@@ -33,6 +35,8 @@ class fileman_Files2 extends core_Master
      */
     public static function absorb($path, $bucket, $name = NULL, $type = 'file')
     {
+        wp('deprecated');
+        
         if ($type == 'file') {
             // Очакваме да има валиден файл
             expect(is_file($path), 'Не е подаден валиден файл.');
@@ -85,6 +89,7 @@ class fileman_Files2 extends core_Master
      */
     public static function absorbStr($data, $bucket, $name)
     {
+        wp('deprecated');
         
         return self::absorb($data, $bucket, $name, 'string');
     }

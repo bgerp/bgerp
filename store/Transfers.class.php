@@ -40,7 +40,7 @@ class store_Transfers extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer,batch_MovementSourceIntf=batch_movements_Transfer';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer';
     
     
     /**
@@ -268,15 +268,19 @@ class store_Transfers extends core_Master
     			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
     		}
     		
-	    	$fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
-	    	if($fromStoreLocation){
-	    		$row->fromAdress = crm_Locations::getAddress($fromStoreLocation);
-	    	}
+    		if ($rec->fromStore) {
+    		    $fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
+    		    if($fromStoreLocation){
+    		        $row->fromAdress = crm_Locations::getAddress($fromStoreLocation);
+    		    }
+    		}
 	    	
-	    	$toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
-    		if($toStoreLocation){
-	    		$row->toAdress = crm_Locations::getAddress($toStoreLocation);
-	    	}
+    		if ($rec->toStore) {
+    		    $toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
+    		    if($toStoreLocation){
+    		        $row->toAdress = crm_Locations::getAddress($toStoreLocation);
+    		    }
+    		}
 	    	
 	    	$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
 	    	$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;

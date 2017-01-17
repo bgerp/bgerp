@@ -356,8 +356,12 @@ class sales_SalesDetails extends deals_DealDetail
     		if($requiredRoles != 'no_one'){
     			if(isset($rec)){
     				$masterRec = sales_Sales::fetch($rec->saleId, 'contragentClassId,contragentId');
-    				if(!crm_ext_ProductListToContragents::fetchField("#contragentClassId = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}")){
-    					$requiredRoles = 'no_one';
+    				if ($masterRec->contragentClassId && $masterRec->contragentId) {
+    				    if(!crm_ext_ProductListToContragents::fetchField("#contragentClassId = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}")){
+    				        $requiredRoles = 'no_one';
+    				    }
+    				} else {
+    				    $requiredRoles = 'no_one';
     				}
     			}
     		}

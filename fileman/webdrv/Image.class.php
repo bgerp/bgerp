@@ -230,13 +230,11 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         ksort($matchedFilesArr);
         
-        $Fileman = cls::get('fileman_Files');
-        
         foreach ($matchedFilesArr as $file) {
             
             try {
                 // Качваме файла в кофата и му вземаме манипулатора
-                $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+                $fileHnd = fileman::absorb($script->tempDir . $file, 'fileIndex'); 
             } catch (core_exception_Expect $e) {
                 continue;
             }

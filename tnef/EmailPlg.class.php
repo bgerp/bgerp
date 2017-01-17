@@ -37,10 +37,8 @@ class tnef_EmailPlg extends core_Plugin
             // Записваме файла, ако не е записан вече
             if (!$fileId = $fRec->fmId) {
                 
-                $Fileman = cls::get('fileman_Files');
-                
                 //Вкарваме файла във Fileman
-                $fh = $Fileman->addNewFileFromString($fRec->data, tnef_Decode::$bucket, $fRec->name);
+                $fh = fileman::absorbStr($fRec->data, tnef_Decode::$bucket, $fRec->name);
             } else {
                 $fh = fileman_Files::fetchField($fileId, 'fileHnd');
             }

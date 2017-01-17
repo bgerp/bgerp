@@ -251,7 +251,7 @@ class fileman_Setup extends core_ProtoSetup
         // Инсталираме
         if($conf->FILEMAN_FILE_COMMAND) {
             $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
-            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files2', 'private');
+            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files', 'private');
         }
         
         // Инсталираме плъгина за качване на файлове в RichEdit

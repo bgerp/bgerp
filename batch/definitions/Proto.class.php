@@ -23,6 +23,22 @@ abstract class batch_definitions_Proto extends core_BaseClass
 	
 	
 	/**
+	 * Плейсхолдър на полето
+	 * 
+	 * @param string
+	 */
+	public $fieldPlaceholder;
+	
+	
+	/**
+	 * Име на полето за партида в документа
+	 * 
+	 * @param string
+	 */
+	public $fieldCaption;
+	
+	
+	/**
 	 * Интерфейси които имплементира
 	 */
 	public $interfaces = 'batch_BatchTypeIntf';
@@ -54,14 +70,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
     
     
     /**
-     * Връща автоматичния партиден номер според класа
-     *
-     * @param mixed $documentClass - класа за който ще връщаме партидата
-     * @param int $id - ид на документа за който ще връщаме партидата
-     * @return mixed $value - автоматичния партиден номер, ако може да се генерира
-     */
-    public function getAutoValue($documentClass, $id)
+	 * Връща автоматичния партиден номер според класа
+	 * 
+	 * @param mixed $documentClass - класа за който ще връщаме партидата
+	 * @param int $id              - ид на документа за който ще връщаме партидата
+	 * @param int $storeId         - склад
+	 * @param date|NULL $date      - дата
+	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
+	 */
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
     {
+    	
     }
     
     
@@ -152,17 +171,6 @@ abstract class batch_definitions_Proto extends core_BaseClass
     
     
     /**
-     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
-     *
-     * @return string
-     */
-    public function getAutoValueConst()
-    {
-    	return static::AUTO_VALUE_STRING;
-    }
-    
-    
-    /**
      * Какви са свойствата на партидата
      * 
      * @param varchar $value - номер на партидара
@@ -203,7 +211,6 @@ abstract class batch_definitions_Proto extends core_BaseClass
     }
     
     
-    
     /**
      * Подрежда подадените партиди
      * 
@@ -215,5 +222,49 @@ abstract class batch_definitions_Proto extends core_BaseClass
     public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
     {
     	
+    }
+    
+    
+    /**
+     * Разпределя количество към наличните партиди в даден склад към дадена дата
+     * 
+     * @param double $quantity - к-во
+     * @param int $storeId     - склад
+     * @param string $date     - дата
+     * @return array $batches  - от коя партида, какво количество да се изпише
+     * 	[име_на_партидата] => [к_во_за_изписване]
+     */
+    public function allocateQuantityToBatches($quantity, $storeId, $date = NULL)
+    {
+    	$batches = array();
+    	if(!isset($storeId)) return $batches;
+    	$date = (isset($date)) ? $date : dt::today();
+    	
+    	$quantities = batch_Items::getBatchQuantitiesInStore($this->rec->productId, $storeId, $date);
+    	$batches = batch_Items::allocateQuantity($quantities, $quantity);
+    	
+    	return $batches;
+    }
+    
+    
+    /**
+     * Заглавието на полето за партида
+     * 
+     * @return varchar
+     */
+    public function getFieldCaption()
+    {
+    	return (!empty($this->rec->batchCaption)) ? $this->rec->batchCaption : $this->fieldCaption;
+    }
+    
+    
+    /**
+     * Връща името на дефиницията
+     *
+     * @return varchar - Името на дефиницията
+     */
+    public function getName()
+    {
+    	return (isset($this->rec->name)) ? $this->rec->name : cls::getTitle($this);
     }
 }

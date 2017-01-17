@@ -331,7 +331,7 @@ class email_Outgoings extends core_Master
         if (count($rec->attachmentsFh)) {
             
             //Вземаме id'тата на файловете вместо манупулатора име
-            $attachments = fileman_Files::getIdFromFh($rec->attachmentsFh);
+            $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
             
             //Записваме прикачените файлове
             $rec->attachments = keylist::fromArray($attachments);
@@ -462,7 +462,7 @@ class email_Outgoings extends core_Master
                 if (count($rec->documentsFh)) {
                     
                     //Вземаме id'тата на файловете вместо манипулаторите
-                    $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+                    $documents = fileman::fhKeylistToIds($rec->documentsFh);
                     
                     //Записваме прикачените файлове
                     $rec->documents = keylist::fromArray($documents);
@@ -688,28 +688,20 @@ class email_Outgoings extends core_Master
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Изпрати', 'send', NULL, array('id'=>'save', 'ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на имейла'));
         
+        $id = Request::get('id', 'int');
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('email_Outgoings', 'single', $id);
+        }
+        
         // Ако има права за ипзващне на факс
         if (email_FaxSent::haveRightFor('send')) {
-            
-            // id
-            $id = Request::get('id', 'int');
-            
-            // Вземаме URL' то
-            $retUrl = getRetUrl();
-            
-            // Ако няма
-            if (!$retUrl) {
-                
-                // URL за връщаме към сингъла на имейла
-                $retUrl = array('email_Outgoings', 'single', $id);
-            }
-            
             // Добавяме бутона за факс
             $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => $retUrl), 'ef_icon = img/16/fax.png', 'title=Изпращане на имейла като факс');
         }
         
         // Добавяме бутона отказ
-        $form->toolbar->addBtn('Отказ', getRetUrl(), NULL, array('ef_icon'=>'img/16/close-red.png', 'title'=>'Спиране на изпращането'));
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, array('ef_icon'=>'img/16/close-red.png', 'title'=>'Спиране на изпращането'));
         
         // Вкарваме silent полетата
         $form->input(NULL, 'silent');
@@ -1069,7 +1061,7 @@ class email_Outgoings extends core_Master
                         $str = "файлове";
                     }
                     
-                    $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                    $form->setError('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
                 }
             }
             

@@ -26,7 +26,6 @@ class batch_plg_DocumentMovement extends core_Plugin
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
 		setIfNot($mvc->storeFieldName, 'storeId');
-		setIfNot($mvc->batchMovementDocument, 'out');
 	}
 	
 	
@@ -44,9 +43,24 @@ class batch_plg_DocumentMovement extends core_Plugin
 			if($mvc->hasPlugin('acc_plg_Contable')){
 				if(isset($saveFileds)) return;
 			}
-			batch_Movements::saveMovement($mvc, $rec->id);
+			
+			$containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+			batch_Movements::saveMovement($containerId);
 		} elseif($rec->state == 'rejected'){
-			batch_Movements::removeMovement($mvc, $rec->id);
+			$containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+			$doc = doc_Containers::getDocument($containerId);
+			batch_Movements::removeMovement($doc->getInstance(), $doc->that);
+		}
+	}
+	
+	
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	public static function on_AfterPrepareSingleToolbar($mvc, $data)
+	{
+		if(batch_Movements::haveRightFor('list') && $data->rec->state == 'active'){
+			$data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
 		}
 	}
 }

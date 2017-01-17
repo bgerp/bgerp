@@ -24,6 +24,14 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	
 	
 	/**
+	 * Име на полето за партида в документа
+	 *
+	 * @param string
+	 */
+	public $fieldCaption = 'Ср. год.';
+	
+	
+	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -39,12 +47,14 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	
 	/**
 	 * Връща автоматичния партиден номер според класа
-	 *
+	 * 
 	 * @param mixed $documentClass - класа за който ще връщаме партидата
-	 * @param int $id - ид на документа за който ще връщаме партидата
-	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
+	 * @param int $id              - ид на документа за който ще връщаме партидата
+	 * @param int $storeId         - склад
+	 * @param date|NULL $date      - дата
+	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	public function getAutoValue($documentClass, $id)
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
 		$date = dt::today();
 		if(isset($this->rec->time)){
@@ -67,8 +77,6 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
-		if($value == $this->getAutoValueConst()) return TRUE;
-		
 		// Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
 		if(batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))){
 			return TRUE;
@@ -113,11 +121,12 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 */
 	public function toVerbal($value)
 	{
-		$mysqlValue = dt::verbal2mysql($value, FALSE);
+		if(Mode::isReadOnly()) return cls::get('type_Html')->toVerbal($value);
+		
 		$today = dt::today();
 		
 		// Ако партидата е изтекла оцветяваме я в червено
-		if($mysqlValue < $today){
+		if(strtotime($value) < strtotime($today)){
 			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
 			$value = new core_ET("<span class='red'>[#value#]</span>");
 			$value->replace($valueHint, 'value');
@@ -150,33 +159,6 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		}
 		
 		return cls::get('type_Html')->toVerbal($value);
-	}
-	
-	
-	/**
-	 * Проверява дали стойността е невалидна
-	 *
-	 * @return core_Type - инстанция на тип
-	 */
-	public function getBatchClassType()
-	{
-		$Type = parent::getBatchClassType();
-	
-		$autoConst = $this->getAutoValueConst();
-		$Type->suggestions = array('' => '', $autoConst => $autoConst);
-	
-		return $Type;
-	}
-	
-	
-	/**
-     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
-     *
-     * @return string
-     */
-    public function getAutoValueConst()
-    {
-		return $this->rec->format;
 	}
 	
 	
@@ -234,5 +216,44 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		}
 		
 		$featureCaption = 'Срок на годност';
+	}
+	
+	
+	/**
+	 * Добавя записа
+	 *
+	 * @param stdClass $rec
+	 * @return void
+	 */
+	public function setRec($rec)
+	{
+		$this->fieldPlaceholder = $rec->format;
+		$this->rec = $rec;
+	}
+	
+	
+	/**
+	 * Подрежда подадените партиди
+	 *
+	 * @param array $batches - наличните партиди
+	 * 		['batch_name'] => ['quantity']
+	 * @param date|NULL $date
+	 * return void
+	 */
+	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
+	{
+		$dates = array_keys($batches);
+		if(is_array($dates)){
+			usort($dates, function($a, $b) {
+				return (strtotime($a) < strtotime($b)) ? -1 : 1;
+			});
+			
+			$sorted = array();
+			foreach ($dates as $date){
+				$sorted[$date] = $batches[$date];
+			}
+			
+			$batches = $sorted;
+		}
 	}
 }

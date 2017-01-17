@@ -685,7 +685,7 @@ abstract class deals_Helper
 		$res = (object)array('quantity' => 0, 'amount' => 0);
 		
 		// Ако е масив
-		if(is_array($array)){
+		if (is_array($array) && !empty($array)){
 			$currencyItemId = $currencyItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($currencyCode))->id;
 			$currencyListId = acc_Lists::fetchBySystemId('currencies')->id;
 			

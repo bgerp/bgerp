@@ -53,7 +53,7 @@ class store_Receipts extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf';
     
     
     /**
@@ -169,14 +169,6 @@ class store_Receipts extends store_DocumentMaster
     public static $defaultStrategies = array(
     		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
-    
-    
-    /**
-     * Какво движение на партида поражда документа в склада
-     *
-     * @param out|in|stay - тип движение (излиза, влиза, стои)
-     */
-    public $batchMovementDocument = 'in';
     
     
     /**
