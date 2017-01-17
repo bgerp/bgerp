@@ -1,0 +1,4 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+ 	<h3>|Заглавие|*: [#title#]</h3>
+    [#cat_ListingDetails#]
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

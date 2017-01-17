@@ -173,7 +173,7 @@ class cat_products_Params extends doc_Detail
     	}
     	
         if($form->rec->paramId){
-        	if($Type = cat_Params::getTypeInstance($form->rec->paramId, $form->rec->paramValue)){
+        	if($Type = cat_Params::getTypeInstance($form->rec->paramId, $form->rec->paramValue, $rec->value, $rec->classId, $rec->productId)){
         		$form->setField('paramValue', 'input');
         		$form->setFieldType('paramValue', $Type);
         		

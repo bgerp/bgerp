@@ -26,12 +26,10 @@ class crm_CommerceDetails extends core_Manager
 		$data->Lists = cls::get('price_ListToCustomers');
 		$data->Conditions = cls::get('cond_ConditionsToCustomers');
 		$data->Cards = cls::get('pos_Cards');
-		$data->ProductList = cls::get('crm_ext_ProductListToContragents');
 		
 		$data->listData = clone $data;
 		$data->condData = clone $data;
 		$data->cardData = clone $data;
-		$data->pListData = clone $data;
 		
 		// Подготвяме данни за ценовите листи
 		$data->Lists->preparePricelists($data->listData);
@@ -41,9 +39,6 @@ class crm_CommerceDetails extends core_Manager
 		
 		// Подготвяме клиентските карти
 		$data->Cards->prepareCards($data->cardData);
-		
-		// Подготвяме листови продукти
-		$data->ProductList->prepareProductList($data->pListData);
 	}
 	
 	

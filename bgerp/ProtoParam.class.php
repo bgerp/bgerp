@@ -200,14 +200,21 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Връща типа на параметъра
 	 *
-	 * @param mixed $id        - ид или запис на параметър
-	 * @param mixed $value     - стойност
-	 * @return FALSE|core_Type - инстанцираният тип или FALSE ако не може да се определи
+	 * @param mixed $id          - ид или запис на параметър
+	 * @param mixed $value       - стойност
+	 * @param mixed $domainClass - клас на домейна на параметъра
+	 * @param int $domainId      - ид на домейна на параметъра
+	 * @return FALSE|core_Type   - инстанцираният тип или FALSE ако не може да се определи
 	 */
-	public static function getTypeInstance($id, $value = NULL)
+	public static function getTypeInstance($id, $value = NULL, $domainClass = NULL, $domainId = NULL)
 	{
 		$rec = static::fetchRec($id);
 		if($Driver = static::getDriver($rec)){
+			if(isset($domainClass) || isset($domainId)){
+				expect(isset($domainClass) && isset($domainId));
+				$Driver->setObject($domainClass, $domainId);
+			}
+			
 			return $Type = $Driver->getType($rec, $value);
 		}
 		 

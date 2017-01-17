@@ -117,7 +117,7 @@ class cond_ConditionsToCustomers extends core_Manager
     	}
     	
     	if($form->rec->conditionId){
-    		if($Type = cond_Parameters::getTypeInstance($form->rec->conditionId, $form->rec->value)){
+    		if($Type = cond_Parameters::getTypeInstance($rec->conditionId, $rec->value, $rec->cClass, $rec->cId)){
     			$form->setField('value', 'input');
     			$form->setFieldType('value', $Type);
     		} else {
