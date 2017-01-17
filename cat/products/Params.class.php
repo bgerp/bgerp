@@ -140,9 +140,7 @@ class cat_products_Params extends doc_Detail
     		$row->group = cat_Params::getVerbal($paramRec, 'group');
     	}
     	
-    	if($ParamType = cat_Params::getTypeInstance($paramRec, $rec->classId, $rec->productId, $rec->paramValue)){
-    		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
-    	}
+    	$row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
     	
     	if(!empty($paramRec->suffix)){
     		$suffix = cat_Params::getVerbal($paramRec, 'suffix');
