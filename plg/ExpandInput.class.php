@@ -87,7 +87,7 @@ class plg_ExpandInput extends core_Plugin
         }
         
         if (!is_array($inputArr)) {
-            $inputArr = keylist::toArray($inputArr, TRUE);
+            $inputArr = keylist::toArray($inputArr);
         }
         
         $inputField = $mvc->getField($mvc->expandInputFieldName);

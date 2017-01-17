@@ -1188,7 +1188,7 @@ class crm_Companies extends core_Master
         
         while($rec = $query->fetch()) {
             
-            $keyArr = keylist::toArray($rec->groupList, TRUE);
+            $keyArr = keylist::toArray($rec->groupList);
             
             foreach($keyArr as $groupId) {
                 $gRec = crm_Groups::fetch($groupId);
