@@ -307,6 +307,10 @@ class draw_Designs extends core_Master
             $res[$i] .= $c;
         }
 
+        foreach($res as $i => &$expr) {
+            $expr = trim($expr);
+        }
+
         return $res;
     }
 
