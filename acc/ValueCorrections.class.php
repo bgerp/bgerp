@@ -155,7 +155,11 @@ class acc_ValueCorrections extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if($firstDoc->fetchField('containerId') != $rec->correspondingDealOriginId){
-    		$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+    		if(isset($rec->correspondingDealOriginId)){
+    			$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+    		} else {
+    			$row->correspondingDealOriginId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+    		}
     	} else {
     		unset($row->correspondingDealOriginId);
     	}
