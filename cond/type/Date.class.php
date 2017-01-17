@@ -38,12 +38,14 @@ class cond_type_Date extends cond_type_Proto
 	 * Връща инстанция на типа
 	 *
 	 * @param stdClass $rec      - запис на параметъра
+	 * @param mixed $domainClass - клас на домейна
+	 * @param mixed $domainId    - ид на домейна
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $value = NULL)
+	public function getType($rec, $domainClass, $domainId, $value = NULL)
     {
-		$Type = parent::getType($rec);
+		$Type = parent::getType($rec, $domainClass, $domainId, $value);
 	
 		if($rec->time == 'yes'){
 			$Type = cls::get('type_DateTime');

@@ -21,26 +21,33 @@ class cond_type_Listings extends cond_type_Proto
 	 * Връща инстанция на типа
 	 *
 	 * @param stdClass $rec      - запис на параметъра
+	 * @param mixed $domainClass - клас на домейна
+	 * @param mixed $domainId    - ид на домейна
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $value = NULL)
+	public function getType($rec, $domainClass, $domainId, $value = NULL)
 	{
-		$Type = core_Type::getByName("int");
-		expect($this->domainObjectReference instanceof core_ObjectReference);
 		$options = array();
 		
 		$lQuery = cat_Listings::getQuery();
 		$lQuery->where("#state = 'active'");
-		$lQuery->where("#isPublic = 'yes'");
-		//if($this->domainObjectReference->haveInterface(st))
 		
-		//bp($lQuery->fetchAll());
+		if(cls::haveInterface('crm_ContragentAccRegIntf', $domainClass)){
+			$folderId = cls::get($domainClass)->forceCoverAndFolder($domainId);
+			$lQuery->where("#isPublic = 'yes' OR #folderId = {$folderId}");
+		} else {
+			$lQuery->where("#isPublic = 'yes'");
+		}
 		
-		//if()
+		while($rec = $lQuery->fetch()){
+			$options[$rec->id] = $rec->title;
+		}
 		
+		$Type = core_Type::getByName("key(mvc=cat_Listings,select=title)");
+		$options = count($options) ? array('' => '') + $options : $options;
+		$Type->options = $options;
 		
-		bp($Type, $this);
 		return $Type;
 	}
 	

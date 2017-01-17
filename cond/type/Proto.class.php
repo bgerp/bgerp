@@ -29,6 +29,14 @@ abstract class cond_type_Proto extends core_BaseClass
 	protected $baseType;
 	
 	
+	/**
+	 * Референция към домейна
+	 * 
+	 * @var core_ObjectReference
+	 */
+	protected $domainObjectReference;
+	
+	
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -36,7 +44,7 @@ abstract class cond_type_Proto extends core_BaseClass
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-    
+ 
     }
     
     
@@ -78,10 +86,12 @@ abstract class cond_type_Proto extends core_BaseClass
 	 * Връща инстанция на типа
 	 *
 	 * @param stdClass $rec      - запис на параметъра
+	 * @param mixed $domainClass - клас на домейна
+	 * @param mixed $domainId    - ид на домейна
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $value = NULL)
+	public function getType($rec, $domainClass, $domainId, $value = NULL)
     {
     	if(isset($this->baseType)){
     		$type = cls::get($this->baseType);
@@ -135,5 +145,18 @@ abstract class cond_type_Proto extends core_BaseClass
     	}
     
     	return $res;
+    }
+    
+    
+    /**
+     * Задаване на домейна
+     * 
+     * @param mixed $class
+     * @param int $id
+     * @return void;
+     */
+    public function setObject($class, $id)
+    {
+    	$this->domainObjectReference = new core_ObjectReference($class, $id);
     }
 }

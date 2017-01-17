@@ -436,7 +436,7 @@ class planning_Tasks extends tasks_Tasks
 		$query->where("#classId = {$classId} AND #productId = {$rec->id}");
 		$query->show('paramId,paramValue');
 		while($dRec = $query->fetch()){
-			$dRec->paramValue = ($verbal === TRUE) ? cat_Params::toVerbal($dRec->paramId, $dRec->paramValue) : $dRec->paramValue;
+			$dRec->paramValue = ($verbal === TRUE) ? cat_Params::toVerbal($dRec->paramId, $classId, $rec->id, $dRec->paramValue) : $dRec->paramValue;
 			$params[$dRec->paramId] = $dRec->paramValue;
 		}
 		
