@@ -788,7 +788,7 @@ class core_Html
         if($url) {
             if($warning) {
                 $attr['onclick'] .= " document.location='{$url}'";
-                $attr['href'] = '#';
+                $attr['href'] = 'javascript:void(0)';
             } else {
                 $attr['href'] = $url;
             }
