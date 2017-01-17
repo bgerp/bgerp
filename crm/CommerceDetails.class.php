@@ -66,11 +66,6 @@ class crm_CommerceDetails extends core_Manager
 		$cardTpl->removeBlocks();
 		$tpl->append($cardTpl, 'CARDS');
 		
-		// Подготвяме листваните артикули
-		$pListTpl = $data->ProductList->renderProductList($data->pListData);
-		$pListTpl->removeBlocks();
-		$tpl->append($pListTpl, 'PRODUCT_LISTS');
-		
 		return $tpl;
 	}
 }
