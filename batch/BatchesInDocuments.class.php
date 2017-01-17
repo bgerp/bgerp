@@ -466,7 +466,7 @@ class batch_BatchesInDocuments extends core_Manager
 			if(!$form->gotErrors()){
 				
 				if($form->cmd == 'auto'){
-					$old = $foundBatches;;
+					$old = (count($foundBatches)) ? $foundBatches : array();
 					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
 					$intersect = array_diff_key($old, $saveBatches);
 					$delete = (count($intersect)) ? array_keys($intersect) : array();
