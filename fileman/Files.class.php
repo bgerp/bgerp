@@ -802,7 +802,7 @@ class fileman_Files extends core_Master
         $res = exec("{$fileCmd} --mime-type  \"{$path}\"");
  
         // Вземаме позицията на интервала
-        list($p, $mime) = explode(' ', $res);
+        list(, $mime) = explode(' ', $res);
         
         // Тримваме за всеки случай
         $mime = strtolower(trim($mime));
@@ -918,6 +918,8 @@ class fileman_Files extends core_Master
      */
     public static function getInfoFromFilePath($filePath)
     {
+        $res = array();
+        
         // Време на последна модификация
         $res['modificationTime'] = static::getModificationTimeFromFilePath($filePath);
         
