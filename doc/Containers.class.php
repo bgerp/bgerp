@@ -2003,7 +2003,8 @@ class doc_Containers extends core_Manager
                             }
                         }
                     } else {
-                        $delete = TRUE;
+                        // Да не се изтрива, защото може и да е на наследниците или бащите
+//                         $delete = TRUE;
                     }
                 }
                 
