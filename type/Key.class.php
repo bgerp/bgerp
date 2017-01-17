@@ -86,6 +86,12 @@ class type_Key extends type_Int
                     $v = tr($v); 
                 }
 
+                if(isset($this->params['makeLink'])){
+                	if(method_exists($mvc, 'getSingleUrlArray')){
+                		$v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), FALSE, "ef_icon={$mvc->singleIcon}");
+                	}
+                }
+                
                 return $v;
             } else {
                 if($this->params['title']) {
@@ -96,6 +102,12 @@ class type_Key extends type_Int
                     
                     $value = $mvc->fields[$field]->type->toVerbal($value);
                 } else {
+                	if(isset($this->params['makeLink'])){
+                		if(method_exists($mvc, 'getHyperlink')){
+                			return $mvc->getHyperlink($value, TRUE);
+                		}
+                	}
+                	
                     $value = $mvc->getTitleById($value);
                 }
             }
