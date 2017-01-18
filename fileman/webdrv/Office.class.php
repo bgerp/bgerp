@@ -52,24 +52,27 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // URL за показване на текстовата част на файловете
         $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
         
-        // Таб за текстовата част
-        $tabsArr['text'] = (object) 
-			array(
-				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 4,
-			);
+        if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', TRUE, TRUE)) {
+            // Таб за текстовата част
+            $tabsArr['text'] = (object)
+            array(
+                    'title' => 'Текст',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'order' => 4,
+            );
+        }
         
-		$htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);	
-			
-		// Таб за информация
-        $tabsArr['html'] = (object) 
-			array(
-				'title' => 'HTML',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("HTML") . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 3,
-			);
-
+	    if (self::canShowTab($fRec->fileHnd, 'html')) {
+	        $htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);
+	        	
+	        // Таб за информация
+	        $tabsArr['html'] = (object)
+	        array(
+	                'title' => 'HTML',
+	                'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("HTML") . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+	                'order' => 3,
+	        );
+	    }
 
         return $tabsArr;
     }
@@ -362,9 +365,6 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);
 
-        // Инстанция на класа
-        $Fileman = cls::get('fileman_Files');
-        
         // Шаблон за намиране на името на файла
         $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
         
@@ -390,7 +390,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             try {
                 
                 // Качваме файла в кофата и му вземаме манипулатора
-                $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+                $fileHnd = fileman::absorb($script->tempDir . $file, 'fileIndex'); 
             } catch (core_exception_Expect $e) {
                 continue;
             }

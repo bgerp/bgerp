@@ -29,7 +29,6 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-		$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,smartCenter,mandatory,input=hidden');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -166,12 +165,6 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-	
-		if($rec->batch){
-			batch_Defs::appendBatch($rec->productId, $rec->batch, $notes);
-			$RichText = cls::get('type_Richtext');
-			$row->productId .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
-		}
 	}
 }
  	

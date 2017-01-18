@@ -1046,7 +1046,7 @@ class type_Richtext extends type_Blob
             $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
 
         } else {
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out no-spell-check\">[#{$titlePlace}#]</a>";
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
         }
         
         return $link;
@@ -1219,7 +1219,7 @@ class type_Richtext extends type_Blob
             
             $title = type_Varchar::escape($title);
             
-            $link = "<a href=\"{$url}\" target='_blank' class='out no-spell-check'>{$title}</a>";
+            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
         }
         
         $place = $this->getPlace();

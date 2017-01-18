@@ -94,6 +94,7 @@ class rack_Pallets extends core_Manager
      * Кои полета ще се виждат в листовия изглед
      */
     public $listFields = 'label,productId,quantity,position,created=Създаване';
+    
 
 
     /**
@@ -104,7 +105,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,column=none');
         $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory,smartCenter');
         $this->FLD('quantity', 'int', 'caption=Количество,mandatory');
-        $this->FLD('label', 'varchar(32)', 'caption=Етикет,smartCenter');
+        $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
     }
@@ -155,6 +156,17 @@ class rack_Pallets extends core_Manager
                 $rec->quantity = $exRec->quantity;
             }
         }
+
+        $mode = Request::get('Mode');
+
+        if($mode == 'down') {
+            $form->rec->positionTo = '';
+        }
+        if($mode) {
+            $form->setReadOnly('productId');
+            $form->setReadOnly('quantity');
+            $form->setReadOnly('label');
+        }
     }
 
 
@@ -168,7 +180,7 @@ class rack_Pallets extends core_Manager
         }
 
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
-        $used = self::getUsed();
+        $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
 
         // Ако намерим свободна резервирана позиция за този продукт - вземаме нея
@@ -200,7 +212,7 @@ class rack_Pallets extends core_Manager
         while($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
             $dist = 20;
             for($cInd = 1; $cInd <= $rRec->columns; $cInd++) {
-                for($rInd = 'A'; $rInd < $rRec->rows; $rInd++) {
+                for($rInd = 'A'; $rInd <= $rRec->rows; $rInd++) {
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
 
                     if($used[$pos] == $productId) {
@@ -356,7 +368,7 @@ class rack_Pallets extends core_Manager
         if($rec->position) {
             $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = TRUE;
         }
-
+        
         $rMvc->on_Shutdown($rMvc);
     }
     
@@ -512,11 +524,13 @@ class rack_Pallets extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if($rec->position) {
-            $row->label = ht::createLink('⇔', array($mvc, 'edit', $rec->id, 'mode' => 'move'), NULL, 'title=Преместване') . '&nbsp;' . $row->label;
-            $row->label = ht::createLink('⇓', array($mvc, 'edit', $rec->id, 'mode' => 'down'), NULL, 'title=Сваляне') . '&nbsp;' . $row->label;
-        } else {
-            $row->label = ht::createLink('⇑', array($mvc, 'edit', $rec->id, 'mode' => 'up'), NULL, 'title=Качване') . '&nbsp;' . $row->label;
+        if($mvc->haveRightFor('edit', $rec)) {
+            if($rec->position) {
+                $row->label = ht::createLink('⇔', array($mvc, 'edit', $rec->id, 'Mode' => 'move'), NULL, 'title=Преместване') . '&nbsp;' . $row->label;
+                $row->label = ht::createLink('⇓', array($mvc, 'edit', $rec->id, 'Mode' => 'down'), NULL, 'title=Сваляне') . '&nbsp;' . $row->label;
+            } else {
+                $row->label = ht::createLink('⇑', array($mvc, 'edit', $rec->id, 'Mode' => 'up'), NULL, 'title=Качване') . '&nbsp;' . $row->label;
+            }
         }
 
         $row->created = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'createdOn') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';

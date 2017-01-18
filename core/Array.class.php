@@ -595,4 +595,23 @@ class core_Array
     	
     	return $result;
     }
+    
+    
+    /**
+     * Ф-я проверяваща дали два масива/обекта имат еднакви ключове/стойности, без да е нужно да са в
+     * същата последователност
+     * 
+     * @param array|stdClass $array1
+     * @param array|stdClass $array2
+     * @return boolean $res
+     */
+    public static function areEqual($array1, $array2)
+    {
+    	$a = (array)$array1;
+    	$b = (array)$array2;
+    	
+    	$res = (is_array($a) && is_array($b) && count($a) == count($b) && array_diff($a, $b) === array_diff($b, $a));
+    	
+    	return $res;
+    }
 }

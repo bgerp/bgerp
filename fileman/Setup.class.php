@@ -90,6 +90,12 @@ defIfNot('FILEMAN_OCR', '');
 
 
 /**
+ * Директория, в която ще се държат екстрактнатите файлове
+ */
+defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
+
+
+/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
@@ -200,6 +206,7 @@ class fileman_Setup extends core_ProtoSetup
             
             'migrate::addFileLen',
             'migrate::bucketRoles',
+            'migrate::regenerateData'
         );
     
     
@@ -250,7 +257,7 @@ class fileman_Setup extends core_ProtoSetup
         // Инсталираме
         if($conf->FILEMAN_FILE_COMMAND) {
             $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
-            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files2', 'private');
+            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files', 'private');
         }
         
         // Инсталираме плъгина за качване на файлове в RichEdit
@@ -407,6 +414,26 @@ class fileman_Setup extends core_ProtoSetup
                 $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rec->rolesForAdding);
             }
             fileman_Buckets::save($rec, 'rolesForDownload,rolesForAdding');
+        }
+    }
+    
+    
+    /**
+     * Пускане на последните файлове
+     */
+    static function regenerateData()
+    {
+        $dQuery = fileman_Data::getQuery();
+        $dQuery->where("#processed = 'yes'");
+        
+        $dQuery->orderBy('lastUse', 'DESC');
+        $dQuery->orderBy('createdOn', 'DESC');
+        
+        $dQuery->limit(10000);
+        
+        while ($dRec = $dQuery->fetch()) {
+            $dRec->processed = 'no';
+            fileman_Data::save($dRec, 'processed');
         }
     }
 }

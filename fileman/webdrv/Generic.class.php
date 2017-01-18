@@ -87,6 +87,33 @@ class fileman_webdrv_Generic extends core_Manager
         return ;
     }
     
+    
+    /**
+     * Дали трябва да се показва съответния таб
+     * 
+     * @param string $fileHnd
+     * @param string $type
+     * @param string $strip
+     * 
+     * @return boolean
+     */
+    public static function canShowTab($fileHnd, $type, $strip=TRUE, $checkExist = FALSE)
+    {
+        $rArr = fileman_Indexes::getInfoContentByFh($fileHnd, $type);
+        
+        if ($checkExist === TRUE && $rArr === FALSE) return FALSE;
+        
+        if (is_array($rArr) && empty($rArr)) return FALSE;
+        
+        if (is_string($rArr) && $strip) {
+            $rArr = strip_tags($rArr);
+            
+            if (!trim($rArr)) return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
         
     /**
      * Връща името на файла за грешките
@@ -1114,11 +1141,11 @@ class fileman_webdrv_Generic extends core_Manager
             $ext = fileman_Files::getExt($file);
             
             //Иконата на файла, в зависимост от разширението на файла
-            $icon = "fileman/icons/{$ext}.png";
+            $icon = "fileman/icons/16/{$ext}.png";
             
             //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
             if (!is_file(getFullPath($icon))) {
-                $icon = "fileman/icons/default.png";
+                $icon = "fileman/icons/16/default.png";
             }
             
             // Иконата в SBF директорията

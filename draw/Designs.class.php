@@ -224,11 +224,18 @@ class draw_Designs extends core_Master
                 continue;
             }
 
-            list($cmd, $params) = explode('(', $l);
+            list($cmd, $params) = explode('(', $l, 2);
+            
+            $params = trim($params, '; ');
+            
+            while(substr($params, -1) != ')') {
+                $params = substr($params, 0, strlen($params)-1);
+            }
+            $params = substr($params, 0, strlen($params)-1);
 
             $res[] = array(
                 0 => trim(mb_strtolower($cmd)),
-                1 => trim($params, '); '),
+                1 => $params,
                 2 => $l,
                 );
         }
@@ -300,12 +307,16 @@ class draw_Designs extends core_Master
             $res[$i] .= $c;
         }
 
+        foreach($res as $i => &$expr) {
+            $expr = trim($expr);
+        }
+
         return $res;
     }
 
 
     public static function cmd_Set($params, &$svg, &$contex, &$error)
-    { 
+    {
         if(isset($params[2])) {
             $cond = self::calcExpr($params[2], $contex);
             if($cond === self::CALC_ERROR) {
@@ -818,7 +829,7 @@ class draw_Designs extends core_Master
         // Заместваме променливите и индикаторите
         $expr  = strtr($expr, $ctx);
 
-        if(str::prepareMathExpr($expr) === FALSE) {
+        if(str::prepareMathExpr($expr) === FALSE) {  
             $res = self::CALC_ERROR;
         } else {
             $res = str::calcMathExpr($expr, $success);
@@ -932,8 +943,8 @@ class draw_Designs extends core_Master
         $form->method = 'GET';
         
         $form->toolbar->addSbBtn('Обнови', 'default', FALSE, 'ef_icon=img/16/arrow_refresh.png');
-        $form->toolbar->addSbBtn('SVG', 'svg', FALSE, 'ef_icon=fileman/icons/svg.png');
-        $form->toolbar->addSbBtn('PDF', 'pdf', FALSE, 'ef_icon=fileman/icons/pdf.png');
+        $form->toolbar->addSbBtn('SVG', 'svg', FALSE, 'ef_icon=fileman/icons/16/svg.png');
+        $form->toolbar->addSbBtn('PDF', 'pdf', FALSE, 'ef_icon=fileman/icons/16/pdf.png');
 
         $form->title = "Параметри на чертежа";
 

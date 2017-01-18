@@ -215,6 +215,12 @@ class spcheck_Dictionary extends core_Manager
             if (preg_match('/class\s*=\s*("|\')\s*(.+?|"|\')(no-spell-check|linkWithIcon)/i', $lastTag)) {
                 $check = FALSE;
             }
+            
+            if ($check) {
+                if (preg_match('/^(\s*\<)a\s+.*?href\s*=\s*.*?(\>\s*)$/i', $lastTag)) {
+                    $check = FALSE;
+                }
+            }
         }
         
         // Игнорираме думи, които отговарят на шаблоните ни

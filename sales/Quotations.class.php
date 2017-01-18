@@ -526,9 +526,11 @@ class sales_Quotations extends core_Master
     		
     		if(is_array($items)){
     			$row->transportCurrencyId = $row->currencyId;
-    			$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-    			$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-    			$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    			if ($rec->currencyRate) {
+    			    $rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    			    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
+    			    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    			}
     			
     			tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     			

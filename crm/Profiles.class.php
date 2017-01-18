@@ -428,8 +428,7 @@ class crm_Profiles extends core_Master
                     $userId = key($userTeams);
                     
                     $attr = array();
-                    $attr['class'] = 'linkWithIcon';
-    		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+    		        $attr['ef_icon'] = '/img/16/page_go.png';
     		        $attr['title'] = 'Екшън лог на потребителя';
                     
                     // URL за промяна

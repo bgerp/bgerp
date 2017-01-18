@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -34,12 +34,6 @@ class store_InventoryNotes extends core_Master
      * Абревиатура
      */
     public $abbr = 'Ivn';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
     
     
     /**
@@ -153,6 +147,7 @@ class store_InventoryNotes extends core_Master
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
     	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=yes,maxRadio=2');
+    	$this->FLD('cache', 'blob(serialize, compress)', 'input=none');
     }
     
     
@@ -320,10 +315,7 @@ class store_InventoryNotes extends core_Master
     	
     	if($rec->state != 'rejected'){
     		if($mvc->haveRightFor('single', $rec->id)){
-    			$url = array($mvc, 'single', $rec->id);
-    			$url['Printing'] = 'yes';
-    			$url['Blank'] = 'yes';
-    			 
+    			$url = array($mvc, 'getBlankForm', $rec->id, 'ret_url' => TRUE);
     			$data->toolbar->addBtn('Бланка||Blank', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
     		}
     	}
@@ -332,6 +324,8 @@ class store_InventoryNotes extends core_Master
     		$url = array($mvc, 'makeSale', $rec->id, 'ret_url' => TRUE);
     		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
     	}
+    	
+    	$data->toolbar->removeBtn('btnPrint');
     }
     
     
@@ -365,7 +359,7 @@ class store_InventoryNotes extends core_Master
     		
     		// Кой е избрания потребител?
     		$userId = $form->rec->userId;
-    		$personId = crm_Profiles::fetchField($userId, 'personId');
+    		$personId = crm_Profiles::fetchField("#userId = {$userId}", 'personId');
     		
     		// Създаваме продажба в папката му
     		$fields = array('shipmentStoreId' => $rec->storeId, 'valior' => $rec->valior, 'originId' => $rec->containerId);
@@ -378,7 +372,6 @@ class store_InventoryNotes extends core_Master
     			$quantity = abs($dRec->delta);
     			sales_Sales::addRow($saleId, $dRec->productId, $quantity);
     		}
-    		
     		
     		// Редирект при успех
     		redirect(array('sales_Sales', 'single', $saleId));
@@ -429,19 +422,22 @@ class store_InventoryNotes extends core_Master
     	}
     	
     	$row->sales = array();
-    	$sQuery = sales_Sales::getQuery();
-    	$sQuery->where("#originId = {$rec->containerId}");
-    	$sQuery->show('id,contragentClassId,contragentId,state');
-    	while ($sRec = $sQuery->fetch()){
-    		$index = $sRec->contragentClassId . "|" . $sRec->contragentId;
-    		if(!array_key_exists($index, $row->sales)){
-    			$userId = crm_Profiles::fetchField("#personId = {$sRec->contragentId}", 'userId');
-    			$row->sales[$index] = (object)array('sales' => array(), 'link' => crm_Profiles::createLink($userId));
-    		}
+    	
+    	if(!Mode::is('blank')){
+    		$sQuery = sales_Sales::getQuery();
+    		$sQuery->where("#originId = {$rec->containerId}");
+    		$sQuery->show('id,contragentClassId,contragentId,state');
+    		while ($sRec = $sQuery->fetch()){
+    			$index = $sRec->contragentClassId . "|" . $sRec->contragentId;
+    			if(!array_key_exists($index, $row->sales)){
+    				$userId = crm_Profiles::fetchField("#personId = {$sRec->contragentId}", 'userId');
+    				$row->sales[$index] = (object)array('sales' => array(), 'link' => crm_Profiles::createLink($userId));
+    			}
     		
-    		$class = "state-{$sRec->state}";
-    		$link = sales_Sales::getLink($sRec->id, 0, FALSE);
-    		$row->sales[$index]->sales[] = "<span class='{$class}'>{$link}</span>";
+    			$class = "state-{$sRec->state}";
+    			$link = sales_Sales::getLink($sRec->id, 0, FALSE);
+    			$row->sales[$index]->sales[] = "<span class='{$class}'>{$link}</span>";
+    		}
     	}
     }
     
@@ -468,11 +464,13 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('store/tpl/css/styles.css', 'CSS');
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    		$tpl->push('store/js/InventoryNotes.js', 'JS');
-    		jquery_Jquery::run($tpl, "noteActions();");
-			jqueryui_Ui::enable($tpl);
-		}
+    	
+    	$tpl->push('store/js/InventoryNotes.js', 'JS');
+    	jquery_Jquery::run($tpl, "noteActions();");
+    	
+    	if(!Mode::is('printing')){
+    		$tpl->removeBlock('COUNTER');
+    	}
     }
     
     
@@ -490,6 +488,7 @@ class store_InventoryNotes extends core_Master
     	$query = store_InventoryNoteSummary::getQuery();
     	$query->where("#noteId = {$rec->id}");
     	$query->show('noteId,productId,blQuantity,groups,modifiedOn');
+    	
     	while($dRec = $query->fetch()){
     		$res[] = $dRec;
     	}
@@ -649,6 +648,8 @@ class store_InventoryNotes extends core_Master
     	// Синхронизираме данните само в чернова
     	if($rec->state == 'draft'){
     		$mvc->sync($rec);
+    	} elseif($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')) {
+    		cls::get('store_InventoryNoteDetails')->invoke('AfterContoOrReject', array($rec));
     	}
     	
     	static::invalidateCache($rec);
@@ -721,5 +722,114 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	$data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * Рендиране на формата за избор на настройките на бланката
+     * 
+     * @return core_ET
+     */
+    public function act_getBlankForm()
+    {
+    	// Проверка за входни данни
+    	$this->requireRightFor('single');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('single', $rec);
+    	
+    	$url = array($this, 'single', $id, 'Printing' => TRUE, 'Blank' => TRUE);
+    	$groupName = Request::get('groupName', 'varchar');
+    	if($groupName){
+    		$url['groupName'] = $groupName;
+    	}
+    	
+    	$directRedirect = TRUE;
+    	
+    	// Подготовка на формата
+    	$form = cls::get('core_Form');
+    	$form->title = "Настройки за принтиране на бланка от|* <b>" . static::getHyperlink($id, TRUE) . "</b>";
+    	
+    	if(haveRole('ceo,storeMaster')){
+    		$directRedirect = FALSE;
+    		$form->FLD('showBlQuantities', 'enum(no=Скриване,yes=Показване)', 'caption=Очаквани количества,mandatory');
+    		$form->setDefault('showBlQuantities', 'no');
+    	}
+    	
+    	if(core_Packs::isInstalled('batch')){
+    		$directRedirect = FALSE;
+    		$form->FLD('batches', 'enum(no=Скриване,yes=Показване)', 'caption=Партиди,mandatory');
+    		$form->setDefault('batches', 'yes');
+    	}
+    	
+    	if($directRedirect === TRUE) return new Redirect($url);
+    	
+    	// Изпращане на формата
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		
+    		if($rec->batches == 'yes'){
+    			$url['showBatches'] = TRUE;
+    		}
+    		
+    		if($rec->showBlQuantities == 'yes'){
+    			$url['showBlQuantities'] = TRUE;
+    		}
+    		
+    		// Редирект към урл-то за бланката
+    		return new Redirect($url);
+    	}
+    	
+    	// Добавяне на бутоните на формата
+    	$form->toolbar->addSbBtn('Бланка', 'save', 'ef_icon = img/16/disk.png, title = Генериране на бланка');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	 
+    	// Рендиране на обвивката и формата
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	$this->save($rec, 'isContable');
+    }
+    
+    
+    /**
+     * Ре-контиране на счетоводен документ
+     */
+    public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
+    }
+    
+    
+    /**
+     * Контиране на счетоводен документ
+     */
+    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
+    }
+    
+    
+    /**
+     * Оттегляне на документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	cls::get('store_InventoryNoteDetails')->invoke('AfterRejectMaster', array($rec));
     }
 }

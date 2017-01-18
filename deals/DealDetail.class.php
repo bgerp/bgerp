@@ -76,9 +76,8 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function getDealDetailFields(&$mvc)
     {
-    	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
+    	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance|batch');
     	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,input=hidden');
-    	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	
     	// Количество в основна мярка
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
@@ -298,7 +297,7 @@ abstract class deals_DealDetail extends doc_Detail
     			// Ако има такъв запис, сетваме грешка
     			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, NULL, $rec->notes);
     			if($exRec){
-    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch,notes', 'Вече съществува запис със същите данни');
+    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,notes', 'Вече съществува запис със същите данни');
     				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
     			}
     		}
@@ -336,7 +335,6 @@ abstract class deals_DealDetail extends doc_Detail
     		// Показване на вашия реф, ако има
     		$row->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
-    		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

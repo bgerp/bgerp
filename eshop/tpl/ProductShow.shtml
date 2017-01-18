@@ -13,7 +13,8 @@
 	</td>
 	<td class="vtop" style='padding-left:8px;'>
 		<div class='eshop-product-labels'>
-			[#code#] <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
+			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> 
+            <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
 		</div>
 		[#info#]
 		<br>

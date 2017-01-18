@@ -211,15 +211,14 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Връща дефолтната дефиниция за партида на артикула
-	 * Клас имплементиращ интерфейса 'batch_BatchTypeIntf'
+	 * Връща дефолтната дефиниция за шаблон на партидна дефиниция
 	 * 
 	 * @param mixed $id - ид или запис на артикул
-	 * @return NULL|core_BaseClass - клас за дефиниция на партида
+	 * @return int - ид към batch_Templates
 	 */
-	public function getDefaultBatchDef($id)
+	public function getDefaultBatchTemplate($id)
 	{
-		return $this->class->getDefaultBatchDef($id);
+		return $this->class->getDefaultBatchTemplate($id);
 	}
 	
 	

@@ -17,7 +17,7 @@
 class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDetail
 {
     
-    
+	
     /**
      * Заглавие
      */
@@ -79,6 +79,14 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
+    
+    
+    /**
+     * Какво движение на партида поражда документа в склада
+     *
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     */
+    public $batchMovementDocument = 'in';
     
     
     /**

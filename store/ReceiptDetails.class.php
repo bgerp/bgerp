@@ -96,13 +96,20 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Какво движение на партида поражда документа в склада
+     *
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     */
+    public $batchMovementDocument = 'in';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
-        $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
         
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -147,7 +154,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang);
-    			batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     			
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
@@ -164,5 +170,19 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     {
     	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
     	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
+    }
+    
+    
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	$masterRec = store_Receipts::fetch($rec->receiptId, 'isReverse,storeId');
+    	if($masterRec->isReverse == 'yes'){
+    		$res->operation['in'] = $masterRec->storeId;
+    		unset($res->operation['out']);
+    	}
     }
 }

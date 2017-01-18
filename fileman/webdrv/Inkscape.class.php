@@ -313,14 +313,11 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             return FALSE;
         }
         
-        // Инстанция на класа
-        $Fileman = cls::get('fileman_Files');
-        
         // Ако възникне грешка при качването на файла (липса на права)
         try {
             
             // Качваме файла в кофата и му вземаме манипулатора
-            $fileHnd = $Fileman->addNewFile($script->outFilePath, 'fileIndex');
+            $fileHnd = fileman::absorb($script->outFilePath, 'fileIndex');
         } catch (core_exception_Expect $e) {
             
             // Създаваме запис в модела за грешка

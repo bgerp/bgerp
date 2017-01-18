@@ -811,8 +811,8 @@ class blast_Emails extends core_Master
             $body->documentsFh = (array)$docsFhArr;
             
             //id' тата на прикачените файлове с техните
-            $body->attachments = keylist::fromArray(fileman_Files::getIdFromFh($attFhArr));
-            $body->documents = keylist::fromArray(fileman_Files::getIdFromFh($docsFhArr));
+            $body->attachments = keylist::fromArray(fileman::fhKeylistToIds($attFhArr));
+            $body->documents = keylist::fromArray(fileman::fhKeylistToIds($docsFhArr));
         }
         
         // Други необходими данни за изпращането на имейла

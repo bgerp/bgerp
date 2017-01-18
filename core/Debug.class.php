@@ -352,8 +352,10 @@ class core_Debug
      * @return string|boolean FALSE при проблем, иначе пълно URL
      */
     private static function getGithubSourceUrl($file, $line)
-    {
-        $file = str_replace(array("\\", EF_APP_PATH), array('/', ''), $file);
+    { 
+        $selfPath = str_replace("\\", '/', dirname(dirname(__FILE__)));
+
+        $file = str_replace(array("\\", $selfPath), array('/', ''), $file);
 
         if(defined('BGERP_GIT_BRANCH')) {
             $branch = BGERP_GIT_BRANCH;

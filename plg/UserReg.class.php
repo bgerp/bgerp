@@ -92,13 +92,13 @@ class plg_UserReg extends core_Plugin
                 
                 $tpl->append("<p>&nbsp;<A HREF='" .
                     toUrl(array($invoker, 'resetPassForm')) .
-                    "' {$className}>»&nbsp;" . tr('Забравена парола||Forgot Password') . "?</A>", 'FORM');
+                    "' {$className} rel='nofollow'>»&nbsp;" . tr('Забравена парола||Forgot Password') . "?</A>", 'FORM');
             }
             
             if ($invoker->haveRightFor('registernewuserout')) {
                 $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($invoker, 'registerNewUser')) .
-                "'  {$className}>»&nbsp;" . tr('Нова регистрация||Create account') . "</A>", 'FORM');
+                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . "</A>", 'FORM');
             }
         }
     }
