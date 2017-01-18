@@ -247,6 +247,17 @@ class cat_ListingDetails extends doc_Detail
 					$row->productId = ht::createElement("span", array('style' => 'color:#755101'), $row->productId);
 				}
 			}
+			
+			$masterType = cat_Listings::fetchField($rec->listId, 'type');
+			if(!empty($masterType)){
+				$type = cat_Products::fetchField($rec->productId, $masterType);
+					
+				if($type != 'yes'){
+					$vType = ($masterType == 'canBuy') ? 'купуваем' : 'продаваем';
+					$row->productId = "<span class='red'>{$row->productId}</span>";
+					$row->productId = ht::createHint($row->productId, "Артикулът вече не е {$vType}", 'error', FALSE);
+				}
+			}
 		}
 	}
 	
@@ -300,7 +311,7 @@ class cat_ListingDetails extends doc_Detail
 		
 		$Cover = doc_Folders::getCover($listRec->folderId);
 		if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-			$form->FLD('from', 'enum(,group=Група,sales=Предишни продажби)', "caption=Избор,removeAndRefreshForm=fromDate|toDate|selected,silent");
+			$form->FLD('from', 'enum(,group=Група,sales=Предишни продажби,purchases=Предишни покупки)', "caption=Избор,removeAndRefreshForm=fromDate|toDate|selected,silent");
 		} else {
 			$form->FLD('from', 'enum(,group=Група)', "caption=Избор,removeAndRefreshForm=fromDate|toDate|selected,silent");
 			$form->setDefault('from', 'group');
@@ -342,7 +353,7 @@ class cat_ListingDetails extends doc_Detail
 					
 				// И се извличат артикулите от продажбите в този период на контрагента
 				if(!empty($rec->fromDate) || !empty($rec->toDate)){
-					$products = $this->getFromSales($rec->fromDate, $rec->toDate, $cClass, $contragentId);
+					$products = $this->getFromSales($rec->fromDate, $rec->toDate, $rec->from, $rec->listId);
 				}
 			}
 		
@@ -468,24 +479,38 @@ class cat_ListingDetails extends doc_Detail
 	 * 
 	 * @param date $from
 	 * @param date $to
-	 * @param mixed $cClass
-	 * @param int $contragentId
+	 * @param int $listId
 	 * @return array $products
 	 */
-	public function getFromSales($from, $to, $cClass, $contragentId)
+	public function getFromSales($from, $to, $ext, $listId)
 	{
+		expect(in_array($ext, array('sales', 'purchases')));
+		
 		$products = array();
-		$alreadyIn = arr::extractValuesFromArray(cat_Listings::getAll($cClass, $contragentId), 'productId');
+		$alreadyIn = arr::extractValuesFromArray(cat_Listings::getAll($listId), 'productId');
+		$listRec = cat_Listings::fetch($listId);
+		
+		$type = $listRec->type;
+		
+		if($ext == 'sales'){
+			$query = sales_SalesDetails::getQuery();
+			$Class = 'sales_Sales';
+			$key = 'saleId';
+		} else {
+			$query = purchase_PurchasesDetails::getQuery();
+			$Class = 'purchase_Purchases';
+			$key = 'requestId';
+		}
 		
 		// Извличане на всички продавани артикули на контрагента, които не са листвани все още
-		$query = sales_SalesDetails::getQuery();
-		$query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
-		$query->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
-		$query->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
-		$query->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
-		$query->where("#contragentClassId = {$cClass} AND #contragentId = {$contragentId}");
+		$query->EXT('valior', $Class, "externalName=valior,externalKey={$key}");
+		$query->EXT('folderId', $Class, "externalName=folderId,externalKey={$key}");
+		$query->EXT('state', $Class, "externalName=state,externalKey={$key}");
+		$query->EXT("{$type}", 'cat_Products', "externalName={$type},externalKey=productId");
+		$query->where("#folderId = {$listRec->folderId}");
 		$query->where("#state = 'active' || #state = 'closed'");
-		
+		$query->where("#{$type} = 'yes'");
+	
 		if(!empty($from)){
 			$query->where("#valior >= '{$from}'");
 		}

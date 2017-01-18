@@ -472,7 +472,6 @@ abstract class deals_DealDetail extends doc_Detail
     	expect($listId = cond_Parameters::getParameter($saleRec->contragentClassId, $saleRec->contragentId, $param));
     	
     	$listed = cat_Listings::getAll($listId);
-    	$listed = ($this instanceof sales_SalesDetails) ? $listed['sellable'] : $listed['buyable'];
     	
     	// И всички редове от продажбата
     	$query = $this->getQuery();
@@ -489,7 +488,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec = $form->rec;
     
     		// Подготовка на записите
-    		$error = $error2 = $error3 = $toSave = $toUpdate = array();
+    		$error = $error2 = $error3 = $toSave = $toUpdate = $multiError = array();
     		foreach ($listed as $lId => $lRec){
     			$packQuantity = $rec->{"quantity{$lId}"};
     			$quantityInPack = $rec->{"quantityInPack{$lId}"};
@@ -498,7 +497,7 @@ abstract class deals_DealDetail extends doc_Detail
     			$productId = $rec->{"productId{$lId}"};
     			$packagingId = $rec->{"packagingId{$lId}"};
     			$packPrice = $discount = NULL;
-    			 
+    			
     			// Ако няма к-во пропускане на реда
     			if(empty($packQuantity)) continue;
     			 
@@ -523,6 +522,12 @@ abstract class deals_DealDetail extends doc_Detail
     				$error2[$lId] = "quantity{$lId}";
     			}
     			 
+    			if(isset($lRec->multiplicity)){
+    				if($packQuantity % $lRec->multiplicity != 0){
+    					$multiError[$lId] = "quantity{$lId}";
+    				}
+    			}
+    			
     			// Ако няма грешка със записа
     			if(!array_key_exists($lId, $error)){
     				$obj = (object)array('quantity'       => $packQuantity * $quantityInPack,
@@ -563,7 +568,15 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     		}
     
-    		if(!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore')))){
+    		if(count($multiError)){
+    		if(haveRole('salesMaster,ceo')){
+    				$form->setWarning(implode(',', $multiError), "Количеството не е делимо на очакваното");
+    			} else {
+    				$form->setError(implode(',', $multiError), "Количеството не е делимо на очакваното");
+    			}
+    		}
+    		
+    		if(!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore'))) && (!count($multiError) || (count($multiError) && Request::get('Ignore')))){
     			// Запис на обновените записи
     			$this->saveArray($toUpdate, 'id,quantity');
     			$this->saveArray($toSave);
@@ -598,6 +611,9 @@ abstract class deals_DealDetail extends doc_Detail
     {
     	// За всеки листван артикул
     	foreach ($listed as $lId => $lRec){
+    		$meta = cat_Products::fetchField($lRec->productId, $this->metaProducts);
+    		if($meta != 'yes') continue;
+    		
     		$caption = "|" . cat_Products::getTitleById($lRec->productId) . "|*";
     		$caption .= " |" . cat_UoM::getShortName($lRec->packagingId);
     		 
@@ -614,33 +630,44 @@ abstract class deals_DealDetail extends doc_Detail
     			return FALSE;
     		});
     			 
-    			$key = key($res);
-    			$exRec = $res[$key];
+    		$key = key($res);
+    		$exRec = $res[$key];
     
-    			// Подготовка на полета за всеки артикул
-    			$form->FLD("productId{$lId}", "int", "К-во,input=hidden");
-    			$form->FLD("packagingId{$lId}", "int", "К-во,input=hidden");
-    			$form->FLD("rec{$lId}", "int", "input=hidden");
-    			$form->FLD("quantityInPack{$lId}", "double", "input=hidden");
-    			$form->FLD("quantity{$lId}", "double(Min=0)", "caption={$caption}->Количество");
-    			$form->setDefault("productId{$lId}", $lRec->productId);
-    			$form->setDefault("packagingId{$lId}", $lRec->packagingId);
-    			if(isset($lRec->moq)){
-    				$moq = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($lRec->moq);
-    				$form->setField("quantity{$lId}", "unit=|*<i>|МКП||MOQ|* {$moq}</i>");
-    			}
+    		// Подготовка на полета за всеки артикул
+    		$form->FLD("productId{$lId}", "int", "К-во,input=hidden");
+    		$form->FLD("packagingId{$lId}", "int", "К-во,input=hidden");
+    		$form->FLD("rec{$lId}", "int", "input=hidden");
+    		$form->FLD("quantityInPack{$lId}", "double", "input=hidden");
+    		$form->FLD("quantity{$lId}", "double(Min=0)", "caption={$caption}->Количество");
+    		$form->setDefault("productId{$lId}", $lRec->productId);
+    		$form->setDefault("packagingId{$lId}", $lRec->packagingId);
+    		
+    		$unit = '';
+    		if(isset($lRec->moq)){
+    			$moq = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($lRec->moq);
+    			$unit = "<i>|МКП||MOQ|* <b>{$moq}</b></i>";
+    		}
     
-    			// Ако иам съшествуващ запис, попълват му се стойностите
-    			if(isset($exRec)){
-    				$form->setDefault("rec{$lId}", $exRec->id);
-    				$form->setDefault("quantity{$lId}", $exRec->packQuantity);
-    				$form->setDefault("quantityInPack{$lId}", $exRec->quantityInPack);
-    			}
+    		if(isset($lRec->multiplicity)){
+    			$multiplicity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($lRec->multiplicity);
+    			$unit .= (($unit) ? ", " : ' ') . "|делимо на|* <b>{$multiplicity}</b>";
+    		}
+    		
+    		if($unit != ''){
+    			$form->setField("quantity{$lId}", array('unit' => "|*{$unit}"));
+    		}
+    		
+    		// Ако иам съшествуващ запис, попълват му се стойностите
+    		if(isset($exRec)){
+    			$form->setDefault("rec{$lId}", $exRec->id);
+    			$form->setDefault("quantity{$lId}", $exRec->packQuantity);
+    			$form->setDefault("quantityInPack{$lId}", $exRec->quantityInPack);
+    		}
     
-    			// Задаване на к-то в опаковката
-    			$packRec = cat_products_Packagings::getPack($lRec->productId, $lRec->packagingId);
-    			$quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-    			$form->setDefault("quantityInPack{$lId}", $quantityInPack);
+    		// Задаване на к-то в опаковката
+    		$packRec = cat_products_Packagings::getPack($lRec->productId, $lRec->packagingId);
+    		$quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+    		$form->setDefault("quantityInPack{$lId}", $quantityInPack);
     	}
     }
 }

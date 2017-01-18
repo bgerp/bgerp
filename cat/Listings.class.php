@@ -126,7 +126,7 @@ class cat_Listings extends core_Master
     function description()
     {
     	$this->FLD('title', 'varchar', 'mandatory,caption=Заглавие');
-    	$this->FLD('type', 'enum(canSell=Продаваеми,canBuy=Купуваеми)', 'mandatory,caption=Артикули');
+    	$this->FLD('type', 'enum(canSell=Продаваеми,canBuy=Купуваеми)', 'mandatory,caption=Артикули,notNull,value=canSell');
     	$this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
     	
     	$this->setDbUnique('title');
@@ -220,7 +220,7 @@ class cat_Listings extends core_Master
     			
     		// Добавя се всеки запис, групиран според типа
     		while($rec = $query->fetch()){
-    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq);
+    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity);
     			
     			self::$cache[$listRec->id][$rec->id] = $obj;
     		}
