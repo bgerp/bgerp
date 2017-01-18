@@ -58,6 +58,14 @@ class fileman_Data extends core_Manager {
     protected static $processFilesSysId = 'processFiles';
     
     
+    /**
+     * Да не се попълват ключовите думи при инициализация
+     * 
+     * @see plg_Search
+     */
+    public $fillSearchKeywordsOnSetup = FALSE;
+    
+    
     
     /**
      * Описание на модела (таблицата)

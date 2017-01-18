@@ -581,7 +581,7 @@ class core_Html
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
-        
+       
         $title = tr($title);
 
         // Ако URL-то е празно - забраняваме бутона
@@ -623,11 +623,11 @@ class core_Html
 
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow') ) {
-            $attr = self::addBackgroundIcon($attr);
+            $attr = self::addBackgroundIcon($attr); 
         } else {
             unset($attr['ef_icon']);
         }
-
+ 
         // Ако нямаме JavaScript правим хипервръзка
         if ( Mode::is('javascript', 'no') ) {
             
@@ -803,6 +803,7 @@ class core_Html
 
                 if(log_Browsers::isRetina()) {
                     $icon2 = str_replace('/16/', '/32/', $icon);
+
                     if(getFullPath($icon2)) {
                         $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
                     }
@@ -810,6 +811,8 @@ class core_Html
                 $icon    = "<img src='$iconSrc' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
                 $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
+
+
                 // Добавяме икона на бутона, ако има
                 $attr = self::addBackgroundIcon($attr);
             }
@@ -833,8 +836,6 @@ class core_Html
         		$attr['style'] .= ' color:#999 !important;';
         	}
         }
-        
-        $attr['class'] .= ' no-spell-check';
         
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
@@ -1279,20 +1280,18 @@ class core_Html
      * Връща стил с включен бекграунд за икона
      */
     static function getIconStyle($icon, $style = 'background-size:16px 16px;')
-    {
+    {   
         if(!empty($icon)) {
             if(log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $icon);
+               
                 if(getFullPath($icon2)) {
                     $icon = $icon2;
                 }
             }
 
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
-            
-            $attr = array();
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
-            
+                        
             $style = rtrim($style, ' ;');
 
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";

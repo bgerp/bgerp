@@ -281,9 +281,8 @@ class trans_Lines extends core_Master
     	if(isset($fields['-single'])){
 	    	
 	    	$attr = array();
-	    	$attr['class'] = "linkWithIcon";
 	    	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
-	    		$attr['style'] = "background-image:url('" . sbf('img/16/tractor.png', "") . "');";
+	    		$attr['ef_icon'] = 'img/16/tractor.png';
 	    	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId), NULL, $attr);
 	    	}
 	    	

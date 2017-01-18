@@ -649,8 +649,7 @@ class doc_UnsortedFolders extends core_Master
 	        				$icon = cal_Tasks::getIcon($task['taskId']);
 	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
 	        				$attr = array();
-	        				$attr['class'] .= 'linkWithIcon';
-	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['ef_icon'] = $icon;
 	        				$attr['title'] = $recTitle;
 	        				 
 	        				$title = ht::createLink(str::limitLen($recTitle, 25),
@@ -681,8 +680,7 @@ class doc_UnsortedFolders extends core_Master
 	        				$icon = cal_Tasks::getIcon($task['taskId']);
 	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
 	        				$attr = array();
-	        				$attr['class'] .= 'linkWithIcon';
-	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['ef_icon'] = $icon;
 	        				$attr['title'] = $recTitle;
 	        				
 	        				$title = ht::createLink(str::limitLen($recTitle, 25),

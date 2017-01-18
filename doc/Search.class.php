@@ -463,8 +463,7 @@ class doc_Search extends core_Manager
         }
         
         $attr = array();
-        $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
+        $attr['ef_icon'] = $docProxy->getIcon();
         
         $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
         

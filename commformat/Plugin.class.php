@@ -103,7 +103,7 @@ class commformat_Plugin extends core_Plugin
         $icon = sbf("img/16/world_link.png", '', $isAbsolute);
 	         	    
         // добавяме иконата пред името на услугата
-        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" .$match[2]. "</span>";
+        $this->mvc->_htmlBoard[$place] =  "<span style=\"" . ht::getIconStyle('img/16/world_link.png') . "\">" .$match[2]. "</span>";
       
         $communicationFormat = str_replace($match[2], "[#{$place}#]", $match[0]);
 

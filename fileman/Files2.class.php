@@ -915,17 +915,17 @@ class fileman_Files2 extends core_Master
         $ext = fileman_Files::getExt($name);
         
         //Иконата на файла, в зависимост от разширението на файла
-        $icon = "fileman/icons/{$ext}.png";
+        $icon = "fileman/icons/16/{$ext}.png";
         
         //Ако не можем да намерим икона за съответното разширение
         if (!is_file(getFullPath($icon))) {
             
             // Използваме иконата по подразбиране
-            $icon = "fileman/icons/default.png";
+            $icon = "fileman/icons/16/default.png";
         }
         
         // Вербалното име на файла
-        $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $absolute) . ");'>{$vName}</span>";
+        $fileName = "<span class='linkWithIcon' style=\"" . ht::getIconStyle($icon) . "\">{$vName}</span>";
         
         // Вземаме URL' то
         $url = static::getUrlToSingle($fh, $absolute);

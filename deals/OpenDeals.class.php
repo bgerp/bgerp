@@ -228,7 +228,7 @@ class deals_OpenDeals extends core_Manager {
 	    		
 	    		// Ако потребителя има достъп до документа, той излиза като линк
 	    		$icon = $DocClass->getIcon($rec->docId);
-	    		$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	    		$attr['ef_icon'] = $icon;
 	    		$row->docId = ht::createLink($row->docId, array($DocClass, 'single', $rec->docId), NULL, $attr);
 	    	
 	    		// Ако документа е активен и потребителя има достъп до него, може да генерира документи
