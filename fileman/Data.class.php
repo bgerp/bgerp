@@ -58,6 +58,12 @@ class fileman_Data extends core_Manager {
     protected static $processFilesSysId = 'processFiles';
     
     
+    /**
+     * 
+     */
+    public $fillSearchKeywordsOnSetup = FALSE;
+    
+    
     
     /**
      * Описание на модела (таблицата)
