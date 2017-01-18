@@ -219,6 +219,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
 		$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
 		
+		$listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
+		$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
+		
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
@@ -227,7 +230,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 				
 				// Показване на вашия реф ако има
-				$row->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
+				$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
 				
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";
