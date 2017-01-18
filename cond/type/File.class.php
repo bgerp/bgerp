@@ -11,9 +11,9 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Файл
+ * @title     Драйвер за параметър от тип 'Файл'
  */
-class cond_type_File extends cond_type_Proto
+class cond_type_File extends cond_type_abstract_Proto
 {
 	
 	

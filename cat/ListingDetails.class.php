@@ -55,7 +55,7 @@ class cat_ListingDetails extends doc_Detail
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,moq,modifiedOn,modifiedBy';
+    public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,moq,multiplicity=Кратност,modifiedOn,modifiedBy';
 			
 
     /**
@@ -77,12 +77,6 @@ class cat_ListingDetails extends doc_Detail
     
     
     /**
-     * Работен кеш
-     */
-    protected static $cache = array();
-    
-    
-    /**
      * Брой на страница
      */
     public $listItemsPerPage = 20;
@@ -93,7 +87,7 @@ class cat_ListingDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'moq';
+    public $hideListFieldsIfEmpty = 'moq,multiplicity';
     
     
 	/**
@@ -102,12 +96,11 @@ class cat_ListingDetails extends doc_Detail
 	function description()
 	{
 		$this->FLD('listId', 'key(mvc=cat_Listings,select=id)', 'caption=Лист,silent,mandatory');
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId|canSell|canBuy,caption=Артикул');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId,caption=Артикул');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,caption=Опаковка,input=hidden,mandatory');
     	$this->FLD('reff', 'varchar(32)', 'caption=Техен код,smartCenter');
     	$this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
-    	$this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
-    	$this->FLD('canBuy', 'enum(yes=Да,no=Не)', 'input=none');
+    	$this->FLD('multiplicity', 'double(smartRound,Min=0)', 'caption=Кратност на колич.');
     	
     	$this->setDbUnique('listId,productId,packagingId');
     	$this->setDbUnique('listId,reff');
@@ -123,13 +116,14 @@ class cat_ListingDetails extends doc_Detail
 		$rec = $form->rec;
 		$mvc->currentTab = 'Листване';
 		$masterRec = $data->masterRec;
+		$meta = $masterRec->type;
 		
 		if(empty($rec->id)){
 			$Cover = doc_Folders::getCover($masterRec->folderId);
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-				$products = cat_Products::getProducts($Cover->getClassId(), $Cover->that, NULL, 'canStore', NULL, NULL, TRUE);
+				$products = cat_Products::getProducts($Cover->getClassId(), $Cover->that, NULL, $meta, NULL, NULL, TRUE);
 			} else {
-				$products = cat_Products::getProducts(NULL, NULL, NULL, 'canStore', NULL, NULL, TRUE);
+				$products = cat_Products::getProducts(NULL, NULL, NULL, $meta, NULL, NULL, TRUE);
 			}
 			
 			$products = array('' => '') + $products;
@@ -181,12 +175,6 @@ class cat_ListingDetails extends doc_Detail
 					$form->setError('moq', $warning);
 				}
 			}
-			
-			if(!$form->gotErrors()){
-				$pRec = cat_Products::fetch($rec->productId, 'canBuy,canSell');
-				$rec->canSell = $pRec->canSell;
-				$rec->canBuy = $pRec->canBuy;
-			}
 		}
 	}
 	
@@ -232,7 +220,7 @@ class cat_ListingDetails extends doc_Detail
 			} else {
 				$state = cat_Listings::fetchField($rec->listId, 'state');
 				if($state != 'draft'){
-					$requiredRoles = 'no_one';
+					//$requiredRoles = 'no_one';
 				}
 			}
 		}
@@ -260,36 +248,6 @@ class cat_ListingDetails extends doc_Detail
 				}
 			}
 		}
-	}
-	
-	
-	/**
-	 * Кешира и връща всички листвани артикули за клиента
-	 * 
-	 * @param int|stdClass $listId
-	 */
-	public static function getAll($listId)
-	{
-		expect($listRec = cat_Listings::fetchRec($listId));
-		
-		// Ако няма наличен кеш за контрагента, извлича се наново
-		if(!isset(self::$cache[$listRec->id])){
-			self::$cache[$listRec->id] = array();
-			
-			// Кои са листваните артикули за контрагента
-			$query = self::getQuery();
-			$query->where("#listId = {$listRec->id}");
-			$query->orderBy('id', 'ASC');
-			
-			// Добавя се всеки запис, групиран според типа
-			while($rec = $query->fetch()){
-				$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq);
-				self::$cache[$listRec->id][$rec->id] = $obj;
-			}
-		}
-		
-		// Връщане на кешираните данни
-		return self::$cache[$listRec->id];
 	}
 	
 	
@@ -324,47 +282,6 @@ class cat_ListingDetails extends doc_Detail
 	
 	
 	/**
-	 * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
-	 * се връща първия намерен код
-	 *
-	 * @param mixed $cClass          - ид на клас
-	 * @param int $cId               - ид на контрагента
-	 * @param int $productId         - ид на артикул
-	 * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
-	 * @return varchar|NULL          - намерения код или NULL
-	 */
-	public static function getReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
-	{
-		if(!isset($cClass) && !isset($cId)) return NULL;
-		
-		// Извличане на всичките листвани артикули
-		$all = self::getAll($cClass, $cId);
-		
-		// Намират се записите за търсения артикул
-		$res = array_filter($all, function (&$e) use ($productId, $packagingId) {
-			if(isset($packagingId)){
-				if($e->productId == $productId && $e->packagingId == $packagingId){
-					return TRUE;
-				}
-			} else{
-				if($e->productId == $productId){
-					return TRUE;
-				}
-			}
-				
-			return FALSE;
-		});
-		
-		// Ако има намерен поне един запис се връща кода
-		$firstFound = $res[key($res)];
-		$reff = (is_object($firstFound)) ? $firstFound->reff : NULL;
-		
-		// Връща се намерения код
-		return $reff;
-	}
-	
-	
-	/**
 	 * Екшън за импорт на артикули за листване
 	 */
 	function act_Import()
@@ -378,7 +295,7 @@ class cat_ListingDetails extends doc_Detail
 		// Подготовка на формата
 		$form = cls::get('core_Form');
 		$form->method = 'POST';
-		$form->title = "Импортиране на артикули за листване в|*" . cat_Listings::getHyperlink($listId);
+		$form->title = "Импортиране на артикули за листване в|* " . cat_Listings::getHyperlink($listId, TRUE);
 		$form->FLD('listId', 'int', "input=hidden,silent");
 		
 		$Cover = doc_Folders::getCover($listRec->folderId);
@@ -482,6 +399,7 @@ class cat_ListingDetails extends doc_Detail
 				foreach ($toSave as $r){
 					$newRec = (object)$r;
 					$newRec->listId = $listRec->id;
+					
 					$this->save($newRec, NULL, 'REPLACE');
 					$count++;
 				}
@@ -518,14 +436,22 @@ class cat_ListingDetails extends doc_Detail
 	{
 		$products = array();
 		$cDescendants = cat_Groups::getDescendantArray($group);
-		$alreadyIn = arr::extractValuesFromArray(self::getAll($listId), 'productId');
+		$all = cat_Listings::getAll($listId);
+		
+		$alreadyIn = arr::extractValuesFromArray($all, 'productId');
 		
 		// Извличане на всички активни, продаваеми артикули от дадената група и нейните подгрупи
 		$query = cat_Products::getQuery();
 		$query->likeKeylist('groups', $cDescendants);
-		$query->notIn('id', $alreadyIn);
+		
+		if(is_array($alreadyIn)){
+			$query->notIn('id', $alreadyIn);
+		}
+		
+		$listRec = cat_Listings::fetchRec($listId);
+		
 		$query->where("#state = 'active'");
-		$query->where("#canSell = 'yes' || #canBuy = 'yes'");
+		$query->where("#{$listRec->type} = 'yes'");
 		$query->show('isPublic,folderId,meta,id,code,name');
 		
 		while($rec = $query->fetch()){
@@ -549,7 +475,7 @@ class cat_ListingDetails extends doc_Detail
 	public function getFromSales($from, $to, $cClass, $contragentId)
 	{
 		$products = array();
-		$alreadyIn = arr::extractValuesFromArray(self::getAll($cClass, $contragentId), 'productId');
+		$alreadyIn = arr::extractValuesFromArray(cat_Listings::getAll($cClass, $contragentId), 'productId');
 		
 		// Извличане на всички продавани артикули на контрагента, които не са листвани все още
 		$query = sales_SalesDetails::getQuery();

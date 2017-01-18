@@ -11,9 +11,9 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Метод на плащане
+ * @title     Драйвер за параметър от тип 'Метод на плащане'
  */
-class cond_type_PaymentMethod extends cond_type_Proto
+class cond_type_PaymentMethod extends cond_type_abstract_Proto
 {
 	
 	

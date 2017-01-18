@@ -11,9 +11,9 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Символи
+ * @title     Драйвер за параметър от тип 'Символи'
  */
-class cond_type_Varchar extends cond_type_Proto
+class cond_type_Varchar extends cond_type_abstract_Proto
 {
 	
 	

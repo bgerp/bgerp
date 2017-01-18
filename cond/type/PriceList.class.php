@@ -11,9 +11,9 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ценова политика
+ * @title     Драйвер за параметър от тип 'Ценова политика'
  */
-class cond_type_PriceList extends cond_type_Proto
+class cond_type_PriceList extends cond_type_abstract_Proto
 {
 	
 	

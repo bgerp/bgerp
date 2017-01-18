@@ -3,7 +3,7 @@
 
 
 /**
- * Ценови политики
+ * Листвани артикули
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ценови политики
+ * @title     Листвани артикули
  */
 class cat_Listings extends core_Master
 {
@@ -95,6 +95,12 @@ class cat_Listings extends core_Master
      */
     public $rowToolsSingleField = 'title';
 
+
+	/**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
     
     /**
      * Шаблон за единичния изглед
@@ -120,9 +126,26 @@ class cat_Listings extends core_Master
     function description()
     {
     	$this->FLD('title', 'varchar', 'mandatory,caption=Заглавие');
+    	$this->FLD('type', 'enum(canSell=Продаваеми,canBuy=Купуваеми)', 'mandatory,caption=Артикули');
     	$this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
     	
     	$this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = $form->rec;
+    	
+    	if(isset($rec->id)){
+    		if(cat_ListingDetails::fetchField("#listId = {$rec->id}")){
+    			$form->setReadOnly('type');
+    		}
+    	}
     }
     
     
@@ -174,5 +197,178 @@ class cat_Listings extends core_Master
     		$Cover = doc_Folders::getCover($rec->folderId);
     		$rec->isPublic = ($Cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
     	}
+    }
+    
+    
+    /**
+     * Кешира и връща всички листвани артикули за клиента
+     *
+     * @param int|stdClass $listId
+     */
+    public static function getAll($listId)
+    {
+    	expect($listRec = cat_Listings::fetchRec($listId));
+    
+    	// Ако няма наличен кеш за контрагента, извлича се наново
+    	if(!isset(self::$cache[$listRec->id])){
+    		self::$cache[$listRec->id] =  array();
+    			
+    		// Кои са листваните артикули за контрагента
+    		$query = cat_ListingDetails::getQuery();
+    		$query->where("#listId = {$listRec->id}");
+    		$query->orderBy('id', 'ASC');
+    			
+    		// Добавя се всеки запис, групиран според типа
+    		while($rec = $query->fetch()){
+    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq);
+    			
+    			self::$cache[$listRec->id][$rec->id] = $obj;
+    		}
+    	}
+    
+    	// Връщане на кешираните данни
+    	return self::$cache[$listRec->id];
+    }
+    
+    
+    /**
+     * Помощна ф-я връщаща намерения код за покупка според артикула и опаковката, ако няма опаковка
+     * се връща първия намерен код
+     *
+     * @param mixed $cClass          - ид на клас
+     * @param int $cId               - ид на контрагента
+     * @param int $productId         - ид на артикул
+     * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
+     * @return varchar|NULL          - намерения код или NULL
+     */
+    public static function getSaleReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
+    {
+    	$listId = cond_Parameters::getParameter($cClass, $cId, 'salesList');
+    	if(!isset($listId)) return NULL;
+    	
+    	return self::getReffByProductId($listId, $productId, $packagingId, 'sellable');
+    }
+    
+    
+    /**
+     * Помощна ф-я връщаща намерения код за продажба според артикула и опаковката, ако няма опаковка
+     * се връща първия намерен код
+     *
+     * @param mixed $cClass          - ид на клас
+     * @param int $cId               - ид на контрагента
+     * @param int $productId         - ид на артикул
+     * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
+     * @return varchar|NULL          - намерения код или NULL
+     */
+    public static function getPurchaseReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
+    {
+    	$listId = cond_Parameters::getParameter($cClass, $cId, 'purchaseList');
+    	if(!isset($listId)) return NULL;
+    	
+    	return self::getReffByProductId($listId, $productId, $packagingId, 'buyable');
+    }
+    
+    
+    /**
+     * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
+     * се връща първия намерен код
+     *
+     * @param mixed $cClass          - ид на клас
+     * @param int $cId               - ид на контрагента
+     * @param int $productId         - ид на артикул
+     * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
+     * @return varchar|NULL          - намерения код или NULL
+     */
+    private static function getReffByProductId($listId, $productId, $packagingId = NULL, $type = 'sellable')
+    {
+    	expect(in_array($type, array('sellable', 'buyable')));
+    	
+    	// Извличане на всичките листвани артикули
+    	$all = self::getAll($listId);
+    	
+    	// Намират се записите за търсения артикул
+    	$res = array_filter($all, function (&$e) use ($productId, $packagingId) {
+    		if(isset($packagingId)){
+    			if($e->productId == $productId && $e->packagingId == $packagingId){
+    				return TRUE;
+    			}
+    		} else{
+    			if($e->productId == $productId){
+    				return TRUE;
+    			}
+    		}
+    
+    		return FALSE;
+    	});
+    
+    	// Ако има намерен поне един запис се връща кода
+    	$firstFound = $res[key($res)];
+    	$reff = (is_object($firstFound)) ? $firstFound->reff : NULL;
+    
+    	// Връща се намерения код
+    	return $reff;
+    }
+    
+    
+    /**
+     * Подредба на записите
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    
+    	// Сортиране на записите по num
+    	$data->query->orderBy('id');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене, това са името на
+     * документа или папката
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	// Тук ще генерираме всички ключови думи
+    	$detailsKeywords = '';
+    
+    	// Заявка към детайлите
+    	$query = cat_ListingDetails::getQuery();
+    	$query->where("#listId  = '{$rec->id}'");
+   
+    	while ($dRec = $query->fetch()){
+    		
+    		// взимаме заглавията на продуктите
+    		$productTitle = cat_Products::getTitleById($dRec->productId);
+    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+    	}
+    	
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    
+    	return $this->save($rec);
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	//bp($rec);
     }
 }

@@ -14,5 +14,5 @@
 Склад,cond_type_Store,defaultStorePurchase,Покупка
 Политика за делта,cond_type_PriceList,deltaList,Продажба
 Политика за делта,cond_type_PriceList,deltaList,Продажба
-Листвани продукти,cond_type_Listings,salesList,Продажба
-Листвани продукти,cond_type_Listings,purchaseList,Покупка
+Листвани продукти,cond_type_SaleListings,salesList,Продажба
+Листвани продукти,cond_type_PurchaseListings,purchaseList,Покупка

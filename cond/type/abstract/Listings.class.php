@@ -13,8 +13,16 @@
  * @since     v 0.1
  * @title     Листване
  */
-class cond_type_Listings extends cond_type_Proto
+abstract class cond_type_abstract_Listings extends cond_type_abstract_Proto
 {
+	
+	
+	/**
+	 * Мета свойства
+	 * 
+	 * @string canBuy|canSell
+	 */
+	protected $meta;
 	
 	
 	/**
@@ -32,6 +40,7 @@ class cond_type_Listings extends cond_type_Proto
 		
 		$lQuery = cat_Listings::getQuery();
 		$lQuery->where("#state = 'active'");
+		$lQuery->where("#type = '{$this->meta}'");
 		
 		if(cls::haveInterface('crm_ContragentAccRegIntf', $domainClass)){
 			$folderId = cls::get($domainClass)->forceCoverAndFolder($domainId);

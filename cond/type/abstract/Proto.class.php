@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title     Базов тип параметри
  */
-abstract class cond_type_Proto extends core_BaseClass
+abstract class cond_type_abstract_Proto extends core_BaseClass
 {
 	
 	

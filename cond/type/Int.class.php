@@ -11,9 +11,9 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Цяло число
+ * @title     Драйвер за параметър от тип 'Цяло число'
  */
-class cond_type_Int extends cond_type_Proto
+class cond_type_Int extends cond_type_abstract_Proto
 {
 	
 	
