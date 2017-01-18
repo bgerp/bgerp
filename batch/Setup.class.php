@@ -226,7 +226,6 @@ class batch_Setup extends core_ProtoSetup
     	$Defs = cls::get('batch_Defs');
     	$Defs->setupMvc();
     	$Templates = cls::get('batch_Templates');
-    	$Templates->truncate();
     	$Templates->setupMvc();
     	$Templates->loadSetupData();
     	
