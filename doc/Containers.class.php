@@ -1775,9 +1775,37 @@ class doc_Containers extends core_Manager
                 
                 // Обновяваме документа, за да се поправят другите полета
                 if (!$isDel) {
-                    self::update($rec->id);
-                    $resArr['updateContainers']++;
-                    self::logNotice('Обновяване на контейнера', $rec->id);
+                    
+                    // Ако ще се обновява само visibleForPartners, няма нужда да се обновява целия контейнер
+                    $updateOnlyVisible = FALSE;
+                    if (!isset($rec->visibleForPartners) && $rec->docClass && $rec->docId) {
+                        if (cls::load($rec->docClass, TRUE)) {
+                            try {
+                                $docMvc = cls::get($rec->docClass);
+                                $docRec = $docMvc->fetch($rec->docId);
+                                $updateOnlyVisible = TRUE;
+                            } catch (ErrorException $e) {
+                                $updateOnlyVisible = FALSE;
+                            }
+                        }
+                    }
+                    
+                    if ($updateOnlyVisible) {
+                        self::logNotice('Обновяване на visibleForPartners', $rec->id);
+                        if ($docMvc->isVisibleForPartners($docRec)) {
+                            $rec->visibleForPartners = 'yes';
+                        } else {
+                            $rec->visibleForPartners = 'no';
+                        }
+                        
+                        self::save($rec, 'visibleForPartners');
+                        
+                        $resArr['updateVisibleForPartners']++;
+                    } else {
+                        self::update($rec->id);
+                        $resArr['updateContainers']++;
+                        self::logNotice('Обновяване на контейнера', $rec->id);
+                    }
                 }
             } catch (ErrorException $e) {
                 reportException($e);
