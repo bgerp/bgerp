@@ -188,6 +188,17 @@ class core_CallOnTime extends core_Manager
             }
         }
         
+        // Ако някой процес е гръмнал и е останал в чакащо състояние го оправяме
+        $pQuery = self::getQuery();
+        $pQuery->where("#state = 'pending'");
+        $before = dt::subtractSecs(10000);
+        $pQuery->where("#callOn <= '{$before}'");
+        while($pRec = $pQuery->fetch()) {
+            $pRec->state = 'draft';
+            self::save($pRec, 'state');
+            self::logNotice('Променено състояние', $pRec->id);
+        }
+        
         return $res;
     }
     
