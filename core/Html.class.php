@@ -837,8 +837,6 @@ class core_Html
         	}
         }
         
-        $attr['class'] .= ' no-spell-check';
-        
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
         return $tpl;
