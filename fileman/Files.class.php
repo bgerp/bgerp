@@ -659,12 +659,8 @@ class fileman_Files extends core_Master
      */
     public static function getTempDir()
     {
-        // TODO
-//    	$conf = core_Packs::getConfig('fileman');
-//    	$tempPath = $conf->FILEMAN_TEMP_PATH;
-    	
         // Пътя до директория с временните файлове
-        $tempDir = FILEMAN_TEMP_PATH;
+        $tempDir = fileman_Setup::get('TEMP_PATH');
         
         return $tempDir;
     }

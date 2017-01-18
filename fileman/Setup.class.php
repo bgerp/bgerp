@@ -90,6 +90,12 @@ defIfNot('FILEMAN_OCR', '');
 
 
 /**
+ * Директория, в която ще се държат екстрактнатите файлове
+ */
+defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
+
+
+/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
