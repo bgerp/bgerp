@@ -174,20 +174,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Определяне на движението генерирано от склада
-     *
-     * @param stdClass $rec
-     * @return string $operation - in|out|stay
-     */
-    public function getBatchMovementDocument($rec)
-    {
-    	$isReverse = store_Receipts::fetchField($rec->receiptId, 'isReverse');
-    	
-    	return ($isReverse == 'yes') ? 'out' : 'in';
-    }
-    
-    
-    /**
      * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
      */
     public static function on_AfterGetRowInfo($mvc, &$res, $rec)
