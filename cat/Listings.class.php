@@ -232,44 +232,6 @@ class cat_Listings extends core_Master
     
     
     /**
-     * Помощна ф-я връщаща намерения код за покупка според артикула и опаковката, ако няма опаковка
-     * се връща първия намерен код
-     *
-     * @param mixed $cClass          - ид на клас
-     * @param int $cId               - ид на контрагента
-     * @param int $productId         - ид на артикул
-     * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
-     * @return varchar|NULL          - намерения код или NULL
-     */
-    public static function getSaleReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
-    {
-    	$listId = cond_Parameters::getParameter($cClass, $cId, 'salesList');
-    	if(!isset($listId)) return NULL;
-    	
-    	return self::getReffByProductId($listId, $productId, $packagingId, 'sellable');
-    }
-    
-    
-    /**
-     * Помощна ф-я връщаща намерения код за продажба според артикула и опаковката, ако няма опаковка
-     * се връща първия намерен код
-     *
-     * @param mixed $cClass          - ид на клас
-     * @param int $cId               - ид на контрагента
-     * @param int $productId         - ид на артикул
-     * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
-     * @return varchar|NULL          - намерения код или NULL
-     */
-    public static function getPurchaseReffByProductId($cClass, $cId, $productId, $packagingId = NULL)
-    {
-    	$listId = cond_Parameters::getParameter($cClass, $cId, 'purchaseList');
-    	if(!isset($listId)) return NULL;
-    	
-    	return self::getReffByProductId($listId, $productId, $packagingId, 'buyable');
-    }
-    
-    
-    /**
      * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
      * се връща първия намерен код
      *
@@ -279,10 +241,8 @@ class cat_Listings extends core_Master
      * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
      * @return varchar|NULL          - намерения код или NULL
      */
-    private static function getReffByProductId($listId, $productId, $packagingId = NULL, $type = 'sellable')
+    public static function getReffByProductId($listId, $productId, $packagingId = NULL)
     {
-    	expect(in_array($type, array('sellable', 'buyable')));
-    	
     	// Извличане на всичките листвани артикули
     	$all = self::getAll($listId);
     	
@@ -369,6 +329,26 @@ class cat_Listings extends core_Master
     public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
-    	//bp($rec);
+    	
+    	$id1 = cond_Parameters::fetchIdBySysId('salesList');
+    	$id2 = cond_Parameters::fetchIdBySysId('purchaseList');
+    	
+    	$cQuery = cond_ConditionsToCustomers::getQuery();
+    	$cQuery->in('conditionId', array($id1, $id2));
+    	$cQuery->where("#value = {$rec->id}");
+    	
+    	$found = array();
+    	while($cRec = $cQuery->fetch()){
+    		$found[] = "<b>" . cls::get($cRec->cClass)->getTitleById($cRec->cId) . "</b>";
+    	}
+    	
+    	if(count($found)){
+    		$implode = implode(', ', $found);
+    		core_Statuses::newStatus('Документа не може да се оттегли, защото е избран като търговско условие за|* ' . $implode, 'warning');
+    		
+    		return FALSE;
+    	}
+    	
+    	
     }
 }
