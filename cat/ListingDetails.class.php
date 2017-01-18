@@ -100,7 +100,7 @@ class cat_ListingDetails extends doc_Detail
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,caption=Опаковка,input=hidden,mandatory');
     	$this->FLD('reff', 'varchar(32)', 'caption=Техен код,smartCenter');
     	$this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
-    	$this->FLD('multiplicity', 'double(smartRound,Min=0)', 'caption=Кратност на колич.');
+    	$this->FLD('multiplicity', 'int(Min=0)', 'caption=Кратност на колич.');
     	
     	$this->setDbUnique('listId,productId,packagingId');
     	$this->setDbUnique('listId,reff');
