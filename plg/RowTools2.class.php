@@ -46,9 +46,7 @@ class plg_RowTools2 extends core_Plugin
             $singleIcon = $mvc->getIcon($rec->id);
             
             if($singleField = $mvc->rowToolsSingleField) {
-              
-                $attr1['class'] = 'linkWithIcon';
-                $attr1['style'] = 'background-image:url(' . sbf($singleIcon) . ');';
+                $attr1['ef_icon'] =$singleIcon;
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);  
             } else {

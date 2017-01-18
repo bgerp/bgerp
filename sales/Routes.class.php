@@ -300,8 +300,7 @@ class sales_Routes extends core_Manager {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {   
-    	$locIcon = sbf("img/16/location_pin.png");
-    	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
+     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('ef_icon' => "img/16/location_pin.png"));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
     	
     	if(!$rec->repeat){
@@ -419,8 +418,7 @@ class sales_Routes extends core_Manager {
     	}
     	
     	if ($data->addUrl) {
-	    	$img = sbf('img/16/add.png');
-	    	$title .= ht::createLink('', $data->addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute', 'title'=>'Създаване на нов търговски маршрут')); 
+	    	$title .= ht::createLink('', $data->addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addRoute', 'title'=>'Създаване на нов търговски маршрут')); 
 	    }
 
     	$tpl->replace($title, 'title');

@@ -200,8 +200,7 @@ class doc_FolderPlg extends core_Plugin
             if (log_Data::haveRightFor('list')) {
                 
                 $attr = array();
-                $attr['class'] = 'linkWithIcon';
-		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+		        $attr['ef_icon'] = '/img/16/page_go.png';
 		        $attr['title'] = 'Екшън лог на потребителя';
                 
                 $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);

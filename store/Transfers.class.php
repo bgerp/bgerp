@@ -292,8 +292,7 @@ class store_Transfers extends core_Master
     		$attr = array();
     		foreach (array('fromStore', 'toStore') as $storeFld){
 	    		if(store_Stores::haveRightFor('single', $rec->{$storeFld})){
-	    			$attr['class'] = "linkWithIcon";
-	    			$attr['style'] = "background-image:url('" . sbf('img/16/home-icon.png', "") . "');";
+	    			$attr['ef_icon'] = 'img/16/home-icon.png';
 	    			$row->{$storeFld} = ht::createLink($row->{$storeFld}, array('store_Stores', 'single', $rec->{$storeFld}), NULL, $attr);
 	    		}
     		}

@@ -1625,16 +1625,11 @@ class doc_Containers extends core_Manager
             $title .= ' #' . $rec->id;
         }
         
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на класа
-        $sbfIcon = sbf($ctrInst->singleIcon, '"', $isAbsolute);
 
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
             
-            $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
+            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->singleIcon) . "\"> [#1#] </span>", $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
@@ -1643,8 +1638,7 @@ class doc_Containers extends core_Manager
             
             //Атрибути на линка
             $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon});";    
+            $attr['ef_icon'] =  $ctrInst->singleIcon;    
             $attr['target'] = '_blank';    
             
             //Създаваме линк
@@ -2407,8 +2401,7 @@ class doc_Containers extends core_Manager
         
         // Атрибутеите на линка
         $attr = array();
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
+        $attr['ef_icon'] = $doc->getIcon($doc->that);
         $attr['title'] = 'Документ|*: ' . $docRow->title;
         
         // Документа да е линк към single' а на документа

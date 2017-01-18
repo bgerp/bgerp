@@ -2450,12 +2450,6 @@ class doc_Threads extends core_Manager
         // Ескейпваме заглавието
         $title = $docRow->title;
 
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на нишката
-        $sbfIcon = sbf($docProxy->getIcon(), '"', $isAbsolute);
-        
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
             
@@ -2468,8 +2462,7 @@ class doc_Threads extends core_Manager
             
             // Атрибути на линка
             $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon});";    
+            $attr['ef_icon'] = $docProxy->getIcon();    
             $attr['target'] = '_blank'; 
             
             // Създаваме линк
