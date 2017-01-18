@@ -178,6 +178,7 @@ class hr_Departments extends core_Master
                                  plant=Завод,
                                  workshop=Цех,
                                  store=Склад,
+				 shop=Магазин,
                                  unit=Звено,
                                  brigade=Бригада,
                                  shift=Смяна,

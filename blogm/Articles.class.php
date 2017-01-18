@@ -30,7 +30,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_State, plg_Printing, blogm_Wrapper, 
+	var $loadList = 'plg_RowTools2, plg_State, plg_Printing, blogm_Wrapper, 
         plg_Search, plg_Created, plg_Modified, cms_VerbalIdPlg, plg_Rejected';
 	
 

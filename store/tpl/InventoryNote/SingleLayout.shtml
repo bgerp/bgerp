@@ -47,6 +47,7 @@
       [#store_InventoryNoteSummary#]
    </div>
 </div>
+<!--ET_BEGIN COUNTER-->
 <div class="lines"></div>
 <table style="width: 100%;" class="table-border">
     <tr>
@@ -75,7 +76,7 @@
             </span>
         </td>
     </tr>
-
 </table>
+<!--ET_END COUNTER-->
 <div class="clearfix21"></div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

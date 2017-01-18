@@ -108,14 +108,15 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
-        
-        $tabsArr['barcodes'] = (object) 
-			array(
-				'title' => 'Баркодове',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Баркодове") . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 6,
-			);
+        if (self::canShowTab($fRec->fileHnd, 'barcodes')){
+            $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
+            $tabsArr['barcodes'] = (object)
+            array(
+                    'title' => 'Баркодове',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Баркодове") . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'order' => 6,
+            );
+        }
 
         return $tabsArr;
     }
@@ -262,6 +263,18 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     static function getBarcodes($fRec, $callBack = 'fileman_webdrv_Generic::afterGetBarcodes')
     {
         parent::getBarcodes($fRec, 'fileman_webdrv_Pdf::afterGetBarcodes');
+    }
+    
+    
+    /**
+     * Дали може да се извлича баркод
+     * 
+     * @return boolean
+     */
+    public static function canGetBarcodes()
+    {
+        
+        return TRUE;
     }
     
     

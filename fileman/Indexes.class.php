@@ -682,18 +682,7 @@ class fileman_Indexes extends core_Manager
             if ($content === FALSE) {
                 
                 // Намираме драйвера
-                $webdrvArr = self::getDriver($ext);
-                if (empty($webdrvArr)) continue;
-                $drvInst = FALSE;
-                foreach ($webdrvArr as $drv) {
-                    if (!$drv) continue;
-        			
-                    if (!method_exists($drv, 'extractText')) continue;
-        			
-                    $drvInst = $drv;
-        			
-                    break;
-                }
+                $drvInst = self::getDrvForMethod($ext, 'extractText');
                 
                 if ($drvInst) {
                     try {
@@ -774,7 +763,75 @@ class fileman_Indexes extends core_Manager
         
         fileman_Data::save($dRec, 'searchKeywords');
         
+        $break = FALSE;
+        foreach ($fArr as $hnd => $fRec) {
+        
+            if (dt::now() >= $endOn) {
+                $break = TRUE;
+                break;
+            }
+        
+            if (!$fRec) continue;
+        
+            $fName = $fRec->name;
+        
+            if (!$fRec) continue;
+             
+            $ext = fileman_Files::getExt($fName);
+            
+            $drvInst = self::getDrvForMethod($ext, 'canGetBarcodes');
+            if ($drvInst && $drvInst->canGetBarcodes()) {
+                try {
+                    usleep(500000);
+                    $drvInst->getBarcodes($fRec);
+                } catch (ErrorException $e) {
+                    reportException($e);
+                }
+            }
+
+            $drvInst = self::getDrvForMethod($ext, 'convertToHtml');
+            if ($drvInst) {
+                try {
+                    usleep(500000);
+                    $drvInst->convertToHtml($fRec);
+                } catch (ErrorException $e) {
+                    reportException($e);
+                }
+            }
+        }
+        
+        if ($break) return FALSE;
+        
         return TRUE;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $ext
+     * @param string $methodName
+     * @return FALSE|stdObject
+     */
+    protected static function getDrvForMethod($ext, $methodName)
+    {
+        $webdrvArr = self::getDriver($ext);
+        
+        if (empty($webdrvArr)) continue;
+        
+        $drvInst = FALSE;
+        
+        foreach ($webdrvArr as $drv) {
+            if (!$drv) continue;
+             
+            if (!method_exists($drv, $methodName)) continue;
+             
+            $drvInst = $drv;
+             
+            break;
+        }
+        
+        return $drvInst;
     }
     
     

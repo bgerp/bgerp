@@ -943,8 +943,8 @@ class draw_Designs extends core_Master
         $form->method = 'GET';
         
         $form->toolbar->addSbBtn('Обнови', 'default', FALSE, 'ef_icon=img/16/arrow_refresh.png');
-        $form->toolbar->addSbBtn('SVG', 'svg', FALSE, 'ef_icon=fileman/icons/svg.png');
-        $form->toolbar->addSbBtn('PDF', 'pdf', FALSE, 'ef_icon=fileman/icons/pdf.png');
+        $form->toolbar->addSbBtn('SVG', 'svg', FALSE, 'ef_icon=fileman/icons/16/svg.png');
+        $form->toolbar->addSbBtn('PDF', 'pdf', FALSE, 'ef_icon=fileman/icons/16/pdf.png');
 
         $form->title = "Параметри на чертежа";
 

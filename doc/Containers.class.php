@@ -1625,16 +1625,11 @@ class doc_Containers extends core_Manager
             $title .= ' #' . $rec->id;
         }
         
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на класа
-        $sbfIcon = sbf($ctrInst->singleIcon, '"', $isAbsolute);
 
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
             
-            $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
+            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->singleIcon) . "\"> [#1#] </span>", $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
@@ -1643,8 +1638,7 @@ class doc_Containers extends core_Manager
             
             //Атрибути на линка
             $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon});";    
+            $attr['ef_icon'] =  $ctrInst->singleIcon;    
             $attr['target'] = '_blank';    
             
             //Създаваме линк
@@ -1775,9 +1769,37 @@ class doc_Containers extends core_Manager
                 
                 // Обновяваме документа, за да се поправят другите полета
                 if (!$isDel) {
-                    self::update($rec->id);
-                    $resArr['updateContainers']++;
-                    self::logNotice('Обновяване на контейнера', $rec->id);
+                    
+                    // Ако ще се обновява само visibleForPartners, няма нужда да се обновява целия контейнер
+                    $updateOnlyVisible = FALSE;
+                    if (!isset($rec->visibleForPartners) && $rec->docClass && $rec->docId) {
+                        if (cls::load($rec->docClass, TRUE)) {
+                            try {
+                                $docMvc = cls::get($rec->docClass);
+                                $docRec = $docMvc->fetch($rec->docId);
+                                $updateOnlyVisible = TRUE;
+                            } catch (ErrorException $e) {
+                                $updateOnlyVisible = FALSE;
+                            }
+                        }
+                    }
+                    
+                    if ($updateOnlyVisible) {
+                        self::logNotice('Обновяване на visibleForPartners', $rec->id);
+                        if ($docMvc->isVisibleForPartners($docRec)) {
+                            $rec->visibleForPartners = 'yes';
+                        } else {
+                            $rec->visibleForPartners = 'no';
+                        }
+                        
+                        self::save($rec, 'visibleForPartners');
+                        
+                        $resArr['updateVisibleForPartners']++;
+                    } else {
+                        self::update($rec->id);
+                        $resArr['updateContainers']++;
+                        self::logNotice('Обновяване на контейнера', $rec->id);
+                    }
                 }
             } catch (ErrorException $e) {
                 reportException($e);
@@ -1975,6 +1997,7 @@ class doc_Containers extends core_Manager
                 if (!$dRec->containerId) {
                     if ($dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма containerId на оттеглен документ';
                     }
                 }
                 
@@ -2010,6 +2033,7 @@ class doc_Containers extends core_Manager
                 
                 if (!$dRec->containerId) {
                     $delete = TRUE;
+                    $reason = 'Няма containerId';
                 }
                 
                 // Поправяме originId
@@ -2033,6 +2057,7 @@ class doc_Containers extends core_Manager
                 if (!$delete && !$dRec->threadId) {
                     if ($dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма threadId на оттеглен документ';
                     }
                 }
                 
@@ -2059,6 +2084,7 @@ class doc_Containers extends core_Manager
                         }
                     } else {
                         $delete = TRUE;
+                        $reason = 'Няма запис в doc_Threads за containerId';
                     }
                     
                 }
@@ -2067,6 +2093,7 @@ class doc_Containers extends core_Manager
                 if (!$delete) {
                     if (!$dRec->folderId && $dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма folderId на оттеглен документ';
                     }
                     
                     if (!$delete) {
@@ -2103,6 +2130,7 @@ class doc_Containers extends core_Manager
                             }
                         } else {
                             $delete = TRUE;
+                            $reason = 'Не може да се определи folderId';
                         }
                     }
                 }
@@ -2111,7 +2139,7 @@ class doc_Containers extends core_Manager
                 if ($delete) {
                     try {
                         
-                        $delMsg = 'Изтрит документ';
+                        $delMsg = 'Изтрит документ' . ' - ' . $reason;
                         if ($clsInst instanceof core_Master) {
                             $dArr = arr::make($clsInst->details, TRUE);
                             
@@ -2130,7 +2158,7 @@ class doc_Containers extends core_Manager
                                         $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $dRec->id));
                                     }
                                 }
-                                $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})";
+                                $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})" . ' - ' . $reason;
                             }
                         }
 
@@ -2401,8 +2429,7 @@ class doc_Containers extends core_Manager
         
         // Атрибутеите на линка
         $attr = array();
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
+        $attr['ef_icon'] = $doc->getIcon($doc->that);
         $attr['title'] = 'Документ|*: ' . $docRow->title;
         
         // Документа да е линк към single' а на документа

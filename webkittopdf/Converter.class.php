@@ -198,16 +198,13 @@ class webkittopdf_Converter extends core_Manager
         
         self::logDebug("Резултат от изпълнението на '{$exec}': " . $res);
         
-        //Качвания новосъздадения PDF файл
-        $Fileman = cls::get('fileman_Files');
-        
         // Ако възникне грешка при качването на файла (липса на права)
         try {
             
             expect(is_file($pdfPath));
             
             // Качваме файла в кофата и му вземаме манипулатора
-            $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName); 
+            $fh = fileman::absorb($pdfPath, $bucketName, $fileName); 
         } catch (core_exception_Expect $e) {
             $fh = NULL;
             reportException($e);

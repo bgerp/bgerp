@@ -42,8 +42,13 @@ abstract class deals_Helper
      */
 	public static function roundPrice($price, $minDigits = 7)
 	{
+	    $p = 0;
+	    if ($price) {
+	        $p = round(log10($price));
+	    }
+	    
 	    // Плаваща прецизност
-	    $precision =  max(2, $minDigits - round(log10($price)));
+	    $precision =  max(2, $minDigits - $p);
 		
 	    // Изчисляваме закръглената цена
 	    $price = round($price, $precision);
@@ -466,7 +471,7 @@ abstract class deals_Helper
         }
 		
 		$shortUomName = cat_UoM::getShortName($measureId);
-		$res .= ' <small class="quiet">' . $quantityInPack . $shortUomName . '</small>';
+		$res = ' <small class="quiet">' . $quantityInPack . $shortUomName . '</small>';
 		$res = "<span class='nowrap'>{$res}</span>";
 
         return $res;
@@ -680,7 +685,7 @@ abstract class deals_Helper
 		$res = (object)array('quantity' => 0, 'amount' => 0);
 		
 		// Ако е масив
-		if(is_array($array)){
+		if (is_array($array) && !empty($array)){
 			$currencyItemId = $currencyItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($currencyCode))->id;
 			$currencyListId = acc_Lists::fetchBySystemId('currencies')->id;
 			

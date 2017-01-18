@@ -1112,7 +1112,7 @@ class core_App
             'url' => 'core_Url',
             'users' => 'core_Users',
             'ut' => 'unit_Tests',
-            'fileman' => 'fileman_Files2',
+            'fileman' => 'fileman_Files',
         );
         
         if(isset($aliases[strtolower($className)]) && $fullName = $aliases[strtolower($className)]) {

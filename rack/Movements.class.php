@@ -239,6 +239,8 @@ class rack_Movements extends core_Manager
             $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = TRUE;
         }
 
+        core_Cache::remove('UsedRacksPossitions', $rec->storeId);
+
         $rMvc->on_Shutdown($rMvc);
 
         redirect(array($this));

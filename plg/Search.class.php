@@ -407,7 +407,8 @@ class plg_Search extends core_Plugin
     public static function on_AfterSetupMVC($mvc, &$res)
     {
         $i = 0;
-    	if(!$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+        setIfNot($mvc->fillSearchKeywordsOnSetup, TRUE);
+    	if($mvc->fillSearchKeywordsOnSetup !== FALSE && !$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
             $query = $mvc->getQuery();
             while($rec = $query->fetch()) {
             	try{

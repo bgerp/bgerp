@@ -82,13 +82,10 @@ class cond_Countries extends core_Manager
 		$form->setDefault('country', $myCompany->country);
 		
 		if($rec->conditionId){
-			if($Driver = cond_Parameters::getDriver($rec->conditionId)){
+			if($Type = cond_Parameters::getTypeInstance($rec->conditionId, $rec->value)){
 				$form->setField('value', 'input');
-				$pRec = cond_Parameters::fetch($rec->conditionId);
-				if($Type = $Driver->getType($pRec)){
-					$form->setFieldType('value', $Type);
-				}
-			} else {
+				$form->setFieldType('value', $Type);
+			}else {
 				$form->setError('conditionId', 'Има проблем при зареждането на типа');
 			}
 		}

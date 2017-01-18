@@ -100,9 +100,9 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Ново лице');
         $browser->setValue('name', 'Агент на Фирма bgErp');
         $browser->setValue('buzCompanyId', '3');
-        $browser->setValue('groupList[9]', True);
+        //$browser->setValue('groupListInput[9]', True);
+        $browser->setValue('Потребители', True);
         $browser->press('Запис');
-        //return $browser->getHtml();
         // Добавяне на потребител
         $browser->press('Потребител');
         $browser->setValue('nick', 'agent1');
@@ -165,9 +165,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('inqDescription', 'Чували');
         $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
-        
-        //return $browser->getHtml();
-        
+      
     }
     /**
      * 5. Създаване на Partner-distr и потребител към него
@@ -184,10 +182,9 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Ново лице');
         $browser->setValue('name', 'Представител на Фирма bgErp');
         $browser->setValue('buzCompanyId', '3');
-        $browser->setValue('groupList[9]', True);
+        $browser->setValue('Потребители', True);
         $browser->press('Запис');
-        //return $browser->getHtml();
-    
+       
         // Добавяне на потребител
         $browser->press('Потребител');
         $browser->setValue('nick', 'distr1');
@@ -203,7 +200,6 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
-        //return $browser->getHtml();
     
     }
     

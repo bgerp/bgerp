@@ -3122,15 +3122,19 @@ span.sharing-history-title {
   .rowtoolsGroup.modal-toolbar.iw-contextMenu {
     padding: 5px 6px 4px 5px;
     max-width: 160px; }
-  .rowtoolsGroup a {
+  .rowtoolsGroup a,
+  .rowtoolsGroup span {
     text-align: left;
     display: block;
     font-size: 0.95em;
     padding: 3px 0;
+    padding-left: 22px !important;
     color: #333333 !important; }
-    .rowtoolsGroup a:hover {
+    .rowtoolsGroup a:hover,
+    .rowtoolsGroup span:hover {
       color: black !important;
-      background-color: #e1e1e1; }
+      background-color: #e1e1e1;
+      cursor: pointer; }
 
 table.styled-table tr:hover td {
   background-color: #ffffcc !important; }
@@ -4385,6 +4389,9 @@ only screen and (max-width: 320px) {
  * стилове за принтиране
  */
 @media print {
+  body {
+    margin: 0px !important; }
+
   .document {
     width: 100%;
     max-width: 1200px;
