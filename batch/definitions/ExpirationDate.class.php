@@ -125,10 +125,10 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		
 		$today = strtotime(dt::today());
 		
-		$value = dt::getMysqlFromMask($value, $this->rec->format);
+		$strtotime= dt::getMysqlFromMask($value, $this->rec->format);
 		
 		// Ако партидата е изтекла оцветяваме я в червено
-		if(strtotime($value) < $today){
+		if(strtotime($strtotime) < $today){
 			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
 			$value = new core_ET("<span class='red'>[#value#]</span>");
 			$value->replace($valueHint, 'value');
