@@ -471,6 +471,7 @@ abstract class deals_DealDetail extends doc_Detail
     	// Намират се всички листвани артикули
     	$param = ($this->Master instanceof sales_Sales) ? 'salesList' : 'purchaseList';
     	expect($listId = cond_Parameters::getParameter($saleRec->contragentClassId, $saleRec->contragentId, $param));
+    	$form->info = tr("|Списък за листване|*:") . cat_Listings::getLink($listId, 0);
     	
     	$listed = cat_Listings::getAll($listId);
     	
