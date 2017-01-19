@@ -240,20 +240,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Определяне на движението генерирано от склада
-     *
-     * @param stdClass $rec
-     * @return string $operation - in|out|stay
-     */
-    public function getBatchMovementDocument($rec)
-    {
-    	$isReverse = store_ShipmentOrders::fetchField($rec->shipmentId, 'isReverse');
-    	 
-    	return ($isReverse == 'yes') ? 'in' : 'out';
-    }
-    
-    
-    /**
      * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
      */
     public static function on_AfterGetRowInfo($mvc, &$res, $rec)

@@ -329,6 +329,7 @@ class batch_BatchesInDocuments extends core_Manager
 		// Какви са наличните партиди
 		$Def = batch_Defs::getBatchDef($recInfo->productId);
 		$batchCount = count($batches);
+		$foundBatches = array();
 		
 		// За всяка партида добавя се като поле
 		if(is_array($batches)){
