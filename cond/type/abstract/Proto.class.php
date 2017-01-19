@@ -51,11 +51,11 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param cond_type_Proto $Driver
+     * @param cond_type_abstract_Proto $Driver
      * @param embed_Manager $Embedder
      * @param stdClass $data
      */
-    public static function on_AfterInputEditForm(cond_type_Proto $Driver, embed_Manager $Embedder, &$form)
+    public static function on_AfterInputEditForm(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$form)
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
