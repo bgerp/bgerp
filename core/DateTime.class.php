@@ -933,13 +933,19 @@ class core_DateTime
      * 
      * @param varchar $string     - стринг
      * @param varchar $mask       - маска (e.g dd.mm.yyyy)
-     * @return string $mysqlDate
+     * @return string|FALSE       - mysql датата в формат 'Y-m-d', или FALSE ако има проблем
      */
     public static function getMysqlFromMask($string, $mask)
     {
+    	// Подготовка на времевия обект
     	$timeFormat = DateTime::createFromFormat($mask, $string);
-    	$mysqlDate = $timeFormat->format('Y-m-d');
     	
-    	return $mysqlDate;
+    	// Ако успешно е инстанциран датата се обръща във mysql-ски формат
+    	if(is_object($timeFormat)){
+    		return $timeFormat->format('Y-m-d');
+    	}
+    	
+    	// В краен случай се връща FALSE
+    	return FALSE;
     }
 }
