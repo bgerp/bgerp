@@ -125,7 +125,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		
 		$today = strtotime(dt::today());
 		
-		$strtotime= dt::getMysqlFromMask($value, $this->rec->format);
+		$strtotime = dt::getMysqlFromMask($value, $this->rec->format);
 		
 		// Ако партидата е изтекла оцветяваме я в червено
 		if(strtotime($strtotime) < $today){
