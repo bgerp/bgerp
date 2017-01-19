@@ -531,14 +531,14 @@ abstract class deals_DealDetail extends doc_Detail
     			
     			// Ако няма грешка със записа
     			if(!array_key_exists($lId, $error)){
-    				$obj = (object)array('quantity'       => $packQuantity * $quantityInPack,
-    						             'quantityInPack' => $quantityInPack,
-    						             'price'          => $packPrice / $quantityInPack,
-    						             'discount'       => $discount,
-    						             'productId'      => $productId,
-    						             'packagingId'    => $packagingId,
-    						             'id'             => $recId,
-    						             'saleId'         => $saleRec->id,
+    				$obj = (object)array('quantity'           => $packQuantity * $quantityInPack,
+    						             'quantityInPack'     => $quantityInPack,
+    						             'price'              => $packPrice / $quantityInPack,
+    						             'discount'           => $discount,
+    						             'productId'          => $productId,
+    						             'packagingId'        => $packagingId,
+    						             'id'                 => $recId,
+    						             "{$this->masterKey}" => $saleRec->id,
     				);
     
     				// Определяне дали ще се добавя или обновява
@@ -551,7 +551,8 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     
     		if(count($error2)){
-    			if(haveRole('salesMaster,ceo')){
+    			$warningRoles = ($mvc instanceof sales_SalesDetails) ? 'salesMaster,ceo' : 'purchaseMaster,ceo';
+    			if(haveRole($warningRoles)){
     				$form->setWarning(implode(',', $error2), "Количеството е под МКП");
     			} else {
     				$form->setError(implode(',', $error2), "Количеството е под МКП");
