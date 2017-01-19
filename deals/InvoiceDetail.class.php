@@ -222,7 +222,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		
 		foreach ($data->rows as $id => &$row1){
 			$rec = $data->recs[$id];
-			$row1->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+			
+			if(isset($listId)){
+				$row1->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+			}
 		}
 		
 		if($masterRec->type != 'dc_note') return;

@@ -230,7 +230,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 				
 				// Показване на вашия реф ако има
-				$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+				if(isset($listId)){
+					$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+				}
 				
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";

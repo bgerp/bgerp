@@ -354,7 +354,10 @@ abstract class deals_DealDetail extends doc_Detail
     		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->Master->getClassId(), $masterRec->id);
     		
     		// Показване на вашия реф, ако има
-    		$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+    		if(isset($listId)){
+    			$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+    		}
+    		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
     		
     		if($rec->notes){
