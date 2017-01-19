@@ -1773,6 +1773,10 @@ class core_Users extends core_Manager
      */
     static function haveRole($roles, $userId = NULL)
     {
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+
         $userRoles = core_Users::getRoles($userId);
         
         $Roles = cls::get('core_Roles');
@@ -1784,7 +1788,7 @@ class core_Users extends core_Manager
         } else {
             $requiredRoles = arr::make($roles);
         }
-        
+
         if(count($requiredRoles)) {
             foreach ($requiredRoles as $role) {
                 
@@ -1794,6 +1798,12 @@ class core_Users extends core_Manager
                 // Никой потребител, няма роля 'none'
                 if ($role == 'no_one' && !isDebug()) continue;
                 
+                // Системният потребител има роля system
+                if($role == 'system' && core_Users::getCurrent() == -1) return TRUE;
+                
+                // Анонимният потребител има роля anonym
+                if($role == 'anonym' && core_Users::getCurrent() == 0) return TRUE;
+  
                 $roleId = $Roles->fetchByName($role);
                 
                 // Съдържа ли се ролята в keylist-а от роли на потребителя?

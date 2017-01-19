@@ -926,4 +926,20 @@ class core_DateTime
     	
     	return TRUE;
     }
+    
+    
+    /**
+     * Опитва се да обърне подаден стринг с дадена маска, в mysql-ски формат дата
+     * 
+     * @param varchar $string     - стринг
+     * @param varchar $mask       - маска (e.g dd.mm.yyyy)
+     * @return string $mysqlDate
+     */
+    public static function getMysqlFromMask($string, $mask)
+    {
+    	$timeFormat = DateTime::createFromFormat($mask, $string);
+    	$mysqlDate = $timeFormat->format('Y-m-d');
+    	
+    	return $mysqlDate;
+    }
 }

@@ -889,6 +889,12 @@ class doc_Containers extends core_Manager
      */
     static function addNotifications($usersArr, $docMvc, $rec, $action='добави', $checkThreadRight=TRUE, $priority='normal')
     {
+        // Не правим нотификации, ако в документа е посочена ролята на текущия потребител
+        if(isset($docMvc->muteNotificationsBy) && haveRole($docMvc->muteNotificationsBy)) {
+
+            return;
+        }
+
         // Ако няма да се споделя, а ще се добавя
         if ($action != 'сподели') {
             
