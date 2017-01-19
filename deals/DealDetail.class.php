@@ -576,9 +576,9 @@ abstract class deals_DealDetail extends doc_Detail
     
     		if(count($multiError)){
     		if(haveRole('salesMaster,ceo')){
-    				$form->setWarning(implode(',', $multiError), "Количеството не е делимо на очакваното");
+    				$form->setWarning(implode(',', $multiError), "Количеството не е кратно на очакваното");
     			} else {
-    				$form->setError(implode(',', $multiError), "Количеството не е делимо на очакваното");
+    				$form->setError(implode(',', $multiError), "Количеството не е кратно на очакваното");
     			}
     		}
     		
@@ -656,7 +656,7 @@ abstract class deals_DealDetail extends doc_Detail
     
     		if(isset($lRec->multiplicity)){
     			$multiplicity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($lRec->multiplicity);
-    			$unit .= (($unit) ? ", " : ' ') . "|делимо на|* <b>{$multiplicity}</b>";
+    			$unit .= (($unit) ? ", " : ' ') . "|кратно на|* <b>{$multiplicity}</b>";
     		}
     		
     		if($unit != ''){
