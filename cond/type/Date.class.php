@@ -11,7 +11,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за параметър от тип 'Дата'
+ * @title     Дата
  */
 class cond_type_Date extends cond_type_abstract_Proto
 {

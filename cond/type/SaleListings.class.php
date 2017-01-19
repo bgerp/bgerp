@@ -11,7 +11,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за параметър от тип 'Листване на продаваеми артикули'
+ * @title     Листване на продаваеми артикули
  */
 class cond_type_SaleListings extends cond_type_abstract_Listings
 {

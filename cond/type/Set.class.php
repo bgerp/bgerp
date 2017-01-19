@@ -11,7 +11,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за параметър от тип 'Множество'
+ * @title     Множество
  */
 class cond_type_Set extends cond_type_abstract_Proto
 {
