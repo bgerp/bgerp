@@ -524,7 +524,7 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     			 
     			if(isset($lRec->multiplicity)){
-    				if($packQuantity % $lRec->multiplicity != 0){
+    				if(core_Math::fmod($packQuantity, $lRec->multiplicity) != 0){
     					$multiError[$lId] = "quantity{$lId}";
     				}
     			}
