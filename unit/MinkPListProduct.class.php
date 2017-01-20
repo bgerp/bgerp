@@ -24,9 +24,9 @@ class unit_MinkPListProduct extends core_Manager {
         $res = '';
         $res .= '<br>'.'MinkPListProduct';
         $res .=  " 1.".$this->act_CreateCatListings();
-        //$res .=  " 2.".$this->act_CreateSaleList();
-        //$res .= "  3.".$this->act_ImportListProducts();
-        //$res .= "  4.".$this->act_CreateSaleList1();
+        $res .=  " 2.".$this->act_SetCustomerConditions();
+        $res .= "  3.".$this->act_CreateSaleList();
+        $res .= "  4.".$this->act_CreatePurchaseList();
         
         return $res;
     }
@@ -77,7 +77,7 @@ class unit_MinkPListProduct extends core_Manager {
     }
     
     /**
-     * Добавяне на търговски условия за листване - покупка и продажба
+     * Добавяне на търговски условия за листване - покупка и продажба в проект
      */
      
     //http://localhost/unit_MinkPListProduct/CreateCatListings/
@@ -145,6 +145,31 @@ class unit_MinkPListProduct extends core_Manager {
     }
     
     /**
+     * Добавяне на търговски условия за листване към контрагент (продажби и покупки)
+     * Не работи!
+     */
+    //http://localhost/unit_MinkPListProduct/SetCustomerConditions/
+    function act_SetCustomerConditions()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+        //Отваряне корицата на фирмата
+        $browser = $this->SetFirm();
+         
+        $browser->click('Търговия');
+        $browser->click('Добавяне на ново търговско условие');
+        $browser->setValue('conditionId', 'Листвани продукти');
+        //return $browser->getHtml();
+        $browser->setValue('value', 'За покупка');
+        $browser->press('Запис и Нов');
+        $browser->setValue('conditionId', 'Листвани продукти');
+        $browser->setValue('value', 'За продажба');
+        $browser->press('Запис');
+          
+    }
+    
+    /**
      * Продажба - артикули по списък
      */
      
@@ -159,7 +184,6 @@ class unit_MinkPListProduct extends core_Manager {
          $browser = $this->SetFirm();
       
          $browser->press('Папка');
-         
          
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -204,9 +228,70 @@ class unit_MinkPListProduct extends core_Manager {
         }
         
     }
-     
+    
     /**
-     * Добавяне на артикули за листване към фирма от група/предишни продажби - не работи
+     * Покупка - артикули по списък
+     */
+     
+    //http://localhost/unit_MinkPListProduct/CreatePurchaseList/
+    function act_CreatePurchaseList()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+    
+        $browser->press('Папка');
+         
+        // нова покупка - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Покупка')) {
+            $browser->press('Покупка');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Покупка');
+        }
+        $browser->setValue('reff', 'MinkPListProducts');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPlistVatInclude');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Включено ДДС в цените");
+        // Записване черновата на покупката
+        $browser->press('Чернова');
+    
+        // Добавяне на артикули
+        $browser->press('Списък');
+        /// Количества на двата артикула
+    
+        $browser->setValue('quantity1', '100');
+        //return $browser->getHtml();
+        $browser->setValue('quantity2', '50');
+    
+        // Записване артикулите
+        $browser->press('Импорт');
+        //return $browser->getHtml();
+        // активиране на покупката
+        $browser->press('Активиране');
+         
+        $browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Шестдесет и един BGN и 0,73')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
+    
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '61,73 61,73 0,00 0,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
+    
+    }
+    
+    
+    /**
+     * Добавяне на търговски условия за листване - покупка и продажба в папка на клиент
      */
     //http://localhost/unit_MinkPListProduct/ImportListProducts/
     function act_ImportListProducts()
@@ -215,23 +300,29 @@ class unit_MinkPListProduct extends core_Manager {
         // Логване
         $browser = $this->SetUp();
         //Отваряне корицата на фирмата
-        $browser = $this->SetFirm();
+        $browser = $this->SetFirmEUR();
+        $browser->press('Папка');
+        $browser->press('Нов...');
+        $browser->press('Листване на артикули');
+        $browser->setValue('title', 'За продажба NEW INTERNATIONAL');
+        $browser->setValue('type', 'Продаваеми');
+        $browser->press('Чернова');
        
-        $browser->click('Търговия');
-        // Добавяне на артикул
+         // Добавяне на артикул
         $browser->press('Импорт');
      
         $browser->setValue('from', 'group');
+        //$browser->setValue('from', 'sales');
         //return $browser->getHtml();
         //$browser->setValue('Ценова група » Промоция', '15');
-        //$browser->setValue('group', 'Ценова група » Промоция');
-        $browser->setValue('group', '15');
+        $browser->setValue('group', 'Ценова група » Промоция');
+        //$browser->setValue('group', '15');
         // Записване на списъка
         $browser->press('Импорт');
     
     }
     
     /**
-     * Продажба - артикули по списък от предишни продажби
+     * Продажба - артикули по списък от предишни продажби/група
      */
 }
