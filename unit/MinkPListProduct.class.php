@@ -204,9 +204,9 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->press('Списък');
         /// Количества на двата артикула
       
-        $browser->setValue('quantity1', '100');
+        $browser->setValue('quantity3', '36');
         //return $browser->getHtml();
-        $browser->setValue('quantity2', '50');
+        $browser->setValue('quantity4', '100');
         
         // Записване артикулите
         $browser->press('Импорт');
@@ -216,13 +216,13 @@ class unit_MinkPListProduct extends core_Manager {
        
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Шестдесет и един BGN и 0,73')) {
+        if(strpos($browser->gettext(), 'Двеста двадесет и един BGN и 0,60')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         //Проверка на статистиката
-        if(strpos($browser->gettext(), '61,73 61,73 0,00 0,00')) {
+        if(strpos($browser->gettext(), '221,60 221,60 0,00 0,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
@@ -252,7 +252,6 @@ class unit_MinkPListProduct extends core_Manager {
             $browser->press('Нов...');
             $browser->press('Покупка');
         }
-        $browser->setValue('reff', 'MinkPListProducts');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPlistVatInclude');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -264,9 +263,9 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->press('Списък');
         /// Количества на двата артикула
     
-        $browser->setValue('quantity1', '100');
+        $browser->setValue('quantity1', '20');
         //return $browser->getHtml();
-        $browser->setValue('quantity2', '50');
+        $browser->setValue('quantity2', '1200');
     
         // Записване артикулите
         $browser->press('Импорт');
@@ -276,13 +275,13 @@ class unit_MinkPListProduct extends core_Manager {
          
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Шестдесет и един BGN и 0,73')) {
+        if(strpos($browser->gettext(), 'Двеста петдесет и девет BGN и 0,47')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         //Проверка на статистиката
-        if(strpos($browser->gettext(), '61,73 61,73 0,00 0,00')) {
+        if(strpos($browser->gettext(), '259,47 259,47 0,00 0,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
@@ -292,6 +291,7 @@ class unit_MinkPListProduct extends core_Manager {
     
     /**
      * Добавяне на търговски условия за листване - покупка и продажба в папка на клиент
+     * Не работи!
      */
     //http://localhost/unit_MinkPListProduct/ImportListProducts/
     function act_ImportListProducts()
