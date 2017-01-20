@@ -206,7 +206,7 @@ class fileman_Setup extends core_ProtoSetup
             
             'migrate::addFileLen',
             'migrate::bucketRoles',
-            'migrate::regenerateData'
+            'migrate::regenerateData1'
         );
     
     
@@ -421,7 +421,7 @@ class fileman_Setup extends core_ProtoSetup
     /**
      * Пускане на последните файлове
      */
-    static function regenerateData()
+    static function regenerateData1()
     {
         $dQuery = fileman_Data::getQuery();
         $dQuery->where("#processed = 'yes'");
