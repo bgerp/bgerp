@@ -329,6 +329,7 @@ class batch_BatchesInDocuments extends core_Manager
 		// Какви са наличните партиди
 		$Def = batch_Defs::getBatchDef($recInfo->productId);
 		$batchCount = count($batches);
+		$foundBatches = array();
 		
 		// За всяка партида добавя се като поле
 		if(is_array($batches)){
@@ -466,7 +467,7 @@ class batch_BatchesInDocuments extends core_Manager
 			if(!$form->gotErrors()){
 				
 				if($form->cmd == 'auto'){
-					$old = $foundBatches;;
+					$old = (count($foundBatches)) ? $foundBatches : array();
 					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
 					$intersect = array_diff_key($old, $saveBatches);
 					$delete = (count($intersect)) ? array_keys($intersect) : array();

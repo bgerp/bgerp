@@ -94,6 +94,13 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     
     
     /**
+     * Списък с роли на потребители, при действията на които с дадения документ
+     * абонираните потребители не се нотифицират
+     */
+    public $muteNotificationsBy = 'system';
+
+    
+    /**
      * След дефиниране на полетата на модела
      */
     public static function on_AfterDescription(core_Master &$mvc)

@@ -100,7 +100,14 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public $searchFields = 'notes,docId,classId, id';
     
+
+    /**
+     * Списък с роли на потребители, при действията на които с дадения документ
+     * абонираните потребители не се нотифицират
+     */
+    public $muteNotificationsBy = 'system';
     
+
     /**
      * Връща разликата с която ще се приключи сделката
      * @param mixed  $threadId - ид на нишката или core_ObjectReference

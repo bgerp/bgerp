@@ -70,4 +70,23 @@ class core_Math
 	    
 	    return $number;
 	}
+	
+	
+	/**
+	 * Функция намираща остатъка на делението на две реални числа
+	 * 
+	 * @param double $x
+	 * @param double $y
+	 * @return double $r
+	 */
+	public static function fmod($x, $y)
+	{
+		$x = (double)$x;
+		$y = (double)$y;
+		expect($y != 0, 'Опит за деление на нула');
+		
+		$r = $x - floor($x / $y) * $y;
+		
+		return $r;
+	}
 }

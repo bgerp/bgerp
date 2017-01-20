@@ -200,15 +200,17 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Връща типа на параметъра
 	 *
-	 * @param mixed $id        - ид или запис на параметър
-	 * @param mixed $value     - стойност
-	 * @return FALSE|core_Type - инстанцираният тип или FALSE ако не може да се определи
+	 * @param mixed $id          - ид или запис на параметър
+	 * @param mixed $domainClass - клас на домейна на параметъра
+	 * @param int $domainId      - ид на домейна на параметъра
+	 * @param mixed $value       - стойност
+	 * @return FALSE|core_Type   - инстанцираният тип или FALSE ако не може да се определи
 	 */
-	public static function getTypeInstance($id, $value = NULL)
+	public static function getTypeInstance($id, $domainClass, $domainId, $value = NULL)
 	{
 		$rec = static::fetchRec($id);
 		if($Driver = static::getDriver($rec)){
-			return $Type = $Driver->getType($rec, $value);
+			return $Type = $Driver->getType($rec, $domainClass, $domainId, $value);
 		}
 		 
 		return FALSE;
@@ -292,7 +294,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		 
 		// Само за типовете enum и set, се искат опции
 		if($type == 'enum' || $type == 'set'){
-			$nRec->options = cond_type_Proto::options2text($options);
+			$nRec->options = cond_type_abstract_Proto::options2text($options);
 		}
 		 
 		// Създаване на параметъра
@@ -322,13 +324,15 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Параметри функция за вербализиране
 	 *
-	 * @param int $id      - ид на параметър
-	 * @param mixed $value - стойност за вебализиране
-	 * @return mixed       - вербализирана стойност или FALSE ако не може
+	 * @param  int   $id          - ид на параметър
+	 * @param  mixed $domainClass - клас на домейна на параметъра
+	 * @param  int   $domainId    - ид на домейна на параметъра
+	 * @param  mixed $value       - стойност за вебализиране
+	 * @return mixed              - вербализирана стойност или FALSE ако не може
 	 */
-	public static function toVerbal($id, $value)
+	public static function toVerbal($id, $domainClass, $domainId, $value)
 	{
-		$Type = self::getTypeInstance($id);
+		$Type = self::getTypeInstance($id, $domainClass, $domainId, $value);
 		if($Type) return $Type->toVerbal(trim($value));
 		 
 		return FALSE;
