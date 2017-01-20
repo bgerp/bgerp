@@ -324,9 +324,6 @@ class doc_Files extends core_Manager
             $query->where("#folderId = {$filter->folderId}");
         }
         
-        // Името на таблицата
-        $tableName = static::getDbTableName();
-        
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
             $query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');

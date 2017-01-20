@@ -82,7 +82,7 @@ class cond_Countries extends core_Manager
 		$form->setDefault('country', $myCompany->country);
 		
 		if($rec->conditionId){
-			if($Type = cond_Parameters::getTypeInstance($rec->conditionId, $rec->value)){
+			if($Type = cond_Parameters::getTypeInstance($rec->conditionId, 'drdata_Countries', $rec->country, $rec->value)){
 				$form->setField('value', 'input');
 				$form->setFieldType('value', $Type);
 			}else {
@@ -100,7 +100,7 @@ class cond_Countries extends core_Manager
 		$paramRec = cond_Parameters::fetch($rec->conditionId);
 		$row->conditionId = cond_Parameters::getVerbal($paramRec, 'typeExt');
 		
-		if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
+		if($ParamType = cond_Parameters::getTypeInstance($paramRec, 'drdata_Countries', $rec->country, $rec->value)){
 			$row->value = $ParamType->toVerbal(trim($rec->value));
 		}
 		

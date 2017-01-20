@@ -25,7 +25,7 @@ class batch_Defs extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search, plg_Sorting';
     
     
     /**
@@ -92,6 +92,17 @@ class batch_Defs extends core_Manager {
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	if($rec->productId){
+    		$res = " " . plg_Search::normalizeText(cat_Products::getTitleById($rec->productId));
+    	}
+    }
+    
+    
+    /**
      * Подредба на записите
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
@@ -110,7 +121,7 @@ class batch_Defs extends core_Manager {
     	}
     	
     	// Сортиране на записите по num
-    	$data->query->orderBy('id');
+    	$data->query->orderBy('id', 'DESC');
     }
   
     

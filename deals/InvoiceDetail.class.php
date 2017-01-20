@@ -217,9 +217,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
 		$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
 		
+		$listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
+		$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
+		
 		foreach ($data->rows as $id => &$row1){
 			$rec = $data->recs[$id];
-			$row1->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);			
+			
+			if(isset($listId)){
+				$row1->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+			}
 		}
 		
 		if($masterRec->type != 'dc_note') return;

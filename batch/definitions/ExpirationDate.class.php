@@ -20,7 +20,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	/**
 	 * Позволени формати
 	 */
-	private $formatSuggestions = 'm/d/y,m.d.y,d.m.Y,m/d/Y,d/m/Y,Ymd,Ydm,Y-m-d,dmY,ymd,ydm';
+	private $formatSuggestions = 'm/d/y,m.d.y,d.m.Y,m/d/Y,d/m/Y,Ymd,Ydm,Y-m-d,dmY,ymd,ydm,m.d.Y';
 	
 	
 	/**
@@ -123,10 +123,12 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	{
 		if(Mode::isReadOnly()) return cls::get('type_Html')->toVerbal($value);
 		
-		$today = dt::today();
+		$today = strtotime(dt::today());
+		
+		$strtotime = dt::getMysqlFromMask($value, $this->rec->format);
 		
 		// Ако партидата е изтекла оцветяваме я в червено
-		if(strtotime($value) < strtotime($today)){
+		if(strtotime($strtotime) < $today){
 			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
 			$value = new core_ET("<span class='red'>[#value#]</span>");
 			$value->replace($valueHint, 'value');
