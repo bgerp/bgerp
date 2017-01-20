@@ -509,6 +509,19 @@ class doc_Threads extends core_Manager
                     }
                 }
                 
+                if (!$prepareDocCnt) {
+                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                }
+                
+                if ($firstDcRec && $firstDcRec->id && ($rec->firstContainerId != $firstDcRec->id)) {
+                    $fCid = $rec->firstContainerId;
+                    $rec->firstContainerId = $firstDcRec->id;
+                    
+                    self::save($rec, 'firstContainerId');
+                    $resArr['firstContainerId']++;
+                    self::logNotice("Променено firstContainerId от {$fCid} на {$firstDcRec->id} в нишка", $rec->id);
+                }
+                
                 
                 if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
                 
