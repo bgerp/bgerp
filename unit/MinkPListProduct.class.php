@@ -23,9 +23,9 @@ class unit_MinkPListProduct extends core_Manager {
         
         $res = '';
         $res .= '<br>'.'MinkPListProduct';
-        $res .=  " 1.".$this->act_CreateListProducts();
-        $res .=  " 2.".$this->act_CreateSaleList();
-        $res .= "  3.".$this->act_ImportListProducts();
+        $res .=  " 1.".$this->act_CreateCatListings();
+        //$res .=  " 2.".$this->act_CreateSaleList();
+        //$res .= "  3.".$this->act_ImportListProducts();
         //$res .= "  4.".$this->act_CreateSaleList1();
         
         return $res;
@@ -77,37 +77,71 @@ class unit_MinkPListProduct extends core_Manager {
     }
     
     /**
-     * Ръчно добавяне на артикули за листване към фирма
+     * Добавяне на търговски условия за листване - покупка и продажба
      */
      
-    //http://localhost/unit_MinkPListProduct/CreateListProducts/
-    function act_CreateListProducts()
+    //http://localhost/unit_MinkPListProduct/CreateCatListings/
+    function act_CreateCatListings()
     {
     
         // Логване
         $browser = $this->SetUp();
-    
-        //Отваряне корицата на фирмата
-        $browser = $this->SetFirm();
-        $browser->click('Търговия');
-       
+        
+        $browser->click('Всички');
+        $browser->press('Нов проект');
+        $browser->setValue('name', 'Търговски условия за листване');
+        $browser->setValue('Листвани артикули', True); 
+        $browser->press('Запис');
+        $browser->press('Папка');
+        //Списък за листване при покупки 
+        $browser->press('Листване на артикули');
+        $browser->setValue('title', 'За покупка');
+        $browser->setValue('type', 'Купуваеми');
+        $browser->press('Чернова');
+        
         // Добавяне на артикул
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Плик 7 л');
+        $browser->setValue('productId', 'Артикул ДДС 9');
         $browser->refresh('Запис');
-        $browser->setValue('reff', 'p7');
-        $browser->setValue('moq', '10');
+        $browser->setValue('reff', 'D9');
+        $browser->setValue('moq', '20');
+        $browser->setValue('multiplicity', '10');
        
         // Записване артикула и добавяне нов
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('reff', 's50');
-        $browser->setValue('moq', '50');
-    
+        $browser->setValue('moq', '1000');
+        $browser->setValue('multiplicity', '100');
         // Записване на артикула
         $browser->press('Запис');
-    
+        $browser->press('Активиране');
+        
+        //Списък за листване при продажби
+        $browser->click('Търговски условия за листване');
+        $browser->press('Листване на артикули');
+        $browser->setValue('title', 'За продажба');
+        $browser->setValue('type', 'Продаваеми');
+        $browser->press('Чернова');
+        
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Плик 7 л');
+        $browser->refresh('Запис');
+        $browser->setValue('reff', 'p7');
+        $browser->setValue('moq', '24');
+        $browser->setValue('multiplicity', '12');
+        // Записване артикула и добавяне нов
+        $browser->press('Запис и Нов');
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->refresh('Запис');
+        $browser->setValue('reff', 's50');
+        $browser->setValue('moq', '100');
+        $browser->setValue('multiplicity', '50');
+        // Записване на артикула
+        $browser->press('Запис');
+        $browser->press('Активиране');
     }
     
     /**
