@@ -202,6 +202,7 @@ class doc_ExpensesSummary extends core_Manager
     	$FieldSet->FLD('amount', 'double(minDecimals=2)');
     	
     	$table = cls::get('core_TableView', array('mvc' => $FieldSet));
+    	$total = 0;
     	
     	// Подравняване на числата
     	plg_AlignDecimals2::alignDecimals($FieldSet, $data->recs, $data->rows);
@@ -209,6 +210,10 @@ class doc_ExpensesSummary extends core_Manager
     	// Ако има отрицателни числа се оцветяват в червено
     	if(is_array($data->recs)){
     		foreach ($data->recs as $index => $rec){
+    			if($rec->type == 'allocated'){
+    				$total += $rec->amount;
+    			}
+    			
     			foreach (array('quantity', 'amount') as $fld){
     				if($rec->type == 'corrected'){
     					$data->rows[$index]->{$fld} = "<small>{$data->rows[$index]->{$fld}}</small>";
@@ -225,6 +230,12 @@ class doc_ExpensesSummary extends core_Manager
     	
     	// Рендиране на таблицата
     	$tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
+    	
+    	if(count($data->rows)){
+    		$total = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($total);
+    		$afterRow = "<tr style='background-color:#eee'><td colspan=4 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
+    		$tableHtml->append($afterRow, 'ROW_AFTER');
+    	}
     	
     	if(isset($data->isClosed)){
     		$nTpl = new core_ET("<div class='red' style='margin-bottom:5px'>{$data->isClosed}</div>");

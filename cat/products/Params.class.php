@@ -140,9 +140,7 @@ class cat_products_Params extends doc_Detail
     		$row->group = cat_Params::getVerbal($paramRec, 'group');
     	}
     	
-    	if($ParamType = cat_Params::getTypeInstance($paramRec, $rec->paramValue)){
-    		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
-    	}
+    	$row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
     	
     	if(!empty($paramRec->suffix)){
     		$suffix = cat_Params::getVerbal($paramRec, 'suffix');
@@ -157,10 +155,11 @@ class cat_products_Params extends doc_Detail
     protected static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
+        $rec = $form->rec;
         
-    	if(!$form->rec->id){
+    	if(!$rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
-	    	$options = self::getRemainingOptions($form->rec->classId, $form->rec->productId, $form->rec->id);
+	    	$options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
 			$form->setOptions('paramId', array('' => '') + $options);
 			$form->paramOptions = $options;
 			
@@ -172,8 +171,8 @@ class cat_products_Params extends doc_Detail
     		$form->setReadOnly('paramId');
     	}
     	
-        if($form->rec->paramId){
-        	if($Type = cat_Params::getTypeInstance($form->rec->paramId, $form->rec->paramValue)){
+        if($rec->paramId){
+        	if($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)){
         		$form->setField('paramValue', 'input');
         		$form->setFieldType('paramValue', $Type);
         		
@@ -246,7 +245,7 @@ class cat_products_Params extends doc_Detail
      		// Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
      		$paramValue = ($paramValue) ? $paramValue : cat_Params::getDefault($paramId);
      		if($verbal === TRUE){
-     			$ParamType = cat_Params::getTypeInstance($paramId);
+     			$ParamType = cat_Params::getTypeInstance($paramId, $classId, $productId, $paramValue);
      			$paramValue = $ParamType->toVerbal(trim($paramValue));
      		}
      		
