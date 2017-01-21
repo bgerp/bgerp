@@ -38,27 +38,33 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond';
+	public $canList = 'ceo,cond,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond';
+	public $canSingle = 'ceo,cond,admin';
     
     
     /**
      * Кой може да пише
      */
-    public $canWrite = 'ceo,cond';
+    public $canWrite = 'ceo,cond,admin';
     
     
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cond';
+    public $canAdd = 'ceo,cond,admin';
     
-    
+
+    /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'ceo,cond,admin';
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -70,7 +76,7 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'ceo,admin';
+    public $canEditsysdata = 'ceo,cond,admin';
     
     
     /**

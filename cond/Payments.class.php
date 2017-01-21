@@ -54,13 +54,13 @@ class cond_Payments extends core_Manager {
     /**
      * Кой може да го прочете?
      */
-    public $canRead = 'ceo, cond';
+    public $canRead = 'ceo,cond,admin';
     
     
     /**
      * Кой може да променя?
      */
-    public $canWrite = 'ceo, cond';
+    public $canWrite = 'ceo,cond,admin';
     
     
     /**
@@ -72,19 +72,19 @@ class cond_Payments extends core_Manager {
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'ceo, cond';
+    public $canReject = 'ceo,cond,admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond';
+	public $canList = 'ceo,cond,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond';
+	public $canSingle = 'ceo,cond,admin';
 	
 	
 	/**
