@@ -753,7 +753,7 @@ class acc_Journal extends core_Master
     		$rec = &$form->rec;
     		
     		// Трябва баланса да е преизчислен за да продължим
-    		if(core_Locks::isLocked('RecalcBalances')){
+    		if(core_Locks::isLocked(acc_Balances::saveLockKey)){
     			
     			return followRetUrl(NULL, tr("Баланса се преизчислява в момента, моля изчакайте"));
     		}
