@@ -118,7 +118,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			} elseif(isset($rec->expenseItemId)){
 				$expenseItem = $rec->expenseItemId;
 			} else {
-				$expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+				if(acc_Items::isItemInList($this->class, $rec->id, 'costObjects')){
+					$expenseItem = array('planning_DirectProductionNote', $rec->id);
+				} else {
+					$expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+				}
 			}
 			
 			$array = array('60201', $expenseItem, array('cat_Products', $rec->productId));
@@ -268,9 +272,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			
 			// Разпределяне към продажба ако разходния обект е продажба
 			if(isset($expenseItem)){
-				$eItem = acc_Items::fetch($expenseItem);
+				if(is_array($expenseItem)){
+					$eItem = acc_Items::fetchItem($expenseItem[0], $expenseItem[1]);
+				} else {
+					$eItem = acc_Items::fetch($expenseItem);
+				}
+				
 				if($eItem->classId == sales_Sales::getClassId()){
-					
 					$saleRec = sales_Sales::fetch($eItem->objectId, 'contragentClassId, contragentId');
 					$entry4 = array('debit' => array('703', 
 													array($saleRec->contragentClassId, $saleRec->contragentId),

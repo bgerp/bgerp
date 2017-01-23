@@ -696,4 +696,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$res->packagingId = cat_Products::fetchField($res->productId, 'measureId');
 		$res->quantityInPack = 1;
 	}
+	
+	
+	/**
+	 * Извиква се след като документа стане разходен обект
+	 */
+	public static function on_AfterForceCostObject($mvc, $rec)
+	{
+		// Реконтиране на документа
+		acc_Journal::reconto($rec->containerId);
+	}
 }
