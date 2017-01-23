@@ -365,4 +365,14 @@ class doc_ExpensesSummary extends core_Manager
     	
     	return $res;
     }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$document = doc_Containers::getDocument($rec->containerId);
+    	$document->invoke("AfterForceCostObject", array($document->fetch()));
+    }
 }
