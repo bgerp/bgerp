@@ -392,11 +392,12 @@ class acc_ValueCorrections extends core_Master
     private static function getChosenProducts(core_ObjectReference $firstDoc)
     {
     	// Aко първия документ е продажба
+    	$shipped = array();
     	if($firstDoc->isInstanceOf('sales_Sales')){
     		
     		// Взимаме артикулите от сметка 701
     		$entries = sales_transaction_Sale::getEntries($firstDoc->that);
-    		$shipped = sales_transaction_Sale::getShippedProducts($entries, '701');
+    		$shipped = sales_transaction_Sale::getShippedProducts($entries);
     		
     	  // Ако е покупка
     	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
@@ -404,10 +405,9 @@ class acc_ValueCorrections extends core_Master
     		// Вземаме всички заскладени артикули
     		$entries = purchase_transaction_Purchase::getEntries($firstDoc->that);
     		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, $firstDoc->that, '321', TRUE);
-    	} else {
-    		
-    		// Иначе няма
-    		$shipped = array();
+    	} elseif($firstDoc->isInstanceOf('planning_DirectProductionNote')){
+    		$pRec = $firstDoc->fetch();
+    		$shipped[] = (object)array('productId' => $pRec->productId, 'quantity' => $pRec->quantity, 'amount' => $pRec->quantity, 'storeId' => $pRec->storeId);
     	}
     	
     	$products = array();
@@ -416,8 +416,7 @@ class acc_ValueCorrections extends core_Master
     			$products[$p->productId] = (object)array('productId' => $p->productId, 
     												     'name'      => cat_Products::getTitleById($p->productId), 
     													 'quantity'  => $p->quantity,
-    													 'amount'    => $p->amount,
-    			);
+    													 'amount'    => $p->amount,);
     			
     			if(isset($p->inStores)){
     				$products[$p->productId]->inStores = $p->inStores;
