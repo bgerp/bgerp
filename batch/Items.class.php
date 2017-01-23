@@ -37,7 +37,7 @@ class batch_Items extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'batch, productId, storeId, quantity, nullifiedDate, state';
+    public $listFields = 'batch, productId, storeId, quantity, state';
     
     
     /**
