@@ -118,12 +118,12 @@ class blast_Lists extends core_Master
      * Детайла, на модела
      */
     var $details = 'blast_ListDetails';
-    
-    
+
+
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/application_view_list.png';
+    var $singleIcon = 'img/16/address-book.png';
     
     
     /**
@@ -160,8 +160,10 @@ class blast_Lists extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-   
-    
+
+
+
+
     /**
      * Описание на модела (таблицата)
      */
