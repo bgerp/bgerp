@@ -95,7 +95,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
      * или ако артикула е услуга Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
      * 
-     * Ct: 61102 - Други разходи (общо)                
+     * Ct: 61102 - Други разходи (общо) 
+     * 
+     * 4. Етап: Ако разходния обект е продажба
+     * 
+     * Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
+     * 
+     * Ct: 60201 - Разходи за (нескладируеми) услуги и консумативи  по избраното перо за разпределяне
 	 */
 	private function getEntries($rec, &$total)
 	{
@@ -107,13 +113,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
 		} else {
-			$expenseItem = $rec->expenseItemId;
-			if(!isset($expenseItem)){
-				if(isset($pInfo->meta['fixedAsset'])){
-					$expenseItem = array('cat_Products', $rec->productId);
-				} else{
-					$expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-				}
+			if(isset($pInfo->meta['fixedAsset'])){
+				$expenseItem = array('cat_Products', $rec->productId);
+			} elseif(isset($rec->expenseItemId)){
+				$expenseItem = $rec->expenseItemId;
+			} else {
+				$expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
 			}
 			
 			$array = array('60201', $expenseItem, array('cat_Products', $rec->productId));
@@ -259,6 +264,24 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						'reason' => 'Разпределени режийни разходи');
 					
 				$entries[] = $costArray;
+			}
+			
+			// Разпределяне към продажба ако разходния обект е продажба
+			if(isset($expenseItem)){
+				$eItem = acc_Items::fetch($expenseItem);
+				if($eItem->classId == sales_Sales::getClassId()){
+					
+					$saleRec = sales_Sales::fetch($eItem->objectId, 'contragentClassId, contragentId');
+					$entry4 = array('debit' => array('703', 
+													array($saleRec->contragentClassId, $saleRec->contragentId),
+							                        array($eItem->classId, $eItem->objectId),
+												    array('cat_Products', $rec->productId), 
+												    'quantity' => 0), 
+									'credit' => $array, 
+							        'reason' => 'Приспадане себестойността на отпадък от произведен артикул');
+					
+					$entries[] = $entry4;
+				}
 			}
 		}
 		
