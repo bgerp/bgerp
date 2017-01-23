@@ -20,7 +20,7 @@ class blast_LetterDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext';
+    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**
