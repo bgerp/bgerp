@@ -75,7 +75,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 						
 						// и той е покупка или продажба, показва се полето за разпределяне
 						$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
-						if($itemClassId == sales_Sales::getClassId() || $itemClassId == purchase_Purchases::getClassId()){
+						if($itemClassId == sales_Sales::getClassId() || $itemClassId == purchase_Purchases::getClassId() || $itemClassId == planning_DirectProductionNote::getClassId()){
 							$form->setField('allocationBy', 'input');
 							
 							if($allocationBy = Request::get('allocationBy', 'enum(no,value,quantity,weight,volume)')){
