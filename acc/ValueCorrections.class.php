@@ -422,6 +422,10 @@ class acc_ValueCorrections extends core_Master
     				$products[$p->productId]->inStores = $p->inStores;
     			}
     			
+    			if(isset($p->storeId)){
+    				$products[$p->productId]->storeId = $p->storeId;
+    			}
+    			
     			$transportWeight = cat_Products::getParams($p->productId, 'transportWeight');
     			if(!empty($transportWeight)){
     				$products[$p->productId]->transportWeight = $transportWeight;
