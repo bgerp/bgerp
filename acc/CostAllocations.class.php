@@ -66,12 +66,6 @@ class acc_CostAllocations extends core_Manager
 	
 	
 	/**
-	 * Опашка от чакащите документи за реконтиране
-	 */
-	private $recontoQueue = array();
-	
-	
-	/**
 	 * Кои полета да се извличат при изтриване
 	 */
 	public $fetchFieldsBeforeDelete = 'containerId';
@@ -104,7 +98,7 @@ class acc_CostAllocations extends core_Manager
 		if($origin->fetchField('state') == 'active'){
 			
 			// Реконтиране на документа
-			self::reconto($rec->containerId);
+			acc_Journal::reconto($rec->containerId);
 		}
 	}
 	
@@ -120,36 +114,9 @@ class acc_CostAllocations extends core_Manager
 			if($origin->fetchField('state') == 'active'){
 				
 				// Реконтиране на документа
-				self::reconto($rec->containerId);
+				acc_Journal::reconto($rec->containerId);
 			}
 		}
-	}
-	
-	
-	/**
-	 * Реконтиране на документ по контейнер
-	 * 
-	 * @param int $containerId - ид на контейнер
-	 * @return boolean $success - резултат
-	 */
-	private static function reconto($containerId)
-	{
-		// Оригиналния документ трябва да не е в затворен период
-		$origin = doc_Containers::getDocument($containerId);
-		if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) return;
-		
-		// Изтриване на старата транзакция на документа
-		acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
-			
-		// Записване на новата транзакция на документа
-		$success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, FALSE);
-		expect($success, $success);
-			
-		// Нотифициране на потребителя
-		$msg = "Реконтиране на|* #{$origin->getHandle()}";
-		core_Statuses::newStatus($msg);
-		
-		return $success;
 	}
 	
 	
@@ -251,7 +218,7 @@ class acc_CostAllocations extends core_Manager
 		if(isset($rec->expenseItemId)){
 			$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
 			
-			if($itemRec->classId == sales_Sales::getClassId() || $itemRec->classId == purchase_Purchases::getClassId()){
+			if($itemRec->classId == sales_Sales::getClassId() || $itemRec->classId == purchase_Purchases::getClassId() || $itemRec->classId == planning_DirectProductionNote::getClassId()){
 				$form->setField('allocationBy', 'input');
 				$form->setDefault('allocationBy', 'no');
 			}
