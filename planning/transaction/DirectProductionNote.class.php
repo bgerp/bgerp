@@ -278,7 +278,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 												    array('cat_Products', $rec->productId), 
 												    'quantity' => 0), 
 									'credit' => $array, 
-							        'reason' => 'Приспадане себестойността на отпадък от произведен артикул');
+							        'reason' => 'Себестойност на услугата');
 					
 					$entries[] = $entry4;
 				}
