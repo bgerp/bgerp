@@ -54,7 +54,13 @@ class cond_Countries extends core_Manager
 	 */
 	public $singleTitle = 'търговско условие за държава';
 	
-	
+
+    /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'cond,ceo';
+
+
 	/**
 	 * Описание на модела (таблицата)
 	 */
