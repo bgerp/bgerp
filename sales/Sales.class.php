@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -1087,7 +1087,6 @@ class sales_Sales extends deals_DealMaster
      */
     static function getThreadState_($id)
     {
-        
         return NULL;
     }
     
@@ -1125,11 +1124,8 @@ class sales_Sales extends deals_DealMaster
 
         if(isset($fields['-list'])){  
             $row->title .= "<div>{$row->folderId}</div>";
-
-      
         }
 
-    	
     	if(isset($fields['-single'])){
     		
     		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
@@ -1218,21 +1214,6 @@ class sales_Sales extends deals_DealMaster
     	
     	// Връщане на очаквания транспорт
     	return $expectedTransport;
-    }
-    
-    
-    /**
-     * Преди записване на клонирания запис
-     * 
-     * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
-     * 
-     * @see plg_Clone
-     */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
-    {
-        unset($nRec->state);
     }
     
     
