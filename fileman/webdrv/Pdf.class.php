@@ -195,8 +195,6 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     {
         $text = docoffice_Pdf::convertPdfToTxt($fileHnd, $params);
         
-        core_Locks::release($params['lockId']);
-        
         return $text;
     }
     

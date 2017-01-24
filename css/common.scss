@@ -1027,6 +1027,16 @@ input.more-btn {
 	display: block;
 }
 
+.filePath{
+	word-wrap:break-word;
+	display:block;
+	margin-bottom: 15px;
+	padding-top:10px;
+	.linkWithIcon {
+		padding-left: 22px !important;
+	}
+}
+
 a.more-btn {
 	padding-left: 17px !important;
 	height: 16px;

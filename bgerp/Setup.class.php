@@ -282,7 +282,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Menu->deleteNotInstalledMenu = TRUE;
         
         
-        $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
+        $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Files', 'default', 'powerUser');
 
 
         $rec = new stdClass();

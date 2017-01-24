@@ -174,7 +174,7 @@ class core_Array
     static function order(&$array, $field = 'order', $mode = 'ASC')
     {
         if($mode == 'ASC') {
-            usort($array, function($a, $b) use ($field) {
+            uasort($array, function($a, $b) use ($field) {
             		$a = (object)$a;
             		$b = (object)$b;
             		
@@ -183,7 +183,7 @@ class core_Array
                     return $a->{$field} > $b->{$field} ? 1 : -1;
                 });
         } else {
-            usort($array, function($a, $b) use ($field) {
+            uasort($array, function($a, $b) use ($field) {
 	            	$a = (object)$a;
 	            	$b = (object)$b;
             	

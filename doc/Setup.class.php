@@ -561,10 +561,10 @@ class doc_Setup extends core_ProtoSetup
         
         $cnt = $query->count();
         
-        $query->limit(1000);
+        $query->limit(300);
         $query->groupBy("dataId");
         
-        if ($cnt) {
+        if ($cnt && !core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'migrateShowFiles' AND #state = 'draft'" )) {
             $callOn = dt::addSecs(120);
             core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
         } else {

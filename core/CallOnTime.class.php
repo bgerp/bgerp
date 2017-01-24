@@ -193,6 +193,7 @@ class core_CallOnTime extends core_Manager
         $pQuery->where("#state = 'pending'");
         $before = dt::subtractSecs(10000);
         $pQuery->where("#callOn <= '{$before}'");
+        $pQuery->limit(1);
         while($pRec = $pQuery->fetch()) {
             $pRec->state = 'draft';
             self::save($pRec, 'state');

@@ -337,7 +337,11 @@ class doc_ExpensesSummary extends core_Manager
     			
     			// Преразпределяне на сумата спрямо тази, която е разпределена (не искаме усреднената сума)
     			foreach ($foundArr as &$f1){
-    				$f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
+    				if($rec1->quantity){
+    					$f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
+    				} else {
+    					$f1->amount = $rec1->amount;
+    				}
     			}
     			
     			$notDistributed = array_diff_key($notDistributed, $foundArr);
@@ -360,5 +364,15 @@ class doc_ExpensesSummary extends core_Manager
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$document = doc_Containers::getDocument($rec->containerId);
+    	$document->invoke("AfterForceCostObject", array($document->fetch()));
     }
 }

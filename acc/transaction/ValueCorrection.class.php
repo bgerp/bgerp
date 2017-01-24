@@ -346,6 +346,8 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 		if(!empty($errorMsg)) return $entries;
 		$itemRec = acc_Items::fetch($expenseItemId);
 		$isPurchase = ($itemRec->classId == purchase_Purchases::getClassId());
+		$isSale = ($itemRec->classId == sales_Sales::getClassId());
+		$mPn = ($itemRec->classId == planning_DirectProductionNote::getClassId());
 		
 		foreach ($products as $p){
 			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
@@ -386,7 +388,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 							'reason' => 'Разпределяне на разходи');
 				}
 				
-			} else {
+			} elseif($isSale) {
 				$canStore = cat_Products::fetchField($p->productId, 'canStore');
 				$accountSysId = ($canStore == 'yes') ? '701' : '703';
 				$dealRec = cls::get($itemRec->classId)->fetch($itemRec->objectId, 'contragentClassId, contragentId');
@@ -397,6 +399,25 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 								$expenseItemId, array('cat_Products', $p->productId),
 								'quantity' => 0),
 						'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
+			} elseif($mPn){
+				$canStore = cat_Products::fetchField($p->productId, 'canStore');
+				
+				if($canStore == 'yes'){
+					$debit = array('321',
+							        array('store_Stores', key($p->inStores)),
+							        array('cat_Products', $p->productId),
+							       'quantity' => 0);
+				} else {
+					$debit = array('60201',
+							$expenseItemId,
+							array('cat_Products', $p->productId),
+							'quantity' => 0);
+				}
+				
+				$creditArr['quantity'] = $sign * $p->allocated;
+				
+				$entries[] = array('debit' => $debit,
+						           'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
 			}
 		}
 		

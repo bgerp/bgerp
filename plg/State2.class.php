@@ -117,7 +117,7 @@ class plg_State2 extends core_Plugin
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         
         if ($mvc->haveRightFor('changeState', $rec)) {
-            
+           
             $this->getActiveAndClosedState($mvc);
 
             $add = "<img src=" . sbf("img/16/lightbulb_off.png") . " width='16' height='16'>";

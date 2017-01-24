@@ -60,6 +60,12 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'ceo,cond,admin';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, cond, admin';
