@@ -123,7 +123,7 @@ class price_Lists extends core_Master
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = '*';
+    public $coversAndInterfacesForNewDoc = 'crm_Persons,crm_Companies,doc_UnsortedFolders';
     
     
     /**
