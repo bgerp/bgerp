@@ -561,7 +561,7 @@ class doc_Setup extends core_ProtoSetup
         
         $cnt = $query->count();
         
-        $query->limit(1000);
+        $query->limit(300);
         $query->groupBy("dataId");
         
         if ($cnt) {
