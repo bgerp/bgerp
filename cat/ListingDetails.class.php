@@ -170,6 +170,7 @@ class cat_ListingDetails extends doc_Detail
 				}
 			}
 			
+			// Проверка на МКП-то
 			if(!empty($rec->moq)){
 				if(!deals_Helper::checkQuantity($rec->packagingId, $rec->moq, $warning)){
 					$form->setError('moq', $warning);
@@ -243,22 +244,26 @@ class cat_ListingDetails extends doc_Detail
 			$row->productId = cat_Products::getShortHyperlink($rec->productId);
 			$row->reff = "<b>{$row->reff}</b>";
 			 
-			$listRec = cat_Listings::fetch($rec->listId, 'folderId');
+			$listRec = cat_Listings::fetch($rec->listId, 'folderId,type');
 			$Cover = doc_Folders::getCover($listRec->folderId);
 			 
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-				$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
+				if($listRec->type == 'canBuy'){
+					$policyInfo = cls::get('purchase_PurchaseLastPricePolicy')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
+					$hint = 'Артикулът няма цена по-която е купуван от контрагента';
+				} else {
+					$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
+					$hint = 'Артикулът няма цена по ценовата политика на контрагента';
+				}
 				
 				if(!isset($policyInfo->price)){
-					$row->productId = ht::createHint($row->productId, 'Артикулът няма цена по ценовата политика на контрагента', 'warning', FALSE);
+					$row->productId = ht::createHint($row->productId, $hint, 'warning', FALSE);
 					$row->productId = ht::createElement("span", array('style' => 'color:#755101'), $row->productId);
 				}
 			}
 			
-			$masterType = cat_Listings::fetchField($rec->listId, 'type');
-			if(!empty($masterType)){
-				$type = cat_Products::fetchField($rec->productId, $masterType);
-					
+			if(isset($listRec->type)){
+				$type = cat_Products::fetchField($rec->productId, $listRec->type);
 				if($type != 'yes'){
 					$vType = ($masterType == 'canBuy') ? 'купуваем' : 'продаваем';
 					$row->productId = "<span class='red'>{$row->productId}</span>";
