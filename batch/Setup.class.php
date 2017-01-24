@@ -66,7 +66,9 @@ class batch_Setup extends core_ProtoSetup
     		'batch_Features',
     		'batch_Templates',
     		'migrate::migrateBatches',
+    		'migrate::migrateProdBatches',
     		'migrate::migrateDefs',
+    		'migrate::migrateProdDetBatches',
         );
     
 
@@ -254,5 +256,85 @@ class batch_Setup extends core_ProtoSetup
     		$rec->templateId = batch_Templates::force($o);
     		$Defs->save($rec, 'id,templateId');
     	}
+    }
+    
+    
+    /**
+     * Миграция на протоколите за производство
+     */
+    function migrateProdBatches()
+    {
+    	$Batches = cls::get('batch_BatchesInDocuments');
+    	$Batches->setupMvc();
+    	
+    	$arr = array();
+    	
+    	$D = cls::get('planning_DirectProductionNote');
+    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) continue;
+    	
+    	$query = planning_DirectProductionNote::getQuery();
+    	$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
+    	$query->where("#batch IS NOT NULL");
+    	
+    	while($dRec = $query->fetch()){
+    		$obj = (object)array('detailClassId'  => planning_DirectProductionNote::getClassId(),
+    				             'containerId'    => $dRec->containerId,
+    				'detailRecId'    => $dRec->id,
+    				'productId'      => $dRec->productId,
+    				'packagingId'    => cat_Products::fetchField($dRec->productId, 'measureId'),
+    				'quantityInPack' => 1,
+    				'quantity'       => $dRec->quantity,
+    				'batch'          => $dRec->batch,
+    				'date'           => $dRec->valior,
+    				'storeId'        => $dRec->storeId,
+    				'operation'      => 'in',
+    				 
+    		);
+    		 
+    		$arr[] = $obj;
+    	}
+    	
+    	$Batches->saveArray($arr);
+    }
+    
+    
+    /**
+     * Миграция на протоколите за производство
+     */
+    function migrateProdDetBatches()
+    {
+    	$Batches = cls::get('batch_BatchesInDocuments');
+    	$Batches->setupMvc();
+    	
+    	$D = cls::get('planning_DirectProductNoteDetails');
+    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) continue;
+    	
+    	
+    	$arr = array();
+    	$query = planning_DirectProductNoteDetails::getQuery();
+    	$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
+    	$query->EXT('containerId', 'planning_DirectProductionNote', "externalName=containerId,externalKey=noteId");
+    	$query->EXT('valior', 'planning_DirectProductionNote', "externalName=valior,externalKey=noteId");
+    	$query->where("#batch IS NOT NULL");
+    	
+    	while($dRec = $query->fetch()){
+    		$obj = (object)array('detailClassId'  => planning_DirectProductNoteDetails::getClassId(),
+    				'containerId'    => $dRec->containerId,
+    				'detailRecId'    => $dRec->id,
+    				'productId'      => $dRec->productId,
+    				'packagingId'    => $dRec->packagingId,
+    				'quantityInPack' => $dRec->quantityInPack,
+    				'quantity'       => $dRec->quantity,
+    				'batch'          => $dRec->batch,
+    				'date'           => $dRec->valior,
+    				'storeId'        => $dRec->storeId,
+    				'operation'      => 'out',
+    					
+    		);
+    		
+    		$arr[] = $obj;
+    	}
+    	 
+    	$Batches->saveArray($arr);
     }
 }

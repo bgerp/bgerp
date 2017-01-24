@@ -832,4 +832,103 @@ class store_InventoryNotes extends core_Master
     	$rec = $mvc->fetchRec($id);
     	cls::get('store_InventoryNoteDetails')->invoke('AfterRejectMaster', array($rec));
     }
+    
+    
+    /**
+     * Метод за създаване на нов протокол за инвентаризация
+     * 
+     * @param int $storeId         - склад
+     * @param date|NULL $valior    - вальор
+     * @param boolean $loadCurrent - дали да се заредят всички артикули в склада
+     * @return int $id             - ид на протокола
+     */
+    public static function createDraft($storeId, $valior = NULL, $loadCurrent = FALSE)
+    {
+    	$valior = (isset($valior)) ? $valior : dt::today();
+    	expect(store_Stores::fetch($storeId), "Няма склад с ид {$storeId}");
+    	
+    	$rec = (object)array('storeId'    => $storeId, 
+    			             'valior'     => $valior, 
+    						 'hideOthers' => (!$loadCurrent) ? 'yes' : 'no',
+    			             'folderId'   => store_Stores::forceCoverAndFolder($storeId));
+    	
+    	static::route($rec);
+    	
+    	$id = static::save($rec);
+    	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
+    	
+    	return $id;
+    }
+    
+    
+    /**
+     * Добавяне на ред към протокол за производство
+     * 
+     * @param int $noteId                       - ид на протокол
+     * @param int $productId                    - ид на артикул
+     * @param int $packagingId                  - ид на мярка/опаковка
+     * @param double $quantityInPack            - к-во в опаковката
+     * @param double $foundPackQuantity         - намерено количество опаковки
+     * @param double|NULL $expectedPackQuantity - очаквано количество опаковка, ако не се зададе е 0
+     * @param string|NULL $batch                - партиден номер, опционален
+     * @return int                              - ид на записа                               
+     */
+    public static function addRow($noteId, $productId, $packagingId, $quantityInPack, $foundPackQuantity, $expectedPackQuantity = NULL, $batch = NULL)
+    {
+    	// Проверки на параметрите
+    	expect($noteRec = store_InventoryNotes::fetch($noteId), "Няма протокол с ид {$noteId}");
+    	expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
+    	expect($productRec = cat_Products::fetch($productId), "Няма артикул с ид {$productId}");
+    	expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+    	expect($packagingId, "Няма мярка/опаковка");
+    	expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
+    	
+    	$packs = cat_Products::getPacks($productId);
+    	expect(isset($packs[$packagingId]), "Артикулът не поддържа мярка/опаковка с ид {$packagingId}");
+    	
+    	$Double = cls::get('type_Double');
+    	expect($quantityInPack = $Double->fromVerbal($quantityInPack));
+    	expect($foundPackQuantity = $Double->fromVerbal($foundPackQuantity));
+    	$quantity = $quantityInPack * $foundPackQuantity;
+    	if(isset($expectedPackQuantity)){
+    		$exQuantity = $quantity * $expectedPackQuantity;
+    	}
+    	
+    	if(isset($expectedPackQuantity)){
+    		expect($expectedPackQuantity = $Double->fromVerbal($expectedPackQuantity));
+    	}
+    	
+    	// Подготовка на записа
+    	$rec = (object)array('noteId'         => $noteId, 
+    			             'productId'      => $productId, 
+    			             'packagingId'    => $packagingId, 
+    			             'quantityInPack' => $quantityInPack,
+    					     'quantity'       => $quantity,
+    	);
+    	
+    	// Валидация на партидния номер ако има
+    	if($batch){
+    		if(core_Packs::isInstalled('batch')){
+    			expect($Def = batch_Defs::getBatchDef($productId), "Опит за задаване на партида на артикул без партида");
+    			$Def->isValid($batch, $quantity, $msg);
+    			if($msg){
+    				expect(FALSE, tr($msg));
+    			}
+    			
+    			$rec->batch = $Def->normalize($batch);
+    		}
+    	}
+    	
+    	// Запис на реда
+    	store_InventoryNoteDetails::save($rec);
+    	
+    	// Задаване на очакваното количество
+    	if(isset($expectedPackQuantity)){
+    		$sId = store_InventoryNoteSummary::force($noteId, $productId);
+    		store_InventoryNoteSummary::save((object)array('id' => $sId, 'blQuantity' => $expectedPackQuantity), 'id,blQuantity');
+    	}
+    	
+    	// Връщане на записа
+    	return $rec->id;
+    }
 }

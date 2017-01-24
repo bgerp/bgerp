@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,13 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Search, plg_Clone';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Search';
     
     
     /**
      * Заглавие
      */
-    public $title = 'Търговски условия';
+    public $title = 'Видове търговски условия';
     
     
     /**
@@ -56,21 +56,13 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cond,admin';
+    public $canAdd = 'no_one';
     
 
     /**
      * Кой може да променя състоянието на валутата
      */
-    public $canChangestate = 'ceo,cond,admin';
-
-
-    /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'sysId';
+    public $canChangestate = 'no_one';
     
     
     /**
@@ -96,7 +88,13 @@ class cond_Parameters extends bgerp_ProtoParam
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$data->form->setField('driverClass', 'caption=Тип,input');
+    	$form = &$data->form;
+    	$form->setField('defaul', 'input=none');
+    	
+    	$form->setField('driverClass', 'caption=Тип,input');
+    	foreach (array('name', 'suffix', 'isFeature', 'group') as $fld){
+    		$form->setReadOnly($fld);
+    	}
     }
     
     
@@ -124,7 +122,6 @@ class cond_Parameters extends bgerp_ProtoParam
     			2 => "sysId",
     			3 => "group",
     			4 => 'suffix',
-    			5 => 'default',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -139,8 +136,9 @@ class cond_Parameters extends bgerp_ProtoParam
      * според следните приоритети
      * 	  1. Директен запис в cond_ConditionsToCustomers
      * 	  2. Дефолт метод "get{$conditionSysId}" дефиниран в модела
-     *    3. Супер дефолта на параметъра дефиниран в cond_Parameters
-     *    4. NULL ако нищо не е намерено
+     *    3. От условието за конкретната държава на контрагента
+     *    4. От условието за всички държави за контрагенти
+     *    5. NULL ако нищо не е намерено
      * 
      * @param int $cClass            - клас на контрагента
      * @param int $cId               - ид на контрагента
@@ -160,6 +158,10 @@ class cond_Parameters extends bgerp_ProtoParam
     	$value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId);
     	if($value) return $value;
     	
+    	// Търси се метод дефиниран за връщане на стойността на условието
+    	$method = "get{$conditionSysId}";
+    	if(method_exists($Class, $method)) return $Class::$method($cId);
+    	
     	// Търсим имали дефинирано търговско условие за държавата на контрагента
     	$contragentData = cls::get($cClass)->getContragentData($cId);
     	$countryId = $contragentData->countryId;
@@ -168,13 +170,9 @@ class cond_Parameters extends bgerp_ProtoParam
     		if($value) return $value;
     	}
     	
-    	// Търси се метод дефиниран за връщане на стойността на условието
-    	$method = "get{$conditionSysId}";
-    	if(method_exists($Class, $method)) return $Class::$method($cId);
-    	
-    	// Връща се супер дефолта на параметъра;
-    	$default = static::fetchField($condId, 'default');
-    	if(isset($default)) return $default;
+    	// От глобалния дефолт за всички държави
+    	$value = cond_Countries::fetchField("#country IS NULL AND #conditionId = {$condId}", 'value');
+    	if($value) return $value;
     	
     	return NULL;
     }

@@ -673,7 +673,7 @@ class acc_Journal extends core_Master
      * @param date $to - до коя дата
      * @return int - колко документа са били реконтирани
      */
-    private function reconto($accSysIds, $from = NULL, $to = NULL, $types = array())
+    private function recontoAll($accSysIds, $from = NULL, $to = NULL, $types = array())
     {
     	// Дигаме времето за изпълнение на скрипта
     	core_App::setTimeLimit(1500);
@@ -772,7 +772,7 @@ class acc_Journal extends core_Master
     			foreach ($accounts as $id => $accId){
     				$accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
     			}
-    			$res = $this->reconto($accounts, $rec->from, $rec->to, $types);
+    			$res = $this->recontoAll($accounts, $rec->from, $rec->to, $types);
     			
     			$this->logWrite("Реконтиране на документ", $rec->id);
     			
@@ -855,5 +855,32 @@ class acc_Journal extends core_Master
     {
     	$baseCode = acc_Periods::getBaseCurrencyCode();
     	$data->listFields['totalAmount'] .= "|* ({$baseCode})";
+    }
+    
+    
+    /**
+     * Реконтиране на документ по контейнер
+     *
+     * @param int $containerId - ид на контейнер
+     * @return boolean $success - резултат
+     */
+    public static function reconto($containerId)
+    {
+    	// Оригиналния документ трябва да не е в затворен период
+    	$origin = doc_Containers::getDocument($containerId);
+    	if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) return;
+    
+    	// Изтриване на старата транзакция на документа
+    	acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
+    		
+    	// Записване на новата транзакция на документа
+    	$success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, FALSE);
+    	expect($success, $success);
+    		
+    	// Нотифициране на потребителя
+    	$msg = "Реконтиране на|* #{$origin->getHandle()}";
+    	core_Statuses::newStatus($msg);
+    
+    	return $success;
     }
 }

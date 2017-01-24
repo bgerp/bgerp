@@ -924,9 +924,7 @@ class acc_Items extends core_Manager
             $AccRegister = cls::get($rec->classId);
             
             // Ако го има интерфейсния метод
-            if(method_exists($AccRegister, 'getLinkToObj')) {
-                $row->link = $AccRegister->getLinkToObj($rec->objectId);
-            } elseif(method_exists($AccRegister, 'act_Single')) {
+            if(method_exists($AccRegister, 'act_Single')) {
                 $row->link = $AccRegister->getHyperLink($rec->objectId, TRUE);
             } else {
             	$row->link = "<div style='color:darkgreen'>" . tr('Не е обвързан с обект') . "</div>";

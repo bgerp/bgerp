@@ -137,6 +137,7 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$count = 0;
 		$total = $rInfo->quantity;
+		
 		while($rec = $query->fetch()){
 			
 			// Партидите стават линкове
@@ -158,6 +159,7 @@ class batch_BatchesInDocuments extends core_Manager
 			$string = '';
 			$block = clone $tpl->getBlock('BLOCK');
 			$total -= $rec->quantity;
+			$total = round($total, 5);
 			
 			$caption = $batchDef->getFieldCaption();
 			$label = (!empty($caption)) ? $caption . ":" : 'lot:';

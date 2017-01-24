@@ -1613,10 +1613,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Дефиниции');
         $browser->click('Търговски условия');
         $browser->press('Нов запис');
-        $browser->setValue('driverClass', 'Време');
-        $browser->setValue('name', 'Доставка до');
-        $browser->setValue('default', '1 ден');
+        $browser->setValue('country', 'Германия');
+        $browser->setValue('conditionId', 'Начин на плащане (4)');
+        $browser->setValue('value', '16');
         $browser->press('Запис');
+        if (strpos($browser->getText(),"До 1 месец след фактуриране")){
+        } else {
+            return $this->reportErr('Грешка при създаване на търговско условие', 'warning');
+        }
         //return $browser->getHtml();
     
     }

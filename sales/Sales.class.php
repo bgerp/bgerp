@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -51,7 +51,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf';
     
     
     /**
@@ -1087,7 +1087,6 @@ class sales_Sales extends deals_DealMaster
      */
     static function getThreadState_($id)
     {
-        
         return NULL;
     }
     
@@ -1125,11 +1124,8 @@ class sales_Sales extends deals_DealMaster
 
         if(isset($fields['-list'])){  
             $row->title .= "<div>{$row->folderId}</div>";
-
-      
         }
 
-    	
     	if(isset($fields['-single'])){
     		
     		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
@@ -1222,16 +1218,45 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Преди записване на клонирания запис
-     * 
-     * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
-     * 
-     * @see plg_Clone
+     * Списък с артикули върху, на които може да им се коригират стойностите
+     * @see acc_AllowArticlesCostCorrectionDocsIntf
+     *
+     * @param mixed $id               - ид или запис
+     * @return array $products        - масив с информация за артикули
+     * 			    o productId       - ид на артикул
+     * 				o name            - име на артикула
+     *  			o quantity        - к-во
+     *   			o amount          - сума на артикула
+     *   			o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+     *    			o transportWeight - транспортно тегло на артикула
+     *     			o transportVolume - транспортен обем на артикула
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    function getCorrectableProducts($id)
     {
-        unset($nRec->state);
+    	$rec = $this->fetchRec($id);
+    
+    	// Взимаме артикулите от сметка 701
+    	$products = array();
+    	$entries = sales_transaction_Sale::getEntries($rec->id);
+    	$shipped = sales_transaction_Sale::getShippedProducts($entries);
+    	
+    	if(count($shipped)){
+    		foreach ($shipped as $ship){
+    			unset($ship->price);
+    			$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
+    	
+    			if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+    				$ship->transportWeight = $transportWeight;
+    			}
+    	
+    			if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+    				$ship->transportVolume = $transportVolume;
+    			}
+    	
+    			$products[$ship->productId] = $ship;
+    		}
+    	}
+    	
+    	return $products;
     }
 }
