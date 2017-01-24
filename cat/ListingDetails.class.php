@@ -77,12 +77,6 @@ class cat_ListingDetails extends doc_Detail
     
     
     /**
-     * Брой на страница
-     */
-    public $listItemsPerPage = 20;
-    
-    
-    /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      *
      *  @var string
