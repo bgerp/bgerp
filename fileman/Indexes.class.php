@@ -817,9 +817,9 @@ class fileman_Indexes extends core_Manager
     {
         $webdrvArr = self::getDriver($ext);
         
-        if (empty($webdrvArr)) continue;
-        
         $drvInst = FALSE;
+        
+        if (empty($webdrvArr)) return $drvInst;
         
         foreach ($webdrvArr as $drv) {
             if (!$drv) continue;
