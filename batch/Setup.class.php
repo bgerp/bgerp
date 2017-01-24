@@ -268,6 +268,10 @@ class batch_Setup extends core_ProtoSetup
     	$Batches->setupMvc();
     	
     	$arr = array();
+    	
+    	$D = cls::get('planning_DirectProductionNote');
+    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) continue;
+    	
     	$query = planning_DirectProductionNote::getQuery();
     	$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
     	$query->where("#batch IS NOT NULL");
@@ -300,7 +304,12 @@ class batch_Setup extends core_ProtoSetup
     function migrateProdDetBatches()
     {
     	$Batches = cls::get('batch_BatchesInDocuments');
-    	 
+    	$Batches->setupMvc();
+    	
+    	$D = cls::get('planning_DirectProductNoteDetails');
+    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) continue;
+    	
+    	
     	$arr = array();
     	$query = planning_DirectProductNoteDetails::getQuery();
     	$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
