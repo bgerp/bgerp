@@ -87,7 +87,7 @@ class fileman_Files extends core_Master
     /**
      * 
      */
-    public $loadList = 'plg_Sorting';
+    public $loadList = 'plg_Sorting, plg_GroupByDate';
     
     
     /**
@@ -2100,45 +2100,51 @@ class fileman_Files extends core_Master
         $data->listFilter->showFields = 'search, usersSearch';
         
         $data->listFilter->input('usersSearch, search', 'silent');
-        
-    	// По - новите да са по - напред
-        $data->query->orderBy("#modifiedOn", 'DESC');
-        
+
         // Ако не е избран потребител по подразбиране
         if(!$data->listFilter->rec->usersSearch) {
-            
+        
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
         }
         
-        // Ако има филтър
-        if($filter = $data->listFilter->rec) {
+        $filter = $data->listFilter->rec;
+        
+		// Ако се търси по всички
+		if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
+		    // Подреждаме ги по последно използване от fileman_Data
+		    $data->query->EXT('lastUse', 'fileman_Data', 'externalName=lastUse, externalKey=dataId');
+		    $data->query->orderBy("#lastUse", 'DESC');
+        } else {
+            $selfDbTableName = self::getDbTableName();
+            $logDbTableName = fileman_log::getDbTableName();
+            $idFieldName = str::phpToMysqlName('id');
+            $fileIdFieldName = str::phpToMysqlName('fileId');
+            $userIdFieldName = str::phpToMysqlName('userId');
             
-            // Ако филтъра е по потребители
-            if($filter->usersSearch) {
-                
-    			// Ако се търси по всички и има права admin или ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo, admin'))) {
-    			    // Търсим всичко
-                } else {
-                    
-                    // Масив с потребителите
-                    $usersArr = type_Keylist::toArray($filter->usersSearch);
-                    
-                    // Търсим по създатели
-                    $data->query->orWhereArr('createdBy', $usersArr);
-                }
-    		}
-    		
-    		// Тримваме името
-    		$search = trim($filter->search);
-    		
-    		// Ако има съдържание
-    		if (strlen($search)) {
-    		    $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
-    		    plg_Search::applySearch($search, $data->query, 'searchKeywords');
-    		}
+            // Подреждаме файловете по-последно използване от съответния потребител
+            $data->groupByDateField = 'lastOn';
+            $data->query->EXT('lastOn', 'fileman_log', 'externalName=lastOn');
+            $data->query->where("`{$selfDbTableName}`.`{$idFieldName}` = `{$logDbTableName}`.`{$fileIdFieldName}`");
+            $data->query->orderBy("#lastOn", 'DESC');
+            
+            // Файловете от последния потребител
+            $usersArr = type_Keylist::toArray($filter->usersSearch);
+            $data->query->EXT('userId', 'fileman_Log', 'externalName=userId');
+            $userArrImp = implode(',',  $usersArr);
+            $data->query->where("`{$logDbTableName}`.`{$userIdFieldName}` IN ({$userArrImp})");
         }
+        
+        $data->query->orderBy('modifiedOn', 'DESC');
+		
+		// Тримваме името
+		$search = trim($filter->search);
+		
+		// Ако има съдържание
+		if (strlen($search)) {
+		    $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
+		    plg_Search::applySearch($search, $data->query, 'searchKeywords');
+		}
     }
     
     

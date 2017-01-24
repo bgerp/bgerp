@@ -37,7 +37,7 @@ class batch_Items extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'batch, productId, storeId, quantity, nullifiedDate, state';
+    public $listFields = 'batch, productId, storeId, quantity, state';
     
     
     /**
@@ -545,10 +545,12 @@ class batch_Items extends core_Master {
     	
     	// Намират се всички движения в посочения интервал за дадения артикул в подадения склад
     	$query = batch_Movements::getQuery();
+    	$query->EXT('state', 'batch_Items', 'externalName=state,externalKey=itemId');
     	$query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
     	$query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
     	$query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
     	$query->where("#date <= '{$date}'");
+    	$query->where("#state != 'closed'");
     	$query->show("batch,quantity,operation,date,docType,docId");
     	$query->where("#productId = {$productId} AND #storeId = {$storeId}");
     	

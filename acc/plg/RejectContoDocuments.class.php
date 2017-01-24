@@ -139,14 +139,19 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                 
                 // и състоянието и е отворено, игнорираме перото и
-                if($firstDoc->fetchField('state') == 'active'){
-                    $ignore[] = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
+                if($mvc instanceof planning_DirectProductionNote){
+                	$ignore[] = acc_Items::fetchItem($mvc->getClassId(), $rec->id)->id;
+                } else {
+                	if($firstDoc->fetchField('state') == 'active'){
+                		$ignore[] = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
+                	}
                 }
             } else {
             	
             	// Ако класа е пос отчет винаги му игнорираме перото
             	if($mvc instanceof pos_Reports){
-            		 $ignore[] = acc_items::fetchItem($mvc->getClassId(), $rec->id)->id;
+            		
+            		$ignore[] = acc_items::fetchItem($mvc->getClassId(), $rec->id)->id;
             	}
             }
             

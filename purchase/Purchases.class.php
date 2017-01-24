@@ -35,7 +35,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf, deals_InvoiceSourceIntf,colab_CreateDocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf, deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf';
     
     
     /**
@@ -638,4 +638,47 @@ class purchase_Purchases extends deals_DealMaster
     		}
     	}
     }
+    
+    
+    /**
+	 * Списък с артикули върху, на които може да им се коригират стойностите
+	 * @see acc_AllowArticlesCostCorrectionDocsIntf
+	 *
+	 * @param mixed $id               - ид или запис
+	 * @return array $products        - масив с информация за артикули
+	 * 			    o productId       - ид на артикул
+	 * 				o name            - име на артикула
+	 *  			o quantity        - к-во
+	 *   			o amount          - сума на артикула
+	 *   			o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+	 *    			o transportWeight - транспортно тегло на артикула
+	 *     			o transportVolume - транспортен обем на артикула
+	 */
+	function getCorrectableProducts($id)
+	{
+		$rec = $this->fetchRec($id);
+		
+		$products = array();
+		$entries = purchase_transaction_Purchase::getEntries($rec->id);
+		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, '321', TRUE);
+		
+		if(count($shipped)){
+			foreach ($shipped as $ship){
+				unset($ship->price);
+				$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
+				
+				if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+					$ship->transportWeight = $transportWeight;
+				}
+				
+				if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+					$ship->transportVolume = $transportVolume;
+				}
+				
+				$products[$ship->productId] = $ship;
+			}
+		}
+		
+		return $products;
+	}
 }

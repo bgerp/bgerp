@@ -116,7 +116,13 @@ class acc_Balances extends core_Master
      */
     public $accountRec;
     
-    
+
+    /**
+     * Ключ за заключване по време на записването
+     */
+    const saveLockKey = 'Save_Balance_In_Progress';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -368,22 +374,26 @@ class acc_Balances extends core_Master
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
     		$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
     		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
-    		
-    		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
-    		$bD->saveBalance($rec->id);
-    		
-    		// Изтриваме старите данни за текущия баланс
-    		$bD->delete("#balanceId = {$rec->id}");
-    		
-    		// Ъпдейтваме данните за баланс -1 да са към текущия баланс
-    		// Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
-    		// За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
-    		$balanceIdColName = str::phpToMysqlName('balanceId');
-    		$bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
-    		
-    		// Отбелязваме, кога за последно е калкулиран този баланс
-    		$rec->lastCalculate = dt::now();
-    		self::save($rec, 'lastCalculate');
+    	    
+            // Заключваме процеса за определено време
+            if (core_Locks::get(acc_Balances::saveLockKey)) {
+
+                // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
+                $bD->saveBalance($rec->id);
+                
+                // Изтриваме старите данни за текущия баланс
+                $bD->delete("#balanceId = {$rec->id}");
+                
+                // Ъпдейтваме данните за баланс -1 да са към текущия баланс
+                // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
+                // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
+                $balanceIdColName = str::phpToMysqlName('balanceId');
+                $bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
+                
+                // Отбелязваме, кога за последно е калкулиран този баланс
+                $rec->lastCalculate = dt::now();
+                self::save($rec, 'lastCalculate');
+            }
     		
     		//$count++;
     	//}
@@ -856,7 +866,7 @@ class acc_Balances extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('ceo,admin,debug')){
-    		$rec = core_Cron::getRecForSystemId('RecalcBalances');
+    		$rec = core_Cron::getRecForSystemId(acc_Balances::saveLockKey);
     		$url = array('core_Cron', 'ProcessRun', str::addHash($rec->id), 'forced' => 'yes');
     		
     		$data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');

@@ -144,7 +144,7 @@ class acc_ReportDetails extends core_Manager
         $data->total = 0;
         
         // Ако баланса е заключен не показваме нищо
-        if(core_Locks::isLocked('RecalcBalances')){
+        if(core_Locks::isLocked(acc_Balances::saveLockKey)){
         	$data->balanceIsRecalculating = TRUE;
         	return;
         }
