@@ -267,7 +267,7 @@ class batch_Items extends core_Master {
     	$data->listFilter->FLD('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'placeholder=Всички складове');
     	$data->listFilter->FLD('filterState', 'varchar', 'placeholder=Състояние');
     	
-    	$options = arr::make('active=Активни,closed=Затворени', TRUE);
+    	$options = arr::make('active=Активни,closed=Затворени,all=Всички', TRUE);
     	
     	// Кои са инсталираните партидни дефиниции
     	$definitions = core_Classes::getOptionsByInterface('batch_BatchTypeIntf');
@@ -311,7 +311,7 @@ class batch_Items extends core_Master {
     				if(!empty($featureCaption)) {
     					$data->listFields['featureId'] = $featureCaption;
     				}
-    			} else {
+    			} elseif($filter->filterState != 'all') {
     				$data->query->where("#state = '{$filter->filterState}'");
     			}
     		}
