@@ -216,9 +216,8 @@ class acc_CostAllocations extends core_Manager
 		
 		// Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
 		if(isset($rec->expenseItemId)){
-			$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
-			
-			if($itemRec->classId == sales_Sales::getClassId() || $itemRec->classId == purchase_Purchases::getClassId() || $itemRec->classId == planning_DirectProductionNote::getClassId()){
+			$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
+			if(cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)){
 				$form->setField('allocationBy', 'input');
 				$form->setDefault('allocationBy', 'no');
 			}
@@ -237,10 +236,14 @@ class acc_CostAllocations extends core_Manager
 		$rec = &$form->rec;
 		 
 		if(isset($rec->expenseItemId)){
-			if(isset($rec->allocationBy) && $rec->allocationBy != 'no'){
-				$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
-				$origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-				acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+			$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
+			
+			if(cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)){
+				if(isset($rec->allocationBy) && $rec->allocationBy != 'no'){
+					$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+					$origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+					acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+				}
 			}
 		}
 		

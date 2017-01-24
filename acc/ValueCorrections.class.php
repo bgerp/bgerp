@@ -311,7 +311,7 @@ class acc_ValueCorrections extends core_Master
     public static function addProductsFromOriginToForm(&$form, core_ObjectReference $origin, $dataField = 'productsData')
     {
     	// Запомняне на всички експедирани/заскладени артикули от оридижина
-    	$products = self::getChosenProducts($origin);
+    	$products = $origin->getCorrectableProducts();
     	$form->allProducts = $products;
     	
     	if(count($products)){
@@ -380,65 +380,6 @@ class acc_ValueCorrections extends core_Master
     	
     	$data->form->origin = $firstDoc;
     	$data->form->chargeVat =  $chargeVat;
-    }
-    
-    
-    /**
-     * Извличаме артикулите върху които ще се коригират стойностите
-     * 
-     * @param core_ObjectReference $firstDoc - първи документ в нишката
-     * @return array $products - масив с опции за избор на артикули
-     */
-    private static function getChosenProducts(core_ObjectReference $firstDoc)
-    {
-    	// Aко първия документ е продажба
-    	$shipped = array();
-    	if($firstDoc->isInstanceOf('sales_Sales')){
-    		
-    		// Взимаме артикулите от сметка 701
-    		$entries = sales_transaction_Sale::getEntries($firstDoc->that);
-    		$shipped = sales_transaction_Sale::getShippedProducts($entries);
-    		
-    	  // Ако е покупка
-    	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
-    		
-    		// Вземаме всички заскладени артикули
-    		$entries = purchase_transaction_Purchase::getEntries($firstDoc->that);
-    		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, $firstDoc->that, '321', TRUE);
-    	} elseif($firstDoc->isInstanceOf('planning_DirectProductionNote')){
-    		$pRec = $firstDoc->fetch();
-    		$shipped[] = (object)array('productId' => $pRec->productId, 'quantity' => $pRec->quantity, 'amount' => $pRec->quantity, 'storeId' => $pRec->storeId);
-    	}
-    	
-    	$products = array();
-    	if(count($shipped)){
-    		foreach ($shipped as $p){
-    			$products[$p->productId] = (object)array('productId' => $p->productId, 
-    												     'name'      => cat_Products::getTitleById($p->productId), 
-    													 'quantity'  => $p->quantity,
-    													 'amount'    => $p->amount,);
-    			
-    			if(isset($p->inStores)){
-    				$products[$p->productId]->inStores = $p->inStores;
-    			}
-    			
-    			if(isset($p->storeId)){
-    				$products[$p->productId]->storeId = $p->storeId;
-    			}
-    			
-    			$transportWeight = cat_Products::getParams($p->productId, 'transportWeight');
-    			if(!empty($transportWeight)){
-    				$products[$p->productId]->transportWeight = $transportWeight;
-    			}
-    			
-    			$transportVolume = cat_Products::getParams($p->productId, 'transportVolume');
-    			if(!empty($transportVolume)){
-    				$products[$p->productId]->transportVolume = $transportVolume;
-    			}
-    		}
-    	}
-    	
-    	return $products;
     }
     
     
@@ -659,14 +600,12 @@ class acc_ValueCorrections extends core_Master
     	if($action == 'add' && isset($rec)){
     		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		if($firstDoc){
-    			if($firstDoc->fetchField('state') != 'active'){
-    				 
-    				// Ако ориджина не е активен, не може да се създава документ към него
+    			if(!$firstDoc->haveInterface('acc_AllowArticlesCostCorrectionDocsIntf')){
+    				$requiredRoles = 'no_one';
+    			} elseif($firstDoc->fetchField('state') != 'active'){
     				$requiredRoles = 'no_one';
     			} else {
-    				 
-    				// Ако няма артикули за разпределяне, не може да се създава документа
-    				$products = self::getChosenProducts($firstDoc);
+    				$products = $firstDoc->getCorrectableProducts();
     				if(!count($products)){
     					$requiredRoles = 'no_one';
     				}

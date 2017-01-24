@@ -404,9 +404,9 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				
 				if($canStore == 'yes'){
 					$debit = array('321',
-							array('store_Stores', $p->storeId),
-							array('cat_Products', $p->productId),
-							'quantity' => 0);
+							        array('store_Stores', key($p->inStores)),
+							        array('cat_Products', $p->productId),
+							       'quantity' => 0);
 				} else {
 					$debit = array('60201',
 							$expenseItemId,

@@ -33,7 +33,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,acc_AllowArticlesCostCorrectionDocsIntf';
 	
 	
 	/**
@@ -705,5 +705,45 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		// Реконтиране на документа
 		acc_Journal::reconto($rec->containerId);
+	}
+	
+	
+	/**
+	 * Списък с артикули върху, на които може да им се коригират стойностите
+	 * @see acc_AllowArticlesCostCorrectionDocsIntf
+	 *
+	 * @param mixed $id               - ид или запис
+	 * @return array $products        - масив с информация за артикули
+	 * 			    o productId       - ид на артикул
+	 * 				o name            - име на артикула
+	 *  			o quantity        - к-во
+	 *   			o amount          - сума на артикула
+	 *   			o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+	 *    			o transportWeight - транспортно тегло на артикула
+	 *     			o transportVolume - транспортен обем на артикула
+	 */
+	function getCorrectableProducts($id)
+	{
+		$products = array();
+		$rec = $this->fetchRec($id);
+		
+		$products[$rec->productId] = (object)array('productId' => $rec->productId, 
+				                                   'quantity'  => $rec->quantity,
+								                   'name'      => cat_Products::getTitleById($rec->productId, FALSE),
+				                                   'amount'    => $rec->quantity);
+		
+		if($transportWeight = cat_Products::getParams($rec->productId, 'transportWeight')){
+			$products[$rec->productId]->transportWeight = $transportWeight;
+		}
+		
+		if($transportVolume = cat_Products::getParams($rec->productId, 'transportVolume')){
+			$products[$rec->productId]->transportVolume = $transportVolume;
+		}
+		
+		if(isset($rec->storeId)){
+			$products[$rec->productId]->inStores[$rec->storeId] = $rec->quantity;
+		}
+		
+		return $products;
 	}
 }
