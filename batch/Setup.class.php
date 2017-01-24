@@ -68,6 +68,7 @@ class batch_Setup extends core_ProtoSetup
     		'migrate::migrateBatches',
     		'migrate::migrateProdBatches',
     		'migrate::migrateDefs',
+    		'migrate::migrateProdDetBatches',
         );
     
 
@@ -289,6 +290,42 @@ class batch_Setup extends core_ProtoSetup
     		$arr[] = $obj;
     	}
     	
+    	$Batches->saveArray($arr);
+    }
+    
+    
+    /**
+     * Миграция на протоколите за производство
+     */
+    function migrateProdDetBatches()
+    {
+    	$Batches = cls::get('batch_BatchesInDocuments');
+    	 
+    	$arr = array();
+    	$query = planning_DirectProductNoteDetails::getQuery();
+    	$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
+    	$query->EXT('containerId', 'planning_DirectProductionNote', "externalName=containerId,externalKey=noteId");
+    	$query->EXT('valior', 'planning_DirectProductionNote', "externalName=valior,externalKey=noteId");
+    	$query->where("#batch IS NOT NULL");
+    	
+    	while($dRec = $query->fetch()){
+    		$obj = (object)array('detailClassId'  => planning_DirectProductNoteDetails::getClassId(),
+    				'containerId'    => $dRec->containerId,
+    				'detailRecId'    => $dRec->id,
+    				'productId'      => $dRec->productId,
+    				'packagingId'    => $dRec->packagingId,
+    				'quantityInPack' => $dRec->quantityInPack,
+    				'quantity'       => $dRec->quantity,
+    				'batch'          => $dRec->batch,
+    				'date'           => $dRec->valior,
+    				'storeId'        => $dRec->storeId,
+    				'operation'      => 'out',
+    					
+    		);
+    		
+    		$arr[] = $obj;
+    	}
+    	 
     	$Batches->saveArray($arr);
     }
 }
