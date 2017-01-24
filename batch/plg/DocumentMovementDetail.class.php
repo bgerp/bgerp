@@ -59,6 +59,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 					$form->setField('batch', "placeholder={$BatchClass->fieldPlaceholder}");
 				}
 				
+				// Ако има налични партиди в склада да се показват като предложения
+				$exBatches = batch_Items::getBatchQuantitiesInStore($rec->{$mvc->productFieldName}, $storeId);
+				if(count($exBatches)){
+					$suggestions = array_combine(array_keys($exBatches), array_keys($exBatches));
+					$form->setSuggestions('batch', array('' => '') + $suggestions);
+				}
+				
 				$fieldCaption = $BatchClass->getFieldCaption();
 				if(!empty($fieldCaption)){
 					$form->setField('batch', "caption={$fieldCaption}");
