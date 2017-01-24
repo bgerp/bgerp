@@ -487,11 +487,13 @@ abstract class deals_DealDetail extends doc_Detail
     	// Подготовка на полетата на формата
     	$this->prepareImportListForm($form, $listed, $recs, $saleRec);
     	$form->input();
-    	 
+    	
     	// Ако формата е събмитната
     	if($form->isSubmitted()){
     		$rec = $form->rec;
-    
+    		$Policy = ($this->Master instanceof sales_Sales) ? 'price_ListToCustomers' : 'purchase_PurchaseLastPricePolicy';
+    		$Policy = cls::get($Policy);
+    		
     		// Подготовка на записите
     		$error = $error2 = $error3 = $toSave = $toUpdate = $multiError = array();
     		foreach ($listed as $lId => $lRec){
@@ -508,7 +510,8 @@ abstract class deals_DealDetail extends doc_Detail
     			 
     			if(!isset($rec->id)){
     				$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
-    				$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				
+    				$policyInfo = $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
     				if(!isset($policyInfo->price)){
     					$error[$lId] = "quantity{$lId}";
     				} else {
