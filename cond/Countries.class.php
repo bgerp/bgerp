@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'cond_DeliveryTerms' - Условия на доставка
+ * Клас 'cond_Countries' - Условия на доставка
  *
  * Набор от стандартните условия на доставка (FOB, DAP, ...)
  *
@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,6 +23,12 @@ class cond_Countries extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,cond';
+	
+	
+	/**
+	 * Кой може да изтрива
+	 */
+	public $canDelete = 'ceo,cond';
 	
 	
 	/**
@@ -40,7 +46,7 @@ class cond_Countries extends core_Manager
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'country, conditionId, value, createdOn,createdBy';
+	public $listFields = 'country, conditionId, value, createdOn, createdBy';
 	
 	
 	/**
@@ -58,13 +64,7 @@ class cond_Countries extends core_Manager
 	/**
 	 * Заглавие на единичния обект
 	 */
-	public $singleTitle = 'търговско условие за държава';
-	
-
-    /**
-     * Кой може да променя състоянието на валутата
-     */
-    public $canChangestate = 'cond,ceo';
+	public $singleTitle = 'Търговско условие за държава';
 
 
 	/**
@@ -75,6 +75,8 @@ class cond_Countries extends core_Manager
 		$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,removeAndRefreshForm=conditionId,silent,placeholder=Всички държави');
 		$this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
 		$this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
+		
+		$this->setDbIndex('country,conditionId');
 	}
 	
 	
@@ -98,7 +100,7 @@ class cond_Countries extends core_Manager
 			if($Type = cond_Parameters::getTypeInstance($rec->conditionId, 'drdata_Countries', $rec->country, $rec->value)){
 				$form->setField('value', 'input');
 				$form->setFieldType('value', $Type);
-			}else {
+			} else {
 				$form->setError('conditionId', 'Има проблем при зареждането на типа');
 			}
 		}
@@ -111,6 +113,7 @@ class cond_Countries extends core_Manager
 	protected static function on_AfterInputEditForm($mvc, $form)
 	{
 		$rec = &$form->rec;
+		
 		if ($form->isSubmitted()){
 			if(empty($rec->country)){
 				$rec->country = NULL;
@@ -198,5 +201,33 @@ class cond_Countries extends core_Manager
 		}
 		
 		$rec->country = (!empty($rec->csv_country)) ? drdata_Countries::getIdByName($rec->csv_country) : NULL;
+	}
+	
+	
+	/**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		// Подготовка на филтъра
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		$data->listFilter->showFields = 'country,conditionId';
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->input();
+		
+		// Ако филтъра е събмитнът
+		if($filter = $data->listFilter->rec){
+			if(!empty($filter->country)){
+				$data->query->where("#country = {$filter->country} OR #country IS NULL");
+			}
+			
+			if(!empty($filter->conditionId)){
+				$data->query->where("#conditionId = {$filter->conditionId}");
+			}
+		}
+		
+		// Подреждане по държава
+		$data->query->XPR('orderCountry', 'int', "(CASE WHEN #country IS NULL THEN 0 ELSE 1 END)");
+		$data->query->orderBy('#orderCountry', 'DESC');
 	}
 }
