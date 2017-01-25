@@ -347,7 +347,7 @@ class batch_BatchesInDocuments extends core_Manager
 					$suggestions .= "{$b}={$verbal},";
 				}
 				$suggestions = trim($suggestions, ',');
-				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=1');
+				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=1,class=batch-quantity-fields');
 				
 				if(count($foundBatches)){
 					$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
@@ -359,7 +359,7 @@ class batch_BatchesInDocuments extends core_Manager
 				$count = 0;
 				foreach ($batches as $batch => $quantity){
 					$verbal = strip_tags($Def->toVerbal($batch));
-					$form->FLD("quantity{$count}", "double(Min=0)", "caption=Налични партиди->{$verbal},unit={$packName}");
+					$form->FLD("quantity{$count}", "double(Min=0)", "caption=Налични партиди->{$verbal},unit={$packName},class=batch-quantity-fields");
 					if($q = self::fetchField("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$batch}'", 'quantity')){
 						$form->setDefault("quantity{$count}", ($q / $recInfo->quantityInPack));
 					}
