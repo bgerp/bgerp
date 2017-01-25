@@ -270,7 +270,7 @@ class batch_Setup extends core_ProtoSetup
     	$arr = array();
     	
     	$D = cls::get('planning_DirectProductionNote');
-    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) continue;
+    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) return;
     	
     	$query = planning_DirectProductionNote::getQuery();
     	$query->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
