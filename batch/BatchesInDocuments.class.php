@@ -307,10 +307,12 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		// Кои са въведените партиди от документа
+		$foundBatches = array();
 		$dQuery = self::getQuery();
 		$dQuery->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
 		while ($dRec = $dQuery->fetch()){
-			if(!array_key_exists($dRec->batch, $batches)){
+		    $foundBatches[$dRec->batch] = $dRec->quantity;
+		    if(!array_key_exists($dRec->batch, $batches)){
 				$batches[$dRec->batch] = $dRec->quantity;
 			}
 		}
@@ -331,7 +333,6 @@ class batch_BatchesInDocuments extends core_Manager
 		// Какви са наличните партиди
 		$Def = batch_Defs::getBatchDef($recInfo->productId);
 		$batchCount = count($batches);
-		$foundBatches = array();
 		
 		// За всяка партида добавя се като поле
 		if(is_array($batches)){
@@ -348,10 +349,6 @@ class batch_BatchesInDocuments extends core_Manager
 				$suggestions = trim($suggestions, ',');
 				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=1');
 				
-				$query = self::getQuery();
-				$query->where("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId}");
-				$query->show('batch');
-				$foundBatches = arr::extractValuesFromArray($query->fetchAll(), 'batch');
 				if(count($foundBatches)){
 					$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
 					$form->setDefault('serials', $defaultBatches);
@@ -469,8 +466,9 @@ class batch_BatchesInDocuments extends core_Manager
 			if(!$form->gotErrors()){
 				
 				if($form->cmd == 'auto'){
-					$old = (count($foundBatches)) ? $foundBatches : array();
+				    $old = (count($foundBatches)) ? $foundBatches : array();
 					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
+					
 					$intersect = array_diff_key($old, $saveBatches);
 					$delete = (count($intersect)) ? array_keys($intersect) : array();
 				}
