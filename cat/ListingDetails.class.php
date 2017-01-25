@@ -256,7 +256,7 @@ class cat_ListingDetails extends doc_Detail
 				}
 			}
 			
-			if(isset($listRec->type)){
+			if(!empty($listRec->type)){
 				$type = cat_Products::fetchField($rec->productId, $listRec->type);
 				if($type != 'yes'){
 					$vType = ($masterType == 'canBuy') ? 'купуваем' : 'продаваем';

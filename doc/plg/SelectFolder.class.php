@@ -235,9 +235,27 @@ class doc_plg_SelectFolder extends core_Plugin
         if($mvc->coversAndInterfacesForNewDoc) {
             $res = $mvc->coversAndInterfacesForNewDoc;
         } else {
-            $res = array('*');
+            $res = 'crm_Persons,crm_Companies,doc_UnsortedFolders';
         }
     }
     
      
+
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
+     *
+     */
+    function on_AfterCanAddToFolder($mvc, &$res, $folderId)
+    {
+        if($res !== FALSE) {
+            $allowedCovers = self::getAllowedCovers($mvc);
+            $fRec = doc_Folders::fetch($folderId);
+            if(!$allowedCovers[$fRec->coverClass]) {
+                $res = FALSE;
+
+                return FALSE;
+            }
+        }
+    }
+
 }

@@ -307,8 +307,7 @@ class batch_Setup extends core_ProtoSetup
     	$Batches->setupMvc();
     	
     	$D = cls::get('planning_DirectProductNoteDetails');
-    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) continue;
-    	
+    	if(!$D->db->isFieldExists($D->dbTableName, 'batch')) return;
     	
     	$arr = array();
     	$query = planning_DirectProductNoteDetails::getQuery();
