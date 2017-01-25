@@ -484,6 +484,8 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
        
             if (!$hidden) {
+            	
+            	$row->document = doc_DocumentCache::getCache($rec, $document);
  				$retUrl = array($document->className, 'single', $document->that);
  				$retUrl = $retUrl + self::extractDocParamsFromUrl();
  				Mode::push('ret_url', $retUrl);

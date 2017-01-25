@@ -307,10 +307,12 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		// Кои са въведените партиди от документа
+		$foundBatches = array();
 		$dQuery = self::getQuery();
 		$dQuery->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
 		while ($dRec = $dQuery->fetch()){
-			if(!array_key_exists($dRec->batch, $batches)){
+		    $foundBatches[$dRec->batch] = $dRec->batch;
+		    if(!array_key_exists($dRec->batch, $batches)){
 				$batches[$dRec->batch] = $dRec->quantity;
 			}
 		}
@@ -331,7 +333,6 @@ class batch_BatchesInDocuments extends core_Manager
 		// Какви са наличните партиди
 		$Def = batch_Defs::getBatchDef($recInfo->productId);
 		$batchCount = count($batches);
-		$foundBatches = array();
 		
 		// За всяка партида добавя се като поле
 		if(is_array($batches)){
@@ -346,12 +347,8 @@ class batch_BatchesInDocuments extends core_Manager
 					$suggestions .= "{$b}={$verbal},";
 				}
 				$suggestions = trim($suggestions, ',');
-				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=1');
+				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=1,class=batch-quantity-fields');
 				
-				$query = self::getQuery();
-				$query->where("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId}");
-				$query->show('batch');
-				$foundBatches = arr::extractValuesFromArray($query->fetchAll(), 'batch');
 				if(count($foundBatches)){
 					$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
 					$form->setDefault('serials', $defaultBatches);
@@ -362,7 +359,7 @@ class batch_BatchesInDocuments extends core_Manager
 				$count = 0;
 				foreach ($batches as $batch => $quantity){
 					$verbal = strip_tags($Def->toVerbal($batch));
-					$form->FLD("quantity{$count}", "double(Min=0)", "caption=Налични партиди->{$verbal},unit={$packName}");
+					$form->FLD("quantity{$count}", "double(Min=0)", "caption=Налични партиди->{$verbal},unit={$packName},class=batch-quantity-fields");
 					if($q = self::fetchField("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$batch}'", 'quantity')){
 						$form->setDefault("quantity{$count}", ($q / $recInfo->quantityInPack));
 					}
@@ -469,8 +466,9 @@ class batch_BatchesInDocuments extends core_Manager
 			if(!$form->gotErrors()){
 				
 				if($form->cmd == 'auto'){
-					$old = (count($foundBatches)) ? $foundBatches : array();
+				    $old = (count($foundBatches)) ? $foundBatches : array();
 					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
+					
 					$intersect = array_diff_key($old, $saveBatches);
 					$delete = (count($intersect)) ? array_keys($intersect) : array();
 				}
@@ -495,7 +493,10 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		// Добавяне на бутони
 		$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-		$form->toolbar->addSbBtn('Автоматично', 'auto', 'warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
+		
+		$attr = arr::make('warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
+		$attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
+		$form->toolbar->addSbBtn('Автоматично', 'auto', $attr);
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		 
 		// Рендиране на формата

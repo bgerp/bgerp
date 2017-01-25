@@ -566,11 +566,15 @@ class core_Query extends core_FieldSet
     function buildQuery()
     {
         if(count($this->unions)) {
+        	$count = count($this->unions);
+        	
             foreach($this->unions as $cond) {
                 $q = clone($this);
                 $q->unions = NULL;
                 $q->where($cond);
-                $query .= ($query ? "\nUNION\n" : '') . $q->buildQuery();
+                
+                $string = ($count > 1) ? "(" . $q->buildQuery() . ")" : $q->buildQuery();
+                $query .= ($query ? "\nUNION\n" : '') . $string;
             }
         } else {
 
