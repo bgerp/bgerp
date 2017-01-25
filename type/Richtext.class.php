@@ -1110,18 +1110,21 @@ class type_Richtext extends type_Blob
     function _catchEmoticons($match)
     {
         $em = type_Varchar::escape($match[2]);
-
-        if(!getFullPath("img/16/emotion_{$em}.png")) {
-            $em = "smile";
+        
+        $path = "img/16/emotion_{$em}.png";
+        
+        if(!getFullPath($path)) {
+            $path = "img/16/emotion_smile.png";
         }
 
         if(Mode::is('text', 'xhtml')) {
-            $iconFile = sbf("img/16/emotion_{$em}.png", '"', TRUE);
+            $iconFile = sbf($path, '"', TRUE);
             $res = "<img src={$iconFile} style='margin-left:1px; margin-right:1px;position: relative;top: 2px;' height=16 width=16>";
         } elseif(Mode::is('text', 'plain')) {
-            $res = self::$emoticons[$em];
+            
+            $res = self::$emoticons[$em] ? self::$emoticons[$em] : "[{$em}]";
         } else {
-            $iconFile = sbf("img/16/emotion_{$em}.png");
+            $iconFile = sbf($path);
             $res = "<img src={$iconFile} style='margin-left:1px; margin-right:1px; position: relative;top: 2px;' height=16 width=16>";
         }
         
