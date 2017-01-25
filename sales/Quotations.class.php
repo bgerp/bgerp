@@ -153,7 +153,7 @@ class sales_Quotations extends core_Master
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = '*';
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
     
     
     /**
