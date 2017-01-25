@@ -2094,7 +2094,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterCanAddToFolder($mvc, &$res, $folderId)
     {
-        $res = TRUE;
+        if(!isset($res)) {
+            $res = TRUE;
+        }
     }
     
     
