@@ -182,6 +182,8 @@ class core_CallOnTime extends core_Manager
                 
                 // Изтриваме след като се изпълни веднъж
                 self::delete($rec->id);
+                
+                sleep(1);
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
                 self::logErr("Грешка при извикване на функция", $rec->id);
