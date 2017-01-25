@@ -311,7 +311,7 @@ class batch_BatchesInDocuments extends core_Manager
 		$dQuery = self::getQuery();
 		$dQuery->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
 		while ($dRec = $dQuery->fetch()){
-		    $foundBatches[$dRec->batch] = $dRec->quantity;
+		    $foundBatches[$dRec->batch] = $dRec->batch;
 		    if(!array_key_exists($dRec->batch, $batches)){
 				$batches[$dRec->batch] = $dRec->quantity;
 			}
