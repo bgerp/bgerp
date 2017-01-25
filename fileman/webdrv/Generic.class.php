@@ -1212,11 +1212,18 @@ class fileman_webdrv_Generic extends core_Manager
             // Пътя до архива
             $filePath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
             
-            // Създаваме инстанция
-            $zip = new ZipArchive();
+            try {
+                // Създаваме инстанция
+                $zip = new ZipArchive();
+            } catch (Exception $e) {
+                $zip = FALSE;
+            }
             
-            // Очакваме да може да се създане инстация
-            expect($zip, 'Не може да се създаде инстанция.');
+            if (!$zip) {
+                self::logWarning('Не е инсталиран разширението за ZipArchive');
+                
+                throw new fileman_Exception('Възникна грешка при отварянето на файла.');
+            }
             
             // Отваряме архива да четем от него
             $open = $zip->open($filePath, ZIPARCHIVE::CHECKCONS);
