@@ -562,12 +562,13 @@ class doc_Setup extends core_ProtoSetup
         $cnt = $query->count();
         
         $query->limit(100);
-        $query->groupBy("dataId");
+        $query->groupBy("containerId");
+        $query->show('containerId');
         
         if ($cnt && !core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'migrateShowFiles' AND #state = 'draft'", '*', FALSE)) {
             $callOn = dt::addSecs(120);
             core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
-        } else {
+        } elseif (!$cnt) {
             doc_Files::logDebug("Няма повече файлове за миграция в документите");
             
             return ;

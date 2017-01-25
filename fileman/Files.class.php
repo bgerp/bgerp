@@ -1962,7 +1962,7 @@ class fileman_Files extends core_Master
         if (!$isAbsolute && fileman_Files::isDanger($rec)) {
             $dangerFileClass .= ' dangerFile';
         }
-        echo "<li> $icon";
+        
         // Вербалното име на файла
         $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . "\">" . $mvc->getVerbal($rec,'name') . "</span>";
         
