@@ -161,11 +161,14 @@ class doc_DocumentCache extends core_Master
 		$query = $this->getQuery();
         
         // Изтриваме с по-голяма вероятност, записите, които са стоели по-дълго след края на кеша
-		$query->delete("TIME_TO_SEC(TIMEDIFF('{$now}', #createdOn)) >= (" . doc_Setup::get('CACHE_LIFETIME') . " - (RAND() * 120))"); 
+		$cnt = $query->delete("TIME_TO_SEC(TIMEDIFF('{$now}', #createdOn)) >= (" . doc_Setup::get('CACHE_LIFETIME') . " - (RAND() * 120))");
+
+		self::logDebug("Изтрити кеширани документа: " . $cnt);
 		
 		// Ресетваме ид-та веднъж на 1000 минути
         if(round((time()/60) % 1000) == 500) {
 		    $this->db->query("ALTER TABLE {$this->dbTableName} AUTO_INCREMENT = 1");
+		    self::logInfo("Ресетнати id-та");
         }
 	}
 	
