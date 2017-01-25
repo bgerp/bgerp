@@ -16,6 +16,18 @@ class doc_plg_SelectFolder extends core_Plugin
 {
     
     
+	/**
+	 * След инициализирането на модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Mvc $data
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		setIfNot($mvc->alwaysForceFolderIfEmpty, FALSE);
+	}
+	
+	
     /**
      * Преди всеки екшън на мениджъра-домакин
      *
