@@ -764,8 +764,9 @@ class fileman_Indexes extends core_Manager
         fileman_Data::save($dRec, 'searchKeywords');
         
         $break = FALSE;
+        $bGet = $hGet = FALSE;
         foreach ($fArr as $hnd => $fRec) {
-        
+            
             if (dt::now() >= $endOn) {
                 $break = TRUE;
                 break;
@@ -779,25 +780,33 @@ class fileman_Indexes extends core_Manager
              
             $ext = fileman_Files::getExt($fName);
             
-            $drvInst = self::getDrvForMethod($ext, 'canGetBarcodes');
-            if ($drvInst && $drvInst->canGetBarcodes()) {
-                try {
-                    usleep(500000);
-                    $drvInst->getBarcodes($fRec);
-                } catch (ErrorException $e) {
-                    reportException($e);
+            if (!$bGet) {
+                $drvInst = self::getDrvForMethod($ext, 'canGetBarcodes');
+                if ($drvInst && $drvInst->canGetBarcodes()) {
+                    try {
+                        usleep(500000);
+                        $drvInst->getBarcodes($fRec);
+                        $bGet = TRUE;
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    }
                 }
             }
-
-            $drvInst = self::getDrvForMethod($ext, 'convertToHtml');
-            if ($drvInst) {
-                try {
-                    usleep(500000);
-                    $drvInst->convertToHtml($fRec);
-                } catch (ErrorException $e) {
-                    reportException($e);
+            
+            if (!$hGet) {
+                $drvInst = self::getDrvForMethod($ext, 'convertToHtml');
+                if ($drvInst) {
+                    try {
+                        usleep(500000);
+                        $drvInst->convertToHtml($fRec);
+                        $hGet = TRUE;
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    }
                 }
             }
+            
+            if ($hGet && $bGet) break;
         }
         
         if ($break) return FALSE;
