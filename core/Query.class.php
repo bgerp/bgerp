@@ -570,7 +570,7 @@ class core_Query extends core_FieldSet
                 $q = clone($this);
                 $q->unions = NULL;
                 $q->where($cond);
-                $query .= ($query ? "\nUNION\n" : '') . $q->buildQuery();
+                $query .= ($query ? "\nUNION\n" : '') . "(" . $q->buildQuery() . ")";
             }
         } else {
 
