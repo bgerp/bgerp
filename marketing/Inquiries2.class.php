@@ -352,7 +352,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$measureId = cat_UoM::fetchBySinonim('pcs')->id;
     	}
     	
-    	$shortName = cat_UoM::getShortName($measureId);
+    	$shortName = tr(cat_UoM::getShortName($measureId));
     	
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	foreach (range(1, 3) as $i){
@@ -360,15 +360,22 @@ class marketing_Inquiries2 extends embed_Manager
     			if(isset($rec->quantities[$i - 1])){
     				$rec->{"quantity{$i}"} = $rec->quantities[$i - 1];
     				$row->{"quantity{$i}"} = $Double->toVerbal($rec->{"quantity{$i}"});
+                    
     			}
     		}
     	}
-    	
+        
+        $cntQuantities = 0;
     	foreach (range(1, 3) as $i){
     		if($rec->{"quantity{$i}"}){
     			$row->{"quantity{$i}"} .= " {$shortName}";
+                $cntQuantities++;
     		}
     	}
+        
+        if($cntQuantities > 1) {
+            $row->q1Number = '1';
+        }
     	
     	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
     	

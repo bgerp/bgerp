@@ -2907,7 +2907,9 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен таб на историята
         $tab = Request::get('Tab');
 
-        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab;
+        $lang = core_Lg::getCurrent();
+
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab . '|' . $lang;
         
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);
