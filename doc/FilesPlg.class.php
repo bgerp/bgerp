@@ -90,7 +90,7 @@ class doc_FilesPlg extends core_Plugin
         while ($fRec = $query->fetch()) {
             
             // Ако нямаме права за разглеждане на записа
-            if (!doc_Files::haveRightFor('info', $fRec)) continue;
+            if (!doc_Files::haveRightFor('list', $fRec)) continue;
             
             // Ако сме обходили съответния контейнер, прескачаме
             if ($containerArr[$fRec->containerId]) continue;
@@ -111,6 +111,8 @@ class doc_FilesPlg extends core_Plugin
             	
                 continue;
             }
+            
+            if (!$doc || !$doc->haveRightFor('single')) continue ;
             
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
@@ -138,6 +140,8 @@ class doc_FilesPlg extends core_Plugin
                     
                         continue;
                     }
+                    
+                    if (!$docProxy || !$docProxy->haveRightFor('single')) continue ;
                     
                     // Полетата на документа във вербален вид
                     $docProxyRow = $docProxy->getDocumentRow();
@@ -235,6 +239,8 @@ class doc_FilesPlg extends core_Plugin
                 continue;
             }
             
+            if (!$doc || !$doc->haveRightFor('single')) continue ;
+            
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
             
@@ -263,6 +269,8 @@ class doc_FilesPlg extends core_Plugin
                     
                     continue;
                 }
+                
+                if (!$docProxyRow || !$docProxyRow->haveRightFor('single')) continue ;
                 
                 // Полетата на документа във вербален вид
                 $docProxyRow = $docProxy->getDocumentRow();
