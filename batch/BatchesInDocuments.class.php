@@ -486,7 +486,11 @@ class batch_BatchesInDocuments extends core_Manager
 						self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
 					}
 				}
-					
+				
+				// Предизвиква се обновяване на документа
+				$dRec = cls::get($detailClassId)->fetch($detailRecId);
+				cls::get($detailClassId)->save($dRec);
+				
 				return followRetUrl();
 			}
 		}
