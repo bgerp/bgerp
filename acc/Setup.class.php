@@ -131,7 +131,7 @@ class acc_Setup extends core_ProtoSetup
     	'migrate::updateItemsEarliestUsedOn',
         'migrate::updateAllFL',
         'migrate::updateFeatureTitles',
-    	'migrate::updateCostObjectDocuments'
+    	'migrate::updateCostObjectDocuments1'
     );
     
     
@@ -258,7 +258,7 @@ class acc_Setup extends core_ProtoSetup
     	
     	// Ако потребителя не е избрал документи, които могат да са разходни пера
     	if(strlen($docs) === 0){
-    		$this->updateCostObjectDocuments();
+    		$this->getCostObjectDocuments();
     		$res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
     	}
     
@@ -267,20 +267,29 @@ class acc_Setup extends core_ProtoSetup
     
     
     /**
-     * Функция за обноявяване на разходните обекти
+     * Кои документи по дефолт да са разходни обекти
      */
-    function updateCostObjectDocuments()
+    function getCostObjectDocuments()
     {
     	$docArr = array();
-    	foreach (array('cal_Tasks', 'sales_Sales', 'purchase_Purchases', 'accda_Da', 'findeals_Deals', 'findeals_AdvanceDeals', 'planning_DirectProductionNote') as $doc){
+    	foreach (array('cal_Tasks', 'sales_Sales', 'purchase_Purchases', 'accda_Da', 'findeals_Deals', 'findeals_AdvanceDeals', 'planning_DirectProductionNote', 'store_Transfers') as $doc){
     		if(core_Classes::add($doc)){
     			$id = $doc::getClassId();
     			$docArr[$id] = $id;
     		}
     	}
-    	
+    	 
     	// Записват се ид-та на дефолт сметките за синхронизация
     	core_Packs::setConfig('acc', array('ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)));
+    }
+    
+    
+    /**
+     * Функция за обноявяване на разходните обекти
+     */
+    function updateCostObjectDocuments1()
+    {
+    	$this->getCostObjectDocuments();
     }
     
     
