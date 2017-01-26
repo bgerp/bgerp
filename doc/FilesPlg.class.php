@@ -270,8 +270,6 @@ class doc_FilesPlg extends core_Plugin
                     continue;
                 }
                 
-                if (!$docProxyRow || !$docProxyRow->haveRightFor('single')) continue ;
-                
                 // Полетата на документа във вербален вид
                 $docProxyRow = $docProxy->getDocumentRow();
                 
