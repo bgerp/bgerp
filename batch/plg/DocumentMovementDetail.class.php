@@ -210,11 +210,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if($mvc instanceof core_Master) return;
 		
 		if(!count($data->rows) || haveRole('partner')) return;
-		$storeId = $data->masterData->rec->{$mvc->Master->storeFieldName};
-		if(!$storeId) return;
 		
 		foreach ($data->rows as $id => &$row){
 			$rec = &$data->recs[$id];
+			
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
 			
 			if(batch_BatchesInDocuments::haveRightFor('modify', (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId))){
 				core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -236,11 +236,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if(!count($data->rows) || haveRole('partner')) return;
 		
 		$rows = &$data->rows;
-		$storeId = $data->masterData->rec->{$mvc->Master->storeFieldName};
-		if(!$storeId) return;
 		
 		foreach ($rows as $id => &$row){
 			$rec = &$data->recs[$id];
+			
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
+			if(!$storeId) return;
+			
 			if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
 			
 			$row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
@@ -314,7 +316,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		} else {
 			// Ако има склад и документа е входящ, не може
 			$info = $mvc->getRowInfo($rec);
-			$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+			
 			if(!$storeId || !count($info->operation)){
 				$res = 'no_one';
 			} elseif($mvc->getBatchMovementDocument($rec) != 'out'){
