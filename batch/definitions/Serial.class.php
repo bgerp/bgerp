@@ -33,8 +33,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		$fieldset->FLD('numbers', 'int', 'caption=Цифри,mandatory,unit=брой');
-		$fieldset->FLD('prefix', 'varchar(10)', 'caption=Представка');
-		$fieldset->FLD('suffix', 'varchar(10)', 'caption=Наставка');
+		$fieldset->FLD('prefix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Представка');
+		$fieldset->FLD('suffix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Наставка');
 		$fieldset->FLD('prefixHistory', 'blob', 'input=none');
 		$fieldset->FLD('suffixHistory', 'blob', 'input=none');
 	}
@@ -218,6 +218,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			$rec->suffixHistory = array();
 		}
 		$rec->suffixHistory[$rec->suffix] = $rec->suffix;
+		
+		
 	}
 	
 	
