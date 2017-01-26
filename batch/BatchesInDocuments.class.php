@@ -219,7 +219,7 @@ class batch_BatchesInDocuments extends core_Manager
 	 * @return FALSE|string
 	 */
 	public static function checkBatchRow($detailClassId, $detailRecId, $batch, $quantity, $id = NULL)
-	{return;
+	{
 		$Class = cls::get($detailClassId);
 		$rInfo = $Class->getRowInfo($detailRecId);
 		if(empty($rInfo->operation[key($rInfo->operation)])) return FALSE;
