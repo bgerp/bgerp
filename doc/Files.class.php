@@ -382,7 +382,7 @@ class doc_Files extends core_Manager
         
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
-            $query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
+            $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
         
             plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
         }
