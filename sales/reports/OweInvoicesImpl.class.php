@@ -121,7 +121,8 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		}
 	
 		while ($recSale = $querySales->fetch()) {
-			$toPaid = '';
+	
+			$toPaid = 0;
 			if ($recSale->amountDelivered !== NULL && $recSale->amountInvoiced !== NULL) {
     			// нефакторираното е разлика на доставеното и фактурираното
     			$data->notInv += $recSale->amountDelivered - $recSale->amountInvoiced;
@@ -132,47 +133,40 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		
 			// ако имаме едно ниво на толеранс от задължение > на 0,5
 			if ($recSale->amountDelivered - $recSale->amountPaid >= '0.5') {
-				
+	
 				// то ще търсим всички фактури
 				// които са в нишката на тази продажба
 				// и са активни
 				$queryInvoices = sales_Invoices::getQuery();
-				$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active'");
+				$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active' AND #date <= '{$data->rec->from}'");
 				$queryInvoices->orderBy("#date", "DESC");
 
-				// платеното е разлика на достовеното и салдото
-				$paid = $recSale->amountDelivered - $recSale->amountBl;
+				$saleItem = acc_Items::fetchItem('sales_Sales', $recSale->id);
+				$contragentItem = acc_Items::fetchItem($contragentCls, $contragentId);
+				$currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($recSale->currencyId));
+				
+				$Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from,
+				    'to' => $data->rec->from,
+				    'accs' => '411',
+				    'item1' => $contragentItem->id,
+				    'item2' => $saleItem->id,
+				    'item3' => $currencyItem->id,
+				    'strict' => TRUE,
+				    'cacheBalance' => FALSE));
+				 
+				// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
+				$Balance = $Balance->getBalanceBefore('411');
+				$balHistory = acc_ActiveShortBalance::getBalanceHystory(411, $data->rec->from, $data->rec->from, $contragentItem->id, $saleItem->id, $currencyItem->id);
 
 				while ($invRec = $queryInvoices->fetch()){
-				 
+	
 				    // платеното е разлика на достовеното и салдото
 				    $paid =  $recSale->amountDelivered - $recSale->amountBl;
 				    // сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
-				    $amountVat =  $invRec->dealValue + $invRec->vatAmount;
-				    // имаме една чек сума, която е по-малкото от двете числа:
-				    // платено и сумата на фактурата
-				    $checkSum =  min($paid,$amountVat);
-				    
-				    if(!$toPaid && $paid  !=  '0') {
-    				    $toPaid = abs($paid - $amountVat);
-    				        // ако нищо не е платено по тази сделка
-    				        // дължимата сума е сумата по фактура
-    				} elseif ($paid  ==  '0') {
-    				    $toPaid = $amountVat;
-    				        // на всяка следваща стъпка, остатъка намалява с
-    				        // чек сумата
-    				} else {	
-    				    $toPaid = abs($toPaid - $checkSum); 
-    				}
-    				    // ако дължимата сума е около 0
-    				    // или стойноста на фактурата съвпадне с чек сумата
-    				    // игнорираме тези редове
-    				if (round($toPaid,2) == 0) {
-    				        continue;
-    				} else {
-    				       //if ($checkSum == $amountVat) continue;
-    				}
-					
+				    $amountVat =  $invRec->dealValue + $invRec->vatAmount; 
+
+				    $index = "92|{$contragentItem->id}|{$saleItem->id}|{$currencyItem->id}";
+					$toPaid = $balHistory['summary']['blAmount']; 
 					// правим рековете
 					$data->recs[] = (object) array ("contragentCls" => $contragentCls,
 													'contragentId' => $contragentId,
@@ -191,14 +185,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				}
 			}
 		}
-
-
+		
         foreach ($data->recs as $rec) { 
         	
-        	if ($rec->dueDate == NULL || $rec->dueDate < dt::now()) { 
+        	if ($rec->dueDate == NULL || $rec->dueDate < $data->rec->from) { 
         		$rec->amount = $rec->amountRest;
         	} else {
-        	   unset($rec->amountRest);
+        	   $rec->amount = 0;
+        	  
         	}
         
         	if ($rec->currencyId != $currencyNow) { 
@@ -229,10 +223,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	$data->sum->currencyId = $currRec->currencyId;
 
         	if ($currRec->dueDate == NULL || $currRec->dueDate < dt::now()) { 
-        		$data->sum->arrears += $currRec->amountRest;
+        		$data->sum->arrears += $currRec->amount;
         	}
         }
-
+    
 		return $data;
 	}
 	
@@ -367,7 +361,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 
     	$tpl->replace($data->contragent->titleLink, 'contragent');
     	$tpl->replace($data->contragent->vatId, 'eic');
-    	$tpl->replace($data->rec->from, 'from');
+    	
+    	$from = dt::mysql2verbal($data->rec->from, 'd.m.Y');
+    	$tpl->replace($from, 'from');
     	
     	$tpl->placeObject($data->rec);
 
@@ -377,18 +373,12 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
 
         if (count($data->summary) ) {
-	    	if(count($data->rows) == 1){
-	    		$data->summary->colspan = count($data->listFields)-4;
-	    		$afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><td style='text-align:right'></td><td style='text-align:right'></td></tr>");
-	    		 
-	    		$afterRow->placeObject($data->summary);
+
+	       $data->summary->colspan = count($data->listFields)-3;
+	       $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN contragent--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b></td></tr>");
 	    		
-	    	} elseif (count($data->rows)  > 1) {
-	    		$data->summary->colspan = count($data->listFields)-4;
-	    		$afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN contragent--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b></td><td style='text-align:right'></td></tr>");
-	    		 
-	    		$afterRow->placeObject($data->summary);
-    		}
+	       $afterRow->placeObject($data->summary);
+
         }
 
     	if (count($data->rows)){
@@ -409,12 +399,13 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	protected function prepareListFields_(&$data)
 	{
 		$data->listFields = array(
-				'date' => 'Фактура->Дата',
-				'number' => 'Фактура->Номер',
-				'amountVat' => 'Фактура->Сума',
-				'amountRest' => 'Фактура->Остатък',
-				'amount' => 'Фактура->Просрочие',
-				'paymentState' => 'Състояние',
+				'date' => 'Дата',
+		        'dueDate' => 'Падеж',
+				'number' => 'Номер',
+				'amountVat' => 'Сума',
+				'amountRest' => 'Остатък',
+				'amount' => 'Просрочие',
+				//'paymentState' => 'Състояние',
 		);
 	}
 	
@@ -437,6 +428,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		if ($rec->date) {
 	    	$row->date = dt::mysql2verbal($rec->date, 'd.m.Y');
 		}
+		
+		if ($rec->dueDate) {
+		    $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.Y');
+		}
 	    
 		if ($rec->number) {
 			$number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
@@ -446,7 +441,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 
 		$row->amountVat = $Double->toVerbal($rec->amountVat);
 		$row->amountRest = $Double->toVerbal($rec->amountRest);
-	    $row->amount = $Double->toVerbal($rec->amount);
+	    $row->amount = $Double->toVerbal($rec->amount); 
 
 	    $state = array('pending' => "Чакащо", 'overdue' => "Просроченo", 'paid' => "Платенo", 'repaid' => "Издължено");
 	 
@@ -545,6 +540,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	    $f = new core_FieldSet;
    
     	$f->FLD('date', 'date');
+    	$f->FLD('dueDate', 'date');
     	$f->FLD('number', 'int');
     	$f->FLD('amountVat', 'double');
     	$f->FLD('amountRest', 'double');

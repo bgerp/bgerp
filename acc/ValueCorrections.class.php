@@ -481,7 +481,11 @@ class acc_ValueCorrections extends core_Master
     		case 'value':
     			// Ако се разпределя по стойност изчисляване на общата сума
     			foreach ($products as $p){
-    				$denominator += $p->amount;
+    				if(!isset($p->amount)){
+    					$errorArr[$p->productId] = $p->name;
+    				} else {
+    					$denominator += $p->amount;
+    				}
     			}
     			break;
     		case 'quantity':
@@ -503,7 +507,7 @@ class acc_ValueCorrections extends core_Master
     			
     			// Изчисляване на общото транспортно тегло
     			foreach ($products as $p){
-    				if(!isset($p->transportWeight)){
+    				if(empty($p->transportWeight)){
     					$errorArr[$p->productId] = $p->name;
     				} else {
     					$denominator += $p->transportWeight * $p->quantity;
@@ -514,7 +518,7 @@ class acc_ValueCorrections extends core_Master
     			
     			// Изчисляване на общия транспортен обем
     			foreach ($products as $p){
-    				if(!isset($p->transportVolume)){
+    				if(empty($p->transportVolume)){
     					$errorArr[$p->productId] = $p->name;
     				} else {
     					$denominator += $p->transportVolume * $p->quantity;
@@ -527,6 +531,8 @@ class acc_ValueCorrections extends core_Master
     	if(count($errorArr)){
     		if($allocateBy == 'quantity'){
     			$msg = "Не може да се избере разпределяне по количество, защото артикулите са в различни мерки";
+    		} elseif($allocateBy == 'value'){
+    			$msg = "Не може да се избере разпределяне по стойност, защото артикулите нямат стойност в документа";
     		} else {
     			$string = implode(", ", $errorArr);
     			$type = ($allocateBy == 'weight') ? 'тегло' : 'обем';

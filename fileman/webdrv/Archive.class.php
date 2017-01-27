@@ -169,7 +169,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         } else {
             try {
                 $archiveInst = cls::get('archive_Adapter', array('path' => $fRec));
-                $fLen = filesize($fRec);
+                $fLen = @filesize($fRec);
             } catch (ErrorException $e) {
                 $archiveInst = FALSE;
             }
@@ -246,7 +246,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 // Ако няма текст, правим опит да направим OCR
                 if (!trim($eText)) {
                     $minSize = fileman_Indexes::$ocrIndexArr[$ext];
-                    $eFileLen = filesize($extractedPath);
+                    $eFileLen = @filesize($extractedPath);
                     if (isset($minSize) && ($eFileLen > $minSize) && ($eFileLen < fileman_Indexes::$ocrMax)) {
                         
                         $filemanOcr = fileman_Setup::get('OCR');

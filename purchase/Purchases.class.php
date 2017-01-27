@@ -632,8 +632,7 @@ class purchase_Purchases extends deals_DealMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionPur" : "commonConditionPurEng";
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionPur")){
     			$row->commonCondition = cls::get('type_Varchar')->toVerbal($cond);
     		}
     	}

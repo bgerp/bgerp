@@ -153,7 +153,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за спецификацията
+     * Връща последното не оттеглено или чернова задание за артикула
      * 
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на заданието или FALSE ако няма
@@ -165,7 +165,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последната активна рецепта на спецификацията
+     * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
      * @param sales|production $type - вид работна или търговска

@@ -19,8 +19,6 @@ function spr(sel) {
 
 }
 
-
-
 /**
  * Опитваме се да репортнем JS грешките
  */
@@ -2720,24 +2718,24 @@ function actionsWithSelected() {
 
 function prepareCheckboxes(){
     var toggle = $(document.createElement('input')).attr({
-        name: "toggle"
-        ,class: "invert-checkboxes"
-        ,style: "display:none"
-        ,type:  'checkbox'
-        ,onclick: 'toggleAllCheckboxes();'
+        name: "toggle",
+        style: "display:none",
+        type:  'checkbox',
+        onclick: 'toggleAllCheckboxes();'
     });
+    $(toggle).addClass('invert-checkboxes');
 
     $('.checkbox-btn').each(function(){
         var id = $(this).attr("id").match(/\d+/)[0];
         var element = $(document.createElement('input')).attr({
-            id:    'cb_' + id
-            ,name: "R[" + id + "]"
-            ,class: "custom-checkboxes"
-            ,style: "display:none"
-            ,value: 'myValue'
-            ,type:  'checkbox'
-            ,onclick: 'chRwClSb("' + id +'")'
+            id:    'cb_' + id,
+            name: "R[" + id + "]",
+            style: "display:none",
+            value: 'myValue',
+            type:  'checkbox',
+            onclick: 'chRwClSb("' + id +'")'
         });
+        $(element).addClass('custom-checkboxes');
         $(this).closest('td').prepend(element);
         $(this).closest('tr').attr("id", 'lr_' + id);
 
