@@ -156,6 +156,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				 
 				// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
 				$Balance = $Balance->getBalanceBefore('411');
+				$balHistory = acc_ActiveShortBalance::getBalanceHystory(411, $data->rec->from, $data->rec->from, $contragentItem->id, $saleItem->id, $currencyItem->id);
 
 				while ($invRec = $queryInvoices->fetch()){
 	
@@ -165,7 +166,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				    $amountVat =  $invRec->dealValue + $invRec->vatAmount; 
 
 				    $index = "92|{$contragentItem->id}|{$saleItem->id}|{$currencyItem->id}";
-					$toPaid = $Balance[$index]['blAmount']; 
+					$toPaid = $balHistory['summary']['blAmount']; 
 					// правим рековете
 					$data->recs[] = (object) array ("contragentCls" => $contragentCls,
 													'contragentId' => $contragentId,
@@ -191,6 +192,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         		$rec->amount = $rec->amountRest;
         	} else {
         	   $rec->amount = 0;
+        	  
         	}
         
         	if ($rec->currencyId != $currencyNow) { 
@@ -224,7 +226,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         		$data->sum->arrears += $currRec->amount;
         	}
         }
-
+    
 		return $data;
 	}
 	
@@ -439,7 +441,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 
 		$row->amountVat = $Double->toVerbal($rec->amountVat);
 		$row->amountRest = $Double->toVerbal($rec->amountRest);
-	    $row->amount = $Double->toVerbal($rec->amount);
+	    $row->amount = $Double->toVerbal($rec->amount); 
 
 	    $state = array('pending' => "Чакащо", 'overdue' => "Просроченo", 'paid' => "Платенo", 'repaid' => "Издължено");
 	 
