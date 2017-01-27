@@ -438,7 +438,29 @@ class doc_Files extends core_Manager
         }
     }
     
-    
+       
+    /**
+     * Връща броя на файловете в съответната папка
+     * 
+     * @param doc_Folders $folderId - id' то на папката, за която търсим
+     * 
+     * @return integer $count - Броя файловете
+     */
+    static function getCountInFolder($folderId=NULL) 
+    {
+        // Ако не е подадено $folderId, използваме id' то на последно активната папка
+        $folderId = ($folderId) ? ($folderId) : mode::get('lastfolderId');
+        
+        // Ако все още няма папка, връщаме 0
+        if (!$folderId) return 0;
+        
+        // Вземаме броя на файловете в папката
+        $count = static::count("#folderId = '{$folderId}'");
+        
+        return $count;
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *

@@ -27,10 +27,10 @@
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
                <b>[#packQuantity#] </b>
                 <!--ET_BEGIN tolerance-->
-                <div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
+                <div class='quiantity-misc'>|толеранс к-во|*&#177; <b>[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
                 <!--ET_BEGIN term-->
-                <div class='quiantity-misc'>|срок|* &nbsp;<b>[#term#]</b></div>
+                <div class='quiantity-misc' style='font-size:0.8em'>|срок за д-ка|* &nbsp;<b>[#term#]</b></div>
                 <!--ET_END term-->
             </td>
             <td class='misc-info nowrap aright vtop'>
