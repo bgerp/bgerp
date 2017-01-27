@@ -410,7 +410,7 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-    	if($rec->originId){
+    	if(isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
     		
     		// Ориджина трябва да е спецификация
@@ -420,6 +420,20 @@ class sales_Quotations extends core_Master
     		if(($dRows[0] || $dRows[1] || $dRows[2])){
     			sales_QuotationsDetails::insertFromSpecification($rec, $origin, $dRows);
 			}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	if(isset($rec->originId)){
+    		
+    		// Споделяме текущия потребител със нишката на заданието
+    		$cu = core_Users::getCurrent();
+    		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     	}
     }
     
