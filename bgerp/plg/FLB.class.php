@@ -175,7 +175,7 @@ class bgerp_plg_FLB extends core_Plugin
 	{
 		$allowEmpty = (haveRole('ceo')) ? 'allowEmpty' : '';
 		$data->listFilter->view = 'horizontal';
-		$data->listFilter->FLD('users', "users(rolesForAll=ceo|admin,rolesForAll=ceo|manager|admin,{$allowEmpty})", 'caption=Потребител,silent,autoFilter,remember');
+		$data->listFilter->FLD('users', "users(rolesForAll=ceo|manager|admin,{$allowEmpty})", 'caption=Потребител,silent,autoFilter,remember');
 		$data->listFilter->showFields = 'users';
 		$data->listFilter->input('users', 'silent');
 		
