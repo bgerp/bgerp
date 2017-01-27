@@ -410,16 +410,28 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-    	if($rec->originId){
+    	if(isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		
-    		// Ориджина трябва да е спецификация
     		$originRec = $origin->fetch();
     		
     		$dRows = array($rec->row1, $rec->row2, $rec->row3);
     		if(($dRows[0] || $dRows[1] || $dRows[2])){
     			sales_QuotationsDetails::insertFromSpecification($rec, $origin, $dRows);
 			}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	if(isset($rec->originId)){
+    		
+    		// Споделяме текущия потребител със нишката на заданието
+    		$cu = core_Users::getCurrent();
+    		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     	}
     }
     
@@ -518,9 +530,7 @@ class sales_Quotations extends core_Master
     			$row->buzPlace = core_Lg::transliterate($row->buzPlace);
     		}
     	
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-    		 
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')){
     			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
     		}
     		 
@@ -753,24 +763,10 @@ class sales_Quotations extends core_Master
     
     /**
      * Функция, която прихваща след активирането на документа
-     * Ако офертата е базирана на чернова спецификация, активираме и нея
+     * Ако офертата е базирана на чернова  артикула, активираме и нея
      */
     protected static function on_AfterActivation($mvc, &$rec)
     {
-    	if($rec->originId){
-    		$origin = doc_Containers::getDocument($rec->originId);
-	    	if($origin->haveInterface('cat_ProductAccRegIntf')){
-	    		$originRec = $origin->fetch();
-	    		if($originRec->state == 'draft'){
-	    			$originRec->state = 'active';
-	    			$origin->getInstance()->save($originRec);
-	    			
-	    			$msg = "|Активиран е документ|* #{$origin->abbr}{$origin->that}";
-	    			core_Statuses::newStatus($msg);
-	    		}		
-	    	}
-    	}
-    	
     	if($rec->deliveryPlaceId){
 		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
 		    	$newLocation = (object)array(
