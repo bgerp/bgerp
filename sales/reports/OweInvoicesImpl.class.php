@@ -138,7 +138,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				// които са в нишката на тази продажба
 				// и са активни
 				$queryInvoices = sales_Invoices::getQuery();
-				$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active'");
+				$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active' AND #date <= '{$data->rec->from}'");
 				$queryInvoices->orderBy("#date", "DESC");
 
 				$saleItem = acc_Items::fetchItem('sales_Sales', $recSale->id);
@@ -187,10 +187,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		
         foreach ($data->recs as $rec) { 
         	
-        	if ($rec->dueDate == NULL || $rec->dueDate < dt::now()) { 
+        	if ($rec->dueDate == NULL || $rec->dueDate < $data->rec->from) { 
         		$rec->amount = $rec->amountRest;
         	} else {
-        	   unset($rec->amountRest);
+        	   $rec->amount = 0;
         	}
         
         	if ($rec->currencyId != $currencyNow) { 
@@ -221,7 +221,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	$data->sum->currencyId = $currRec->currencyId;
 
         	if ($currRec->dueDate == NULL || $currRec->dueDate < dt::now()) { 
-        		$data->sum->arrears += $currRec->amountRest;
+        		$data->sum->arrears += $currRec->amount;
         	}
         }
 
@@ -359,7 +359,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 
     	$tpl->replace($data->contragent->titleLink, 'contragent');
     	$tpl->replace($data->contragent->vatId, 'eic');
-    	$tpl->replace($data->rec->from, 'from');
+    	
+    	$from = dt::mysql2verbal($data->rec->from, 'd.m.Y');
+    	$tpl->replace($from, 'from');
     	
     	$tpl->placeObject($data->rec);
 
@@ -369,18 +371,12 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
 
         if (count($data->summary) ) {
-	    	/*if(count($data->rows) == 1){
-	    		$data->summary->colspan = count($data->listFields)-4;
-	    		$afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><td style='text-align:right'></td><td style='text-align:right'></td></tr>");
-	    		 
-	    		$afterRow->placeObject($data->summary);
-	    		bp($data->summary);
-	    	} elseif (count($data->rows)  > 1) {*/
-	    		$data->summary->colspan = count($data->listFields)-4;
-	    		$afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN contragent--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b></td><td style='text-align:right'></td></tr>");
+
+	       $data->summary->colspan = count($data->listFields)-3;
+	       $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN contragent--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b></td></tr>");
 	    		
-	    		$afterRow->placeObject($data->summary);
-    		//}
+	       $afterRow->placeObject($data->summary);
+
         }
 
     	if (count($data->rows)){
@@ -401,12 +397,13 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	protected function prepareListFields_(&$data)
 	{
 		$data->listFields = array(
-				'date' => 'Фактура->Дата',
-				'number' => 'Фактура->Номер',
-				'amountVat' => 'Фактура->Сума',
-				'amountRest' => 'Фактура->Остатък',
-				'amount' => 'Фактура->Просрочие',
-				'paymentState' => 'Състояние',
+				'date' => 'Дата',
+		        'dueDate' => 'Падеж',
+				'number' => 'Номер',
+				'amountVat' => 'Сума',
+				'amountRest' => 'Остатък',
+				'amount' => 'Просрочие',
+				//'paymentState' => 'Състояние',
 		);
 	}
 	
@@ -428,6 +425,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		
 		if ($rec->date) {
 	    	$row->date = dt::mysql2verbal($rec->date, 'd.m.Y');
+		}
+		
+		if ($rec->dueDate) {
+		    $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.Y');
 		}
 	    
 		if ($rec->number) {
@@ -537,6 +538,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	    $f = new core_FieldSet;
    
     	$f->FLD('date', 'date');
+    	$f->FLD('dueDate', 'date');
     	$f->FLD('number', 'int');
     	$f->FLD('amountVat', 'double');
     	$f->FLD('amountRest', 'double');
