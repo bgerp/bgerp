@@ -99,11 +99,23 @@ class core_Packs extends core_Manager
      * 
      * @return id|FALSE
      */
-    static function isInstalled($name)
+    static function isInstalled($name, $rightNow = FALSE)
     {
         static $isInstalled = array();
         
+        $name = trim(strtolower($name));
+        
+        // Дали в момента не се инсталира?
+        if($rightNow) {
+            if($this->alreadySetup[$name . TRUE] || $this->alreadySetup[$name . TRUE]) {
+
+                return TRUE;
+            }
+        }
+
         if (!isset($isInstalled[$name])) {
+
+            
             $rec = static::fetch(array("#name = '[#1#]'", $name));
             
             if ($rec && $rec->state == 'active') {

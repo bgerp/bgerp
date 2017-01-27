@@ -1,0 +1,17 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <h2>|Стелаж|* [#num#]</h2>
+    <div class='scrolling-holder'>
+        [#places#]
+        <table class="styled-table">
+            <tr style='background-color:#eee;'>
+                <td>|Места|*</td><td>|Използвани|*</td><td>|Запазени|*</td><td>|Свободни|*</td><td>|Редове|*</td><td>|Колони|*</td><td>|Създаване|*</td>
+            </tr>
+            <tr style='text-align:center;'>
+                <td><strong>[#total#]</strong></td><td><strong>[#used#]</strong></td><td><strong style='color:#933;'>[#reserved#]</strong></td><td><strong>[#free#]</strong></td>
+                <td><strong>[#rows#]</strong></td><td><strong>[#columns#]</strong></td><td style='font-size:0.8em'>[#createdOn#] [#createdBy#]</td>
+            </tr>
+            <tr><td colspan=7>[#comment#]</td></tr>
+        </table>
+    </div>
+</div>

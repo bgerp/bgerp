@@ -195,9 +195,9 @@ class cams_driver_IpDevice extends core_BaseClass {
     		break;
     		case "cams_driver_Hikvision":
     			// Шот по http
-    			// $suffix = "/Streaming/channels/1/picture";
+    			 $suffix = "/Streaming/channels/1/picture";
     			// Път до файла генериран от RTSP
-    			return EF_TEMP_PATH . "HikvisionShot.jpg";
+    			//return EF_TEMP_PATH . "HikvisionShot.jpg";
     		break;
     	}
 		

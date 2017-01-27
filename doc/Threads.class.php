@@ -368,7 +368,32 @@ class doc_Threads extends core_Manager
                     }
                 }
                 
+                // Ако ще се поправя само partnerDocCnt и allDocCnt
+                if (!isset($rec->partnerDocCnt) || !isset($rec->allDocCnt)) {
+                    $preparedDocCnt = FALSE;
+                    $allDocCnt = $rec->allDocCnt;
+                    if (!isset($rec->partnerDocCnt)) {
+                        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                        self::save($rec, 'partnerDocCnt');
+                        $resArr['partnerDocCnt']++;
+                        self::logNotice("Поправен partnerDocCnt", $rec->id);
+                        $preparedDocCnt = TRUE;
+                    }
+                    
+                    if (!isset($allDocCnt)) {
+                        if (!$preparedDocCnt) {
+                            self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                        }
+                        self::save($rec, 'allDocCnt');
+                        $resArr['allDocCnt']++;
+                        self::logNotice("Поправен allDocCnt", $rec->id);
+                    }
+                    
+                    continue;
+                }
+                
                 self::logNotice("Нишката е обновена, защото има развалени данни", $rec->id);
+                $resArr['updateThread']++;
                 
                 // Обновяваме нишката
                 self::updateThread($rec->id);
@@ -443,11 +468,17 @@ class doc_Threads extends core_Manager
                 
                 // Ако се различава броя на документите
                 $cCnt = $cQuery->count();
-//                 if (($cCnt || (!$cCnt && $rec->state == 'rejected')) && ($cCnt != $rec->allDocCnt)) {
-                if ($cCnt != $rec->allDocCnt) {
-                    self::logNotice("Променен брой на документите от {$rec->allDocCnt} на {$cCnt}", $rec->id);
-                    self::updateThread($rec->id);
+                
+                $partnerCnt = (int)$rec->partnerDocCnt;
+                $allDocCnt = (int)$rec->allDocCnt;
+                
+                $prepareDocCnt = FALSE;
+                if ($cCnt != $allDocCnt) {
+                    self::logNotice("Променен брой на документите от {$allDocCnt} на {$cCnt}", $rec->id);
+                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                    self::save($rec, 'allDocCnt');
                     $resArr['allDocCnt']++;
+                    $prepareDocCnt = TRUE;
                 }
                 
                 // Поправяме състоянието, ако се е счупило
@@ -464,11 +495,31 @@ class doc_Threads extends core_Manager
                     // Ако се различава броя на документите, видими за партньори
                     $pCQuery->where("#visibleForPartners = 'yes'");
                     $pCCnt = $pCQuery->count();
-                    if ($pCCnt != $rec->partnerDocCnt) {
-                        self::logNotice("Променен брой на документите видими за партньори от {$rec->partnerDocCnt} на {$pCCnt}", $rec->id);
-                        self::updateThread($rec->id);
+                    if ($pCCnt != $partnerCnt) {
+                        $pCCnt = (int)$pCCnt;
+                        
+                        if (!$prepareDocCnt) {
+                            self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                        }
+                        
+                        self::logNotice("Променен брой на документите видими за партньори от {$partnerCnt} на {$pCCnt}", $rec->id);
+                        
+                        self::save($rec, 'partnerDocCnt');
                         $resArr['partnerDocCnt']++;
                     }
+                }
+                
+                if (!$prepareDocCnt) {
+                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                }
+                
+                if ($firstDcRec && $firstDcRec->id && ($rec->firstContainerId != $firstDcRec->id)) {
+                    $fCid = $rec->firstContainerId;
+                    $rec->firstContainerId = $firstDcRec->id;
+                    
+                    self::save($rec, 'firstContainerId');
+                    $resArr['firstContainerId']++;
+                    self::logNotice("Променено firstContainerId от {$fCid} на {$firstDcRec->id} в нишка", $rec->id);
                 }
                 
                 
@@ -1591,40 +1642,8 @@ class doc_Threads extends core_Manager
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
         
-        $dcQuery = doc_Containers::getQuery();
-        $dcQuery->orderBy('#createdOn');
+        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
         
-        // Публични документи в треда
-        $rec->partnerDocCnt = $rec->allDocCnt = 0;
-
-        $firstDcRec = NULL;
-        
-        while($dcRec = $dcQuery->fetch("#threadId = {$id}")) {
-            
-            if(!$firstDcRec) {
-                $firstDcRec = $dcRec;
-            }
-            
-            // Не броим оттеглените документи
-            if($dcRec->state != 'rejected') {
-                
-                // Преброяваме всичките документи и задържаме последния
-                $lastDcRec = $dcRec;
-                $rec->allDocCnt++;
-
-                if($dcRec->visibleForPartners == 'yes') {
-                    // Преброяваме партньорските документи и задържаме последния
-                    $lastDcPartnerRec = $dcRec;
-                    $rec->partnerDocCnt++;
-                }
-            }
-        }
-        
-        // Ако първия документ не е видим за партньори, то нищо в тази нишка не е видимо за тях
-        if($firstDcRec->visibleForPartners != 'yes') {
-            $rec->partnerDocCnt = 0;
-        }
-
         // Попълваме полето за споделените потребители
         $rec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
 
@@ -1684,6 +1703,50 @@ class doc_Threads extends core_Manager
         doc_Folders::updateFolderByContent($rec->folderId);
     }
     
+    
+    /**
+     * Помощна функция за изчисляване на броя на документите
+     * 
+     * @param stdObject $rec
+     * @param NULL|stdObject $firstDcRec
+     * @param NULL|stdObject $lastDcRec
+     */
+    protected static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec)
+    {
+        // Публични документи в треда
+        $rec->partnerDocCnt = $rec->allDocCnt = 0;
+        
+        $firstDcRec = NULL;
+        
+        $dcQuery = doc_Containers::getQuery();
+        $dcQuery->orderBy('#createdOn');
+        
+        while($dcRec = $dcQuery->fetch("#threadId = {$rec->id}")) {
+        
+            if(!$firstDcRec) {
+                $firstDcRec = $dcRec;
+            }
+        
+            // Не броим оттеглените документи
+            if($dcRec->state != 'rejected') {
+        
+                // Преброяваме всичките документи и задържаме последния
+                $lastDcRec = $dcRec;
+                $rec->allDocCnt++;
+        
+                if($dcRec->visibleForPartners == 'yes') {
+                    // Преброяваме партньорските документи и задържаме последния
+                    $lastDcPartnerRec = $dcRec;
+                    $rec->partnerDocCnt++;
+                }
+            }
+        }
+        
+        // Ако първия документ не е видим за партньори, то нищо в тази нишка не е видимо за тях
+        if($firstDcRec->visibleForPartners != 'yes') {
+            $rec->partnerDocCnt = 0;
+        }
+    }
 
     /**
      * Отчита последно модифицаране на нишката към момента
@@ -2433,7 +2496,7 @@ class doc_Threads extends core_Manager
         $haveRight = static::haveRightFor('single', $rec);
 
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
-            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Threads::haveRightFor('single', $rec);
             }
         }
@@ -2450,12 +2513,6 @@ class doc_Threads extends core_Manager
         // Ескейпваме заглавието
         $title = $docRow->title;
 
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на нишката
-        $sbfIcon = sbf($docProxy->getIcon(), '"', $isAbsolute);
-        
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
             
@@ -2468,8 +2525,7 @@ class doc_Threads extends core_Manager
             
             // Атрибути на линка
             $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon});";    
+            $attr['ef_icon'] = $docProxy->getIcon();    
             $attr['target'] = '_blank'; 
             
             // Създаваме линк

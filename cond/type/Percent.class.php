@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title     Процент
  */
-class cond_type_Percent extends cond_type_Proto
+class cond_type_Percent extends cond_type_abstract_Proto
 {
 	
 	

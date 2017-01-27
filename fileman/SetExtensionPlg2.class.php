@@ -3,7 +3,6 @@
 
 /**
  * Клас 'fileman_SetExtensionPlg2' - Проверка и коригиране на разширението на файла
- * Работи с fileman_Files2
  * 
  * @category  vendors
  * @package   fileman

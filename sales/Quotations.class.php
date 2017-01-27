@@ -47,7 +47,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder';
     
     
     /**
@@ -148,6 +148,12 @@ class sales_Quotations extends core_Master
      * Кой може да клонира
      */
     public $canClonerec = 'ceo, sales';
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
     
     
     /**
@@ -526,9 +532,11 @@ class sales_Quotations extends core_Master
     		
     		if(is_array($items)){
     			$row->transportCurrencyId = $row->currencyId;
-    			$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-    			$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-    			$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    			if ($rec->currencyRate) {
+    			    $rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    			    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
+    			    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    			}
     			
     			tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     			
@@ -657,7 +665,7 @@ class sales_Quotations extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	if($hasTransport === FALSE || $isReadOnlyMode || core_Users::haveRole('collaborator')){
+    	if($hasTransport === FALSE || $isReadOnlyMode || core_Users::haveRole('partner')){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     	
@@ -1041,7 +1049,7 @@ class sales_Quotations extends core_Master
     		return new Redirect(array('sales_Sales', 'single', $sId));
     	}
     
-    	if(core_Users::haveRole('collaborator')){
+    	if(core_Users::haveRole('partner')){
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
@@ -1168,7 +1176,7 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->removeBtn('btnAdd');
+    	//$data->toolbar->removeBtn('btnAdd');
     }
     
     

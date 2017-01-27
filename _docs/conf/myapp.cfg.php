@@ -32,8 +32,8 @@ DEFINE('EF_DB_PASS', 'USER_PASSWORD_FOR_DB');
 // Сървъра за на базата данни
 DEFINE('EF_DB_HOST', 'localhost');
  
-// Кодировка на забата данни
-DEFINE('EF_DB_CHARSET', 'utf8');
+// Кодировка на базата данни
+// DEFINE('EF_DB_CHARSET', 'utf8');
 
 
 /**

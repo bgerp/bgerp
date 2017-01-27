@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     История на изпратените СМС-ите
+ * @title     История на изпратените SMS-ите
  */
 class sms_Sender extends core_Manager
 {
@@ -33,7 +33,7 @@ class sms_Sender extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Изпратени СМС-и';
+    var $title = 'Изпратени SMS-и';
     
     
     /**
@@ -124,14 +124,4 @@ class sms_Sender extends core_Manager
         $data->query->orderBy('#time', 'DESC');
     }
     
-    
-    /**
-     * Проба за изпращане на СМС-и през Про-СМС
-     */
-    function act_Test()
-    {
-        requireRole('admin');
-        
-        return sms_Sender::send('359886432935', 'Proba', 'Proba BGERP');
-    }
 }

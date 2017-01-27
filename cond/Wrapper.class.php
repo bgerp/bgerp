@@ -28,8 +28,8 @@ class cond_Wrapper extends plg_ProtoWrapper
         $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,cond');
         $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,cond');
         $this->TAB('cond_TaxAndFees', 'Данъци и такси', 'cond,ceo');
+        $this->TAB('cond_Countries', 'Търговски условия->Търговски условия', 'cond,ceo');
         $this->TAB('cond_Parameters', 'Търговски условия->Видове', 'cond,ceo');
-        $this->TAB('cond_Countries', 'Търговски условия->По държави', 'cond,ceo');
         $this->TAB('cond_Texts', 'Пасажи->Текстове', 'ceo,cond, admin');
         $this->TAB('cond_Groups', 'Пасажи->Групи', 'ceo,cond, admin');
         $this->title = 'Терминология';

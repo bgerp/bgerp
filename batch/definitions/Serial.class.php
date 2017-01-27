@@ -18,6 +18,14 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	
 	
 	/**
+	 * Име на полето за партида в документа
+	 *
+	 * @param string
+	 */
+	public $fieldCaption = 'SN';
+	
+	
+	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -56,6 +64,19 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$serials = $this->normalize($value);
 		$serials = $this->makeArray($serials);
 		$count = count($serials);
+		
+		if($count != $quantity){
+			$mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
+			$msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : "Трябва да е въведен само един сериен номер";
+		
+			return FALSE;
+		}
+		
+		// Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
+		if(batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))){
+			return TRUE;
+		}
+		
 		$pattern = '';
 		
 		$errMsg = '|Всички номера трябва да отговарят на формата|*: ';
@@ -83,13 +104,6 @@ class batch_definitions_Serial extends batch_definitions_Proto
 				$msg = $errMsg;
 				return FALSE;
 			}
-		}
-		
-		if($count != $quantity){
-			$mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
-			$msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : "Трябва да е въведен само един сериен номер";
-		
-			return FALSE;
 		}
 		
 		// Ако сме стигнали до тук всичко е наред
@@ -136,6 +150,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		
 		if(count($res)){
 			$res = array($oldFrom => $oldFrom) + $res;
+			
 			return $res;
 		}
 		
@@ -159,7 +174,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			if(count($vArr) == 2){
 				$rangeArr = $this->getByRange($vArr[0], $vArr[1]);
 				if(is_array($rangeArr)){
-					$res = array_merge($res, $rangeArr);
+					$res = $res + $rangeArr;
 				} else {
 					$res[$v] = FALSE;
 				}
@@ -201,7 +216,9 @@ class batch_definitions_Serial extends batch_definitions_Proto
      */
 	public function normalize($value)
 	{
+		$value = preg_replace('!\s+!', "\n", $value);
 		$value = explode("\n", trim(str_replace("\r", '', $value)));
+		
 		$value = implode('|', $value);
 		
 		return ($value == '') ? NULL : $value;

@@ -1364,10 +1364,10 @@ a.tOld {
     background-position: 0 0 !important; }
     .document-settings .linkWithIcon.liked:hover,
     .document-settings-left .linkWithIcon.liked:hover {
-      background-image: url(../img/16/redheart-broke.png) !important; }
+      background-image: url(../img/16/heart_break.png) !important; }
     .document-settings .linkWithIcon.disliked:not(.disable):hover,
     .document-settings-left .linkWithIcon.disliked:not(.disable):hover {
-      background-image: url(../img/16/redheart.png) !important; }
+      background-image: url(../img/16/heart.png) !important; }
     .document-settings .linkWithIcon.disliked.disable,
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
@@ -1407,7 +1407,7 @@ a.tOld {
 
 .narrow .docBgIcon {
   font-size: 0.9em;
-  padding-right: 20px; }
+  padding-right: 5px; }
 
 .narrow .document-settings-left span {
   white-space: nowrap; }
@@ -3122,15 +3122,19 @@ span.sharing-history-title {
   .rowtoolsGroup.modal-toolbar.iw-contextMenu {
     padding: 5px 6px 4px 5px;
     max-width: 160px; }
-  .rowtoolsGroup a {
+  .rowtoolsGroup a,
+  .rowtoolsGroup span {
     text-align: left;
     display: block;
     font-size: 0.95em;
     padding: 3px 0;
+    padding-left: 22px !important;
     color: #333333 !important; }
-    .rowtoolsGroup a:hover {
+    .rowtoolsGroup a:hover,
+    .rowtoolsGroup span:hover {
       color: black !important;
-      background-color: #e1e1e1; }
+      background-color: #e1e1e1;
+      cursor: pointer; }
 
 table.styled-table tr:hover td {
   background-color: #ffffcc !important; }
@@ -3369,7 +3373,8 @@ div.location.public {
 
 .narrow .portal-filter {
   margin-left: 5px;
-  min-width: 20px; }
+  min-width: 20px;
+  float: left; }
 
 .portal-filter .hFormField {
   width: 7.5em;
@@ -3477,13 +3482,15 @@ div.location.public {
     list-style: none;
     border: 1px solid #cccccc;
     border-bottom: none;
-    background: #cccccc;
+    background: #eeeeee;
     font-size: 0.9em;
     position: relative;
-    bottom: -12px; }
+    bottom: -12px;
+    color: #888888; }
     .modern-theme .portalTabs .tab-link.activeTab,
     .modern-theme .portalTabs .tab-link:hover {
-      background: #f1f1f1;
+      color: black;
+      background: white;
       z-index: 20; }
 
 /*
@@ -3607,13 +3614,6 @@ div.location.public {
 /*
  * край на стилове за ротация на елементи
  */
-/*
- * бъгфиксове
- */
-.store_Racks table.listTable > tbody > tr > td,
-.hr_ContractTypes table.listTable > tbody > tr > td {
-  max-width: 700px; }
-
 .fileman_Indexes table.listTable > tbody > tr > td,
 .fileman_Data table.listTable > tbody > tr > td,
 .doclog_Documents table.listTable > tbody > tr > td,
@@ -3799,6 +3799,12 @@ div.location.public {
     height: 1%; }
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
+
+/*
+ * rack
+ */
+td.rack-hl {
+  background-color: yellow; }
 
 .app-name {
   display: block;
@@ -4288,7 +4294,11 @@ only screen and (max-width: 320px) {
   .narrow #cmsMenu a {
     padding-left: 2px;
     padding-right: 2px;
-    margin-left: 4px !important; } }
+    margin-left: 4px !important; }
+
+  .narrow.modern-theme .portalTabs .tab-link {
+    font-size: 0.8em !important;
+    padding: 3px 3px 6px 3px; } }
 
 .footerDocInfo {
   padding-top: 10px;
@@ -4379,6 +4389,9 @@ only screen and (max-width: 320px) {
  * стилове за принтиране
  */
 @media print {
+  body {
+    margin: 0px !important; }
+
   .document {
     width: 100%;
     max-width: 1200px;

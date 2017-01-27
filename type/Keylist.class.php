@@ -61,11 +61,25 @@ class type_Keylist extends core_Type {
     {
         if(empty($value)) return NULL;
         
-        $vals = explode($value{0}, $value);
+        $value = trim($value);
+
+        // Очакваме валиден keylist
+        if(preg_match("/^[0-9\\|]*$/", $value)) {
+            $div = '|';
+        } elseif(preg_match("/^[0-9\\,]*$/", $value)) {
+            $div = ',';
+        } else {
+            error('500 Очакваме валиден keylist');
+        }
+        
+        $value = trim($value, $div);
+
+        $vals = explode($div, $value);
         
         $mvc = cls::get($this->params['mvc']);
-        $div = $value{0};
-        $ids = str_replace($div, ',', trim($value, $div));
+       
+        $ids = str_replace($div, ',', $value);
+        
         if($ids) {  
             $query = $mvc->getQuery();
             $query->where("#id IN ($ids)");
@@ -168,6 +182,10 @@ class type_Keylist extends core_Type {
         if(!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
+
+        if($value === NULL) {
+            $emptyValue = TRUE;
+        }
         
         if(!$value) {
             $values = array();
@@ -196,6 +214,11 @@ class type_Keylist extends core_Type {
         	
         	$groupOpen = 0;
         	$addKeylistWide = FALSE;
+
+            if(count($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
+                $key = key($this->suggestions);
+                $values[$key] = $key;
+            }
         	
             foreach($this->suggestions as $key => $v) {
                 
@@ -656,13 +679,21 @@ class type_Keylist extends core_Type {
      * 
      * @return type_Keylist $newKlist
      */
-    static function merge($klist1, $klist2)
+    static function merge($klist1, $klist2, $klist3 = NULL, $klist4 = NULL)
     {
         $klist1Arr = self::toArray($klist1);
         $klist2Arr = self::toArray($klist2);
         
         $newArr = $klist1Arr + $klist2Arr;
+
+        if($klist3) {
+            $newArr += self::toArray($klist3);
+        }
         
+        if($klist4) {
+            $newArr += self::toArray($klist4);
+        }
+      
         $newKlist = self::fromArray($newArr);
         
         return $newKlist;

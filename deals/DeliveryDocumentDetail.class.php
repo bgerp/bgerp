@@ -63,7 +63,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		expect(count($products));
 			
 		if (empty($rec->id)) {
-			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount|packagingId");
+			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount|packagingId|batch");
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
@@ -187,7 +187,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			// Ако има такъв запис, сетваме грешка
 			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId, $rec->notes);
 			if($exRec){
-				$form->setError('productId,packagingId,packPrice,discount,batch,notes', 'Вече съществува запис със същите данни');
+				$form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
 				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
 			}
 			
@@ -219,6 +219,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
 		$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
 		
+		$listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
+		$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
+		
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
@@ -227,7 +230,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 				
 				// Показване на вашия реф ако има
-				$row->reff = crm_ext_ProductListToContragents::getReffByProductId($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId);
+				if(isset($listId)){
+					$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
+				}
 				
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";

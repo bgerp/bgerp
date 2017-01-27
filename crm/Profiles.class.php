@@ -282,7 +282,7 @@ class crm_Profiles extends core_Master
         // Ако потребителя е контрактор и текущия е супер потребите
         // Показваме папките, в които е споделен
         if(core_Packs::isInstalled('colab')){
-        	if (core_Users::haveRole('collaborator', $data->rec->userId) && core_Users::isPowerUser()) {
+        	if (core_Users::haveRole('partner', $data->rec->userId) && core_Users::isPowerUser()) {
         		$data->ColabFolders = new stdClass();
 
                 // URL за промяна
@@ -428,8 +428,7 @@ class crm_Profiles extends core_Master
                     $userId = key($userTeams);
                     
                     $attr = array();
-                    $attr['class'] = 'linkWithIcon';
-    		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+    		        $attr['ef_icon'] = '/img/16/page_go.png';
     		        $attr['title'] = 'Екшън лог на потребителя';
                     
                     // URL за промяна
@@ -830,31 +829,48 @@ class crm_Profiles extends core_Master
                 'access'    => 'private',
                 'email'     => ''
             );
-            $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
-            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
             if(isset($user->country)) {
                 $person->country = drdata_Countries::getIdByName($user->country);
             }
             $mustSave = TRUE;
         }
         
-        
+
+        // Задаваме групата
+        $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
+        $exGroupList = $person->groupList;
+        if($user->state == 'rejected') {
+            $person->groupList = keylist::removeKey($person->groupList, $profilesGroup->id);
+        } else {
+            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
+        }
+        if($person->groupList != $exGroupList) {
+            $mustSave = TRUE;
+        }
+ 
         if(!empty($user->names) && ($person->name != $user->names)) {
             $person->name = $user->names;
             $mustSave = TRUE;
         }
-        
+         
         // Само ако записа на потребителя има 
         if(!empty($user->email) && (strpos($person->email, $user->email) === FALSE)) {
             $person->email     = type_Emails::prepend($person->email, $user->email);
+         
+            $mustSave = TRUE;
+        }
+        
+        // Само, ако записа на потребителя има мобилен телефон 
+        if(!empty($user->mobile) && ($person->mobile != $user->mobile)) {
+            $person->mobile = $user->mobile;
             $mustSave = TRUE;
         }
         
         // Само ако досега визитката не е имала inCharge, променения потребител и става отговорник
         if(!$person->inCharge) {
         	
-        	// Ако създадения потребител е collaborator и няма powerUser
-        	if(core_Users::haveRole('collaborator', $user->id) && !core_Users::haveRole('powerUser', $user->id)){
+        	// Ако създадения потребител е partner
+        	if(core_Users::haveRole('partner', $user->id)){
         		
         		// За отговорник стават първия админ/ceo
         		$person->inCharge  = doc_FolderPlg::getDefaultInCharge();
@@ -869,9 +885,10 @@ class crm_Profiles extends core_Master
 
         $person->_skipUserUpdate = TRUE; // Флаг за предотвратяване на безкраен цикъл
         
+
         if($mustSave) {
             crm_Persons::save($person);
-            
+          
             return $person->id;
         }
     }
@@ -899,10 +916,11 @@ class crm_Profiles extends core_Master
             return;
         }
         
+        // Обновяваме имейла, само ако зададения в потребителя, липсва в списъка му с лични
         if (!empty($personRec->email)) {
             // Вземаме първия (валиден!) от списъка с лични имейли на лицето
             $emails = type_Emails::toArray($personRec->email);
-            if (!empty($emails)) {
+            if (!empty($emails) && !in_array($userRec->email, $emails)) {
                 $userRec->email = reset($emails);
             }
         }
@@ -912,7 +930,9 @@ class crm_Profiles extends core_Master
         }
         
         if (!empty($personRec->photo)) {
-            $userRec->avatar = $personRec->photo; 
+            if(is_readable(fileman_Files::fetchByFh($personRec->photo, 'path'))) {
+                $userRec->avatar = $personRec->photo;
+            }
         }
         
         // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
@@ -1011,7 +1031,7 @@ class crm_Profiles extends core_Master
     				$url  = static::getUrl($userId);
     			} 
     			
-    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none', 'buyer') as $role) {
+    			foreach (array('ceo', 'manager', 'officer', 'executive', 'partner', 'none') as $role) {
                     if($role == 'none') {
                         $attr['style'] .= ";color:#333;"; break;
                     }

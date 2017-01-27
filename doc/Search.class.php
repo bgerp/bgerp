@@ -105,9 +105,9 @@ class doc_Search extends core_Manager
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
     	$data->listFilter->setField('search', 'autoFilter,caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
-    
+        
         $data->listFilter->setDefault('author', 'all_users');
-
+        
         $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, liked, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -463,8 +463,7 @@ class doc_Search extends core_Manager
         }
         
         $attr = array();
-        $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
+        $attr['ef_icon'] = $docProxy->getIcon();
         
         $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
         

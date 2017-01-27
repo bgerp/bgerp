@@ -130,6 +130,11 @@ class doc_DocumentPlg extends core_Plugin
         if(!isset($plugins['acc_plg_Registry'])){
         	$mvc->load('acc_plg_Registry');
         }
+        
+        if ($mvc->fetchFieldsBeforeDelete) {
+            $mvc->fetchFieldsBeforeDelete .= ',';
+        }
+        $mvc->fetchFieldsBeforeDelete = 'containerId';
     }
     
     
@@ -314,7 +319,7 @@ class doc_DocumentPlg extends core_Plugin
 
         }
         
-        if ($mvc->haveRightFor('single', $data->rec) && !core_Users::haveRole('collaborator')) {
+        if ($mvc->haveRightFor('single', $data->rec) && !core_Users::haveRole('partner')) {
             $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
             
             if ($historyCnt) {
@@ -745,7 +750,7 @@ class doc_DocumentPlg extends core_Plugin
                 	bgerp_Notifications::clear($customUrl);
                 	
                 	// Ако е инсталиран пакета за работа в партньори
-                	if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+                	if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
                 		
                 		// И нишката може да бъде видяна от партньора
                 		$threadRec = doc_Threads::fetch($rec->threadId);
@@ -967,7 +972,9 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = 'rejected';
         
         $res = static::updateDocumentState($mvc, $rec);
-          doc_Threads::setModification($rec->threadId);
+        doc_Threads::setModification($rec->threadId);
+        
+        doc_Files::recalcFiles($rec->containerId);
     }
     
     
@@ -993,7 +1000,21 @@ class doc_DocumentPlg extends core_Plugin
         
         $res = static::updateDocumentState($mvc, $rec);
         doc_Threads::setModification($rec->threadId);
+        
+        doc_Files::recalcFiles($rec->containerId);
     }
+    
+	
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $id => $rec) {
+            doc_Files::deleteFilesForContainer($rec->containerId);
+        }
+    }
+    
 
 
     /**
@@ -1093,8 +1114,7 @@ class doc_DocumentPlg extends core_Plugin
             $row->title = "#{$handle}";
         }
 
-        $attr['class'] .= ' linkWithIcon';
-        $attr['style'] .= $iconStyle;
+        $attr['ef_icon']  = $mvc->getIcon($id);
         $attr['title'] .= "{$mvc->singleTitle}|* №{$rec->id}";
         
         if ($rec->state == 'rejected') {
@@ -1167,7 +1187,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->threadId = $exRec->threadId;
             
             // Изискваме да има права
-            if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+            if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
             	colab_Threads::requireRightFor('single', doc_Threads::fetch($mvc->threadId));
             } else {
             	doc_Threads::requireRightFor('single', $mvc->threadId);
@@ -1180,7 +1200,7 @@ class doc_DocumentPlg extends core_Plugin
             expect($oRec = doc_Containers::fetch($rec->originId));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
-            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $tRec = doc_Threads::fetch($oRec->threadId);
                 colab_Threads::requireRightFor('single', $tRec);
             } else {
@@ -1206,7 +1226,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if($rec->threadId) {
         	$threadRec = doc_Threads::fetch($rec->threadId);
-        	if (core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+        	if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
         		colab_Threads::requireRightFor('single', $threadRec);
         	} else {
         		doc_Threads::requireRightFor('single', $rec->threadId);
@@ -1629,7 +1649,7 @@ class doc_DocumentPlg extends core_Plugin
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
     			} elseif(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    			    if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+    			    if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
     			        $tRec = doc_Threads::fetch($rec->threadId);
     			        if (!colab_Threads::haveRightFor('single', $tRec)) {
     			            $requiredRoles = 'no_one';
@@ -1662,7 +1682,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             if($requiredRoles != 'no_one'){
-            	if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            	if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
             		if(!colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->folderId))){
             			$requiredRoles = 'no_one';
             		}
@@ -1693,9 +1713,9 @@ class doc_DocumentPlg extends core_Plugin
             	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
             	$haveRightForSingle = $mvc->haveRightFor('single', $rec->id, $userId);
             	if(!$haveRightForSingle){
-            		if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+            		if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
             			if($oRec->createdBy == $userId){
-            				$requiredRoles = 'collaborator';
+            				$requiredRoles = 'partner';
             			} else {
             				$requiredRoles = 'no_one';
             			}
@@ -1709,18 +1729,18 @@ class doc_DocumentPlg extends core_Plugin
                     	$requiredRoles = 'powerUser';
                     }
                 } else {
-                	if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)){
+                	if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)){
                 		if($oRec->createdBy != $userId){
                 			$requiredRoles = 'no_one';
                 		} else {
-                			$requiredRoles = 'collaborator';
+                			$requiredRoles = 'partner';
                 		}
                 	}
                 } 
             } elseif ($action == 'single') {
             	
             	// Ако нямаме достъп до нишката
-                if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && (($rec->createdBy != $userId) || core_Users::haveRole('collaborator', $rec->createdBy))) {
+                if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && (($rec->createdBy != $userId) || core_Users::haveRole('partner', $rec->createdBy))) {
                     
                 	// Ако е инсталиран пакета 'colab'
                 	if(core_Packs::isInstalled('colab') && $oRec->threadId){
@@ -1732,7 +1752,7 @@ class doc_DocumentPlg extends core_Plugin
                 		if($isVisibleToContractors && doc_Containers::fetch($rec->containerId)->visibleForPartners == 'yes'){
                 			
                 			// Тогава позволяваме на контрактора да има достъп до сингъла на този документ
-                			$requiredRoles = 'collaborator';
+                			$requiredRoles = 'partner';
                 		} else {
                 			$requiredRoles = 'no_one';
                 		}
@@ -1770,7 +1790,7 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 } else {
                     
-                    if (core_Users::haveRole('collaborator') && $oRec->threadId && core_Packs::isInstalled('colab')) {
+                    if (core_Users::haveRole('partner') && $oRec->threadId && core_Packs::isInstalled('colab')) {
                         // За останалите, проверяваме за сингъл в нишката
                         $tRec = doc_Threads::fetch($oRec->threadId);
                         $haveRightForClone = colab_Threads::haveRightFor('single', $tRec, $userId);
@@ -1822,7 +1842,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // Ако няма сингъл достъп до нишката пак да няма права
             if ($requiredRoles != 'no_one') {
-                if (core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator', $userId)) {
+                if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)) {
                     if (!colab_Threads::haveRightFor('single', $tRec)){
                         $requiredRoles = 'no_one';
                     }
@@ -2074,7 +2094,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterCanAddToFolder($mvc, &$res, $folderId)
     {
-        $res = TRUE;
+        if(!isset($res)) {
+            $res = TRUE;
+        }
     }
     
     
@@ -2739,7 +2761,7 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->modifiedBy);
         unset($nRec->brState);
         
-        if (!core_Users::haveRole('collaborator')) {
+        if (!core_Users::haveRole('partner')) {
             unset($nRec->state);
         }
         
@@ -2885,7 +2907,9 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен таб на историята
         $tab = Request::get('Tab');
 
-        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab;
+        $lang = core_Lg::getCurrent();
+
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab . '|' . $lang;
         
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);

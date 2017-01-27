@@ -108,14 +108,15 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
-        
-        $tabsArr['barcodes'] = (object) 
-			array(
-				'title' => 'Баркодове',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Баркодове") . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 6,
-			);
+        if (self::canShowTab($fRec->fileHnd, 'barcodes')){
+            $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), TRUE);
+            $tabsArr['barcodes'] = (object)
+            array(
+                    'title' => 'Баркодове',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Баркодове") . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'order' => 6,
+            );
+        }
 
         return $tabsArr;
     }
@@ -149,15 +150,24 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Параметри необходими за конвертирането
         $params = array(
             'callBack' => 'fileman_webdrv_Pdf::afterExtractText',
-            'dataId' => $fRec->dataId,
-        	'asynch' => TRUE,
             'createdBy' => core_Users::getCurrent('id'),
             'type' => 'text',
         );
         
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+            $params['asynch'] = TRUE;
+            $file = $fRec->fileHnd; 
+        } else {
+            $params['asynch'] = FALSE;
+            $params['isPath'] = TRUE;
+            $file = $fRec;
+        }
+        
+        $lId = self::prepareLockId($fRec);
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        $params['lockId'] = self::getLockId($params['type'], $lId);
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) return ;
         
@@ -165,7 +175,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
             // Стартираме конвертирането
-            static::convertPdfToTxt($fRec->fileHnd, $params);   
+            return static::convertPdfToTxt($file, $params);   
         }
     }
     
@@ -179,40 +189,13 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
      * 				и др.
      * 
-     * @access protected
+     * @return NULL|string
      */
     static function convertPdfToTxt($fileHnd, $params=array())
     {
-        // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $text = docoffice_Pdf::convertPdfToTxt($fileHnd, $params);
         
-        // Пътя до файла, в който ще се записва получения текст
-        $outFilePath = $Script->tempDir . $Script->id . '.txt';
-        
-        // Задаваме placeHolder' и за входящия и изходящия файл
-        $Script->setFile('INPUTF', $fileHnd);
-        $Script->setFile('OUTPUTF', $outFilePath);
-        
-        $errFilePath = self::getErrLogFilePath($outFilePath);
-        
-        // Скрипта, който ще конвертира
-        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
-        
-        // Функцията, която ще се извика след приключване на операцията
-        $Script->callBack($params['callBack']);
-        
-        $params['errFilePath'] = $errFilePath;
-        
-        // Други необходими променливи
-        $Script->params = serialize($params);
-        $Script->outFilePath = $outFilePath;
-        $Script->fh = $fileHnd;
-        
-        $Script->setCheckProgramsArr('pdftotext');
-        // Стартираме скрипта синхронно
-        if ($Script->run($params['asynch']) === FALSE) {
-            fileman_Indexes::createError($params);
-        }
+        return $text;
     }
     
     
@@ -278,6 +261,18 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     static function getBarcodes($fRec, $callBack = 'fileman_webdrv_Generic::afterGetBarcodes')
     {
         parent::getBarcodes($fRec, 'fileman_webdrv_Pdf::afterGetBarcodes');
+    }
+    
+    
+    /**
+     * Дали може да се извлича баркод
+     * 
+     * @return boolean
+     */
+    public static function canGetBarcodes()
+    {
+        
+        return TRUE;
     }
     
     

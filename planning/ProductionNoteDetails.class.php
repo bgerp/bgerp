@@ -98,6 +98,14 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Какво движение на партида поражда документа в склада
+     *
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     */
+    public $batchMovementDocument = 'in';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

@@ -92,13 +92,13 @@ class plg_UserReg extends core_Plugin
                 
                 $tpl->append("<p>&nbsp;<A HREF='" .
                     toUrl(array($invoker, 'resetPassForm')) .
-                    "' {$className}>»&nbsp;" . tr('Забравена парола||Forgot Password') . "?</A>", 'FORM');
+                    "' {$className} rel='nofollow'>»&nbsp;" . tr('Забравена парола||Forgot Password') . "?</A>", 'FORM');
             }
             
             if ($invoker->haveRightFor('registernewuserout')) {
                 $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($invoker, 'registerNewUser')) .
-                "'  {$className}>»&nbsp;" . tr('Нова регистрация||Create account') . "</A>", 'FORM');
+                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . "</A>", 'FORM');
             }
         }
     }
@@ -226,7 +226,7 @@ class plg_UserReg extends core_Plugin
                     
                     $conf = core_Packs::getConfig('core');
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
-                    
+
                     redirect(array('Index'), FALSE, '|' . $msg->getContent());
                 }
             }
@@ -310,7 +310,8 @@ class plg_UserReg extends core_Plugin
             core_Users::setUserFormJS($form);
              
             $form->FNC('id', 'identifier', 'input=hidden');
-            
+            $form->FLD('ret_url', 'varchar', 'input=hidden,silent');
+
             $form->toolbar->addSbBtn('Изпрати');
             
             
@@ -341,12 +342,16 @@ class plg_UserReg extends core_Plugin
                     }
                     
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
-                    // Добавяме права на потребителя - headquarter, contractor
-                    core_Users::addRole($userId, 2);
-                    core_Users::addRole($userId, 9);
-                    core_Users::addRole($userId, 10);
                     
-                    redirect(array('core_Users','login'));
+                    // Добавяме права на потребителя - user, partner
+                    if(!haveRole('user', $userId)) {
+                        core_Users::addRole($userId, 'user');
+                    }
+                    if(!haveRole('executive', $userId)) {
+                        core_Users::addRole($userId, 'partner');
+                    }
+
+                    redirect(array('core_Users','login', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')));
                 }
             }
             

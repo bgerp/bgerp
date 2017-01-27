@@ -897,4 +897,55 @@ class core_DateTime
     {
         return sprintf("%02d%s%02d%s%02d", floor($sec / 3600), $dev, ($sec / 60) % 60, $dev, $sec % 60);
     }
+    
+    
+    /**
+     * Дали дадена дата е във формата на подадената маска
+     * 
+     * @param varchar $date - дата
+     * @param varchar $mask - маска
+     * @return boolean
+     */
+    public static function checkByMask($date, $mask)
+    {
+		// Карта
+    	$map = array();
+    	$map['m'] = "(?'month'[0-9]{2})";
+    	$map['d'] = "(?'day'[0-9]{2})";
+    	$map['y'] = "(?'yearShort'[0-9]{2})";
+    	$map['Y'] = "(?'year'[0-9]{4})";
+    	
+    	// Генерираме регулярен израз спрямо картата
+    	$expr = preg_quote($mask, '/');
+    	$expr = strtr($expr, $map);
+    	
+    	// Проверяваме дали датата отговаря на формата
+    	if(!preg_match("/^{$expr}$/", $date, $matches)){
+    		return FALSE;
+    	}
+    	
+    	return TRUE;
+    }
+    
+    
+    /**
+     * Опитва се да обърне подаден стринг с дадена маска, в mysql-ски формат дата
+     * 
+     * @param varchar $string     - стринг
+     * @param varchar $mask       - маска (e.g dd.mm.yyyy)
+     * @return string|FALSE       - mysql датата в формат 'Y-m-d', или FALSE ако има проблем
+     */
+    public static function getMysqlFromMask($string, $mask)
+    {
+    	// Подготовка на времевия обект
+    	$timeFormat = DateTime::createFromFormat($mask, $string);
+    	
+    	// Ако успешно е инстанциран датата се обръща във mysql-ски формат
+    	if(is_object($timeFormat)){
+    		return $timeFormat->format('Y-m-d');
+    	}
+    	
+    	// В краен случай се връща FALSE
+    	return FALSE;
+    }
 }

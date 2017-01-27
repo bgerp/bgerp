@@ -210,10 +210,16 @@ class spcheck_Dictionary extends core_Manager
             $check = FALSE;
         }
         
-        // Ако в обграждащия таг има class=no-spell-check
+        // Ако в обграждащия таг има class=no-spell-check|linkWithIcon
         if ($check && $lastTag) {
-            if (preg_match('/class\s*=\s*("|\')\s*(.+?|"|\')no-spell-check/i', $lastTag)) {
+            if (preg_match('/class\s*=\s*("|\')\s*(.+?|"|\')(no-spell-check|linkWithIcon)/i', $lastTag)) {
                 $check = FALSE;
+            }
+            
+            if ($check) {
+                if (preg_match('/^(\s*\<)a\s+.*?href\s*=\s*.*?(\>\s*)$/i', $lastTag)) {
+                    $check = FALSE;
+                }
             }
         }
         

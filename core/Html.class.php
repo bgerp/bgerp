@@ -581,7 +581,7 @@ class core_Html
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
-        
+       
         $title = tr($title);
 
         // Ако URL-то е празно - забраняваме бутона
@@ -623,11 +623,11 @@ class core_Html
 
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow') ) {
-            $attr = self::addBackgroundIcon($attr);
+            $attr = self::addBackgroundIcon($attr); 
         } else {
             unset($attr['ef_icon']);
         }
-
+ 
         // Ако нямаме JavaScript правим хипервръзка
         if ( Mode::is('javascript', 'no') ) {
             
@@ -788,7 +788,7 @@ class core_Html
         if($url) {
             if($warning) {
                 $attr['onclick'] .= " document.location='{$url}'";
-                $attr['href'] = '#';
+                $attr['href'] = 'javascript:void(0)';
             } else {
                 $attr['href'] = $url;
             }
@@ -803,13 +803,16 @@ class core_Html
 
                 if(log_Browsers::isRetina()) {
                     $icon2 = str_replace('/16/', '/32/', $icon);
+
                     if(getFullPath($icon2)) {
                         $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
                     }
                 }
                 $icon    = "<img src='$iconSrc' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
-                $title   = "<span class='linkWithIconSpan no-spell-check'>{$icon}{$title}</span>";
+                $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
+
+
                 // Добавяме икона на бутона, ако има
                 $attr = self::addBackgroundIcon($attr);
             }
@@ -834,8 +837,6 @@ class core_Html
         	}
         }
         
-        $attr['class'] .= ' no-spell-check';
-        
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
         return $tpl;
@@ -853,11 +854,12 @@ class core_Html
 			$title = "{$icon} {$title}";
 			unset($attr['ef_icon']);
 		}
-		
+
 		if ($url !== FALSE && (is_string($url) || (is_array($url) && count($url)))) {
-			$link = self::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
+            $arrowImg = ht::createElement("img", array("src" => sbf("img/16/anchor-image.png", "")));
+			$link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
 		}
-		
+
 		return "{$title}&nbsp;{$link}";
 	}
 	
@@ -969,7 +971,7 @@ class core_Html
     	
     	$hint = strip_tags(tr($hint));
  
-    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
+    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/16/dialog_warning.png' : (($icon == 'error') ? 'img/16/dialog_error.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
     	$attr = arr::make($attr, TRUE) + array('src' => sbf($iconPath, ''));
@@ -1265,7 +1267,7 @@ class core_Html
 
         if(!empty($icon) && getFullPath($icon)) {
 
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
             
             $attr['style'] = self::getIconStyle($icon, $attr['style']);
         }
@@ -1278,20 +1280,18 @@ class core_Html
      * Връща стил с включен бекграунд за икона
      */
     static function getIconStyle($icon, $style = 'background-size:16px 16px;')
-    {
+    {   
         if(!empty($icon)) {
             if(log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $icon);
+               
                 if(getFullPath($icon2)) {
                     $icon = $icon2;
                 }
             }
 
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
-            
-            $attr = array();
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
-            
+                        
             $style = rtrim($style, ' ;');
 
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";

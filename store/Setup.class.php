@@ -74,11 +74,12 @@ class store_Setup extends core_ProtoSetup
     		'store_ConsignmentProtocols',
     		'store_ConsignmentProtocolDetailsSend',
     		'store_ConsignmentProtocolDetailsReceived',
-    		'store_InventoryNoteDetails',
-    		'store_InventoryNoteSummary',
     		'store_InventoryNotes',
+    		'store_InventoryNoteSummary',
+    		'store_InventoryNoteDetails',
     		'migrate::updateConfig',
     		'migrate::updateTransfers',
+    		'migrate::inventoryNotes'
         );
     
 
@@ -221,6 +222,48 @@ class store_Setup extends core_ProtoSetup
     		} catch(core_exception_Expect $e){
     			reportException($e);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на инвентаризацията
+     */
+    public function inventoryNotes()
+    {
+    	$Note = cls::get('store_InventoryNotes');
+    	$Note->setupMvc();
+    	
+    	$Sum = cls::get('store_InventoryNoteSummary');
+    	$Sum->setupMvc();
+    	
+    	$Details = cls::get('store_InventoryNoteDetails');
+    	$Details->setupMvc();
+    	
+    	try{
+    		$query = $Note->getQuery();
+    		while($rec = $query->fetch()){
+    			$dQuery = $Details->getQuery();
+    			$dQuery->where("#noteId = {$rec->id}");
+    		
+    			$save = array();
+    			while($dRec = $dQuery->fetch()){
+    				$clone = new stdClass();
+    				$clone->id = $dRec->id;
+    				$clone->createdOn  = $rec->createdOn;
+    				$clone->createdBy  = $rec->createdBy;
+    				$clone->modifiedOn = $rec->createdOn;
+    				$clone->modifiedBy = $rec->createdBy;
+    				 
+    				$save[] = $clone;
+    			}
+    		
+    			if(count($save)){
+    				$Details->saveArray($save, 'id,createdOn,createdBy,modifiedOn,modifiedBy');
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
     	}
     }
 }

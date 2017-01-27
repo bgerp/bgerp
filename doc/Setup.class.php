@@ -180,6 +180,7 @@ class doc_Setup extends core_ProtoSetup
     
     // Инсталиране на мениджърите
     var $managers = array(
+        'migrate::addPartnerRole1',
         'doc_UnsortedFolders',
         'doc_Folders',
         'doc_Threads',
@@ -199,7 +200,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
-    	'migrate::migratePending1'
+    	'migrate::migratePending1',
+        'migrate::showFiles'
     );
 	
     
@@ -229,16 +231,11 @@ class doc_Setup extends core_ProtoSetup
      */
     function install()
     {   
-        $html = parent::install();
         $html .= core_Roles::addOnce('powerUser', NULL, 'system');
 
         // Добавяне на ролите за Ранг
         $rangRoles = array(
-            
-            // Роля за външен член на екип. Достъпни са му само папките, 
-            // които са споделени или на които е собственик
-            'contractor', 
-            
+                        
             // Изпълнителен член на екип. Достъпни са му само папките,
             // които са споделени или на които е собственик
             'executive',  
@@ -255,15 +252,17 @@ class doc_Setup extends core_ProtoSetup
         );
         
         foreach($rangRoles as $role) {
-            $inherit = ($role != 'contractor') ? 'powerUser,' . $lastRole : '';
+            $inherit = trim('powerUser,' . $lastRole, ',');
             $lastRole = $role;
             $html .= core_Roles::addOnce($role, $inherit, 'rang');
         }
         
-        // Роли за потребители от външната част
-        $html .= core_Roles::addOnce('buyer', 'contractor', 'rang');
-        $html .= core_Roles::addOnce('collaborator', 'buyer', 'rang');
+        // Роля за външен член на екип. Достъпни са му само папките, 
+        // които са споделени или на които е собственик
+        $html .= core_Roles::addOnce('partner', NULL, 'rang');
         
+        $html = parent::install();
+
         // Ако няма нито една роля за екип, добавяме екип за главна квартира
         $newTeam = FALSE;
         
@@ -445,5 +444,140 @@ class doc_Setup extends core_ProtoSetup
     	} catch(core_exception_Expect $e){
     		reportException($e);
     	}
+    }
+
+
+    public function addPartnerRole1()
+    {
+        // Определяме най-високата роля за ранг и изтриваме другите
+        // Ако потребителя има contractor, buyer или collabolator - задаваме му роля `partner`
+        // Почистваме несъществуващите роли и експандваме за полето `roles`
+        // Записваме двете полета за роли
+
+        // Изтриваме ролите contractor, buyer и collabolator
+
+        $uQuery = core_Users::getQuery();
+
+        $rangs = array();
+        $rangs[] = core_Roles::fetchByName('ceo');
+        $rangs[] = core_Roles::fetchByName('manager');
+        $rangs[] = core_Roles::fetchByName('officer');
+        $rangs[] = core_Roles::fetchByName('executive');
+        $rangs[] = $contractorR = core_Roles::fetchByName('contractor');
+        $rangs[] = $buyerR = core_Roles::fetchByName('buyer');
+        $rangs[] = $collaboratorR = core_Roles::fetchByName('collaborator');
+      
+        $roleTypes = core_Roles::getGroupedOptions();
+        $allowedRolesForPartners = $roleTypes['rang'] + $roleTypes['external'];
+        $allowedRolesForInsiders = $roleTypes['rang'] + $roleTypes['job'] + $roleTypes['team'] + $roleTypes['system'] + $roleTypes['position']; 
+
+        if(!$contractorR) {
+
+            return "<li>Миграцията addPartnerRole не е необходима</li>";
+        }
+
+        $partnerR = core_Roles::fetchByName('partner');
+        
+        expect($partnerR);
+
+        $uMvc = cls::get('core_Users');
+
+        // Минаваме по всички съществуващи потребители
+        while($uRec = $uQuery->fetch()) {
+            
+            // Определяме най-голямата рола за партньор
+            $kRoles = keylist::toArray($uRec->rolesInput);
+            $rang = NULL;
+            foreach($rangs as $r) {
+                if(isset($kRoles[$r]) && !$rang) {
+                    $rang = $r;
+                }
+                unset($kRoles[$r]);
+            }
+
+            // Конвертираме потребителите сбез роля за ранг или със стара роля за парньор към новата роля `partner`
+            if(!$rang || ($rang == $contractorR) || ($rang == $buyerR) || ($rang == $collaboratorR)) {
+                $rang = $partnerR;
+            }
+
+            // Задаваме най-голямата определена роля за ранг
+            $kRoles[$rang] = $rang;
+
+            // Премахваме несъществуващите роли
+            foreach($kRoles as $roleId) {
+                if(!core_Roles::fetchById($roleId)) {
+                    unset($kRoles[$roleId]);
+                }
+            }
+
+            // Филтрираме допустимите роли според ранга
+            if($rang == $partnerR) {
+                $allowed = $allowedRolesForPartners;
+            } else {
+                $allowed = $allowedRolesForInsiders;
+            }
+            
+
+            // филтрираме само позволените роли за съответния ранг
+            foreach($kRoles as $r) {
+                if(!isset($allowed[$r])) {
+                    unset($kRoles[$r]);
+                }
+            }
+
+            $uRec->rolesInput = keylist::fromArray($kRoles);
+            $uRec->roles = keylist::fromArray(core_Roles::expand($kRoles));
+
+            $uMvc->save_($uRec, 'rolesInput,roles');
+        }
+
+        // Премахваме стартите роли за контрактор
+        core_Roles::removeRoles(array($contractorR, $buyerR, $collaboratorR));
+    }
+    
+    
+    /**
+     * Миграция, за показване/скирване на файловете в документите
+     */
+    public function showFiles()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
+    }
+    
+    
+    /**
+     * Постепенна миграция, която се вика от showFiles и се самонавива
+     */
+    public static function callback_migrateShowFiles()
+    {
+        core_App::setTimeLimit(100);
+        $query = doc_Files::getQuery();
+        $query->where("#show IS NULL");
+        $query->where("#containerId IS NOT NULL");
+        $query->where("#containerId != ''");
+        
+        $query->orderBy('id', 'DESC');
+        
+        $cnt = $query->count();
+        
+        $query->limit(100);
+        $query->groupBy("containerId");
+        $query->show('containerId');
+        
+        if ($cnt && !core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'migrateShowFiles' AND #state = 'draft'", '*', FALSE)) {
+            $callOn = dt::addSecs(120);
+            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
+        } elseif (!$cnt) {
+            doc_Files::logDebug("Няма повече файлове за миграция в документите");
+            
+            return ;
+        }
+        
+        doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
+        
+        while ($rec = $query->fetch()) {
+            doc_Files::recalcFiles($rec->containerId);
+        }
     }
 }

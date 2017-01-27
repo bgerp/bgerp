@@ -1215,6 +1215,14 @@ class pos_Receipts extends core_Master {
     	 
     	// Намираме нужната информация за продукта
     	$this->pos_ReceiptDetails->getProductInfo($rec);
+    	if($packId = Request::get('packId', 'int')){
+    		if(!cat_UoM::fetch($packId)){
+    			core_Statuses::newStatus('|Невалидна опаковка|*!', 'error');
+    			return $this->pos_ReceiptDetails->returnError($receiptId);
+    		}
+    		
+    		$rec->value = $packId;
+    	}
     	
     	// Ако не е намерен продукт
     	if(!$rec->productId) {

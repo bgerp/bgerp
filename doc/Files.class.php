@@ -28,12 +28,6 @@ class doc_Files extends core_Manager
     
     
     /**
-     * Кой има право за вземане на информация
-     */
-    var $canInfo = 'powerUser';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
@@ -69,9 +63,122 @@ class doc_Files extends core_Manager
         $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
             array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
+        $this->FLD("show", "enum(yes,no)", 'caption=Показване');
         $this->FNC('date', 'datetime', 'caption=Дата,input=none');
-
+        
         $this->setDbUnique('containerId, fileHnd');
+        
+        $this->setDbIndex('containerId');
+        $this->setDbIndex('folderId');
+        $this->setDbIndex('dataId, folderId');
+    }
+    
+    
+    /**
+     * Преизчислява дали да се показват файловете или не
+     * 
+     * @param integer $cId
+     */
+    public static function recalcFiles($cId)
+    {
+        if (!$cId) return ;
+        
+        $query = self::getQuery();
+        $query->where(array("#containerId = '[#1#]'", $cId));
+        
+        $updateArr = array('hide' => array(), 'show' => array());
+        
+        $rArr = array();
+        
+        // Всички файлове от контейнера
+        while ($rec = $query->fetch()) {
+            
+            $dataId = $rec->dataId;
+            if (!$dataId) {
+                $rec->show = 'no';
+                self::save($rec, 'show');
+                
+                continue;
+            }
+            
+            $rArr[] = array('dataId' => $dataId, 'folderId' => $rec->folderId);
+        }
+        
+        foreach ($rArr as $dArr) {
+            $dQuery = self::getQuery();
+            $dQuery->where(array("#dataId = '[#1#]'", $dArr['dataId']));
+            
+            if ($dArr['folderId']) {
+                $dQuery->where(array("#folderId = '[#1#]'", $dArr['folderId']));
+            }
+            
+            $hideArr = array();
+            $bestRec = NULL;
+            
+            // Всички файлове, които се съдрат в същата папка
+            while ($dRec = $dQuery->fetch()) {
+                
+                $containerId = $dRec->containerId;
+                
+                if (!$containerId) {
+                    $hideArr[$dRec->id] = $dRec;
+                    continue;
+                }
+                
+                $cRec = doc_Containers::fetch($containerId);
+                
+                if ($cRec->state == 'rejected') {
+                    
+                    $hideArr[$dRec->id] = $dRec;
+                    continue;
+                }
+                
+                if (!isset($bestRec) || ($bestRec->CreatedOn > $cRec->createdOn)) {
+                    if (isset($bestRec)) {
+                        $hideArr[$bestRec->id] = $bestRec;
+                    }
+                    
+                    $bestRec = $dRec;
+                    $bestRec->CreatedOn = $cRec->createdOn;
+                } else {
+                    $hideArr[$dRec->id] = $dRec;
+                }
+            }
+            
+            $updateArr['hide'][] = $hideArr;
+            $updateArr['show'][] = $bestRec;
+        }
+        
+        // Скриваме файлове, които не трябва да се показват
+        foreach ($updateArr['hide'] as $hideArr) {
+            foreach ($hideArr as $hRec) {
+                if (!$hRec->show || $hRec->show != 'no') {
+                    $hRec->show = 'no';
+                    self::save($hRec, 'show');
+                }
+            }
+        } 
+        
+        // Показваме файла
+        foreach ($updateArr['show'] as $bestRec) {
+            if (isset($bestRec) && (!$bestRec->show || $bestRec->show != 'yes')) {
+                $bestRec->show = 'yes';
+                self::save($bestRec, 'show');
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $cId
+     */
+    public static function deleteFilesForContainer($cId)
+    {
+        if (!$cId) return ;
+        
+        return self::delete(array("#containerId = '[#1#]'", $cId));
     }
     
     
@@ -88,6 +195,11 @@ class doc_Files extends core_Manager
         $containerId = $rec->containerId;
         $folderId = $rec->folderId;
         $threadId = $rec->threadId;
+        
+        $show = 'yes';
+        if ($rec->state == 'rejected') {
+            $show = 'no';
+        }
 
         // Очакваме да има id
         expect($id);
@@ -154,6 +266,7 @@ class doc_Files extends core_Manager
             $nRec->threadId = $threadId;
             $nRec->fileHnd = $fh;
             $nRec->dataId = $dataId;
+            $nRec->show = $show;
             
             static::save($nRec, NULL, 'IGNORE');
         }
@@ -168,31 +281,18 @@ class doc_Files extends core_Manager
                 static::delete("#fileHnd = '{$fileHnd}' AND #containerId = '{$containerId}'");
             }
         }
-    }
-    
-    
-    /**
-     * 
-     */
-    static function on_AfterPrepareListRecs($mvc, &$res, $data)
-    {
-        // Ако няма запис, връщаме
-        if (!count($data->recs)) return ;
         
-        // Обхождаме всички записи
-        foreach ($data->recs as $id => $rec) {
-            
-            // Ако нямаме права
-            if (!$mvc->haveRightFor('info', $rec)) unset($data->recs[$id]);
-        }
+        self::recalcFiles($containerId);
     }
-
+    
     
     /**
      * 
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->query->where("#show = 'yes' OR #show IS NULL");
+        
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
@@ -228,15 +328,11 @@ class doc_Files extends core_Manager
             $query->where("#folderId = {$filter->folderId}");
         }
         
-        // Името на таблицата
-        $tableName = static::getDbTableName();
-        
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
-            $query->EXT('containerSearchKeywords', 'doc_Containers', 'externalName=searchKeywords');
-            $query->where('`' . doc_Containers::getDbTableName() . '`.`id`' . ' = ' . '`' . $tableName . '`.`container_id`');
+            $query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
             
-            plg_Search::applySearch($filter->search, $query, 'containerSearchKeywords');
+            plg_Search::applySearch($filter->search, $query, 'searchKeywords');
         }
         $query->orderBy('containerId', 'DESC');
     }
@@ -345,24 +441,6 @@ class doc_Files extends core_Manager
                 $requiredRoles = 'no_one';   
             }
         }
-        
-        if ($action == 'info' && $rec) {
-            
-            if (!is_object($rec)) {
-                $rec = $mvc->fetch($rec);
-            }
-            
-            try {
-                $docProxy = doc_Containers::getDocument($rec->containerId);
-                
-                // Ако няма права за сингъла на документа
-                if (!$docProxy->haveRightFor('single')) {
-                    $requiredRoles = 'no_one';
-                }
-            } catch (ErrorException $e) {
-                $requiredRoles = 'no_one';
-            }
-        } 
     }
 
     

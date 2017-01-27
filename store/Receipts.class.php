@@ -53,13 +53,13 @@ class store_Receipts extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
 
@@ -77,6 +77,12 @@ class store_Receipts extends store_DocumentMaster
      * Кой има право да чете?
      */
     public $canRead = 'ceo,store';
+    
+    
+    /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'storeMaster, ceo';
     
     
     /**
@@ -163,14 +169,6 @@ class store_Receipts extends store_DocumentMaster
     public static $defaultStrategies = array(
     		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
-    
-    
-    /**
-     * Какво движение на партида поражда документа в склада
-     *
-     * @param out|in|stay - тип движение (излиза, влиза, стои)
-     */
-    public $batchMovementDocument = 'in';
     
     
     /**

@@ -163,6 +163,12 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+     */
+    public $canWriteExternal = 'agent';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -182,7 +188,7 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти");
     	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
-    	
+     
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
     	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
@@ -258,7 +264,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->setDefault('email', $uRec->email);
     	}
     	
-    	$hide = (isset($cu) && core_Users::haveRole('collaborator', $cu)) ? TRUE : FALSE;
+    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
     	
     	$contactFields = $this->selectFields("#class == 'contactData'");
     	if(is_array($contactFields)){
@@ -285,6 +291,7 @@ class marketing_Inquiries2 extends embed_Manager
             	$form->setOptions('proto', $protoProducts);
             }
     	}
+
    	
     	$mvc->expandEditForm($data);
     }
@@ -345,7 +352,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$measureId = cat_UoM::fetchBySinonim('pcs')->id;
     	}
     	
-    	$shortName = cat_UoM::getShortName($measureId);
+    	$shortName = tr(cat_UoM::getShortName($measureId));
     	
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	foreach (range(1, 3) as $i){
@@ -353,15 +360,22 @@ class marketing_Inquiries2 extends embed_Manager
     			if(isset($rec->quantities[$i - 1])){
     				$rec->{"quantity{$i}"} = $rec->quantities[$i - 1];
     				$row->{"quantity{$i}"} = $Double->toVerbal($rec->{"quantity{$i}"});
+                    
     			}
     		}
     	}
-    	
+        
+        $cntQuantities = 0;
     	foreach (range(1, 3) as $i){
     		if($rec->{"quantity{$i}"}){
     			$row->{"quantity{$i}"} .= " {$shortName}";
+                $cntQuantities++;
     		}
     	}
+        
+        if($cntQuantities > 1) {
+            $row->q1Number = '1';
+        }
     	
     	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
     	
@@ -748,6 +762,8 @@ class marketing_Inquiries2 extends embed_Manager
     	$data = (object)array('form' => $form);
     	
     	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
+
+            
     		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
     		$data->Driver = $Driver;
     		
@@ -766,7 +782,9 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
-    	
+
+    	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($form->rec->title));
+
     	if(isset($form->rec->title)){
     		$form->setField('title', 'input=hidden');
     	}
@@ -803,10 +821,8 @@ class marketing_Inquiries2 extends embed_Manager
     			}
     		    
     			$id = $this->save($rec);
-    			
-    			status_Messages::newStatus('|Благодарим Ви за запитването', 'success');
-    			 
-    			return followRetUrl();
+    		 
+    			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}
     	
@@ -845,7 +861,7 @@ class marketing_Inquiries2 extends embed_Manager
     			
     			// Ако има МОК, потребителя трябва да въведе количество, иначе се приема за еденица
     			if($rec->moq > 0){
-    				$form->setError('quantity1,quantity2,quantity3', "Не е постигнато минималното количество за поръчка|* <b>{$moqVerbal}</b>");
+    				$form->setError('quantity1,quantity2,quantity3', "Очаква се поне едно от количествата да е над||It is expected that at least one quantity is over|* <b>{$moqVerbal}</b>");
     			} else {
     				$rec->quantity1 = 1;
     			}
@@ -859,7 +875,7 @@ class marketing_Inquiries2 extends embed_Manager
     				// Количествата не може да са под
     				if(!empty($quantity)){
     					if($quantity < $rec->moq){
-    						$form->setError("quantity{$i}", "Под минималното количество за поръчка|* <b>{$moqVerbal}</b>");
+    						$form->setError("quantity{$i}", "Под минималното количество за поръчка||Less than minimal order quantrity|* <b>{$moqVerbal}</b>");
     					}
     				}
     			}

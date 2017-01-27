@@ -87,6 +87,33 @@ class fileman_webdrv_Generic extends core_Manager
         return ;
     }
     
+    
+    /**
+     * Дали трябва да се показва съответния таб
+     * 
+     * @param string $fileHnd
+     * @param string $type
+     * @param string $strip
+     * 
+     * @return boolean
+     */
+    public static function canShowTab($fileHnd, $type, $strip=TRUE, $checkExist = FALSE)
+    {
+        $rArr = fileman_Indexes::getInfoContentByFh($fileHnd, $type);
+        
+        if ($checkExist === TRUE && $rArr === FALSE) return FALSE;
+        
+        if (is_array($rArr) && empty($rArr)) return FALSE;
+        
+        if (is_string($rArr) && $strip) {
+            $rArr = strip_tags($rArr);
+            
+            if (!trim($rArr)) return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
         
     /**
      * Връща името на файла за грешките
@@ -126,7 +153,7 @@ class fileman_webdrv_Generic extends core_Manager
         $ocrContent = fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr');
 
         // Ако има OCR съдържание
-        if ($ocrContent !== FALSE) {
+        if ($ocrContent !== FALSE && !is_object($ocrContent)) {
             
             // Тогава съдържанието е равно на него
             $content = $ocrContent;
@@ -480,6 +507,29 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Връщаме съдържанието
         return $content;
+    }
+    
+    
+    /**
+     * Подготвя стойността за заключване
+     * 
+     * @param string|stdObject $res
+     * 
+     * @return string|boolean
+     */
+    static function prepareLockId($res)
+    {
+        if (is_object($res)) {
+            
+            return $res->dataId;
+        }
+        
+        if (is_file($res)) {
+            
+            return md5_file($res);
+        }
+        
+        return FALSE;
     }
     
     
@@ -1091,11 +1141,11 @@ class fileman_webdrv_Generic extends core_Manager
             $ext = fileman_Files::getExt($file);
             
             //Иконата на файла, в зависимост от разширението на файла
-            $icon = "fileman/icons/{$ext}.png";
+            $icon = "fileman/icons/16/{$ext}.png";
             
             //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
             if (!is_file(getFullPath($icon))) {
-                $icon = "fileman/icons/default.png";
+                $icon = "fileman/icons/16/default.png";
             }
             
             // Иконата в SBF директорията
@@ -1162,11 +1212,18 @@ class fileman_webdrv_Generic extends core_Manager
             // Пътя до архива
             $filePath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
             
-            // Създаваме инстанция
-            $zip = new ZipArchive();
+            try {
+                // Създаваме инстанция
+                $zip = new ZipArchive();
+            } catch (Exception $e) {
+                $zip = FALSE;
+            }
             
-            // Очакваме да може да се създане инстация
-            expect($zip, 'Не може да се създаде инстанция.');
+            if (!$zip) {
+                self::logWarning('Не е инсталиран разширението за ZipArchive');
+                
+                throw new fileman_Exception('Възникна грешка при отварянето на файла.');
+            }
             
             // Отваряме архива да четем от него
             $open = $zip->open($filePath, ZIPARCHIVE::CHECKCONS);

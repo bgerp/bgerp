@@ -174,7 +174,7 @@ class core_Array
     static function order(&$array, $field = 'order', $mode = 'ASC')
     {
         if($mode == 'ASC') {
-            usort($array, function($a, $b) use ($field) {
+            uasort($array, function($a, $b) use ($field) {
             		$a = (object)$a;
             		$b = (object)$b;
             		
@@ -183,7 +183,7 @@ class core_Array
                     return $a->{$field} > $b->{$field} ? 1 : -1;
                 });
         } else {
-            usort($array, function($a, $b) use ($field) {
+            uasort($array, function($a, $b) use ($field) {
 	            	$a = (object)$a;
 	            	$b = (object)$b;
             	
@@ -422,7 +422,7 @@ class core_Array
     			 
     			foreach($array as $exName => $exFld) {
     			
-    				if($before == $exName) {
+    				if((string)$before == (string)$exName) {
     					$isSet = TRUE;
     					$newFields[$key] = $value;
     				}
@@ -431,7 +431,7 @@ class core_Array
     					$newFields[$exName] = &$array[$exName];
     				}
     			
-    				if($after == $exName) {
+    				if((string)$after == (string)$exName) {
     					$newFields[$key] = $value;
     					$isSet = TRUE;
     				}
@@ -594,5 +594,24 @@ class core_Array
     	}
     	
     	return $result;
+    }
+    
+    
+    /**
+     * Ф-я проверяваща дали два масива/обекта имат еднакви ключове/стойности, без да е нужно да са в
+     * същата последователност
+     * 
+     * @param array|stdClass $array1
+     * @param array|stdClass $array2
+     * @return boolean $res
+     */
+    public static function areEqual($array1, $array2)
+    {
+    	$a = (array)$array1;
+    	$b = (array)$array2;
+    	
+    	$res = (is_array($a) && is_array($b) && count($a) == count($b) && array_diff($a, $b) === array_diff($b, $a));
+    	
+    	return $res;
     }
 }

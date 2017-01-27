@@ -234,7 +234,9 @@ class change_Plugin extends core_Plugin
                 
                 // Записваме промени
                 $mvc->save($fRec);
-            
+                
+                $mvc->logInAct('Промяна', $fRec);
+                
                 // Записваме лога на промените
                 $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $fRec);
                 
@@ -529,25 +531,25 @@ class change_Plugin extends core_Plugin
         // Масива, който ще връщаме
         $allowedFieldsArr = array();
         
+        // Преобразуваме в масив
+        $changableFieldsArr = arr::make($changableFields, TRUE);
+        
         // Обхождаме всички полета
         foreach ($form->fields as $field => $filedClass) {
             
             // Ако могат да се променят
-            if ($filedClass->changable) {
+            if ($filedClass->changable || in_array($field, $changableFieldsArr)) {
                 
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
+
+            if($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
+                unset($allowedFieldsArr[$field]);
+            }
         }
         
-        // Преобразуваме в масив
-        $changableFieldsArr = arr::make($changableFields, TRUE);
-        
-        // Събираме двата масива
-        $allowedFieldsArr += $changableFieldsArr;
-        
         return $allowedFieldsArr;
-        
     }
     
     

@@ -33,6 +33,13 @@ class cal_Calendar extends core_Master
      * полета от БД по които ще се търси
      */
     public $searchFields = 'title';
+    
+    
+    /**
+     * Как се казва полето за пълнотекстово търсене
+     */
+    public $searchInputField = 'calSearch';
+    
 
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
@@ -242,19 +249,24 @@ class cal_Calendar extends core_Master
     {
     	$cu = core_Users::getCurrent();
 
+    	$data->listFilter->view = 'horizontal';
+    	
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px,autoFilter');
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
-        $data->listFilter->view = 'horizontal';
-        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        if($data->action === "list"){
-        	$data->listFilter->showFields = 'from, search, selectedUsers';
+        if(strtolower(Request::get('Act')) == 'show'){
+            
+            $data->listFilter->showFields = $mvc->searchInputField;
+            
+            bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
+        } elseif ($data->action === "list"){
+            // Показваме само това поле. Иначе и другите полета 
+            // на модела ще се появят
+        	$data->listFilter->showFields = "from, {$mvc->searchInputField}, selectedUsers";
         } else{
         	$data->listFilter->showFields = 'from, selectedUsers';
         }
@@ -279,7 +291,7 @@ class cal_Calendar extends core_Master
 		
       	$data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
 	    $data->query->orWhere('#users IS NULL OR #users = ""');
-	 
+ 
     }
 
     
@@ -488,6 +500,7 @@ class cal_Calendar extends core_Master
      */
     public static function renderPortal()
     {
+
         $month = Request::get('cal_month', 'int');
         $month = str_pad($month, 2, '0', STR_PAD_LEFT);
         $year  = Request::get('cal_year', 'int');
@@ -727,7 +740,7 @@ class cal_Calendar extends core_Master
             }
             $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$month}.{$year}"));;
         }
-
+        
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
 
         $tpl->replace(static::renderCalendar($year, $month, $data, $header), 'MONTH_CALENDAR');
@@ -750,10 +763,15 @@ class cal_Calendar extends core_Master
         $cu = core_Users::getCurrent();
         $state->query->where("#users IS NULL OR #users = ''");
         $state->query->orLikeKeylist('users', "|$cu|");
+        
+        $Calendar = cls::get('cal_Calendar');
+        if(Request::get($Calendar->searchInputField)) {
+            $from = dt::addDays(-30, $from);
+            $to = dt::addDays(360, $to);
+        }
 
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
 
-        $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
         $Calendar->prepareListFilter($state); 
         $Calendar->prepareListRecs($state); 

@@ -71,7 +71,7 @@ function initElements() {
 	$('#nav-panel li a').on('click', function(e){
 		setMenuCookie();
 	});
-	
+
 	$(window).focus(function() {
 		setCookie('menuInfo', currentMenuInfo);
 	});

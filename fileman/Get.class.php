@@ -281,15 +281,10 @@ class fileman_Get extends core_Manager {
                 
                 // Ако файла е валиден по размер и разширение - добавяме го към собственика му
                 if($Buckets->isValid($err, $rec->bucketId, $fileName, $tmpFile)) {
-                    
-                    $filemanInst = cls::get('fileman_Files');
-                    
-                    // Създаваме файла
-                    $fh = $filemanInst->createDraftFile($fileName, $rec->bucketId);
         			
-                    // Записваме му съдържанието
-                    $filemanInst->setContent($fh, $tmpFile);
-        			
+                    $bucketName = fileman_Buckets::fetchField($rec->bucketId, 'name');
+                    $fh = fileman::absorb($tmpFile, $bucketName, $fileName);
+                    
                     $add = $Buckets->getInfoAfterAddingFile($fh);
         			
                     if($rec->callback) {

@@ -40,32 +40,39 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Кой може да пише
      */
-    public $canWrite = 'ceo,cond';
+    public $canWrite = 'ceo,cond,admin';
     
     
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cond';
+    public $canAdd = 'ceo,cond,admin';
     
     
     /**
      * Кой може да променя
      */
-    public $canEdit = 'ceo,cond';
+    public $canEdit = 'ceo,cond,admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond';
+	public $canList = 'ceo,cond,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond';
+	public $canSingle = 'ceo,cond,admin';
     
+
+    /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'ceo,cond,admin';
+
+
     
     /**
      * Заглавие

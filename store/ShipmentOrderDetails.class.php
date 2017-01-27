@@ -124,7 +124,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
-    	$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -199,7 +198,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			if(!core_Users::haveRole('collaborator')){
+    			if(!core_Users::haveRole('partner')){
     				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     			}
     		}
@@ -220,10 +219,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     			
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-                batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
-                
-    			if($rec->notes){
-    				deals_Helper::addNotesToProductRow($row->productId, $rec->notes, $rec->batch);
+                if($rec->notes){
+    				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}
     		}
     	}
@@ -239,5 +236,19 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
     	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
     	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
+    }
+    
+    
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	$masterRec = store_ShipmentOrders::fetch($rec->shipmentId, 'isReverse,storeId');
+    	if($masterRec->isReverse == 'yes'){
+    		$res->operation['out'] = $masterRec->storeId;
+    		unset($res->operation['in']);
+    	}
     }
 }

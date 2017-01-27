@@ -43,8 +43,9 @@ class unit_MinkPProducts extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
+        //$browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
+        $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -118,7 +119,7 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('limitQuantity', '100');
             $browser->setValue('item1', 'Склад 1 (1 st)');
             //Екип "Headquarter"
-            $browser->setValue('sharedUsers[15_1]', '15_1');
+            $browser->setValue('sharedUsers[13_1]', '13_1');
             $browser->press('Запис');
             
             //Добавяне на себестойност

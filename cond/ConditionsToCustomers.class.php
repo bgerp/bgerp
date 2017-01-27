@@ -117,13 +117,10 @@ class cond_ConditionsToCustomers extends core_Manager
     	}
     	
     	if($form->rec->conditionId){
-        	if($Driver = cond_Parameters::getDriver($form->rec->conditionId)){
-        		$form->setField('value', 'input');
-        		$pRec = cond_Parameters::fetch($form->rec->conditionId);
-        		if($Type = $Driver->getType($pRec, $form->rec->value)){
-        			$form->setFieldType('value', $Type);
-        		}
-        	} else {
+    		if($Type = cond_Parameters::getTypeInstance($rec->conditionId, $rec->cClass, $rec->cId, $rec->value)){
+    			$form->setField('value', 'input');
+    			$form->setFieldType('value', $Type);
+    		} else {
         		$form->setError('conditionId', 'Има проблем при зареждането на типа');
         	}
         } else {
@@ -217,11 +214,9 @@ class cond_ConditionsToCustomers extends core_Manager
     		$row->group = cond_Parameters::getVerbal($paramRec, 'group');
     	}
     	
-    	if($ParamType = cond_Parameters::getTypeInstance($paramRec, $rec->value)){
-    		$row->value = $ParamType->toVerbal(trim($rec->value));
-    		if(!empty($paramRec->suffix)){
-    			$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));
-    		}
+    	$row->value = cond_Parameters::toVerbal($paramRec, $rec->cClass, $rec->cId, $rec->value);
+    	if(!empty($paramRec->suffix)){
+    		$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));
     	}
     	
     	$row->cId = cls::get($rec->cClass)->getHyperLink($rec->cId, TRUE);
@@ -340,6 +335,14 @@ class cond_ConditionsToCustomers extends core_Manager
        			}
        		}
        }
+       
+       // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
+       if(($action == 'edit' || $action == 'delete') && $res != 'no_one' && isset($rec)){
+       		$roles = cond_Parameters::fetchField($rec->conditionId, 'roles');
+       		if(!empty($roles) && !haveRole($roles, $userId)){
+       			$res = 'no_one';
+       		}
+       }
     }
     
     
@@ -402,7 +405,7 @@ class cond_ConditionsToCustomers extends core_Manager
     	expect($Class = cls::get($class));
     	expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
     	expect($pRec = cond_Parameters::fetch($conditionId));
-    	$Type = cond_Parameters::getTypeInstance($pRec);
+    	$Type = cond_Parameters::getTypeInstance($pRec, $class, $objectId, $value);
     	expect($value = $Type->fromVerbal($value));
     	
     	// Новия запис

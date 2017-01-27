@@ -16,15 +16,9 @@ class tesseract_Converter extends core_Manager
     
     
     /**
-     * 
-     */
-    public $ocrType = 'textOcr';
-    
-    
-    /**
      * Интерфейсни методи
      */
-    var $interfaces = 'fileman_OCRIntf';
+    var $interfaces = 'fileman_OCRIntf, fileman_FileActionsIntf';
     
     
     /**
@@ -55,8 +49,57 @@ class tesseract_Converter extends core_Manager
      * Кода, който ще се изпълнява
      */
     public $fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] -psm [#PSM#]';
-    
 	
+	
+    /**
+     *
+     */
+    public $canOcr = 'powerUser';
+	
+	
+    /**
+     * Интерфейсен метод на fileman_FileActionsIntf
+     *
+     * Връща масив с действия, които могат да се извършат с дадения файл
+     *
+     * @param stdObject $fRec - Обект са данни от модела
+     *
+     * @return array|NULL $arr - Масив с данните
+     * $arr['url'] - array URL на действието
+     * $arr['title'] - Заглавието на бутона
+     * $arr['icon'] - Иконата
+     */
+    static function getActionsForFile_($fRec)
+    {
+        $arr = NULL;
+        
+        if (self::haveRightFor('ocr') && self::canExtract($fRec)) {
+
+            $btnParams = array();
+            
+            $btnParams['order'] = 60;
+            $btnParams['title'] = 'Разпознаване на текст с tesseract';
+            
+            // Ако вече е извлечена текстовата част
+            $procTextOcr = fileman_Indexes::isProcessStarted(array('type' => 'textOcr', 'dataId' => $fRec->dataId));
+            if ($procTextOcr) {
+                $btnParams['warning'] = 'Файлът е преминал през разпознаване на текст';
+            } elseif (!self::haveTextForOcr($fRec)) {
+                $btnParams['warning'] = 'Няма текст за разпознаване';
+            }
+            
+            $arr = array();
+            $arr['tesseract']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => TRUE);
+            $arr['tesseract']['title'] = 'OCR';
+            $arr['tesseract']['icon'] = 'img/16/scanner.png';
+            $arr['tesseract']['btnParams'] = $btnParams;
+        }
+        
+        return $arr;
+        
+    }
+	
+    
 	/**
      * Екшъна за извличане на текст чрез OCR
      * 
@@ -77,8 +120,6 @@ class tesseract_Converter extends core_Manager
         
         fileman_Files::requireRightFor('single', $fRec);
         
-        fileman_Files::requireRightFor('single', $fRec);
-        
         $this->getTextByOcr($fRec);
         
         // URL' то където ще редиректваме
@@ -91,14 +132,21 @@ class tesseract_Converter extends core_Manager
             $retUrl = array('fileman_Files', 'single', $fRec->fileHnd);
         }
         
+        if ($fRec->dataId && ($dRec = fileman_Data::fetch((int) $fRec->dataId))) {
+            fileman_Data::resetProcess($dRec);
+        }
+        
         return new Redirect($retUrl);
     }
     
     
     /**
-     *
-     * @param stdObject $fRec
-     *
+     * 
+     * 
+     * @param stdObject|string $fRec
+     * 
+     * @return string|NULL
+     * 
      * @see fileman_OCRIntf
      */
     function getTextByOcr($fRec)
@@ -108,28 +156,40 @@ class tesseract_Converter extends core_Manager
         
         // Параметри необходими за конвертирането
         $params = array(
-                'callBack' => $me . '::afterGetTextByTesseract',
-                'dataId' => $fRec->dataId,
-                'asynch' => TRUE,
-                'createdBy' => core_Users::getCurrent('id'),
-                'type' => $this->ocrType,
+            'callBack' => $me . '::afterGetTextByTesseract',
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'textOcr',
         );
         
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+            $params['asynch'] = TRUE;
+            $file = $fRec->fileHnd;
+        } else {
+            $params['asynch'] = FALSE;
+            $params['isPath'] = TRUE;
+            $file = $fRec;
+        }
+        
+        $lId = fileman_webdrv_Generic::prepareLockId($fRec);
+        
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $fRec->dataId);
+        $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $lId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($params)) {
-        
-            // Добавяме съобщение
-            status_Messages::newStatus('|Процеса вече е бил стартиран');
+        if (core_Locks::isLocked($params['lockId'])) {
+            
+            if ($params['asynch']) {
+                // Добавяме съобщение
+                status_Messages::newStatus('|Процеса вече е бил стартиран');
+            }
         } else {
         
             // Заключваме процеса за определено време
             if (core_Locks::get($params['lockId'], 300, 0, FALSE)) {
         
                 // Стартираме извличането
-                static::getText($fRec->fileHnd, $params);
+                return static::getText($file, $params);
             }
         }
     }
@@ -138,19 +198,54 @@ class tesseract_Converter extends core_Manager
     /**
      * Вземаме текстова част от подадения файл
      * 
-     * @param fileHnd $fileHnd - Манипулатора на файла
+     * @param string $fileHnd - Манипулатора на файла и път до файла
      * @param array $params - Допълнителни параметри
+     * 
+     * @return string
      */
     static function getText($fileHnd, $params)
     {
-        // Вземам записа за файла
-        $fRec = fileman_Files::fetchByFh($fileHnd);
+        if (!$params['isPath']) {
+            // Вземам записа за файла
+            $fRec = fileman_Files::fetchByFh($fileHnd);
+            
+            // Очакваме да има такъв запис
+            expect($fRec);
+            
+            // Очакваме да може да се извлече информация от файла
+            expect(static::canExtract($fRec));
+            
+            $ext = fileman_Files::getExt($fRec->name);
+        } else {
+            expect(static::canExtract($fileHnd));
+            
+            $ext = fileman_Files::getExt($fileHnd);
+        }
         
-        // Очакваме да има такъв запис
-        expect($fRec);
-        
-        // Очакваме да може да се извлече информация от файла
-        expect(static::canExtract($fRec));
+        // Ако е pdf файл, тогава го преобразуваме в tiff
+        if ($ext == 'pdf') {
+            
+            if (!$params['isPath']) {
+                $pdfPath = fileman::extract($fileHnd);
+            } else {
+                $pdfPath = $fileHnd;
+            }
+            
+            $tiffPath = $pdfPath . '.tiff';
+            
+            $pdfPathEsc = escapeshellarg($pdfPath);
+            $tiffPathEsc = escapeshellarg($tiffPath);
+            
+            exec("convert -density 300 {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
+            
+            if (is_file($tiffPath)) {
+                $fileHnd = $tiffPath;
+            }
+            
+            if (!$params['isPath']) {
+                $params['delPath'] = $pdfPath;
+            }
+        }
         
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
@@ -182,7 +277,9 @@ class tesseract_Converter extends core_Manager
         
         // Други допълнителни параметри
         $params['outFilePath'] = $outputFile . '.txt';
-        $params['fh'] = $fileHnd;
+        if (!$params['isPath']) {
+            $params['fh'] = $fileHnd;
+        }
         $Script->params = $params;
         
         $Script->setCheckProgramsArr('tesseract');
@@ -191,8 +288,18 @@ class tesseract_Converter extends core_Manager
             fileman_Indexes::createError($params);
         }
         
-        // Добавяме съобщение
-        status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
+        $text = '';
+        if (!$params['asynch']) {
+            $text = @file_get_contents($params['outFilePath']);
+            $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
+        
+            core_Locks::release($params['lockId']);
+        } else {
+            // Добавяме съобщение
+            status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
+        }
+        
+        return $text;
     }
     
     
@@ -209,7 +316,7 @@ class tesseract_Converter extends core_Manager
         $params = $script->params;
         
         // Вземаме съдържанието на файла
-        $params['content'] = file_get_contents($params['outFilePath']);
+        $params['content'] = @file_get_contents($params['outFilePath']);
         
         $params['content'] = trim($params['content']);
         
@@ -230,6 +337,10 @@ class tesseract_Converter extends core_Manager
         
         if ($saveId) {
 			
+            if ($params['delPath']) {
+                fileman::deleteTempPath($params['delPath']);
+            }
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
@@ -242,7 +353,7 @@ class tesseract_Converter extends core_Manager
     /**
      * Проверява дали файл с даденото име може да се екстрактва
      * 
-     * @param stdClass $fRec
+     * @param stdClass|string $fRec
      * 
      * @return boolean - Дали може да се екстрактва от файла
      * 
@@ -250,17 +361,16 @@ class tesseract_Converter extends core_Manager
      */
     static function canExtract($fRec)
     {
-        $ext = strtolower(fileman_Files::getExt($fRec->name));
+        $name = $fRec;
+        if (is_object($fRec)) {
+            $name = $fRec->name;
+        }
+        $ext = strtolower(fileman_Files::getExt($name));
         
         // Ако разширението е в позволените
         if ($ext && in_array($ext, self::$allowedExt)) {
-            
-            // Проверяваме дали има права за екстрактване
-            if (haveRole(self::$canOCR)) {
-                
-                // Ако всичко е OK връщаме TRUE
-                return TRUE;
-            }
+            // Ако всичко е OK връщаме TRUE
+            return TRUE;
         }
         
         return FALSE;
@@ -270,7 +380,7 @@ class tesseract_Converter extends core_Manager
     /**
      * Бърза проврка дали има смисъл от OCR-ване на текста
      *
-     * @param stdObject $fRec
+     * @param stdObject|string $fRec
      * 
      * @see fileman_OCRIntf
      */

@@ -107,6 +107,8 @@ class cat_Setup extends core_ProtoSetup
     		'cat_Boms',
     		'cat_BomDetails',
     		'cat_ProductTplCache',
+    		'cat_Listings',
+    		'cat_ListingDetails',
     		'migrate::migrateGroups',
     		'migrate::migrateProformas',
     		'migrate::removeOldParams1',
@@ -119,6 +121,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateBomType',
     		'migrate::updateParamStates',
     		'migrate::migratePrototypes',
+    		'migrate::updateListings1',
         );
 
 
@@ -503,6 +506,64 @@ class cat_Setup extends core_ProtoSetup
     		}
     	} catch(core_exception_Expect $e){
     		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на листингите
+     */
+    function updateListings1()
+    {
+    	$Lists = cls::get('cat_Listings');
+    	$Lists->setupMvc();
+    	core_Classes::add('cat_Listings');
+    	
+    	$Detail = cls::get('cat_ListingDetails');
+    	$Detail->setupMvc();
+    	
+    	if(!$Detail::count()) return;
+    	
+    	$new = $toSave = array();
+    	$query = $Detail->getQuery();
+    	$query->FLD('contragentClassId', 'int');
+    	$query->FLD('contragentId', 'int');
+    	$query->where("#listId IS NULL");
+    	
+    	while($rec = $query->fetch()){
+    		if(!(isset($rec->contragentClassId) && isset($rec->contragentId))) continue;
+    		
+    		$folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
+    			 
+    		if(!isset($new[$folderId])){
+    			$name = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+    	
+    			if($exRec = cat_Listings::fetch("#title = '{$name}'")){
+    				$lId = $exRec->id;
+    			} else {
+    				$n = (object)array('title' => $name, 'folderId' => $folderId, 'createdBy' => $rec->modifiedBy, 'createdOn' => $rec->modifiedOn);
+    				
+    				core_Users::sudo($rec->modifiedBy);
+    				$listId = cat_Listings::save($n);
+    				core_Users::exitSudo();
+    				
+    				$new[$folderId] = $listId;
+    			}
+    	
+    			$new[$folderId] = $lId;
+    		}
+    			 
+    		$rec->listId = $new[$folderId];
+    			 
+    		$pRec = cat_Products::fetch($rec->productId, 'canBuy,canSell');
+    		$rec->canSell = $pRec->canSell;
+    		$rec->canBuy = $pRec->canBuy;
+    			 
+    		$toSave[] = $rec;
+    	}
+    	 
+    	if(count($toSave)){
+    		$Detail->saveArray($toSave);
     	}
     }
 }

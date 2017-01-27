@@ -2,7 +2,7 @@
    <table class="innerTable border-table paddingCells">
       <tbody>
          <tr>
-            <td colspan="2" class='centered'>
+            <td class='centered'>
                <div class="document-title">|експедиционно нареждане|*</div>
                <!--ET_BEGIN operationSysId-->
                <small>( [#operationSysId#] )</small>
@@ -16,8 +16,7 @@
             </td>
          </tr>
          <tr>
-            <td class="cell custom-header-bg"  style="width: 50%"><b>|Получател|*</b></td>
-            <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+            <td class="cell custom-header-bg"><b>|Получател|*</b></td>
          </tr>
          <tr>
             <td class="cell">
@@ -33,6 +32,11 @@
                </div>
                <!--ET_END locationId-->
             </td>
+         </tr>
+         <tr>
+            <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+         </tr>
+         <tr>
             <td class="cell">
                <b>[#MyCompany#]</b>
                <div class='address-block'>

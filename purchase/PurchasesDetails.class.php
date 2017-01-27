@@ -57,19 +57,27 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, purchase, collaborator';
+    public $canDelete = 'ceo, purchase, partner';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, purchase, collaborator';
+    public $canEdit = 'ceo, purchase, partner';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, purchase, collaborator';
+    public $canAdd = 'user';
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canImportlisted = 'user';
     
     
     /**
@@ -103,6 +111,14 @@ class purchase_PurchasesDetails extends deals_DealDetail
     
     
     /**
+     * Какво движение на партида поражда документа в склада
+     *
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     */
+    public $batchMovementDocument = 'in';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -127,14 +143,21 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
-    		
-    		if(core_Users::isPowerUser($userId)){
-    			 
-    			if(!haveRole('ceo,purchase')){
+    	if(($action == 'add') && isset($rec)){
+    		if($requiredRoles != 'no_one'){
+    			$roles = purchase_Setup::get('ADD_BY_PRODUCT_BTN');
+    			if(!haveRole($roles, $userId)){
     				$requiredRoles = 'no_one';
     			}
     		}
     	}
+    	
+    	if($action == 'importlisted'){
+    		$roles = purchase_Setup::get('ADD_BY_LIST_BTN');
+    		if(!haveRole($roles, $userId)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
     }
 }

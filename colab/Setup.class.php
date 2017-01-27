@@ -112,6 +112,9 @@ class colab_Setup extends core_ProtoSetup
     		$html .= $Plugins->installPlugin("Colab плъгин за {$title}", 'colab_plg_CreateDocument', $docName, 'private');
     	}
     	
+    	$html .= core_Roles::addOnce('distributor', NULL, 'external');
+    	$html .= core_Roles::addOnce('agent', NULL, 'external');
+    	
         return $html;
     }
     

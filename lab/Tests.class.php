@@ -26,8 +26,8 @@ class lab_Tests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, doc_ActivatePlg,
-                     doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting, bgerp_plg_Blank';
+    var $loadList = 'plg_RowTools2, doc_ActivatePlg,doc_DocumentPlg, plg_Printing,
+                     lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder';
     
     
     /**
@@ -114,6 +114,12 @@ class lab_Tests extends core_Master
      */
     var $newBtnGroup = "18.1|Други";
     
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
     
     /**
      * Описание на модела

@@ -54,7 +54,7 @@ class bgerp_Portal extends core_Manager
     {
         // Ако е инсталиран пакета за партньори
     	// И текущия потребител е контрактор, но не е powerUser
-    	if(core_Users::haveRole('contractor') && !core_Users::haveRole('powerUser')){
+    	if(core_Users::haveRole('partner')){
         		
     		// Редирект към профила на партньора
     		return new Redirect(array('cms_Profiles', 'single'));
@@ -138,9 +138,15 @@ class bgerp_Portal extends core_Manager
         } else {
             $calTitle = '&nbsp;';
         }
+        
+        $calMvc = cls::get('cal_Calendar');
+        $searchForm = $calMvc->getForm();
+        self::prepareSearchForm($calMvc, $searchForm);
 
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '</div>
+            <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '
+            ' . $searchForm->renderHtml() . '
+            </div>
             [#CALENDAR_DETAILS#]
             </div>');
         
@@ -149,7 +155,7 @@ class bgerp_Portal extends core_Manager
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
             $tpl->append($tasksTpl, 'TASK_COLUMN');
 
-            jquery_Jquery::run($tpl, "portalTabs();");
+            jquery_Jquery::run($tpl, "openCurrentTab();");
         } else {
             $tpl->append($tasksTpl, 'RIGHT_COLUMN');
             $tpl->append($calendarHeader, 'RIGHT_COLUMN');
@@ -179,14 +185,9 @@ class bgerp_Portal extends core_Manager
         if($search = Request::get($mvc->searchInputField)){
             $form->layout->replace($search, 'VALUE');
         }
-        
-        $iconSize = 16;
-        if(log_Browsers::isRetina()) {
-            $iconSize = 32;
-        }
-        
-        $findIcon = sbf("img/{$iconSize}/find.png");
-        
+
+        $findIcon = sbf("img/16or32/find.png");
+     
         $form->layout->replace($mvc->className, 'LIST');
         $form->layout->replace($findIcon, 'ICON');
         static::prepareSearchDataList($mvc, $form);
@@ -196,7 +197,7 @@ class bgerp_Portal extends core_Manager
         // Зареждаме всички стойности от GET заявката в формата, като
         // пропускаме тези които не са параметри в нея
         foreach(getCurrentUrl() as $key => $value){
-            if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd'){
+            if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd' && !strpos($key, 'Search')){
                 if(!$form->fields[$key]){
                     $form->FNC($key, 'varchar', 'input=hidden');
                     $form->setDefault($key, $value);

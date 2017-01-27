@@ -75,8 +75,11 @@ class doc_Prototypes extends core_Manager
      * Кой може да възстановява
      */
     public $canRestore  = 'no_one';
-    
-    
+
+
+	public $currentTab = "Нишка";
+
+
     /**
      * Описание на модела (таблицата)
      */

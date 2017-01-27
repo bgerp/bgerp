@@ -664,6 +664,12 @@ class core_App
             if($get['id'] && $unprotect) {
                 expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'));
             }
+
+            if($get['App']) {
+                if($app = Request::get('App')) {
+                    $get['App'] = $app;
+                }
+            }
         }
         
         return $get;
@@ -1106,7 +1112,7 @@ class core_App
             'url' => 'core_Url',
             'users' => 'core_Users',
             'ut' => 'unit_Tests',
-            'fileman' => 'fileman_Files2',
+            'fileman' => 'fileman_Files',
         );
         
         if(isset($aliases[strtolower($className)]) && $fullName = $aliases[strtolower($className)]) {

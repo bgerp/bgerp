@@ -34,37 +34,48 @@ defIfNot('ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT', 104857600);
 class archive_Adapter
 {
     
+    
     /**
      * Инстанция на класа
      */
     protected $inst;
     
+    
     /**
      * Пътя до временния файл на архива
      */
-    protected $path;
+    public $path;
+    
     
     /**
      * Временната директория с временните файлове, екстрактнати от архива
      */
-    protected $dir;
+    public $dir;
     
     
     /**
      * При създаване на инстанция на класа, инициализираме някои променливи
      *
-     * @param fileHandler $fh - Манипулатор на файл
+     * @param array $fArr
      */
-    function init($fh)
+    function init($fArr = array())
     {
         // Вкарваме пакета
         require_once getFullPath("archive/7z/7z.php");
         
-        // Пътя до файла
-        $this->path = fileman::extract($fh);
+        if ($fArr['fileHnd']) {
+            // Пътя до файла
+            $this->path = fileman::extract($fArr['fileHnd']);
+        } else {
+            $this->path = $fArr['path'];
+        }
         
-        // Инстанция на архива
-        $this->inst = new Archive_7z($this->path);
+        try {
+            // Инстанция на архива
+            $this->inst = new Archive_7z($this->path);
+        } catch (Archive_7z_Exception $e) {
+            throw new core_exception_Expect($e->getMessage());
+        }
     }
     
     
@@ -78,7 +89,7 @@ class archive_Adapter
         try {
             // Вземаме съдържанието
             $entriesArr = $this->getEntries();
-        } catch (core_exception_Expect $e) {
+        } catch (ErrorException $e) {
             
             // Връщаме грешката
             return tr('Възникна грешка при показване на съдържанието на архива');
@@ -141,7 +152,6 @@ class archive_Adapter
             // Вземаме информация за всички файлове/папки
             $entriesArr = $this->inst->getEntries();
         } catch (Archive_7z_Exception $e) {
-            
             throw new core_exception_Expect($e->getMessage());
         }
         
@@ -172,7 +182,6 @@ class archive_Adapter
     public function getFile($index)
     {
         try {
-            
             // Вземаме обекта за съответния файл
             $entry = $this->getEntries($index);
             
@@ -181,8 +190,7 @@ class archive_Adapter
             
             // Очакваме размера след декомпресия да е в допустимите граници
             expect($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT);
-        } catch (core_exception_Expect $e) {
-            
+        } catch (ErrorException $e) {
             // Ако възникне грешка
             expect(FALSE, 'Възникна грешка при свалянето на файла');
         }
@@ -191,11 +199,9 @@ class archive_Adapter
         expect($size, 'Не е файл');
         
         try {
-            
             // Вземаме пътя до файла в архива
             $path = $entry->getPath();
-        } catch (core_exception_Expect $e) {
-            
+        } catch (ErrorException $e) {
             // Ако възникне грешка
             expect(FALSE, 'Не може да се определи пътя до файла.');
         }
@@ -235,11 +241,9 @@ class archive_Adapter
     protected function absorbFile($path)
     {
         try {
-            
             // Екстрактваме файла от архива и връщаме пътя във файловата система
             $path = $this->extractEntry($path);
-        } catch (core_exception_Expect $e) {
-            
+        } catch (ErrorException $e) {
             // Ако възникне грешка
             expect(FALSE, 'Не може да се екстрактен файла от архива');
         }
@@ -268,8 +272,12 @@ class archive_Adapter
         // Вземаме директорията
         $this->setOutputDirectory();
         
-        // Екстрактваме файла
-        $this->inst->extractEntry($path);
+        try {
+            // Екстрактваме файла
+            $this->inst->extractEntry($path);
+        } catch (Archive_7z_Exception $e) {
+            throw new core_exception_Expect($e->getMessage());
+        }
         
         // Връщаме пълния път до файла
         return $this->dir . '/' . $path;
@@ -298,7 +306,11 @@ class archive_Adapter
         // Създаваме директорията
         expect(mkdir($this->dir, 0777, TRUE), 'Не може да се създаде директория.');
         
-        // Инициализираме директорията
-        $this->inst->setOutputDirectory($this->dir);
+        try {
+            // Инициализираме директорията
+            $this->inst->setOutputDirectory($this->dir);
+        } catch (Archive_7z_Exception $e) {
+            throw new core_exception_Expect($e->getMessage());
+        }
     }
 }

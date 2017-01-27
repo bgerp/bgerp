@@ -446,6 +446,13 @@ input[type="search"]::-webkit-search-decoration {
     -webkit-appearance: none;
 }
 
+/**
+ * Remove the arrow in input when there is list
+ */
+input::-webkit-calendar-picker-indicator {
+	display: none;
+}
+
 #simpleSearch {
 	width:15em;
 	max-width:100%;
@@ -1020,6 +1027,16 @@ input.more-btn {
 	display: block;
 }
 
+.filePath{
+	word-wrap:break-word;
+	display:block;
+	margin-bottom: 15px;
+	padding-top:10px;
+	.linkWithIcon {
+		padding-left: 22px !important;
+	}
+}
+
 a.more-btn {
 	padding-left: 17px !important;
 	height: 16px;
@@ -1187,7 +1204,7 @@ a.profile {
 			color: #dd8800;
 		}
 	}
-	&.contractor {
+	&.partner {
 		color: #cc0000;
 		&.inactive {
 			color: #993333;
@@ -2507,6 +2524,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
             &:hover , &.selected {
                 padding: 4px;
 				top: 0 !important;
+				margin: 0 3px 0 0;
                 border: 1px solid #bbb;
                 background-color: #ffffcc !important;
                 a {
@@ -2997,6 +3015,7 @@ div.richtext ol ol ol {
 	padding: 2px 0 0 15px;
 	border-left: 5px solid $gray2;
 	font-family: Courier New, monospace, serif;
+    margin-bottom:5px;
 }
 
 .richtext > .richtext-quote {
@@ -3241,7 +3260,6 @@ div.statuses-message h2 {
 	width: 16px;
 	height: 16px;
 	display: inline-block;
-	background-image: url('../img/16/anchor-image.png');
 	margin: 0 5px;
 }
 

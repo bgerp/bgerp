@@ -50,9 +50,18 @@ if (setupKeyValid() && !setupProcess()) {
     // halt("Процес на обновяване - опитайте по късно.");
 }
 
+
+
+
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
+
+$flagOK = MD5($_GET['SetupKey'] . 'flagOK');
+if($step == 'testSelfUrl') {
+    echo $flagOK;
+    die;
+}
 
 // Какъв е протокол-а
 if (isset($_SERVER['HTTPS']) &&
@@ -73,12 +82,29 @@ if($username = $_SERVER['PHP_AUTH_USER']) {
 }
 
 // Собственото URL
-$selfUri = "{$protocol}{$auth}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+$selfUri = "{$protocol}{$auth}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
  
+
+// Определяне на локалното URL и контекста
+$opts = array(
+    'http'=>array(
+    'method'=>"GET",
+    'header'=>"Accept-language: en\r\n" .
+                "Cookie: setup=bar\r\n"
+      )
+);
+
+$context = stream_context_create($opts);
+if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+    $localUrl = str_replace("{$protocol}{$auth}{$_SERVER['HTTP_HOST']}", "{$protocol}{$auth}" . BGERP_ABSOLUTE_HTTP_HOST, $selfUri);
+} else {
+    $localUrl = $selfUri;
+}
+
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
 $nextUrl = addParams($selfUri, array('step' => $step+1));
-
+ 
 // Определяме линка към приложението
 $appUri = $selfUrl; 
 if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
@@ -638,6 +664,15 @@ if($step == 3) {
         }
     }
     
+    // Проверка дали локалните URL-та работят
+    $log[] = 'h:Проверка дали локалните URL-та работят:';
+    $res = file_get_contents("{$localUrl}&step=testSelfUrl", FALSE, $context, 0, 32);
+
+    if($res == $flagOK) {
+        $log[] = "inf:Локалните URL-та се достъпват";
+    } else {
+        $log[] = "wrn:Локалните URL-та не се достъпват. Задайте стойност на константата BGERP_ABSOLUTE_HTTP_HOST или нагласете файла hosts, така че от PHP да се достъпват локалните URL";
+    }
 
     // Необходими модули на PHP
     $log[] = 'h:Проверка за необходимите PHP модули:';
@@ -674,9 +709,11 @@ if($step == 3) {
             }
         }
     } else {
-        $log[] = "wrn:Apache не работи с mod-php";
+        $log[] = "inf:Apache не работи с mod-php";
     }
     
+
+    // Проверка за налични програми
     if (!core_Os::isWindows()) {
         // Необходими програми на сървъра
         $log[] = 'h:Проверка за необходимите програми на сървъра:';
@@ -801,8 +838,6 @@ if($step == 3) {
     }
 
 
-
-
     // Статистика за различните класове съобщения
     $stat = array();
 
@@ -852,23 +887,15 @@ if ($step == 'setup') {
 
     // Пращаме стиловете
     echo ($texts['styles']);
-//    contentFlush ($texts['styles']);
-    $opts = array(
-      'http'=>array(
-        'method'=>"GET",
-        'header'=>"Accept-language: en\r\n" .
-                  "Cookie: setup=bar\r\n"
-      )
-    );    
+ 
     
     // Първоначално изтриване на Log-a
     file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
     
-    $context = stream_context_create($opts);
+    // Стартираме инициализацията
+    $res = file_get_contents("{$localUrl}&step=start", FALSE, $context, 0, 32);
     
-    $res = file_get_contents("{$selfUrl}&step=start", FALSE, $context, 0, 2);
-    
-    if ($res == 'OK') {
+    if ($res == $flagOK) {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
         contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3><h3>{$selfUrl}&step=start</h3><div>{$res}</div>");
@@ -963,7 +990,7 @@ if ($step == 'setup') {
         $cnt++;
         if ($cnt > 100) {
             // Ако инсталацията увисне
-            wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, $logModified, $fTime2, $fTime);
+            wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
         }
         
       } while (setupProcess() || !empty($setupLog) || $logModified);
@@ -1017,7 +1044,7 @@ if($step == 'start') {
     header("Connection: close\r\n");
     header("Content-Encoding: none\r\n");
     ob_start();
-    echo "OK";
+    echo $flagOK;
     $size = ob_get_length();
     header("Content-Length: $size");
     ob_end_flush();

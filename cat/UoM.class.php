@@ -35,6 +35,13 @@ class cat_UoM extends core_Manager
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'cat,ceo';
+	
+	
+	/**
+	 * Кой може сменя състоянието
+	 * @see plg_State2
+	 */
+	public $canChangestate = 'cat,ceo';
 
     
     /**
@@ -78,7 +85,13 @@ class cat_UoM extends core_Manager
      */
     public $canEditsysdata = 'cat,ceo';
     
+
+    /**
+     * Шаблон за заглавието
+     */
+    public $recTitleTpl = '[#shortName#]';
     
+
     /**
      * Работен кеш
      */
@@ -192,8 +205,17 @@ class cat_UoM extends core_Manager
     			 * е точността на мярката килограм, а в знаменателя - log(1000).
     			 */
     			$baseRound = static::fetchField($uomRec->baseUnitId, 'round');
-    			$round = $baseRound / log10(pow($uomRec->baseUnitRatio, -1));
-    			$round = abs($round);
+    			
+    			$bRatio = log10(pow($uomRec->baseUnitRatio, -1));
+    			
+    			if (!is_infinite($bRatio) && $bRatio) {
+    			    $round = $baseRound / $bRatio;
+    			    $round = abs($round);
+    			}
+    			
+    			if (!isset($round)) {
+    			    $round = 0;
+    			}
     		} else {
     			
     			// Ако няма базова мярка и няма зададено закръгляне значи е 0
@@ -272,6 +294,29 @@ class cat_UoM extends core_Manager
     	}
     	
     	return $options;
+    }
+
+
+    /**
+     * Връща, (ако има) мярка, която е в отношение ratio спрямо текущата
+     */
+    public static function getMeasureByRatio($measureId, $ratio = 0.001)
+    {
+        static $res = array();
+        $key = $measureId. '|' . $ratio;
+        if(!isset($res[$key])) {
+            $res[$key] = FALSE;
+            $mArr = self::getSameTypeMeasures($measureId);
+            foreach($mArr as $id => $name) {
+                if($id == $measureId || empty($id)) continue;
+                if(self::convertValue(1, $id, $measureId) . '' == $ratio . '') {
+                    $res[$key] = $id;
+                    break;
+                }
+            }
+        }
+        
+        return $res[$key];
     }
     
     

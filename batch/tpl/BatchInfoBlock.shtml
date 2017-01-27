@@ -1,0 +1,18 @@
+<!--ET_BEGIN BATCH-->
+[#BATCH#]
+<div class='small'>
+	<div class='richtext'>
+	[#btn#]
+	<div style='[#BATCH_STYLE#]'>
+	<table class='no-border' >
+		<!--ET_BEGIN BLOCK-->
+		[#BLOCK#]
+		<tr>
+		   <td>[#batch#]</td>
+		   <td style='padding-left:8px'>[#quantity#]</td>
+		</tr>
+		<!--ET_END BLOCK-->
+	</table></div>
+	</div>
+</div>
+<!--ET_END BATCH-->

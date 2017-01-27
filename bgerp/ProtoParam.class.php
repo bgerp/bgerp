@@ -32,7 +32,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'typeExt,order,driverClass=Тип,state';
+	public $listFields = 'typeExt,order,driverClass=Тип,state,roles';
 	
 	
 	/**
@@ -50,7 +50,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	public $hideListFieldsIfEmpty = 'order';
+	public $hideListFieldsIfEmpty = 'order,roles';
 	
 	
 	/**
@@ -70,6 +70,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		$mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
 		$mvc->FLD('group', 'varchar(64,ci)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
 		$mvc->FLD('order', 'int', 'caption=Позиция,after=group');
+		$mvc->FLD('roles', 'keylist(mvc=core_Roles,select=role,allowEmpty,groupBy=type)', 'caption=Роли,after=group');
 		
 		$mvc->setDbUnique('name, suffix, group');
 		$mvc->setDbUnique("sysId");
@@ -108,6 +109,9 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		if(isset($data->form->rec->sysId)){
 			$data->form->setReadOnly('name');
 			$data->form->setReadOnly('suffix');
+			$data->form->setReadOnly('default');
+			
+			$data->form->setReadOnly('group');
 		}
 		
 		$query = $mvc->getQuery();
@@ -136,7 +140,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * След подготовка на масива за избор на опции
 	 */
-	protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = NULL, &$where = "", $index = 'id'  )
+	protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = NULL, &$where = "", $index = 'id')
 	{
 		$newOptions = $options;
 		
@@ -144,6 +148,13 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		if(is_array($options)){
 			$newOptions = array();
 			foreach ($options as $id => $value){
+				
+				// Ако има роли за параметъра и потребителя ги няма, не може да избира параметъра
+				$roles = $mvc->fetchField($id, 'roles');
+				if(!empty($roles)){
+					if(!haveRole($roles)) continue;
+				}
+				
 				$group = $mvc->fetchField($id, 'group');
 				
 				// Ако имат група, и няма такава група в масива, те се групират
@@ -189,15 +200,17 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Връща типа на параметъра
 	 *
-	 * @param mixed $id        - ид или запис на параметър
-	 * @param mixed $value     - стойност
-	 * @return FALSE|core_Type - инстанцираният тип или FALSE ако не може да се определи
+	 * @param mixed $id          - ид или запис на параметър
+	 * @param mixed $domainClass - клас на домейна на параметъра
+	 * @param int $domainId      - ид на домейна на параметъра
+	 * @param mixed $value       - стойност
+	 * @return FALSE|core_Type   - инстанцираният тип или FALSE ако не може да се определи
 	 */
-	public static function getTypeInstance($id, $value = NULL)
+	public static function getTypeInstance($id, $domainClass, $domainId, $value = NULL)
 	{
 		$rec = static::fetchRec($id);
 		if($Driver = static::getDriver($rec)){
-			return $Type = $Driver->getType($rec, $value);
+			return $Type = $Driver->getType($rec, $domainClass, $domainId, $value);
 		}
 		 
 		return FALSE;
@@ -281,7 +294,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		 
 		// Само за типовете enum и set, се искат опции
 		if($type == 'enum' || $type == 'set'){
-			$nRec->options = cond_type_Proto::options2text($options);
+			$nRec->options = cond_type_abstract_Proto::options2text($options);
 		}
 		 
 		// Създаване на параметъра
@@ -311,13 +324,15 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Параметри функция за вербализиране
 	 *
-	 * @param int $id      - ид на параметър
-	 * @param mixed $value - стойност за вебализиране
-	 * @return mixed       - вербализирана стойност или FALSE ако не може
+	 * @param  int   $id          - ид на параметър
+	 * @param  mixed $domainClass - клас на домейна на параметъра
+	 * @param  int   $domainId    - ид на домейна на параметъра
+	 * @param  mixed $value       - стойност за вебализиране
+	 * @return mixed              - вербализирана стойност или FALSE ако не може
 	 */
-	public static function toVerbal($id, $value)
+	public static function toVerbal($id, $domainClass, $domainId, $value)
 	{
-		$Type = self::getTypeInstance($id);
+		$Type = self::getTypeInstance($id, $domainClass, $domainId, $value);
 		if($Type) return $Type->toVerbal(trim($value));
 		 
 		return FALSE;

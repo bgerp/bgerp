@@ -184,7 +184,7 @@ class trz_SalaryRules extends core_Manager
             $value += $rec->value;
         }
         
-        $res = array();
+        $res = array(); 
         $res["SUM({$indicator})"] = $value;
  
         return $res;
@@ -212,7 +212,7 @@ class trz_SalaryRules extends core_Manager
         }
 
         $res = array();
-        $res["AVR{$indicator})"] = $val;
+        $res["AVR({$indicator})"] = $value;
  
         return $res;
     }
@@ -233,7 +233,7 @@ class trz_SalaryRules extends core_Manager
         }
 
         $res = array();
-        $res["MIN{$indicator})"] = min($value);
+        $res["MIN({$indicator})"] = min($value);
  
         return $res;
     }
@@ -254,8 +254,8 @@ class trz_SalaryRules extends core_Manager
         }
 
         $res = array();
-        $res["MAX{$indicator})"] = MAX($value);
- 
+        $res["MAX({$indicator})"] = MAX($value);
+
         return $res;
     }
     
@@ -290,38 +290,42 @@ class trz_SalaryRules extends core_Manager
         $query = self::getQuery();
         
         
-        while($recInd = $queryInd->fetch()) {
+        while($recInd = $queryInd->fetch()) { 
             //personId
             //departmentId
             //positionId
             //indicator
-            $query->where("#positionId = '{$recInd->positionId}' AND #state = 'active'");
             
-            $context = self::getContext($recInd->personId,$recInd->indicator);
-
-            while($rec = $query->fetch()){ 
- 
-                $value = self::calcExpr($rec->function, $context);
+            //if($recInd->positionId !== NULL) {
+          
+                $query->where("#positionId = '{$recInd->positionId}' AND #state = 'active'");
+              
+                $context = self::getContext($recInd->personId,$recInd->indicator);
                 
-                $recPayroll = new stdClass();
-                $recPayroll->periodId = $lastDay;
-                $recPayroll->personId = $recInd->personId;
-                $recPayroll->rule  = $rec->id;
-                $recPayroll->sum  = $value;
-               
-                $self = cls::get('trz_SalaryPayroll');
-                $exRec = new stdClass();
-                
-                // Ако имаме уникален запис го записваме
-                // в противен слувай го ъпдейтваме
-                if($self->isUnique($recPayroll, $fields, $exRec)){
-                    $self::save($recPayroll);
+                while($rec = $query->fetch()){ 
+              
+                    $value = self::calcExpr($rec->function, $context);
                     
-                } else { 
-                    $recPayroll->id = $exRec->id;
-                    $self::save($recPayroll);
+                    $recPayroll = new stdClass();
+                    $recPayroll->periodId = $date->lastDay;
+                    $recPayroll->personId = $recInd->personId;
+                    $recPayroll->rule  = $rec->id;
+                    $recPayroll->sum  = $value;
+                   
+                    $self = cls::get('trz_SalaryPayroll');
+                    $exRec = new stdClass();
+                   
+                    // Ако имаме уникален запис го записваме
+                    // в противен слувай го ъпдейтваме
+                    if($self->isUnique($recPayroll, $fields, $exRec)){
+                        $self::save($recPayroll);
+                        
+                    } else { 
+                        $recPayroll->id = $exRec->id;
+                        $self::save($recPayroll);
+                    }
                 }
-            }
+            //}
         }
     }
     
@@ -336,13 +340,14 @@ class trz_SalaryRules extends core_Manager
            $aggr = strstr($ind, "(", TRUE);
 
            $calck = self::$aggr($person, $indicator);
+          
            if(is_array($calck)) {
                foreach($calck as $id=>$v){
                    $arr[$id] = $v;
                }
            } 
         }
-        
+       
         return $arr;
     }
     
@@ -397,8 +402,9 @@ class trz_SalaryRules extends core_Manager
      */
     public static function cron_SalaryRules()
     {
-        $date = '2016-12-01';
-         
+        //$date = '2016-12-01';
+        $date = dt::now();
+      
         self::applyRule($date);
     }
 }

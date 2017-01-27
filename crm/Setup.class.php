@@ -85,9 +85,8 @@ class crm_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'crm_Groups',
-            'crm_Companies',
             'crm_Persons',
-    		'crm_ext_ProductListToContragents',
+            'crm_Companies',
             'crm_ext_IdCards',
             'crm_Personalization',
             'crm_ext_CourtReg',

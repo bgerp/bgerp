@@ -35,7 +35,7 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 700);
 /**
  * Максималната разрешена памет за използване
  */
-defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '200M');
+defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '1024M');
 
 
 /**
@@ -87,6 +87,12 @@ defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 300);
  * Коя програма да се използва за OCR обработка
  */
 defIfNot('FILEMAN_OCR', '');
+
+
+/**
+ * Директория, в която ще се държат екстрактнатите файлове
+ */
+defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
 
 
 /**
@@ -157,7 +163,7 @@ class fileman_Setup extends core_ProtoSetup
 
        'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при интексиране на файл->Време'), 
 
-       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Коя програма да се използва за OCR обработка->Клас'),
+       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
     );
     
     
@@ -198,7 +204,9 @@ class fileman_Setup extends core_ProtoSetup
             // Установяваме модела за галериите 
             'fileman_GalleryImages',
             
-            'migrate::addFileLen'
+            'migrate::addFileLen',
+            'migrate::bucketRoles',
+            'migrate::regenerateData1'
         );
     
     
@@ -206,7 +214,15 @@ class fileman_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = "fileman_reports_FileInfo";
-         
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+            array('title' => 'Регенериране', 'url' => array ('fileman_Indexes', 'regenerate', 'ret_url' => TRUE), 'params' => array('title' => 'Регенериране на ключови думи и индексирани записи')),
+    );
+    
     
     /**
      * Инсталиране на пакета
@@ -241,7 +257,7 @@ class fileman_Setup extends core_ProtoSetup
         // Инсталираме
         if($conf->FILEMAN_FILE_COMMAND) {
             $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
-            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files2', 'private');
+            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files', 'private');
         }
         
         // Инсталираме плъгина за качване на файлове в RichEdit
@@ -381,6 +397,43 @@ class fileman_Setup extends core_ProtoSetup
             
             $rec->fileLen = $rec->dataSize;
             fileman_Files::save($rec, 'fileLen');
+        }
+    }
+
+    /**
+     * Миграция към keylist на полето за ролите
+     */
+    static function bucketRoles()
+    {
+        $query = fileman_Buckets::getQuery();
+        while($rec = $query->fetch()) {
+            if(strlen($rec->rolesForDownload)) {
+                $rec->rolesForDownload = core_Roles::getRolesAsKeylist($rec->rolesForDownload);
+            }
+            if(strlen($rec->rolesForAdding)) {
+                $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rec->rolesForAdding);
+            }
+            fileman_Buckets::save($rec, 'rolesForDownload,rolesForAdding');
+        }
+    }
+    
+    
+    /**
+     * Пускане на последните файлове
+     */
+    static function regenerateData1()
+    {
+        $dQuery = fileman_Data::getQuery();
+        $dQuery->where("#processed = 'yes'");
+        
+        $dQuery->orderBy('lastUse', 'DESC');
+        $dQuery->orderBy('createdOn', 'DESC');
+        
+        $dQuery->limit(10000);
+        
+        while ($dRec = $dQuery->fetch()) {
+            $dRec->processed = 'no';
+            fileman_Data::save($dRec, 'processed');
         }
     }
 }

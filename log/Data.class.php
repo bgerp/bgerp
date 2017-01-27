@@ -624,6 +624,7 @@ class log_Data extends core_Manager
         $classSuggArr = array();
         $cQuery = clone $query;
         $cQuery->groupBy('classCrc');
+        $cQuery->show('classCrc');
         while ($cRec = $cQuery->fetch()) {
             $className = log_Classes::getClassFromCrc($cRec->classCrc);
             if ($className) {
@@ -632,6 +633,7 @@ class log_Data extends core_Manager
         }
         
         if (!empty($classSuggArr)) {
+            asort($classSuggArr);
             $classSuggArr = array('' => '') + $classSuggArr;
             $data->listFilter->setOptions('class', $classSuggArr);
         }
@@ -674,6 +676,8 @@ class log_Data extends core_Manager
             }
             
             $cQuery->limit(100);
+            
+            $cQuery->show('classCrc, objectId');
             
             while ($cRec = $cQuery->fetch()) {
                 $className = log_Classes::getClassFromCrc($cRec->classCrc);

@@ -85,19 +85,14 @@ class incoming_Types extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified';
+    var $loadList = 'plg_Created,plg_Modified,incoming_Wrapper,plg_Rowtools2';
     
-    
-     
-     
     
     /**
      * Полето "Заглавие" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'title';
+    var $rowToolsSingleField = 'name';
     
-    
- 
     
     /**
      * Описание на модела

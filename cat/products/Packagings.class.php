@@ -285,6 +285,7 @@ class cat_products_Packagings extends core_Detail
         if(isset($rec->id)){
         	if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
         		$form->setReadOnly('packagingId');
+        		$form->setReadOnly('quantity');
         	}
         }
     }

@@ -222,7 +222,7 @@ class doclog_Documents extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
         // MID на документа
-        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
+        $this->FLD('mid', 'varchar(8)', 'input=none,caption=Ключ,column=none');
         
         $this->FLD('parentId', 'key(mvc=doclog_Documents, select=action)', 'input=none,caption=Основание');
         
@@ -246,6 +246,7 @@ class doclog_Documents extends core_Manager
         $this->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input=none');
         
         $this->setDbIndex('containerId');
+        $this->setDbIndex('mid');
         
         $this->setDbUnique('containerId, action, mid');
     } 
@@ -2253,7 +2254,7 @@ class doclog_Documents extends core_Manager
                 if ($data->containerId) {
                     $document = doc_Containers::getDocument($data->containerId);
                 }
-                if($document->haveRightFor('single') && !core_Users::haveRole('collaborator')){
+                if($document->haveRightFor('single') && !core_Users::haveRole('partner')){
                     $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
                 }
             } catch (core_exception_Expect $e) {

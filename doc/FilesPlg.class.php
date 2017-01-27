@@ -240,8 +240,7 @@ class doc_FilesPlg extends core_Plugin
             
             // Атрибутеите на линка
             $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
+            $attr['ef_icon'] = $doc->getIcon($doc->that);
             $attr['title'] = 'Документ|*: ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
@@ -270,8 +269,7 @@ class doc_FilesPlg extends core_Plugin
                 
                 // Атрибутеите на линка
                 $attr = array();
-                $attr['class'] = 'linkWithIcon';
-                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($doc->that)) . ');';
+                $attr['ef_icon'] = $docProxy->getIcon($doc->that);
                 $attr['title'] = 'Нишка|*: ' . $docProxyRow->title;
                 
                 // Темата да е линк към single' а на първиа документ документа

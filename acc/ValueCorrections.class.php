@@ -39,7 +39,8 @@ class acc_ValueCorrections extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank';
+                        doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, 
+                        doc_plg_HidePrices, bgerp_plg_Blank, doc_plg_SelectFolder';
     
     
     /**
@@ -115,6 +116,12 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -148,7 +155,11 @@ class acc_ValueCorrections extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if($firstDoc->fetchField('containerId') != $rec->correspondingDealOriginId){
-    		$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+    		if(isset($rec->correspondingDealOriginId)){
+    			$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+    		} else {
+    			$row->correspondingDealOriginId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+    		}
     	} else {
     		unset($row->correspondingDealOriginId);
     	}
@@ -300,7 +311,7 @@ class acc_ValueCorrections extends core_Master
     public static function addProductsFromOriginToForm(&$form, core_ObjectReference $origin, $dataField = 'productsData')
     {
     	// Запомняне на всички експедирани/заскладени артикули от оридижина
-    	$products = self::getChosenProducts($origin);
+    	$products = $origin->getCorrectableProducts();
     	$form->allProducts = $products;
     	
     	if(count($products)){
@@ -369,62 +380,6 @@ class acc_ValueCorrections extends core_Master
     	
     	$data->form->origin = $firstDoc;
     	$data->form->chargeVat =  $chargeVat;
-    }
-    
-    
-    /**
-     * Извличаме артикулите върху които ще се коригират стойностите
-     * 
-     * @param core_ObjectReference $firstDoc - първи документ в нишката
-     * @return array $products - масив с опции за избор на артикули
-     */
-    private static function getChosenProducts(core_ObjectReference $firstDoc)
-    {
-    	// Aко първия документ е продажба
-    	if($firstDoc->isInstanceOf('sales_Sales')){
-    		
-    		// Взимаме артикулите от сметка 701
-    		$entries = sales_transaction_Sale::getEntries($firstDoc->that);
-    		$shipped = sales_transaction_Sale::getShippedProducts($entries, '701');
-    		
-    	  // Ако е покупка
-    	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
-    		
-    		// Вземаме всички заскладени артикули
-    		$entries = purchase_transaction_Purchase::getEntries($firstDoc->that);
-    		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, $firstDoc->that, '321', TRUE);
-    	} else {
-    		
-    		// Иначе няма
-    		$shipped = array();
-    	}
-    	
-    	$products = array();
-    	if(count($shipped)){
-    		foreach ($shipped as $p){
-    			$products[$p->productId] = (object)array('productId' => $p->productId, 
-    												     'name'      => cat_Products::getTitleById($p->productId), 
-    													 'quantity'  => $p->quantity,
-    													 'amount'    => $p->amount,
-    			);
-    			
-    			if(isset($p->inStores)){
-    				$products[$p->productId]->inStores = $p->inStores;
-    			}
-    			
-    			$transportWeight = cat_Products::getParams($p->productId, 'transportWeight');
-    			if(!empty($transportWeight)){
-    				$products[$p->productId]->transportWeight = $transportWeight;
-    			}
-    			
-    			$transportVolume = cat_Products::getParams($p->productId, 'transportVolume');
-    			if(!empty($transportVolume)){
-    				$products[$p->productId]->transportVolume = $transportVolume;
-    			}
-    		}
-    	}
-    	
-    	return $products;
     }
     
     
@@ -645,14 +600,12 @@ class acc_ValueCorrections extends core_Master
     	if($action == 'add' && isset($rec)){
     		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		if($firstDoc){
-    			if($firstDoc->fetchField('state') != 'active'){
-    				 
-    				// Ако ориджина не е активен, не може да се създава документ към него
+    			if(!$firstDoc->haveInterface('acc_AllowArticlesCostCorrectionDocsIntf')){
+    				$requiredRoles = 'no_one';
+    			} elseif($firstDoc->fetchField('state') != 'active'){
     				$requiredRoles = 'no_one';
     			} else {
-    				 
-    				// Ако няма артикули за разпределяне, не може да се създава документа
-    				$products = self::getChosenProducts($firstDoc);
+    				$products = $firstDoc->getCorrectableProducts();
     				if(!count($products)){
     					$requiredRoles = 'no_one';
     				}

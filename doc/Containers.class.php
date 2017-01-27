@@ -109,7 +109,7 @@ class doc_Containers extends core_Manager
         // Документ
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
-        $this->FLD('searchKeywords', 'text', 'collation=ascii_bin,notNull,column=none,input=none');
+        $this->FLD('searchKeywords', 'text(collate=ascii_bin)', 'notNull,column=none,input=none');
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
@@ -484,6 +484,8 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
        
             if (!$hidden) {
+            	
+            	$row->document = doc_DocumentCache::getCache($rec, $document);
  				$retUrl = array($document->className, 'single', $document->that);
  				$retUrl = $retUrl + self::extractDocParamsFromUrl();
  				Mode::push('ret_url', $retUrl);
@@ -692,7 +694,7 @@ class doc_Containers extends core_Manager
         
         $docRec = $docMvc->fetch($rec->docId);
         
-        if ($rec->docClass && $rec->docId && !isset($rec->visibleForPartners)) {
+        if ($rec->docClass && $rec->docId) {
             
             if ($docMvc->isVisibleForPartners($docRec)) {
                 $rec->visibleForPartners = 'yes';
@@ -889,6 +891,12 @@ class doc_Containers extends core_Manager
      */
     static function addNotifications($usersArr, $docMvc, $rec, $action='добави', $checkThreadRight=TRUE, $priority='normal')
     {
+        // Не правим нотификации, ако в документа е посочена ролята на текущия потребител
+        if(isset($docMvc->muteNotificationsBy) && haveRole($docMvc->muteNotificationsBy)) {
+
+            return;
+        }
+
         // Ако няма да се споделя, а ще се добавя
         if ($action != 'сподели') {
             
@@ -1625,16 +1633,11 @@ class doc_Containers extends core_Manager
             $title .= ' #' . $rec->id;
         }
         
-        // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Иконата на класа
-        $sbfIcon = sbf($ctrInst->singleIcon, '"', $isAbsolute);
 
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
             
-            $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
+            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->singleIcon) . "\"> [#1#] </span>", $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
@@ -1643,8 +1646,7 @@ class doc_Containers extends core_Manager
             
             //Атрибути на линка
             $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon});";    
+            $attr['ef_icon'] =  $ctrInst->singleIcon;    
             $attr['target'] = '_blank';    
             
             //Създаваме линк
@@ -2003,6 +2005,7 @@ class doc_Containers extends core_Manager
                 if (!$dRec->containerId) {
                     if ($dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма containerId на оттеглен документ';
                     }
                 }
                 
@@ -2038,6 +2041,7 @@ class doc_Containers extends core_Manager
                 
                 if (!$dRec->containerId) {
                     $delete = TRUE;
+                    $reason = 'Няма containerId';
                 }
                 
                 // Поправяме originId
@@ -2061,6 +2065,7 @@ class doc_Containers extends core_Manager
                 if (!$delete && !$dRec->threadId) {
                     if ($dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма threadId на оттеглен документ';
                     }
                 }
                 
@@ -2087,6 +2092,7 @@ class doc_Containers extends core_Manager
                         }
                     } else {
                         $delete = TRUE;
+                        $reason = 'Няма запис в doc_Threads за containerId';
                     }
                     
                 }
@@ -2095,6 +2101,7 @@ class doc_Containers extends core_Manager
                 if (!$delete) {
                     if (!$dRec->folderId && $dRec->state == 'rejected') {
                         $delete = TRUE;
+                        $reason = 'Няма folderId на оттеглен документ';
                     }
                     
                     if (!$delete) {
@@ -2131,6 +2138,7 @@ class doc_Containers extends core_Manager
                             }
                         } else {
                             $delete = TRUE;
+                            $reason = 'Не може да се определи folderId';
                         }
                     }
                 }
@@ -2139,7 +2147,7 @@ class doc_Containers extends core_Manager
                 if ($delete) {
                     try {
                         
-                        $delMsg = 'Изтрит документ';
+                        $delMsg = 'Изтрит документ' . ' - ' . $reason;
                         if ($clsInst instanceof core_Master) {
                             $dArr = arr::make($clsInst->details, TRUE);
                             
@@ -2158,7 +2166,7 @@ class doc_Containers extends core_Manager
                                         $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $dRec->id));
                                     }
                                 }
-                                $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})";
+                                $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})" . ' - ' . $reason;
                             }
                         }
 
@@ -2429,8 +2437,7 @@ class doc_Containers extends core_Manager
         
         // Атрибутеите на линка
         $attr = array();
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
+        $attr['ef_icon'] = $doc->getIcon($doc->that);
         $attr['title'] = 'Документ|*: ' . $docRow->title;
         
         // Документа да е линк към single' а на документа
@@ -2792,7 +2799,7 @@ class doc_Containers extends core_Manager
                 ini_set("memory_limit", $newMemLimit);
             }
             
-            set_time_limit(600);
+            core_App::setTimeLimit(1200);
             
             // Ако са объркани датите
             if (isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {

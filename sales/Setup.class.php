@@ -214,7 +214,9 @@ class sales_Setup extends core_ProtoSetup
             'sales_InvoiceDetails',
     		'sales_Proformas',
     		'sales_ProformaDetails',
+    		'sales_PrimeCostByDocument',
     		'migrate::cacheInvoicePaymentType',
+    		'migrate::migrateRoles',
         );
 
         
@@ -326,14 +328,29 @@ class sales_Setup extends core_ProtoSetup
     	
     	// Добавяне на дефолтни роли за бутоните
     	foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
-    		$roles = ($const == 'SALES_ADD_BY_IMPORT_BTN') ? 'sales,ceo' : 'sales,ceo,collaborator';
     		if(strlen($config->{$const}) === 0){
-    			$keylist = core_Roles::getRolesAsKeylist($roles);
+    			$keylist = core_Roles::getRolesAsKeylist('sales,ceo');
     			core_Packs::setConfig('sales', array($const => $keylist));
     		}
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Миграция на роли
+     */
+    function migrateRoles()
+    {
+    	if(core_Packs::isInstalled('colab')){
+    		
+    		// Добавяне на дефолтни роли за бутоните
+    		foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
+    			$keylist = core_Roles::getRolesAsKeylist('sales,ceo');
+    			core_Packs::setConfig('sales', array($const => $keylist));
+    		}
+    	}
     }
     
     

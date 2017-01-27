@@ -71,13 +71,7 @@ class incoming_Setup extends core_ProtoSetup
     function install()
     {
         $html = parent::install();
-    	
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Добавяне на плъгина за създаване на входящи документи
-        $html .= $Plugins->installPlugin('Създаване на входящ документ', 'incoming_CreateDocumentPlg', 'fileman_Files', 'private');  
-        
+    	        
         return $html;
     }
     

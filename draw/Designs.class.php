@@ -21,7 +21,13 @@ class draw_Designs extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin';
+    var $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, draw_Wrapper, change_Plugin, plg_Search';
+
+
+    /**
+     * Поле за търсене
+     */
+    public $searchFields = 'name';
 
 
     /**
@@ -152,6 +158,7 @@ class draw_Designs extends core_Master
             'Input(' => 'Input(',
             'LineTo(' => 'LineTo(',
             'MeasureLine(' => 'MeasureLine(',
+            'MeasureAngle(' => 'MeasureAngle(',
             'MoveTo(' => 'MoveTo(',
             'OpenGroup(' => 'OpenGroup(',
             'OpenLayer(' => 'OpenLayer(',
@@ -217,11 +224,18 @@ class draw_Designs extends core_Master
                 continue;
             }
 
-            list($cmd, $params) = explode('(', $l);
+            list($cmd, $params) = explode('(', $l, 2);
+            
+            $params = trim($params, '; ');
+            
+            while(substr($params, -1) != ')') {
+                $params = substr($params, 0, strlen($params)-1);
+            }
+            $params = substr($params, 0, strlen($params)-1);
 
             $res[] = array(
                 0 => trim(mb_strtolower($cmd)),
-                1 => trim($params, '); '),
+                1 => $params,
                 2 => $l,
                 );
         }
@@ -293,12 +307,16 @@ class draw_Designs extends core_Master
             $res[$i] .= $c;
         }
 
+        foreach($res as $i => &$expr) {
+            $expr = trim($expr);
+        }
+
         return $res;
     }
 
 
     public static function cmd_Set($params, &$svg, &$contex, &$error)
-    { 
+    {
         if(isset($params[2])) {
             $cond = self::calcExpr($params[2], $contex);
             if($cond === self::CALC_ERROR) {
@@ -430,6 +448,63 @@ class draw_Designs extends core_Master
 
 
         self::drawMeasureLine($svg, $x1, $y1, $x2, $y2, $d, $text);
+    }
+
+
+    public static function cmd_MeasureAngle($params, &$svg, &$contex, &$error)
+    {
+        $x1 =  self::calcExpr($params[0], $contex);
+        if($x1 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
+
+            return FALSE;
+        }
+
+        $y1 =  self::calcExpr($params[1], $contex);
+        if($y1 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
+
+            return FALSE;
+        }
+
+        $x2 =  self::calcExpr($params[2], $contex);
+        if($x2 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
+
+            return FALSE;
+        }
+
+        $y2 =  self::calcExpr($params[3], $contex);
+        if($y2 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[3] . "\"";
+
+            return FALSE;
+        }
+
+        $x3 =  self::calcExpr($params[4], $contex);
+        if($x3 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[4] . "\"";
+
+            return FALSE;
+        }
+
+        $y3 =  self::calcExpr($params[5], $contex);
+        if($y3 === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[5] . "\"";
+
+            return FALSE;
+        }
+
+        if(isset($params[6])) {
+            $d =  self::calcExpr($params[6], $contex);
+            if($d === self::CALC_ERROR) {
+                $error = "Грешка при изчисляване на: \"" . $params[4] . "\"";
+
+                return FALSE;
+            }
+        }
+
+        self::drawMeasureAngle($svg, $x1, $y1, $x2, $y2, $x3, $y3);
     }
 
 
@@ -754,7 +829,7 @@ class draw_Designs extends core_Master
         // Заместваме променливите и индикаторите
         $expr  = strtr($expr, $ctx);
 
-        if(str::prepareMathExpr($expr) === FALSE) {
+        if(str::prepareMathExpr($expr) === FALSE) {  
             $res = self::CALC_ERROR;
         } else {
             $res = str::calcMathExpr($expr, $success);
@@ -800,6 +875,15 @@ class draw_Designs extends core_Master
 	    $svg->setAttr('font-weight', 'bold');
 	    $svg->setAttr('font-family', 'Arial, Sans-serif');
         cad2_MeasureLine::draw($svg, $Ax, $Ay, $Bx, $By, $dist * 6, $measureText);
+    }
+
+
+    /**
+     * Пресмята ъгъла ABC
+     */
+    static function drawMeasureAngle($svg, $Ax, $Ay, $Bx, $By, $Cx, $Cy)
+    {
+        cad2_MeasureAngle::draw($svg, $Ax, $Ay, $Bx, $By, $Cx, $Cy);
     }
 
 
@@ -859,12 +943,28 @@ class draw_Designs extends core_Master
         $form->method = 'GET';
         
         $form->toolbar->addSbBtn('Обнови', 'default', FALSE, 'ef_icon=img/16/arrow_refresh.png');
-        $form->toolbar->addSbBtn('SVG', 'svg', FALSE, 'ef_icon=fileman/icons/svg.png');
-        $form->toolbar->addSbBtn('PDF', 'pdf', FALSE, 'ef_icon=fileman/icons/pdf.png');
+        $form->toolbar->addSbBtn('SVG', 'svg', FALSE, 'ef_icon=fileman/icons/16/svg.png');
+        $form->toolbar->addSbBtn('PDF', 'pdf', FALSE, 'ef_icon=fileman/icons/16/pdf.png');
 
         $form->title = "Параметри на чертежа";
 
         return $form;
     }
 
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        // Сортиране на записите по num
+        $data->query->orderBy('name');
+    }
 }

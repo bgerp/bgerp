@@ -2,7 +2,7 @@
 
 
 /**
- * Прокси на 'colab_Threads' позволяващ на партньор в роля 'collaborator' да има достъп до нишките в споделените
+ * Прокси на 'colab_Threads' позволяващ на партньор в роля 'partner' да има достъп до нишките в споделените
  * му папки, ако първия документ в нишката е видим за партньори, и папката е спдоелена към партньора той може да
  * види нишката. При Отваряне на нишката вижда само тези документи, които са видими за партньори
  *
@@ -56,19 +56,19 @@ class colab_Threads extends core_Manager
 	/**
 	 * Кой има право да чете?
 	 */
-	public $canRead = 'collaborator';
+	public $canRead = 'partner';
 
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	public $canSingle = 'collaborator';
+	public $canSingle = 'partner';
 	
 	
 	/**
 	 * Кой има право да листва всички профили?
 	 */
-	public $canList = 'collaborator';
+	public $canList = 'partner';
 	
 	
 	/**
@@ -407,7 +407,7 @@ class colab_Threads extends core_Manager
 		if($requiredRoles != 'no_one'){
 			
 			// Ако потребителя няма роля партньор, не му е работата тук
-			if(!core_Users::haveRole('collaborator', $userId)){
+			if(!core_Users::haveRole('partner', $userId)){
 				$requiredRoles = 'no_one';
 			}
 		}

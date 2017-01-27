@@ -37,7 +37,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta,plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg';
 
@@ -139,6 +139,12 @@ class sales_Services extends deals_ServiceMaster
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/shipment.png';
+    
+    
+    /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'salesMaster, ceo';
     
     
     /**

@@ -20,7 +20,7 @@ class help_Plugin extends core_Plugin
 {
     function on_afterSetCurrentTab($wrapper, $name, $url, &$hint, &$hintBtn, &$tabsTpl)
     {
-        if(core_Users::haveRole('collaborator')) return;
+        if(core_Users::haveRole('partner')) return;
 
         $ctr = Request::get('Ctr');
         

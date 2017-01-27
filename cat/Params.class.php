@@ -33,7 +33,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew';
     
     
     /**
@@ -70,6 +70,12 @@ class cat_Params extends bgerp_ProtoParam
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'group, name, suffix,  sysId';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,admin';
     
     
     /**

@@ -178,6 +178,7 @@ class hr_Departments extends core_Master
                                  plant=Завод,
                                  workshop=Цех,
                                  store=Склад,
+				 shop=Магазин,
                                  unit=Звено,
                                  brigade=Бригада,
                                  shift=Смяна,
@@ -240,6 +241,8 @@ class hr_Departments extends core_Master
     	if(!$mvc->count("#id != {$undefinedDepId}") || (isset($fRec->id) && $fRec->id != $undefinedDepId && empty($fRec->parentId))){
     		$data->form->setField('parentId', 'input=none');
     	}
+
+    	$data->form->setOptions('locationId', crm_Locations::getOwnLocations());
     }
     
     

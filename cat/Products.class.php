@@ -1527,7 +1527,7 @@ class cat_Products extends embed_Manager {
     		
     		if($mvc->haveRightFor('edit', $rec)){
     			if(!Mode::isReadOnly()){
-    				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Промяна на групите на артикула');
+    				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
     			}
     		}
     		
@@ -1875,7 +1875,7 @@ class cat_Products extends embed_Manager {
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
     	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    		    if (!core_Users::haveRole('collaborator', $userId)) {
+    		    if (!core_Users::haveRole('partner', $userId)) {
     		        $res = 'no_one';
     		    }
     		}
@@ -1901,6 +1901,12 @@ class cat_Products extends embed_Manager {
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
     		}
     	}
+    	
+    	if(core_Packs::isInstalled('batch')){
+    		if(batch_Defs::haveRightFor('add', (object)array('productId' => $data->rec->id))){
+    			$data->toolbar->addBtn("Партидност", array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
+    		}
+    	}
     }
     
     
@@ -1910,7 +1916,7 @@ class cat_Products extends embed_Manager {
     protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
     	// Ако потребителя е контрактор не показваме детайлите
-    	if(core_Users::haveRole('collaborator')){
+    	if(core_Users::haveRole('partner')){
     		$data->noDetails = TRUE;
     		unset($data->row->meta);
     	}
@@ -2048,7 +2054,7 @@ class cat_Products extends embed_Manager {
     	// Ако е инсталиран пакета за партньори и потребителя е партньор
     	// Слагаме за обвивка тази за партньорите
     	if(core_Packs::isInstalled('colab')){
-    		if(core_Users::haveRole('collaborator')){
+    		if(core_Users::haveRole('partner')){
     			$this->load('cms_ExternalWrapper');
     			$this->currentTab = 'Нишка';
     			

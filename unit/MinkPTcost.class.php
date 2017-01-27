@@ -39,8 +39,9 @@ class unit_MinkPTcost extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
+        //$browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
+        $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -115,11 +116,34 @@ class unit_MinkPTcost extends core_Manager {
         $browser->setValue('name', 'Зона BG 1');
         $browser->setValue('deliveryTermId', 'TRR');
         $browser->press('Запис');
-        // Добавяне на държава и пощ. код към трансп. зона
+        $browser->click('Зона BG 1');
+        
         // Добавяне на правило за изчисление към трансп. зона
+        $browser->press('Нов запис');
+        $browser->setValue('weight', '100');
+        $browser->setValue('price', '20');
+        $browser->press('Запис');
+        $browser->press('Нов запис');
+        $browser->setValue('weight', '200');
+        $browser->setValue('price', '30');
+        $browser->press('Запис');
+        
+        // Добавяне на държава и пощ. код към трансп. зона
+        
+        //clearfix21 tcost_Zones -'Нов запис' - втори бутон - не работи
+        //$browser->press('Нов запис(2)');
+        //$browser->setValue('countryId', 'BG');
+        //$browser->setValue('pCode', '1000');
+        //$browser->press('Запис');
+        
         
         // Създаване на транспортна зона 2
-        //return $browser->getHtml();
+        $browser->click('Навла');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Зона BG 2');
+        $browser->setValue('deliveryTermId', 'TRR');
+        $browser->press('Запис');
+        $browser->click('Зона BG 2');
     
     }
      

@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -51,13 +51,13 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf,colab_CreateDocumentIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
@@ -116,7 +116,13 @@ class sales_Sales extends deals_DealMaster
 	public $canSingle = 'ceo,sales';
     
 
-    /**
+	/**
+	 * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+	 */
+	public $canWriteExternal = 'distributor';
+	
+	
+	/**
      * Кой може да го активира?
      */
     public $canConto = 'ceo,sales,acc';
@@ -125,7 +131,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'sales,ceo,collaborator';
+    public $canPending = 'sales,ceo,distributor';
     
     
     /**
@@ -404,7 +410,7 @@ class sales_Sales extends deals_DealMaster
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
-        if($hideRate == 'yes' && !haveRole('collaborator')){
+        if($hideRate == 'yes' && !haveRole('partner')){
         	$form->setField('currencyRate', 'input');
         }
         
@@ -834,7 +840,7 @@ class sales_Sales extends deals_DealMaster
     	core_Lg::push($rec->tplLang);
     	
     	$hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
-    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::haveRole('collaborator')){
+    	if(Mode::isReadOnly() || $hasTransport === FALSE || core_Users::haveRole('partner')){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
     }
@@ -1081,7 +1087,6 @@ class sales_Sales extends deals_DealMaster
      */
     static function getThreadState_($id)
     {
-        
         return NULL;
     }
     
@@ -1119,11 +1124,8 @@ class sales_Sales extends deals_DealMaster
 
         if(isset($fields['-list'])){  
             $row->title .= "<div>{$row->folderId}</div>";
-
-      
         }
 
-    	
     	if(isset($fields['-single'])){
     		
     		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
@@ -1131,10 +1133,12 @@ class sales_Sales extends deals_DealMaster
     			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
     		}
     		
-    		$row->transportCurrencyId = $row->currencyId;
-    		$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-    		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-    		$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		if ($rec->currencyRate) {
+    		    $row->transportCurrencyId = $row->currencyId;
+    		    $rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    		    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
+    		    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		}
     		
     		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     		
@@ -1214,16 +1218,45 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Преди записване на клонирания запис
-     * 
-     * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
-     * 
-     * @see plg_Clone
+     * Списък с артикули върху, на които може да им се коригират стойностите
+     * @see acc_AllowArticlesCostCorrectionDocsIntf
+     *
+     * @param mixed $id               - ид или запис
+     * @return array $products        - масив с информация за артикули
+     * 			    o productId       - ид на артикул
+     * 				o name            - име на артикула
+     *  			o quantity        - к-во
+     *   			o amount          - сума на артикула
+     *   			o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+     *    			o transportWeight - транспортно тегло на артикула
+     *     			o transportVolume - транспортен обем на артикула
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    function getCorrectableProducts($id)
     {
-        unset($nRec->state);
+    	$rec = $this->fetchRec($id);
+    
+    	// Взимаме артикулите от сметка 701
+    	$products = array();
+    	$entries = sales_transaction_Sale::getEntries($rec->id);
+    	$shipped = sales_transaction_Sale::getShippedProducts($entries);
+    	
+    	if(count($shipped)){
+    		foreach ($shipped as $ship){
+    			unset($ship->price);
+    			$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
+    	
+    			if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+    				$ship->transportWeight = $transportWeight;
+    			}
+    	
+    			if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+    				$ship->transportVolume = $transportVolume;
+    			}
+    	
+    			$products[$ship->productId] = $ship;
+    		}
+    	}
+    	
+    	return $products;
     }
 }

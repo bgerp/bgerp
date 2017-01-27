@@ -86,6 +86,12 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'salesMaster, ceo';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,invoicer';

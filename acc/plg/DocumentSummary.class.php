@@ -263,8 +263,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         unset($activeQuery);
         
         // Добавяне в обобщението на броя активирани и броя чернови документи
-        $data->listSummary->summary['countA'] = (object)array('caption' => "<span style='float:right'>" . tr('Активирани') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $Double->toVerbal($activeCount));
-        $data->listSummary->summary['countB'] = (object)array('caption' => "<span style='float:right'>" . tr('Чернови') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $Double->toVerbal($draftCount));
+        $data->listSummary->summary['countA'] = (object)array('caption' => "<span style='float:right'>" . tr('Активирани') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $activeCount);
+        $data->listSummary->summary['countB'] = (object)array('caption' => "<span style='float:right'>" . tr('Чернови') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $draftCount);
     }
     
     
@@ -337,7 +337,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $double->params['decimals'] = 2;
         $tpl = new ET(tr('|*' . getFileContent("acc/plg/tpl/Summary.shtml")));
         $rowTpl = $tpl->getBlock("ROW");
-        
+       
         if(count($res)) {
             foreach($res as $rec) {
                 $row = new stdClass();

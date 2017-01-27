@@ -216,9 +216,8 @@ class plg_PrevAndNext extends core_Plugin
                 expect(ctype_digit($id = $selArr[0]), $selArr);
             }
             
-            // Извличаме записа
-            expect($data->form->rec = $mvc->fetch($id));
-            
+            expect($exRec = $mvc->fetch($id));
+            $data->form->rec = (object)arr::fillMissingKeys($exRec, $data->form->rec);
             $mvc->requireRightFor('edit', $data->form->rec);
             
         } elseif( !($data->form->cmd == 'save_n_next' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
