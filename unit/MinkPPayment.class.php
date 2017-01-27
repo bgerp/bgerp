@@ -364,7 +364,7 @@ class unit_MinkPPayment extends core_Manager {
     /**     
      * 2.
      * Проверка състояние плащане - просрочено, част. доставено, част.платено и фактурирано
-     * Нова продажба на съществуваща фирма с папка 3448.13
+     * Нова продажба на съществуваща фирма с папка 
      */
     //http://localhost/unit_MinkPPayment/CreateSaleExped/
     function act_CreateSaleExped()
@@ -553,10 +553,10 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('storeId', 'Склад 1');
         //$browser->press('Чернова');
         //$browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
-        //} else {
-        //    return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
-        //}
+        if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
+        }
     }
     
     /**
