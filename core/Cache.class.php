@@ -353,9 +353,9 @@ class core_Cache extends core_Manager
     function getData($key, $keepMinutes = NULL)
     {   
         if (function_exists('apc_fetch')) {
-            $res = apc_fetch($key);
+            $res = @apc_fetch($key);
         } elseif (function_exists('xcache_get')) {
-            $res = xcache_get($key);
+            $res = @xcache_get($key);
             if($res) {
                 $res = unserialize($res);
             }
@@ -393,9 +393,9 @@ class core_Cache extends core_Manager
     function deleteData($key, $onlyInMemory = FALSE)
     {
         if (function_exists('apc_delete')) {
-            apc_delete($key);
+            @apc_delete($key);
         } elseif (function_exists('xcache_unset')) {
-            xcache_unset($key);
+            @xcache_unset($key);
         }
 
         if($onlyInMemory) return;
@@ -413,12 +413,12 @@ class core_Cache extends core_Manager
         $keepSeconds = $keepMinutes * 60;
 
         if (function_exists('apc_store')) {
-            $saved = apc_store($key, $data, $keepSeconds);
+            $saved = @apc_store($key, $data, $keepSeconds);
             if (!$saved) {
                 self::logNotice('Грешка при записване в APC_STORE');
             }
         } elseif (function_exists('xcache_set')) {
-            $saved = xcache_set($key, serialize($data), $keepSeconds);
+            $saved = @xcache_set($key, serialize($data), $keepSeconds);
             if (!$saved) {
                 self::logNotice('Грешка при записване в XCACHE');
             }

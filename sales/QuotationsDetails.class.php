@@ -858,17 +858,17 @@ class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
-     * Ако ориджина е спецификация, вкарват се записи отговарящи
+     * Ако ориджина е артикул, вкарват се записи отговарящи
      * на посочените примерни количества в нея
      * @param stdClass $rec - запис на оферта
-     * @param core_ObjectReference $origin - ид на спецификацията
+     * @param core_ObjectReference $origin - ид на артикула
      * @param array $dRows - количества И цени подадени във вида "к-во|цена"
      */
     public static function insertFromSpecification($rec, $origin, $dRows = array())
     {
     	$productRec = $origin->rec();
     	
-    	// Изтриват се предишни записи на спецификацията в офертата
+    	// Изтриват се предишни записи на артикула в офертата
     	static::delete("#quotationId = {$rec->id} AND #productId = {$productRec->id}");
     	
     	foreach ($dRows as $row) {
@@ -902,7 +902,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$dRec->price = self::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
     		} else {
     			
-    			// Ако няма извлича се цената от спецификацията
+    			// Ако няма извлича се цената за клиента
     			$Policy = cls::get('price_ListToCustomers');
     			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $dRec->quantity, $rec->date)->price;
     			$dRec->price = deals_Helper::getPurePrice($price, $dRec->vatPercent, $rec->currencyRate, $rec->chargeVat);
