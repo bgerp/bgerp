@@ -548,9 +548,11 @@ class acc_Items extends core_Manager
             $register = cls::get($register);
         }
         
+        core_Lg::push(EF_DEFAULT_LANGUAGE);
         if (!$regRec = $register->getItemRec($objectId)) {
             return FALSE;
         }
+        core_Lg::pop();
         
         if ($regRec) {
             $itemRec->num      = $regRec->num;

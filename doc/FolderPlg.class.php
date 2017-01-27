@@ -37,7 +37,7 @@ class doc_FolderPlg extends core_Plugin
             // Определя достъпа по подразбиране за новите папки
             setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
-            $mvc->FLD('inCharge' , 'user(role=powerUser, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
+            $mvc->FLD('inCharge' , 'user(role=powerUser, rolesForAll=officer)', 'caption=Права->Отговорник,formOrder=10000');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне,formOrder=10002');
             

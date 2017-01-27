@@ -92,7 +92,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
 		if(haveRole('partner')) return;
 		
-		if($mvc->getBatchMovementDocument($rec) == 'out') return;
+		if($mvc->getBatchMovementDocument($rec) == 'out') {
+			$rec->isEdited = TRUE;
+			return;
+		}
+		
 		if(!$storeId) return;
 		
 		if(isset($rec->{$mvc->productFieldName})){
@@ -126,21 +130,29 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	
 	
 	/**
+	 * Преразпределяне на партидите
+	 */
+	private static function autoAllocate($mvc, $rec)
+	{
+		// След създаване се прави опит за разпределяне на количествата според наличните партиди
+		$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+		if(is_object($BatchClass)){
+			$info = $mvc->getRowInfo($rec->id);
+			if(count($info->operation)){
+				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
+				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
+			}
+		}
+	}
+	
+	
+	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
 		if($mvc->getBatchMovementDocument($rec) == 'out'){
-			
-			// След създаване се прави опит за разпределяне на количествата според наличните партиди
-			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
-			if(is_object($BatchClass)){
-				$info = $mvc->getRowInfo($rec->id);
-				if(count($info->operation)){
-					$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
-					batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
-				}
-			}
+			self::autoAllocate($mvc, $rec);
 		} else {
 			
 			// Ако се създава нова партида, прави се опит за автоматичното и създаване
@@ -173,6 +185,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		} else {
 			$rec->batch = NULL;
 		}
+		
+		// Ако записа е редактиран и к-то е променено
+		if($rec->isEdited === TRUE && isset($rec->id)){
+			if($rec->quantity != $mvc->fetchField($rec->id, 'quantity')){
+				$rec->autoAllocate = TRUE;
+			}
+		}
 	}
 	
 	
@@ -185,7 +204,15 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		if($mvc->getBatchMovementDocument($rec) == 'out') return;
+		if($mvc->getBatchMovementDocument($rec) == 'out') {
+			if($rec->autoAllocate === TRUE){
+				batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+				self::autoAllocate($mvc, $rec);
+				core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
+			}
+			
+			return;
+		}
 		
 		if($rec->isEdited === TRUE){
 			if(empty($rec->batch)){
@@ -210,11 +237,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if($mvc instanceof core_Master) return;
 		
 		if(!count($data->rows) || haveRole('partner')) return;
-		$storeId = $data->masterData->rec->{$mvc->Master->storeFieldName};
-		if(!$storeId) return;
 		
 		foreach ($data->rows as $id => &$row){
 			$rec = &$data->recs[$id];
+			
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
 			
 			if(batch_BatchesInDocuments::haveRightFor('modify', (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId))){
 				core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -236,11 +263,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if(!count($data->rows) || haveRole('partner')) return;
 		
 		$rows = &$data->rows;
-		$storeId = $data->masterData->rec->{$mvc->Master->storeFieldName};
-		if(!$storeId) return;
 		
 		foreach ($rows as $id => &$row){
 			$rec = &$data->recs[$id];
+			
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
+			if(!$storeId) return;
+			
 			if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
 			
 			$row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
@@ -314,7 +343,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		} else {
 			// Ако има склад и документа е входящ, не може
 			$info = $mvc->getRowInfo($rec);
-			$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+			
 			if(!$storeId || !count($info->operation)){
 				$res = 'no_one';
 			} elseif($mvc->getBatchMovementDocument($rec) != 'out'){
