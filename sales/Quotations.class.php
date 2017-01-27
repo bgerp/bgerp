@@ -412,8 +412,6 @@ class sales_Quotations extends core_Master
     {
     	if(isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		
-    		// Ориджина трябва да е спецификация
     		$originRec = $origin->fetch();
     		
     		$dRows = array($rec->row1, $rec->row2, $rec->row3);
@@ -765,24 +763,10 @@ class sales_Quotations extends core_Master
     
     /**
      * Функция, която прихваща след активирането на документа
-     * Ако офертата е базирана на чернова спецификация, активираме и нея
+     * Ако офертата е базирана на чернова  артикула, активираме и нея
      */
     protected static function on_AfterActivation($mvc, &$rec)
     {
-    	if($rec->originId){
-    		$origin = doc_Containers::getDocument($rec->originId);
-	    	if($origin->haveInterface('cat_ProductAccRegIntf')){
-	    		$originRec = $origin->fetch();
-	    		if($originRec->state == 'draft'){
-	    			$originRec->state = 'active';
-	    			$origin->getInstance()->save($originRec);
-	    			
-	    			$msg = "|Активиран е документ|* #{$origin->abbr}{$origin->that}";
-	    			core_Statuses::newStatus($msg);
-	    		}		
-	    	}
-    	}
-    	
     	if($rec->deliveryPlaceId){
 		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
 		    	$newLocation = (object)array(
