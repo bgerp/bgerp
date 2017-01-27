@@ -246,7 +246,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @return core_ET $tpl
 	 */
 	public function renderProductDescription($data)
-	{   
+	{
         $title = tr($this->singleTitle);
 
 		$tpl = new ET(tr("|*
@@ -300,7 +300,13 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $dhtml = new ET(" {$caption} " . $data->row->{$name} . " {$unit}");
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
-                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                        if($field->singleCaption == '@') {
+                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                        } elseif($field->singleCaption) {
+                            $caption = tr($field->singleCaption);
+                        } else {
+                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                        }
                         $tpl->append($dhtml, 'INFO');
                     }
 				}

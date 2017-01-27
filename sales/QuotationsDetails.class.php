@@ -831,7 +831,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$Percent->params['decimals'] = count($parts[1]);
     		$row->discount = $Percent->toVerbal($rec->discount);
     	}
-    	
+ 
     	return $row;
     }
     
