@@ -518,9 +518,7 @@ class sales_Quotations extends core_Master
     			$row->buzPlace = core_Lg::transliterate($row->buzPlace);
     		}
     	
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-    		 
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')){
     			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
     		}
     		 

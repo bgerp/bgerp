@@ -1128,8 +1128,7 @@ class sales_Sales extends deals_DealMaster
 
     	if(isset($fields['-single'])){
     		
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionSale")){
     			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
     		}
     		
