@@ -777,6 +777,8 @@ class store_InventoryNotes extends core_Master
     			$url['showBlQuantities'] = TRUE;
     		}
     		
+    		$this->logWrite('Настройки на бланката', $id);
+    		
     		// Редирект към урл-то за бланката
     		return new Redirect($url);
     	}
