@@ -356,7 +356,7 @@ class doc_Threads extends core_Manager
                         $resArr['firstContainerId']++;
                         self::logNotice("Контейнерът {$firstCid} е направен първи документ в нишката", $rec->id);
                         
-                        self::updateThread($rec->id)
+                        self::updateThread($rec->id);
                     }
                 }
                 
