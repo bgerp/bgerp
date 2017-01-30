@@ -282,7 +282,7 @@ class batch_Movements extends core_Detail {
 		
 		// При грешка изтриваме всички записи до сега
 		if($result === FALSE){
-			self::removeMovement($class, $rec);
+			self::removeMovement($doc->getInstance(), $doc->that);
 		}
 		
 		// Връщаме резултата

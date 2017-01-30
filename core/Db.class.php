@@ -537,7 +537,7 @@ class core_Db extends core_BaseClass
             } else {
                 $rest = explode(")", $rest);
                 
-                $res->size = (int) $rest[0];
+                $res->size = trim($rest[0]);
                 
                 if($rest[1]) {
                     $res->unsigned = (strpos(strtolower($rest[1]), 'unsigned') !== FALSE);
@@ -562,7 +562,7 @@ class core_Db extends core_BaseClass
     {
         $types['can_be_unsigned'] = arr::make('TINYINT,SMALLINT,MEDIUMINT,INT,INTEGER,BIGINT,FLOAT,DOUBLE,DOUBLE PRECISION,REAL,DECIMAL');
         $types['have_options'] = arr::make('ENUM,SET');
-        $types['have_len'] = arr::make('CHAR,VARCHAR');
+        $types['have_len'] = arr::make('CHAR,VARCHAR,DECIMAL');
         $types['have_collation'] = arr::make('TINYTEXT,TEXT,MEDIUMTEXT,LONGTEXT,CHAR,VARCHAR,ENUM');
         
         expect($types[$param], 'Wrong param for isType', $param);
