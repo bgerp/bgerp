@@ -174,24 +174,54 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public function prepareCustomerSalecond(&$data)
     {
-        expect($data->cClass = core_Classes::getId($data->masterMvc));
+    	$data->recs = $data->rows = array();
+    	expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
+        $cData = $data->masterMvc->getContragentData($data->masterId);
         
         $query = static::getQuery();
         $query->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $query->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");
-        $query->orderBy('group,order', 'ASC');
-        
+
         while($rec = $query->fetch()) {
         	
         	// Според параметарът, се променя вербалното представяне на стойността
-            $data->recs[$rec->id] = $rec;
+            $data->recs[$rec->conditionId] = $rec;
             $row = static::recToVerbal($rec);
             core_RowToolbar::createIfNotExists($row->_rowTools);
             
-            $data->rows[$rec->id] = $row; 
+            $data->rows[$rec->conditionId] = $row; 
         }
+       
+        $defQuery = cond_Countries::getQuery();
+        $defQuery->where("#country = '{$cData->countryId}' OR #country IS NULL");
+        $defQuery->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
+        $defQuery->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
+        $defQuery->show('conditionId,value,group,order');
+        $defQuery->orderBy('country', 'DESC');
+        
+        $conditionsArr = array_keys($data->recs);
+        if(count($conditionsArr)){
+        	$defQuery->notIn("conditionId", $conditionsArr);
+        }
+        
+        while($dRec = $defQuery->fetch()){
+        	if(!array_key_exists($dRec->conditionId, $data->recs)){
+        		$data->recs[$dRec->conditionId] = $dRec;
+        		$dRow = cond_Countries::recToVerbal($dRec);
+        		$dRow->value = ht::createHint($dRow->value, 'Стойноста е дефолтна за държавата на контрагента', 'notice', TRUE, 'width=12px,height=12px');
+        		unset($dRow->_rowTools);
+        		
+        		$data->rows[$dRec->conditionId] = $dRow;
+        	}
+        }
+        
+        arr::orderA($data->recs, 'order');
+        arr::orderA($data->rows, 'order');
+        
+        arr::orderA($data->recs, 'group');
+        arr::orderA($data->rows, 'group');
         
     	if($data->masterMvc->haveRightFor('edit', $data->masterId) && static::haveRightFor('add', (object)array('cClass' => $data->cClass, 'cId' => $data->masterId))){
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
@@ -241,7 +271,9 @@ class cond_ConditionsToCustomers extends core_Manager
       
 	    if(count($data->rows)) {
 	    	foreach($data->rows as $id => &$row) {
-	    		$row->tools = $row->_rowTools->renderHtml();
+	    		if(is_object($row->_rowTools)){
+	    			$row->tools = $row->_rowTools->renderHtml();
+	    		}
 	    	}
 
 	    	$tpl->append(static::renderParamBlock($data->rows));
@@ -263,6 +295,8 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$tpl = getTplFromFile('cond/tpl/ConditionsToCustomers.shtml');
     	$lastGroupId = NULL;
+    	
+    	//bp($paramArr);
     	if(is_array($paramArr)){
     		foreach($paramArr as &$row2) {
     			 
