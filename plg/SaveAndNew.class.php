@@ -42,9 +42,9 @@ class plg_SaveAndNew extends core_Plugin
             }
            
             // Записваме в сесията, полетата със запомняне
-            $fields = $data->form->selectFields("#remember");
+            $fields = $data->form->selectFields("#remember || #name == 'id'");
             
-	 
+
             // Правим статус за информация на потребителя
             if(is_a($mvc, 'core_Detail')) {
                 $action = tr("Добавен е нов") . ' ';
@@ -66,7 +66,7 @@ class plg_SaveAndNew extends core_Plugin
         } elseif($data->cmd != 'delete' && $data->form->cmd != 'refresh') {
             
             if (!$data->form->gotErrors()) {
-                $fields = $data->form->selectFields("#remember == 'info'");
+                $fields = $data->form->selectFields("#remember == 'info' || #name == 'id'");
                 
                 // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
                 if(count($fields)) {
@@ -76,7 +76,17 @@ class plg_SaveAndNew extends core_Plugin
                         if($value = core_Type::escape(Mode::get($permanentName))) {
                             $info .= "<p>{$fld->caption}: <b>{$value}</b></p>";
                         }
+                        if($name == 'id') {
+                            $id = $value;
+                        }
                     }
+                }
+
+                if($mvc->rememberTpl && $id) {  
+                    $row = $mvc->recToVerbal($mvc->fetch($id));
+                    $tpl = new ET($mvc->rememberTpl);
+                    $tpl->placeObject($row);
+                    $info = $tpl->getContent();
                 }
              
                 if($info) {
