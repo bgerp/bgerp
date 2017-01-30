@@ -183,7 +183,8 @@ class cond_ConditionsToCustomers extends core_Manager
         $query->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $query->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");
-
+		$query->orderBy('id', 'ASC');
+        
         while($rec = $query->fetch()) {
         	
         	// Според параметарът, се променя вербалното представяне на стойността
@@ -217,11 +218,16 @@ class cond_ConditionsToCustomers extends core_Manager
         	}
         }
         
-        arr::orderA($data->recs, 'order');
-        arr::orderA($data->rows, 'order');
-        
-        arr::orderA($data->recs, 'group');
-        arr::orderA($data->rows, 'group');
+        // Сортиране на записите
+        usort($data->rows, function($a, $b) {
+        	if($a->group == $b->group){
+        		if($a->order == $b->order){
+        			return ($a->id < $b->id) ? -1 : 1;
+        		}
+        		return (strcasecmp($a->order, $b->order) < 0) ? -1 : 1;
+        	}
+        	return (strcasecmp($a->group, $b->group) < 0) ? -1 : 1;
+        });
         
     	if($data->masterMvc->haveRightFor('edit', $data->masterId) && static::haveRightFor('add', (object)array('cClass' => $data->cClass, 'cId' => $data->masterId))){
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
