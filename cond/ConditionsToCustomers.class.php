@@ -210,7 +210,7 @@ class cond_ConditionsToCustomers extends core_Manager
         	if(!array_key_exists($dRec->conditionId, $data->recs)){
         		$data->recs[$dRec->conditionId] = $dRec;
         		$dRow = cond_Countries::recToVerbal($dRec);
-        		$dRow->value = ht::createHint($dRow->value, 'Стойноста е дефолтна за държавата на контрагента', 'notice', TRUE, 'width=12px,height=12px');
+        		$dRow->value = ht::createHint($dRow->value, "Стойноста е дефолтна за контрагентите от|* \"{$cData->country}\"", 'notice', TRUE, 'width=12px,height=12px');
         		unset($dRow->_rowTools);
         		
         		$data->rows[$dRec->conditionId] = $dRow;
