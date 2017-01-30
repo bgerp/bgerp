@@ -151,7 +151,7 @@ class batch_BatchesInDocuments extends core_Manager
 				}
 				
 				// Проверка на реда
-				if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->quantity, $rec->id)){
+				if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->quantity)){
 					$b = ht::createHint($b, $msg, 'warning');
 				}
 			}
@@ -215,10 +215,9 @@ class batch_BatchesInDocuments extends core_Manager
 	 * @param int $detailRecId
 	 * @param string $batch
 	 * @param string $quantity
-	 * @param int|NULL $id
 	 * @return FALSE|string
 	 */
-	public static function checkBatchRow($detailClassId, $detailRecId, $batch, $quantity, $id = NULL)
+	public static function checkBatchRow($detailClassId, $detailRecId, $batch, $quantity)
 	{
 		$Class = cls::get($detailClassId);
 		$rInfo = $Class->getRowInfo($detailRecId);
@@ -251,8 +250,9 @@ class batch_BatchesInDocuments extends core_Manager
 			$query->where("#detailClassId = {$detailClassId}");
 			$query->in("detailRecId", self::$cache[$key]);
 			$query->show('batch,productId');
-			if($id){
-				$query->where("#id != {$id}");
+			$query->groupBy('batch');
+			if($detailRecId){
+				$query->where("#detailRecId != {$detailRecId}");
 			}
 			
 			$oSerials = $def->makeArray($batch);

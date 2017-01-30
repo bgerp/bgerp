@@ -1097,7 +1097,7 @@ class core_Mvc extends core_FieldSet
                     		}
                     	}
                     } catch(core_exception_Expect $e){
-                        
+            
                         reportException($e);
                         
                     	if($mfAttr->field){
@@ -1105,6 +1105,8 @@ class core_Mvc extends core_FieldSet
                     	} else {
                     		$html .= "<li class='debug-error'>Проблем при добавяне на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
                     	}
+
+                        continue;
                     }
                 } else {
                     $title = "Съществуващо поле <b>{$mfAttr->name}</b>";
