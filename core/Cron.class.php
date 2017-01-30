@@ -332,7 +332,12 @@ class core_Cron extends core_Manager
             session_write_close();
             header("Content-Length: 0");
             
-            core_App::flushAndClose();
+            if(function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            } else {
+                @ob_end_flush();
+                flush();
+            }
         } else {
             header ('Content-type: text/html; charset=utf-8');
         }
