@@ -252,6 +252,8 @@ class batch_Movements extends core_Detail {
     		
     		// Записва се движението и
     		foreach ($batches as $key => $b){
+    			$result = TRUE;
+    			
     			try{
     				$itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
     				 
