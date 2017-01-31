@@ -572,8 +572,6 @@ class sales_Quotations extends core_Master
     				
     				}
     			}
-    				
-    			
     		}
     	}
     	
@@ -658,7 +656,6 @@ class sales_Quotations extends core_Master
         $row = new stdClass();
         
         $row->title = self::getRecTitle($rec);
-        
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -753,17 +750,6 @@ class sales_Quotations extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
     	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
-    }
-    
-    
-	/**
-     * Документи-оферти могат да се добавят само в папки с корица контрагент.
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
-        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
