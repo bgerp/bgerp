@@ -146,7 +146,6 @@ class unit_MinkPListProduct extends core_Manager {
     
     /**
      * Добавяне на търговски условия за листване към контрагент (продажби и покупки)
-     * Не работи!
      */
     //http://localhost/unit_MinkPListProduct/SetCustomerConditions/
     function act_SetCustomerConditions()
@@ -160,10 +159,12 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->click('Търговия');
         $browser->click('Добавяне на ново търговско условие');
         $browser->setValue('conditionId', 'Листвани продукти');
+        $browser->refresh('Запис');
         //return $browser->getHtml();
         $browser->setValue('value', 'За покупка');
         $browser->press('Запис и Нов');
         $browser->setValue('conditionId', 'Листвани продукти');
+        $browser->refresh('Запис');
         $browser->setValue('value', 'За продажба');
         $browser->press('Запис');
           
@@ -288,7 +289,6 @@ class unit_MinkPListProduct extends core_Manager {
     
     }
     
-    
     /**
      * Добавяне на търговски условия за листване - покупка и продажба в папка на клиент
      * Не работи!
@@ -307,12 +307,13 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->setValue('title', 'За продажба NEW INTERNATIONAL');
         $browser->setValue('type', 'Продаваеми');
         $browser->press('Чернова');
-       
-         // Добавяне на артикул
+        // Добавяне на артикул
         $browser->press('Импорт');
      
         $browser->setValue('from', 'group');
         //$browser->setValue('from', 'sales');
+        $browser->refresh('Отказ');
+        //$browser->refresh('Импорт');
         //return $browser->getHtml();
         //$browser->setValue('Ценова група » Промоция', '15');
         $browser->setValue('group', 'Ценова група » Промоция');

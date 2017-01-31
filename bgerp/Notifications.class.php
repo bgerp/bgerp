@@ -373,6 +373,10 @@ class bgerp_Notifications extends core_Manager
             
             if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
                 $data->query->where("#state = 'active'");
+                
+                // Нотификациите, модифицирани в скоро време да се показват
+                $before = dt::subtractSecs(200);
+                $data->query->orWhere("#modifiedOn >= '{$before}'");
             }
             
             // Подготвяме филтрирането
