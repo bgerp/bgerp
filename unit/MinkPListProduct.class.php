@@ -146,7 +146,6 @@ class unit_MinkPListProduct extends core_Manager {
     
     /**
      * Добавяне на търговски условия за листване към контрагент (продажби и покупки)
-     * Не работи!
      */
     //http://localhost/unit_MinkPListProduct/SetCustomerConditions/
     function act_SetCustomerConditions()
@@ -160,10 +159,12 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->click('Търговия');
         $browser->click('Добавяне на ново търговско условие');
         $browser->setValue('conditionId', 'Листвани продукти');
+        $browser->refresh('Запис');
         //return $browser->getHtml();
         $browser->setValue('value', 'За покупка');
         $browser->press('Запис и Нов');
         $browser->setValue('conditionId', 'Листвани продукти');
+        $browser->refresh('Запис');
         $browser->setValue('value', 'За продажба');
         $browser->press('Запис');
           
