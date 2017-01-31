@@ -1129,7 +1129,7 @@ class sales_Sales extends deals_DealMaster
     	if(isset($fields['-single'])){
     		
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionSale")){
-    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    			$row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
     		}
     		
     		if ($rec->currencyRate) {

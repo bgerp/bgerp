@@ -633,7 +633,7 @@ class purchase_Purchases extends deals_DealMaster
     {
     	if(isset($fields['-single'])){
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionPur")){
-    			$row->commonCondition = cls::get('type_Varchar')->toVerbal($cond);
+    			$row->commonCondition = cls::get('type_Url')->toVerbal($cond);
     		}
     	}
     }
