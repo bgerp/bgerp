@@ -355,6 +355,10 @@ class cond_ConditionsToCustomers extends core_Manager
        			$res = 'no_one';
        		} elseif(!cls::get($rec->cClass)->haveRightFor('edit', $rec->cId)){
        			$res = 'no_one';
+       		} else{
+       			if(!haveRole('sales,purchase')){
+       				$res = 'no_one';
+       			}
        		}
        }
        
