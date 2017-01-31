@@ -44,37 +44,43 @@ class cond_PaymentMethods extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond, admin';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond, admin';
+	public $canSingle = 'ceo,admin';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, cond, admin';
+    public $canEdit = 'ceo,admin';
     
     
     /**
      * Кой може да променя състоянието на валутата
      */
-    public $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, cond, admin';
+    public $canAdd = 'ceo,admin';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, cond, admin';
+    public $canDelete = 'ceo, admin';
     
     
     /**

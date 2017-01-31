@@ -20,7 +20,7 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Search';
+    public $loadList = 'plg_Created, cond_Wrapper, plg_State2, plg_Search';
     
     
     /**
@@ -38,37 +38,19 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond,admin';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond,admin';
+	public $canSingle = 'ceo,admin';
     
     
     /**
      * Кой може да пише
      */
-    public $canWrite = 'ceo,cond,admin';
-    
-    
-    /**
-     * Кой може да добавя
-     */
-    public $canAdd = 'no_one';
-    
-
-    /**
-     * Кой може да променя състоянието на валутата
-     */
-    public $canChangestate = 'no_one';
-    
-    
-    /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'ceo,cond,admin';
+    public $canWrite = 'no_one';
     
     
     /**
@@ -77,36 +59,6 @@ class cond_Parameters extends bgerp_ProtoParam
     function description()
     {
     	parent::setFields($this);
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$form = &$data->form;
-    	$form->setField('defaul', 'input=none');
-    	
-    	$form->setField('driverClass', 'caption=Тип,input');
-    	foreach (array('name', 'suffix', 'isFeature', 'group') as $fld){
-    		$form->setReadOnly($fld);
-    	}
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if($form->isSubmitted()){
-    		$rec = &$form->rec;
-    		$rec->name = str::mbUcfirst($rec->name);
-    	}
     }
     
     

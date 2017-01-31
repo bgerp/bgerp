@@ -29,43 +29,37 @@ class cond_Groups extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin, powerUser';
+    var $canRead = 'ceo,admin';
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin, powerUser';
+    var $canEdit = 'ceo,admin';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin, powerUser';
+    var $canAdd = 'ceo,admin';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,admin, powerUser';
-
-
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    var $canSingle = 'ceo,admin, powerUser';
+    var $canList = 'ceo,admin';
 
 
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,admin, powerUser';
+    var $canView = 'ceo,admin';
 
 
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,trans, powerUser';
+    var $canDelete = 'ceo,admin';
 
 
     /**
