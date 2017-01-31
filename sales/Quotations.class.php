@@ -330,11 +330,6 @@ class sales_Quotations extends core_Master
        $form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('id', FALSE));
     }
     
-    function act_test()
-    {
-    	bp(cls::get('cond_Setup')->deleteParams3());
-    }
-    
     
 	/** 
 	 * След подготовка на тулбара на единичен изглед
