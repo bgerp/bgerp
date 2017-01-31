@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,7 +47,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys';
     
     
     /**
@@ -200,6 +200,12 @@ class sales_Quotations extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'date';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'deliveryTermId, paymentMethodId';
     
     
     /**
@@ -566,8 +572,6 @@ class sales_Quotations extends core_Master
     				
     				}
     			}
-    				
-    			
     		}
     	}
     	
@@ -652,7 +656,6 @@ class sales_Quotations extends core_Master
         $row = new stdClass();
         
         $row->title = self::getRecTitle($rec);
-        
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -747,17 +750,6 @@ class sales_Quotations extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
     	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
-    }
-    
-    
-	/**
-     * Документи-оферти могат да се добавят само в папки с корица контрагент.
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
-        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -1164,15 +1156,6 @@ class sales_Quotations extends core_Master
     	if($rec->reff === ''){
     		$rec->reff = NULL;
     	}
-    }
-    
-
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	//$data->toolbar->removeBtn('btnAdd');
     }
     
     

@@ -63,6 +63,16 @@ class type_Users extends type_Keylist
             return $this->options;
         }
         
+        // Към екипните роли добавяме ролите за всички потребители
+        if ($this->params['rolesForAll'] && $this->params['rolesForAll'] != 'no_one') {
+            $rolesForAll = arr::make($this->params['rolesForAll'], TRUE);
+            $rolesForTeams = arr::make($this->params['rolesForTeams'], TRUE);
+            
+            $rolesForTeams += $rolesForAll;
+            
+            $this->params['rolesForTeams'] = implode(',', $rolesForTeams);
+        }
+        
         // Вариант 1: Потребителя няма права да вижда екипите
         // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
         if(!haveRole($this->params['rolesForTeams'])) {

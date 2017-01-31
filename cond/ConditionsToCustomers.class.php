@@ -36,12 +36,6 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Поле за показване лентата с инструменти
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Кой може да вижда списъчния изглед
      */
     public $canList = 'no_one';
@@ -50,19 +44,19 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cond';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'ceo,cond';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой може да изтрива
      */
-    public $canDelete = 'ceo,cond';
+    public $canDelete = 'powerUser';
     
     
     /**
@@ -302,7 +296,6 @@ class cond_ConditionsToCustomers extends core_Manager
     	$tpl = getTplFromFile('cond/tpl/ConditionsToCustomers.shtml');
     	$lastGroupId = NULL;
     	
-    	//bp($paramArr);
     	if(is_array($paramArr)){
     		foreach($paramArr as &$row2) {
     			 
@@ -357,12 +350,12 @@ class cond_ConditionsToCustomers extends core_Manager
     protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
        if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
-       		
-       		$cState = cls::get($rec->cClass)->fetchField($rec->cId, 'state');
-       		if($cState == 'rejected'){
+       		if(empty($rec->cClass) || empty($rec->cId)){
        			$res = 'no_one';
-       		} else {
-       			if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
+       		} elseif(!cls::get($rec->cClass)->haveRightFor('edit', $rec->cId)){
+       			$res = 'no_one';
+       		} else{
+       			if(!haveRole('sales,purchase,ceo')){
        				$res = 'no_one';
        			}
        		}
