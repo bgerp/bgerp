@@ -59,6 +59,12 @@ class batch_Movements extends core_Detail {
     
     
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 150;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

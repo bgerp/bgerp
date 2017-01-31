@@ -2,12 +2,12 @@
 
 
 /**
- * Модул Пасаж
+ * Модул 'Пасажи'
  *
  * @category  bgerp
  * @package   cond
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,51 +40,33 @@ class cond_Texts extends core_Manager
 
 
     /**
-     * Време за опресняване информацията при лист на събитията
-     */
-    var $refreshRowsTime = 5000;
-
-
-    /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin, powerUser';
+    public $canRead = 'ceo,admin';
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin,powerUser';
+    public $canEdit = 'ceo,admin';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin,powerUser';
+    public $canAdd = 'ceo,admin';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
-
-
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    var $canSingle = 'ceo,admin';
-
-
-    /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,admin';
+    public $canList = 'ceo,admin';
 
 
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,trans';
+    public $canDelete = 'ceo,admin,trans';
 
 
     /**

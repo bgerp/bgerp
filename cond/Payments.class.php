@@ -52,39 +52,33 @@ class cond_Payments extends core_Manager {
     
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo,cond,admin';
-    
-    
-    /**
      * Кой може да променя?
      */
-    public $canWrite = 'ceo,cond,admin';
+    public $canWrite = 'no_one';
     
     
     /**
 	 * Кой може да променя състоянието на валутата
 	 */
-    public $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'no_one';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'ceo,cond,admin';
+    public $canReject = 'ceo,admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond,admin';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond,admin';
+	public $canSingle = 'ceo,admin';
 	
 	
 	/**
