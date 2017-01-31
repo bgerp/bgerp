@@ -89,7 +89,7 @@ class cond_Parameters extends bgerp_ProtoParam
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->setField('defaul', 'input=none');
+    	$form->setField('default', 'input=none');
     	
     	$form->setField('driverClass', 'caption=Тип,input');
     	foreach (array('name', 'suffix', 'isFeature', 'group') as $fld){

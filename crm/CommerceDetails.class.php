@@ -22,7 +22,16 @@ class crm_CommerceDetails extends core_Manager
 	 */
 	public function prepareCommerceDetails($data)
 	{
+		$prepareTab = Request::get('Tab');
+		$data->prepareTab = FALSE;
+		if($prepareTab == 'CommerceDetails'){
+			$data->prepareTab = TRUE;
+		}
+		
 		$data->TabCaption = 'Търговия';
+		
+		if($data->prepareTab === FALSE) return;
+		
 		$data->Lists = cls::get('price_ListToCustomers');
 		$data->Conditions = cls::get('cond_ConditionsToCustomers');
 		$data->Cards = cls::get('pos_Cards');
@@ -47,6 +56,8 @@ class crm_CommerceDetails extends core_Manager
 	 */
 	public function renderCommerceDetails($data)
 	{
+		if($data->prepareTab === FALSE) return;
+		
 		// Взимаме шаблона
 		$tpl = getTplFromFile('crm/tpl/CommerceDetails.shtml');
 		$tpl->replace(tr('Търговия'), 'title');
