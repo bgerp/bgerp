@@ -296,7 +296,6 @@ class cond_ConditionsToCustomers extends core_Manager
     	$tpl = getTplFromFile('cond/tpl/ConditionsToCustomers.shtml');
     	$lastGroupId = NULL;
     	
-    	//bp($paramArr);
     	if(is_array($paramArr)){
     		foreach($paramArr as &$row2) {
     			 
