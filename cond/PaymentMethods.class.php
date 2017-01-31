@@ -80,7 +80,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, cond, admin';
+    public $canDelete = 'ceo, admin';
     
     
     /**
