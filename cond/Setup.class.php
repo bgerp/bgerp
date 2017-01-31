@@ -67,6 +67,7 @@ class cond_Setup  extends core_ProtoSetup
     		'migrate::deleteOldPaymentTime1',
     		'migrate::deleteParams2',
             'migrate::deleteOldPaymentMethods',
+    		'migrate::deleteParams3'
         );
 
     
@@ -226,6 +227,24 @@ class cond_Setup  extends core_ProtoSetup
     	}
     	
     	if($f2 = cond_Parameters::fetch("#name = 'Други условия към фактура (английски)'")){
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f2->id}");
+    		cond_Parameters::delete($f2->id);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на условия
+     */
+    function deleteParams3()
+    {
+    	if($f1 = cond_Parameters::fetch("#sysId = 'commonConditionSaleEng'")){
+    		
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f1->id}");
+    		cond_Parameters::delete($f1->id);
+    	}
+    	
+    	if($f2 = cond_Parameters::fetch("#sysId = 'commonConditionPurEng'")){
     		cond_ConditionsToCustomers::delete("#conditionId = {$f2->id}");
     		cond_Parameters::delete($f2->id);
     	}
