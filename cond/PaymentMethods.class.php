@@ -26,7 +26,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, sysId, title, state, type';
+    public $listFields = 'sysId, title, state, type';
     
     
     /**
