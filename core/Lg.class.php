@@ -239,6 +239,8 @@ class core_Lg extends core_Manager
                         if($lg == 'en') {
                             $this->dict[$lg][static::prepareKey($translated[count($translated)-1])] = $phrase;
                             $translated[count($translated)-1] = $phrase;
+                        } elseif($lg == 'bg') {
+                            $this->dict[$lg][static::prepareKey($translated[count($translated)-1])] = $strArr[$i-2];
                         }
                         $followEn = FALSE;
                         continue;
