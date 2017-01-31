@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,13 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2,plg_Translate, plg_Clone';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Translate';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'sysId, title, state, type';
+    public $listFields = 'sysId, title, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
@@ -96,11 +96,9 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $fieldsNotToClone = 'sysId';
+    public $hideListFieldsIfEmpty = 'lastUsedOn';
     
     
     /**
@@ -133,7 +131,8 @@ class cond_PaymentMethods extends core_Master
         // Отстъпка за предсрочно плащане
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
         $this->FLD('discountPeriod', 'time(uom=days,suggestions=незабавно|5 дни|10 дни|15 дни)', 'caption=Отстъпка за предсрочно плащане->Срок,hint=Дни');
-
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+        
         $this->setDbUnique('sysId');
         $this->setDbUnique('title');
     }
@@ -145,9 +144,7 @@ class cond_PaymentMethods extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-	    	
             $rec = &$form->rec;
-	    	
             $total = $rec->downpayment + $rec->paymentBeforeShipping + $rec->paymentOnDelivery;
 	    	 
 	    	if($total > 1){
@@ -350,5 +347,15 @@ class cond_PaymentMethods extends core_Master
     	// Връщане на аванса
     	return $amount;
     }
-
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec->lastUsedOn)){
+    		$res = 'no_one';
+    	}
+    }
 }
