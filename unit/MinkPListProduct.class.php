@@ -289,7 +289,6 @@ class unit_MinkPListProduct extends core_Manager {
     
     }
     
-    
     /**
      * Добавяне на търговски условия за листване - покупка и продажба в папка на клиент
      * Не работи!
@@ -308,12 +307,13 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->setValue('title', 'За продажба NEW INTERNATIONAL');
         $browser->setValue('type', 'Продаваеми');
         $browser->press('Чернова');
-       
-         // Добавяне на артикул
+        // Добавяне на артикул
         $browser->press('Импорт');
      
         $browser->setValue('from', 'group');
         //$browser->setValue('from', 'sales');
+        $browser->refresh('Отказ');
+        //$browser->refresh('Импорт');
         //return $browser->getHtml();
         //$browser->setValue('Ценова група » Промоция', '15');
         $browser->setValue('group', 'Ценова група » Промоция');
