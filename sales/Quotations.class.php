@@ -1172,15 +1172,6 @@ class sales_Quotations extends core_Master
     	}
     }
     
-
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	//$data->toolbar->removeBtn('btnAdd');
-    }
-    
     
     /**
      * Затваряне на изтекли оферти по крон
