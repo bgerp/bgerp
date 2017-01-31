@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -69,18 +69,12 @@ class cond_Setup  extends core_ProtoSetup
             'migrate::deleteOldPaymentMethods',
         );
 
-        
-    /**
-     * Роли за достъп до модула
-     */
-    var $roles = 'cond';
-
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.9, 'Система', 'Дефиниции', 'cond_DeliveryTerms', 'default', "cond, ceo"),
+            array(1.9, 'Система', 'Дефиниции', 'cond_DeliveryTerms', 'default', "ceo, admin"),
         );
 
 

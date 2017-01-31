@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,7 +28,13 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'codeName, term, state';
+    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито, state';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'costCalc, calcCost';
     
     
     /**
@@ -40,40 +46,39 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Кой може да пише
      */
-    public $canWrite = 'ceo,cond,admin';
+    public $canWrite = 'ceo,admin';
     
     
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cond,admin';
+    public $canAdd = 'ceo,admin';
     
     
     /**
      * Кой може да променя
      */
-    public $canEdit = 'ceo,cond,admin';
+    public $canEdit = 'ceo,admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond,admin';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond,admin';
+	public $canSingle = 'ceo,admin';
     
 
     /**
      * Кой може да променя състоянието на валутата
      */
-    public $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'no_one';
 
 
-    
     /**
      * Заглавие
      */
@@ -99,6 +104,12 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,admin';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -117,12 +128,31 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	if($form->rec->createdBy == core_Users::SYSTEM_USER){
+    		$form->setReadOnly('codeName');
+    		foreach (array('term', 'forSeller', 'forBuyer', 'transport', 'address') as $fld){
+    			$form->setField($fld, 'input=none');
+    		}
+    	}
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	

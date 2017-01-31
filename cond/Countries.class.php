@@ -22,19 +22,19 @@ class cond_Countries extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond';
+	public $canList = 'ceo,admin';
 	
 	
 	/**
 	 * Кой може да изтрива
 	 */
-	public $canDelete = 'ceo,cond';
+	public $canDelete = 'ceo,admin';
 	
 	
 	/**
 	 * Кой може да пише
 	 */
-	public $canWrite = 'ceo,cond';
+	public $canWrite = 'ceo,admin';
 	
 	
 	/**
