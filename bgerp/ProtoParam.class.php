@@ -234,6 +234,20 @@ abstract class bgerp_ProtoParam extends embed_Manager
 				}
 			}
 		}
+		
+		// Импортиране и на ролите
+		if(!empty($rec->csv_roles)){
+			$rolesArr = arr::make($rec->csv_roles);
+			if(count($rolesArr)){
+				foreach ($rolesArr as $role){
+					if(!core_Roles::fetchByName($role)){
+						core_Roles::addOnce($role);
+					}
+				}
+				
+				$rec->roles = core_Roles::getRolesAsKeylist($rec->csv_roles);
+			}
+		}
 	}
 	
 	

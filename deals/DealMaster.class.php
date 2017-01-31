@@ -64,6 +64,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * Кои ключове да се тракват, кога за последно са използвани
+	 */
+	public $lastUsedKeys = 'deliveryTermId,paymentMethodId';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
