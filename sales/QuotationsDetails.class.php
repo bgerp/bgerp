@@ -350,6 +350,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     	
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+    		$rec->vatPercent = $vat;
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
@@ -384,6 +385,24 @@ class sales_QuotationsDetails extends doc_Detail {
     		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    		
+    		if(!$form->gotErrors()){
+    			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
+    				if($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
+    					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
+    					return;
+    				}
+    			}
+    			 
+    			if(Request::get('Act') != 'CreateProduct'){
+    				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
+    					if($sameProduct->id != $rec->id){
+    						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
+    						return;
+    					}
+    				}
+    			}
+    		}
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
@@ -427,24 +446,6 @@ class sales_QuotationsDetails extends doc_Detail {
     			if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
     				$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на  новата опаковка!");
     			}
-    		}
-	    	
-    		if(!$form->gotErrors()){
-    			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
-    				if($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
-    					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
-    			    }
-    			}
-    			
-    			if(Request::get('Act') != 'CreateProduct'){
-    				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
-    					if($sameProduct->id != $rec->id){
-    						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
-    					}
-    				}
-    			}
-    			
-    			$rec->vatPercent = $vat;
     		}
     		
     		if(!$form->gotErrors()){
