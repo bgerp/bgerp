@@ -194,7 +194,7 @@ class unit_MinkPListProduct extends core_Manager {
         }
         $browser->setValue('reff', 'MinkPListProducts');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPlistVatInclude');
+        $browser->setValue('note', 'MinkPListVatInclude');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
@@ -270,13 +270,13 @@ class unit_MinkPListProduct extends core_Manager {
          
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Двеста петдесет и девет BGN и 0,47')) {
+        if(strpos($browser->gettext(), 'Шестстотин шестдесет и един BGN и 0,80')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         //Проверка на статистиката
-        if(strpos($browser->gettext(), '259,47 259,47 0,00 0,00')) {
+        if(strpos($browser->gettext(), '661,80 661,80 0,00 0,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
