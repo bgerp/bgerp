@@ -18,7 +18,7 @@ class bgerp_Print extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Лог на файлове';
+    public $title = 'Отпечатване на документи в мобилен принтер';
     
     
     /**
