@@ -387,14 +387,14 @@ class sales_QuotationsDetails extends doc_Detail {
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		
     		if(!$form->gotErrors()){
-    			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
-    				if($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
-    					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
-    					return;
-    				}
-    			}
-    			 
-    			if(Request::get('Act') != 'CreateProduct'){
+    		    if(Request::get('Act') != 'CreateProduct'){
+    			   if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
+    				   if($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
+    					   $form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
+    					   return;
+    				   }
+    			    }
+    			    
     				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
     					if($sameProduct->id != $rec->id){
     						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
