@@ -268,6 +268,15 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 }
                 
                 $text .= ' ' . $eText;
+                
+                // Изтриваме директорията, където е екстрактнат файла
+                if (is_file($extractedPath) && is_readable($extractedPath)) {
+                    if (isset($archiveInst->dir) && is_dir($archiveInst->dir)) {
+                        if (pathinfo($archiveInst->path, PATHINFO_DIRNAME) != $archiveInst->dir) {
+                            core_Os::deleteDir($archiveInst->dir);
+                        }
+                    }
+                }
             }
             
             // Изтриваме временните файлове
