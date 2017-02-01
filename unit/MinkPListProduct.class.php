@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  Клас  'unit_MinkPListProduct' - PHP тестове за листване на продукти към контрагент и продажба по списък
+ *  Клас  'unit_MinkPListProduct' - PHP тестове за листване на продукти към контрагент, покупка и продажба по списък
  *
  * @category  bgerp
  * @package   tests
@@ -160,7 +160,6 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->click('Добавяне на ново търговско условие');
         $browser->setValue('conditionId', 'Листвани продукти');
         $browser->refresh('Запис');
-        //return $browser->getHtml();
         $browser->setValue('value', 'За покупка');
         $browser->press('Запис и Нов');
         $browser->setValue('conditionId', 'Листвани продукти');
@@ -203,15 +202,12 @@ class unit_MinkPListProduct extends core_Manager {
     
         // Добавяне на артикули
         $browser->press('Списък');
-        /// Количества на двата артикула
-      
+        // Количества на двата артикула
         $browser->setValue('quantity3', '36');
-        //return $browser->getHtml();
         $browser->setValue('quantity4', '100');
         
         // Записване артикулите
         $browser->press('Импорт');
-        //return $browser->getHtml();
         // активиране на продажбата
         $browser->press('Активиране');
        
@@ -265,12 +261,10 @@ class unit_MinkPListProduct extends core_Manager {
         /// Количества на двата артикула
     
         $browser->setValue('quantity1', '20');
-        //return $browser->getHtml();
         $browser->setValue('quantity2', '1200');
     
         // Записване артикулите
         $browser->press('Импорт');
-        //return $browser->getHtml();
         // активиране на покупката
         $browser->press('Активиране');
          
@@ -290,8 +284,7 @@ class unit_MinkPListProduct extends core_Manager {
     }
     
     /**
-     * Добавяне на търговски условия за листване - покупка и продажба в папка на клиент
-     * Не работи!
+     * Добавяне на търговски условия за листване в папка на клиент
      */
     //http://localhost/unit_MinkPListProduct/ImportListProducts/
     function act_ImportListProducts()
@@ -307,19 +300,18 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->setValue('title', 'За продажба NEW INTERNATIONAL');
         $browser->setValue('type', 'Продаваеми');
         $browser->press('Чернова');
-        // Добавяне на артикул
+        // Добавяне на артикули
         $browser->press('Импорт');
      
         $browser->setValue('from', 'group');
         //$browser->setValue('from', 'sales');
-        $browser->refresh('Отказ');
-        //$browser->refresh('Импорт');
-        //return $browser->getHtml();
+        $browser->press('Refresh');
         //$browser->setValue('Ценова група » Промоция', '15');
         $browser->setValue('group', 'Ценова група » Промоция');
-        //$browser->setValue('group', '15');
+        $browser->press('Refresh');
         // Записване на списъка
         $browser->press('Импорт');
+        $browser->press('Активиране');
     
     }
     
