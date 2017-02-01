@@ -445,7 +445,7 @@ class sales_Quotations extends core_Master
     		$origin = doc_Containers::getDocument($rec->originId);
     		$originRec = $origin->fetch('id,measureId');
     		$vat = cat_Products::getVat($origin->that, $rec->date);
-    		$originRec = NULL;
+    		
     		// Ако в река има 1 от 3 к-ва
     		foreach (range(1, 3) as $i){
     			
