@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -854,19 +854,6 @@ class sales_QuotationsDetails extends doc_Detail {
     			$requiredRoles = 'no_one';
     		}
     	}
-    }
-    
-    
-   /**
-    * Помощна ф-я обръщаща въведената цена в основна валута без ддс
-    */
-    private static function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
-    {
-    	if($chargeVat == 'yes'){
-			$price = $price / (1 + $vatPercent);
-    	}
-    	
-    	return $price * $currencyRate;
     }
     
 
