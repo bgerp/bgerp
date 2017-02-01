@@ -857,65 +857,6 @@ class sales_QuotationsDetails extends doc_Detail {
     }
     
     
-    /**
-     * Ако ориджина е артикул, вкарват се записи отговарящи
-     * на посочените примерни количества в нея
-     * @param stdClass $rec - запис на оферта
-     * @param core_ObjectReference $origin - ид на артикула
-     * @param array $dRows - количества И цени подадени във вида "к-во|цена"
-     */
-    public static function insertFromSpecification($rec, $origin, $dRows = array())
-    {
-    	$productRec = $origin->rec();
-    	
-    	// Изтриват се предишни записи на артикула в офертата
-    	static::delete("#quotationId = {$rec->id} AND #productId = {$productRec->id}");
-    	
-    	foreach ($dRows as $row) {
-    		if(empty($row)) continue;
-    		
-    		// Извличане на к-то и цената от формата
-    		$row = type_ComplexType::getParts($row);
-    		
-    		// Записва се нов детайл за всяко зададено к-во
-    		$dRec = new stdClass();
-    		$dRec->quotationId = $rec->id;
-    		$dRec->productId = $productRec->id;
-    		$dRec->quantityInPack = 1;
-    		$dRec->quantity = $row['left'];
-    		$dRec->vatPercent = cat_Products::getVat($dRec->productId, $rec->date);
-    		$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
-    		
-    		if($tolerance = cat_Products::getParams($dRec->productId, 'tolerance')){
-    			$dRec->tolerance = $tolerance;
-    		}
-    		
-    		if($term = cat_Products::getParams($dRec->productId, 'term')){
-    			$dRec->term = $term;
-    		}
-    		
-    		// Ако полето от формата има дясна част, това е цената
-    		if($row['right']){
-    			
-    			// Въведената цена се обръща в основна валута без ддс
-    			$dRec->price = $row['right'];
-    			$dRec->price = self::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
-    		} else {
-    			
-    			// Ако няма извлича се цената за клиента
-    			$Policy = cls::get('price_ListToCustomers');
-    			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $dRec->quantity, $rec->date)->price;
-    			$dRec->price = deals_Helper::getPurePrice($price, $dRec->vatPercent, $rec->currencyRate, $rec->chargeVat);
-    		}
-    		
-    		$dRec->optional = 'no';
-    		$dRec->discount = $price->discount;
-    		
-    		static::save($dRec);
-    	}
-    }
-    
-    
    /**
     * Помощна ф-я обръщаща въведената цена в основна валута без ддс
     */
