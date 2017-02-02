@@ -513,8 +513,10 @@ class sales_Quotations extends core_Master
 			$row->username = transliterate(tr($row->username));
     		
     		$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
-    		if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
-    			$row->position = cls::get('type_Varchar')->toVerbal($position);
+    		if(!empty($profRec)){
+    			if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
+    				$row->position = cls::get('type_Varchar')->toVerbal($position);
+    			}
     		}
     			
     		$ownCompanyData = crm_Companies::fetchOwnCompany();
@@ -564,7 +566,10 @@ class sales_Quotations extends core_Master
     			}
     		}
     		 
-    		$createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
+    		if(!empty($profRec)){
+    			$createdRec = crm_Persons::fetch($profRec->id, 'personId');
+    		}
+    		
     		$buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
     		if($buzAddress){
     			$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
