@@ -202,9 +202,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->refresh('Запис');
         //$browser->setValue('roleTeams[13]', '13');
         //$browser->setValue('Headquarter', '13');
-        //return $browser->getHtml();
         //Повтаряне на паролите, 
-        //$browser->refresh('Запис');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
@@ -235,7 +233,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('roleRank', 'officer');
         $browser->refresh('Запис');
         //$browser->setValue('roleTeams[13]', '13');
-        $browser->setValue('Дилър', '79');
+        $browser->setValue('Дилър', True);
         //Повтаряне на паролите, 
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
@@ -872,6 +870,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
         $browser->press('Оферта');
+        
+        //  ИЗБОР НА ПАПКА!
+        //$browser->setValue('folderId', 'NEW INTERNATIONAL GMBH');
         $browser->setValue('Цена', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
