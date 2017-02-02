@@ -32,7 +32,7 @@ class mp_Setup extends core_ProtoSetup
      */
     function install()
     {
-    	$htmp = parent::install();
+    	$html = parent::install();
     	
         //
         // Инсталиране на плъгин за автоматичен превод
