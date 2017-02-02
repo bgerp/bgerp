@@ -279,7 +279,7 @@ class batch_Defs extends core_Manager {
     	}
     	
     	// Ако има запис, записва се
-    	if(isset($nRec)){
+    	if(is_object($nRec)){
     		return self::save($nRec);
     	}
     }
