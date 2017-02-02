@@ -35,7 +35,7 @@ class mp_Setup extends core_ProtoSetup
     	$html = parent::install();
     	
         //
-        // Инсталиране на плъгин за автоматичен превод
+        // Закачаме плъгина 
         //
         $html .= core_Plugins::installPlugin('Sales Print Mockup', 'mp_PrintMockupPlg', 'sales_Sales', 'private');
         $html .= core_Plugins::installPlugin('EN Print Mockup', 'mp_PrintMockupPlg', 'store_ShipmentOrders', 'private');
