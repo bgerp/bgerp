@@ -393,6 +393,13 @@ class marketing_Inquiries2 extends embed_Manager
     public static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	
+    	// Ако запитването е в папка на контрагент вкарва се в група запитвания
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$groupId = crm_Groups::force('Клиенти » Запитвания');
+    		$Cover->forceGroup($groupId, FALSE);
+    	}
     }
     
     
