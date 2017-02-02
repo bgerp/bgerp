@@ -121,7 +121,7 @@ class trz_Sickdays extends core_Master
     public $canChangerec = 'ceo,trz';
 
     
-    public $canEdited = 'ceo,trz';
+    public $canEdited = 'powerUser';
     
     
     /**

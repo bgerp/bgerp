@@ -77,7 +77,7 @@ class trz_Requests extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,trz';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -156,6 +156,7 @@ class trz_Requests extends core_Master
      * По кое поле ще се премества документа
      */
     public $transferFolderField = 'personId';
+    
     
     static public $map = array('paid' => 'платен', 'unpaid' => 'неплатен');
     

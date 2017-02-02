@@ -64,7 +64,7 @@ class trz_Trips extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,trz';
+    public $canEdit = 'powerUser';
     
     
     /**
