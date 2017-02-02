@@ -826,6 +826,10 @@ class sales_Quotations extends core_Master
 			$rec->date = dt::today();
 			$mvc->save($rec, 'date');
 		}
+		
+		// Ако запитването е в папка на контрагент вкарва се в група запитвания
+		$groupId = crm_Groups::force('Клиенти » Оферти');
+		cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, FALSE);
     }
     
     
