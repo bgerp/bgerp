@@ -121,7 +121,7 @@ class trz_Sickdays extends core_Master
     public $canChangerec = 'ceo,trz';
 
     
-    public $canEdited = 'ceo,trz';
+    public $canEdited = 'powerUser';
     
     
     /**
@@ -230,8 +230,11 @@ class trz_Sickdays extends core_Master
     	
     	// Намират се всички служители
     	$employees = crm_Persons::getEmployeesOptions();
+    	unset($employees[$rec->personId]);
+    	
     	if(count($employees)){
-    		$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+    		$form->setOptions('personId', $employees);
+    		$form->setOptions('alternatePerson', $employees);
     	} else {
     		redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
     	}

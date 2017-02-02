@@ -77,7 +77,7 @@ class trz_Requests extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,trz';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -156,6 +156,7 @@ class trz_Requests extends core_Master
      * По кое поле ще се премества документа
      */
     public $transferFolderField = 'personId';
+    
     
     static public $map = array('paid' => 'платен', 'unpaid' => 'неплатен');
     
@@ -290,12 +291,15 @@ class trz_Requests extends core_Master
 
     	// Намират се всички служители
     	$employees = crm_Persons::getEmployeesOptions();
+    	unset($employees[$rec->personId]);
+   
     	if(count($employees)){
-    		$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+    		$form->setOptions('personId', $employees);
+    		$form->setOptions('alternatePerson', $employees);
     	} else {
     		redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
     	}
-    	
+
     	$folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if($rec->folderId && $folderClass == 'crm_Persons') {
