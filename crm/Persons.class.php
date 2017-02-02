@@ -2629,23 +2629,30 @@ class crm_Persons extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId на група
+     * @param varchar $groupSysId - sysId или ид на група
+     * @param boolean $isSysId  - дали е систем ид
      */
-    public static function forceGroup($id, $groupSysId)
+    public static function forceGroup($id, $groupSysId, $isSysId = TRUE)
     {
     	expect($rec = static::fetch($id));
-    	expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	if($isSysId === TRUE){
+    		expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	} else {
+    		$groupId = $groupSysId;
+    		expect(cat_Groups::fetch($groupId));
+    	}
     	
     	// Ако контрагента не е включен в групата, включваме го
     	if(!keylist::isIn($groupId, $rec->groupList)){
     		$groupName = crm_Groups::getTitleById($groupId);
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
+    		$rec->groupListInput = keylist::addKey($rec->groupListInput, $groupId);
     		
     		if(haveRole('powerUser')){
     			core_Statuses::newStatus("|Лицето е включено в група |* '{$groupName}'");
     		}
     		
-    		return static::save($rec, 'groupList');
+    		return static::save($rec, 'groupList,groupListInput');
     	}
     	
     	return TRUE;
