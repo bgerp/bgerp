@@ -1077,7 +1077,9 @@ class core_Form extends core_FieldSet
     function renderToolbar_()
     {
         expect(is_a($this->toolbar, 'core_Toolbar'), 'Очаква се core_Toolbar');
-        
+        if(defined('TEST_MODE') && TEST_MODE) {
+            $this->toolbar->addSbBtn('Refresh', 'refresh');
+        }
         return $this->toolbar->renderHtml();
     }
     

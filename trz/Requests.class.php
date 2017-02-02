@@ -77,7 +77,7 @@ class trz_Requests extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,trz';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -157,6 +157,7 @@ class trz_Requests extends core_Master
      */
     public $transferFolderField = 'personId';
     
+    
     static public $map = array('paid' => 'платен', 'unpaid' => 'неплатен');
     
     
@@ -166,7 +167,7 @@ class trz_Requests extends core_Master
     public function description()
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
     	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
@@ -290,12 +291,15 @@ class trz_Requests extends core_Master
 
     	// Намират се всички служители
     	$employees = crm_Persons::getEmployeesOptions();
+    	unset($employees[$rec->personId]);
+   
     	if(count($employees)){
-    		$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+    		$form->setOptions('personId', $employees);
+    		$form->setOptions('alternatePerson', $employees);
     	} else {
     		redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
     	}
-    	
+
     	$folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if($rec->folderId && $folderClass == 'crm_Persons') {

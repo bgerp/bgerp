@@ -393,6 +393,13 @@ class marketing_Inquiries2 extends embed_Manager
     public static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	
+    	// Ако запитването е в папка на контрагент вкарва се в група запитвания
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$groupId = crm_Groups::force('Клиенти » Запитвания');
+    		$Cover->forceGroup($groupId, FALSE);
+    	}
     }
     
     
@@ -868,17 +875,30 @@ class marketing_Inquiries2 extends embed_Manager
     		}
     		
     		// Ако има минимално количество за поръчка
-    		if($rec->moq > 0){
-    			foreach (range(1, 3) as $i){
-    				$quantity = $rec->{"quantity{$i}"};
-    				
-    				// Количествата не може да са под
-    				if(!empty($quantity)){
-    					if($quantity < $rec->moq){
-    						$form->setError("quantity{$i}", "Под минималното количество за поръчка||Less than minimal order quantrity|* <b>{$moqVerbal}</b>");
-    					}
-    				}
+    		$errorMoqs = $errorQuantities = $allQuantities = array();
+    		
+    		// Проверка на въведените количества
+    		foreach (range(1, 3) as $i){
+    			$quantity = $rec->{"quantity{$i}"};
+    			if(empty($quantity)) continue;
+    			
+    			if($rec->moq > 0 && $quantity < $rec->moq){
+    				$errorMoqs[] = "quantity{$i}";
     			}
+    			
+    			if(in_array($quantity, $allQuantities)){
+    				$errorQuantities[] = "quantity{$i}";
+    			} else {
+    				$allQuantities[] = $quantity;
+    			}
+    		}
+    		
+    		if(count($errorMoqs)){
+    			$form->setError(implode(',', $errorMoqs), "Количеството се повтаря||Duplicated quantity|* <b>{$moqVerbal}</b>");
+    		}
+    		
+    		if(count($errorQuantities)){
+    			$form->setError(implode(',', $errorQuantities), "Количествата трябва да са различни||Quantities must be different|*");
     		}
     	}
     }

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -350,6 +350,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     	
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+    		$rec->vatPercent = $vat;
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
@@ -384,6 +385,24 @@ class sales_QuotationsDetails extends doc_Detail {
     		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    		
+    		if(!$form->gotErrors()){
+    		    if(Request::get('Act') != 'CreateProduct'){
+    			   if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
+    				   if($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
+    					   $form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
+    					   return;
+    				   }
+    			    }
+    			    
+    				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
+    					if($sameProduct->id != $rec->id){
+    						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
+    						return;
+    					}
+    				}
+    			}
+    		}
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
@@ -427,24 +446,6 @@ class sales_QuotationsDetails extends doc_Detail {
     			if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
     				$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на  новата опаковка!");
     			}
-    		}
-	    	
-    		if(!$form->gotErrors()){
-    			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
-    				if($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
-    					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
-    			    }
-    			}
-    			
-    			if(Request::get('Act') != 'CreateProduct'){
-    				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
-    					if($sameProduct->id != $rec->id){
-    						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
-    					}
-    				}
-    			}
-    			
-    			$rec->vatPercent = $vat;
     		}
     		
     		if(!$form->gotErrors()){
@@ -854,78 +855,6 @@ class sales_QuotationsDetails extends doc_Detail {
     			$requiredRoles = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Ако ориджина е артикул, вкарват се записи отговарящи
-     * на посочените примерни количества в нея
-     * @param stdClass $rec - запис на оферта
-     * @param core_ObjectReference $origin - ид на артикула
-     * @param array $dRows - количества И цени подадени във вида "к-во|цена"
-     */
-    public static function insertFromSpecification($rec, $origin, $dRows = array())
-    {
-    	$productRec = $origin->rec();
-    	
-    	// Изтриват се предишни записи на артикула в офертата
-    	static::delete("#quotationId = {$rec->id} AND #productId = {$productRec->id}");
-    	
-    	foreach ($dRows as $row) {
-    		if(empty($row)) continue;
-    		
-    		// Извличане на к-то и цената от формата
-    		$row = type_ComplexType::getParts($row);
-    		
-    		// Записва се нов детайл за всяко зададено к-во
-    		$dRec = new stdClass();
-    		$dRec->quotationId = $rec->id;
-    		$dRec->productId = $productRec->id;
-    		$dRec->quantityInPack = 1;
-    		$dRec->quantity = $row['left'];
-    		$dRec->vatPercent = cat_Products::getVat($dRec->productId, $rec->date);
-    		$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
-    		
-    		if($tolerance = cat_Products::getParams($dRec->productId, 'tolerance')){
-    			$dRec->tolerance = $tolerance;
-    		}
-    		
-    		if($term = cat_Products::getParams($dRec->productId, 'term')){
-    			$dRec->term = $term;
-    		}
-    		
-    		// Ако полето от формата има дясна част, това е цената
-    		if($row['right']){
-    			
-    			// Въведената цена се обръща в основна валута без ддс
-    			$dRec->price = $row['right'];
-    			$dRec->price = self::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
-    		} else {
-    			
-    			// Ако няма извлича се цената за клиента
-    			$Policy = cls::get('price_ListToCustomers');
-    			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $dRec->quantity, $rec->date)->price;
-    			$dRec->price = deals_Helper::getPurePrice($price, $dRec->vatPercent, $rec->currencyRate, $rec->chargeVat);
-    		}
-    		
-    		$dRec->optional = 'no';
-    		$dRec->discount = $price->discount;
-    		
-    		static::save($dRec);
-    	}
-    }
-    
-    
-   /**
-    * Помощна ф-я обръщаща въведената цена в основна валута без ддс
-    */
-    private static function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
-    {
-    	if($chargeVat == 'yes'){
-			$price = $price / (1 + $vatPercent);
-    	}
-    	
-    	return $price * $currencyRate;
     }
     
 
