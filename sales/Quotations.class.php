@@ -1451,7 +1451,7 @@ class sales_Quotations extends core_Master
     	}
     	
     	// Проверка на цената
-    	expect($newRec->price = cls::get('type_Double')->fromVerbal($price), 'Невалидна цена');
+    	expect($newRec->price = cls::get('type_Double')->fromVerbal($newRec->price), 'Невалидна цена');
     	
     	// Проверки на записите
     	if($sameProduct = sales_QuotationsDetails::fetch("#quotationId = {$newRec->quotationId} AND #productId = {$newRec->productId}")){
