@@ -318,11 +318,27 @@ class trz_Requests extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        $now = dt::now();
+        // един месец назад
+        $before30Days = dt::addMonths(-1, $now);
+        $before30DaysVerbal = dt::mysql2verbal($before30Days,"d.m.Y");
+
+        // една година напред
+        $after1year = dt::addMonths(12, $now);
+        $after1yearVerbal = dt::mysql2verbal($after1year,"d.m.Y");
 
         if ($form->isSubmitted()) { 
             // Размяна, ако периодите са объркани
             if(isset($form->rec->leaveFrom) && isset($form->rec->leaveTo) && ($form->rec->leaveFrom > $form->rec->leaveTo)) { 
-                $form->setError('startDate, toDate', "Началната дата трябва да е по-малка от крайната");
+                $form->setError('leaveFrom, leaveTo', "Началната дата трябва да е по-малка от крайната");
+            }
+            
+            if(isset($form->rec->leaveFrom) &&  ($form->rec->leaveFrom < $before30Days)) {
+                $form->setError('leaveFrom', "Началната дата трябва да е преди {$before30DaysVerbal}г.");
+            }
+            
+            if(isset($form->rec->leaveFrom) && ($form->rec->leaveFrom > $after1year)) {
+                $form->setError('leaveFrom', "Началната дата трябва да е преди {$after1yearVerbal}г.");
             }
         }
     }
