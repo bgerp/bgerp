@@ -60,7 +60,6 @@ class auto_Calls extends core_Manager
 		$this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
 		$this->FLD('event', 'varchar(128)', 'caption=Събитие');
 	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни,column=none');
-	    $this->FLD('repeatPeriod', 'time', 'caption=Повторение');
 	    $this->FLD('calledOn', 'datetime(format=smartTime)', 'caption=Изпълнено');
 	    $this->FLD('state', 'enum(waiting=Чакащо,locked=Заключено,closed=Затворено)', 'caption=Състояние, input=none');
 	}
@@ -68,13 +67,16 @@ class auto_Calls extends core_Manager
 	
 	/**
 	 * Добавя функция, която да се изпълни след определено време
+	 * 
+	 * @param varchar $event  - име на събитието
+	 * @param mixed   $data   - данни за събитието
+	 * @param boolean $once   - дали да се добави само веднъж
 	 */
-	public static function setCall($event, $data = NULL, $repeatPeriod = NULL, $once = FALSE)
+	public static function setCall($event, $data = NULL, $once = FALSE)
 	{
 		$nRec = new stdClass();
 		$nRec->event = $event;
 		$nRec->data = $data;
-		$nRec->repeatPeriod = $repeatPeriod;
 		$nRec->state = 'waiting';
 		$nRec->calledOn = NULL;
 
@@ -153,11 +155,6 @@ class auto_Calls extends core_Manager
 		// За всеки
 		while($rec = $query->fetch()){
 			
-			// Ако има период за изпълнение, проверка дали е настъпил
-			if(isset($rec->repeatPeriod)){
-				//@TODO
-			}
-			
 			// Заключване на процеса
 			$nRec = clone $rec;
 			$nRec->state = 'locked';
@@ -180,12 +177,8 @@ class auto_Calls extends core_Manager
 			}
 			
 			// Ако няма период за изпълнение отново изтрива се
-			if(empty($rec->repeatPeriod)){
-				self::logInfo("Изтриване на успешно изпълнена автоматизация '{$rec->event}'");
-				self::delete($rec->id);
-			} else {
-				//@TODO да стане отново чакащо
-			}
+			self::logInfo("Изтриване на успешно изпълнена автоматизация '{$rec->event}'");
+			self::delete($rec->id);
 		}
 		
 		// Връщане на резултат
