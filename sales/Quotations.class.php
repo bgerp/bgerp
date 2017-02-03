@@ -567,7 +567,7 @@ class sales_Quotations extends core_Master
     		}
     		 
     		if(!empty($profRec)){
-    			$createdRec = crm_Persons::fetch($profRec->id, 'personId');
+    			$createdRec = crm_Persons::fetch($profRec->id);
     		}
     		
     		$buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
