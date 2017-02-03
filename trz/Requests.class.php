@@ -334,11 +334,15 @@ class trz_Requests extends core_Master
             }
             
             if(isset($form->rec->leaveFrom) &&  ($form->rec->leaveFrom < $before30Days)) {
-                $form->setError('leaveFrom', "Началната дата трябва да е преди {$before30DaysVerbal}г.");
+                $form->setError('leaveFrom', "Началната дата трябва да е след {$before30DaysVerbal}г.");
             }
             
             if(isset($form->rec->leaveFrom) && ($form->rec->leaveFrom > $after1year)) {
                 $form->setError('leaveFrom', "Началната дата трябва да е преди {$after1yearVerbal}г.");
+            }
+            
+            if(isset($form->rec->leaveTo) && ($form->rec->leaveTo > $after1year)) {
+                $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.");
             }
         }
     }
