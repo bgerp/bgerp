@@ -461,7 +461,7 @@ class trz_Requests extends core_Master
 
         $curDate = $rec->leaveFrom;
     	
-    	while($curDate < dt::addDays(1, $rec->leaveTo)){
+    	while($curDate < $rec->leaveTo){
         // Подготвяме запис за началната дата
 	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
 	            
