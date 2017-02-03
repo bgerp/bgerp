@@ -159,7 +159,7 @@ class auto_Calls extends core_Manager
 			$nRec = clone $rec;
 			$nRec->state = 'locked';
 			$this->save_($nRec, 'state');
-			self::logInfo("Заключване на автоматизация '{$rec->event}'", $rec->id);
+			self::logInfo("Заключване на автоматизация '{$rec->event}'");
 			
 			try{
 				// Ивента се подава на всеки клас за автоматизации
@@ -172,7 +172,7 @@ class auto_Calls extends core_Manager
 					}
 				}
 			} catch (Exception $e){
-				self::logInfo("Грешка при изпълнението на автоматизация '{$rec->event}'", $rec->id);
+				self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
 				self::logDebug($e->getTraceAsString(), $rec);
 			}
 			

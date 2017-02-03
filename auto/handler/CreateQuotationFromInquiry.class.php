@@ -51,7 +51,10 @@ class auto_handler_CreateQuotationFromInquiry {
     	expect($Cover->haveInterface('crm_ContragentAccRegIntf'));
     	
     	// Ако има артикул към запитването не се прави нищо
-    	if(cat_Products::fetchField("#originId = {$marketingRec->containerId}")) return;
+    	if(cat_Products::fetchField("#originId = {$marketingRec->containerId}")) {
+    		marketing_Inquiries2::logDebug("Не може да се създаде автоматично артикул към запитването защото има вече такъв", $marketingRec->id);
+    		return;
+    	}
     	
     	// Опит за създаване на артикул от запитване
     	$productId = $this->createProduct($marketingRec, $Cover, $document);
@@ -59,7 +62,7 @@ class auto_handler_CreateQuotationFromInquiry {
     		marketing_Inquiries2::logDebug("Проблем при опит за създаване на автоматичен артикул към запитване", $marketingRec->id);
     		return;
     	} else {
-    		cat_Products::logInfo("Успешно създаден артикул от автоматизация '{$rec->event}'", $productId);
+    		marketing_Inquiries2::logInfo("Успешно създаден артикул от автоматизация '{$rec->event}'", $marketingRec->id);
     	}
     	
     	// Имали подадени количества
@@ -114,6 +117,13 @@ class auto_handler_CreateQuotationFromInquiry {
     {
 		$Driver = $document->getDriver();
     	if(!$Driver) return;
+    	
+    	// Може ли да се намери дефолтната цена за артикула
+    	$defPrice = $Driver->getPrice($Cover->getClassId(), $Cover->that, 'marketing_Inquiries2', $marketingRec, $marketingRec->createdOn);
+    	if(empty($defPrice)) {
+    		marketing_Inquiries2::logDebug("Не мжое да се създава артикул от запитването, защото драйвера не връща цена", $marketingRec->id);
+    		return;
+    	}
     	
     	$Products = cls::get('cat_Products');
     	$form = $Products->getForm();
