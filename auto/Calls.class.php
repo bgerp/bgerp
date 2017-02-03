@@ -128,7 +128,9 @@ class auto_Calls extends core_Manager
 	}
 	
 	
-	// Екшън за тестване
+	/**
+	 * Екшън за тестване
+	 */
 	function act_Run()
 	{
 		requireRole('admin,debug,ceo');
@@ -183,5 +185,14 @@ class auto_Calls extends core_Manager
 		
 		// Връщане на резултат
 		return $res;
+	}
+	
+	
+	/**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$data->query->orderBy('id', 'DESC');
 	}
 }

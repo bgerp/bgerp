@@ -90,7 +90,7 @@ class auto_handler_CreateQuotationFromInquiry {
     		// Добавяне на редоввете на офертата
     		if(!empty($quoteId)){
     			foreach ($quantities as $q){
-    				sales_Quotations::addRow($quoteId, $productId, $q, NULL, 10);
+    				sales_Quotations::addRow($quoteId, $productId, $q);
     				sales_Quotations::logInfo("Добавяне на ред към автоматично създадена оферта към запитване", $quoteId);
     			}
     			
