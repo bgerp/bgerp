@@ -24,7 +24,20 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
 	{
 		// Ако създателя е агент, се запсива ивент за създаване на нова оферта
 		if(haveRole('agent', $rec->createdBy)){
-			auto_Calls::setCall('createdInquiryByPartner', $rec);
+			$Driver = $mvc->getDriver($rec);
+			
+			// Ако има драйвър
+			if(is_object($Driver)){
+				
+				// И той може да върне цена за артикула, връща се
+				$Cover = doc_Folders::getCover($rec->folderId);
+				if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+					$defPrice = $Driver->getPrice($Cover->getClassId(), $Cover->that, $mvc, $rec, $rec->createdOn);
+					if($defPrice){
+						auto_Calls::setCall('createdInquiryByPartner', $rec);
+					}
+				}
+			}
 		}
 	}
 }
