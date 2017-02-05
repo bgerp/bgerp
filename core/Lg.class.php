@@ -220,6 +220,7 @@ class core_Lg extends core_Manager
             $strArr = explode('|', $kstring);
             
             if (count($strArr) > 1) {
+                
                 $translated = array();
                 
                 // Ако последната или първата фраза са празни - махаме ги
@@ -230,32 +231,25 @@ class core_Lg extends core_Manager
                 if($strArr[0] == '') {
                     unset($strArr[0]);
                 }
-                
+
+                // Обикаляме и добавяме в речника фразите на английски и фразите, които не се превеждат
                 foreach ($strArr as $i => $phrase) {
-                    
-                    // Две черти една до друга означават, че последващата фраза е превод на английски на предходната
-                    if ($phrase === '') {
-                        $followEn = TRUE; 
+                    if ($phrase === '' && $i >= 1) {
+                        $this->dict['en'][static::prepareKey($strArr[$i-1])] = $strArr[$i+1];
+                        $this->dict[$lg][static::prepareKey($strArr[$i-1])] = $strArr[$i-1];
+                        unset($strArr[$i], $strArr[$i+1]);
                         continue;
                     }
-                                        
-                    // Ако фразата започва с '*' не се превежда
-                    if ($phrase{0} === '*') {
+                }
+
+
+                foreach ($strArr as $i => $phrase) {
+                    
+                    if($phrase{0} === '*') {
                         $translated[] = substr($phrase, 1);
                         continue;
                     }
-
-                    if($followEn) {
-                        if($lg == 'en') {
-                            $this->dict[$lg][static::prepareKey($translated[count($translated)-1])] = $phrase;
-                            $translated[count($translated)-1] = $phrase;
-                        } elseif($lg == 'bg') {
-                            $this->dict[$lg][static::prepareKey($translated[count($translated)-1])] = $strArr[$i-2];
-                        }
-                        $followEn = FALSE;
-                        continue;
-                    }
-                    
+           
                     $ascii = (mb_detect_encoding($phrase, 'ASCII', TRUE) == 'ASCII');
 
                     if($ascii && (!preg_match("/[a-z]/i", $phrase) || $lg != 'en') ) {
@@ -294,6 +288,8 @@ class core_Lg extends core_Manager
         // Ако имаме превода в речника, го връщаме
         if (isset($this->dict[$lg][$key])) {
             $res = $this->dict[$lg][$key];
+        } elseif(in_array($kstring, $this->dict[$lg])) {
+            $res = $kstring;
         } else {
             // Ако и в базата нямаме превода, тогава приемаме, 
             // че превода не променя ключовия стринг
