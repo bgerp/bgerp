@@ -70,7 +70,10 @@ class type_UserList extends type_Keylist
         $pQuery = crm_Profiles::getQuery();
         $pQuery->show("id");
         while($rec = $pQuery->fetch("#stateInfo IS NOT NULL")) {
-            $iUsers[$rec->id] = $rec->id;
+            $dayBefore = strstr(dt::addDays(1,$rec->sateDateFrom), " ", TRUE);
+            if($dayBefore == strstr(dt::now(), " ", TRUE)){
+                $iUsers[$rec->id] = $rec->id;
+            }
         }
         $this->info = $iUsers;
 

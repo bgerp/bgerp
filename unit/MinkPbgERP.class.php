@@ -782,6 +782,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Локации');
         $browser->press('Нов търговски обект');
         $browser->setValue('name', 'Фирма с локация');
+        $browser->setValue('uicId', '200093985');
         $browser->setValue('place', 'Варна');
         $browser->setValue('address', 'ул.Морска, №122');
         $browser->setValue('title', 'Централен офис');

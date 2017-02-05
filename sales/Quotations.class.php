@@ -513,8 +513,10 @@ class sales_Quotations extends core_Master
 			$row->username = transliterate(tr($row->username));
     		
     		$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
-    		if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
-    			$row->position = cls::get('type_Varchar')->toVerbal($position);
+    		if(!empty($profRec)){
+    			if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
+    				$row->position = cls::get('type_Varchar')->toVerbal($position);
+    			}
     		}
     			
     		$ownCompanyData = crm_Companies::fetchOwnCompany();
@@ -564,7 +566,10 @@ class sales_Quotations extends core_Master
     			}
     		}
     		 
-    		$createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
+    		if(!empty($profRec)){
+    			$createdRec = crm_Persons::fetch($profRec->id);
+    		}
+    		
     		$buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
     		if($buzAddress){
     			$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
@@ -1303,7 +1308,14 @@ class sales_Quotations extends core_Master
     	$newRec->contragentClassId = $Cover->getClassId();
     	$newRec->contragentId = $contragentId;
     	$newRec->originId = (isset($fields['originId'])) ? $fields['originId'] : NULL;
-    	$newRec->folderId = $Cover->forceCoverAndFolder($contragentId);
+    	if(isset($newRec->originId)){
+    		$origin = doc_Containers::getDocument($newRec->originId);
+    		$newRec->folderId = $origin->fetchField('folderId');
+    		$newRec->threadId = $origin->fetchField('threadId');
+    	} else {
+    		$newRec->folderId = $Cover->forceCoverAndFolder($contragentId);
+    	}
+    	
     	$newRec->currencyId = (isset($fields['currencyCode'])) ? $fields['currencyCode'] : $Cover->getDefaultcurrencyId($contragentId);
     	expect(currency_Currencies::getIdByCode($newRec->currencyId), 'Невалиден код');
     	$newRec->currencyRate = (isset($fields['rate'])) ? $fields['rate'] : currency_CurrencyRates::getRate($newRec->date, $newRec->currencyId, NULL);
@@ -1349,6 +1361,8 @@ class sales_Quotations extends core_Master
     	$newRec->template = self::getDefaultTemplate($newRec);
     	
     	// Създаване на запис
+    	self::route($newRec);
+    	
     	return self::save($newRec);
     }
     
@@ -1437,7 +1451,7 @@ class sales_Quotations extends core_Master
     	}
     	
     	// Проверка на цената
-    	expect($newRec->price = cls::get('type_Double')->fromVerbal($price), 'Невалидна цена');
+    	expect($newRec->price = cls::get('type_Double')->fromVerbal($newRec->price), 'Невалидна цена');
     	
     	// Проверки на записите
     	if($sameProduct = sales_QuotationsDetails::fetch("#quotationId = {$newRec->quotationId} AND #productId = {$newRec->productId}")){
