@@ -186,7 +186,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function description()
     {
-    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти");
+    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
     	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
      
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');

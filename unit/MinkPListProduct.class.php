@@ -27,6 +27,7 @@ class unit_MinkPListProduct extends core_Manager {
         $res .=  " 2.".$this->act_SetCustomerConditions();
         $res .= "  3.".$this->act_CreateSaleList();
         $res .= "  4.".$this->act_CreatePurchaseList();
+        $res .= "  5.".$this->act_ImportListProducts();
         
         return $res;
     }
@@ -312,7 +313,18 @@ class unit_MinkPListProduct extends core_Manager {
         // Записване на списъка
         $browser->press('Импорт');
         $browser->press('Активиране');
-    
+        //return $browser->getHtml();
+        $browser->click('Фирма');
+        $browser->click('Търговия');
+        $browser->click('Добавяне на ново търговско условие');
+        $browser->setValue('conditionId', 'Листвани продукти');
+        $browser->refresh('Запис');
+        $browser->setValue('value', 'За покупка');
+        $browser->press('Запис и Нов');
+        $browser->setValue('conditionId', 'Листвани продукти');
+        $browser->refresh('Запис');
+        $browser->setValue('value', 'За продажба NEW INTERNATIONAL');
+        $browser->press('Запис');
     }
     
     /**
