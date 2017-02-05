@@ -51,6 +51,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		
 		$form->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент,silent,input,mandatory');
 		$form->FNC('from', 'date', 'caption=Към дата,silent,input');
+		$form->FNC('notInv', 'enum(yes=Да, no=Не)', 'caption=Без нефактурирано,silent,input');
 		
 		$this->invoke('AfterAddEmbeddedFields', array($form));
 	}
@@ -110,15 +111,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		
 		// търсим всички продажби, които са на този книент и са активни
 		$querySales = sales_Sales::getQuery();
-		
-		if (isset($data->rec->from))  { 
-			// коя е текущата ни валута
-			$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId($data->rec->from),'code');
-			$querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND (#state = 'active' AND #valior <= '{$data->rec->from}')");		
-		} else {
-			$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId(dt::now()),'code');
-			$querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND #state = 'active'");		
-		}
+	
+		// коя е текущата ни валута
+		$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId($data->rec->from),'code');
+		$querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND (#state = 'active' AND #valior <= '{$data->rec->from}')");		
 	
 		while ($recSale = $querySales->fetch()) {
 	
@@ -166,7 +162,17 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				    $amountVat =  $invRec->dealValue + $invRec->vatAmount; 
 
 				    $index = "92|{$contragentItem->id}|{$saleItem->id}|{$currencyItem->id}";
-					$toPaid = $balHistory['summary']['blAmount']; 
+				    
+				    $toPaid = $balHistory['summary']['blAmount'];
+	
+				    if($data->rec->notInv == "yes") {
+				        $toPaid = $balHistory['summary']['creditAmount'] - $data->notInv;
+				        
+				        if($toPaid < 0) {
+				            $toPaid = $balHistory['summary']['baseAmount'] - $data->notInv;
+				        }
+				    }   
+		
 					// правим рековете
 					$data->recs[] = (object) array ("contragentCls" => $contragentCls,
 													'contragentId' => $contragentId,
@@ -287,7 +293,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		}
 
 		// правим един служебен ред за нефактурирано
-		if($data->notInv){
+		if($data->notInv && $mvc->innerForm->notInv == "no"){
 
 				$row = new stdClass();
 				$row->contragent = "--------";

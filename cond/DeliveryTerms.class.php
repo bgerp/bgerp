@@ -22,19 +22,19 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Clone';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито, state';
+    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'costCalc, calcCost';
+    public $hideListFieldsIfEmpty = 'costCalc, calcCost, lastUsedOn';
     
     
     /**
@@ -122,6 +122,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->setDbUnique('codeName');
     }
@@ -297,5 +298,16 @@ class cond_DeliveryTerms extends core_Master
     	}
     	
     	return $deliveryCode;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec->lastUsedOn)){
+    		$res = 'no_one';
+    	}
     }
 }

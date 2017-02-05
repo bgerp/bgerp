@@ -380,17 +380,14 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Връща цената за посочения продукт към посочения клиент на посочената дата
 	 *
-	 * @param mixed $customerClass - клас на контрагента
-	 * @param int $customerId - ид на контрагента
-	 * @param int $productId - ид на артикула
-	 * @param int $packagingId - ид на опаковка
-	 * @param double $quantity - количество
-	 * @param datetime $datetime - дата
-	 * @param double $rate  - валутен курс
-	 * @param yes|no|separate|export $chargeVat - начин на начисляване на ддс
-	 * @return double|NULL $price  - цена
+	 * @param mixed $customerClass   - клас на контрагента
+	 * @param int $customerId        - ид на контрагента
+	 * @param mixed $Embedder        - Ембедъра
+	 * @param int $rec               - запис на ембедъра
+	 * @param datetime $datetime     - дата
+	 * @return double|NULL $price    - цена
 	 */
-	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	public function getPrice($customerClass, $customerId, $Embedder, $rec, $datetime)
 	{
 		return NULL;
 	}

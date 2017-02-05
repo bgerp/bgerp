@@ -559,10 +559,11 @@ class acc_CostAllocations extends core_Manager
 	
 				// Задаване на к-то и приспадане
 				$r->quantity = $dRec->quantity;
-				 
+				
 				// Какво к-во остава за разпределяне
 				$quantity -= $r->quantity;
-				 
+				$quantity = round($quantity, 8);
+				
 				// Ако няма следващ обект и цялото к-во е разпределено
 				if(!is_object($nextRec) && $quantity <= 0){
 	
@@ -583,7 +584,7 @@ class acc_CostAllocations extends core_Manager
 				// Добавяне на редовете
 				$res[] = $r;
 			}
-	
+			
 			// Ако има неразпределено количество
 			if($quantity > 0){
 				 

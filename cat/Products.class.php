@@ -300,7 +300,7 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
-        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
+        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
 		
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
@@ -1897,7 +1897,7 @@ class cat_Products extends embed_Manager {
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на оферта');
     		}
     	} elseif($data->rec->state != 'rejected'){
-    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $data->rec->threadId))){
+    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $data->rec->threadId, 'originId' => $data->rec->containerId))){
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за артикула');
     		}
     	}

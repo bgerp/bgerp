@@ -67,6 +67,7 @@ class cond_Setup  extends core_ProtoSetup
     		'migrate::deleteOldPaymentTime1',
     		'migrate::deleteParams2',
             'migrate::deleteOldPaymentMethods',
+    		'migrate::deleteParams3'
         );
 
     
@@ -81,7 +82,7 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings";
+    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url";
     
     
 	/**
@@ -226,6 +227,24 @@ class cond_Setup  extends core_ProtoSetup
     	}
     	
     	if($f2 = cond_Parameters::fetch("#name = 'Други условия към фактура (английски)'")){
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f2->id}");
+    		cond_Parameters::delete($f2->id);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на условия
+     */
+    function deleteParams3()
+    {
+    	if($f1 = cond_Parameters::fetch("#sysId = 'commonConditionSaleEng'")){
+    		
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f1->id}");
+    		cond_Parameters::delete($f1->id);
+    	}
+    	
+    	if($f2 = cond_Parameters::fetch("#sysId = 'commonConditionPurEng'")){
     		cond_ConditionsToCustomers::delete("#conditionId = {$f2->id}");
     		cond_Parameters::delete($f2->id);
     	}

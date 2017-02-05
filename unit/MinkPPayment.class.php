@@ -1482,7 +1482,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '008+03*08');//32
-        $browser->setValue('packPrice', '010+3*0,8');//12.4
+        $browser->setValue('packPrice', '006-7*0,8');//0.4
         $browser->setValue('discount', 3);
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
@@ -1497,12 +1497,12 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Отстъпка: BGN 133,59')) {
+        if(strpos($browser->gettext(), 'Отстъпка: BGN 122,07')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
     
-        if(strpos($browser->gettext(), 'Хиляда четиристотин шестдесет и един BGN и 0,01')) {
+        if(strpos($browser->gettext(), 'Хиляда осемдесет и осем BGN и 0,53')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
