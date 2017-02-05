@@ -205,6 +205,16 @@ class core_Lg extends core_Manager
             $lg = core_Lg::getCurrent();
         }
 
+        if(strpos($kstring, ' » ')) {
+            $fArr = explode(' » ', $kstring);
+
+            foreach($fArr as $f) {
+                $resArr[] = self::translate($f, $key, $lg);
+            }
+            
+            return implode(' » ', $resArr);
+        }
+
         if (!$key) {
             // Разбиваме стринга на участъци, който са разделени със символа '|'
             $strArr = explode('|', $kstring);
