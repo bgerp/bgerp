@@ -85,4 +85,18 @@ class batch_definitions_Document extends batch_definitions_Proto
 		
 		return array("{$varcharClassId}" => $string, "{$dateClassId}" => $date);
 	}
+	
+	
+	/**
+	 * Подрежда подадените партиди
+	 *
+	 * @param array $batches - наличните партиди
+	 * 		['batch_name'] => ['quantity']
+	 * @param date|NULL $date
+	 * return void
+	 */
+	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
+	{
+		ksort($batches);
+	}
 }

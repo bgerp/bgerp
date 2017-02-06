@@ -132,7 +132,7 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$query = self::getQuery();
 		$query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
-		$query->orderBy('id', "ASC");
+		$query->orderBy('id', "DESC");
 		$batchDef = batch_Defs::getBatchDef($rInfo->productId);
 		
 		$count = 0;
