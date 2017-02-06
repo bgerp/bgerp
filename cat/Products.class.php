@@ -319,13 +319,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
-        
-        $this->FLD('meta', 'set(canSell=Продаваем,
-                                canBuy=Купуваем,
-                                canStore=Складируем,
-                                canConvert=Вложим,
-                                fixedAsset=Дълготраен актив,
-        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
+        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -632,7 +626,6 @@ class cat_Products extends embed_Manager {
     {
         // Полетата csv_ се попълват в loadSetupData
         // При 'Импорт' не се използват
-        
     	if(empty($rec->innerClass)){
     		$rec->innerClass = cls::get('cat_GeneralProductDriver')->getClassId();
     	}
@@ -961,15 +954,10 @@ class cat_Products extends embed_Manager {
      */					
     public static function getProductInfo($productId)
     {
-    	if(isset(self::$productInfos[$productId])){
-    		
-    		return self::$productInfos[$productId];
-    	}
+    	if(isset(self::$productInfos[$productId])) return self::$productInfos[$productId];
     	
     	// Ако няма такъв продукт връщаме NULL
-    	if(!$productRec = static::fetchRec($productId)) {
-    		return NULL;
-    	}
+    	if(!$productRec = static::fetchRec($productId)) return NULL;
     	
     	$res = new stdClass();
     	$res->packagings = array();
@@ -1932,7 +1920,6 @@ class cat_Products extends embed_Manager {
     public function getIcon($id)
     {
     	if($Driver = $this->getDriver($id)){
-    		
     		return $Driver->getIcon();
     	} else {
     		return 'img/16/error-red.png';
