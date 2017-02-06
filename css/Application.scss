@@ -2785,13 +2785,17 @@ fieldset.sharing-history {
 			}
 		}
 	}
-	select, input, textarea, .chzn-container-single .chzn-single, .chzn-container-active .chzn-single, .chzn-container-active .chzn-single-with-drop, .staticFormView .formFieldValue {
-		border: solid 1px #bbb;
-		-moz-border-radius: 2px !important;
-		-webkit-border-radius: 2px !important;
-		border-radius: 2px !important;
-		-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .08);
-		box-shadow: inset 0 1px 1px rgba(0, 0, 0, .08);
+	select, input, textarea, .chzn-container-single .chzn-single, .chzn-container-active .chzn-single, .chzn-container-active .chzn-single-with-drop, .staticFormView .formFieldValue, div.richEdit div.richedit-toolbar  {
+			border-color: #bbb;
+			-moz-border-radius: 2px !important;
+			-webkit-border-radius: 2px !important;
+			border-radius: 2px !important;
+			-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .08);
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, .08);
+
+		&.inputError {
+			border-color: red;
+		}
 	}
 	.select2-container--default .select2-selection--single, .select2-dropdown, .select2-container--default .select2-selection--multiple {
 		border: solid 1px #bbb;

@@ -358,7 +358,7 @@ class doc_Containers extends core_Manager
        
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, NULL, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         
-        $data->query->orderBy('#createdOn');
+        $data->query->orderBy('#createdOn, #id');
         
     	$threadId = Request::get('threadId', 'int');
         
@@ -2915,6 +2915,8 @@ class doc_Containers extends core_Manager
     function cron_Repair()
     {
         $cronPeriod = core_Cron::getPeriod(self::REPAIR_SYSTEM_ID);
+        
+        $cronPeriod *= 2;
         
         $from = dt::subtractSecs($cronPeriod);
         $to = dt::now();

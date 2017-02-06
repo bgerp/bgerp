@@ -75,7 +75,7 @@ class bgerp_plg_FLB extends core_Plugin
 		$roles = arr::make($mvc->canActivate);
 		$roles[] = 'admin';
 		$roles = implode('|', $roles);
-		$form->setFieldType('inCharge', "user(roles={$roles}, select=nick)");
+		$form->setFieldType('inCharge', "user(roles={$roles}, rolesForAll=officer)");
 	}
 	
 	

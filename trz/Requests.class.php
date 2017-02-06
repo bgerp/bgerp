@@ -209,6 +209,8 @@ class trz_Requests extends core_Master
 	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
 	        }
 	    	$rec->leaveDays = $days->workDays;
+	    	
+	    	
         }
     }
     
@@ -327,7 +329,7 @@ class trz_Requests extends core_Master
         $after1year = dt::addMonths(12, $now);
         $after1yearVerbal = dt::mysql2verbal($after1year,"d.m.Y");
 
-        if ($form->isSubmitted()) { 
+        if ($form->isSubmitted()) {
             // Размяна, ако периодите са объркани
             if(isset($form->rec->leaveFrom) && isset($form->rec->leaveTo) && ($form->rec->leaveFrom > $form->rec->leaveTo)) { 
                 $form->setError('leaveFrom, leaveTo', "Началната дата трябва да е по-малка от крайната");
@@ -343,6 +345,35 @@ class trz_Requests extends core_Master
             
             if(isset($form->rec->leaveTo) && ($form->rec->leaveTo > $after1year)) {
                 $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.");
+            }
+            
+            if(isset($form->rec->leaveDays)) {
+                $form->setWarning('leaveDays', "Броят  неприсъствени дни е {$form->rec->leaveDays}");
+            }
+            
+            // правим заявка към базата
+            $query = self::getQuery();
+            
+            // търсим всички молби, които са за текущия потребител
+            $query->where("#personId='{$form->rec->personId}'");
+            
+            if ($id) {
+                $query->where("#id != {$form->id}");
+            }
+            
+            $query->where("(#leaveFrom <= '{$form->rec->leaveFrom}' AND #leaveTo >= '{$form->rec->leaveFrom}')
+            OR
+            (#leaveFrom <= '{$form->rec->leaveTo}' AND #leaveTo >= '{$form->rec->leaveTo}')");
+            
+            $query->where("#state = 'active'");
+            
+            // за всяка една задача отговаряща на условията проверяваме
+            if ($recReq = $query->fetch()) {
+            
+            $link = ht::createLink("Молба за отпуска №{$recReq->id}", array('trz_Requests', 'single', $recReq->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/leaves.png");
+                // и изписваме предупреждение
+            	$form->setError('leaveFrom, leaveTo', "|Засичане по време с |*{$link}");
+            
             }
         }
     }
