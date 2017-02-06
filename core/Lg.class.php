@@ -290,7 +290,7 @@ class core_Lg extends core_Manager
         // Ако имаме превода в речника, го връщаме
         if (isset($this->dict[$lg][$key])) {
             $res = $this->dict[$lg][$key];
-        } elseif(in_array($kstring, $this->dict[$lg])) {
+        } elseif(is_array($this->dict[$lg]) && in_array($kstring, $this->dict[$lg])) {
             $res = $kstring;
         } else {
             // Ако и в базата нямаме превода, тогава приемаме, 
