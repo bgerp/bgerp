@@ -248,9 +248,10 @@ class core_Lg extends core_Manager
                 // Обикаляме и добавяме в речника фразите на английски и фразите, които не се превеждат
                 foreach ($strArr as $i => $phrase) {
                     if ($phrase === '' && $i >= 1) {
-                        $this->dict['en'][static::prepareKey($strArr[$i-1])] = $strArr[$i+1];
-                        if ($lg != 'en') {
-                            $this->dict[$lg][static::prepareKey($strArr[$i-1])] = $strArr[$i-1];
+                        $pKey = static::prepareKey($strArr[$i-1]);
+                        $this->dict['en'][] = $strArr[$i+1];
+                        if ($lg != 'en' && !isset($this->dict[$lg][$pKey])) {
+                            $this->dict[$lg][$pKey] = $strArr[$i-1];
                         }
                         unset($strArr[$i], $strArr[$i+1]);
                         continue;
