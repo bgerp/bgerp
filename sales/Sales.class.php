@@ -193,6 +193,7 @@ class sales_Sales extends deals_DealMaster
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
+    	'caseId'             => 'lastDocUser|lastDoc',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
@@ -397,15 +398,6 @@ class sales_Sales extends deals_DealMaster
         }
        
         $form->setOptions('bankAccountId', $options);
-        if($bankAccountId = bank_OwnAccounts::getCurrent('bankAccountId', FALSE)){
-        	$accountRec = bank_Accounts::fetch($bankAccountId);
-        	$bankCurrencyCode = currency_Currencies::getCodeById($accountRec->currencyId);
-        	
-        	if($rec->currencyId == $bankCurrencyCode){
-        		$form->setDefault('bankAccountId', $bankAccountId);
-        	}
-        }
-       
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         

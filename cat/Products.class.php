@@ -319,13 +319,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
-        
-        $this->FLD('meta', 'set(canSell=Продаваем,
-                                canBuy=Купуваем,
-                                canStore=Складируем,
-                                canConvert=Вложим,
-                                fixedAsset=Дълготраен актив,
-        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
+        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -632,7 +626,6 @@ class cat_Products extends embed_Manager {
     {
         // Полетата csv_ се попълват в loadSetupData
         // При 'Импорт' не се използват
-        
     	if(empty($rec->innerClass)){
     		$rec->innerClass = cls::get('cat_GeneralProductDriver')->getClassId();
     	}
@@ -961,15 +954,10 @@ class cat_Products extends embed_Manager {
      */					
     public static function getProductInfo($productId)
     {
-    	if(isset(self::$productInfos[$productId])){
-    		
-    		return self::$productInfos[$productId];
-    	}
+    	if(isset(self::$productInfos[$productId])) return self::$productInfos[$productId];
     	
     	// Ако няма такъв продукт връщаме NULL
-    	if(!$productRec = static::fetchRec($productId)) {
-    		return NULL;
-    	}
+    	if(!$productRec = static::fetchRec($productId)) return NULL;
     	
     	$res = new stdClass();
     	$res->packagings = array();
@@ -1932,7 +1920,6 @@ class cat_Products extends embed_Manager {
     public function getIcon($id)
     {
     	if($Driver = $this->getDriver($id)){
-    		
     		return $Driver->getIcon();
     	} else {
     		return 'img/16/error-red.png';
@@ -2591,5 +2578,80 @@ class cat_Products extends embed_Manager {
     	$accounts = arr::make($accounts, TRUE);
     	
     	return $accounts;
+    }
+    
+    
+    /**
+     * Намира цена на артикул по неговия код към текущата дата, в следния ред
+     * 
+     * 1. Мениджърска себестойност
+     * 2. Ако е вложим и има заместващи, себестойноста на този с най-голямо к-во във всички складове
+     * 3. Ако е производим и има търговска рецепта, цената по нея
+     * 4. Ако е складируем - средната му цена във всички складове
+     * 5. Ако не открие връща NULL
+     * 
+     * @param string $code
+     * @return NULL|double $primeCost
+     */
+    public function getPrimeCostByCode($code)
+    {
+    	// Имали такъв артикул?
+    	$product = self::getByCode($code);
+    	if(!$product) return NULL;
+    	
+    	$productId = $product->productId;
+    
+    	// Мениджърската му себестойност, ако има
+    	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
+    	if(!empty($primeCost)) return $primeCost;
+    	
+    	$pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore');
+    	
+    	// Ако е вложим
+    	if($pRec->canConvert == 'yes'){
+    		
+    		// Кои са му еквивалентните
+    		$similar = planning_ObjectResources::getEquivalentProducts($productId);
+    		
+    		// Подреждане на еквивалентните му, по к-то им във всички складове
+    		if(count($similar)){
+    			$orderArr = array();
+    			foreach ($similar as $k => $pId){
+    				if($k == $productId) continue;
+    				$query = store_Products::getQuery();
+    				$query->where("#productId = {$k}");
+    				$query->XPR('sum', 'double', 'SUM(#quantity)');
+    				$sum = $query->fetch()->sum;
+    				$orderArr["{$sum}"] = $k;
+    			}
+    			
+    			krsort($orderArr);
+    			$topKey = $orderArr[key($orderArr)];
+    			
+    			// Връщане на себестойноста на този с най-голямо количество
+    			if(!empty($topKey)){
+    				$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $topKey);
+    				if(!empty($primeCost)) return $primeCost;
+    			}
+    		}
+    	}
+    	
+    	// Ако е производим, и има търговска рецепта, цената по нея
+    	if($pRec->canManifacture == 'yes'){
+    		$bomId = cat_Products::getLastActiveBom($productId, 'sales');
+    		if(!empty($bomId)){
+    			$primeCost = cat_Boms::getBomPrice($bomId, 1, 0, 0, NULL, price_ListRules::PRICE_LIST_COST);
+    			if(!empty($primeCost)) return $primeCost;
+    		}
+    	}
+    	
+    	// Ако е складируем, средната му цена му във всички складове
+    	if($pRec->canStore == 'yes'){
+    		$primeCost = cat_Products::getWacAmountInStore(1, $productId, NULL);
+    		if(!empty($primeCost)) return $primeCost;
+    	}
+    	
+    	// Ако нищо не намери
+    	return NULL;
     }
 }

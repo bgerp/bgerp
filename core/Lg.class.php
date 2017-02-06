@@ -204,10 +204,25 @@ class core_Lg extends core_Manager
         if (!$lg) {
             $lg = core_Lg::getCurrent();
         }
-
+        
+        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
+            $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
+        
+            if(!$this->dict[$lg]) {
+                $query = self::getQuery();
+        
+                while($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
+                    $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
+                }
+                core_Cache::set('translationLG', $lg, $this->dict[$lg], 2 * 60 * 24, array('core_Lg'));
+            }
+        }
+        
         if(strpos($kstring, ' » ')) {
             $fArr = explode(' » ', $kstring);
-
+            
+            $resArr = array();
+            
             foreach($fArr as $f) {
                 $resArr[] = self::translate($f, $key, $lg);
             }
@@ -231,18 +246,20 @@ class core_Lg extends core_Manager
                 if($strArr[0] == '') {
                     unset($strArr[0]);
                 }
-
+                
                 // Обикаляме и добавяме в речника фразите на английски и фразите, които не се превеждат
                 foreach ($strArr as $i => $phrase) {
                     if ($phrase === '' && $i >= 1) {
-                        $this->dict['en'][static::prepareKey($strArr[$i-1])] = $strArr[$i+1];
-                        $this->dict[$lg][static::prepareKey($strArr[$i-1])] = $strArr[$i-1];
+                        $pKey = static::prepareKey($strArr[$i-1]);
+                        $this->dict['en'][$pKey] = $strArr[$i+1];
+                        if ($lg != 'en' && !isset($this->dict[$lg][$pKey])) {
+                            $this->dict[$lg][$pKey] = $strArr[$i-1];
+                        }
                         unset($strArr[$i], $strArr[$i+1]);
                         continue;
                     }
                 }
-
-
+                
                 foreach ($strArr as $i => $phrase) {
                     
                     if($phrase{0} === '*') {
@@ -257,8 +274,6 @@ class core_Lg extends core_Manager
                     }  else {
                         $translated[] = $this->translate($phrase);
                     }
-
-                    
                 }
                 
                 return implode('', $translated);
@@ -272,23 +287,10 @@ class core_Lg extends core_Manager
         
         $key = static::prepareKey($key);
         
-        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
-            $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
-            
-            if(!$this->dict[$lg]) {
-                $query = self::getQuery();
-                
-                while($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
-                    $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
-                }
-                core_Cache::set('translationLG', $lg, $this->dict[$lg], 2 * 60 * 24, array('core_Lg'));
-            }
-        }
-        
         // Ако имаме превода в речника, го връщаме
         if (isset($this->dict[$lg][$key])) {
             $res = $this->dict[$lg][$key];
-        } elseif(in_array($kstring, $this->dict[$lg])) {
+        } elseif(is_array($this->dict[$lg]) && in_array($kstring, $this->dict[$lg])) {
             $res = $kstring;
         } else {
             // Ако и в базата нямаме превода, тогава приемаме, 
@@ -312,7 +314,7 @@ class core_Lg extends core_Manager
             
             $res = $this->dict[$lg][$key];
         }
-
+        
         // Ако превеждаме на английски и в крайния текст има все-пак думи с кирилски символи,
         // опитваме се да преведем фразите // /\b([а-яА-Я ]*[а-яА-Я][а-яА-Я ]*)\b/u
         
