@@ -2916,6 +2916,8 @@ class doc_Containers extends core_Manager
     {
         $cronPeriod = core_Cron::getPeriod(self::REPAIR_SYSTEM_ID);
         
+        $cronPeriod *= 2;
+        
         $from = dt::subtractSecs($cronPeriod);
         $to = dt::now();
         
