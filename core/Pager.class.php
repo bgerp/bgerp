@@ -289,6 +289,14 @@ class core_Pager extends core_BaseClass
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
             $ids = implode(',', $ids);
             $query->where("#id IN ($ids)");
+
+            
+
+            foreach($query->where as $i => $cond) {
+                if((stripos($cond, 'match(')  !== FALSE) || (stripos($cond, 'locate(') !== FALSE)) {
+                    unset($query->where[$i]);
+                }
+            }
         } else {
             $this->calc();
             $query->limit(0);
