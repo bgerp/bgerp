@@ -249,7 +249,7 @@ class core_Lg extends core_Manager
                 foreach ($strArr as $i => $phrase) {
                     if ($phrase === '' && $i >= 1) {
                         $pKey = static::prepareKey($strArr[$i-1]);
-                        $this->dict['en'][] = $strArr[$i+1];
+                        $this->dict['en'][$pKey] = $strArr[$i+1];
                         if ($lg != 'en' && !isset($this->dict[$lg][$pKey])) {
                             $this->dict[$lg][$pKey] = $strArr[$i-1];
                         }
