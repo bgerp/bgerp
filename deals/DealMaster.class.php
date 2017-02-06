@@ -222,7 +222,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		$form->setDefault('valior', dt::now());
-		$form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 		
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
