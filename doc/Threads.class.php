@@ -331,7 +331,6 @@ class doc_Threads extends core_Manager
 
         while ($rec = $query->fetch()) {
             try {
-            
                 // Ако има нишка без firstContainerId
                 if (!isset($rec->firstContainerId)) {
                 
@@ -371,7 +370,7 @@ class doc_Threads extends core_Manager
                 }
                 
                 // Ако ще се поправя само partnerDocCnt и allDocCnt
-                if (!isset($rec->partnerDocCnt) || !isset($rec->allDocCnt)) {
+                if (!self::$updateQueue[$rec->id] && (!isset($rec->partnerDocCnt) || !isset($rec->allDocCnt))) {
                     $preparedDocCnt = FALSE;
                     $allDocCnt = $rec->allDocCnt;
                     if (!isset($rec->partnerDocCnt)) {
@@ -461,26 +460,33 @@ class doc_Threads extends core_Manager
                     }
                 }
                 
-                // Поправка за броя на документите
-                $cQuery = doc_Containers::getQuery();
-                $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
-                $cQuery->where("#state != 'rejected'");
-                
-                $pCQuery = clone $cQuery;
-                
-                // Ако се различава броя на документите
-                $cCnt = $cQuery->count();
-                
-                $partnerCnt = (int)$rec->partnerDocCnt;
-                $allDocCnt = (int)$rec->allDocCnt;
-                
                 $prepareDocCnt = FALSE;
-                if ($cCnt != $allDocCnt) {
-                    self::logNotice("Променен брой на документите от {$allDocCnt} на {$cCnt}", $rec->id);
-                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
-                    self::save($rec, 'allDocCnt');
-                    $resArr['allDocCnt']++;
-                    $prepareDocCnt = TRUE;
+                
+                // Поправка за броя на документите
+                if (!self::$updateQueue[$rec->id]) {
+                    $cQuery = doc_Containers::getQuery();
+                    $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
+                    $cQuery->where("#state != 'rejected'");
+                    
+                    $pCQuery = clone $cQuery;
+                    
+                    // Ако се различава броя на документите
+                    $cCnt = $cQuery->count();
+                    
+                    $partnerCnt = (int)$rec->partnerDocCnt;
+                    $allDocCnt = (int)$rec->allDocCnt;
+                    
+                    if ($cCnt != $allDocCnt) {
+                        self::logNotice("Променен брой на документите от {$allDocCnt} на {$cCnt}", $rec->id);
+                        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                        if ($allDocCnt) {
+                            self::updateThread($rec->id);
+                        } else {
+                            self::save($rec, 'allDocCnt');
+                        }
+                        $resArr['allDocCnt']++;
+                        $prepareDocCnt = TRUE;
+                    }
                 }
                 
                 // Поправяме състоянието, ако се е счупило
@@ -493,7 +499,7 @@ class doc_Threads extends core_Manager
                 }
                 
                 // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
-                if($cRec->visibleForPartners == 'yes') {
+                if($cRec->visibleForPartners == 'yes' && !self::$updateQueue[$rec->id]) {
                     // Ако се различава броя на документите, видими за партньори
                     $pCQuery->where("#visibleForPartners = 'yes'");
                     $pCCnt = $pCQuery->count();
@@ -506,7 +512,12 @@ class doc_Threads extends core_Manager
                         
                         self::logNotice("Променен брой на документите видими за партньори от {$partnerCnt} на {$pCCnt}", $rec->id);
                         
-                        self::save($rec, 'partnerDocCnt');
+                        if ($partnerCnt) {
+                            self::updateThread($rec->id);
+                        } else {
+                            self::save($rec, 'partnerDocCnt');
+                        }
+                        
                         $resArr['partnerDocCnt']++;
                     }
                 }
