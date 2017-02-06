@@ -479,7 +479,11 @@ class doc_Threads extends core_Manager
                     if ($cCnt != $allDocCnt) {
                         self::logNotice("Променен брой на документите от {$allDocCnt} на {$cCnt}", $rec->id);
                         self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
-                        self::save($rec, 'allDocCnt');
+                        if ($allDocCnt) {
+                            self::updateThread($rec->id);
+                        } else {
+                            self::save($rec, 'allDocCnt');
+                        }
                         $resArr['allDocCnt']++;
                         $prepareDocCnt = TRUE;
                     }
@@ -508,7 +512,12 @@ class doc_Threads extends core_Manager
                         
                         self::logNotice("Променен брой на документите видими за партньори от {$partnerCnt} на {$pCCnt}", $rec->id);
                         
-                        self::save($rec, 'partnerDocCnt');
+                        if ($partnerCnt) {
+                            self::updateThread($rec->id);
+                        } else {
+                            self::save($rec, 'partnerDocCnt');
+                        }
+                        
                         $resArr['partnerDocCnt']++;
                     }
                 }
