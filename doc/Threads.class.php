@@ -767,7 +767,8 @@ class doc_Threads extends core_Manager
     			$query->where("#firstDocState != 'draft' && #firstDocState != 'rejected'");
     		}
     		$query->show('firstDocumentClassId, state');
-    		
+    		$query->groupBy('firstDocumentClassId,state');
+
     		// Групираме записите по classId
     		while($rec = $query->fetch()){
     			$index = ($rec->state == 'rejected') ? 'rejected' : 'notrejected';
