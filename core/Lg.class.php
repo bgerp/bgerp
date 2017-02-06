@@ -220,7 +220,9 @@ class core_Lg extends core_Manager
         
         if(strpos($kstring, ' » ')) {
             $fArr = explode(' » ', $kstring);
-
+            
+            $resArr = array();
+            
             foreach($fArr as $f) {
                 $resArr[] = self::translate($f, $key, $lg);
             }
