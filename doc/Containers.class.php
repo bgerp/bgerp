@@ -358,7 +358,7 @@ class doc_Containers extends core_Manager
        
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, NULL, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         
-        $data->query->orderBy('#createdOn');
+        $data->query->orderBy('#createdOn, #id');
         
     	$threadId = Request::get('threadId', 'int');
         
