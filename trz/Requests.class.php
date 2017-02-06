@@ -329,7 +329,7 @@ class trz_Requests extends core_Master
         $after1year = dt::addMonths(12, $now);
         $after1yearVerbal = dt::mysql2verbal($after1year,"d.m.Y");
 
-        if ($form->isSubmitted()) {  bp($form);
+        if ($form->isSubmitted()) {
             // Размяна, ако периодите са объркани
             if(isset($form->rec->leaveFrom) && isset($form->rec->leaveTo) && ($form->rec->leaveFrom > $form->rec->leaveTo)) { 
                 $form->setError('leaveFrom, leaveTo', "Началната дата трябва да е по-малка от крайната");
