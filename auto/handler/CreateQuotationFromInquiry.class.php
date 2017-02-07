@@ -186,6 +186,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	
     	$rec = $form->rec;
     	$productId = $Products->save($rec);
+    	doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE, FALSE, $marketingRec->createdBy);
     	
     	return $productId;
     }
