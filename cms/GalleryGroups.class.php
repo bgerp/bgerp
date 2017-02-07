@@ -2,17 +2,17 @@
 
 
 /**
- * Клас 'fileman_GalleryGroups' - групи от картинки
+ * Клас 'cms_GalleryGroups' - групи от картинки
  *
  *
  * @category  bgerp
- * @package   fileman
+ * @package   cms
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_GalleryGroups extends core_Manager
+class cms_GalleryGroups extends core_Manager
 {
     
     
@@ -63,7 +63,7 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created, plg_Modified, fileman_GalleryTitlePlg, plg_Clone, plg_State2, fileman_GalleryDialogWrapper";
+    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created, plg_Modified, cms_GalleryTitlePlg, plg_Clone, plg_State2, cms_GalleryDialogWrapper";
     
     
     /**
@@ -74,7 +74,7 @@ class fileman_GalleryGroups extends core_Manager
     
     /**
      * Името на полето, което ще се използва от плъгина
-     * @see fileman_GalleryTitlePlg
+     * @see cms_GalleryTitlePlg
      */
     var $galleryTitleFieldName = 'title';
     
@@ -82,7 +82,7 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'cms_GalleryGroups';
+    var $oldClassName = 'fileman_GalleryGroups';
     
     
     /**
@@ -121,7 +121,7 @@ class fileman_GalleryGroups extends core_Manager
     public function loadSetupData()
     {
     	// Пътя до файла с данните 
-    	$file = "fileman/csv/GalleryGroups.csv";
+    	$file = "cms/csv/GalleryGroups.csv";
     	
     	// Кои колонки ще вкарваме
     	$fields = array( 
@@ -181,7 +181,7 @@ class fileman_GalleryGroups extends core_Manager
     {
         
         // По подразбиране да се използва групата централни
-        return fileman_GalleryGroups::fetchField("#title = 'Централни'");
+        return cms_GalleryGroups::fetchField("#title = 'Централни'");
     }
     
     
@@ -211,7 +211,7 @@ class fileman_GalleryGroups extends core_Manager
             }
             
             if ($action == 'usegroup') {
-                $groupQuery = fileman_GalleryGroups::getQuery();
+                $groupQuery = cms_GalleryGroups::getQuery();
                 $mvc->restrictQuery($groupQuery, $userId);
                 $groupQuery->where($rec->id);
                 $groupQuery->limit(1);
@@ -226,7 +226,7 @@ class fileman_GalleryGroups extends core_Manager
         if ($requiredRoles != 'no_one' && $rec && $action == 'delete') {
             
             // Да не могат да се трият групи, които са използвани в картиниките
-            if (fileman_GalleryImages::fetch("#groupId = '{$rec->id}'")) {
+            if (cms_GalleryImages::fetch("#groupId = '{$rec->id}'")) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -413,7 +413,7 @@ class fileman_GalleryGroups extends core_Manager
      * Подготвя полето за заглавие
      * 
      * @param object $rec
-     * @see fileman_GalleryTitlePlg
+     * @see cms_GalleryTitlePlg
      */
     function prepareRecTitle(&$rec)
     {

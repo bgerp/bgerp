@@ -214,11 +214,11 @@ class bgerp_F extends core_Manager
         }
         
         // Запис за картинката
-        $imgRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $name));
+        $imgRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $name));
         expect($imgRec, 'Няма информация за файла');
         
         // Запис за групата
-        $groupRec = fileman_GalleryGroups::fetch($imgRec->groupId);
+        $groupRec = cms_GalleryGroups::fetch($imgRec->groupId);
         expect($groupRec, 'Няма информация за файла');
         
         // Широчината и височината на картинката
@@ -239,7 +239,7 @@ class bgerp_F extends core_Manager
             // Форсираме свалянето му
             $Img->forceDownload();
         } else {
-            if (fileman_GalleryImages::haveRightFor('single', $imgRec)) {
+            if (cms_GalleryImages::haveRightFor('single', $imgRec)) {
                 
                 // Вземаме деферед URL
                 $url = $Img->getUrl('deferred');

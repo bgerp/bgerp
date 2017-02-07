@@ -2552,7 +2552,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Намираме прикачените файлове
-        $res = array_merge(fileman_GalleryRichTextPlg::getImages($rec->body), (array)$res);
+        $res = array_merge(cms_GalleryRichTextPlg::getImages($rec->body), (array)$res);
     }
     
     
