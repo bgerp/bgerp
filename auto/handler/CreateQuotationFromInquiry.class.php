@@ -119,9 +119,8 @@ class auto_handler_CreateQuotationFromInquiry {
     	if(!$Driver) return;
     	
     	// Може ли да се намери дефолтната цена за артикула
-    	$defPrice = $Driver->getPrice($Cover->getClassId(), $Cover->that, 'marketing_Inquiries2', $marketingRec, $marketingRec->createdOn);
-    	if(empty($defPrice)) {
-    		marketing_Inquiries2::logDebug("Не мжое да се създава артикул от запитването, защото драйвера не връща цена", $marketingRec->id);
+    	if($Driver->canAutoCalcPrimeCost($marketingRec) !== TRUE) {
+    		marketing_Inquiries2::logDebug("Не може да се създава артикул от запитването, защото драйвера не връща цена", $marketingRec->id);
     		return;
     	}
     	

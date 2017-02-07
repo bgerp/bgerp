@@ -208,6 +208,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
+	 * Може ли драйвера автоматично да си изчисли себестойноста
+	 * 
+	 * @param mixed $productId - запис или ид
+	 * @return boolean
+	 */
+	public function canAutoCalcPrimeCost($productId)
+	{
+		return $this->class->canCalcPrice($productId);
+	}
+	
+	
+	/**
 	 * Връща дефолтната дефиниция за шаблон на партидна дефиниция
 	 * 
 	 * @param mixed $id - ид или запис на артикул

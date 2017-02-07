@@ -394,6 +394,18 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
+	 * Може ли драйвера автоматично да си изчисли себестойноста
+	 * 
+	 * @param mixed $productId - запис или ид
+	 * @return boolean
+	 */
+	public function canAutoCalcPrimeCost($productId)
+	{
+		return FALSE;
+	}
+	
+	
+	/**
 	 * Връща дефолтната дефиниция за шаблон на партидна дефиниция
 	 * 
 	 * @param mixed $id - ид или запис на артикул
