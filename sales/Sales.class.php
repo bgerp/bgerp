@@ -444,9 +444,10 @@ class sales_Sales extends deals_DealMaster
     		if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
 	    	} else {
+	    		$exClosedDeal = sales_ClosedDeals::fetchField("#threadId = {$rec->threadId} AND #state != 'rejected'", 'id');
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но не може да го използва
-	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales')){
+	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales') && empty($exClosedDeal)){
 	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото");
 	    		}
 	    	}
