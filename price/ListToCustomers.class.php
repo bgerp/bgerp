@@ -331,10 +331,13 @@ class price_ListToCustomers extends core_Manager
         	if($isProductPublic == 'no'){
         		 
         		$rec = (object)array('price' => NULL);
-        		 
+        		
+        		$defPriceListId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
+        		$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $defPriceListId);
+        		
         		// Ако драйвера може да върне цена, връщаме нея
         		if($Driver = cat_Products::getDriver($productId)){
-        			$price = $Driver->getPrice($customerClass, $customerId, 'cat_Products', $productId, $datetime);
+        			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime);
         			if(isset($price)){
         				$rec->price = $price;
         				return $rec;
@@ -357,9 +360,6 @@ class price_ListToCustomers extends core_Manager
         		 
         		// Ако има рецепта връщаме по нея
         		if($bomRec){
-        			$defPriceListId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
-        			$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $defPriceListId);
-        			
         			$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
         			if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
         				$defPriceListId = price_ListRules::PRICE_LIST_COST;
@@ -391,7 +391,7 @@ class price_ListToCustomers extends core_Manager
      * 
      * @param mixed $customerClass - ид на клас на контрагента
      * @param int $customerId      - ид на контрагента
-     * @param iny $defPriceListId  - ценоразпис
+     * @param int $defPriceListId  - ценоразпис
      * @return object $res		   - масив с надценката и отстъпката
      * 				 o minDelta  - минималната отстъпка
      * 				 o maxDelta  - максималната надценка
