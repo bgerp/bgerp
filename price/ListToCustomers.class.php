@@ -33,7 +33,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, price_Wrapper, plg_RowTools';
+    public $loadList = 'plg_Created, price_Wrapper, plg_RowTools2';
                     
     
     /**
@@ -51,7 +51,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'ceo';
     
     
     /**
