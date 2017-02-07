@@ -146,6 +146,16 @@ class auto_Calls extends core_Manager
 		$res = '';
 		$now = dt::now();
 		
+		// Ако процеса е заключен не се изпълнява
+		$lockKey = "DoAutomations";
+		if(!core_Locks::get($lockKey, 60, 1)) {
+			$this->logWarning("Извършването на автоматизации е заключено от друг процес");
+			return;
+		}
+		
+		// Ако има чакащи автоматики
+		if(!self::count()) return;
+		
 		// Взимане на всички класове поддържащи автоматизации
 		$automationClasses = core_Classes::getOptionsByInterface('auto_AutomationIntf');
 		
@@ -174,7 +184,7 @@ class auto_Calls extends core_Manager
 						$Automation->doAutomation($rec->event, $rec->data);
 					}
 				}
-			} catch (Exception $e){
+			} catch (core_exception_Expect $e){
 				self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
 				self::logDebug($e->getTraceAsString(), $rec);
 				$status = 'неуспешно';
@@ -184,6 +194,9 @@ class auto_Calls extends core_Manager
 			self::logInfo("Изтриване на {$status} изпълнена автоматизация '{$rec->event}'");
 			self::delete($rec->id);
 		}
+		
+		// Освобождаваме заключването на процеса
+		core_Locks::release($lockKey);
 		
 		// Връщане на резултат
 		return $res;

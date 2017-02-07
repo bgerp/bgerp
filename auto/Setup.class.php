@@ -59,6 +59,21 @@ class auto_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    				'systemId' => "Do automations",
+    				'description' => "Извършване на автоматизации",
+    				'controller' => "auto_Calls",
+    				'action' => "Automations",
+    				'period' => 1,
+    				'offset' => 0,
+    				'timeLimit' => 100
+    		));
+    		
+
+    /**
      * Инсталиране на пакета
      */
     function install()
