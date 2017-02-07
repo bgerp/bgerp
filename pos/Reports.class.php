@@ -134,6 +134,7 @@ class pos_Reports extends core_Master {
     	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен,stopped=Спряно)', 'caption=Състояние,input=none,width=8em');
     	$this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
+    	$this->FLD('closedOn', 'datetime', 'input=none');
     }
     
     
@@ -757,7 +758,8 @@ class pos_Reports extends core_Master {
     	// Затваряме всеки отчет, след затварянето автоматично ще му се затвори и перото
     	while($rec = $query->fetch()){
     		$rec->state = 'closed';
-    		$this->save($rec, 'state');
+    		$rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $rec->createdOn);
+    		$this->save($rec, 'state,closedOn');
     	}
     }
 }
