@@ -65,6 +65,7 @@ class fileman_GalleryDialogWrapper extends core_Plugin
         		
             .galleryPicture { background-image:url('" . sbf('img/16/picture.png', '') . "');}
             .galleryGallery { background-image:url('" . sbf('img/16/photos.png', '') . "');}
+            .galleryGroups { background-image:url('" . sbf('img/16/grouping.png', '') . "');}
 
             </style>");
         
@@ -90,7 +91,11 @@ class fileman_GalleryDialogWrapper extends core_Plugin
 	 */
     function on_AfterGetGalleryTabsArr($mvc, &$tabs)
     {
-        $tabs['galleryPicture'] = array('caption' => 'Добавяне', 'Ctr' => $mvc, 'Act' => 'addImgDialog');
-        $tabs['galleryGallery'] = array('caption' => 'Картинки', 'Ctr' => $mvc, 'Act' => 'galleryDialog');
+        $tabs['galleryPicture'] = array('caption' => 'Добавяне', 'Ctr' => 'fileman_GalleryImages', 'Act' => 'addImgDialog');
+        $tabs['galleryGallery'] = array('caption' => 'Картинки', 'Ctr' => 'fileman_GalleryImages', 'Act' => 'galleryDialog');
+        
+        if (fileman_GalleryGroups::haveRightFor('list')) {
+            $tabs['galleryGroups'] = array('caption' => 'Групи', 'Ctr' => 'fileman_GalleryGroups', 'Act' => 'dialogList');
+        }
     }
 }

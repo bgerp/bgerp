@@ -281,10 +281,6 @@ class bgerp_Setup extends core_ProtoSetup {
         // Да се изтрият необновените менюта
         $Menu->deleteNotInstalledMenu = TRUE;
         
-        
-        $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Files', 'default', 'powerUser');
-
-
         $rec = new stdClass();
         $rec->systemId = "DeleteOldRecently";
         $rec->description = "Изтриване на изтеклите Recently";

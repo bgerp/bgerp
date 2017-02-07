@@ -25,14 +25,12 @@ class fileman_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('fileman_Files', 'Файлове');
         $this->TAB('fileman_Log', 'Последни', 'debug');
-        $this->TAB('fileman_GalleryImages', 'Галерия->Картинки', 'user');
-        $this->TAB('fileman_GalleryGroups', 'Галерия->Групи', 'user');
         $this->TAB('fileman_Versions', 'Версии', 'debug');
-        $this->TAB('fileman_Buckets', 'Кофи');
+        $this->TAB('fileman_Buckets', 'Кофи', 'admin, debug');
         $this->TAB('fileman_Download', 'Сваляния', 'debug');
         $this->TAB('fileman_Data', 'Данни', 'debug');
         $this->TAB('fileman_Indexes', 'Индекси', 'debug');
-        $this->TAB('fileman_Repositories', 'Хранилища', 'admin');
+        $this->TAB('fileman_Repositories', 'Хранилища', 'admin, debug');
         
         $this->title = 'Файлове';
        

@@ -63,13 +63,13 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,plg_Created, plg_Modified, fileman_GalleryTitlePlg, plg_Clone, plg_State2";
+    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created, plg_Modified, fileman_GalleryTitlePlg, plg_Clone, plg_State2, fileman_GalleryDialogWrapper";
     
     
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,title,roles,sharedTo,tWidth,tHeight,width,height,createdOn,createdBy,state';
+    var $listFields = 'id,title,position,roles,sharedTo,tWidth,tHeight,width,height,createdOn,createdBy,state';
     
     
     /**
@@ -83,6 +83,12 @@ class fileman_GalleryGroups extends core_Manager
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'cms_GalleryGroups';
+    
+    
+    /**
+     * Брой елементи при показване на страница в диалогов прозорец
+     */
+    var $galleryListItemsPerPage = 10;
     
     
     /**
@@ -420,5 +426,153 @@ class fileman_GalleryGroups extends core_Manager
             // Определяме заглавието от името на файла
             $rec->{$titleField} = $rec->position;
         }
+    }
+    
+    
+    /**
+     * Екшън за показване на диалогов прозорец за с изображенията в галерията
+     */
+    function act_DialogList()
+    {
+        Mode::set('dialogOpened', TRUE);
+        
+        // Очакваме да е има права за добавяне
+        $this->requireRightFor('list');
+    
+        // Обект с необходомите данни
+        $data = new stdClass();
+    
+        // Създаваме заявката
+        $data->query = $this->getQuery();
+    
+        // Подготвяме филтъра
+        $this->prepareListFilter($data);
+    
+        // По - новите добавени да са по - напред
+        $data->query->orderBy("#createdOn", "DESC");
+        
+        Request::setProtected('callback');
+        
+        // Функцията, която ще се извика
+        $data->callback = $this->callback = Request::get('callback', 'identifier');
+        
+        // Титлата на формата
+        $data->title = 'Групи в галерия';
+    
+        // Брой елементи на страница
+        $this->listItemsPerPage = $this->galleryListItemsPerPage;
+    
+        // Подготвяме навигацията по страници
+        $this->prepareListPager($data);
+    
+        // Подготвяме записите за таблицата
+        $this->prepareListRecs($data);
+        
+        $data->listFields = 'position,title,tWidth,tHeight,width,height';
+        
+        // Вербалната стойност на записите
+        $this->prepareListRows($data);
+        
+        // Рендираме изгледа
+        $tpl = $this->renderGalleryDialogList($data);
+    
+        // Задаваме врапера
+        Mode::set('wrapper', 'page_Dialog');
+    
+        // Добавяме бутона за затваряне
+        $tpl->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
+    
+        // Рендираме опаковката
+        $tpl = $this->renderDialog($tpl);
+    
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготвя вербалната стойност на данните
+     * 
+     * @param stdObject
+     * 
+     * @return stdObject
+     * 
+     * @see core_Manager::prepareListRows_()
+     */
+    function prepareListRows_(&$data)
+    {
+        parent::prepareListRows_($data);
+        
+        if (Mode::is('dialogOpened') && is_array($data->rows)) {
+            foreach ($data->rows as $id => $row) {
+                if ($data->recs[$id]->tWidth && $data->recs[$id]->tHeight) {
+                    $row->tWH = $row->tWidth . '/' . $row->tHeight;
+                } elseif ($data->recs[$id]->tWidth) {
+                    $row->tWH = $row->tWidth . '/...';
+                } elseif ($data->recs[$id]->tHeight) {
+                    $row->tWH = '.../' . $row->tHeight;
+                }
+                
+                if ($data->recs[$id]->width && $data->recs[$id]->height) {
+                    $row->WH = $row->width . '/' . $row->height;
+                } elseif ($data->recs[$id]->width) {
+                    $row->WH = $row->width . '/...';
+                } elseif ($data->recs[$id]->height) {
+                    $row->WH = '.../' . $row->height;
+                }
+            }
+        }
+        
+        return $data;
+    }
+    
+    
+    /**
+     * Рендираме общия изглед за 'List'
+     */
+    function renderGalleryDialogList($data)
+    {
+        // Рендираме общия лейаут
+        $tpl = new ET("
+            <div>
+                [#ListTitle#]
+                <div class='top-pager'> 
+                	[#ListPagerTop#]
+                </div>
+                <div class='galleryListTable'>
+                	[#ListTable#]
+        		</div>
+            </div>
+        ");
+        
+        // Попълваме титлата
+        $tpl->append($this->renderListTitle($data), 'ListTitle');
+        
+        // Попълваме горния страньор
+        $tpl->append($this->renderListPager($data), 'ListPagerTop');
+        
+        // Попълваме таблицата с редовете
+        $tpl->append($this->renderGalleryDialogListTable($data), 'ListTable');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендира таблицата за показване в диалоговия прозорец на галерията
+     * 
+     * @param stdObject $data
+     */
+    function renderGalleryDialogListTable($data)
+    {
+        // Инстанция на класа
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        
+        // Полетата, които ще се показва
+        $listFields = array('title' => 'Заглавие', 'position' => 'Позиция', 'WH' => 'Размери->Картинка', 'tWH' => 'Размери->Тъмб');    
+        
+        // Рендираме таблицата
+        $tpl = $table->get($data->rows, $listFields);
+        
+        return new ET("<div class='listRows'>[#1#]</div>", $tpl);
     }
 }
