@@ -60,7 +60,6 @@ class auto_Calls extends core_Manager
 		$this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
 		$this->FLD('event', 'varchar(128)', 'caption=Събитие');
 	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни,column=none');
-	    $this->FLD('calledOn', 'datetime(format=smartTime)', 'caption=Изпълнено');
 	    $this->FLD('state', 'enum(waiting=Чакащо,locked=Заключено,closed=Затворено)', 'caption=Състояние, input=none');
 	}
 	
@@ -78,7 +77,6 @@ class auto_Calls extends core_Manager
 		$nRec->event = $event;
 		$nRec->data = $data;
 		$nRec->state = 'waiting';
-		$nRec->calledOn = NULL;
 
 		// Ако ще се изпълнява само веднъж, трябва да е уникално
 		if ($once === TRUE) {
