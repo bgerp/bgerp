@@ -104,11 +104,6 @@ class auto_Calls extends core_Manager
 		if(haveRole('admin,debug,ceo')){
 			$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
 		}
-		
-		// Бутон за тестване
-		if(haveRole('admin,debug,ceo')){
-			$data->toolbar->addBtn('Изпълни', array($mvc, 'run'), 'ef_icon=img/16/media_playback_start.png');
-		}
 	}
 	
 	
@@ -123,16 +118,6 @@ class auto_Calls extends core_Manager
 		self::truncate();
 	
 		return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
-	}
-	
-	
-	/**
-	 * Екшън за тестване
-	 */
-	function act_Run()
-	{
-		requireRole('admin,debug,ceo');
-		$this->cron_Automations();
 	}
 	
 	
