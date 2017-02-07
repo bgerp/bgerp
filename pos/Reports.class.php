@@ -754,11 +754,12 @@ class pos_Reports extends core_Master {
     	$query->where("#state = 'active'");
     	$query->where("#createdOn <= '{$oldBefore}'");
     	$query->limit($conf->POS_CLOSE_REPORTS_PER_TRY);
+    	$now = dt::now();
     	
     	// Затваряме всеки отчет, след затварянето автоматично ще му се затвори и перото
     	while($rec = $query->fetch()){
     		$rec->state = 'closed';
-    		$rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $rec->createdOn);
+    		$rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
     		$this->save($rec, 'state,closedOn');
     	}
     }
