@@ -127,6 +127,12 @@ class price_Lists extends core_Master
     
     
     /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
