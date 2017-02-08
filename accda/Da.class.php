@@ -134,6 +134,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -227,20 +233,6 @@ class accda_Da extends core_Master
     
     
     /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $folderCover = doc_Folders::getCover($folderId);
-        
-        return $folderCover->haveInterface('accda_DaFolderCoverIntf');
-    }
-    
-    
-    /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
@@ -320,15 +312,6 @@ class accda_Da extends core_Master
         if(Mode::is('printing') || Mode::is('text', 'xhtml')){
             $tpl->removeBlock('header');
         }
-    }
-    
-    
-    /**
-     * В корици на папки с какви интерфейси може да се слага
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-        return array('accda_DaFolderCoverIntf');
     }
     
     
