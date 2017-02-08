@@ -188,30 +188,7 @@ class trz_Requests extends core_Master
      */
     public static function on_BeforeSave($mvc, &$id, $rec)
     {
-        if($rec->leaveFrom &&  $rec->leaveTo){
-        	
-        	$state = hr_EmployeeContracts::getQuery();
-	        $state->where("#personId='{$rec->personId}'");
-	        
-	        if($employeeContractDetails = $state->fetch()){
-	           
-	        	$employeeContract = $employeeContractDetails->id;
-	        	$department = $employeeContractDetails->departmentId;
-	        	
-	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-	        	if($schedule == FALSE){ 
-	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
-	        	} else {
-	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
-	        	}
-	        } else {
-        	
-	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
-	        }
-	    	$rec->leaveDays = $days->workDays;
-	    	
-	    	
-        }
+        
     }
     
     
@@ -347,8 +324,34 @@ class trz_Requests extends core_Master
                 $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.");
             }
             
-            if(isset($form->rec->leaveDays)) {
-                $form->setWarning('leaveDays', "Броят  неприсъствени дни е {$form->rec->leaveDays}");
+            // изисляване на бр дни отпуска
+            if($form->rec->leaveFrom &&  $form->rec->leaveTo){
+                 
+                $state = hr_EmployeeContracts::getQuery();
+                $state->where("#personId='{$rec->personId}'");
+                 
+                if($employeeContractDetails = $state->fetch()){
+            
+                    $employeeContract = $employeeContractDetails->id;
+                    $department = $employeeContractDetails->departmentId;
+            
+                    $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
+                    if($schedule == FALSE){
+                        $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $form->rec->leaveFrom, $form->rec->leaveTo);
+                    } else {
+                        $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
+                    }
+                } else {
+                     
+                    $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
+                }
+            
+                $form->rec->leaveDays = $days->workDays;
+            }
+          
+            // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
+            if(!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
+                $form->setError('leaveDays', "Броят  неприсъствени дни е 0");
             }
             
             // правим заявка към базата
@@ -360,14 +363,14 @@ class trz_Requests extends core_Master
             if ($id) {
                 $query->where("#id != {$form->id}");
             }
-            
+            // търсим времево засичане
             $query->where("(#leaveFrom <= '{$form->rec->leaveFrom}' AND #leaveTo >= '{$form->rec->leaveFrom}')
             OR
             (#leaveFrom <= '{$form->rec->leaveTo}' AND #leaveTo >= '{$form->rec->leaveTo}')");
             
             $query->where("#state = 'active'");
             
-            // за всяка една задача отговаряща на условията проверяваме
+            // за всяка една молба отговаряща на условията проверяваме
             if ($recReq = $query->fetch()) {
             
             $link = ht::createLink("Молба за отпуска №{$recReq->id}", array('trz_Requests', 'single', $recReq->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/leaves.png");
@@ -375,6 +378,8 @@ class trz_Requests extends core_Master
             	$form->setError('leaveFrom, leaveTo', "|Засичане по време с |*{$link}");
             
             }
+            
+            
         }
     }
  

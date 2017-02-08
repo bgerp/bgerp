@@ -60,7 +60,6 @@ class auto_Calls extends core_Manager
 		$this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
 		$this->FLD('event', 'varchar(128)', 'caption=Събитие');
 	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни,column=none');
-	    $this->FLD('calledOn', 'datetime(format=smartTime)', 'caption=Изпълнено');
 	    $this->FLD('state', 'enum(waiting=Чакащо,locked=Заключено,closed=Затворено)', 'caption=Състояние, input=none');
 	}
 	
@@ -78,7 +77,6 @@ class auto_Calls extends core_Manager
 		$nRec->event = $event;
 		$nRec->data = $data;
 		$nRec->state = 'waiting';
-		$nRec->calledOn = NULL;
 
 		// Ако ще се изпълнява само веднъж, трябва да е уникално
 		if ($once === TRUE) {
@@ -106,11 +104,6 @@ class auto_Calls extends core_Manager
 		if(haveRole('admin,debug,ceo')){
 			$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
 		}
-		
-		// Бутон за тестване
-		if(haveRole('admin,debug,ceo')){
-			$data->toolbar->addBtn('Изпълни', array($mvc, 'run'), 'ef_icon=img/16/media_playback_start.png');
-		}
 	}
 	
 	
@@ -129,22 +122,22 @@ class auto_Calls extends core_Manager
 	
 	
 	/**
-	 * Екшън за тестване
-	 */
-	function act_Run()
-	{
-		requireRole('admin,debug,ceo');
-		$this->cron_Automations();
-	}
-	
-	
-	/**
 	 * Крон метод за автоматизации
 	 */
 	function cron_Automations()
 	{
 		$res = '';
 		$now = dt::now();
+		
+		// Ако процеса е заключен не се изпълнява
+		$lockKey = "DoAutomations";
+		if(!core_Locks::get($lockKey, 60, 1)) {
+			$this->logWarning("Извършването на автоматизации е заключено от друг процес");
+			return;
+		}
+		
+		// Ако има чакащи автоматики
+		if(!self::count()) return;
 		
 		// Взимане на всички класове поддържащи автоматизации
 		$automationClasses = core_Classes::getOptionsByInterface('auto_AutomationIntf');
@@ -174,7 +167,7 @@ class auto_Calls extends core_Manager
 						$Automation->doAutomation($rec->event, $rec->data);
 					}
 				}
-			} catch (Exception $e){
+			} catch (core_exception_Expect $e){
 				self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
 				self::logDebug($e->getTraceAsString(), $rec);
 				$status = 'неуспешно';
@@ -184,6 +177,9 @@ class auto_Calls extends core_Manager
 			self::logInfo("Изтриване на {$status} изпълнена автоматизация '{$rec->event}'");
 			self::delete($rec->id);
 		}
+		
+		// Освобождаваме заключването на процеса
+		core_Locks::release($lockKey);
 		
 		// Връщане на резултат
 		return $res;

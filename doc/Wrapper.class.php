@@ -97,7 +97,7 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         $this->TAB('doc_Files', 'Файлове', 'powerUser');
         
-        $this->TAB('doc_UnsortedFolders', 'Проекти', 'powerUser');
+        $this->TAB('doc_UnsortedFolders', 'Проекти', 'admin,ceo');
         
         // Показва таба за Шаблони, само ако имаме права за листване
         $this->TAB('doc_TplManager', 'Изгледи||Views', 'ceo,admin');

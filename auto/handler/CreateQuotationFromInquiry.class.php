@@ -119,9 +119,8 @@ class auto_handler_CreateQuotationFromInquiry {
     	if(!$Driver) return;
     	
     	// Може ли да се намери дефолтната цена за артикула
-    	$defPrice = $Driver->getPrice($Cover->getClassId(), $Cover->that, 'marketing_Inquiries2', $marketingRec, $marketingRec->createdOn);
-    	if(empty($defPrice)) {
-    		marketing_Inquiries2::logDebug("Не мжое да се създава артикул от запитването, защото драйвера не връща цена", $marketingRec->id);
+    	if($Driver->canAutoCalcPrimeCost($marketingRec) !== TRUE) {
+    		marketing_Inquiries2::logDebug("Не може да се създава артикул от запитването, защото драйвера не връща цена", $marketingRec->id);
     		return;
     	}
     	
@@ -133,32 +132,60 @@ class auto_handler_CreateQuotationFromInquiry {
     	$form->rec->originId = $marketingRec->containerId;
     	$form->rec->name =  $marketingRec->title;
     	
+    	// Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
+    	$idField = $form->getField('id');
+    	unset($idField->silent);
+    	
+    	$isSystemUser = core_Users::isSystemUser();
+    	if ($isSystemUser) {
+    		core_Users::cancelSystemUser();
+    	}
+    	core_Users::sudo($marketingRec->createdBy);
+    	
     	$data = (object)array('form' => &$form);
     	$Products->invoke('AfterPrepareEditForm', array($data, $data));
     	$clone = clone $form->rec;
     	
-    	$arr = array();
+    	$arr = $popArray = array();
     	foreach ((array)$clone as $k => $v){
     		if($k == 'groups'){
     			$v = type_Keylist::toArray($v);
     		}
     		
     		$arr[$k] = $v;
+    		$popArray[$k] = $k;
     	}
-    	unset($arr['_params']);
-    	Request::push($arr);
     	
+    	// За всеки случай не се пушват допълнителните параметри, защото са много големи
+    	unset($arr['_params']);
+    	unset($popArray['_params']);
+    	
+    	Request::push($arr);
     	$form->cmd = 'save';
-    	$form->input();
+    	
+    	// Ид-то не трябва да се инпутва, защото ще вземе ид-то на крон процеса и ще се обърка
+    	$fields = $form->selectFields();
+    	unset($fields['id']);
+    	$form->input(implode(',', array_keys($fields)));
     	
     	$Products->invoke('AfterInputEditForm', array($form));
-    	if(!($form->isSubmitted() && !$form->gotErrors())) return FALSE;
+    	core_Users::exitSudo();
+    	if ($isSystemUser) {
+    		core_Users::forceSystemUser();
+    	}
+    	
+    	// Попване на пушнатите стойности, за да няма объркване при следваща автоматизация
+    	if(is_array($popArray)){
+    		foreach ($popArray as $popVar){
+    			core_Request::pop($popVar);
+    		}
+    	}
+    	
+    	if(!($form->isSubmitted() && !$form->gotErrors())) return;
     	
     	$rec = $form->rec;
-    	
-    	core_Users::forceSystemUser();
     	$productId = $Products->save($rec);
-    	core_Users::cancelSystemUser();
+    	doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE, FALSE, $marketingRec->createdBy);
     	
     	return $productId;
     }
