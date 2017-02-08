@@ -36,9 +36,9 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * 10 секунди време за опресняване на нишката
+     * 100 секунди време за опресняване на нишката
      */
-    public $refreshRowsTime = 10000;
+    public $refreshRowsTime = 100000;
     
     
     /**
