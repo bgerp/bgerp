@@ -375,7 +375,7 @@ class planning_Jobs extends core_Master
     {
     	$row->title = $mvc->getLink($rec->id, 0);
     	
-    	if($rec->productId){
+    	if(isset($rec->productId)){
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     		$shortUom = cat_UoM::getShortName($measureId);
     		$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
@@ -916,5 +916,18 @@ class planning_Jobs extends core_Master
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	if(isset($rec->saleId)){
+    		$saleRec = sales_Sales::fetch($rec->saleId, 'contragentClassId,contragentId');
+    		$cName = cls::get($saleRec->contragentClassId)->getTitleById($saleRec->contragentId);
+    		$res .= " " . plg_Search::normalizeText($cName);
+    	}
     }
 }
