@@ -133,10 +133,8 @@ class unit_MinkPbgERP extends core_Manager {
         $host = unit_Setup::get('DEFAULT_HOST');
         //$browser->start('http://localhost/');
         $browser->start($host);
-       
         //$browser->start('http://' . $_SERVER['HTTP_HOST']);
-         
-        //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите')) {
+        //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите') !== FALSE) {
         //$browser->click('☒ Ако приемате лиценза по-долу, може да продължите »');
         //$browser->click('Продължаване без обновяване »');
         //$browser->click('✓ Всичко е наред. Продължете с инициализирането »');
@@ -144,8 +142,10 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->click('Стартиране bgERP »');
         //$browser->click('Вход');
         //}
-        if(strpos($browser->gettext(), 'Първоначална регистрация на администратор')) {
-            
+        //$this->reportErr($browser->gettext());
+        
+        if(strpos($browser->gettext(), 'Първоначална регистрация на администратор') !== FALSE) {
+        //$this->reportErr('Първоначална регистрация на администратор');
         //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp  
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
@@ -541,7 +541,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Проекти');
         $browser->press('Нов запис');
         $browser->setValue('name', 'Други проекти');
-        $browser->setValue('Бележки', '55');
+        $browser->setValue('Бележки', True);
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
