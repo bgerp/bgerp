@@ -1483,6 +1483,14 @@ class unit_MinkPPurchases extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
+        
+        // РБД
+        $browser->press('РБД');
+        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        $browser->setValue('amountDeal', '44,25');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        
         //Проверка на статистиката
         if(strpos($browser->gettext(), '44,25 44,25 44,25 44,25')) {
         } else {

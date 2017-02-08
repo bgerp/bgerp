@@ -1,5 +1,5 @@
 Секретар|officer,crm,blast,blog,forum|position
-Главен_счетоводител|officer,accMaster,cashMaster,bankMaster,storeMaster,accda,salesMaster,purchaseMaster,findealsMaster,posMaster,currency,cond,cat|position
+Главен_счетоводител|officer,accMaster,cashMaster,bankMaster,storeMaster,accda,salesMaster,purchaseMaster,findealsMaster,posMaster,currency,cat|position
 Счетоводител|officer,acc,cash,bank,accda,sales,purchase,findeals,pos,currency,cat|position
 Касиер|officer,cash|position
 Банкиране|officer,bank|position

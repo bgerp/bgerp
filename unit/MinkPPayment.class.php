@@ -323,7 +323,7 @@ class unit_MinkPPayment extends core_Manager {
         // активираме продажбата
         $browser->press('Активиране');
         // Изключваме плащането
-        $browser->setValue('action_pay', False);
+        //$browser->setValue('action_pay', False);
         $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 49,45')) {
@@ -703,7 +703,7 @@ class unit_MinkPPayment extends core_Manager {
         // активираме продажбата
         $browser->press('Активиране');
         // Изключваме плащането
-        $browser->setValue('action_pay', False);
+        //$browser->setValue('action_pay', False);
         //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
         ////Да се изключи експедирането!
@@ -889,7 +889,7 @@ class unit_MinkPPayment extends core_Manager {
         //'Експедиране на продукти от склад "Склад 1"'
         //'Прието плащане в брой в каса "КАСА 2"'
         $browser->setValue('action_ship', 'ship');
-        $browser->setValue('action_pay', 'pay');
+        //$browser->setValue('action_pay', 'pay');
         $browser->press('Активиране/Контиране');
     
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 26,75')) {

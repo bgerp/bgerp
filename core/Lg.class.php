@@ -205,18 +205,7 @@ class core_Lg extends core_Manager
             $lg = core_Lg::getCurrent();
         }
         
-        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
-            $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
-        
-            if(!$this->dict[$lg]) {
-                $query = self::getQuery();
-        
-                while($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
-                    $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
-                }
-                core_Cache::set('translationLG', $lg, $this->dict[$lg], 2 * 60 * 24, array('core_Lg'));
-            }
-        }
+        $this->prepareDictForLg($lg);
         
         if(strpos($kstring, ' » ')) {
             $fArr = explode(' » ', $kstring);
@@ -246,6 +235,9 @@ class core_Lg extends core_Manager
                 if($strArr[0] == '') {
                     unset($strArr[0]);
                 }
+                
+                // Подготвяме масива с английските думи
+                $this->prepareDictForLg('en');
                 
                 // Обикаляме и добавяме в речника фразите на английски и фразите, които не се превеждат
                 foreach ($strArr as $i => $phrase) {
@@ -320,8 +312,33 @@ class core_Lg extends core_Manager
         
         return $res;
     }
-
-
+    
+    
+    /**
+     * Подготвяме думите в речника
+     * 
+     * @param string|NULL $lg
+     */
+    protected function prepareDictForLg($lg = NULL)
+    {
+        if (!$lg) {
+            $lg = core_Lg::getCurrent();
+        }
+        
+        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
+            $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
+        
+            if(!$this->dict[$lg]) {
+                $query = self::getQuery();
+        
+                while($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
+                    $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
+                }
+                core_Cache::set('translationLG', $lg, $this->dict[$lg], 2 * 60 * 24, array('core_Lg'));
+            }
+        }
+    }
+    
     
     /**
      * Връща текущия език

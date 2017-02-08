@@ -32,8 +32,7 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
 				// И той може да върне цена за артикула, връща се
 				$Cover = doc_Folders::getCover($rec->folderId);
 				if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-					$defPrice = $Driver->getPrice($Cover->getClassId(), $Cover->that, $mvc, $rec, $rec->createdOn);
-					if($defPrice){
+					if($Driver->canAutoCalcPrimeCost($rec) === TRUE){
 						auto_Calls::setCall('createdInquiryByPartner', $rec);
 					}
 				}

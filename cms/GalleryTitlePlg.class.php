@@ -4,13 +4,13 @@
 /**
  * Максимална дължина на полето "Вербален идентификатор"
  */
-defIfNot('FILEMAN_GALLERY_TITLE_LEN', 128);
+defIfNot('CMS_GALLERY_TITLE_LEN', 128);
 
 
 /**
  * Хендлър за генериране на уникален идентификатор
  */
-defIfNot('FILEMAN_GALLERY_TITLE_HANDLER_PTR', 'dddd');
+defIfNot('CMS_GALLERY_TITLE_HANDLER_PTR', 'dddd');
 
 
 /**
@@ -18,14 +18,14 @@ defIfNot('FILEMAN_GALLERY_TITLE_HANDLER_PTR', 'dddd');
  * По подразбиране за уникален идентификатор се използва титлата на записа.
  * 
  * @category  bgerp
- * @package   fileman
+ * @package   cms
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
  */
-class fileman_GalleryTitlePlg extends core_Plugin
+class cms_GalleryTitlePlg extends core_Plugin
 {
     
     
@@ -41,7 +41,7 @@ class fileman_GalleryTitlePlg extends core_Plugin
         if(!$mvc->fields[$mvc->galleryTitleFieldName]) {
             
             // Добавяне на полето
-            $mvc->FLD($mvc->galleryTitleFieldName, 'varchar(' . FILEMAN_GALLERY_TITLE_LEN . ')', 'caption=Заглавие, width=100%');
+            $mvc->FLD($mvc->galleryTitleFieldName, 'varchar(' . CMS_GALLERY_TITLE_LEN . ')', 'caption=Заглавие, width=100%');
         }
         
         // Дължината на полето
@@ -92,7 +92,7 @@ class fileman_GalleryTitlePlg extends core_Plugin
                 if(16 < $i++) error('@Unable to generate random file handler', $rec);
                 
                 // Генерирам псевдо-случаен стринг
-                $hash = str::getRand(FILEMAN_GALLERY_TITLE_HANDLER_PTR);
+                $hash = str::getRand(CMS_GALLERY_TITLE_HANDLER_PTR);
                 
                 // Добавяме хеша след
                 $recTitleNew = $recTitle . '-' . $hash;
@@ -130,7 +130,7 @@ class fileman_GalleryTitlePlg extends core_Plugin
         $mdPart = max(4, round($mvc->galleryTitleLen / 8));
         
         // Ограничавае дължината
-        $rec->{$titleFieldName} = str::convertToFixedKey($recTitleNew, FILEMAN_GALLERY_TITLE_LEN - 10, $mdPart);
+        $rec->{$titleFieldName} = str::convertToFixedKey($recTitleNew, CMS_GALLERY_TITLE_LEN - 10, $mdPart);
     }
     
     

@@ -320,7 +320,8 @@ class doc_Files extends core_Manager
         }
         
         // Показваме избор на потребители
-        if (haveRole('admin, manager, ceo')) {
+        if (haveRole('debug')) {
+//         if (haveRole('admin, manager, ceo')) {
             $Users = cls::get('type_Users', array('params' => array('rolesForTeams' => 'admin, ceo, manager', 'rolesForAll' => 'ceo')));
             $suggArr += $Users->prepareOptions();
         }

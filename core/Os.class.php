@@ -198,7 +198,7 @@ class core_Os
             
             $dir = array_pop($directories);
             
-            if ($handle = opendir($dir)) {
+            if ($handle = @opendir($dir)) {
                 while (FALSE !== ($file = readdir($handle))) {
                     if ($file == '.' || $file == '..') {
                         continue;
@@ -213,7 +213,7 @@ class core_Os
                         $files['files'][] = $file; 
                     }
                 }
-                closedir($handle);
+                @closedir($handle);
             }
         }
  

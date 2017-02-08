@@ -57,7 +57,7 @@ class fileman_Files extends core_Master
 	 * Кой може да го разглежда?
 	 * @todo След като се направи да се показват само файловете на потребителя
 	 */
-	protected $canList = 'powerUser';
+	protected $canList = 'ceo, admin, debug';
     
 	
     /**
@@ -2085,7 +2085,7 @@ class fileman_Files extends core_Master
         
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=admin, rolesForTeams=admin)', 'caption=Потребител,input,silent,autoFilter');
         
         // В хоризонтален вид
         $data->listFilter->view = 'vertical';

@@ -194,16 +194,28 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Връща цената за посочения продукт към посочения клиент на посочената дата
 	 *
-	 * @param mixed $customerClass      - клас на контрагента
-	 * @param int $customerId           - ид на контрагента
-	 * @param mixed $Embedder           - Ембедъра
-	 * @param int $rec                  - запис на ембедъра
-	 * @param datetime $datetime        - дата
-	 * @return double|NULL $price       - цена
+	 * @param mixed $productId     - ид на артикул
+	 * @param int $quantity        - к-во
+	 * @param double $minDelta     - минималната отстъпка
+	 * @param double $maxDelta     - максималната надценка
+	 * @param datetime $datetime   - дата
+	 * @return double|NULL $price  - цена
 	 */
-	public function getPrice($customerClass, $customerId, $Embedder, $rec, $datetime)
+	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL)
 	{
-		return $this->class->getPrice($customerClass, $customerId, $Embedder, $rec, $datetime);
+		return $this->class->getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime);
+	}
+	
+	
+	/**
+	 * Може ли драйвера автоматично да си изчисли себестойноста
+	 * 
+	 * @param mixed $productId - запис или ид
+	 * @return boolean
+	 */
+	public function canAutoCalcPrimeCost($productId)
+	{
+		return $this->class->canCalcPrice($productId);
 	}
 	
 	
