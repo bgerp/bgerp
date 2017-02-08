@@ -96,6 +96,18 @@ class trz_Requests extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,trz';
+	
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canReject = 'ceo,trz';
+	
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canRestore = 'ceo,trz';
     
     
     /**
@@ -328,7 +340,7 @@ class trz_Requests extends core_Master
             if($form->rec->leaveFrom &&  $form->rec->leaveTo){
                  
                 $state = hr_EmployeeContracts::getQuery();
-                $state->where("#personId='{$rec->personId}'");
+                $state->where("#personId='{$form->rec->personId}'");
                  
                 if($employeeContractDetails = $state->fetch()){
             
@@ -359,10 +371,11 @@ class trz_Requests extends core_Master
             
             // търсим всички молби, които са за текущия потребител
             $query->where("#personId='{$form->rec->personId}'");
-            
-            if ($id) {
-                $query->where("#id != {$form->id}");
+   
+            if ($form->rec->id) { 
+                $query->where("#id != {$form->rec->id}");
             }
+            
             // търсим времево засичане
             $query->where("(#leaveFrom <= '{$form->rec->leaveFrom}' AND #leaveTo >= '{$form->rec->leaveFrom}')
             OR
