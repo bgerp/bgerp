@@ -16,11 +16,6 @@
 class doc_UnsortedFolders extends core_Master
 {
     
-    /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    public $interfaces = 'frame_FolderCoverIntf';
-    
     
     /**
      * Плъгини за зареждане
