@@ -97,7 +97,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     	// Добавяне на бутон за импортиране на артикулите директно от договора
     	if($mvc->haveRightFor('importfromsale', (object)array("{$mvc->masterKey}" => $data->masterId))){
     		$data->toolbar->addBtn('От договора', array($mvc, 'importfromsale', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
-    		"id=btnImportFromSale-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора,warning=Артикулите ще бъдат точно копирани от договора|*!", 'ef_icon = img/16/shopping.png');
+    		"id=btnImportFromSale-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора,warning=Редовете на фактурата, ще копират точно тези от договора|*!", 'ef_icon = img/16/shopping.png');
     	}
     }
     
@@ -109,13 +109,6 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     {
     	if($action == 'importfromsale'){
     		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
-    		
-    		// Ако има поне един детайл да не могат да се импортират артикулите от договора
-    		if($requiredRoles != 'no_one' && isset($rec->{$mvc->masterKey})){
-    			if(sales_InvoiceDetails::count("#{$mvc->masterKey} = {$rec->{$mvc->masterKey}}")){
-    				$requiredRoles = 'no_one';
-    			}
-    		}
     	}
     }
     
@@ -132,6 +125,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     	$this->requireRightFor('importfromsale', (object)array("{$this->masterKey}" => $id));
     	
     	// Извличане на дийл интерфейса от договора-начало на нишка
+    	$this->delete("#{$this->masterKey} = {$id}");
     	$firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
     	$dealInfo = $firstDoc->getAggregateDealInfo();
     	
