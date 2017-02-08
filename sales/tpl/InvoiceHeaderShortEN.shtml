@@ -101,12 +101,6 @@
                                         <!--ET_BEGIN vatDate-->  
                                         <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <!--ET_END vatDate-->
-                                        
-                                        <!--ET_BEGIN baseAmount-->
-                                        <div>
-                                        	<span class='quiet'>Данъчна основа:</span> [#baseAmount#] <span class='cCode'>[#baseCurrencyId#]</span>
-                                        </div>
-                                        <!--ET_END baseAmount-->
                                         <!--ET_BEGIN rate--> 
                                         <div><span class='quiet'>Курс:</span>  [#rate#]</div>
                                         <!--ET_END rate--> 
