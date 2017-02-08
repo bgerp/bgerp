@@ -244,7 +244,7 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
             
             // Потребител, който ще е отговорник на несортираните имейли
-            'EMAIL_UNSORTABLE_INCHARGE' => array ('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'mandatory, caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
+            'EMAIL_UNSORTABLE_INCHARGE' => array ('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
 
             // Максималната големина на файловете, които ще се приемат за CID
             'EMAIL_MAXIMUM_CID_LEN' => array ('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
