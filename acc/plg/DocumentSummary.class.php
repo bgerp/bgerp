@@ -160,15 +160,19 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
         	
             // Филтрираме по потребители
-            if($filter->users && $isDocument){
+            if($filter->users && $isDocument) {
             	$userIds = keylist::toArray($filter->users);
-                $userArr = implode(',',  $userIds);
             	
-            	$data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
-            	
-            	// Ако полето за филтриране по потребител нее създателя, добавяме и към него
-            	if($mvc->filterFieldUsers != 'createdBy'){
-            		$data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+            	// Ако не се търси по всички
+            	if (!$userIds[-1]) {
+            	    $userArr = implode(',',  $userIds);
+            	    
+            	    $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+            	    
+            	    // Ако полето за филтриране по потребител нее създателя, добавяме и към него
+            	    if($mvc->filterFieldUsers != 'createdBy'){
+            	        $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+            	    }
             	}
             }
             
