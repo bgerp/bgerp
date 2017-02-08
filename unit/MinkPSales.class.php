@@ -682,7 +682,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Минус четиридесет и шест BGN и 0,80 ')) {
+        if(strpos($browser->gettext(), 'Минус четиридесет и шест BGN и 0,80')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
         }
@@ -694,7 +694,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), ' Минус тридесет и един BGN и 0,20 ')) {
+        if(strpos($browser->gettext(), 'Минус двадесет и четири BGN и 0,26')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - цена', 'warning');
         }
@@ -704,7 +704,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('changeAmount', '22.20');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Двадесет и шест BGN и 0,64 ')) {
+        if(strpos($browser->gettext(), 'Двадесет и шест BGN и 0,64')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - сума', 'warning');
         }
@@ -715,7 +715,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), ' Двадесет и три BGN и 0,40 ')) {
+        if(strpos($browser->gettext(), 'Двадесет и три BGN и 0,40')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - количество', 'warning');
         }
@@ -726,7 +726,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('packPrice', '2.5556');
         $browser->press('Запис');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), ' Шестнадесет BGN и 0,80 ')) {
+        if(strpos($browser->gettext(), 'Двадесет и девет BGN и 0,06')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - цена', 'warning');
         }
@@ -836,7 +836,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Minus forty-one EUR and 0,60')) {
+        if(strpos($browser->gettext(), 'Minus thirty-five EUR and 0,82')) {
         } else {
             return unit_MinkPbgERP::reportErr('сума в КИ - цена', 'warning');
         }
