@@ -22,7 +22,7 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		// Ако създателя е агент, се запсива ивент за създаване на нова оферта
+		// Ако създателя е агент, се записва ивент за създаване на нова оферта
 		if(haveRole('agent', $rec->createdBy)){
 			$Driver = $mvc->getDriver($rec);
 			

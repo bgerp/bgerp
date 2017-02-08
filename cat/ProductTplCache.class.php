@@ -135,7 +135,7 @@ class cat_ProductTplCache extends core_Master
 	
 	
 	/**
-	 * След подготовка на туклбара на списъчния изглед
+	 * След подготовка на тулбара на списъчния изглед
 	 *
 	 * @param core_Mvc $mvc
 	 * @param stdClass $data
