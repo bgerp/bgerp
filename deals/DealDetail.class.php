@@ -586,9 +586,21 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     		
     		if(!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore'))) && (!count($multiError) || (count($multiError) && Request::get('Ignore')))){
+    			
     			// Запис на обновените записи
-    			$this->saveArray($toUpdate, 'id,quantity');
-    			$this->saveArray($toSave);
+    			if(count($toUpdate)){
+    				foreach ($toUpdate as $uRec){
+    					$uRec->isEdited = TRUE;
+    					$this->save($uRec, 'id,quantity');
+    				}
+    			}
+    			
+    			if(count($toSave)){
+    				foreach ($toSave as $saveRec){
+    					$this->save($saveRec);
+    				}
+    			}
+    			
     			$this->Master->invoke('AfterUpdateDetail', array($saleId, $this));
     			 
     			// Редирект към продажбата
