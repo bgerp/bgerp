@@ -68,12 +68,14 @@ class plg_SaveAndNew extends core_Plugin
             if (!$data->form->gotErrors()) {
                 $fields = $data->form->selectFields("#remember == 'info' || #name == 'id'");
                 
+                $info = '';
+
                 // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
                 if(count($fields)) {
                     foreach($fields as $name => $fld) {
                         $permanentName = cls::getClassName($mvc) . '_' . $name;
                         
-                        if($value = core_Type::escape(Mode::get($permanentName))) {
+                        if(($value = core_Type::escape(Mode::get($permanentName))) && $name != 'id') {
                             $info .= "<p>{$fld->caption}: <b>{$value}</b></p>";
                         }
                         if($name == 'id') {
