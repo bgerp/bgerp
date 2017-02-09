@@ -52,6 +52,14 @@ class auto_Calls extends core_Manager
     public $loadList = 'plg_Created,plg_State';
     
     
+    /**
+     * Да се извика ли на шътvarдаун
+     * 
+     * @param boolean
+     */
+    protected $callOnShutdown;
+    
+    
 	/**
 	 * Описание
 	 */
@@ -67,11 +75,12 @@ class auto_Calls extends core_Manager
 	/**
 	 * Добавя функция, която да се изпълни след определено време
 	 * 
-	 * @param varchar $event  - име на събитието
-	 * @param mixed   $data   - данни за събитието
-	 * @param boolean $once   - дали да се добави само веднъж
+	 * @param varchar $event          - име на събитието
+	 * @param mixed   $data           - данни за събитието
+	 * @param boolean $once           - дали да се добави само веднъж
+	 * @param boolean $callOnShutdown - да се изпълнили на шътдаун
 	 */
-	public static function setCall($event, $data = NULL, $once = FALSE)
+	public static function setCall($event, $data = NULL, $once = FALSE, $callOnShutdown = FALSE)
 	{
 		$nRec = new stdClass();
 		$nRec->event = $event;
@@ -87,8 +96,29 @@ class auto_Calls extends core_Manager
 			$nRec->hash = $hash;
 		}
 		
+		$mvc = cls::get(get_called_class());
+		if($callOnShutdown === TRUE){
+			$mvc->callOnShutdown = TRUE;
+		}
+		
 		// Запис на извикването
-		self::save($nRec);
+		$mvc->save($nRec);
+	}
+	
+	
+	/**
+	 * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
+	 *
+	 * @param acc_Items $mvc
+	 */
+	public static function on_Shutdown($mvc)
+	{
+		// Ако е вдигнат флага за автоматично извикване да сработи
+		if($mvc->callOnShutdown === TRUE){
+		    $mvc->logInfo('Извикване на автоматизациите на shutdown');
+			$mvc->cron_Automations();
+			unset($mvc->callOnShutdown);
+		}
 	}
 	
 	
@@ -168,6 +198,7 @@ class auto_Calls extends core_Manager
 					}
 				}
 			} catch (core_exception_Expect $e){
+				reportException($e);
 				self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
 				self::logDebug($e->getTraceAsString(), $rec);
 				$status = 'неуспешно';
