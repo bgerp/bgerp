@@ -116,7 +116,9 @@ class auto_Calls extends core_Manager
 		// Ако е вдигнат флага за автоматично извикване да сработи
 		if($mvc->callOnShutdown === TRUE){
 		    $mvc->logInfo('Извикване на автоматизациите на shutdown');
-			$mvc->cron_Automations();
+		    core_Users::forceSystemUser();
+		    $mvc->cron_Automations();
+		    core_Users::cancelSystemUser();
 			unset($mvc->callOnShutdown);
 		}
 	}
