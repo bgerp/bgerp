@@ -96,6 +96,18 @@ class trz_Requests extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,trz';
+	
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canReject = 'ceo,trz';
+	
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canRestore = 'ceo,trz';
     
     
     /**
@@ -328,7 +340,7 @@ class trz_Requests extends core_Master
             if($form->rec->leaveFrom &&  $form->rec->leaveTo){
                  
                 $state = hr_EmployeeContracts::getQuery();
-                $state->where("#personId='{$rec->personId}'");
+                $state->where("#personId='{$form->rec->personId}'");
                  
                 if($employeeContractDetails = $state->fetch()){
             
@@ -359,10 +371,11 @@ class trz_Requests extends core_Master
             
             // търсим всички молби, които са за текущия потребител
             $query->where("#personId='{$form->rec->personId}'");
-            
-            if ($id) {
-                $query->where("#id != {$form->id}");
+   
+            if ($form->rec->id) { 
+                $query->where("#id != {$form->rec->id}");
             }
+            
             // търсим времево засичане
             $query->where("(#leaveFrom <= '{$form->rec->leaveFrom}' AND #leaveTo >= '{$form->rec->leaveFrom}')
             OR
@@ -436,41 +449,6 @@ class trz_Requests extends core_Master
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
         
-    }
-    
-    
-    /**
-     * Извиква се след изпълняването на екшън
-     */
-    public static function on_AfterAction(&$invoker, &$tpl, $act)
-    {
-    	if (strtolower($act) == 'single' && haveRole('trz,ceo') && !Mode::is('printing')) {
-    		
-    		// Взимаме ид-то на молбата
-    		$id = Request::get('id', 'int');
-    		
-    		// намираме, кой е текущия потребител
-    		$cu =  core_Users::getCurrent();
-    		
-    		// взимаме записа от модела
-    		$rec = self::fetch($id);
-    		
-    		// превръщаме кей листа на споделените потребители в масив
-    		$sharedUsers = type_Keylist::toArray($rec->sahredUsers);
-    		
-    		// добавяме текущия потребител
-    		$sharedUsers[$cu] = $cu;
-    		
-    		// връщаме в кей лист масива
-    		$rec->sharedUsers =  keylist::fromArray($sharedUsers);
-    		    		
-    		self::save($rec, 'sharedUsers');
-    		
-            doc_ThreadUsers::removeContainer($rec->containerId);
-            doc_Threads::updateThread($rec->threadId);
-            
-    		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
-    	}
     }
 
     

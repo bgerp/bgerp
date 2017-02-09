@@ -1247,13 +1247,13 @@ class cat_Boms extends core_Master
     			// Ако мин и макс делта са различни изчисляваме редовете за двата тиража
     			if($minDelta != $maxDelta){
     				
-    				$params['$T'] = $t1;
+    				$params[$rec->productId]['$T'] = $t1;
     				$rowCost1 = self::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
     				
     				if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost1 += $rowCost1;
     					
-    				$params['$T'] = $t2;
+    				$params[$rec->productId]['$T'] = $t2;
     				$rowCost2 = self::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
     				if($rowCost2 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost2 += $rowCost2;
