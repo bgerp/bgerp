@@ -320,7 +320,7 @@ class plg_RefreshRows extends core_Plugin
             $res = array();
         }
         
-        core_Statuses::newStatus('|Има промени в таблицата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 120, Request::get('hitId'));
+        core_Statuses::newStatus('|Има промени в таблицата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 300, Request::get('hitId'));
     }
     
     
