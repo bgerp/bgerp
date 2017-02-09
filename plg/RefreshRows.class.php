@@ -275,6 +275,8 @@ class plg_RefreshRows extends core_Plugin
      * 
      * @param array $refreshUrl
      * @param integer $hitTime
+     * 
+     * @return string
      */
     static function getNameHash($refreshUrl, $hitTime)
     {
@@ -325,8 +327,9 @@ class plg_RefreshRows extends core_Plugin
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
      * 
-     * @param array $refreshUrl
-     * @param integer $hitTime
+     * @param string `fileman_data`.`file_len`
+     * 
+     * @return string
      */
     static function getManualNameHash($nameHash)
     {
