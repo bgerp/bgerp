@@ -533,7 +533,7 @@ class price_ListRules extends core_Detail
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', NULL);
             }
-            
+           
             // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
             if($rec->type == 'discount' || $rec->type == 'groupDiscount') {
                 if(!isset($rec->discount) && !isset($rec->targetPrice)) {
@@ -585,6 +585,15 @@ class price_ListRules extends core_Detail
 
             if(!$form->gotErrors()) {
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
+            }
+            
+            if($rec->type == 'value' && isset($rec->price)){
+            	
+            	// Проверка на цената
+            	if(!deals_Helper::isPriceAllowed($rec->price, FALSE, $msg)){
+            		$form->setError('packPrice', $msg);
+            		unset($rec->price);
+            	}
             }
         }
     }
