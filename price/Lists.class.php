@@ -123,7 +123,13 @@ class price_Lists extends core_Master
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'crm_Persons,crm_Companies,doc_UnsortedFolders';
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
+    
+    
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
     
     
     /**
@@ -635,29 +641,4 @@ class price_Lists extends core_Master
     	// Връщаме закръглената цена
     	return $price;
     }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     */
-    /*public static function canAddToFolder($folderId)
-    {
-    	$cover = doc_Folders::getCover($folderId);
-    	
-    	if($cover->haveInterface('crm_ContragentAccRegIntf') || $cover->haveInterface('price_PriceListFolderCoverIntf')){
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }*/
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    /*protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    }*/
 }
