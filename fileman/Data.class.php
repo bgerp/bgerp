@@ -232,7 +232,7 @@ class fileman_Data extends core_Manager {
             $dirName = dirname($path);
             
             if ($dirName && !is_dir($dirName)) {
-                if (@mkdir($dirName, 0777, TRUE)) {
+                if (!@mkdir($dirName, 0777, TRUE)) {
                     self::logErr("Грешка при създаване на директория: '{$dirName}'");
                 }
             }
