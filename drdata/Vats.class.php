@@ -282,7 +282,7 @@ class drdata_Vats extends core_Manager
                 reportException($e);
                 $result = new stdClass();
             } catch (Throwable $t) {
-                reportException($e);
+                reportException($t);
                 $result = new stdClass();
             }
             
