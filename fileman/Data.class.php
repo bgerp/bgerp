@@ -489,7 +489,7 @@ class fileman_Data extends core_Manager {
         $cnt = $query->count();
         $query->show('id');
         if ($cnt > 100) {
-            fileman_Data::logDebug("Файлове за конвертиране: {$cnt}");
+            fileman_Data::logDebug("Файлове за обработка: {$cnt}");
         }
     }
     
