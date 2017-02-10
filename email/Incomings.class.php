@@ -243,9 +243,13 @@ class email_Incomings extends core_Master
     {
     	$conf = core_Packs::getConfig('email');
     	
-        // Задаваме максималната използваема памет
-        ini_set('memory_limit', $conf->EMAIL_MAX_ALLOWED_MEMORY);
-
+    	$FileSize = cls::get('fileman_FileSize');
+    	$memoryLimit = $FileSize->fromVerbal(ini_get('memory_limit'));
+    	if ($conf->EMAIL_MAX_ALLOWED_MEMORY > $memoryLimit) {
+    	    // Задаваме максималната използваема памет
+    	    ini_set('memory_limit', $conf->EMAIL_MAX_ALLOWED_MEMORY);
+    	}
+    	
         // Максималната продължителност за теглене на писма
         $maxFetchingTime = $conf->EMAIL_MAX_FETCHING_TIME;
     

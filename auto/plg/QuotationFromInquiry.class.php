@@ -33,7 +33,7 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
 				$Cover = doc_Folders::getCover($rec->folderId);
 				if($Cover->haveInterface('crm_ContragentAccRegIntf')){
 					if($Driver->canAutoCalcPrimeCost($rec) === TRUE){
-						auto_Calls::setCall('createdInquiryByPartner', $rec);
+						auto_Calls::setCall('createdInquiryByPartner', $rec, FALSE, TRUE);
 					}
 				}
 			}

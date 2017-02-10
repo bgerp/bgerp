@@ -71,7 +71,7 @@
 
 /*our styles*/
 .narrow .toolbar-first .button {
-  float: left;
+  float: none;
 }
 
 .modal-toolbar{

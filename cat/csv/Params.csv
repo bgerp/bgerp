@@ -14,3 +14,4 @@
 Режийни разходи,cond_type_Percent,,expenses,,,no,active
 Изглед||Preview,cond_type_Image,,preview,,,no,active
 На етикета||Label text,cond_type_Text,,labelText,,,no,active
+Спецификация,cond_type_Text,,specTpl,,,no,active

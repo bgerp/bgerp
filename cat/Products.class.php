@@ -1638,7 +1638,7 @@ class cat_Products extends embed_Manager {
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg')
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $compontQuantity = 1)
     {
     	$rec = static::fetchRec($id);
     	
@@ -1675,7 +1675,7 @@ class cat_Products extends embed_Manager {
     	if($showDescription === TRUE){
     	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType, $lang);
     	    if(!$data){
-    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang);
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $compontQuantity);
     	    }
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
@@ -2327,7 +2327,7 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return void
      */
-    public static function prepareComponents($productId, &$res = array())
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $compontQuantity = 1)
     {
     	// Имали последна активна търговска рецепта за артикула?
     	$rec = cat_Products::getLastActiveBom($productId, 'sales');
@@ -2344,13 +2344,14 @@ class cat_Products extends embed_Manager {
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
+    	$qQuantity = $compontQuantity;
     	
     	if(is_array($details)){
     		$fields = cls::get('cat_BomDetails')->selectFields();
     		$fields['-components'] = TRUE;
     		
     		foreach ($details as $dRec){
-    			$dRec->params['$T'] = 1;
+    			$dRec->params['$T'] = $qQuantity;
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
     			$row = cat_BomDetails::recToVerbal($dRec, $fields);
@@ -2368,11 +2369,21 @@ class cat_Products extends embed_Manager {
     			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
-    			 
+    			if($dRec->type == 'stage'){
+    				$specTpl = cat_Products::getParams($dRec->resourceId, 'specTpl');
+    				if($specTpl && count($dRec->params)){
+    					$specTpl = strtr($specTpl, $dRec->params);
+    					$specTpl = new core_ET($specTpl);
+    					$obj->title .= " " . $specTpl->getContent();
+    				}
+    			}
+    			
     			if($obj->parent){
     				if($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR){
     					$obj->quantity *= $res[$obj->parent]->quantity;
     				}
+    			} else {
+    				$obj->quantity *= $qQuantity;
     			}
     			
     			if($dRec->description){

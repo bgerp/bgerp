@@ -36,9 +36,10 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * 100 секунди време за опресняване на нишката
+     * Колко пъти да излиза съобщение за ръчно обновяване в листовия изглед
+     * @see plg_RefreshRows
      */
-    public $refreshRowsTime = 100000;
+    public $manualRefreshCnt = 1;
     
     
     /**
@@ -2830,5 +2831,8 @@ class doc_Threads extends core_Manager
     public static function getContentHash_(&$status)
     {
         doc_Folders::getContentHash_($status);
+        
+        // Премахваме ненужните класове, при промяната на които да не се обновява
+        $status = preg_replace('/(class\s*=\s*)(\'|")(.*?)\s*(tSighted|tUnsighted|active|inactive)\s*(.*?)(\'|")/i', '$1$2$3$5$6', $status);
     }
 }
