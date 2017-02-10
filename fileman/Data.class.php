@@ -322,9 +322,7 @@ class fileman_Data extends core_Manager {
             // Проверка за права в директорията
             $dir = pathinfo($path, PATHINFO_DIRNAME);
             if (!is_writable($dir)) {
-                @mkdir($dir, 0777, TRUE);
-            
-                if (!is_writable($dir)) {
+                if (!@mkdir($dir, 0777, TRUE) || !is_writable($dir)) {
                     self::logErr("Няма права за запис в директорията '{$dir}'", $rec->id);
                 }
             }
