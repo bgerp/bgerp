@@ -2368,7 +2368,15 @@ class cat_Products extends embed_Manager {
     			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
-    			 
+    			if($dRec->type == 'stage'){
+    				$specTpl = cat_Products::getParams($dRec->resourceId, 'specTpl');
+    				if($specTpl && count($dRec->params)){
+    					$specTpl = strtr($specTpl, $dRec->params);
+    					$specTpl = new core_ET($specTpl);
+    					$obj->title .= " " . $specTpl->getContent();
+    				}
+    			}
+    			
     			if($obj->parent){
     				if($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR){
     					$obj->quantity *= $res[$obj->parent]->quantity;
