@@ -319,6 +319,16 @@ class fileman_Data extends core_Manager {
         // Ако не е имал такъв запис
         if (!$rec->id || !@file_exists($path) || (@filesize($path) != $rec->fileLen)) {
             
+            // Проверка за права в директорията
+            $dir = pathinfo($path, PATHINFO_DIRNAME);
+            if (!is_writable($dir)) {
+                @mkdir($dir, 0777, TRUE);
+            
+                if (!is_writable($dir)) {
+                    self::logErr("Няма права за запис в директорията '{$dir}'", $rec->id);
+                }
+            }
+            
             // Ако типа е файл
             if ($type == 'file') {
                 
