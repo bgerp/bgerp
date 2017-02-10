@@ -281,6 +281,9 @@ class drdata_Vats extends core_Manager
             } catch (Exception $e) {
                 reportException($e);
                 $result = new stdClass();
+            } catch (Throwable $t) {
+                reportException($e);
+                $result = new stdClass();
             }
             
             $res = self::statusUnknown;
