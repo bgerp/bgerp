@@ -2639,7 +2639,7 @@ class crm_Persons extends core_Master
     		expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
     	} else {
     		$groupId = $groupSysId;
-    		expect(cat_Groups::fetch($groupId));
+    		expect(crm_Groups::fetch($groupId));
     	}
     	
     	// Ако контрагента не е включен в групата, включваме го

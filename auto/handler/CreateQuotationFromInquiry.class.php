@@ -126,7 +126,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	
     	$Products = cls::get('cat_Products');
     	$form = $Products->getForm();
-    	$form->method = 'GET';
+    	$form->method = 'POST';
     	$form->rec->innerClass = $Driver->getClassId();
     	$form->rec->proto = $marketingRec->proto;
     	$form->rec->originId = $marketingRec->containerId;

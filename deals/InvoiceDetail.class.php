@@ -444,7 +444,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			// Ако няма въведена цена
 			if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
-						
+				$autoPrice = TRUE;
+				
 				// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
 				$origin = $mvc->Master->getOrigin($masterRec);
 				$dealInfo = $origin->getAggregateDealInfo();
@@ -466,7 +467,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$Policy = cls::get('price_ListToCustomers');
 					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
 				}
-					
+				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
 				if (empty($policyInfo->price) && empty($pRec)) {
 					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
@@ -482,15 +483,21 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 	
 			} else {
+				$autoPrice = FALSE;
 				
 				// Изчисляване цената за единица продукт в осн. мярка
-				$rec->price  = $rec->packPrice  / $rec->quantityInPack;
+				$rec->price = $rec->packPrice  / $rec->quantityInPack;
 				$packPrice = NULL;
 				if(!$form->gotErrors() || ($form->gotErrors() && Request::get('Ignore'))){
 					$rec->packPrice = deals_Helper::getPurePrice($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
 				} else {
 					$packPrice = deals_Helper::getPurePrice($rec->packPrice, 0, $masterRec->rate, $masterRec->vatRate);
 				}
+			}
+			
+			// Проверка на цената
+			if(!deals_Helper::isPriceAllowed($rec->price, $autoPrice, $msg)){
+				$form->setError('packPrice', $msg);
 			}
 			
 			$rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
