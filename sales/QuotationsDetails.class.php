@@ -434,6 +434,11 @@ class sales_QuotationsDetails extends doc_Detail {
     				$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     			}
     		}
+    		
+    		// Проверка на цената
+    		if(!deals_Helper::isPriceAllowed($price, $rec->autoPrice, $msg)){
+    			$form->setError('packPrice', $msg);
+    		}
     	
     		if(!$form->gotErrors()){
     			$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);

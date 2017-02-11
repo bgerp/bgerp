@@ -200,7 +200,8 @@ class fileman_Setup extends core_ProtoSetup
             
             'migrate::addFileLen',
             'migrate::bucketRoles',
-            'migrate::regenerateData1'
+            'migrate::regenerateData1',
+            'migrate::regenerateBarcodes'
         );
     
     
@@ -425,6 +426,37 @@ class fileman_Setup extends core_ProtoSetup
         while ($dRec = $dQuery->fetch()) {
             $dRec->processed = 'no';
             fileman_Data::save($dRec, 'processed');
+        }
+    }
+    
+    
+    /**
+     * Изтриване на последно генерирани баркодове от системата
+     */
+    static function regenerateBarcodes()
+    {
+        $iQuery = fileman_Indexes::getQuery();
+        $iQuery->where("#type = 'barcodes'");
+        $iQuery->where("#createdBy < 1");
+        
+        $iQuery->orderBy('createdOn', 'DESC');
+        
+        $iQuery->limit(1000);
+        
+        $delArr = array();
+        
+        while ($iRec = $iQuery->fetch()) {
+            
+            fileman_Data::resetProcess($iRec->dataId);
+            
+            $delArr[$iRec->id] = $iRec->id;
+        }
+        
+        if (!empty($delArr)) {
+            $delImpl = implode(',', $delArr);
+            $delCnt = fileman_Indexes::delete("#id IN ({$delImpl})");
+            
+            fileman_Indexes::logDebug("Изтрити баркодове: {$delCnt}");
         }
     }
 }
