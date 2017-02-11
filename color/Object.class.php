@@ -76,7 +76,7 @@ class color_Object {
     /**
      * Преобразува hex цвят към RGB
      */
-    function hexToRgb($hexColor, &$r, &$g, &$b)
+    static function hexToRgb($hexColor, &$r, &$g, &$b)
     {
         if($hexColor{0} == '#') $hexColor = substr($hexColor, 1);
         
