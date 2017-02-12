@@ -206,18 +206,7 @@ class core_Lg extends core_Manager
         }
         
         $this->prepareDictForLg($lg);
-        
-        if(strpos($kstring, ' » ')) {
-            $fArr = explode(' » ', $kstring);
-            
-            $resArr = array();
-            
-            foreach($fArr as $f) {
-                $resArr[] = self::translate($f, $key, $lg);
-            }
-            
-            return implode(' » ', $resArr);
-        }
+
 
         if (!$key) {
             // Разбиваме стринга на участъци, който са разделени със символа '|'
@@ -313,7 +302,11 @@ class core_Lg extends core_Manager
         return $res;
     }
     
-    
+    function act_Test()
+    {
+        bp(tr("|*<small>|Произведено|*</small>"));
+    }
+
     /**
      * Подготвяме думите в речника
      * 
