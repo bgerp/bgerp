@@ -110,7 +110,7 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
 
         // Текстово описание
-        $this->FLD('title', 'varchar', 'caption=Описание, mandatory, translate,oldFieldName=description');
+        $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
         $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'caption=Вид плащане');
         
         // Процент на авансовото плащане
@@ -123,8 +123,8 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
         
         // Колко дни след дадено събитие да е балансовото плащане?
-        $this->FLD('eventBalancePayment', 'enum(,invDate=Датата на фактурата||Invoice date,
-                                               invEndOfMonth=След краят на месеца на фактурата||After the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
+        $this->FLD('eventBalancePayment', 'enum(,invDate=след датата на фактурата||after invoice date,
+                                               invEndOfMonth=след края на месеца на фактурата||after the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
 
@@ -134,7 +134,37 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->setDbUnique('sysId');
-        $this->setDbUnique('title');
+        //$this->setDbUnique('title');
+    }
+
+
+    function on_CalcTitle($mvc, $rec)
+    {
+        Mode::push('text', 'plain');
+
+        if($rec->downpayment) {
+            $title .= round($rec->downpayment * 100, 2). '% ' . tr('авансово||downpayment');
+        }
+
+        if($rec->paymentBeforeShipping) {
+            $title .= ($title ? ', ' : '') . round($rec->paymentBeforeShipping * 100, 2). '% ' . tr('преди експедиция||before shipment');  
+        }
+
+        if($rec->paymentOnDelivery) {
+            $title .= ($title ? ', ' : '') . round($rec->paymentOnDelivery * 100, 2) . '% ' . tr('при доставка||after delivery');
+        }
+        
+        if($rec->timeBalancePayment) {
+            $title .= ($title ? ', ' : '') .  round((1 - $rec->downpayment - $rec->paymentBeforeShipping - $rec->paymentOnDelivery)*100,2) . '% ' . tr('до||in') . ' ' . $mvc->getVerbal($rec, 'timeBalancePayment') . ' ' . $mvc->getVerbal($rec, 'eventBalancePayment');
+        }
+        
+        if($rec->discountPercent) {
+            $title .= ($title ? ', ' : '') . tr('отстъпка||discount') . ' ' . round($rec->discountPercent * 100, 2) . '% ' . tr('при цялостно плащане до||if paid in full within') . ' ' . $mvc->getVerbal($rec, 'discountPeriod');
+        }
+
+        $rec->title = $title;
+
+        Mode::pop('text');
     }
     
     

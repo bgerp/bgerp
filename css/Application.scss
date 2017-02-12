@@ -728,8 +728,8 @@ div.productImage {
 
 .products-table,  .jobTable, .general-product-description, .sales_SalesDetails, .store_ShipmentOrderDetails {
 	.productPreview {
-		max-width: 120px;
-		max-height: 240px;
+		max-width: 320px;
+		max-height: 320px;
 	}
 	.groupList .small-padding .productGroupInfo {
         padding-top:5px !important; 
@@ -808,8 +808,8 @@ div.productImage {
 
 .products-table,  .jobTable, .general-product-description, .sales_SalesDetails .productImage{
 	a.fancybox img{
-		max-width: 120px;
-	    max-height: 60px;
+		max-width: 320px;
+	    max-height: 320px;
 	    width: auto;
 	    height: auto;
 	}
