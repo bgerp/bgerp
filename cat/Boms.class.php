@@ -1107,7 +1107,7 @@ class cat_Boms extends core_Master
     		// Записваме намерената цена
     		if($savePriceCost === TRUE){
     			$primeCost = ($price === FALSE) ? NULL : $price;
-    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
+    			$params1 = $scope;
     			
     			// Ъпдейтваме кешираните стойност и параметри само при промяна
     			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($params1)){
@@ -1161,7 +1161,7 @@ class cat_Boms extends core_Master
     		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
     			$scope = static::getScope($params);
-    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
+    			$params1 = $scope;
     			
     			if(serialize($rec->params) != serialize($params1)){
     				$rec->params = $params1;

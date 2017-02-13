@@ -109,15 +109,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
-	 */
-	public function getJobFolderName()
-	{
-		return $this->class->getJobFolderName();
-	}
-	
-	
-	/**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
      * @param double $quantity - к-во

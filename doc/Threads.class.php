@@ -36,12 +36,6 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * 10 секунди време за опресняване на нишката
-     */
-    public $refreshRowsTime = 10000;
-    
-    
-    /**
      * Колко пъти да излиза съобщение за ръчно обновяване в листовия изглед
      * @see plg_RefreshRows
      */

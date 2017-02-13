@@ -23,10 +23,10 @@
                 </div>
                 <!--ET_END discount-->
                 <!--ET_BEGIN tolerance-->
-                <div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
+                <div class='quiantity-misc' style='font-size:0.8em'>|толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
                 <!--ET_BEGIN term-->
-                <div class='quiantity-misc' style='font-size:0.8em'>|срок за д-ка|* &nbsp;<b>[#term#]</b></div>
+                <div class='quiantity-misc' style='font-size:0.8em'>|срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
                 <!--ET_END term-->
             </td>
         </tr>

@@ -232,7 +232,9 @@ class fileman_Data extends core_Manager {
             $dirName = dirname($path);
             
             if ($dirName && !is_dir($dirName)) {
-                mkdir(dirname($path), 0777, TRUE);
+                if (!@mkdir($dirName, 0777, TRUE)) {
+                    self::logErr("Грешка при създаване на директория: '{$dirName}'");
+                }
             }
         }
         
@@ -318,6 +320,14 @@ class fileman_Data extends core_Manager {
         
         // Ако не е имал такъв запис
         if (!$rec->id || !@file_exists($path) || (@filesize($path) != $rec->fileLen)) {
+            
+            // Проверка за права в директорията
+            $dir = pathinfo($path, PATHINFO_DIRNAME);
+            if (!is_writable($dir)) {
+                if (!@mkdir($dir, 0777, TRUE) || !is_writable($dir)) {
+                    self::logErr("Няма права за запис в директорията '{$dir}'", $rec->id);
+                }
+            }
             
             // Ако типа е файл
             if ($type == 'file') {
@@ -474,6 +484,12 @@ class fileman_Data extends core_Manager {
                 $rec->processed = 'yes';
                 self::save($rec, 'processed');
             }
+        }
+        
+        $cnt = $query->count();
+        $query->show('id');
+        if ($cnt > 100) {
+            fileman_Data::logDebug("Файлове за обработка: {$cnt}");
         }
     }
     

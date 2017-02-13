@@ -275,6 +275,8 @@ class plg_RefreshRows extends core_Plugin
      * 
      * @param array $refreshUrl
      * @param integer $hitTime
+     * 
+     * @return string
      */
     static function getNameHash($refreshUrl, $hitTime)
     {
@@ -318,15 +320,16 @@ class plg_RefreshRows extends core_Plugin
             $res = array();
         }
         
-        core_Statuses::newStatus('|Има промени в таблицата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 120, Request::get('hitId'));
+        core_Statuses::newStatus('|Има промени в таблицата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 300, Request::get('hitId'));
     }
     
     
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
      * 
-     * @param array $refreshUrl
-     * @param integer $hitTime
+     * @param string `fileman_data`.`file_len`
+     * 
+     * @return string
      */
     static function getManualNameHash($nameHash)
     {

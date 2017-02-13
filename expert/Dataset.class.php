@@ -170,6 +170,29 @@ class expert_Dataset extends core_BaseClass {
         $div      += count($vars);
 
         foreach($vars as $n) {
+
+            // Ако нямаме достоверност за стойността и нямаме правило за нея - правилото е блокирано
+            if(!($this->trusts[$n] > 0)) {
+                if(!isset($this->rules[$n])) {
+                    $rule->state = 'block';
+
+                    return;
+                } else {
+                    $havePending = FALSE;
+                    foreach($this->rules[$n] as $id => $rN) {
+                        if($rN->state == 'pending') {
+                            $havePending = TRUE;
+                            break;
+                        }
+                    }
+                    if(!$havePending) {
+                        $rule->state = 'block';
+
+                        return;
+                    }
+                }
+            }
+
             $trust += (1+$this->trusts[$n])/2;
             if(!$this->trusts[$n]) {
                 $trust = 0;
@@ -237,7 +260,7 @@ class expert_Dataset extends core_BaseClass {
                 }
             }
         }
-        
+       
         do {
             // Изчисляваме всички правила. Опитваме се да намерим $value, $trust, $maxTrust
             foreach($this->rules as $name => &$rArr) {
@@ -248,6 +271,7 @@ class expert_Dataset extends core_BaseClass {
             }
 
             $bestRule = NULL;
+            $rated = array();
 
             // Намираме от всички правила, това, което има достоверност >0 и се изчислява
             // приоритет = достоверност - брой "чакъщи" правила с по-висок или равен ранг
@@ -274,11 +298,15 @@ class expert_Dataset extends core_BaseClass {
  
                     if(!isset($bestRule) || $bestRule->rate < $r->rate) {
                         $bestRule = $r;
+                        $rated[] = $r;
                     }
                 }
             }
             
             if($bestRule) {  
+
+                // if($bestRule->name == 'CostVariable') bp($rated, $this);
+
                 $this->setVar($bestRule->name, $bestRule->value, $bestRule->trust, "[{$bestRule->expr}]" . ($bestRule->cond ?  " ({$bestRule->cond})":''));
                 $bestRule->state = 'used';
             }
