@@ -216,7 +216,7 @@ class crm_Companies extends core_Master
      * @see groups_Extendable
      * @var string
      */
-    var $groupsField = 'groupList';
+    var $groupsField = 'groupListInput';
     
     
     /**

@@ -50,7 +50,7 @@ class bgerp_plg_Groups extends core_Plugin
             
             $selArr = arr::make($rec->Selected);
             
-            setIfNot($groupField, $mvc->groupField, 'groupList');
+            setIfNot($groupField, $mvc->groupsField, 'groupList');
             
             $groupFieldType = $mvc->getFieldType($groupField);
             
@@ -141,13 +141,19 @@ class bgerp_plg_Groups extends core_Plugin
                 
                 $changed = 0;
                 
+                //@TODO временен бъгфикс да работи групирането и за артикулите
+                $saveFields = 'groupList,groupListInput';
+                if($mvc instanceof cat_Products){
+                	$saveFields = 'groups';
+                }
+                
                 if($selArrCnt == 1) {
                     $obj = new stdClass();
                     $obj->id = $id;
                     $obj->{$groupField} = $rec->groups;
                     
                     if($groups != $rec->groups) {
-                        $mvc->save($obj, $groupField);
+                        $mvc->save($obj, $saveFields);
                         $changed = 1;
                     }
                 } else {
@@ -160,7 +166,7 @@ class bgerp_plg_Groups extends core_Plugin
                         $obj->{$groupField} = $groups;
                         
                         if($groups != $exGroups) {
-                            $mvc->save($obj, $groupField);
+                            $mvc->save($obj, $saveFields);
                             $changed++;
                         }
                     }

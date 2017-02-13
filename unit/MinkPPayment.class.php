@@ -193,7 +193,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleOverdue');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
@@ -387,7 +387,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'exp');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentCreateSaleE');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
@@ -496,7 +496,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'exp1');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateSaleE1');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
@@ -587,7 +587,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'Overpaid');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpSaleOverpaid');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
@@ -761,7 +761,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'Wait');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleWait3');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
          
@@ -948,7 +948,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSale');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
@@ -1065,7 +1065,7 @@ class unit_MinkPPayment extends core_Manager {
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('note', 'MinkPPaymentPurchaseOverdue');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
         // Записваме черновата на покупката
@@ -1169,7 +1169,7 @@ class unit_MinkPPayment extends core_Manager {
         $valior=strtotime("-2 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('note', 'MinkPPaymentPurchaseWait');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
         // Записваме черновата на покупката
@@ -1272,7 +1272,7 @@ class unit_MinkPPayment extends core_Manager {
         $valior=strtotime("-2 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('note', 'MinkPPaymentPurchaseOverpaid');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         //$browser->setValue('shipmentStoreId', "Склад 2");
         $browser->press('Чернова');
@@ -1367,7 +1367,7 @@ class unit_MinkPPayment extends core_Manager {
          
         //$browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentPurchase3');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
         // Записваме черновата на покупката
