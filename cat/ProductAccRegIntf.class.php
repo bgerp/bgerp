@@ -226,14 +226,14 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Колко е срока на доставка
-     *
-     * @param int $id          - ид на артикул
-     * @param double $quantity - к-во
-     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
-     */
-    public function getDeliveryTime($id, $quantity)
+	 * Колко е срока на производство
+	 *
+	 * @param int $id          - ид на артикул
+	 * @param double $quantity - к-во
+	 * @return double|NULL     - срока на производство или NULL, ако няма
+	 */
+	public function getProductionTerm($id, $quantity)
     {
-    	return $this->class->getDeliveryTime($id, $quantity);
+    	return $this->class->getProductionTerm($id, $quantity);
     }
 }

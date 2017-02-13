@@ -461,13 +461,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Колко е срока на доставка
+	 * Колко е срока на производство
 	 *
 	 * @param int $id          - ид на артикул
 	 * @param double $quantity - к-во
-	 * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+	 * @return double|NULL     - срока на производство или NULL, ако няма
 	 */
-	public function getDeliveryTime($id, $quantity)
+	public function getProductionTerm($id, $quantity)
 	{
 		return NULL;
 	}
