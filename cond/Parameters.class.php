@@ -120,12 +120,13 @@ class cond_Parameters extends bgerp_ProtoParam
     	$countryId = $contragentData->countryId;
     	if($countryId){
     		$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
-    		if($value) return $value;
+    		if(isset($value)) return $value;
     	}
     	
     	// От глобалния дефолт за всички държави
     	$value = cond_Countries::fetchField("#country IS NULL AND #conditionId = {$condId}", 'value');
-    	if($value) return $value;
+    	
+    	if(isset($value)) return $value;
     	
     	return NULL;
     }

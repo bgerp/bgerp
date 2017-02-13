@@ -208,7 +208,7 @@ class crm_Persons extends core_Master
      * @var string
      * @see groups_Extendable
      */
-    public $groupsField = 'groupList';
+    public $groupsField = 'groupListInput';
 
     
     /**

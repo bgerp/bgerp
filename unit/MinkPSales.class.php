@@ -118,7 +118,7 @@ class unit_MinkPSales extends core_Manager {
     
         $browser->setValue('reff', 'QuantityMinus');
         $browser->setValue('note', 'MinkPSaleQuantityMinus');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "100% при доставка");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
@@ -165,7 +165,7 @@ class unit_MinkPSales extends core_Manager {
     
         $browser->setValue('reff', 'QuantityMinus');
         $browser->setValue('note', 'MinkPSaleQuantityZero');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "100% при доставка");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
@@ -212,7 +212,7 @@ class unit_MinkPSales extends core_Manager {
     
         $browser->setValue('reff', 'PriceMinus');
         $browser->setValue('note', 'MinkPSalePriceMinus');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "100% при доставка");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
@@ -259,7 +259,7 @@ class unit_MinkPSales extends core_Manager {
         
         $browser->setValue('reff', 'DiscountMinus');
         $browser->setValue('note', 'MinkPSaleDiscountMinus');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "100% при доставка");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
@@ -308,7 +308,7 @@ class unit_MinkPSales extends core_Manager {
     
         $browser->setValue('reff', 'DiscountMinus');
         $browser->setValue('note', 'MinkPSaleDiscount101');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "100% при доставка");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
@@ -360,7 +360,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatInclude');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -448,7 +448,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleEURVatFree3');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         // Записване черновата на продажбата
@@ -625,7 +625,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDI');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -761,7 +761,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDICVATFree');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");
         $browser->setValue('chargeVat', 'exempt');
         // Записване черновата на продажбата
@@ -910,7 +910,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDICVATNo');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         $browser->setValue('chargeVat', 'no');
         // Записване черновата на продажбата
@@ -1066,7 +1066,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDICVAT');
-        $browser->setValue('paymentMethodId', "До 30 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', 'yes');
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -1217,7 +1217,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDiffVAT');
-        $browser->setValue('paymentMethodId', "До 30 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', 'yes');
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -1326,7 +1326,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('bankAccountId', '');
         $browser->setValue('template', 'Договор за продажба');
         $browser->setValue('note', 'MinkPAdvancePaymentInclVAT');
-        $browser->setValue('paymentMethodId', "20% авансово и 80% преди експедиция");
+        $browser->setValue('paymentMethodId', "20% авансово, 80% преди експедиция");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
          
         // Записваме черновата на продажбата
@@ -1459,7 +1459,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvancePayment');
-        $browser->setValue('paymentMethodId', "20% авансово и 80% преди експедиция");
+        $browser->setValue('paymentMethodId', "20% авансово, 80% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
@@ -1572,7 +1572,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPDifVAT');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
@@ -1699,7 +1699,7 @@ class unit_MinkPSales extends core_Manager {
     
         $browser->setValue('reff', 'InvalydData');
         $browser->setValue('note', 'MinkPSaleInvalydData');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "100% при доставка");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
@@ -1766,7 +1766,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPExtraIncome');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
          
         // Записваме черновата на продажбата
@@ -1860,7 +1860,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraIncome');
-        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
@@ -1979,7 +1979,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraIncome1');
-        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
         $browser->setValue('chargeVat', "exempt");
          
         // Записваме черновата на продажбата
@@ -2097,7 +2097,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPExtraExpenses');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
          
         // Записваме черновата на продажбата
@@ -2183,7 +2183,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraExpenses');
-        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
@@ -2299,7 +2299,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraExpenses1');
-        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
@@ -2415,7 +2415,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleManuf');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         $browser->setValue('template', 'Manufacturing contract');
@@ -2485,7 +2485,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleService');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         $browser->setValue('template', 'Договор за услуга');
         // Записване черновата на продажбата
