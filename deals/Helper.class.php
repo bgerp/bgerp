@@ -863,7 +863,7 @@ abstract class deals_Helper
 	 * @return boolean           - дали цената е под допустимото
 	 */
 	public static function isPriceAllowed($price, $autoPrice = FALSE, &$msg = NULL)
-	{
+	{return TRUE;
 		if(!$price) return TRUE;
 		
 		$round = round($price, 4);

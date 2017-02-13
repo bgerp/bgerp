@@ -318,17 +318,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
-	 */
-	public function getJobFolderName()
-	{
-		$title = core_Classes::fetchField($this->getClassId(), 'title');
-		
-		return "Задания за " . mb_strtolower($title);
-	}
-	
-	
-	/**
 	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
 	 * 
 	 * @param double $quantity - к-во

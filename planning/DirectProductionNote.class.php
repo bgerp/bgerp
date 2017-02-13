@@ -828,4 +828,90 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		 
 		return self::save($rec);
 	}
+	
+	
+
+
+
+	function act_Test()
+	{
+		$fields = array();
+		$jobId = 10;
+		$productId = 3058;
+		$quantity = 100;
+		$fields = array();
+		$fields['storeId'] = 1;
+		$fields['batch'] = 1222868;
+	
+		//self::createDraft($jobId, $productId, $quantity, $valior, $fields);
+	
+		$id = '76';
+		$productId = '891';
+		$packagingId = 5;
+	
+		self::addRow($id, $productId, $packagingId, 1000, 2);
+	}
+	
+	
+	
+	public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $type = 'input', $storeId = NULL)
+	{
+		// Проверки на параметрите
+		expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
+		expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
+		expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore'), "Няма артикул с ид {$productId}");
+		expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+		expect($packagingId, "Няма мярка/опаковка");
+		expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
+		 
+		if($type == 'pop'){
+			expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+		}
+		
+		if($productRec->canStore != 'yes'){
+			expect(empty($storeId), 'За нескладируем артикул не може да се подаде склад');
+		}
+		
+		if(isset($storeId)){
+			expect(store_Stores::fetch($storeId), 'Невалиден склад');
+		}
+		
+		$packs = cat_Products::getPacks($productId);
+		expect(isset($packs[$packagingId]), "Артикулът не поддържа мярка/опаковка с ид {$packagingId}");
+		
+		$Double = cls::get('type_Double');
+		expect($quantityInPack = $Double->fromVerbal($quantityInPack));
+		expect($packQuantity = $Double->fromVerbal($packQuantity));
+		$quantity = $quantityInPack * $packQuantity;
+		
+		// Подготовка на записа
+		$rec = (object)array('noteId'         => $id,
+				             'productId'      => $productId,
+				             'packagingId'    => $packagingId,
+				             'quantityInPack' => $quantityInPack,
+				             'quantity'       => $quantity,
+		);
+		
+		bp($rec);
+		
+		
+		/*
+		 *  $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('resourceId', 'int', 'silent,caption=Ресурс,input=none,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
+        $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,smartCenter,mandatory,input=hidden');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
+		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
+		
+		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
+		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
+        $this->FLD('conversionRate', 'double', 'input=none');
+        
+        $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
+        $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
+        $this->setField('quantity', 'caption=Количества->За влагане');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
+		 */
+	}
 }
