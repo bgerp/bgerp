@@ -784,6 +784,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		expect($productRec = cat_Products::fetch($productId, 'canManifacture,canStore,fixedAsset,canConvert'));
 		$rec->valior = ($valior) ? $valior : dt::today();
 		$rec->originId = $jRec->containerId;
+		$rec->threadId = $jRec->threadId;
 		$rec->productId = $productId;
 		expect($productRec->canManifacture = 'yes', 'Артикулът не е производим');
 		
@@ -830,43 +831,32 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	}
 	
 	
-
-
-
-	function act_Test()
-	{
-		$fields = array();
-		$jobId = 10;
-		$productId = 3058;
-		$quantity = 100;
-		$fields = array();
-		$fields['storeId'] = 1;
-		$fields['batch'] = 1222868;
-	
-		//self::createDraft($jobId, $productId, $quantity, $valior, $fields);
-	
-		$id = '76';
-		$productId = '891';
-		$packagingId = 5;
-	
-		self::addRow($id, $productId, $packagingId, 1000, 2);
-	}
-	
-	
-	
-	public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $type = 'input', $storeId = NULL)
+	/**
+	 * АПИ метод за добавяне на детайл към протокол за производство
+	 * 
+	 * @param int $id                - ид на артикул       
+	 * @param int $productId         - ид на продукт
+	 * @param int $packagingId       - ид на опаковка
+	 * @param double $packQuantity   - к-во опаковка
+	 * @param double $quantityInPack - к-во в опаковка
+	 * @param boolean $isWaste       - дали е отпадък или не
+	 * @param int|NULL $storeId      - ид на склад, или NULL ако е от незавършеното производство
+	 */
+	public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = FALSE, $storeId = NULL)
 	{
 		// Проверки на параметрите
 		expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
 		expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
 		expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore'), "Няма артикул с ид {$productId}");
-		expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+		if($isWaste){
+			expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+			expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+		} else {
+			expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+		}
+		
 		expect($packagingId, "Няма мярка/опаковка");
 		expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
-		 
-		if($type == 'pop'){
-			expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
-		}
 		
 		if($productRec->canStore != 'yes'){
 			expect(empty($storeId), 'За нескладируем артикул не може да се подаде склад');
@@ -880,38 +870,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		expect(isset($packs[$packagingId]), "Артикулът не поддържа мярка/опаковка с ид {$packagingId}");
 		
 		$Double = cls::get('type_Double');
-		expect($quantityInPack = $Double->fromVerbal($quantityInPack));
-		expect($packQuantity = $Double->fromVerbal($packQuantity));
+		expect($quantityInPack = $Double->fromVerbal($quantityInPack), "Невалидно к-во {$quantityInPack}");
+		expect($packQuantity = $Double->fromVerbal($packQuantity), "Невалидно к-во {$packQuantity}");
 		$quantity = $quantityInPack * $packQuantity;
 		
 		// Подготовка на записа
 		$rec = (object)array('noteId'         => $id,
+							 'type'           => ($isWaste) ? 'pop' : 'input',
 				             'productId'      => $productId,
 				             'packagingId'    => $packagingId,
 				             'quantityInPack' => $quantityInPack,
 				             'quantity'       => $quantity,
 		);
 		
-		bp($rec);
+		if(isset($storeId)){
+			$rec->storeId = $storeId;
+		}
 		
-		
-		/*
-		 *  $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('resourceId', 'int', 'silent,caption=Ресурс,input=none,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
-        $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,smartCenter,mandatory,input=hidden');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
-		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
-		
-		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
-		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
-        $this->FLD('conversionRate', 'double', 'input=none');
-        
-        $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
-        $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
-        $this->setField('quantity', 'caption=Количества->За влагане');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
-		 */
+		planning_DirectProductNoteDetails::save($rec);
 	}
 }
