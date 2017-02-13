@@ -50,7 +50,7 @@ class bgerp_plg_Groups extends core_Plugin
             
             $selArr = arr::make($rec->Selected);
             
-            setIfNot($groupField, $mvc->groupField, 'groupList');
+            setIfNot($groupField, $mvc->groupsField, 'groupList');
             
             $groupFieldType = $mvc->getFieldType($groupField);
             
@@ -147,7 +147,7 @@ class bgerp_plg_Groups extends core_Plugin
                     $obj->{$groupField} = $rec->groups;
                     
                     if($groups != $rec->groups) {
-                        $mvc->save($obj, $groupField);
+                        $mvc->save($obj, 'groupList,groupListInput');
                         $changed = 1;
                     }
                 } else {
@@ -160,7 +160,7 @@ class bgerp_plg_Groups extends core_Plugin
                         $obj->{$groupField} = $groups;
                         
                         if($groups != $exGroups) {
-                            $mvc->save($obj, $groupField);
+                            $mvc->save($obj, 'groupList,groupListInput');
                             $changed++;
                         }
                     }
