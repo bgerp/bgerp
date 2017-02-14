@@ -75,7 +75,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     /**
      * Добавя полетата на вътрешния обект
      *
-     * @param core_Fieldset $fieldset
+     * @param core_Fieldset $form
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
@@ -110,9 +110,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
 
     
     /**
+     * 
      * Подготвя вътрешното състояние, на база въведените данни
-     *
-     * @param core_Form $innerForm
      */
     public function prepareInnerState()
     {
@@ -148,8 +147,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 $mArr = cat_Products::getMaterialsForProduction($rec->productId,$rec->quantity, TRUE); 
                 
                 while($recDetail = $queryDetail->fetch()) {
-                 $a[]=$recDetail;
+     
                     $index = $recDetail->resourceId;
+                    
                     if(!array_key_exists($index, $data->recs)){
                          
                         if(!$recDetail->parentId || $recDetail->type == 'stage') {
@@ -164,7 +164,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     } else {
                     
                         $obj = &$data->recs[$index];
-                        $obj->quantity += $quantity;
+                        $obj->quantity += $rec->quantity * $recDetail->propQuantity;
        
                     }
 
@@ -378,10 +378,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
     
     
     /**
+     * 
      * Създаваме csv файл с данните
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function exportCsv()
     {
@@ -397,9 +395,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
      
     
     /**
+     * 
      * Скрива полетата, които потребител с ниски права не може да вижда
-     *
-     * @param stdClass $data
      */
     public function hidePriceFields()
     {
