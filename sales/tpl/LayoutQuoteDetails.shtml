@@ -22,16 +22,16 @@
             <!--ET_END productId-->
 
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-               <b>[#packQuantity#] [#packagingId#]</b>
+               <span class="maxwidth" data-col="2">[#packQuantity#] [#packagingId#]</span>
                 <!--ET_BEGIN tolerance-->
-                <div class='quiantity-misc' style='font-size:0.8em'>|толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
+                <div class='quiantity-misc centered' style='font-size:0.8em'>|толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
                 <!--ET_BEGIN term-->
-                <div class='quiantity-misc' style='font-size:0.8em'>|срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
+                <div class='quiantity-misc centered' style='font-size:0.8em'>|срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
                 <!--ET_END term-->
             </td>
             <td class='misc-info nowrap aright vtop'>
-                <b>[#packPrice#] </b>
+                <span class="maxwidth" data-col="1"><b>[#packPrice#] </b></span>
                 <!--ET_BEGIN discount-->
                 <div class='discount'>- [#discount#] |ТО|*
                 </div>
