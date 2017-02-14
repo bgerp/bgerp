@@ -210,4 +210,30 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
     }
+    
+    
+    /**
+     * Колко е толеранса
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - толеранс или NULL, ако няма
+     */
+    public function getTolerance($id, $quantity)
+    {
+    	return $this->class->getTolerance($id, $quantity);
+    }
+    
+    
+    /**
+     * Колко е срока на доставка
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+     */
+    public function getDeliveryTime($id, $quantity)
+    {
+    	return $this->class->getDeliveryTime($id, $quantity);
+    }
 }

@@ -420,10 +420,12 @@ abstract class deals_Helper
 	public static function addNotesToProductRow(&$productRow, $notes)
 	{
 		$RichText = cls::get('type_Richtext');
+		$notes = $RichText->toVerbal($notes);
 		if(is_string($productRow)){
-			$productRow .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
+			$productRow .= "<div class='small'>{$notes}</div>";
 		} else {
-			$productRow->append("<div class='small'>{$RichText->toVerbal($notes)}</div>");
+			$productRow->append(new core_ET("<div class='small'>[#NOTES#]</div>"));
+			$productRow->replace($notes, 'NOTES');
 		}
 	}
 	

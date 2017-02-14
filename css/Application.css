@@ -642,8 +642,8 @@ div.productImage {
   .general-product-description .productPreview,
   .sales_SalesDetails .productPreview,
   .store_ShipmentOrderDetails .productPreview {
-    max-width: 120px;
-    max-height: 240px; }
+    max-width: 320px;
+    max-height: 320px; }
   .products-table .groupList .small-padding .productGroupInfo,
   .jobTable .groupList .small-padding .productGroupInfo,
   .general-product-description .groupList .small-padding .productGroupInfo,
@@ -714,8 +714,8 @@ div.productImage {
   .jobTable a.fancybox img,
   .general-product-description a.fancybox img,
   .sales_SalesDetails .productImage a.fancybox img {
-    max-width: 120px;
-    max-height: 60px;
+    max-width: 320px;
+    max-height: 320px;
     width: auto;
     height: auto; }
 

@@ -1272,7 +1272,9 @@ class cat_Boms extends core_Master
     		$price = $primeCost1 * (1 + $minDelta);
     
     	} else {
-    	
+    		$primeCost1 *= $t1;
+    		$primeCost2 *= $t2;
+    		
 	    	// Изчисляваме началната и пропорционалната сума
 	    	$basePrice = ($primeCost2 * $t1 - $primeCost1 * $t2) / ($t1 - $t2); 
 	    	$propPrice = ($primeCost1 - $primeCost2) / ($t1 - $t2);

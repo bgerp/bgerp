@@ -74,9 +74,9 @@ class cond_DeliveryTerms extends core_Master
     
 
     /**
-     * Кой може да променя състоянието на валутата
+     * Кой може да променя състоянието на Условията на доставка
      */
-    public $canChangestate = 'no_one';
+    public $canChangestate = 'ceo,admin';
 
 
     /**

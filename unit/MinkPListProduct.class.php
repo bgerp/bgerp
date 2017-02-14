@@ -252,7 +252,7 @@ class unit_MinkPListProduct extends core_Manager {
         }
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPlistVatInclude');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на покупката
         $browser->press('Чернова');

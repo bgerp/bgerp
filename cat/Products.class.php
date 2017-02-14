@@ -57,7 +57,7 @@ class cat_Products extends embed_Manager {
      * Име на полето за групите на продуктите.
      * Използва се за целите на bgerp_plg_Groups
      */
-    public $groupField = 'groups';
+    public $groupsField = 'groups';
 
     
     /**
@@ -2663,6 +2663,44 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Ако нищо не намери
+    	return NULL;
+    }
+    
+    
+    /**
+     * Колко е толеранса
+     * 
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - толеранс или NULL, ако няма
+     */
+    public static function getTolerance($id, $quantity)
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		$tolerance = $Driver->getTolerance($id, $quantity);
+    		return ($tolerance) ? $tolerance : NULL;
+    	}
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Колко е срока на доставка
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+     */
+    public static function getDeliveryTime($id, $quantity)
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		$term = $Driver->getDeliveryTime($id, $quantity);
+    		return ($term) ? $term : NULL;
+    	}
+    	
     	return NULL;
     }
 }
