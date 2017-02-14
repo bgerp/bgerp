@@ -465,7 +465,7 @@ class tcost_Calcs extends core_Manager
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
-    		if($rec->autoPrice === TRUE){
+    		if($rec->autoPrice === TRUE){bp();
     			if(isset($feeArr['singleFee'])){
     				$rec->{$map['price']} += $feeArr['singleFee'];
     			}
@@ -476,15 +476,16 @@ class tcost_Calcs extends core_Manager
     	if($rec->autoPrice !== TRUE){
     		
     		if(cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->productId)){
-    			
-    			// Проверка дали цената е допустима спрямо сумата на транспорта
-    			$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
-    			 
-    			if($amount <= round($rec->fee, 2)){
-    				$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
-    				$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
-    				$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
-    				$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
+    			if(isset($rec->{$map['price']})){
+    				// Проверка дали цената е допустима спрямо сумата на транспорта
+    				$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
+    				
+    				if($amount <= round($rec->fee, 2)){
+    					$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
+    					$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
+    					$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
+    					$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
+    					}
     			}
     		}
     	}
