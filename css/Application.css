@@ -661,6 +661,9 @@ div.productImage {
     position: relative;
     top: -1px; }
 
+.products-table .rowtoolsGroup.modal-toolbar.iw-contextMenu {
+  max-width: 200px; }
+
   .product-component-title td {
     border-top: 1px solid #dddddd;
     padding: 5px 0;
