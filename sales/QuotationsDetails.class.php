@@ -475,7 +475,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		        $masterRec->deliveryPlaceId  = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}'", 'id');
     		    }
     		  
-    			tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+    		    if($rec->productId){
+    		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+    		    }
     		}
 	    }
     }
