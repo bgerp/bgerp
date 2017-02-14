@@ -124,7 +124,7 @@ class cal_Holidays extends core_Master
         								holiday=Празник,
         								non-working=Неработен,
                                         workday=Отработване,
-                                        orthodox=Православен,
+                                        orthodox=Християски,
                                         muslim=Мюсюлмански,
                                         international=Международен,
                                         AU=Австралия,
@@ -400,9 +400,10 @@ class cal_Holidays extends core_Master
  		
     }
     
+    
     static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if(isset($rec->csv_base) && strlen($rec->csv_base) != 0){
+    	if(isset($rec->csv_base) && strlen($rec->csv_base) != 0){ 
     		if($rec->csv_base > 0){
     			$rec->base = str_pad((int) $rec->csv_base, 2, '0', STR_PAD_LEFT);
     		} else {
@@ -471,6 +472,7 @@ class cal_Holidays extends core_Master
         return $res;
     }
 
+    
     /**
      * Форма за търсене по дадена ключова дума
      */
@@ -489,6 +491,7 @@ class cal_Holidays extends core_Master
             $data->query->where("#base = '{$base}'");
         }
     }
+    
     
     /**
      * Функция, която връща array[кода на държавата] = списък на потребители
