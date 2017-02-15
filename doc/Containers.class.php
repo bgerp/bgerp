@@ -2634,7 +2634,7 @@ class doc_Containers extends core_Manager
             } else {
                 
                 // Съобщение
-                $message = "|Активирани, но неизпратени имейли";
+                $message = "|Имате активирани, но неизпратени имейли";
                 
                 // Линк, където ще сочи нотификацията
                 $customUrl = array('doc_Search', 'state' => 'active', 'docClass' => $outgoingsClassId, 'author' => $firstTeamAuthor);
