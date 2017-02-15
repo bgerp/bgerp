@@ -664,8 +664,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	$dTpl = getTplFromFile($templateFile);
-    	$dTpl->replace(1, 'DATA_COL_ATTR');
-    	$dTpl->replace(2, 'DATA_COL_ATTR_AMOUNT');
+    	if($data->countNotOptional){
+    		$dTpl->replace(1, 'DATA_COL_ATTR');
+    		$dTpl->replace(2, 'DATA_COL_ATTR_AMOUNT');
+    	}
     	
     	if($shortest === TRUE){
     		if($masterRec->state != 'draft'){
@@ -677,8 +679,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	$optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
     	
     	$oTpl = getTplFromFile($optionalTemplateFile);
-    	$oTpl->replace(3, 'DATA_COL_ATTR');
-    	$oTpl->replace(4, 'DATA_COL_ATTR_AMOUNT');
+    	if($data->countOptional){
+    		$oTpl->replace(3, 'DATA_COL_ATTR');
+    		$oTpl->replace(4, 'DATA_COL_ATTR_AMOUNT');
+    	}
+    	
     	$oTpl->removeBlock("totalPlace");
     	
     	$oCount = $dCount = 1;
