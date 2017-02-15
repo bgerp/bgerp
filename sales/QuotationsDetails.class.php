@@ -166,7 +166,6 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function calcLivePrice($rec, $masterRec)
     {
-    	
     	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, NULL, FALSE);
     	
     	if(isset($policyInfo->price)){
@@ -238,9 +237,15 @@ class sales_QuotationsDetails extends doc_Detail {
     	deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
     	
     	$notDefinedAmount = FAlSE;
+    	$onlyNotOptionalRec = NULL;
+    	
     	if($data->countNotOptional == 1 && $data->notOptionalHaveOneQuantity){
     		unset($data->noTotal);
-    		$notDefinedAmount = TRUE;
+    		list($firstKey) = array_keys($notOptional);
+    		$onlyNotOptionalRec = $notOptional[$firstKey];
+    		if(!isset($onlyNotOptionalRec->price)){
+    			$notDefinedAmount = TRUE;
+    		}
     	}
     	
     	if(empty($data->noTotal) && count($notOptional)){
@@ -282,6 +287,18 @@ class sales_QuotationsDetails extends doc_Detail {
     		if($notDefinedAmount === TRUE){
     			$data->summary->value = '???';
     			$data->summary->total = "<span class='quiet'>???</span>";
+    		}
+    		
+    		// Ако има само 1 артикул и той е в 1 бройка и няма опционални и цената му е динамично изчислена
+    		if(is_object($onlyNotOptionalRec)){
+    			if($onlyNotOptionalRec->livePrice === TRUE){
+    				$rowAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($onlyNotOptionalRec->amount);
+    				$data->summary->value = "<span style='color:blue'>{$rowAmount}</span>";
+    				$data->summary->value = ht::createHint($data->summary->value, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', FALSE, 'width=14px,height=14px');
+    				
+    				$data->summary->total = "<span style='color:blue'>{$rowAmount}</span>";
+    				$data->summary->total = ht::createHint($data->summary->total, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', FALSE, 'width=14px,height=14px');
+    			}
     		}
     	}
     	
