@@ -1657,6 +1657,7 @@ class cal_Calendar extends core_Master
         
       
         if(is_array($stateDay)){
+            
 	        foreach($stateDay as $rec){
 	            $row = new stdClass();
 	            $row = self::recToVerbal($rec);
@@ -1679,7 +1680,7 @@ class cal_Calendar extends core_Master
 	     		
 	     		$rec->title = type_Varchar::escape($rec->title);
 
-	     		$dayData[$hourKey][$dayKey] = $row->event;
+	     		$dayData[$hourKey][$dayKey] .= $row->event;
 
 	     	}
         }
@@ -1735,7 +1736,7 @@ class cal_Calendar extends core_Master
 	            
 	            $rec->title = type_Varchar::escape($rec->title);
 	            
-	            $weekData[$hourKey][$dayKey] = $row->event;
+	            $weekData[$hourKey][$dayKey] .= $row->event;
 
 	        }
         }
@@ -1791,7 +1792,7 @@ class cal_Calendar extends core_Master
 			    
 			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
 			    
-			    $monthDate->monthArr[$weekKey][$dayKey] = $row->event;
+			    $monthDate->monthArr[$weekKey][$dayKey] .= $row->event;
 	        }
         }
        

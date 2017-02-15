@@ -2604,7 +2604,7 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return NULL|double $primeCost
      */
-    public function getPrimeCostByCode($code)
+    public static function getPrimeCostByCode($code)
     {
     	// Имали такъв артикул?
     	$product = self::getByCode($code);

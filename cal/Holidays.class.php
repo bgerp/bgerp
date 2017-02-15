@@ -334,9 +334,6 @@ class cal_Holidays extends core_Master
                 $calRec->key    = $prefix . $rec->key . $year;
                 $calRec->time   = date('Y-m-d', $base + 24*60*60*($delta + $rec->day));
                 $calRec->type   = $rec->type;
-                /*if($calRec->type == 'nameday') {
-                    $calRec->type = 'orthodox';
-                }*/
                 $calRec->allDay = 'yes';
                 $calRec->title  = self::getVerbal($rec, 'title');
                 if(strlen($rec->type) == 2) {
