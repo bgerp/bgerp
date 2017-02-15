@@ -66,7 +66,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, object=Документ, sendOn=Изпращане->На, createdBy=Изпращане->От, boxFrom=Изпращане->Адрес, emailsTo, emailsCc, faxTo, faxService, sentOn';
+    var $listFields = 'id, object=Документ, delaySendOn=Изпращане->На, createdBy=Изпращане->От, boxFrom=Изпращане->Адрес, emailsTo, emailsCc, faxTo, faxService, sentOn';
     
     
     /**
@@ -77,11 +77,10 @@ class email_SendOnTime extends core_Manager
         $this->FLD('class', 'varchar(64, ci)', 'caption=Клас, oldFieldName=classId');
         $this->FLD('objectId', 'int', 'caption=Обект');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
-        $this->FLD('delay', 'time', 'caption=Отлагане');
+        $this->FLD('delaySendOn', 'datetime(format=smartTime)', 'caption=Изпращане на');
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено на');
         $this->FLD('state', 'enum(waiting=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
         
-        $this->FNC('sendOn', 'datetime(format=smartTime)', 'caption=Изпращане->На');
         $this->FNC('emailsTo', 'emails', 'caption=Изпращане->До');
         $this->FNC('emailsCc', 'emails', 'caption=Изпращане->Копие');
         $this->FNC('faxTo', 'drdata_PhoneType', 'caption=Изпращане->Факс');
@@ -96,7 +95,7 @@ class email_SendOnTime extends core_Manager
      * @param integer $class
      * @param integer $objectId
      * @param array $data
-     * @param integer $delay
+     * @param datetime $delay
      * 
      * @return integer
      */
@@ -106,7 +105,7 @@ class email_SendOnTime extends core_Manager
         $rec->class = $class;
         $rec->objectId = $objectId;
         $rec->data = $data;
-        $rec->delay = $delay;
+        $rec->delaySendOn = $delay;
         $rec->state = 'waiting';
         
         return self::save($rec);
@@ -126,7 +125,7 @@ class email_SendOnTime extends core_Manager
         $query->where(array("#objectId = [#1#]", $objectId));
         
         $query->where("#state = 'waiting'");
-        $query->orderBy('delay', 'ASC');
+        $query->orderBy('delaySendOn', 'ASC');
         $resArr = array();
         
         while ($rec = $query->fetch()) {
@@ -138,18 +137,6 @@ class email_SendOnTime extends core_Manager
         }
         
         return $resArr;
-    }
-    
-    
-    /**
-     * 
-     * 
-     * @param email_SendOnTime $mvc
-     * @param stdObject $rec
-     */
-    static function on_CalcSendOn($mvc, $rec)
-    {
-        $rec->sendOn = dt::addSecs($rec->delay, $rec->createdOn);
     }
     
     
@@ -291,7 +278,7 @@ class email_SendOnTime extends core_Manager
     {
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'waiting' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
         $data->query->orderBy('orderByState', 'ASC');
-        $data->query->orderBy('delay', 'ASC');
+        $data->query->orderBy('delaySendOn', 'ASC');
     }
     
     
@@ -301,8 +288,8 @@ class email_SendOnTime extends core_Manager
     function cron_SendEmails()
     {
         $query = self::getQuery();
-        $now = dt::verbal2mysql();
-        $query->where("DATE_ADD(#createdOn, INTERVAL #delay SECOND) <= '{$now}'");
+        $now = dt::now();
+        $query->where("#delaySendOn <= '{$now}'");
         $query->where("#state != 'closed'");
         
         $cnt = 0;

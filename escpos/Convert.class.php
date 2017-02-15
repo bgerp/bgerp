@@ -204,8 +204,12 @@ class escpos_Convert extends core_Manager
         "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
         "<p><r32 =>" .
         "<p><r29 F b>Общо: 34.23 лв.";
-
-        // return self::process($test, 'escpos_driver_Ddp250');
+        
+        if (Request::get('p')) {
+            $res = self::process($test, 'escpos_driver_Ddp250');
+            echo $res;
+            shutdown();
+        }
 
         return self::process($test);
     }

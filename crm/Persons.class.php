@@ -201,15 +201,6 @@ class crm_Persons extends core_Master
 
     var $doWithSelected = 'export=Експортиране';
 
-
-    /**
-     * Име на полето, указващо в коя група/групи е записа
-     * 
-     * @var string
-     * @see groups_Extendable
-     */
-    public $groupsField = 'groupListInput';
-
     
     /**
      * Детайли на този мастър обект
@@ -1825,7 +1816,7 @@ class crm_Persons extends core_Master
         if (Mode::is('screenMode', 'narrow')) {
             
             // Да има само 2 колони
-            $data->form->setField('groupList', array('maxColumns' => 2));    
+            $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));    
         }
         
         if(empty($form->rec->buzCompanyId)){
@@ -1839,6 +1830,7 @@ class crm_Persons extends core_Master
         }
     	
         if($form->rec->buzCompanyId){
+            $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
 			$form->setOptions('buzLocationId', $locations);
 			if(!count($locations)){
 				$form->setField('buzLocationId', 'input=none');
@@ -2648,6 +2640,7 @@ class crm_Persons extends core_Master
     public static function forceGroup($id, $groupSysId, $isSysId = TRUE)
     {
     	expect($rec = static::fetch($id));
+    	$me = cls::get(get_called_class());
     	if($isSysId === TRUE){
     		expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
     	} else {
@@ -2658,14 +2651,13 @@ class crm_Persons extends core_Master
     	// Ако контрагента не е включен в групата, включваме го
     	if(!keylist::isIn($groupId, $rec->groupList)){
     		$groupName = crm_Groups::getTitleById($groupId);
-    		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
-    		$rec->groupListInput = keylist::addKey($rec->groupListInput, $groupId);
+    		$rec->{$me->expandInputFieldName} = keylist::addKey($rec->{$me->expandInputFieldName}, $groupId);
     		
     		if(haveRole('powerUser')){
     			core_Statuses::newStatus("|Лицето е включено в група |* '{$groupName}'");
     		}
     		
-    		return static::save($rec, 'groupList,groupListInput');
+    		return static::save($rec, $me->expandInputFieldName);
     	}
     	
     	return TRUE;
@@ -2771,8 +2763,8 @@ class crm_Persons extends core_Master
     {
         crm_Companies::on_AfterPrepareImportFields($mvc, $fields);
         
-        if ($fields['groupList']) {
-            $fields['groupList']['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
+        if ($fields[$mvc->expandInputFieldName]) {
+            $fields[$mvc->expandInputFieldName]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
         }
     }
     

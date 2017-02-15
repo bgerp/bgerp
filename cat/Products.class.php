@@ -55,9 +55,10 @@ class cat_Products extends embed_Manager {
     
     /**
      * Име на полето за групите на продуктите.
-     * Използва се за целите на bgerp_plg_Groups
+     * 
+     * @see bgerp_plg_Groups
      */
-    public $groupsField = 'groups';
+    public $groupField = 'groups';
 
     
     /**

@@ -450,6 +450,29 @@ class trz_Requests extends core_Master
 	    }
         
     }
+    
+    
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        //
+        $rec = $mvc->fetchRec($rec);
+        $subscribedArr = keylist::toArray($rec->sharedUsers);
+    	if(count($subscribedArr)) {
+   	        foreach($subscribedArr as $userId) {
+    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+    	            $rec->message  = "|Разрешена е |* \"" . self::getRecTitle($rec) . "\"";
+    	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+    	            $rec->customUrl = array('trz_Requests', 'single',  $rec->id);
+    	            $rec->priority = 0;
+    	
+    	            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+    	        }
+    	    }
+    	}
+    }
 
     
     /**

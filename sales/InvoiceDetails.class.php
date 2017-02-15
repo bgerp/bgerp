@@ -134,6 +134,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     	if(is_array($dealInfo->dealProducts)){
     		foreach ($dealInfo->dealProducts as $det){
     			$det->{$this->masterKey} = $id;
+    			$det->quantity /= $det->quantityInPack;
     			$this->save($det);
     		}
     	}
