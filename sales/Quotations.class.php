@@ -859,7 +859,7 @@ class sales_Quotations extends core_Master
      * 
      * @param int $id - ид на оферта
      * @param boolean $onlyStorable - дали да са само складируемите
-     * @return array - продуктите
+     * @return array|NULL - продуктите
      */
     private function getItems($id, $onlyStorable = FALSE, $groupByProduct = FALSE)
     {
@@ -879,7 +879,7 @@ class sales_Quotations extends core_Master
     		$products[$index] = $detail;
     	}
     	
-    	return array_values($products);
+    	return (count($products)) ? array_values($products) : NULL;
     }
     
     
