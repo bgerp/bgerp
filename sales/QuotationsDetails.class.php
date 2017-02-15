@@ -235,10 +235,17 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Подготовка за показване на задължителнтие продукти
     	deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
     	
+    	$notDefinedAmount = FAlSE;
+    	if($data->countNotOptional == 1 && $data->notOptionalHaveOneQuantity){
+    		unset($data->noTotal);
+    		$notDefinedAmount = TRUE;
+    	}
+    	
     	if(empty($data->noTotal) && count($notOptional)){
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
     		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, FALSE, $masterRec->tplLang);
+    		
     		if(isset($data->summary->vat009) && !isset($data->summary->vat0) && !isset($data->summary->vat02)){
     			$data->summary->onlyVat = $data->summary->vat009;
     			unset($data->summary->vat009);
@@ -268,6 +275,11 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->summary->netTitle = '-';
     		} else {
     			$data->summary->netTitle = 'Нето';
+    		}
+    		
+    		if($notDefinedAmount === TRUE){
+    			$data->summary->value = '???';
+    			$data->summary->total = "<span class='quiet'>???</span>";
     		}
     	}
     	
@@ -652,6 +664,9 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	$dTpl = getTplFromFile($templateFile);
+    	$dTpl->replace(1, 'DATA_COL_ATTR');
+    	$dTpl->replace(2, 'DATA_COL_ATTR_AMOUNT');
+    	
     	if($shortest === TRUE){
     		if($masterRec->state != 'draft'){
     			$dTpl->replace('display:none;', 'none');
@@ -662,7 +677,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	$optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
     	
     	$oTpl = getTplFromFile($optionalTemplateFile);
+    	$oTpl->replace(3, 'DATA_COL_ATTR');
+    	$oTpl->replace(4, 'DATA_COL_ATTR_AMOUNT');
     	$oTpl->removeBlock("totalPlace");
+    	
     	$oCount = $dCount = 1;
     	
     	// Променливи за определяне да се скриват ли някои колони
