@@ -465,7 +465,7 @@ class tcost_Calcs extends core_Manager
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
-    		if($rec->autoPrice === TRUE){bp();
+    		if($rec->autoPrice === TRUE){
     			if(isset($feeArr['singleFee'])){
     				$rec->{$map['price']} += $feeArr['singleFee'];
     			}
