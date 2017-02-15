@@ -250,6 +250,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $deliverySuggestions = array();
         $query = cond_DeliveryTerms::getQuery();
         $query->where("#state = 'active'");
+        $query->orderBy("codeName", "ASC");
         $query->show('codeName');
         while($dRec = $query->fetch()){
         	$deliverySuggestions[$dRec->codeName] = $dRec->codeName;
