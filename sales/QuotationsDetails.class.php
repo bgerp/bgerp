@@ -444,7 +444,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			    
     				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
     					if($sameProduct->id != $rec->id){
-    						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
+    						$form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
     						return;
     					}
     				}
@@ -881,14 +881,14 @@ class sales_QuotationsDetails extends doc_Detail {
     	if(empty($rec->tolerance)){
     		if($tolerance = cat_Products::getTolerance($rec->productId, $rec->quantity)){
     			$row->tolerance = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
-    			$row->tolerance = ht::createHint($row->tolerance, 'Толеранса е изчислен автоматично на база количеството и параметрите на артикула');
+    			$row->tolerance = ht::createHint($row->tolerance, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
     		}
     	}
     	
     	if(empty($rec->term)){
     		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
     			$row->term = core_Type::getByName('time')->toVerbal($term);
-    			$row->term = ht::createHint($row->term, 'Срока на доставка е изчислен автоматично на база количеството и параметрите на артикула');
+    			$row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
     		}
     	}
     	
