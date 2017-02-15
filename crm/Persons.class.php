@@ -269,7 +269,7 @@ class crm_Persons extends core_Master
 
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)', 
-            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv');
+            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv,remember');
         $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
@@ -1839,11 +1839,24 @@ class crm_Persons extends core_Master
         }
     	
         if($form->rec->buzCompanyId){
-        	$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
 			$form->setOptions('buzLocationId', $locations);
 			if(!count($locations)){
 				$form->setField('buzLocationId', 'input=none');
 			}
+            $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
+        }
+    }
+
+
+    /**
+     * Задава титла на формата за редактиране
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+
+        if($form->rec->buzCompanyId){
+            $form->title = "Добавяне на служител към|* " . crm_Companies::getHyperlink($form->rec->buzCompanyId);
         }
     }
     
