@@ -118,6 +118,8 @@ class escpos_Convert extends core_Manager
                     }
 
                     $font = $driver->getFont($font, $bold, $underline);
+                    $fontPad = $driver->getFont($font, '', '');
+
                     $fontEnd = $driver->getFontEnd();
                     $newLine = $driver->GetNewLine();
 
@@ -126,7 +128,7 @@ class escpos_Convert extends core_Manager
                         case 'p':
                             $res .= $l;
                             // Код за преместване на хартията
-                            $l = $newLine . $font . $text . $fontEnd;
+                            $l = $newLine . $fontPad . $font . $text . $fontEnd;
                             $lLen = mb_strlen($text);
                             break;
                         case 'c':
@@ -140,7 +142,7 @@ class escpos_Convert extends core_Manager
                             } else {
                                 $pad = '';
                             }
-                            $l = $newLine . $pad . $font . $text .$fontEnd;
+                            $l = $newLine . $fontPad . $pad . $font . $text .$fontEnd;
                             $lLen = $r + $textLen;
                             break;
                         case 'l':
@@ -152,7 +154,7 @@ class escpos_Convert extends core_Manager
                                 $pad = '';
                             }
 
-                            $l .=  $pad . $font .  $text . $fontEnd;
+                            $l .=  $fontPad . $pad . $font .  $text . $fontEnd;
                             $lLen += $r + $textLen;
                             break;
 
@@ -165,7 +167,7 @@ class escpos_Convert extends core_Manager
                             } else {
                                 $pad = '';
                             }
-                            $l .= $pad . $font .  $text . $fontEnd;
+                            $l .= $fontPad . $pad . $font .  $text . $fontEnd;
                             $lLen = $r + $textLen;
                             break;
                         default:
