@@ -1708,8 +1708,6 @@ class doc_Containers extends core_Manager
         $query->orWhere("#searchKeywords IS NULL");
         $query->orWhere("#searchKeywords = ''");
         
-        $query->orWhere("#activatedBy IS NULL AND #state != 'rejected' AND #state != 'draft'");
-        
         $query->limit(500);
 
         $resArr = array();
