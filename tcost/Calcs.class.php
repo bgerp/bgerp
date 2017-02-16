@@ -280,14 +280,18 @@ class tcost_Calcs extends core_Manager
     	$count = 0;
     	$classId = cls::get($docClass)->getClassId();
     	$feeErr = tcost_CostCalcIntf::CALC_ERROR;
+    	$isQuote = ($classId == sales_Quotations::getClassId());
     	
     	$query = self::getQuery();
     	$query->where("#docClassId = {$classId} AND #docId = {$docId}");
-    	$query->XPR('sum', 'double', 'sum(#fee)');
     	$query->where("#fee != {$feeErr}");
-    	
-    	if($rec = $query->fetch()){
-    		$count = $rec->sum;
+    	while($rec = $query->fetch()){
+    		if($isQuote === TRUE){
+    			$dRec = sales_QuotationsDetails::fetch($rec->recId, 'price,optional');
+    			if(!isset($dRec->price) || $dRec->optional == 'yes') continue;
+    		}
+    		
+    		$count += $rec->fee;
     	}
     	
     	return $count;
