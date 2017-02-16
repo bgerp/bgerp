@@ -969,7 +969,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	$res = (object)array('price' => NULL);
     	if($rec = $query->fetch()){
     		$res->price = $rec->price;
-    
+    		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id);
+    		if($fee){
+    			$res->price -= round($fee / $rec->quantity, 4);
+    		}
+    		
     		if($rec->discount){
     			$res->discount = $rec->discount;
     		}
