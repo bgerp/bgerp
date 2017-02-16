@@ -1,0 +1,59 @@
+<c>[#MyCompany#]
+<c>[#MyAddress#]
+<!--ET_BEGIN MyCompanyVatNo-->
+<c>ЗДДС №: [#MyCompanyVatNo#]
+<!--ET_END MyCompanyVatNo-->
+<!--ET_BEGIN uicId-->
+<c>ЕИК: [#uicId#]
+<!--ET_END uicId-->
+<p>
+<!--ET_BEGIN bankInfo-->
+[#bankInfo#]
+<!--ET_BEGIN bank-->
+<p>Банка:
+<p>[#bank#]
+<!--ET_END bank-->
+<!--ET_BEGIN bic-->
+<p>BIC:
+<p>[#bic#]
+<!--ET_END bic-->
+<!--ET_BEGIN accountId-->
+<p>IBAN:
+<p>[#accountId#]
+<!--ET_END accountId-->
+<!--ET_END bankInfo-->
+<p>
+<p><r32 =>
+<c F b>ФАКТУРА
+<c F b>[#number#]/[#date#]
+<c F b>ОРИГИНАЛ
+
+<p><r32 =>
+<p b>[#id#]<l3 b>[#productName#]
+<!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
+<p><l4>[#quantity#]<l12>х [#price#]<r32>= [#productTotal#]
+<p><r32 =>
+<p><r29 F b>Общо: [#total#] [#currencyId#]
+<p>
+<p><r32 =>
+<p>Клиент
+<p>[#contragentName#]
+<p>[#contragentCountryId#]
+<p>[#contragentPCode#] [#contragentPlace#]
+<p>[#contragentAddress#]
+<!--ET_BEGIN contragentVatNo-->
+<p>ЗДДС №: [#contragentVatNo#]
+<!--ET_END contragentVatNo-->
+<!--ET_BEGIN uicNo-->
+<p>ЕИК: [#uicNo#]
+<!--ET_END uicNo-->
+<p><r32 =>
+<p>
+<p>Място на сделката:
+<p>[#place#]
+<p>Дата на данъчното събитие:
+<p>[#vatDate#]
+<p>Получател:
+<p><r32 .>
+<p>Съставил:
+<p>[#username#]
