@@ -228,6 +228,13 @@ class crm_Companies extends core_Master
     
     
     /**
+     * 
+     * @see type_Key::filterByGroup
+     */
+    public $groupsField = 'groupList';
+    
+    
+    /**
      * Предефинирани подредби на листовия изглед
      */
     var $listOrderBy = array(

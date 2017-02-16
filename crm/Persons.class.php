@@ -237,6 +237,13 @@ class crm_Persons extends core_Master
     
     
     /**
+     * 
+     * @see type_Key::filterByGroup
+     */
+    public $groupsField = 'groupList';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
