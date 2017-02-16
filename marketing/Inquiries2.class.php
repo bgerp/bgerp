@@ -644,7 +644,7 @@ class marketing_Inquiries2 extends embed_Manager
     	} catch (core_exception_Expect $e) {
             $this->logErr("Грешка при изпращане", $rec->id);
             reportException($e);
-            $msg = "Грешка при препращане";
+            $msg = "|Грешка при препращане";
         }
     	
     	return new Redirect(array($this, 'single', $rec->id), $msg);
