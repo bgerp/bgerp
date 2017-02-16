@@ -99,6 +99,14 @@ class sales_QuotationsDetails extends doc_Detail {
     public $fetchFieldsBeforeDelete = 'quotationId';
     
     
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'price,tolerance,term';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
