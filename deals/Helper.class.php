@@ -811,7 +811,7 @@ abstract class deals_Helper
 			$res['contragentName'] = $contragentName;
 		}
 		
-		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml'));
+		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain'));
 		
 		// Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
 		if($makeLink === TRUE){
