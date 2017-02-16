@@ -496,8 +496,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			}
 			
 			// Проверка на цената
-			if(!deals_Helper::isPriceAllowed($rec->price, $autoPrice, $msg)){
-				$form->setError('packPrice', $msg);
+			if(!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)){
+				$form->setError('packPrice,quantity', $msg);
 			}
 			
 			$rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);

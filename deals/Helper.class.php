@@ -860,22 +860,25 @@ abstract class deals_Helper
 	 * Помощна ф-я проверяваща дали цената не е много малка
 	 * 
 	 * @param double|NULL $price - цена
+	 * @param double $quantity   - количество
 	 * @param boolean $autoPrice - дали е автоматично изчислена
 	 * @param string|NULL $msg   - съобщение за грешка ако има
 	 * @return boolean           - дали цената е под допустимото
 	 */
-	public static function isPriceAllowed($price, $autoPrice = FALSE, &$msg = NULL)
+	public static function isPriceAllowed($price, $quantity, $autoPrice = FALSE, &$msg = NULL)
 	{
 		if(!$price) return TRUE;
 		
-		$round = round($price, 4);
-		$res =((double)$round >= 0.0001);
+		$amount = $price * $quantity;
+		
+		$round = round($amount, 2);
+		$res =((double)$round >= 0.01);
 		
 		if($res === FALSE){
 			if($autoPrice === TRUE){
-				$msg = "Цената по политика на артикула е под|* <b>0.0001</b>";
+			$msg = "Сумата на реда не може да бъде под|* <b>0.01</b>! |Моля увеличете количеството, защото цената по политика е много ниска|*";
 			} else {
-				$msg = "Въведената цена трябва да е над|* <b>0.0001</b>";
+				$msg = "Сумата на реда не може да бъде под|* <b>0.01</b>! |Моля променете количеството и/или цената|*";
 			}
 		}
 		
