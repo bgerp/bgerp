@@ -507,7 +507,9 @@ class sales_Quotations extends core_Master
     			}
     			
     			if(isset($rec->bankAccountId)){
-    				$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+    				$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
+    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    				$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
     			}
     		}
     		 
