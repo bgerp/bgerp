@@ -8,7 +8,8 @@
 <!--ET_END uicId-->
 <p>
 <p><r32 =>
-<c F b>ДОГОВОР ЗА ПРОДАЖБА
+<c F b>ДОГОВОР
+<c F b>ЗА ПРОДАЖБА
 <c F b>[#id#]/[#valior#]
 <p><r32 =>
 <p b>[#id#]<l3 b>[#productName#]
