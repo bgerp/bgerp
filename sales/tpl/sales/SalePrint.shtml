@@ -10,10 +10,9 @@
 <p><r32 =>
 <c F b>ДОГОВОР ЗА ПРОДАЖБА
 <c F b>[#id#]/[#valior#]
-
 <p><r32 =>
 <p b>[#id#]<l3 b>[#productName#]
-<!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
+    <!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
 <p><l4>[#quantity#]<l12>х [#price#]<r32>= [#productTotal#]
 <p><r32 =>
 <p><r29 F b>Общо: [#total#] [#currencyId#]
@@ -22,12 +21,12 @@
 <p>Клиент
 <p>[#contragentName#]
 <p>[#contragentAddress#]
-<!--ET_BEGIN contragentVatNo-->
+    <!--ET_BEGIN contragentVatNo-->
 <p>ЗДДС №: [#contragentVatNo#]
-<!--ET_END contragentVatNo-->
-<!--ET_BEGIN uicNo-->
+    <!--ET_END contragentVatNo-->
+    <!--ET_BEGIN uicNo-->
 <p>ЕИК: [#uicNo#]
-<!--ET_END uicNo-->
+    <!--ET_END uicNo-->
 <p>До обект:
 <p>[#deliveryLocationId#]
 <p><r32 =>
@@ -39,7 +38,7 @@
 <p>[#paymentMethodId#]
 <!--ET_END paymentMethodId-->
 <!--ET_BEGIN downpayment-->
-<p>Авансово|:
+<p>Авансово:
 <p>[#downpayment#]
 <!--ET_END downpayment-->
 <!--ET_BEGIN currencyCode-->
@@ -49,6 +48,7 @@
 <!--ET_BEGIN caseId-->
 <p>Каса:
 <p>[#caseId#]
+<!--ET_END caseId-->
 <p>Банк. с-ка
 <p>[#bankAccountId#]
 <p>
