@@ -482,8 +482,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		}
     		
     		// Проверка на цената
-    		if(!deals_Helper::isPriceAllowed($price, FALSE, $msg)){
-    			$form->setError('packPrice', $msg);
+    		if(!deals_Helper::isPriceAllowed($price, $rec->quantity, FALSE, $msg)){
+    			$form->setError('packPrice,packQuantity', $msg);
     		}
     	
     		if(!$form->gotErrors()){
