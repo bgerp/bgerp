@@ -2347,16 +2347,19 @@ class cat_Products extends embed_Manager {
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
     	$qQuantity = $compontQuantity;
     	
+    	
     	if(is_array($details)){
     		$fields = cls::get('cat_BomDetails')->selectFields();
     		$fields['-components'] = TRUE;
     		
     		foreach ($details as $dRec){
-    			$dRec->params['$T'] = $qQuantity;
+    			if(!isset($dRec->parentId)){
+    				$dRec->params['$T'] = $qQuantity;
+    			}
+    			
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
     			$row = cat_BomDetails::recToVerbal($dRec, $fields);
-    			
     			$obj->code = $row->position;
     			
     			$codeCount = strlen($obj->code);
@@ -2368,6 +2371,7 @@ class cat_Products extends embed_Manager {
     			$obj->measureId = $row->packagingId;
     			
     			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
+    			
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			if($dRec->type == 'stage'){
