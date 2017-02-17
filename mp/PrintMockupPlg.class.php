@@ -28,7 +28,9 @@ class mp_PrintMockupPlg extends core_Plugin
         // Добавяме бутон за тестово отпечатване в bluetooth принтер
         if (isset($data->rec->id) && $mvc->haveRightFor('single', $data->rec) && ($data->rec->state != 'rejected') && ($data->rec->state != 'draft')) {
 
-        	//'bgerp://print/' . $mvc->protectId($data->rec->id),
+        	$data->toolbar->addBtn('Принтер', 'bgerp://print/' . $mvc->protectId($data->rec->id),
+        			"id=mp{$data->rec->containerId},class=fright,row=2, order=39,title=" . "Тестов печат чрез bluetoot принтер",  'ef_icon = img/16/print_go.png');
+        	
         	$data->toolbar->addBtn('MP', array($mvc, 'sendtoprint', 'containerId' => $data->rec->containerId),
                             "id=mp{$data->rec->containerId},class=fright,row=2, order=39,title=" . "Тестов печат чрез bluetoot принтер",  'ef_icon = img/16/print_go.png');
         }
