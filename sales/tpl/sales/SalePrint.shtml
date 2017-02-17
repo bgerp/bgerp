@@ -12,9 +12,14 @@
 <c F b>ЗА ПРОДАЖБА
 <c F b>[#id#]/[#valior#]
 <p><r32 =>
-<p b>[#id#]<l3 b>[#productName#]
+
+<!--ET_BEGIN PRODUCT_BLOCK-->
+[#PRODUCT_BLOCK#]
+<p b>[#id#]<l3 b>[#productId#]
     <!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l4>[#quantity#]<l12>х [#price#]<r32>= [#productTotal#]
+<p><l4>[#quantity#] [#packagingId#]<l12> х [#packPrice#]<r32>= [#productTotal#]
+<!--ET_END PRODUCT_BLOCK-->
+
 <p><r32 =>
 <p><r29 F b>Общо: [#total#] [#currencyId#]
 <p>
