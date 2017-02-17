@@ -60,9 +60,9 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Кой може да променя състоянието на валутата
+     * Кой може да променя състоянието на Методите на плащане
      */
-    public $canChangestate = 'no_one';
+    public $canChangestate = 'ceo,admin';
     
     
     /**

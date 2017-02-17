@@ -412,7 +412,12 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	if(is_array($mvc->sendNotificationEmailQueue)){
     		foreach ($mvc->sendNotificationEmailQueue as $rec){
-    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		    try {
+    		        $mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		    } catch (core_exception_Expect $e) {
+                    self::logErr("Грешка при изпращане", $rec->id);
+                    reportException($e);
+                }
     		}
     	}
     }
@@ -633,9 +638,16 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$this->requireRightFor('add');
     	
-    	$this->sendNotificationEmail($rec);
+    	$msg = '|Успешно препращане';
+    	try {
+    	    $this->sendNotificationEmail($rec);
+    	} catch (core_exception_Expect $e) {
+            $this->logErr("Грешка при изпращане", $rec->id);
+            reportException($e);
+            $msg = "|Грешка при препращане";
+        }
     	
-    	return new Redirect(array($this, 'single', $rec->id), '|Успешно препращане');
+    	return new Redirect(array($this, 'single', $rec->id), $msg);
     }
     
     
@@ -782,10 +794,6 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));
-    	
-    		if(isset($form->rec->title)){
-    			$form->setField('title', 'input=hidden');
-    		}
     	}
     	
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
@@ -826,7 +834,11 @@ class marketing_Inquiries2 extends embed_Manager
                     }
                     log_Browsers::setVars($userData);
     			}
-    		    
+
+                if($Driver) {
+                    $rec->title = $Driver->getProductTitle($rec);
+                }
+
     			$id = $this->save($rec);
     		 
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');

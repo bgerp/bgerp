@@ -590,7 +590,7 @@ class price_ListRules extends core_Detail
             if($rec->type == 'value' && isset($rec->price)){
             	
             	// Проверка на цената
-            	if(!deals_Helper::isPriceAllowed($rec->price, FALSE, $msg)){
+            	if(!deals_Helper::isPriceAllowed($rec->price, 1, FALSE, $msg)){
             		$form->setError('packPrice', $msg);
             		unset($rec->price);
             	}

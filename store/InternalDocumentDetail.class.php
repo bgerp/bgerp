@@ -115,8 +115,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		}
     		
     		// Проверка на цената
-    		if(!deals_Helper::isPriceAllowed($rec->packPrice, $autoPrice, $msg)){
-    			$form->setError('packPrice', $msg);
+    		$quantity = $rec->packQuantity * $rec->quantityInPack;
+    		if(!deals_Helper::isPriceAllowed($rec->packPrice, $quantity, $autoPrice, $msg)){
+    			$form->setError('packPrice,packQuantity', $msg);
     		}
     		
     		if($form->gotErrors()){

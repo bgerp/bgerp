@@ -318,6 +318,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::repairSendOnTimeClasses',
             'migrate::updateUserInboxesD',
             'migrate::repairSalutations',
+            'migrate::repairDelayTime',
         );
     
 
@@ -570,6 +571,34 @@ class email_Setup extends core_ProtoSetup
             $rec->userId = $rec->createdBy;
             
             email_Salutations::save($rec, 'userId');
+        }
+    }
+
+
+    /**
+     * Миграция за поправка на полетата за изчакване от time в datetime
+     */
+    public static function repairDelayTime()
+    {
+        // Ако полето липсва в таблицата на модела да не се изпълнява
+        $cls = cls::get('email_SendOnTime');
+        $cls->db->connect();
+        $delayField = str::phpToMysqlName('delay');
+        if (!$cls->db->isFieldExists($cls->dbTableName, $delayField)) return ;
+        
+        $eQuery = $cls->getQuery();
+        
+        unset($eQuery->fields['delay']);
+        $eQuery->FLD('delay', 'time');
+        
+        $eQuery->where("#delaySendOn IS NULL");
+        $eQuery->where("#delay IS NOT NULL");
+        $eQuery->where("#delay != 0");
+        
+        while($eRec = $eQuery->fetch()) {  
+            $eRec->delaySendOn = dt::addSecs($eRec->delay, $eRec->createdOn);
+            
+            $cls->save($eRec, 'delaySendOn');
         }
     }
 }
