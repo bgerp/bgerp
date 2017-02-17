@@ -794,10 +794,6 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));
-    	
-    		if(isset($form->rec->title)){
-    			$form->setField('title', 'input=hidden');
-    		}
     	}
     	
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
@@ -838,7 +834,11 @@ class marketing_Inquiries2 extends embed_Manager
                     }
                     log_Browsers::setVars($userData);
     			}
-    		    
+
+                if($Driver) {
+                    $rec->title = $Driver->getProductTitle($rec);
+                }
+
     			$id = $this->save($rec);
     		 
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
