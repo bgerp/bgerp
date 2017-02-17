@@ -440,7 +440,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
     			$form->setError('quantity', $warning);
     		}
 	
-			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    		if($masterRec->type != 'dc_note'){
+    			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    		}
 			
 			// Ако няма въведена цена
 			if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
