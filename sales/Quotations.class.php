@@ -562,7 +562,9 @@ class sales_Quotations extends core_Master
     			}
     			
     			if(isset($rec->bankAccountId)){
-    				$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+    				$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
+    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    				$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
     			}
     		}
     		 
@@ -859,7 +861,7 @@ class sales_Quotations extends core_Master
      * 
      * @param int $id - ид на оферта
      * @param boolean $onlyStorable - дали да са само складируемите
-     * @return array - продуктите
+     * @return array|NULL - продуктите
      */
     private function getItems($id, $onlyStorable = FALSE, $groupByProduct = FALSE)
     {
@@ -879,7 +881,7 @@ class sales_Quotations extends core_Master
     		$products[$index] = $detail;
     	}
     	
-    	return array_values($products);
+    	return (count($products)) ? array_values($products) : NULL;
     }
     
     
@@ -1466,5 +1468,59 @@ class sales_Quotations extends core_Master
     	
     	// Запис на детайла
     	return sales_QuotationsDetails::save($newRec);
+    }
+    
+    
+    /**
+     * Функция, която се извиква преди активирането на документа
+     *
+     * @param unknown_type $mvc
+     * @param unknown_type $rec
+     */
+    public static function on_BeforeActivation($mvc, $res)
+    {
+    	$quotationId = $res->id;
+    	$rec = $mvc->fetch($quotationId);
+    	
+    	$error = array();
+    	$saveRecs = array();
+    	$dQuery = sales_QuotationsDetails::getQuery();
+    	$dQuery->where("#quotationId = {$quotationId}");
+    	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL");
+    	while($dRec = $dQuery->fetch()){
+    		if(!isset($dRec->price)){
+    			sales_QuotationsDetails::calcLivePrice($dRec, $rec);
+    			
+    			if(!isset($dRec->price)){
+    				$error[] = cat_Products::getTitleById($dRec->productId);
+    			}
+    		}
+    		
+    		if(!isset($dRec->term)){
+    			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				$dRec->term = $term;
+    			}
+    		}
+    		
+    		if(!isset($dRec->tolerance)){
+    			if($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)){
+    				$dRec->tolerance = $tolerance;
+    			}
+    		}
+    		
+    		$saveRecs[] = $dRec;
+    	}
+    	
+    	if(count($error)){
+    		$imploded = implode(', ', $error);
+    		$start = (count($error) == 1) ? 'артикулът' : 'артикулите';
+    		$mid = (count($error) == 1) ? 'му' : 'им';
+    		$msg = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*";
+    		
+    		core_Statuses::newStatus($msg, 'error');
+    		return FALSE;
+    	}
+    	
+    	cls::get(sales_QuotationsDetails)->saveArray($saveRecs);
     }
 }

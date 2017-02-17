@@ -55,7 +55,8 @@ class cat_Products extends embed_Manager {
     
     /**
      * Име на полето за групите на продуктите.
-     * Използва се за целите на bgerp_plg_Groups
+     * 
+     * @see bgerp_plg_Groups
      */
     public $groupField = 'groups';
 
@@ -2604,7 +2605,7 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return NULL|double $primeCost
      */
-    public function getPrimeCostByCode($code)
+    public static function getPrimeCostByCode($code)
     {
     	// Имали такъв артикул?
     	$product = self::getByCode($code);
@@ -2687,17 +2688,17 @@ class cat_Products extends embed_Manager {
     
     
     /**
-	 * Колко е срока на производство
-	 *
-	 * @param int $id          - ид на артикул
-	 * @param double $quantity - к-во
-	 * @return double|NULL     - срока на производство или NULL, ако няма
-	 */
-	public static function getProductionTerm($id, $quantity)
+     * Колко е срока на доставка
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+     */
+    public static function getDeliveryTime($id, $quantity)
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
-    		$term = $Driver->getProductionTerm($id, $quantity);
+    		$term = $Driver->getDeliveryTime($id, $quantity);
     		return ($term) ? $term : NULL;
     	}
     	

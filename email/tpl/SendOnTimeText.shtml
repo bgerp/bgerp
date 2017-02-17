@@ -1,4 +1,4 @@
-<div>|Писмото ще бъде изпратено|* [#sendOn#] - [#createdBy#]
+<div>|Писмото ще бъде изпратено|* [#delaySendOn#] - [#createdBy#]
    	[#StopLink#]
 </div>
 <div>

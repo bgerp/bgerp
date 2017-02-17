@@ -18,7 +18,7 @@
   height: 30px; }
 
 #uploadBtn {
-  margin-top: 10px;
+  top: 9px;
   background-image: url('../img/upload.gif');
   background-position: 5px center;
   z-index: 50;
