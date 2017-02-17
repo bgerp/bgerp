@@ -153,8 +153,9 @@ class unit_MinkPProducts extends core_Manager {
          
         // Създаване на нов артикул - продукт
         $browser->click('Каталог');
-        $browser->click('Продукти');
-        $browser->press('Артикул');
+        $browser->press('Нов запис');
+        $browser->setValue('catcategorieId', 'Продукти');
+        $browser->press('Напред');
         $browser->setValue('name', 'Плик 7 л');
         $browser->setValue('code', 'plik7');
         $browser->setValue('measureId', 'брой');
