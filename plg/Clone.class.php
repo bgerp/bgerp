@@ -318,13 +318,22 @@ class plg_Clone extends core_Plugin
     				$query->where("#{$Detail->masterKey} = {$oldMasterId}");
     				$query->orderBy('id', "ASC");
     				$dRecs = $query->fetchAll();
-    						
+
+    				$dontCloneFields = arr::make($Detail->fieldsNotToClone, TRUE);
+    				
     				if(is_array($dRecs)){
     					foreach($dRecs as $dRec){
     						$oldRec = clone $dRec;
     						$dRec->{$Detail->masterKey} = $newMasterId;
     						unset($dRec->id);
     	
+    						// Ако има махаме ги от $form->rec
+    						if(count($dontCloneFields)){
+    							foreach ($dontCloneFields as $unsetField){
+    								unset($dRec->{$unsetField});
+    							}
+    						}
+    						
     						$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
     	
     						if($Detail->isUnique($dRec, $fields)){

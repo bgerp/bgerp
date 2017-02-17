@@ -187,8 +187,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			}
 			
 			// Проверка на цената
-			if(!deals_Helper::isPriceAllowed($rec->price, $autoPrice, $msg)){
-				$form->setError('packPrice', $msg);
+			if(!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)){
+				$form->setError('packPrice,packQuantity', $msg);
 			}
 			
 			$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
