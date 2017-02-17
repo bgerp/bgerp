@@ -1181,7 +1181,9 @@ class core_Packs extends core_Manager
             $typeInst = core_Type::getByName($type);
 
             if (defined($field)) {
+                Mode::push('text', 'plain');
                 $defVal = $typeInst->toVerbal(constant($field));
+                Mode::pop('text');
                 $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
             }
 
