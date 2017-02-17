@@ -868,6 +868,7 @@ abstract class deals_Helper
 	public static function isPriceAllowed($price, $quantity, $autoPrice = FALSE, &$msg = NULL)
 	{
 		if(!$price) return TRUE;
+		if($quantity == 0) return TRUE;
 		
 		$amount = $price * $quantity;
 		
