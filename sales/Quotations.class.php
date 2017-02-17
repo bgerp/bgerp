@@ -1443,13 +1443,20 @@ class sales_Quotations extends core_Master
     	
     	// Ако няма цена, прави се опит да се намери
     	if(empty($price)){
-    		$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($rec->contragentClassId, $rec->contragentId, $newRec->productId, $newRec->packagingId, $newRec->quantity);
+    		$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($rec->contragentClassId, $rec->contragentId, $newRec->productId, $newRec->packagingId, $newRec->quantity, $rec->date);
     		$newRec->price = $policyInfo->price;
+    		$newRec->autoPrice = TRUE;
     		if(!isset($discount) && isset($policyInfo->discount)){
     			$newRec->discount = $policyInfo->discount;
     		}
     	} else {
     		$newRec->price = $price;
+    	}
+    	
+    	// Изчисляване на транспортните разходи
+    	if(core_Packs::isInstalled('tcost')){
+    		$form = sales_QuotationsDetails::getForm();
+    		tcost_Calcs::prepareFee($newRec, $form, $rec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
     	}
     	
     	// Проверка на цената
