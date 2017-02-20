@@ -16,15 +16,9 @@ class escpos_Print extends core_Manager
     
     
     /**
-     * Разделител на хеша с id-то и класа
+     * Разделител на стринга за id-то
      */
-    protected static $agentHashDelimiter = '-';
-    
-    
-    /**
-     * Разделител между id-то и класа
-     */
-    protected static $agentIdDelimiter = '_';
+    protected static $agentParamDelimiter = '_';
     
     
     /**
@@ -130,11 +124,9 @@ class escpos_Print extends core_Manager
         $pId = $clsInst->protectId($id);
         $clsId = $clsInst->getClassId();
         
-        $res = $pId . self::$agentIdDelimiter . $clsId;
+        $hash = self::getHash($clsId, $pId);
         
-        $hash = self::getHash($res);
-        
-        $res .= self::$agentHashDelimiter . $hash;
+        $res = $clsId . self::$agentParamDelimiter . $pId . self::$agentParamDelimiter . $hash;
         
         return $res;
     }
@@ -143,12 +135,15 @@ class escpos_Print extends core_Manager
     /**
      * Връща хеша за стринг
      * 
-     * @param string $str
+     * @param string $clsId
+     * @param string $pId
      * 
      * @return string
      */
-    protected static function getHash($str)
+    protected static function getHash($clsId, $pId)
     {
+        $str = $clsId . self::$agentParamDelimiter . $pId;
+        
         $res = md5($str . '|' . escpos_Setup::get('SALT'));
         
         $res = substr($res, 0, escpos_Setup::get('HASH_LEN'));
@@ -166,19 +161,17 @@ class escpos_Print extends core_Manager
      */
     protected static function parseParamStr($str)
     {
-        list($idStr, $hash) = explode(self::$agentHashDelimiter, $str);
-        
-        $hashGen = self::getHash($idStr);
-        
-        expect($hashGen == $hash);
-        
-        list($id, $clsId) = explode(self::$agentIdDelimiter, $idStr);
+        list($clsId, $pId, $hash) = explode(self::$agentParamDelimiter, $str);
         
         expect($clsId);
         
+        $hashGen = self::getHash($clsId, $pId);
+        
+        expect($hashGen == $hash);
+        
         $inst = cls::get($clsId);
         
-        $id = $inst->unprotectId($id);
+        $id = $inst->unprotectId($pId);
         
         expect($id !== FALSE);
         
