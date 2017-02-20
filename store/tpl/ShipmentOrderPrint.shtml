@@ -9,9 +9,9 @@
 
 <!--ET_BEGIN PRODUCT_BLOCK-->
 [#PRODUCT_BLOCK#]
-<p b>[#id#]<l3 b>[#productId#]
+<p b>[#numb#]<l3 b>[#productId#]
 <!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l b>[#quantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#productTotal#]
+<p><l b>[#packQuantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#amount#]
 <!--ET_END PRODUCT_BLOCK-->
 
 <p><r32 ->
@@ -21,15 +21,21 @@
 <p b>Клиент
 <p>[#contragentName#]
 <p>[#contragentAddress#]
+<!--ET_BEGIN locationId-->
 <p>До обект:
 <p>[#locationId#]
+<!--ET_END locationId-->
 <p><r32 ->
+<!--ET_BEGIN deliveryTime-->
 <p>Срок до:
 <p>[#deliveryTime#]
+<!--ET_END deliveryTime-->
 <p>До адрес:
 <p>[#deliveryTo#] [#deliveryLocationAddress#]
+<!--ET_BEGIN lineId-->
 <p>Транспорт:
-<p>#lineId#]
+<p>[#lineId#]
+<!--ET_END lineId-->
 <p>Общо тегло: [#weight#]
 <p>Общ обем:[#volume#]
 <p>От склад:
