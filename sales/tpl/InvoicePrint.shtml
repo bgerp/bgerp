@@ -31,7 +31,7 @@
 <p><r32 =>
 <p b>[#id#]<l3 b>[#productName#]
 <!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l4 b>[#quantity#]<l12>х [#price#]<r32>= [#productTotal#]
+<p><l b>[#quantity#]<l12>х [#price#]<r32>= [#productTotal#]
 <p><r32 =>
 <p F b>Общо:  <r16 F b>[#total#]
 <p>
