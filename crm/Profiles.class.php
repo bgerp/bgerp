@@ -1050,10 +1050,12 @@ class crm_Profiles extends core_Master
             
             $url  = array();
             $date = self::fetchField("#userId = {$userId}",'stateDateFrom');
+            $dateTo = self::fetchField("#userId = {$userId}",'stateDateTo');
             $dayBeforeNow = dt::addDays(-1, $date);
             
             if(self::fetchField("#userId = {$userId}",'stateInfo')) { 
-                if(strstr(dt::now(), " ", TRUE) == strstr($dayBeforeNow, " ", TRUE)) {
+                if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) && 
+                   strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
                     $attr['class'] .= ' profile profile-state';
                 } else {
                     $attr['class'] .= ' profile';
