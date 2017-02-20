@@ -9,9 +9,9 @@
 
 <!--ET_BEGIN PRODUCT_BLOCK-->
 [#PRODUCT_BLOCK#]
-<p b>[#id#]<l3 b>[#productId#]
+<p b>[#numb#]<l3 b>[#productId#]
 <!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l b>[#quantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#productTotal#]
+<p><l b>[#packQuantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#amount#]
 <!--ET_END PRODUCT_BLOCK-->
 
 <p><r32 ->
@@ -21,18 +21,22 @@
 <p b>Клиент
 <p>[#contragentName#]
 <p>[#contragentAddress#]
-    <!--ET_BEGIN contragentVatNo-->
+<!--ET_BEGIN contragentVatNo-->
 <p>ЗДДС №: [#contragentVatNo#]
-    <!--ET_END contragentVatNo-->
-    <!--ET_BEGIN uicNo-->
+<!--ET_END contragentVatNo-->
+<!--ET_BEGIN uicNo-->
 <p>ЕИК: [#uicNo#]
-    <!--ET_END uicNo-->
+<!--ET_END uicNo-->
+<!--ET_BEGIN deliveryLocationId-->
 <p>До обект:
 <p>[#deliveryLocationId#]
+<!--ET_END deliveryLocationId-->
 <p><r32 ->
 <p>
+<!--ET_BEGIN shipmentStoreId-->
 <p>От склад:
 <p>[#shipmentStoreId#]
+<!--ET_END shipmentStoreId-->
 <!--ET_BEGIN paymentMethodId-->
 <p>Плащане:
 <p>[#paymentMethodId#]
