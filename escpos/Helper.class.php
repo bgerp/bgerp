@@ -29,7 +29,7 @@ class escpos_Helper
         
         $res->replace($clsInst->getTitleById($id), 'title');
         
-        $dataContent = self::preparePrintView($clsInst, $id, $drvName);
+        $dataContent = self::preparePrintView($clsInst, $id);
         $dataContent = escpos_Convert::process($dataContent, $drvName);
         
         $res->replace(base64_encode($dataContent), 'data');
@@ -42,7 +42,7 @@ class escpos_Helper
     /**
      * Подготвя данните за отпечатване
      * 
-     * @param core_Master $clsInst
+     * @param core_Manager $clsInst
      * @param integer $id
      * 
      * @return string
