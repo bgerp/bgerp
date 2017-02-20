@@ -706,9 +706,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
-        if ($action == 'single' && !(Request::get('Printing'))) {
-        	
-            expect($id = Request::get('id', 'int'));
+        if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('text', 'php')) {
+        	expect($id = Request::get('id', 'int'));
             
             expect($rec = $mvc->fetch($id), $id);
             
