@@ -199,6 +199,8 @@ class cond_DeliveryTerms extends core_Master
     	if($rec->calcCost == 'yes'){
     		
     		// Може да се начислява скрит транспорт само за складируем артикул, ако в условието на доставка е разрешено
+    		if(empty($productId)) return FALSE;
+    		
     		if(cat_Products::fetchField($productId, 'canStore') == 'yes'){
     			return TRUE;
     		}
