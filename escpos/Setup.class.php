@@ -59,6 +59,7 @@ class escpos_Setup extends core_ProtoSetup
         //
         $html .= core_Plugins::installPlugin('Мобилно принтиране на продажби', 'escpos_PrintPlg', 'sales_Sales', 'private');
         $html .= core_Plugins::installPlugin('Мобилно принтиране на ЕН', 'escpos_PrintPlg', 'store_ShipmentOrders', 'private');
+        $html .= core_Plugins::installPlugin('Мобилно принтиране на фактури', 'escpos_PrintPlg', 'sales_Invoices', 'private');
         
         return $html;
     }
