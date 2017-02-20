@@ -73,7 +73,7 @@ class bgerp_Print extends core_Manager
         // Указваме, че ще се връща XML
         header('Content-Type: application/xml');
         
-        $res->replace('bgERP ' . tr('проба') . ': ' . $actInt, 'title');
+        $res->replace('Deprecated: bgERP ' . tr('проба') . ': ' . $actInt, 'title');
         
         $dataTpl = $mvc->getDataTpl();
         
