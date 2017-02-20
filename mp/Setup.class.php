@@ -25,6 +25,12 @@ class mp_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Тестване на bluetooth принтер";
+        
+    
+    /**
+     *
+     */
+    public $deprecated = TRUE;
     
     
     /**

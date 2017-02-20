@@ -242,7 +242,7 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=paid');
+    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,silent,before=paid');
     	$data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
     	$data->listFilter->input('employeeId', 'silent');
     	
@@ -273,7 +273,7 @@ class trz_Requests extends core_Master
     	$rec = &$form->rec;
     	
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
-    	for($i = 0; $i < 5; $i++){
+    	for($i = 0; $i <= 1; $i++){
     		$years[$nowYear - $i] = $nowYear - $i;
     	} 
     	$form->setSuggestions('useDaysFromYear', $years);

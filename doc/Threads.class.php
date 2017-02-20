@@ -2289,7 +2289,7 @@ class doc_Threads extends core_Manager
                     $rate = self::calcPoints($contragentData);
                     
                     // Даваме предпочитания на документите, създадени от потребители на системата
-                    if($rec->createdBy > 0) {
+                    if($rec->createdBy >= 0) {
                         $rate = $rate * 10;
                     }
                     

@@ -1,0 +1,51 @@
+<c>[#MyCompany#]
+<c>[#MyAddress#]
+<p>
+<p><r32 ->
+<c F b>ЕКСПЕДИЦИОННО
+<c F b>НАРЕЖДАНЕ
+<c b>[#id#]/[#valior#]
+<p><r32>
+
+<!--ET_BEGIN PRODUCT_BLOCK-->
+[#PRODUCT_BLOCK#]
+<p b>[#numb#]<l3 b>[#productId#]
+<!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
+<p><l b>[#packQuantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#amount#]
+<!--ET_END PRODUCT_BLOCK-->
+
+<p><r32 ->
+<p F b>Общо:  <r16 F b>[#total#]
+<p>
+<p><r32 ->
+<p b>Клиент
+<p>[#contragentName#]
+<p>[#contragentAddress#]
+<!--ET_BEGIN locationId-->
+<p>До обект:
+<p>[#locationId#]
+<!--ET_END locationId-->
+<p><r32 ->
+<!--ET_BEGIN deliveryTime-->
+<p>Срок до:
+<p>[#deliveryTime#]
+<!--ET_END deliveryTime-->
+<p>До адрес:
+<p>[#deliveryTo#] [#deliveryLocationAddress#]
+<!--ET_BEGIN lineId-->
+<p>Транспорт:
+<p>[#lineId#]
+<!--ET_END lineId-->
+<p>Общо тегло: [#weight#]
+<p>Общ обем:[#volume#]
+<p>От склад:
+<p>[#storeId#]
+<p><r32 ->
+<p>
+<p>Получател:
+<p><r32 .>
+<p>Съставил:
+<p>[#username#]
+<p>
+<p>
+<p>

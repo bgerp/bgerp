@@ -2735,11 +2735,13 @@ class crm_Persons extends core_Master
     	// Ако е в група на клиент, показваме бутона за продажба
     	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
+    		$res[] = 'sales_Quotations';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
     	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
+    		$res[] = 'purchase_Offers';
     	}
     	 
     	return $res;
