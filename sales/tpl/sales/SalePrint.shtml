@@ -1,11 +1,5 @@
 <c>[#MyCompany#]
 <c>[#MyAddress#]
-<!--ET_BEGIN MyCompanyVatNo-->
-<c>ЗДДС №: [#MyCompanyVatNo#]
-<!--ET_END MyCompanyVatNo-->
-<!--ET_BEGIN uicId-->
-<c>ЕИК: [#uicId#]
-<!--ET_END uicId-->
 <p>
 <p><r32 ->
 <c F b>ДОГОВОР
