@@ -867,7 +867,7 @@ class cat_BomDetails extends doc_Detail
 				if($rec->parentId){
 					if($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR){
 						$rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
-						$data->recs[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
+						$data->rows[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
 					}
 				}
 				

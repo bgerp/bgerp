@@ -96,8 +96,9 @@ class type_Time extends type_Varchar {
                     $val = $val * 60 * 60;
                     break;
                 case 'minutes':
-                default:
                     $val = $val * 60;
+                    break;
+                default:
                     break;
             }
 
@@ -223,7 +224,7 @@ class type_Time extends type_Varchar {
             }
         }
 
-        $this->params['size'] = 10;
+        $this->params['size'] = 13;
         
         $this->fromVerbalSuggestions($value);
         

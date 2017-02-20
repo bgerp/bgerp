@@ -7,24 +7,24 @@
 <c>ЕИК: [#uicId#]
 <!--ET_END uicId-->
 <p>
-<p><r32 =>
+<p><r32 ->
 <c F b>ДОГОВОР
 <c F b>ЗА ПРОДАЖБА
-<c F b>[#id#]/[#valior#]
-<p><r32 =>
+<c b>[#id#]/[#valior#]
+<p><r32>
 
 <!--ET_BEGIN PRODUCT_BLOCK-->
 [#PRODUCT_BLOCK#]
 <p b>[#id#]<l3 b>[#productId#]
-    <!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l4>[#quantity#] [#packagingId#]<l12> х [#packPrice#]<r32>= [#productTotal#]
+<!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
+<p><l>[#quantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#productTotal#]
 <!--ET_END PRODUCT_BLOCK-->
 
-<p><r32 =>
-<p><r29 F b>Общо: [#total#] [#currencyId#]
+<p><r32 ->
+<p F b>Общо:  <r16 F b>[#total#]
 <p>
-<p><r32 =>
-<p>Клиент
+<p><r32 ->
+<p b>Клиент
 <p>[#contragentName#]
 <p>[#contragentAddress#]
     <!--ET_BEGIN contragentVatNo-->
@@ -35,7 +35,7 @@
     <!--ET_END uicNo-->
 <p>До обект:
 <p>[#deliveryLocationId#]
-<p><r32 =>
+<p><r32 ->
 <p>
 <p>От склад:
 <p>[#shipmentStoreId#]
@@ -58,7 +58,7 @@
 <p>Банк. с-ка
 <p>[#bankAccountId#]
 <p>
-<p><r32 =>
+<p><r32 ->
 <p b>Условия:
 <!--ET_BEGIN withVat-->
 <p>- Цените са с включен ДДС[#withVat#]
@@ -85,9 +85,12 @@
 <!--ET_BEGIN commonConditionQuote-->
 <p>- Общи условия по продажба: [#commonConditionQuote#]
 <!--ET_END commonConditionQuote-->
-<p><r32 =>
+<p><r32 ->
 <p>
 <p>Получател:
 <p><r32 .>
 <p>Съставил:
 <p>[#username#]
+<p>
+<p>
+<p>

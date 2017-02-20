@@ -117,8 +117,8 @@ class escpos_Convert extends core_Manager
                         expect(FALSE, "Непознат атрибут", $a, $el);
                     }
 
-                    $font = $driver->getFont($font, $bold, $underline);
-                    $fontPad = $driver->getFont($font, '', '');
+                    $fontTxt = $driver->getFont($font, $bold, $underline);
+                    $fontPad = $driver->getFont($font, $bold, FALSE);
 
                     $fontEnd = $driver->getFontEnd();
                     $newLine = $driver->GetNewLine();
@@ -128,7 +128,7 @@ class escpos_Convert extends core_Manager
                         case 'p':
                             $res .= $l;
                             // Код за преместване на хартията
-                            $l = $newLine . $fontPad . $font . $text . $fontEnd;
+                            $l = $newLine . $fontTxt . $driver->encode($text) . $fontEnd;
                             $lLen = mb_strlen($text);
                             break;
                         case 'c':
@@ -142,7 +142,7 @@ class escpos_Convert extends core_Manager
                             } else {
                                 $pad = '';
                             }
-                            $l = $newLine . $fontPad . $pad . $font . $text .$fontEnd;
+                            $l = $newLine . $fontPad . $pad . $fontTxt . $driver->encode($text) .$fontEnd;
                             $lLen = $r + $textLen;
                             break;
                         case 'l':
@@ -154,7 +154,7 @@ class escpos_Convert extends core_Manager
                                 $pad = '';
                             }
 
-                            $l .=  $fontPad . $pad . $font .  $text . $fontEnd;
+                            $l .=  $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
                             $lLen += $r + $textLen;
                             break;
 
@@ -167,7 +167,7 @@ class escpos_Convert extends core_Manager
                             } else {
                                 $pad = '';
                             }
-                            $l .= $fontPad . $pad . $font .  $text . $fontEnd;
+                            $l .= $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
                             $lLen = $r + $textLen;
                             break;
                         default:
@@ -182,8 +182,6 @@ class escpos_Convert extends core_Manager
 
         $res .= $l;
 
-        $res = $driver->encode($res);
-
         return $res;
     }
 
@@ -194,17 +192,17 @@ class escpos_Convert extends core_Manager
      */
     function act_Test()
     {
-        $test = "<c F b>Фактура №123/28.02.17" . 
+        $test = "<c F b>Фактура №123/28.02.17" .
         "<p><r32 =>" .
         "<p b>1.<l3 b>Кисело мляко" .
         "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
         "<p b>2.<l3 b>Хляб \"Добруджа\"" . "<l f> | годност: 03.03" .
         "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
-        "<p b>3.<l3 b>Минерална вода" . 
+        "<p b>3.<l3 b>Минерална вода" .
         "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
         "<p><r32 =>" .
         "<p><r29 F b>Общо: 34.23 лв.";
-        
+
         if (Request::get('p')) {
             $res = self::process($test, 'escpos_driver_Ddp250');
             echo $res;

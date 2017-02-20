@@ -74,7 +74,7 @@ class unit_MinkPPrices extends core_Manager {
         $enddate=strtotime("+10 Days");
         $browser->setValue('validUntil[d]', date('d-m-Y', $enddate));
         $browser->press('Запис');
-        if(strpos($browser->gettext(), '0,60000 BGN с ДДС')) {
+        if(strpos($browser->gettext(), '0,60 BGN с ДДС')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно заредена цена', 'warning');
         }

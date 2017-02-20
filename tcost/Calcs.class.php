@@ -489,7 +489,7 @@ class tcost_Calcs extends core_Manager
     					$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
     					$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
     					$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
-    					}
+    				}
     			}
     		}
     	}
