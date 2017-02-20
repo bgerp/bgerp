@@ -419,7 +419,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
-			if(!isset($rec->quantity)){
+			if(!isset($rec->quantity) && $masterRec->type != 'dc_note'){
 				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
     			if(!empty($defQuantity)){
     				$rec->quantity = $defQuantity;
@@ -436,11 +436,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			}
 			
 			// Проверка на к-то
-    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
-    			$form->setError('packQuantity', $warning);
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning)){
+    			$form->setError('quantity', $warning);
     		}
 	
-			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    		if($masterRec->type != 'dc_note'){
+    			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    		}
 			
 			// Ако няма въведена цена
 			if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {

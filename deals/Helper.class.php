@@ -603,7 +603,9 @@ abstract class deals_Helper
 							}
 								
 							$d = &$combined[$index];
-							$d->discount = max($d->discount, $p->discount);
+							if($p->discount != 1){
+								$d->discount = max($d->discount, $p->discount);
+							}
 			
 							$sign = ($parameter == 'arrays') ? 1 : -1;
 							

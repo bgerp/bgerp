@@ -50,7 +50,8 @@ do {
     curl_setopt($ch, CURLOPT_TIMEOUT,1);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
     curl_setopt($ch, CURLOPT_HEADER, TRUE);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);    
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $ans = curl_exec($ch);
     curl_close($ch);
 

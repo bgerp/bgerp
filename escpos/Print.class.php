@@ -10,10 +10,8 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * 
- * @deprecated
  */
-class bgerp_Print extends core_Manager
+class escpos_Print extends core_Manager
 {
     
     
@@ -21,6 +19,12 @@ class bgerp_Print extends core_Manager
      * Заглавие
      */
     public $title = 'Отпечатване на документи в мобилен принтер';
+
+
+    /**
+     * Дали id-тата на този модел да са защитени?
+     */
+    var $protectId = FALSE;
     
     
     /**
@@ -56,14 +60,14 @@ class bgerp_Print extends core_Manager
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
-        $res = $mvc->getTpl();
+        if ($action != 'print') return ;
         
-        if (!$action) return ;
+        $idFullStr = Request::get('id');
         
-        $actInt = (int) $action;
-        $actStr = str_replace($actInt, '', $action);
+        $idInt = (int) $idFullStr;
+        $idStr = str_replace($idInt, '', $idFullStr);
         
-        expect($actInt && $actStr, 'Не е в нужния формат - числа и букви.', $action);
+        expect($idInt && $idStr, 'Не е в нужния формат - числа и букви.', $idFullStr);
         
         // За да не се кешира
         header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
@@ -75,12 +79,13 @@ class bgerp_Print extends core_Manager
         // Указваме, че ще се връща XML
         header('Content-Type: application/xml');
         
-        $res->replace('Deprecated: bgERP ' . tr('проба') . ': ' . $actInt, 'title');
+        $res = $mvc->getTpl();
+        $res->replace('bgERP ' . tr('проба') . ': ' . $idInt, 'title');
         
         $dataTpl = $mvc->getDataTpl();
         
         $dataTpl->replace(date("d-m-Y"), 'date');
-        $dataTpl->replace(str_pad($actInt, 10, 0, STR_PAD_LEFT), 'number');
+        $dataTpl->replace(str_pad($idInt, 10, 0, STR_PAD_LEFT), 'number');
         
         $dataContent = $dataTpl->getContent();
         
@@ -97,6 +102,8 @@ class bgerp_Print extends core_Manager
      * Мокъп функция за връщане на шаблон за резултат
      * 
      * @return ET
+     * 
+     * @deprecated
      */
     function getTpl()
     {
@@ -116,6 +123,8 @@ class bgerp_Print extends core_Manager
      * Мокъп функция за връщане на данните
      * 
      * @return ET
+     * 
+     * @deprecated
      */
     function getDataTpl()
     {

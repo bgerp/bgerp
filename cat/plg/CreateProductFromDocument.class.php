@@ -59,6 +59,15 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				} else {
 					$requiredRoles = $mvc->getRequiredRoles('add', $rec);
 				}
+				
+				// Могат да се клонират само артикули от същата папка акто тези на документа
+				if(isset($rec->cloneId)){
+					$pId = $mvc->fetchField($rec->cloneId, 'productId');
+					$docFolder = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'folderId');
+					if(cat_Products::fetchField($pId, 'folderId') != $docFolder){
+						$requiredRoles = 'no_one';
+					}
+				}
 			} else {
 				$requiredRoles = $mvc->getRequiredRoles('add');
 			}
@@ -187,6 +196,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 							
 						$form->setField($n1, "caption={$caption}");
 					}
+					unset($form->rec->name);
 					
 					// Допустимите мерки са сред производните на тази на прототипа
 					$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);

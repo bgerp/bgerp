@@ -33,11 +33,11 @@ class escpos_driver_Ddp250 extends core_BaseClass
         }
 
         if($font == 'f') {
-            $f = 4;
+            $f = 1;
         }
 
         if($bold) {
-            $b = 4;
+            $b = 8;
         }
 
         if($underline) {

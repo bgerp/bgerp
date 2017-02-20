@@ -311,16 +311,6 @@ class sales_Quotations extends core_Master
        					$form->setDefault('row3', $productOriginRec->quantity3);
        				}
        			}
-       			
-       			$Policy = cls::get('price_ListToCustomers');
-       			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that, NULL, 1)->price;
-	       		
-       			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
-	       		if(!$price){
-	       			$form->setFieldTypeParams('row1', 'require=both');
-	       			$form->setFieldTypeParams('row2', 'require=both');
-	       			$form->setFieldTypeParams('row3', 'require=both');
-	       		}
        		}
        }
        
@@ -402,7 +392,7 @@ class sales_Quotations extends core_Master
 	    		if(!empty($v)){
 	    			$parts = type_ComplexType::getParts($v);
 	    			$rec->{"quantity{$k}"} = $parts['left'];
-	    			$rec->{"price{$k}"} = $parts['right'];
+	    			$rec->{"price{$k}"} = ($parts['right'] === '') ? NULL : $parts['right'];
 	    			
 	    			if(in_array($parts['left'], $allQuantities)){
 	    				$errorFields[] = "row{$k}";
@@ -1378,7 +1368,7 @@ class sales_Quotations extends core_Master
      * @param int $productId	   - ид на артикул
      * @param double $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
      * @param int $packagingId     - ид на опаковка (не е задължителна)
-     * @param double $price        - цена на единична бройка (ако не е подадена, определя се от политиката), без ДДС
+     * @param double $price        - цена на единична бройка, без ДДС в основна валута
      * @param boolean $optional    - дали артикула е опционален или не
      * @param array $fields        - масив с допълнителни параметри
      * 		 double ['discount']       - отстъпка (опционална)
@@ -1442,18 +1432,16 @@ class sales_Quotations extends core_Master
     	}
     	
     	// Ако няма цена, прави се опит да се намери
-    	if(empty($price)){
-    		$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($rec->contragentClassId, $rec->contragentId, $newRec->productId, $newRec->packagingId, $newRec->quantity);
-    		$newRec->price = $policyInfo->price;
-    		if(!isset($discount) && isset($policyInfo->discount)){
-    			$newRec->discount = $policyInfo->discount;
-    		}
-    	} else {
+    	if(isset($price)){bp($price);
     		$newRec->price = $price;
+    		expect($newRec->price = cls::get('type_Double')->fromVerbal($newRec->price), 'Невалидна цена');
     	}
     	
-    	// Проверка на цената
-    	expect($newRec->price = cls::get('type_Double')->fromVerbal($newRec->price), 'Невалидна цена');
+    	// Изчисляване на транспортните разходи
+    	if(core_Packs::isInstalled('tcost')){
+    		$form = sales_QuotationsDetails::getForm();
+    		tcost_Calcs::prepareFee($newRec, $form, $rec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+    	}
     	
     	// Проверки на записите
     	if($sameProduct = sales_QuotationsDetails::fetch("#quotationId = {$newRec->quotationId} AND #productId = {$newRec->productId}")){
