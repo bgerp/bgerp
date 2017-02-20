@@ -174,13 +174,14 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function calcLivePrice($rec, $masterRec)
     {
-    	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date);
+    	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, 1, 'no', NULL, FALSE);
     	
     	if(isset($policyInfo->price)){
     		$rec->price = $policyInfo->price;
     		
     		// Добавяне на транспортните разходи, ако има
     		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
+    		
     		if(isset($fee) && $fee != tcost_CostCalcIntf::CALC_ERROR){
     			$rec->price += $fee / $rec->quantity;
     		}
