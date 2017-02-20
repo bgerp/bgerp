@@ -11,7 +11,7 @@
 [#PRODUCT_BLOCK#]
 <p b>[#id#]<l3 b>[#productId#]
 <!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l>[#quantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#productTotal#]
+<p><l b>[#quantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#productTotal#]
 <!--ET_END PRODUCT_BLOCK-->
 
 <p><r32 ->
