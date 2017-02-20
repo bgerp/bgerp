@@ -99,16 +99,31 @@ class escpos_Helper
     	Mode::pop('text');
     	expect($data);
     	
+    	$str = '';
     	switch($Inst){
     		case $Inst instanceof sales_Sales:
     			$str = self::getSalePreview($id, $data);
     			break;
     		case $Inst instanceof store_ShipmentOrders:
-    			$str = self::getSoPreview($id, $data);
+    			//$str = self::getSoPreview($id, $data);
     			break;
     		case $Inst instanceof sales_Invoices:
-    			$str = self::getInvPreview($id, $data);
+    			//$str = self::getInvPreview($id, $data);
     			break;
+    	}
+    	
+    	if($str == ''){
+    		// TODO - тестово
+    		$str = "<c F b>{$clsInst->singleTitle} №{$id}/28.02.17" .
+    		"<p><r32 =>" .
+    		"<p b>1.<l3 b>Кисело мляко" .
+    		"<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
+    		"<p b>2.<l3 b>Хляб \"Добруджа\"" . "<l f> | годност: 03.03" .
+    		"<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
+    		"<p b>3.<l3 b>Минерална вода" .
+    		"<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
+    		"<p><r32 =>" .
+    		"<p><r29 F b>Общо: 34.23 лв.";
     	}
     	
     	return $str;
