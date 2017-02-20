@@ -195,14 +195,15 @@ class acc_plg_DocumentSummary extends core_Plugin
 
             if($dateRange[0] && $dateRange[1]) {
                 if($fromField) {
-                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#]') OR #{$fromField} IS NULL)";
+                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59') OR #{$fromField} IS NULL)";
                 }
 
-                if($toField) {
-                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#]') OR #{$toField} IS NULL)";
+                if($toField && $toField != $fromField) {
+                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59') OR #{$toField} IS NULL)";
                 }
 
-                $data->query->where(array($where, $dateRange[0], $dateRange[1]));
+                
+               $data->query->where(array($where, $dateRange[0], $dateRange[1]));
 
             } else {
                 if($dateRange[0]) {
