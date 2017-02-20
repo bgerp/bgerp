@@ -167,7 +167,7 @@ class plg_RefreshRows extends core_Plugin
                 
                 $type = 'notice';
                 if ($mvc->manualRefreshCnt == $refeshCnt) {
-                    $type = 'warning';
+                    $type = 'info';
                 }
                 
                 $res = $mvc->manualRefreshRes($refreshUrlOrig, $type);
@@ -320,7 +320,7 @@ class plg_RefreshRows extends core_Plugin
             $res = array();
         }
         
-        core_Statuses::newStatus('|Има промени в таблицата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 300, Request::get('hitId'));
+        core_Statuses::newStatus('|Има промени в страницата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 300, Request::get('hitId'));
     }
     
     
