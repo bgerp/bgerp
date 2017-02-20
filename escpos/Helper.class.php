@@ -90,7 +90,7 @@ class escpos_Helper
      * 
      * @return string
      */
-    protected static function preparePrintView($clsInst, $id)
+    public static function preparePrintView($clsInst, $id)
     {
     	expect($Inst = cls::get($clsInst));
     	
