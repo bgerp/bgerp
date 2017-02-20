@@ -1069,7 +1069,7 @@ class type_Richtext extends type_Blob
 
         $id = 'hide' . rand(1, 1000000);
         
-        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\"
+        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon nojs' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\"
                    >{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>";
         
         $this->_htmlBoard[$place] =  $html;
