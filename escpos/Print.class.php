@@ -181,4 +181,30 @@ class escpos_Print extends core_Manager
         
         return $res;
     }
+    
+    
+    
+    /**
+     * Тестов екшън
+     */
+    public function act_Test()
+    {
+        $idFullStr = Request::get('id');
+        
+        $paramsArr = self::parseParamStr($idFullStr);
+        
+        expect($paramsArr);
+        
+        $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id']);
+        
+        $drvName = 'escpos_driver_Ddp250';
+        
+        if (Request::get('html')) {
+            $drvName = 'escpos_driver_Html';
+        }
+        
+        echo escpos_Convert::process($dataContent, $drvName);
+        
+        shutdown();
+    }
 }
