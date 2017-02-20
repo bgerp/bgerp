@@ -501,8 +501,8 @@ class cat_Products extends embed_Manager {
     		if(isset($rec->folderId)){
     			$Cover = doc_Folders::getCover($rec->folderId);
     			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-    				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
-    					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
+    				while(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
+    					$rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
     				}
     			} elseif($Cover->getProductType() == 'template' && empty($rec->code)){
     				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
