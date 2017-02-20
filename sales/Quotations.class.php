@@ -1432,7 +1432,7 @@ class sales_Quotations extends core_Master
     	}
     	
     	// Ако няма цена, прави се опит да се намери
-    	if(isset($price)){bp($price);
+    	if(isset($price)){
     		$newRec->price = $price;
     		expect($newRec->price = cls::get('type_Double')->fromVerbal($newRec->price), 'Невалидна цена');
     	}

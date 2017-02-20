@@ -16,6 +16,12 @@ class escpos_Print extends core_Manager
     
     
     /**
+     * Разделител на стринга за id-то
+     */
+    protected static $agentParamDelimiter = '_';
+    
+    
+    /**
      * Заглавие
      */
     public $title = 'Отпечатване на документи в мобилен принтер';
@@ -52,6 +58,12 @@ class escpos_Print extends core_Manager
     
     
     /**
+     * Масив с `id` от приложението и драйвер, на който отговарят
+     */
+    public static $drvMapArr = array(1 => 'escpos_driver_Ddp250');
+    
+    
+    /**
      * 
      * 
      * @param bgerp_Print $mvc
@@ -64,10 +76,21 @@ class escpos_Print extends core_Manager
         
         $idFullStr = Request::get('id');
         
-        $idInt = (int) $idFullStr;
-        $idStr = str_replace($idInt, '', $idFullStr);
+        $paramsArr = $mvc->parseParamStr($idFullStr);
         
-        expect($idInt && $idStr, 'Не е в нужния формат - числа и букви.', $idFullStr);
+        $id = $paramsArr['id'];
+        $clsInst = $paramsArr['clsInst'];
+        
+        expect($id && $clsInst);
+        
+        $drvId = Request::get('drv');
+        
+        $drvName = self::$drvMapArr[$drvId];
+        
+        if (!$drvName) {
+//             $drvName = 'escpos_driver_Html';
+            $drvName = 'escpos_driver_Ddp250';
+        }
         
         // За да не се кешира
         header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
@@ -79,19 +102,9 @@ class escpos_Print extends core_Manager
         // Указваме, че ще се връща XML
         header('Content-Type: application/xml');
         
-        $res = $mvc->getTpl();
-        $res->replace('bgERP ' . tr('проба') . ': ' . $idInt, 'title');
+        $res = escpos_Helper::getContentXml($clsInst, $id, $drvName);
         
-        $dataTpl = $mvc->getDataTpl();
-        
-        $dataTpl->replace(date("d-m-Y"), 'date');
-        $dataTpl->replace(str_pad($idInt, 10, 0, STR_PAD_LEFT), 'number');
-        
-        $dataContent = $dataTpl->getContent();
-        
-        $res->replace(base64_encode($dataContent), 'data');
-        
-        echo $res->getContent();
+        echo $res;
         
         // Прекратяваме процеса
         shutdown();
@@ -99,71 +112,99 @@ class escpos_Print extends core_Manager
     
     
     /**
-     * Мокъп функция за връщане на шаблон за резултат
+     * Подготвя URL за печатане чрез
      * 
-     * @return ET
+     * @param core_Master $mvc
+     * @param int $id
      * 
-     * @deprecated
+     * @return string
      */
-    function getTpl()
+    public static function prepareUrlIdForAgent($clsInst, $id)
     {
-        $tpl = '<?xml version="1.0" encoding="utf-8"?>
-                <btpDriver Command="DirectIO">
-                    <title>[#title#]</title>
-                    <data>[#data#]</data>
-                </btpDriver>';
+        $pId = $clsInst->protectId($id);
+        $clsId = $clsInst->getClassId();
         
-        $res = new ET(tr('|*' . $tpl));
+        $hash = self::getHash($clsId, $pId);
+        
+        $res = $clsId . self::$agentParamDelimiter . $pId . self::$agentParamDelimiter . $hash;
         
         return $res;
     }
     
     
     /**
-     * Мокъп функция за връщане на данните
+     * Връща хеша за стринг
      * 
-     * @return ET
+     * @param string $clsId
+     * @param string $pId
      * 
-     * @deprecated
+     * @return string
      */
-    function getDataTpl()
+    protected static function getHash($clsId, $pId)
     {
-        $tplArr = array();
+        $str = $clsId . self::$agentParamDelimiter . $pId;
         
-        $tplArr[] = "|ФАКТУРА|*";
-        $tplArr[] = "№ [#number#] / [#date#]";
-        $tplArr[] = "|В. Търново|*";
-        $tplArr[] = "|ОРИГИНАЛ|*";
-        $tplArr[] = "|Получател|*";
-        $tplArr[] = "Drehi za vseki";
-        $tplArr[] = "България";
-        $tplArr[] = "5555 В. Търново";
-        $tplArr[] = "ул. Нов адрес №130, вх.Г, ап. 37";
-        $tplArr[] = "ЗДДС №:	BG121644736";
-        $tplArr[] = "";
-        $tplArr[] = "Други суровини и материали ";
-        $tplArr[] = "1бр.       543.00	   543.00";
-        $tplArr[] = "";
-        $tplArr[] = "|Данъчно събитие|*: [#date#]";
-        $tplArr[] = "|Краен срок за плащане|*: 22.12.17";
-        $tplArr[] = "|Банкова с-ка|*:";
-        $tplArr[] = "GB29 NWBK 6016 1331 9268 19";
-        $tplArr[] = "";
-        $tplArr[] = "|Доставка|*";
-        $tplArr[] = "CIF Велико Търново";
-        $tplArr[] = "";
-        $tplArr[] = "|Стойност|*:	    BGN    543.00";
-        $tplArr[] = "|Данъчна основа|* 9%:  BGN	   543.00";
-        $tplArr[] = "|ДДС|* 9%:	            BGN	    48.87";
-        $tplArr[] = "|Общо|*:	            BGN	   591.87";
-        $tplArr[] = "";
-        $tplArr[] = "|Словом|*: Петстотин деветдесет и";
-        $tplArr[] = "един BGN и 0.87";
+        $res = md5($str . '|' . escpos_Setup::get('SALT'));
         
-        $tplStr = implode("\n", $tplArr);
-        
-        $res = new ET(tr('|*' . $tplStr));
+        $res = substr($res, 0, escpos_Setup::get('HASH_LEN'));
         
         return $res;
+    }
+    
+    
+    /**
+     * Парсира стринга и връща маси в id и инстанция на класа
+     * 
+     * @param string $str
+     * 
+     * @return array
+     */
+    protected static function parseParamStr($str)
+    {
+        list($clsId, $pId, $hash) = explode(self::$agentParamDelimiter, $str);
+        
+        expect($clsId);
+        
+        $hashGen = self::getHash($clsId, $pId);
+        
+        expect($hashGen == $hash);
+        
+        $inst = cls::get($clsId);
+        
+        $id = $inst->unprotectId($pId);
+        
+        expect($id !== FALSE);
+        
+        $res = array();
+        $res['id'] = $id;
+        $res['clsInst'] = $inst;
+        
+        return $res;
+    }
+    
+    
+    
+    /**
+     * Тестов екшън
+     */
+    public function act_Test()
+    {
+        $idFullStr = Request::get('id');
+        
+        $paramsArr = self::parseParamStr($idFullStr);
+        
+        expect($paramsArr);
+        
+        $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id']);
+        
+        $drvName = 'escpos_driver_Ddp250';
+        
+        if (Request::get('html')) {
+            $drvName = 'escpos_driver_Html';
+        }
+        
+        echo escpos_Convert::process($dataContent, $drvName);
+        
+        shutdown();
     }
 }

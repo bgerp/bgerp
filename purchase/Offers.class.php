@@ -68,6 +68,12 @@ class purchase_Offers extends core_Master
     
     
     /**
+     * Име на документа в бързия бутон за добавяне в папката
+     */
+    public $buttonInFolderTitle = 'Вх. оферта';
+    
+    
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,purchase';

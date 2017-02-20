@@ -1029,6 +1029,8 @@ function js2php(obj, path, new_path) {
 
 function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
+        if($(this).hasClass('nojs')) return;
+        
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
         var sizeStyle = el.attr('data-sizeStyle');

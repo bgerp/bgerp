@@ -25,7 +25,7 @@ class unit_MinkPSales extends core_Manager {
         $res .= '<br>'.'MinkPSales';
         $res .=  " 1.".$this->act_SaleQuantityMinus();
         $res .=  " 2.".$this->act_SaleQuantityZero();
-        //$res .= "  3.".$this->act_SalePriceMinus();
+        $res .= "  3.".$this->act_SalePriceMinus();
         $res .= "  4.".$this->act_SaleDiscountMinus();
         $res .= "  5.".$this->act_SaleDiscount101();
         $res .= "  6.".$this->act_CreateSaleVatInclude();
@@ -224,16 +224,11 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('packPrice', '-3');
         // Записваме артикула
         $browser->press('Запис');
-        if(strpos($browser->gettext(), 'Некоректна стойност на полето \'Цена\'!')) {
+        if(strpos($browser->gettext(), 'Сумата на реда не може да бъде под 0.01! Моля променете количеството и/или цената')) {
         } else {
             return unit_MinkPbgERP::reportErr('Не дава грешка при отрицателна цена', 'warning');
         }
     
-        if(strpos($browser->gettext(), 'Не е над - \'0,0000\'')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Не дава грешка при отрицателна цена', 'warning');
-        }
-       
     }
     
     /**
