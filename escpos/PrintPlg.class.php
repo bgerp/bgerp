@@ -36,7 +36,7 @@ class escpos_PrintPlg extends core_Plugin
     {
         // Добавяме бутон за тестово отпечатване в bluetooth принтер
         if (isset($data->rec->id) && $mvc->haveRightFor('Agentprint', $data->rec)) {
-        	$data->toolbar->addBtn('bgERP Agent', $mvc->prepareLinkForAgent($data->rec->id),
+        	$data->toolbar->addBtn('MP', $mvc->prepareLinkForAgent($data->rec->id),
         			"id=escpos_{$data->rec->containerId},class=fright,row=2, order=38,title=" . "Печат чрез bgERP Agent",  'ef_icon = img/16/print_go.png');
         }
     }
