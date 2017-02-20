@@ -45,8 +45,6 @@ class escpos_Helper
     	
     	$row = $data->row;
     	
-    	
-    	//bp(strip_tags('aaaa <br> bbbb'));
     	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId', 'contragentAddress', 'contragentName') as $fld){
     		if(!empty($data->rec->{$fld}) && $row->{$fld} instanceof core_ET){
     			$row->{$fld} = $row->{$fld}->getContent();
@@ -56,7 +54,7 @@ class escpos_Helper
 				$row->{$fld} = strip_tags($row->{$fld});
 			}
 		}
-		bp($row);
+		
     	$tpl->placeObject($row);
     	
     	$count = 0;
