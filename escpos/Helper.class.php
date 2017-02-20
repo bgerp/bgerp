@@ -41,9 +41,13 @@ class escpos_Helper
     private static function getSalePreview($id, $data)
     {
     	$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
+    	
+    	
     	$row = $data->row;
     	
-    	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId') as $fld){
+    	
+    	//bp(strip_tags('aaaa <br> bbbb'));
+    	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId', 'contragentAddress', 'contragentName') as $fld){
     		if(!empty($data->rec->{$fld}) && $row->{$fld} instanceof core_ET){
     			$row->{$fld} = $row->{$fld}->getContent();
     		}
@@ -52,7 +56,7 @@ class escpos_Helper
 				$row->{$fld} = strip_tags($row->{$fld});
 			}
 		}
-		
+		bp($row);
     	$tpl->placeObject($row);
     	
     	$count = 0;
@@ -102,7 +106,7 @@ class escpos_Helper
     	$str = '';
     	switch($Inst){
     		case $Inst instanceof sales_Sales:
-    			$str = self::getSalePreview($id, $data);
+    			//$str = self::getSalePreview($id, $data);
     			break;
     		case $Inst instanceof store_ShipmentOrders:
     			//$str = self::getSoPreview($id, $data);
