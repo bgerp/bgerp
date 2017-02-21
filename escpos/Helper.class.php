@@ -96,10 +96,10 @@ class escpos_Helper
     {
     	expect($Inst = cls::get($clsInst));
     	
-    	Mode::push('text', 'php');
-    	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
-    	Mode::pop('text');
-    	expect($data);
+//     	Mode::push('text', 'php');
+//     	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
+//     	Mode::pop('text');
+//     	expect($data);
     	
     	$str = '';
     	switch($Inst){
