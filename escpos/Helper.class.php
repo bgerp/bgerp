@@ -40,7 +40,6 @@ class escpos_Helper
     
 	private static function getShipmentPreview($Inst, $id, $data)
     {
-    	//bp();
     	if($Inst instanceof sales_Sales){
     		$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
     	} else {
@@ -62,12 +61,6 @@ class escpos_Helper
     		
     		if(!empty($row->{$fld})){
     			$row->{$fld} = trim(strip_tags($row->{$fld}));
-    		}
-    	}
-		
-    	foreach (array('vat02', 'vat09', 'vat0', 'total', 'discountValue', 'value', 'neto') as $fld1){
-    		if(isset($row->{$fld1})){
-    			$row->{$fld1} = str_replace('&nbsp;', ' ', $row->{$fld1});
     		}
     	}
 
@@ -118,13 +111,8 @@ class escpos_Helper
     		
     		$dRec->packQuantity = round($dRec->packQuantity, 3);
     		$dRow->packQuantity = $DoubleSmart->toVerbal($dRec->packQuantity);
-			$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->packQuantity);
-
     		$dRow->packPrice = $DoubleQ->toVerbal($dRec->packPrice);
-    		$dRow->packPrice = str_replace('&nbsp;', ' ', $dRow->packPrice);
-
 			$dRow->amount = $DoubleQ->toVerbal($dRec->amount);
-    		$dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
 
     		$b = clone $block;
     		$b->placeObject($dRow);
@@ -160,9 +148,11 @@ class escpos_Helper
     	}
     	
     	core_Users::sudo($createdBy);
-    	Mode::push('text', 'php');
+    	Mode::push('dataType', 'php');
+    	Mode::push('text', 'plain');
      	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
      	Mode::pop('text');
+     	Mode::pop('dataType');
      	core_Users::exitSudo();
      	
      	if ($isSystemUser) {
