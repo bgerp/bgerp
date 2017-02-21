@@ -20,16 +20,18 @@ class escpos_Helper
      * 
      * @param core_Manager $clsInst
      * @param integer $id
+     * @param string $drvName
+     * @param integer $userId
      * 
      * @return string
      */
-    public static function getContentXml($clsInst, $id, $drvName)
+    public static function getContentXml($clsInst, $id, $drvName, $userId)
     {
         $res = self::getTpl();
         
         $res->replace($clsInst->getTitleById($id), 'title');
         
-        $dataContent = self::preparePrintView($clsInst, $id);
+        $dataContent = self::preparePrintView($clsInst, $id, $userId);
         $dataContent = escpos_Convert::process($dataContent, $drvName);
         
         $res->replace(base64_encode($dataContent), 'data');
@@ -205,10 +207,11 @@ class escpos_Helper
      * 
      * @param core_Manager $clsInst
      * @param integer $id
+     * @param integer|NULL $userId
      * 
      * @return string
      */
-    public static function preparePrintView($clsInst, $id)
+    public static function preparePrintView($clsInst, $id, $userId = NULL)
     {
     	expect($Inst = cls::get($clsInst));
     	
@@ -220,7 +223,11 @@ class escpos_Helper
     	if ($isSystemUser) {
     	    core_Users::cancelSystemUser();
     	}
-    	core_Users::sudo($iRec->createdBy);
+    	
+    	if (!isset($userId)) {
+    	    $userId = $iRec->createdBy;
+    	}
+    	core_Users::sudo($userId);
     	
     	// Записваме, че документа е принтиран
     	doclog_Documents::pushAction(
