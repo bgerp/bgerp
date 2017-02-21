@@ -138,7 +138,17 @@ class escpos_Helper
     	}
 
     	if($Inst instanceof sales_Invoices){
-    		//$Inst->sales_InvoiceDetails->invoke('AfterRenderListTable', array(&$tpl, $data));
+    		$dpInfo = $data->sales_InvoiceDetails->dpInfo;
+    		if($dpInfo->dpOperation == 'deducted'){
+    			$dpRow = new stdClass();
+    			$dpRow->downpayment = 'Приспадане на авансово плащане';
+    			$dpRow->downpayment_amount = $DoubleQ->toVerbal($dpInfo->dpAmount);
+    			//bp($dpRow);
+    			$tpl->placeObject($dpRow);
+    			//$adva
+    		}
+    		//bp($dpInfo);
+    		//$Inst->sales_InvoiceDetails->invoke('AfterRenderListTable', array(&$tpl, $data->sales_InvoiceDetails));
     	}
     	
     	
