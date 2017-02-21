@@ -212,11 +212,12 @@ class escpos_Convert extends core_Manager
         if ($bestLastSpacePos !== FALSE) {
             $cnt = 0;
             $lText = $text;
+            $l = 0;
             while (TRUE) {
                 
                 // Ако лявата част е по-малка от максимума, няма смисъл повече да се режи
                 $lText = mb_substr($text, 0, $bestLastSpacePos);
-                if (mb_strlen($lText) <= $lineMaxLen) break;
+                if ((mb_strlen($lText) <= $lineMaxLen) && ($l++ == 1)) break;
                 
                 // Определяме нова най-добра позиция
                 $newBestLastSpacePos = mb_strrpos($lText, $delimiter);
@@ -226,8 +227,8 @@ class escpos_Convert extends core_Manager
                 $lText = mb_substr($text, 0, $newBestLastSpacePos);
                 $rText = mb_substr($text, $newBestLastSpacePos+1);
                 
-                // Ако дясната част ства по-дълга от лявата, пак прекъсваме
-                if (mb_strlen($rText) > mb_strlen($lText)) break;
+                // Ако дясната част става по-дълга от лявата, пак прекъсваме
+//                 if (mb_strlen($rText) > mb_strlen($lText)) break;
                 
                 // Ако дясната част е по-голяма от максималната дължина, пак се прекъсва
                 if (mb_strlen($rText) > $lineMaxLen) break;
