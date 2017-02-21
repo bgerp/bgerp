@@ -48,7 +48,7 @@ class escpos_Helper
     	
     	$row = $data->row;
     	
-    	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId', 'contragentAddress', 'contragentName', 'storeId', 'lineId', 'weight', 'volume', 'shipmentStoreIdTop', 'DocumentSettingsLeft', 'modifiedBy', 'createdBy', 'sharedUsers', 'dealerId', 'LetterHead') as $fld){
+    	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId', 'contragentAddress', 'contragentName', 'storeId', 'lineId', 'weight', 'volume', 'shipmentStoreIdTop', 'DocumentSettingsLeft', 'modifiedBy', 'createdBy', 'sharedUsers', 'priceListId', 'initiatorId', 'dealerId', 'LetterHead', 'shipmentStoreId', 'notes', 'deliveryLocationIdTop') as $fld){
     		if(!empty($data->rec->{$fld}) && $row->{$fld} instanceof core_ET){
     			$row->{$fld} = $row->{$fld}->getContent();
     		}
@@ -91,7 +91,7 @@ class escpos_Helper
 
     	$tpl->removeBlocks();
     	$tpl->removePlaces();
-    	
+
     	//bp($tpl->getContent());
     	return $tpl;
     }
