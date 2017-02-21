@@ -29,9 +29,13 @@
 <c F b>ОРИГИНАЛ
 
 <p><r32 =>
-<p b>[#id#]<l3 b>[#productName#]
-<!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l b>[#quantity#]<l12>х [#price#]<r32>= [#productTotal#]
+
+<!--ET_BEGIN PRODUCT_BLOCK-->
+[#PRODUCT_BLOCK#]
+<p b>[#numb#]<l3 b>[#productId#]
+<p><l b>[#packQuantity#] [#packagingId#]<l12>х [#packPrice#]<r32>= [#amount#]
+<!--ET_END PRODUCT_BLOCK-->
+
 <p><r32 =>
 <p F b>Общо:  <r16 F b>[#total#]
 <p>
