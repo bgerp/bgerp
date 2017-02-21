@@ -24,7 +24,7 @@
 <!--ET_END bankInfo-->
 <p>
 <p><r32 =>
-<c F b>ФАКТУРА
+<c F b>[#type#]
 <c F b>[#number#]/[#date#]
 <c F b>ОРИГИНАЛ
 
@@ -35,7 +35,10 @@
 <p b>[#numb#]<l3 b>[#productId#]
 <p><l b>[#packQuantity#] [#packagingId#]<l12>х [#packPrice#]<r32>= [#amount#]
 <!--ET_END PRODUCT_BLOCK-->
-
+<!--ET_BEGIN DOWNPAYMENT_BLOCK-->
+[#DOWNPAYMENT_BLOCK#]
+<p b><l3 b>[#downpayment#] = [#downpayment_amount#]
+<!--ET_END DOWNPAYMENT_BLOCK-->
 <p><r32 =>
 <p F b>Общо:  <r16 F b>[#total#]
 <p>
