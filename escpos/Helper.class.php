@@ -66,11 +66,11 @@ class escpos_Helper
     	}
 		
     	foreach (array('vat02', 'vat09', 'vat0', 'total', 'discountValue', 'value', 'neto') as $fld1){
-    		if(isset($data->rec->{$fld1})){
+    		if(isset($row->{$fld1})){
     			$row->{$fld1} = str_replace('&nbsp;', ' ', $row->{$fld1});
     		}
     	}
-    	
+
     	$tpl->placeObject($row);
     	$count = 0;
     	
@@ -84,12 +84,10 @@ class escpos_Helper
     		$Detail = 'store_ShipmentOrderDetails';
     	}
     	
-    	$DoubleSmart = core_Type::getByName('double(smartRound)');
-    	$Double = core_Type::getByName('double(decimals=2)');
-    	$DoubleQ = core_Type::getByName('double(decimals=3)');
+    	$DoubleSmart = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+		$DoubleQ = core_Type::getByName('double(decimals=2)');
     	$Varchar = core_Type::getByName('varchar');
-    	
-    	
+
     	$block = $tpl->getBlock('PRODUCT_BLOCK');
     	foreach ($detailRows as $id => $dRow){
     		$dRec = $detailRecs[$id];
@@ -106,10 +104,10 @@ class escpos_Helper
     				$pack = cat_UoM::getShortName($bRec->packagingId);
     				$quantity = $DoubleQ->toVerbal($bRec->quantity / $bRec->quantityInPack);
     				
-    				$prefix = ($res === '') ? "" : "<p f>";
+    				$prefix = ($res === '') ? "" : " / ";
     				$res .= "{$prefix}{$batch} {$quantity} {$pack}" . "\n";
     			}
-    			if($res != ''){bp($res);
+    			if($res != ''){
     				$dRow->batch = $res;
     			}
     		}
@@ -120,12 +118,14 @@ class escpos_Helper
     		
     		$dRec->packQuantity = round($dRec->packQuantity, 3);
     		$dRow->packQuantity = $DoubleSmart->toVerbal($dRec->packQuantity);
-    		$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->packQuantity);
-    		$dRow->packPrice = $Double->toVerbal($dRec->packPrice);
-    		$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->packPrice);
-    		$dRow->amount = $Double->toVerbal($dRec->amount);
-    		$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->amount);
-    		
+			$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->packQuantity);
+
+    		$dRow->packPrice = $DoubleQ->toVerbal($dRec->packPrice);
+    		$dRow->packPrice = str_replace('&nbsp;', ' ', $dRow->packPrice);
+
+			$dRow->amount = $DoubleQ->toVerbal($dRec->amount);
+    		$dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
+
     		$b = clone $block;
     		$b->placeObject($dRow);
     		$b->removeBlocks();
