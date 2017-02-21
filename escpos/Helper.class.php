@@ -111,11 +111,21 @@ class escpos_Helper
     	expect($Inst = cls::get($clsInst));
     	$createdBy = $Inst->fetchField($id, 'createdBy');
     	
+    	$isSystemUser = core_Users::isSystemUser();
+    	if ($isSystemUser) {
+    	    core_Users::cancelSystemUser();
+    	}
+    	
     	core_Users::sudo($createdBy);
     	Mode::push('text', 'php');
      	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
      	Mode::pop('text');
      	core_Users::exitSudo();
+     	
+     	if ($isSystemUser) {
+     	    core_Users::forceSystemUser();
+     	}
+     	
      	expect($data);
     	
     	$str = '';
