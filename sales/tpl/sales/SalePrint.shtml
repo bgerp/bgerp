@@ -1,19 +1,37 @@
 <c>[#MyCompany#]
 <c>[#MyAddress#]
 <p>
-<p><r32 ->
 <c F b>ДОГОВОР
 <c F b>ЗА ПРОДАЖБА
-<c b>[#id#]/[#valior#]
+<c b>[#id#] / [#valior#]
 <p><r32>
 
 <!--ET_BEGIN PRODUCT_BLOCK-->
 [#PRODUCT_BLOCK#]
 <p b>[#numb#]<l3 b>[#productId#]
-<!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
-<p><l b>[#packQuantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#amount#]
+<!--ET_BEGIN batch--><p f>[#batch#]<!--ET_END batch-->
+<p><l>[#packQuantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#amount#]
 <!--ET_END PRODUCT_BLOCK-->
 
+<p><r32 ->
+<!--ET_BEGIN value-->
+<p b>Стойност:  <r32 b>[#value#]
+<!--ET_END value-->
+<!--ET_BEGIN discountValue-->
+<p b>Отстъпка:  <r32 b>[#discountValue#]
+<!--ET_END discountValue-->
+<!--ET_BEGIN neto-->
+<p b>Нето:  <r32 b>[#neto#]
+<!--ET_END neto-->
+<!--ET_BEGIN vat02Amount-->
+<p b>ДДС [#vat02#]:  <r32 b>[#vat02Amount#]
+<!--ET_END vat02Amount-->
+<!--ET_BEGIN vat09Amount-->
+<p b>ДДС [#vat09#]:  <r32 b>[#vat09Amount#]
+<!--ET_END vat09Amount-->
+<!--ET_BEGIN vat0Amount-->
+<p b>ДДС [#vat0#]:  <r32 b>[#vat0Amount#]
+<!--ET_END vat0Amount-->
 <p><r32 ->
 <p F b>Общо:  <r16 F b>[#total#]
 <p>
@@ -21,41 +39,27 @@
 <p b>Клиент
 <p>[#contragentName#]
 <p>[#contragentAddress#]
-<!--ET_BEGIN contragentVatNo-->
-<p>ЗДДС №: [#contragentVatNo#]
-<!--ET_END contragentVatNo-->
-<!--ET_BEGIN uicNo-->
-<p>ЕИК: [#uicNo#]
-<!--ET_END uicNo-->
 <!--ET_BEGIN deliveryLocationId-->
-<p>До обект:
-<p>[#deliveryLocationId#]
+<p>До обект: [#deliveryLocationId#]
 <!--ET_END deliveryLocationId-->
 <p><r32 ->
-<p>
 <!--ET_BEGIN shipmentStoreId-->
-<p>От склад:
-<p>[#shipmentStoreId#]
+<p>От склад: [#shipmentStoreId#]
 <!--ET_END shipmentStoreId-->
 <!--ET_BEGIN paymentMethodId-->
-<p>Плащане:
-<p>[#paymentMethodId#]
+<p>Плащане: [#paymentMethodId#]
 <!--ET_END paymentMethodId-->
 <!--ET_BEGIN downpayment-->
-<p>Авансово:
-<p>[#downpayment#]
+<p>Авансово: [#downpayment#]
 <!--ET_END downpayment-->
-<!--ET_BEGIN currencyCode-->
-<p>Валута:
-<p>[#currencyCode#]
-<!--ET_END currencyCode-->
+<!--ET_BEGIN currencyId-->
+<p>Валута: [#currencyId#]
+<!--ET_END currencyId-->
 <!--ET_BEGIN caseId-->
-<p>Каса:
-<p>[#caseId#]
+<p>Каса: [#caseId#]
 <!--ET_END caseId-->
-<p>Банк. с-ка
+<p>Банк. с-ка:
 <p>[#bankAccountId#]
-<p>
 <p><r32 ->
 <p b>Условия:
 <!--ET_BEGIN withVat-->
@@ -68,7 +72,7 @@
 <p>- Цените са без ДДС[#noVat#]
 <!--ET_END noVat-->
 <!--ET_BEGIN notes-->
-<p>[#notes#]
+<p>- [#notes#]
 <!--ET_END notes-->
 <!--ET_BEGIN closedDocuments-->
 <p>- Обединява: [#closedDocuments#]
@@ -78,13 +82,13 @@
 <p>- Доставка: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> до [#deliveryTime#]<!--ET_END deliveryTime-->
 <!--ET_END deliveryBlock-->
 <!--ET_BEGIN deliveryTermTime-->
-<p>- Срок за доставка [#deliveryTermTime#] след стартиране на договора
+<p>- Срок за доставка: [#deliveryTermTime#] след стартиране на договора
 <!--ET_END deliveryTermTime-->
 <!--ET_BEGIN commonConditionQuote-->
 <p>- Общи условия по продажба: [#commonConditionQuote#]
 <!--ET_END commonConditionQuote-->
 <p><r32 ->
-<p>
+
 <p>Получател:
 <p><r32 .>
 <p>Съставил:
