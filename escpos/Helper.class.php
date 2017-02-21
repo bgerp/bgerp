@@ -40,6 +40,7 @@ class escpos_Helper
     
 	private static function getShipmentPreview($Inst, $id, $data)
     {
+    	//bp();
     	if($Inst instanceof sales_Sales){
     		$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
     	} else {
@@ -48,34 +49,62 @@ class escpos_Helper
     	
     	$row = $data->row;
     	
-    	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId', 'contragentAddress', 'contragentName', 'storeId', 'lineId', 'weight', 'volume', 'shipmentStoreIdTop', 'DocumentSettingsLeft', 'modifiedBy', 'createdBy', 'sharedUsers', 'priceListId', 'initiatorId', 'dealerId', 'LetterHead', 'shipmentStoreId', 'notes', 'deliveryLocationIdTop') as $fld){
+    	$fields = clone $row;
+    	$fields = (array)$fields;
+    	$fields = array_keys((array)$fields);
+    	$fields = array_combine($fields, $fields);
+    	unset($fields['ROW_ATTR']);
+    	
+    	foreach ($fields as $fld){
     		if(!empty($data->rec->{$fld}) && $row->{$fld} instanceof core_ET){
     			$row->{$fld} = $row->{$fld}->getContent();
     		}
     		
     		if(!empty($row->{$fld})){
-				$row->{$fld} = strip_tags($row->{$fld});
-			}
-		}
-	
+    			$row->{$fld} = trim(strip_tags($row->{$fld}));
+    		}
+    	}
+		
     	$tpl->placeObject($row);
-    	
     	$count = 0;
     	
     	if($Inst instanceof sales_Sales){
     		$detailRecs = $data->sales_SalesDetails->recs;
     		$detailRows = $data->sales_SalesDetails->rows;
+    		$Detail = 'sales_SalesDetails';
     	} else {
     		$detailRecs = $data->store_ShipmentOrderDetails->recs;
     		$detailRows = $data->store_ShipmentOrderDetails->rows;
+    		$Detail = 'store_ShipmentOrderDetails';
     	}
     	
     	$Double = core_Type::getByName('double(decimals=2)');
     	$DoubleQ = core_Type::getByName('double(decimals=3)');
+    	$Varchar = core_Type::getByName('varchar');
+    	
     	
     	$block = $tpl->getBlock('PRODUCT_BLOCK');
     	foreach ($detailRows as $id => $dRow){
     		$dRec = $detailRecs[$id];
+    		
+    		if(core_Packs::isInstalled('batch')){
+    			$query = batch_BatchesInDocuments::getQuery();
+    			$query->where("#detailClassId = {$Detail::getClassId()} AND #detailRecId = {$dRec->id} AND #operation = 'out'");
+    			$query->orderBy('id', "DESC");
+    			
+    			$res = '';
+    			while($bRec = $query->fetch()){
+    				$batch = $Varchar->toverbal($bRec->batch);
+    				$pack = cat_UoM::getShortName($bRec->packagingId);
+    				$quantity = $DoubleQ->toVerbal($bRec->quantity / $bRec->quantityInPack);
+    				$res .= "{$batch} {$quantity} {$pack}" . "\n";
+    			}
+    			
+    			if($res != ''){
+    				$row->batch = $res;
+    			}
+    		}
+    		
     		$dRow->numb += 1;
     		$dRow->productId = cat_Products::getTitleById($dRec->productId);
     		$dRow->packQuantity = $DoubleQ->toVerbal($dRec->packQuantity);
