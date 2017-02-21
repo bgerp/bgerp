@@ -191,14 +191,28 @@ class escpos_Helper
     public static function preparePrintView($clsInst, $id)
     {
     	expect($Inst = cls::get($clsInst));
-    	$createdBy = $Inst->fetchField($id, 'createdBy');
+    	
+    	$iRec = $Inst->fetch($id);
+    	
+    	expect($iRec);
     	
     	$isSystemUser = core_Users::isSystemUser();
     	if ($isSystemUser) {
     	    core_Users::cancelSystemUser();
     	}
+    	core_Users::sudo($iRec->createdBy);
     	
-    	core_Users::sudo($createdBy);
+    	// Записваме, че документа е принтиран
+    	doclog_Documents::pushAction(
+    	                array(
+    	                        'action' => doclog_Documents::ACTION_PRINT,
+    	                        'containerId' => $iRec->containerId,
+    	                        'threadId' => $iRec->threadId
+    	                )
+    	);
+    	// Флъшваме, за да се запише веднага
+    	doclog_Documents::flushActions();
+    	
     	Mode::push('dataType', 'php');
     	Mode::push('text', 'plain');
      	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
