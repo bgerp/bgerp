@@ -101,7 +101,7 @@ class escpos_Helper
     			}
     			
     			if($res != ''){
-    				$row->batch = $res;
+    				$dRow->batch = $res;
     			}
     		}
     		
