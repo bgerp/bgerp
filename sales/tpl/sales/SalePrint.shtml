@@ -61,6 +61,8 @@
 <p>Банк. с-ка:
 <p>[#bankAccountId#]
 <p><r32 ->
+<!--ET_BEGIN conditions-->
+[#conditions#]
 <p b>Условия:
 <!--ET_BEGIN withVat-->
 <p>- Цените са с включен ДДС[#withVat#]
@@ -88,7 +90,7 @@
 <p>- Общи условия по продажба: [#commonConditionQuote#]
 <!--ET_END commonConditionQuote-->
 <p><r32 ->
-
+<!--ET_END conditions-->
 <p>Получател:
 <p><r32 .>
 <p>Съставил:
