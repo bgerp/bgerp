@@ -105,7 +105,8 @@ class escpos_Helper
     			}
     		}
     		
-    		$dRow->numb += 1;
+    		$count++;
+    		$dRow->numb += $count;
     		$dRow->productId = cat_Products::getTitleById($dRec->productId);
     		$dRow->packQuantity = $DoubleQ->toVerbal($dRec->packQuantity);
     		$dRow->packPrice = $Double->toVerbal($dRec->packPrice);
