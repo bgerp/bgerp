@@ -28,7 +28,7 @@ class unit_MinkPListProduct extends core_Manager {
         $res .= "  3.".$this->act_CreateSaleList();
         $res .= "  4.".$this->act_CreatePurchaseList();
         $res .= "  5.".$this->act_ImportListProducts();
-        
+        $res .= "  6.".$this->act_CreateSaleListG();
         return $res;
     }
        
@@ -301,7 +301,7 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->setValue('title', 'За продажба NEW INTERNATIONAL');
         $browser->setValue('type', 'Продаваеми');
         $browser->press('Чернова');
-        // Добавяне на артикули
+        // Добавяне на артикули от група
         $browser->press('Импорт');
      
         $browser->setValue('from', 'group');
@@ -328,6 +328,59 @@ class unit_MinkPListProduct extends core_Manager {
     }
     
     /**
-     * Продажба - артикули по списък от предишни продажби/група
+     * Продажба - артикули по списък от група(или предишни продажби)
      */
+    
+    //http://localhost/unit_MinkPListProduct/CreateSaleListG/
+    function act_CreateSaleListG()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirmEUR();
+    
+        $browser->press('Папка');
+         
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPListProductsG');
+        //$browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('chargeVat', "Oсвободено от ДДС");
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикули
+        $browser->press('Списък');
+        // Количества на двата артикула
+        $browser->setValue('quantity5', '36');
+        $browser->setValue('quantity6', '100');
+    
+        // Записване артикулите
+        $browser->press('Импорт');
+        // активиране на продажбата
+        $browser->press('Активиране');
+         
+        $browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Two hundred and nine EUR and 0,63')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
+    
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '209,63 209,63 0,00 0,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
+    
+    }
+    
 }
