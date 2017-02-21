@@ -65,6 +65,12 @@ class escpos_Helper
     		}
     	}
 		
+    	foreach (array('vat02', 'vat09', 'vat0', 'total', 'discountValue', 'value', 'neto') as $fld1){
+    		if(isset($data->rec->{$fld1})){
+    			$row->{$fld1} = str_replace('&nbsp;', ' ', $row->{$fld1});
+    		}
+    	}
+    	
     	$tpl->placeObject($row);
     	$count = 0;
     	
@@ -78,6 +84,7 @@ class escpos_Helper
     		$Detail = 'store_ShipmentOrderDetails';
     	}
     	
+    	$DoubleSmart = core_Type::getByName('double(smartRound)');
     	$Double = core_Type::getByName('double(decimals=2)');
     	$DoubleQ = core_Type::getByName('double(decimals=3)');
     	$Varchar = core_Type::getByName('varchar');
@@ -93,24 +100,31 @@ class escpos_Helper
     			$query->orderBy('id', "DESC");
     			
     			$res = '';
+    			
     			while($bRec = $query->fetch()){
     				$batch = $Varchar->toverbal($bRec->batch);
     				$pack = cat_UoM::getShortName($bRec->packagingId);
     				$quantity = $DoubleQ->toVerbal($bRec->quantity / $bRec->quantityInPack);
-    				$res .= "{$batch} {$quantity} {$pack}" . "\n";
+    				
+    				$prefix = ($res === '') ? "" : "<p f>";
+    				$res .= "{$prefix}{$batch} {$quantity} {$pack}" . "\n";
     			}
-    			
-    			if($res != ''){
+    			if($res != ''){bp($res);
     				$dRow->batch = $res;
     			}
     		}
     		
     		$count++;
     		$dRow->numb += $count;
-    		$dRow->productId = cat_Products::getTitleById($dRec->productId);
-    		$dRow->packQuantity = $DoubleQ->toVerbal($dRec->packQuantity);
+    		$dRow->productId = cat_Products::getVerbal($dRec->productId, 'name');
+    		
+    		$dRec->packQuantity = round($dRec->packQuantity, 3);
+    		$dRow->packQuantity = $DoubleSmart->toVerbal($dRec->packQuantity);
+    		$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->packQuantity);
     		$dRow->packPrice = $Double->toVerbal($dRec->packPrice);
+    		$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->packPrice);
     		$dRow->amount = $Double->toVerbal($dRec->amount);
+    		$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->amount);
     		
     		$b = clone $block;
     		$b->placeObject($dRow);
@@ -122,7 +136,6 @@ class escpos_Helper
     	$tpl->removeBlocks();
     	$tpl->removePlaces();
 
-    	//bp($tpl->getContent());
     	return $tpl;
     }
     
