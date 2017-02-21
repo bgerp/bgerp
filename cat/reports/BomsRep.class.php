@@ -250,10 +250,13 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
+             
         if(is_array($rec->materials)) { 
-            foreach ($rec->materials as $material) {
+            foreach ($rec->materials as $material) { //bp($material);
                 if(is_array($rec->materials)) {
                     $row->materials .= cat_Products::getShortHyperlink($material['productId']) . "<br/>";
+                    $row->mParams = cat_UoM::getShortName(key(cat_Products::getPacks($material['productId'])));
+                    $row->mCnt = $Int->toVerbal($material['quantity']) . "<br/>";
                 }
             }
         }
@@ -288,7 +291,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
                              article=Детайл,
     					     articleCnt=Брой,
     					     params=Параметри,
-                             materials=Материали", TRUE);
+                             materials=Материали->Име,
+                             mParams=Материали->Мярка,
+                             mCnt=Материали->Количество", TRUE);
   
     }
     
@@ -323,6 +328,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	$f->FLD('articleCnt', 'int', 'tdClass=accItemClass,smartCenter');
     	$f->FLD('params', 'varchar');
     	$f->FLD('materials', 'varchar');
+    	$f->FLD('mParams', 'varchar');
+    	$f->FLD('mCnt', 'int','tdClass=accItemClass,smartCenter');
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
 
@@ -352,6 +359,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $f->FLD('articleCnt', 'int');
         $f->FLD('params', 'varchar');
         $f->FLD('materials', 'varchar');
+        $f->FLD('mParams', 'varchar');
+        $f->FLD('mCnt', 'int');
 
     
         return $f;
