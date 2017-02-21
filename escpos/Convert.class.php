@@ -122,7 +122,9 @@ class escpos_Convert extends core_Manager
 
                     $fontEnd = $driver->getFontEnd();
                     $newLine = $driver->GetNewLine();
-
+                    
+                    $text = self::hyphenText($text, $newLine, $width);
+                    
                     switch($cmd) {
                         // Нова линия
                         case 'p':
@@ -184,9 +186,53 @@ class escpos_Convert extends core_Manager
 
         return $res;
     }
-
-
-
+    
+    
+    /**
+     * 
+     * @param string $text
+     * @param string $nl
+     * @param integer $lineMaxLen
+     * 
+     * @return string
+     */
+    public static function hyphenText($text, $nl, $lineMaxLen)
+    {
+        if (!trim($text)) return $text;
+        
+        $textLen = mb_strlen($text);
+        
+        if ($textLen <= $lineMaxLen) return $text;
+        
+        $lastSpacePos = strrpos($text, ' ');
+        
+        if ($lastSpacePos !== FALSE) {
+            
+            list($lText, $rText) = explode(' ', $text);
+            
+            $lText = self::hyphenText($lText, $nl, $lineMaxLen);
+            $rText = self::hyphenText($rText, $nl, $lineMaxLen);
+            
+            $text = $lText . $nl . $rText;
+        } else {
+            // Ако е дълъг стринг, без прекъсване и само 1-2 символа ще се пренасят, тогава го разделяме на две
+            if ($textLen <= ($lineMaxLen + 2)) {
+                $halfLen = ceil($lineMaxLen / 2);
+                
+                $lText = mb_strcut($text, 0, $halfLen);
+                $rText = mb_strcut($text, $halfLen);
+                
+                $lText = self::hyphenText($lText, $nl, $lineMaxLen);
+                $rText = self::hyphenText($rText, $nl, $lineMaxLen);
+                
+                $text = $lText . $nl . $rText;
+            }
+        }
+        
+        return $text;
+    }
+    
+    
     /**
      * Тестване на печата
      */
