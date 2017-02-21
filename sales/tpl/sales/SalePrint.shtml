@@ -8,7 +8,7 @@
 
 <!--ET_BEGIN PRODUCT_BLOCK-->
 [#PRODUCT_BLOCK#]
-<p b>[#numb#]<l3 b>[#productId#]
+<p b>[#numb#].<l2 b>[#productId#]
 <!--ET_BEGIN batch--><p f>[#batch#]<!--ET_END batch-->
 <p><l>[#packQuantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#amount#]
 <!--ET_END PRODUCT_BLOCK-->
