@@ -42,7 +42,7 @@ class escpos_Helper
     {
     	if($Inst instanceof sales_Sales){
     		$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
-    	} elseif($Inst instanceof store_ShipmentOrderDetails) {
+    	} elseif($Inst instanceof store_ShipmentOrders) {
     		$tpl = getTplFromFile('store/tpl/ShipmentOrderPrint.shtml');
     	}else {
     		$tpl = getTplFromFile('sales/tpl/InvoicePrint.shtml');
@@ -73,7 +73,7 @@ class escpos_Helper
     		$detailRecs = $data->sales_SalesDetails->recs;
     		$detailRows = $data->sales_SalesDetails->rows;
     		$Detail = 'sales_SalesDetails';
-    	} elseif($Inst instanceof store_ShipmentOrderDetails) {
+    	} elseif($Inst instanceof store_ShipmentOrders) {
     		$detailRecs = $data->store_ShipmentOrderDetails->recs;
     		$detailRows = $data->store_ShipmentOrderDetails->rows;
     		$Detail = 'store_ShipmentOrderDetails';
@@ -196,7 +196,7 @@ class escpos_Helper
      	}
      	
      	expect($data);
-    	
+
     	$str = '';
     	switch($Inst){
     		case $Inst instanceof sales_Sales:
