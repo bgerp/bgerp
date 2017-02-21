@@ -124,58 +124,63 @@ class escpos_Convert extends core_Manager
                     $newLine = $driver->GetNewLine();
                     
                     $text = self::hyphenText($text, $newLine, $width);
+                    $textArr = explode($newLine, $text);
                     
-                    switch($cmd) {
-                        // Нова линия
-                        case 'p':
-                            $res .= $l;
-                            // Код за преместване на хартията
-                            $l = $newLine . $fontTxt . $driver->encode($text) . $fontEnd;
-                            $lLen = mb_strlen($text);
-                            break;
-                        case 'c':
-                            $res .= $l;
-                            // Код за преместване на хартията
-                            $r = (int) (($width-$textLen)/2);
-
-                            $r = max($r, 0);
-                            if($r) {
-                                $pad = str_repeat($tab , $r);
-                            } else {
-                                $pad = '';
-                            }
-                            $l = $newLine . $fontPad . $pad . $fontTxt . $driver->encode($text) .$fontEnd;
-                            $lLen = $r + $textLen;
-                            break;
-                        case 'l':
-                            $r = $col - $lLen;
-                            $r = max($r, 0);
-                            if($r) {
-                                $pad = str_repeat($tab , $r);
-                            } else {
-                                $pad = '';
-                            }
-
-                            $l .=  $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
-                            $lLen += $r + $textLen;
-                            break;
-
-                        case 'r':
-                            $r = $col - $lLen - $textLen;
-
-                            $r = max($r, 0);
-                            if($r) {
-                                $pad = str_repeat($tab , $r);
-                            } else {
-                                $pad = '';
-                            }
-                            $l .= $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
-                            $lLen = $r + $textLen;
-                            break;
-                        default:
-                            expect(FALSE, "Непозната команда", $cmd, $el);
-
+                    foreach ($textArr as $text) {
+                        $textLen = mb_strlen($text);
+                        switch($cmd) {
+                            // Нова линия
+                            case 'p':
+                                $res .= $l;
+                                // Код за преместване на хартията
+                                $l = $newLine . $fontTxt . $driver->encode($text) . $fontEnd;
+                                $lLen = mb_strlen($text);
+                                break;
+                            case 'c':
+                                $res .= $l;
+                                // Код за преместване на хартията
+                                $r = (int) (($width-$textLen)/2);
+    							
+                                $r = max($r, 0);
+                                if($r) {
+                                    $pad = str_repeat($tab , $r);
+                                } else {
+                                    $pad = '';
+                                }
+                                $l = $newLine . $fontPad . $pad . $fontTxt . $driver->encode($text) .$fontEnd;
+                                $lLen = $r + $textLen;
+                                break;
+                            case 'l':
+                                $r = $col - $lLen;
+                                $r = max($r, 0);
+                                if($r) {
+                                    $pad = str_repeat($tab , $r);
+                                } else {
+                                    $pad = '';
+                                }
+    							
+                                $l .=  $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
+                                $lLen += $r + $textLen;
+                                break;
+    							
+                            case 'r':
+                                $r = $col - $lLen - $textLen;
+    							
+                                $r = max($r, 0);
+                                if($r) {
+                                    $pad = str_repeat($tab , $r);
+                                } else {
+                                    $pad = '';
+                                }
+                                $l .= $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
+                                $lLen = $r + $textLen;
+                                break;
+                            default:
+                                expect(FALSE, "Непозната команда", $cmd, $el);
+    						
+                        }
                     }
+                    
                 }
             } else {
                 $l .= $el;
@@ -212,11 +217,12 @@ class escpos_Convert extends core_Manager
         if ($bestLastSpacePos !== FALSE) {
             $cnt = 0;
             $lText = $text;
+            $l = 0;
             while (TRUE) {
                 
                 // Ако лявата част е по-малка от максимума, няма смисъл повече да се режи
                 $lText = mb_substr($text, 0, $bestLastSpacePos);
-                if (mb_strlen($lText) <= $lineMaxLen) break;
+                if ((mb_strlen($lText) <= $lineMaxLen) && ($l++ == 1)) break;
                 
                 // Определяме нова най-добра позиция
                 $newBestLastSpacePos = mb_strrpos($lText, $delimiter);
@@ -226,8 +232,8 @@ class escpos_Convert extends core_Manager
                 $lText = mb_substr($text, 0, $newBestLastSpacePos);
                 $rText = mb_substr($text, $newBestLastSpacePos+1);
                 
-                // Ако дясната част ства по-дълга от лявата, пак прекъсваме
-                if (mb_strlen($rText) > mb_strlen($lText)) break;
+                // Ако дясната част става по-дълга от лявата, пак прекъсваме
+//                 if (mb_strlen($rText) > mb_strlen($lText)) break;
                 
                 // Ако дясната част е по-голяма от максималната дължина, пак се прекъсва
                 if (mb_strlen($rText) > $lineMaxLen) break;

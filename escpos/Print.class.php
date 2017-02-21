@@ -64,19 +64,13 @@ class escpos_Print extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param bgerp_Print $mvc
-     * @param NULL|core_Et $res
-     * @param string $action
+     * Екшън за отпечатване с escpos
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    function act_Print()
     {
-        if ($action != 'print') return ;
-        
         $idFullStr = Request::get('id');
         
-        $paramsArr = $mvc->parseParamStr($idFullStr);
+        $paramsArr = $this->parseParamStr($idFullStr);
         
         $id = $paramsArr['id'];
         $clsInst = $paramsArr['clsInst'];
