@@ -121,10 +121,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $fRec = $data->fRec = $this->innerForm;
 
         $this->prepareListFields($data);
-        
-        $salesArr = arr::make($fRec->saleId,TRUE);
+       
+        $salesArr = keylist::toArray($fRec->saleId);
         $salesArr = implode(',', $salesArr);
-
+ 
         $query = planning_Jobs::getQuery();
         $query->where("#saleId IN ('{$salesArr}') AND #state = 'active'");
 
@@ -144,8 +144,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 
                 $products = array();
                 $materials = array();
-                $mArr = cat_Products::getMaterialsForProduction($rec->productId,$rec->quantity, TRUE); 
-                
+              
                 while($recDetail = $queryDetail->fetch()) {
      
                     $index = $recDetail->resourceId;
@@ -159,6 +158,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                                 'article' => $recDetail->resourceId,
                                 'articleCnt'	=> $rec->quantity * $recDetail->propQuantity,
                                 'params' => $recDetail->params,
+                                'quantity' => $rec->quantity,
                                 'materials' => 0,);
                         }
                     } else {
@@ -168,17 +168,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
        
                     }
 
-                    if($recDetail->type == 'input' && isset($recDetail->parentId)) $materials[$recDetail->parentId][] = $recDetail->resourceId;
+                    if($recDetail->type == 'input' && $recDetail->parentId) {bp();$materials[$recDetail->parentId][] = $recDetail->resourceId;}
                 }
             }
         }
         
-        foreach ($data->recs as $rec){
-            if(is_array($materials)){
-                $rec->materials = $materials[$rec->id];
-            }
+        foreach ($data->recs as $id=>$rec){
+            $rec->materials = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
         }
-
+        
         return $data;
     }
     
@@ -252,9 +250,11 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if(is_array($rec->materials)) {
+        if(is_array($rec->materials)) { 
             foreach ($rec->materials as $material) {
-                $row->materials .= cat_Products::getShortHyperlink($material) . "<br/>";
+                if(is_array($rec->materials)) {
+                    $row->materials .= cat_Products::getShortHyperlink($material['productId']) . "<br/>";
+                }
             }
         }
 
