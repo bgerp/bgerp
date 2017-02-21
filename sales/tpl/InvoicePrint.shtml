@@ -7,15 +7,11 @@
 <c>ЕИК: [#uicId#]
 <!--ET_END uicId-->
 <p>
-
-<p><r32 ->
 <c F b>[#type#]
 <c F b>№[#number#]
 <c F b>[#date#]
 <c F b>ОРИГИНАЛ
-
-<p><r32 ->
-
+<p>
 <!--ET_BEGIN PRODUCT_BLOCK-->
 [#PRODUCT_BLOCK#]
 <p b>[#numb#].[#productId#]
