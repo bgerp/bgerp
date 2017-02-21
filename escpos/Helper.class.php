@@ -38,8 +38,17 @@ class escpos_Helper
     }
     
     
+    /**
+     * Подготовка за печат на мобилен принтер
+     * 
+     * @param core_Master $Inst
+     * @param int $id
+     * @param stdClass $data
+     * @return core_ET
+     */
 	private static function getShipmentPreview($Inst, $id, $data)
     {
+    	// Избор на шаблон
     	if($Inst instanceof sales_Sales){
     		$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
     	} elseif($Inst instanceof store_ShipmentOrders) {
@@ -51,6 +60,7 @@ class escpos_Helper
     	$row = $data->row;
     	$row->type = mb_strtoupper($row->type);
     	
+    	// Експейпване на полетата
     	$fields = clone $row;
     	$fields = (array)$fields;
     	$fields = array_keys((array)$fields);
@@ -67,9 +77,11 @@ class escpos_Helper
     		}
     	}
     	
+    	// Поставяне на мастър данните
     	$tpl->placeObject($row);
     	$count = 0;
     	
+    	// Кои са детайлите?
     	if($Inst instanceof sales_Sales){
     		$detailRecs = $data->sales_SalesDetails->recs;
     		$detailRows = $data->sales_SalesDetails->rows;
@@ -89,10 +101,13 @@ class escpos_Helper
     	$Varchar = core_Type::getByName('varchar');
 
     	$block = $tpl->getBlock('PRODUCT_BLOCK');
+    	
+    	// За всеки
     	foreach ($detailRows as $id => $dRow){
     		$dRec = $detailRecs[$id];
     		$b = clone $block;
     		
+    		// Ако е ДИ или КИ има специална логика
     		if($Inst instanceof sales_Invoices){
     			if($data->rec->type == 'dc_note'){
     				if($dRec->changedPrice !== TRUE && $dRec->changedQuantity !== TRUE) continue;
@@ -109,6 +124,7 @@ class escpos_Helper
     			}
     		}
     	
+    		// Ако има партиди
     		if(core_Packs::isInstalled('batch')){
     			$query = batch_BatchesInDocuments::getQuery();
     			$query->where("#detailClassId = {$Detail::getClassId()} AND #detailRecId = {$dRec->id} AND #operation = 'out'");
@@ -116,6 +132,7 @@ class escpos_Helper
     			
     			$res = '';
     			
+    			// Показват се
     			while($bRec = $query->fetch()){
     				$batch = $Varchar->toverbal($bRec->batch);
     				$pack = cat_UoM::getShortName($bRec->packagingId);
@@ -129,6 +146,7 @@ class escpos_Helper
     			}
     		}
     		
+    		// Подготовка на данните за заместване
     		$count++;
     		$dRow->numb += $count;
     		$dRow->productId = cat_Products::getVerbal($dRec->productId, 'name');
@@ -148,12 +166,14 @@ class escpos_Helper
 			$dRow->amount = strip_tags($DoubleQ->toVerbal($dRec->amount));
 			$dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
 			
+			// Поставяне в шаблона
     		$b->placeObject($dRow);
     		$b->removeBlocks();
     		$b->removePlaces();
     		$b->append2Master();
     	}
 
+    	// Ако е Авансова ф-ра има специална логика
     	if($Inst instanceof sales_Invoices){
     		$dpInfo = $data->sales_InvoiceDetails->dpInfo;
     		if($dpInfo->dpOperation == 'deducted'){
@@ -175,9 +195,9 @@ class escpos_Helper
     	$tpl->removeBlocks();
     	$tpl->removePlaces();
     	
+    	// Връщане на шаблона
     	return $tpl;
     }
-    
     
     
     /**
@@ -213,17 +233,7 @@ class escpos_Helper
      	expect($data);
 
     	$str = '';
-    	switch($Inst){
-    		case $Inst instanceof sales_Sales:
-    			//$str = self::getShipmentPreview($Inst, $id, $data);
-    			break;
-    		case $Inst instanceof store_ShipmentOrders:
-    			//$str = self::getShipmentPreview($Inst, $id, $data);
-    			break;
-    		case $Inst instanceof sales_Invoices:
-    			//$str = self::getShipmentPreview($Inst, $id, $data);
-    			break;
-    	}
+    	//$str = self::getShipmentPreview($Inst, $id, $data);
     	
     	if($str == ''){
     		// TODO - тестово
