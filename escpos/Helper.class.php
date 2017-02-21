@@ -49,6 +49,7 @@ class escpos_Helper
     	}
     	
     	$row = $data->row;
+    	$row->type = mb_strtoupper($row->type);
     	
     	$fields = clone $row;
     	$fields = (array)$fields;
@@ -90,7 +91,24 @@ class escpos_Helper
     	$block = $tpl->getBlock('PRODUCT_BLOCK');
     	foreach ($detailRows as $id => $dRow){
     		$dRec = $detailRecs[$id];
+    		$b = clone $block;
     		
+    		if($Inst instanceof sales_Invoices){
+    			if($data->rec->type == 'dc_note'){
+    				if($dRec->changedPrice !== TRUE && $dRec->changedQuantity !== TRUE) continue;
+    				
+    				if(empty($dRec->id)){
+    					$dpRow = new stdClass();
+    					$dpRow->downpayment = $dRow->reason;
+    					$dpRow->downpayment_amount = $dRow->amount;
+    					
+    					$tpl->placeObject($dpRow);
+    					
+    					continue;
+    				}
+    			}
+    		}
+    	
     		if(core_Packs::isInstalled('batch')){
     			$query = batch_BatchesInDocuments::getQuery();
     			$query->where("#detailClassId = {$Detail::getClassId()} AND #detailRecId = {$dRec->id} AND #operation = 'out'");
@@ -130,7 +148,6 @@ class escpos_Helper
 			$dRow->amount = strip_tags($DoubleQ->toVerbal($dRec->amount));
 			$dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
 			
-    		$b = clone $block;
     		$b->placeObject($dRow);
     		$b->removeBlocks();
     		$b->removePlaces();
@@ -143,22 +160,20 @@ class escpos_Helper
     			$dpRow = new stdClass();
     			$dpRow->downpayment = 'Приспадане на авансово плащане';
     			$dpRow->downpayment_amount = $DoubleQ->toVerbal($dpInfo->dpAmount);
-    			//bp($dpRow);
     			$tpl->placeObject($dpRow);
-    			//$adva
+    		} elseif($dpInfo->dpOperation == 'accrued'){
+    			$firstDoc = doc_Threads::getFirstDocument($data->sales_InvoiceDetails->masterData->rec->threadId);
+    			$valior = $firstDoc->getVerbal('valior');
+    			
+    			$dpRow = new stdClass();
+    			$dpRow->downpayment = "Авансово плащане по договор №{$firstDoc->that} от {$valior}";
+    			$dpRow->downpayment_amount = $DoubleQ->toVerbal($dpInfo->dpAmount);
+    			$tpl->placeObject($dpRow);
     		}
-    		//bp($dpInfo);
-    		//$Inst->sales_InvoiceDetails->invoke('AfterRenderListTable', array(&$tpl, $data->sales_InvoiceDetails));
     	}
-    	
     	
     	$tpl->removeBlocks();
     	$tpl->removePlaces();
-
-    	//echo $tpl->getContent();
-    	//shutdown();
-    	
-    	//bp($tpl->getContent());
     	
     	return $tpl;
     }
