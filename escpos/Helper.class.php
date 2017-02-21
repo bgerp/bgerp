@@ -89,7 +89,6 @@ class escpos_Helper
     		$b->append2Master();
     	}
     	
-    	bp($tpl->getContent());
     	return $tpl;
     }
     
@@ -118,10 +117,10 @@ class escpos_Helper
     	$str = '';
     	switch($Inst){
     		case $Inst instanceof sales_Sales:
-    			$str = self::getShipmentPreview($Inst, $id, $data);
+    			//$str = self::getShipmentPreview($Inst, $id, $data);
     			break;
     		case $Inst instanceof store_ShipmentOrders:
-    			$str = self::getShipmentPreview($Inst, $id, $data);
+    			//$str = self::getShipmentPreview($Inst, $id, $data);
     			break;
     		case $Inst instanceof sales_Invoices:
     			//$str = self::getInvPreview($id, $data);
