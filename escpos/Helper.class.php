@@ -38,14 +38,17 @@ class escpos_Helper
     }
     
     
-    private static function getSalePreview($id, $data)
+	private static function getShipmentPreview($Inst, $id, $data)
     {
-    	$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
-    	
+    	if($Inst instanceof sales_Sales){
+    		$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
+    	} else {
+    		$tpl = getTplFromFile('store/tpl/ShipmentOrderPrint.shtml');
+    	}
     	
     	$row = $data->row;
     	
-    	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId', 'contragentAddress', 'contragentName') as $fld){
+    	foreach (array('contragentName', 'MyCompany', 'MyAddress', 'closedDocuments', 'caseId', 'deliveryLocationId', 'bankAccountId', 'contragentAddress', 'contragentName', 'storeId', 'lineId', 'weight', 'volume') as $fld){
     		if(!empty($data->rec->{$fld}) && $row->{$fld} instanceof core_ET){
     			$row->{$fld} = $row->{$fld}->getContent();
     		}
@@ -58,8 +61,15 @@ class escpos_Helper
     	$tpl->placeObject($row);
     	
     	$count = 0;
-    	$detailRecs = $data->sales_SalesDetails->recs;
-    	$detailRows = $data->sales_SalesDetails->rows;
+    	
+    	if($Inst instanceof sales_Sales){
+    		$detailRecs = $data->sales_SalesDetails->recs;
+    		$detailRows = $data->sales_SalesDetails->rows;
+    	} else {
+    		$detailRecs = $data->store_ShipmentOrderDetails->recs;
+    		$detailRows = $data->store_ShipmentOrderDetails->rows;
+    	}
+    	
     	$Double = core_Type::getByName('double(decimals=2)');
     	$DoubleQ = core_Type::getByName('double(decimals=3)');
     	
@@ -79,6 +89,7 @@ class escpos_Helper
     		$b->append2Master();
     	}
     	
+    	bp($tpl->getContent());
     	return $tpl;
     }
     
@@ -95,19 +106,22 @@ class escpos_Helper
     public static function preparePrintView($clsInst, $id)
     {
     	expect($Inst = cls::get($clsInst));
+    	$createdBy = $Inst->fetchField($id, 'createdBy');
     	
-//     	Mode::push('text', 'php');
-//     	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
-//     	Mode::pop('text');
-//     	expect($data);
+    	core_Users::sudo($createdBy);
+    	Mode::push('text', 'php');
+     	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
+     	Mode::pop('text');
+     	core_Users::exitSudo();
+     	expect($data);
     	
     	$str = '';
     	switch($Inst){
     		case $Inst instanceof sales_Sales:
-    			//$str = self::getSalePreview($id, $data);
+    			$str = self::getShipmentPreview($Inst, $id, $data);
     			break;
     		case $Inst instanceof store_ShipmentOrders:
-    			//$str = self::getSoPreview($id, $data);
+    			$str = self::getShipmentPreview($Inst, $id, $data);
     			break;
     		case $Inst instanceof sales_Invoices:
     			//$str = self::getInvPreview($id, $data);
