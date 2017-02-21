@@ -58,10 +58,12 @@
 <!--ET_BEGIN caseId-->
 <p>Каса: [#caseId#]
 <!--ET_END caseId-->
+<!--ET_BEGIN bankAccountId-->
 <p>Банк. с-ка:
 <p>[#bankAccountId#]
-<p><r32 ->
+<!--ET_END bankAccountId-->
 <!--ET_BEGIN conditions-->
+<p><r32 ->
 [#conditions#]
 <p b>Условия:
 <!--ET_BEGIN withVat-->
