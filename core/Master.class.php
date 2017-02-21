@@ -115,7 +115,7 @@ class core_Master extends core_Manager
         $this->prepareSingle($data);
         
         // Ако модето е че се иска пхп дата тя се връща
-        if(Mode::is('text', 'php')){
+        if(Mode::is('dataType', 'php')){
         	return $data;
         }
         

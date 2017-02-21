@@ -64,19 +64,13 @@ class escpos_Print extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param bgerp_Print $mvc
-     * @param NULL|core_Et $res
-     * @param string $action
+     * Екшън за отпечатване с escpos
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    function act_Print()
     {
-        if ($action != 'print') return ;
-        
         $idFullStr = Request::get('id');
         
-        $paramsArr = $mvc->parseParamStr($idFullStr);
+        $paramsArr = $this->parseParamStr($idFullStr);
         
         $id = $paramsArr['id'];
         $clsInst = $paramsArr['clsInst'];
@@ -102,7 +96,7 @@ class escpos_Print extends core_Manager
         // Указваме, че ще се връща XML
         header('Content-Type: application/xml');
         
-        $res = escpos_Helper::getContentXml($clsInst, $id, $drvName);
+        $res = escpos_Helper::getContentXml($clsInst, $id, $drvName, $paramsArr['userId']);
         
         echo $res;
         
@@ -124,9 +118,11 @@ class escpos_Print extends core_Manager
         $pId = $clsInst->protectId($id);
         $clsId = $clsInst->getClassId();
         
-        $hash = self::getHash($clsId, $pId);
+        $cu = core_Users::getCurrent();
         
-        $res = $clsId . self::$agentParamDelimiter . $pId . self::$agentParamDelimiter . $hash;
+        $hash = self::getHash($clsId, $pId, $cu);
+        
+        $res = $clsId . self::$agentParamDelimiter . $pId . self::$agentParamDelimiter . $cu . self::$agentParamDelimiter . $hash;
         
         return $res;
     }
@@ -137,12 +133,13 @@ class escpos_Print extends core_Manager
      * 
      * @param string $clsId
      * @param string $pId
+     * @param integer $cu
      * 
      * @return string
      */
-    protected static function getHash($clsId, $pId)
+    protected static function getHash($clsId, $pId, $cu)
     {
-        $str = $clsId . self::$agentParamDelimiter . $pId;
+        $str = $clsId . self::$agentParamDelimiter . $pId . self::$agentParamDelimiter . $cu;
         
         $res = md5($str . '|' . escpos_Setup::get('SALT'));
         
@@ -161,11 +158,11 @@ class escpos_Print extends core_Manager
      */
     protected static function parseParamStr($str)
     {
-        list($clsId, $pId, $hash) = explode(self::$agentParamDelimiter, $str);
+        list($clsId, $pId, $userId, $hash) = explode(self::$agentParamDelimiter, $str);
         
         expect($clsId);
         
-        $hashGen = self::getHash($clsId, $pId);
+        $hashGen = self::getHash($clsId, $pId, $userId);
         
         expect($hashGen == $hash);
         
@@ -178,6 +175,7 @@ class escpos_Print extends core_Manager
         $res = array();
         $res['id'] = $id;
         $res['clsInst'] = $inst;
+        $res['userId'] = $userId;
         
         return $res;
     }
@@ -195,7 +193,7 @@ class escpos_Print extends core_Manager
         
         expect($paramsArr);
         
-        $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id']);
+        $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id'], $paramsArr['userId']);
         
         $drvName = 'escpos_driver_Ddp250';
         

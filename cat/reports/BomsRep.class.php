@@ -121,10 +121,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $fRec = $data->fRec = $this->innerForm;
 
         $this->prepareListFields($data);
-        
-        $salesArr = arr::make($fRec->saleId,TRUE);
+       
+        $salesArr = keylist::toArray($fRec->saleId);
         $salesArr = implode(',', $salesArr);
-
+ 
         $query = planning_Jobs::getQuery();
         $query->where("#saleId IN ('{$salesArr}') AND #state = 'active'");
 
@@ -144,10 +144,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 
                 $products = array();
                 $materials = array();
-                $mArr = cat_Products::getMaterialsForProduction($rec->productId,$rec->quantity, TRUE); 
-                
+              
                 while($recDetail = $queryDetail->fetch()) {
-     
+
                     $index = $recDetail->resourceId;
                     
                     if(!array_key_exists($index, $data->recs)){
@@ -158,7 +157,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
                             (object) array ('id' => $recDetail->id,
                                 'article' => $recDetail->resourceId,
                                 'articleCnt'	=> $rec->quantity * $recDetail->propQuantity,
-                                'params' => $recDetail->params,
+                                'params' => cat_Products::getParams($recDetail->resourceId, NULL, TRUE),
+                                'quantity' => $rec->quantity,
                                 'materials' => 0,);
                         }
                     } else {
@@ -168,17 +168,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
        
                     }
 
-                    if($recDetail->type == 'input' && isset($recDetail->parentId)) $materials[$recDetail->parentId][] = $recDetail->resourceId;
+//                     /if($recDetail->type == 'input' && $recDetail->parentId) {bp();$materials[$recDetail->parentId][] = $recDetail->resourceId;}
                 }
             }
         }
         
-        foreach ($data->recs as $rec){
-            if(is_array($materials)){
-                $rec->materials = $materials[$rec->id];
-            }
+        foreach ($data->recs as $id=>$rec){
+            $rec->materials = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
         }
-
+     
         return $data;
     }
     
@@ -244,7 +242,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
             unset($rec->params['$T']);
             
             foreach($rec->params as $name=>$val) {
-                $name = str_replace("$", "", $name);
+ 
+                if(!is_numeric($val)) continue;
+                
+                $name = cat_Params::getNormalizedName($name);
                 $name = str_replace("_", " ", $name);
                 
                 $row->params .= $name . ": " . $val . "<br/>";
@@ -252,9 +253,14 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if(is_array($rec->materials)) {
-            foreach ($rec->materials as $material) {
-                $row->materials .= cat_Products::getShortHyperlink($material) . "<br/>";
+             
+        if(is_array($rec->materials)) { 
+            foreach ($rec->materials as $material) { 
+                if(is_array($rec->materials)) {
+                    $row->materials .= cat_Products::getShortHyperlink($material['productId']) . "<br/>";
+                    $row->mParams = cat_UoM::getShortName(key(cat_Products::getPacks($material['productId'])));
+                    $row->mCnt = $Int->toVerbal($material['quantity']) . "<br/>";
+                }
             }
         }
 
@@ -288,7 +294,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
                              article=Детайл,
     					     articleCnt=Брой,
     					     params=Параметри,
-                             materials=Материали", TRUE);
+                             materials=Материали->Име,
+                             mParams=Материали->Мярка,
+                             mCnt=Материали->Количество", TRUE);
   
     }
     
@@ -308,11 +316,16 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	$title = explode(" » ", $this->title);
     	
     	$tpl->replace($title[1], 'TITLE');
-    	
-    	$opt = self::prepareOptions();
-    	$saleId = substr($data->fRec->saleId, 1, strlen($data->fRec->saleId)-2);
 
-    	$tpl->replace($opt[$saleId], 'saleId');
+    	$salesArr = keylist::toArray($data->fRec->saleId);
+    	
+    	if(is_array($salesArr)) {
+    	    foreach($salesArr as $id=>$sale){
+    	        $link .= sales_Sales::getShortHyperLink($sale). "<br/>";
+    	    }
+    	}
+    	
+        $tpl->replace($link, 'saleId');
    
     	$tpl->placeObject($data->rec);
 
@@ -323,6 +336,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	$f->FLD('articleCnt', 'int', 'tdClass=accItemClass,smartCenter');
     	$f->FLD('params', 'varchar');
     	$f->FLD('materials', 'varchar');
+    	$f->FLD('mParams', 'varchar');
+    	$f->FLD('mCnt', 'int','tdClass=accItemClass,smartCenter');
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
 
@@ -352,6 +367,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $f->FLD('articleCnt', 'int');
         $f->FLD('params', 'varchar');
         $f->FLD('materials', 'varchar');
+        $f->FLD('mParams', 'varchar');
+        $f->FLD('mCnt', 'int');
 
     
         return $f;
@@ -371,7 +388,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
                              article=Детайл,
     					     articleCnt=Брой,
                              params=Параметри,
-    					     materials=Материали", TRUE);
+                             materials=Материали->Име,
+    					     mParams=Материали->Мярка,
+                             mCnt=Материали->Количество", TRUE);
         
         return $fields;
     }
@@ -387,8 +406,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $fields = $this->getFields();
 
         $dataRec = array();
-    
-        $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields);
+
+        //$csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields);
          
         return $csv;
     }
