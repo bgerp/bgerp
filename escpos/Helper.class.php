@@ -42,8 +42,10 @@ class escpos_Helper
     {
     	if($Inst instanceof sales_Sales){
     		$tpl = getTplFromFile('sales/tpl/sales/SalePrint.shtml');
-    	} else {
+    	} elseif($Inst instanceof store_ShipmentOrderDetails) {
     		$tpl = getTplFromFile('store/tpl/ShipmentOrderPrint.shtml');
+    	}else {
+    		$tpl = getTplFromFile('sales/tpl/InvoicePrint.shtml');
     	}
     	
     	$row = $data->row;
@@ -63,7 +65,7 @@ class escpos_Helper
     			$row->{$fld} = trim(strip_tags($row->{$fld}));
     		}
     	}
-
+    	
     	$tpl->placeObject($row);
     	$count = 0;
     	
@@ -71,10 +73,14 @@ class escpos_Helper
     		$detailRecs = $data->sales_SalesDetails->recs;
     		$detailRows = $data->sales_SalesDetails->rows;
     		$Detail = 'sales_SalesDetails';
-    	} else {
+    	} elseif($Inst instanceof store_ShipmentOrderDetails) {
     		$detailRecs = $data->store_ShipmentOrderDetails->recs;
     		$detailRows = $data->store_ShipmentOrderDetails->rows;
     		$Detail = 'store_ShipmentOrderDetails';
+    	} else {
+    		$detailRecs = $data->sales_InvoiceDetails->recs;
+    		$detailRows = $data->sales_InvoiceDetails->rows;
+    		$Detail = 'sales_InvoiceDetails';
     	}
     	
     	$DoubleSmart = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
@@ -108,12 +114,22 @@ class escpos_Helper
     		$count++;
     		$dRow->numb += $count;
     		$dRow->productId = cat_Products::getVerbal($dRec->productId, 'name');
+    		unset($dRow->ROW_ATTR);
+    		$dRow->packagingId = cat_UoM::getShortName($dRec->packagingId);
+    		
+    		if($Inst instanceof sales_Invoices){
+    			$dRec->packQuantity = $dRec->quantity;
+    		}
     		
     		$dRec->packQuantity = round($dRec->packQuantity, 3);
-    		$dRow->packQuantity = $DoubleSmart->toVerbal($dRec->packQuantity);
-    		$dRow->packPrice = $DoubleQ->toVerbal($dRec->packPrice);
-			$dRow->amount = $DoubleQ->toVerbal($dRec->amount);
-
+    		$dRow->packQuantity = strip_tags($DoubleSmart->toVerbal($dRec->packQuantity));
+    		$dRow->packQuantity = str_replace('&nbsp;', ' ', $dRow->packQuantity);
+    		
+    		$dRow->packPrice = strip_tags($DoubleQ->toVerbal($dRec->packPrice));
+    		$dRow->packPrice = str_replace('&nbsp;', ' ', $dRow->packPrice);
+			$dRow->amount = strip_tags($DoubleQ->toVerbal($dRec->amount));
+			$dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
+			
     		$b = clone $block;
     		$b->placeObject($dRow);
     		$b->removeBlocks();
@@ -121,9 +137,19 @@ class escpos_Helper
     		$b->append2Master();
     	}
 
+    	if($Inst instanceof sales_Invoices){
+    		//$Inst->sales_InvoiceDetails->invoke('AfterRenderListTable', array(&$tpl, $data));
+    	}
+    	
+    	
     	$tpl->removeBlocks();
     	$tpl->removePlaces();
 
+    	//echo $tpl->getContent();
+    	//shutdown();
+    	
+    	//bp($tpl->getContent());
+    	
     	return $tpl;
     }
     
@@ -170,7 +196,7 @@ class escpos_Helper
     			//$str = self::getShipmentPreview($Inst, $id, $data);
     			break;
     		case $Inst instanceof sales_Invoices:
-    			//$str = self::getInvPreview($id, $data);
+    			//$str = self::getShipmentPreview($Inst, $id, $data);
     			break;
     	}
     	
