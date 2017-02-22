@@ -77,6 +77,8 @@ class escpos_Print extends core_Manager
         
         expect($id && $clsInst);
         
+        $clsInst->logRead('Мобилно отпечатване', $id);
+        
         $drvId = Request::get('drv');
         
         $drvName = self::$drvMapArr[$drvId];
