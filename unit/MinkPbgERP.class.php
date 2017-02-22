@@ -872,9 +872,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         $browser->press('Оферта');
         
-        //  ИЗБОР НА ПАПКА!
-        //$browser->setValue('folderId', 'NEW INTERNATIONAL GMBH');
         $browser->setValue('Цена', '3,1234');
+        //$browser->setValue('row1[cR]', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
         $browser->press('Добавяне');
@@ -1621,7 +1620,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('conditionId', 'Начин на плащане (4)');
         $browser->setValue('value', '16');
         $browser->press('Запис');
-        return $browser->getHtml();
         if (strpos($browser->getText(),"100% до 1 мес. след датата на фактурата")){
         } else {
             return $this->reportErr('Грешка при създаване на търговско условие', 'warning');

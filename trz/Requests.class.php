@@ -519,13 +519,18 @@ class trz_Requests extends core_Master
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            // Заглавие за записа в календара
 	            $calRec->title = "Отпуск:{$personName}";
+	
+	            // Само молбите на потребителите и на публично достъпните лица се виждат от всички
+	            $access = crm_Persons::fetch("#id = {$rec->personId}",'access');
 	            
-	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
-	            $personId = array($personProfile->userId => 0);
-	            $user = keylist::fromArray($personId);
+	            if(crm_Profiles::fetch("#personId = {$rec->personId}") && $access == 'public') {
+	                $calRec->users = '';
+	            } else {
+	                $calRec->users =  $rec->sharedUsers;
+	            }
 	
 	            // В чии календари да влезе?
-	            $calRec->users = $user;
+	            //$calRec->users = $user;
 	            
 	            // Статус на задачата
 	            $calRec->state = $rec->state;
