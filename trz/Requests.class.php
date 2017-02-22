@@ -183,7 +183,7 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
+    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=trz|ceo)', 'caption=Информация->Бележки');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
@@ -277,8 +277,7 @@ class trz_Requests extends core_Master
     		$years[$nowYear - $i] = $nowYear - $i;
     	} 
     	$form->setSuggestions('useDaysFromYear', $years);
-    	$form->setDefault('useDaysFromYear', $years[$nowYear]);
-    	
+    	//$form->setDefault('useDaysFromYear', $years[$nowYear]);
 
     	// Намират се всички служители
     	$employees = crm_Persons::getEmployeesOptions();
@@ -418,6 +417,24 @@ class trz_Requests extends core_Master
 	                 // то не може да я направим
 	                 $requiredRoles = 'no_one';
 	             }
+	         }
+	     }
+	     
+	     if ($action == 'add') { 
+	         if ($rec) {
+    	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	        
+    	         if($rec->folderId && $folderClass == 'crm_Persons') {
+    	             if(doc_Folders::fetchCoverId($rec->folderId) == $userId){
+    	                 // то не може да я направим
+    	                 $requiredRoles = 'no_one';
+    	             }
+    	         }
+	         }
+
+	         if(!Users::haveRole('ceo') && !Users::haveRole('trz')) {
+	                 // то не може да я направим
+	                 $requiredRoles = 'no_one';
 	         }
 	     }
      }
