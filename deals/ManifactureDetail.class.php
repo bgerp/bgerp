@@ -24,6 +24,14 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	
 	
 	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'createdBy,createdOn';
+	
+	
+	/**
 	 * Описание на модела (таблицата)
 	 */
 	public function setDetailFields($mvc)
