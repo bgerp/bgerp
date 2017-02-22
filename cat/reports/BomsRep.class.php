@@ -354,7 +354,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	$f->FLD('num', 'int');
     	$f->FLD('article', 'varchar');
     	$f->FLD('articleCnt', 'int', 'tdClass=accItemClass,smartCenter');
-    	$f->FLD('params', 'varchar');
+    	$f->FLD('params', 'varchar','tdClass=itemClass');
     	$f->FLD('materials', 'varchar');
     	$f->FLD('mParams', 'varchar');
     	$f->FLD('mCnt', 'int','tdClass=accItemClass,smartCenter');
