@@ -108,7 +108,8 @@ class escpos_driver_Ddp250 extends core_BaseClass
      */
     public function encode($text)
     {
-        return iconv('utf-8', 'windows-1251', htmlspecialchars_decode($text));
+        return $text;
+//         return iconv('utf-8', 'windows-1251', htmlspecialchars_decode($text));
     }
     
 }
