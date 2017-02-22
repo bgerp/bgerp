@@ -518,9 +518,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			if(count($details)){
 				foreach ($details as $dRec){
 					$dRec->noteId = $rec->id;
+					
+					// Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
 					if(isset($rec->inputStoreId)){
-						$dRec->storeId = $rec->inputStoreId;
+						if(cat_Products::fetchField($dRec->productId, 'canStore') == 'yes' && $dRec->type != 'pop'){
+							$dRec->storeId = $rec->inputStoreId;
+						}
 					}
+					
 					planning_DirectProductNoteDetails::save($dRec);
 				}
 			}
