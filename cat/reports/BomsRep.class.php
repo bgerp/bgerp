@@ -255,11 +255,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         
              
         if(is_array($rec->materials)) { 
-<<<<<<< HEAD
-            foreach ($rec->materials as $material) { //bp($material);
-=======
             foreach ($rec->materials as $material) { 
->>>>>>> refs/remotes/origin/test
                 if(is_array($rec->materials)) {
                     $row->materials .= cat_Products::getShortHyperlink($material['productId']) . "<br/>";
                     $row->mParams = cat_UoM::getShortName(key(cat_Products::getPacks($material['productId'])));
