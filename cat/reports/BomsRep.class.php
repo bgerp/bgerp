@@ -126,7 +126,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $salesArr = implode(',', $salesArr);
  
         $query = planning_Jobs::getQuery();
-        $query->where("#saleId IN ('{$salesArr}') AND #state = 'active'");
+        $query->where("#saleId IN ('{$salesArr}') AND (#state = 'active' OR #state = 'wakeup')");
 
 
         // за всяко едно активно Задания за производство
