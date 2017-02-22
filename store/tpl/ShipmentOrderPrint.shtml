@@ -34,7 +34,6 @@
 <!--ET_END vat0Amount-->
 <p><r32 ->
 <p F b>Общо:  <r16 F b>[#total#]
-<p>
 <p><r32 ->
 <p b>Клиент
 <p>[#contragentName#]
@@ -68,7 +67,3 @@
 <p><r32 .>
 <p>Съставил:
 <p>[#username#]
-<p>
-<p>
-<p>
-<p>
