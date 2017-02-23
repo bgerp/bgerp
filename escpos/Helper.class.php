@@ -42,7 +42,7 @@ class escpos_Helper
     
     /**
      * Подготовка за печат на мобилен принтер
-     * 
+     *
      * @param core_Master $Inst
      * @param int $id
      * @param stdClass $data
@@ -103,7 +103,7 @@ class escpos_Helper
     	$Varchar = core_Type::getByName('varchar');
 
     	$block = $tpl->getBlock('PRODUCT_BLOCK');
-    	
+
     	// За всеки
     	foreach ($detailRows as $id => $dRow){
     		$dRec = $detailRecs[$id];
@@ -140,7 +140,7 @@ class escpos_Helper
     				$pack = cat_UoM::getShortName($bRec->packagingId);
     				$quantity = $DoubleQ->toVerbal($bRec->quantity / $bRec->quantityInPack);
     				
-    				$prefix = ($res === '') ? "" : " / ";
+    				$prefix = ($res === '') ? "" : "<p f>";
     				$res .= "{$prefix}{$batch} {$quantity} {$pack}" . "\n";
     			}
     			if($res != ''){
@@ -201,7 +201,7 @@ class escpos_Helper
     	return $tpl;
     }
     
-    
+
     /**
      * Подготвя данните за отпечатване
      * 

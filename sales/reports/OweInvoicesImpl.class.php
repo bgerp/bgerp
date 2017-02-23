@@ -51,7 +51,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		
 		$form->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент,silent,input,mandatory');
 		$form->FNC('from', 'date', 'caption=Към дата,silent,input');
-		$form->FNC('notInv', 'enum(yes=Да, no=Не)', 'caption=Без нефактурирано,silent,input');
+		$form->FNC('notInv', 'enum(yes=Да, no=Не)', 'caption=Без нефактурирано,silent,input=none');
 		
 		$this->invoke('AfterAddEmbeddedFields', array($form));
 	}
@@ -165,14 +165,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				    
 				    $toPaid = $balHistory['summary']['blAmount'];
 	
-				    if($data->rec->notInv == "yes") {
+				    /*if($data->rec->notInv == "yes") {
 				        $toPaid = $balHistory['summary']['creditAmount'] - $data->notInv;
 				        
 				        if($toPaid < 0) {
 				            $toPaid = $balHistory['summary']['baseAmount'] - $data->notInv;
 				        }
-				    }   
-		
+				    }   */
+	
 					// правим рековете
 					$data->recs[] = (object) array ("contragentCls" => $contragentCls,
 													'contragentId' => $contragentId,
@@ -214,7 +214,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	} 
 
         }
-        
+      
         if (isset ($data->notInv)) { 
         	if ($data->currencyId != $currencyNow) {
         		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, $data->rec->from, $currencyNow, $data->currencyId);
@@ -230,9 +230,11 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 
         	if ($currRec->dueDate == NULL || $currRec->dueDate < dt::now()) { 
         		$data->sum->arrears += $currRec->amount;
+        	} else {
+        	    $data->sum->arrears = 0;
         	}
         }
-    
+
 		return $data;
 	}
 	
@@ -284,8 +286,12 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					<span style='color:red'>$row->amount</span></b>
 					</div>";
 				} else {
-					unset ($row->amount);
-					$data->summary->amountArrears -= $row->amount;
+					$row->amount = 
+					"<div>
+					<span class='cCode'>$data->currencyId</span>
+					<span>$row->amount</span></b>
+					</div>";
+					$data->summary->amountArrears = 0;
 				}
 		
 				$data->rows[] = $row;
@@ -332,8 +338,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		    'amountToPaid' => $Double->toVerbal($data->sum->toPaid),
 		    'amountArrears' => $Double->toVerbal($data->sum->arrears)
 		);
-		
-
+		//bp($res);
 		$res = $data;
 	}
 	
@@ -376,12 +381,13 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     	$f = $this->getFields();
     	
     	$table = cls::get('core_TableView', array('mvc' => $f));
+    	//bp($data->rows, $data->listFields);
     	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
 
         if (count($data->summary) ) {
 
 	       $data->summary->colspan = count($data->listFields)-3;
-	       $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN contragent--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b></td></tr>");
+	       $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN amountArrears--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b><!--ET_END amountArrears--></td></tr>");
 	    		
 	       $afterRow->placeObject($data->summary);
 
@@ -452,7 +458,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	    $state = array('pending' => "Чакащо", 'overdue' => "Просроченo", 'paid' => "Платенo", 'repaid' => "Издължено");
 	 
 	    $row->paymentState = $state[$rec->paymentState];
-	
+
 		return $row;
 	}
 	

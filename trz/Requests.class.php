@@ -425,7 +425,9 @@ class trz_Requests extends core_Master
     	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	        
     	         if($rec->folderId && $folderClass == 'crm_Persons') { 
-    	             $inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+    	             $personId = doc_Folders::fetchCoverId($rec->folderId);
+    	             $inCharge = crm_Profiles::fetchField("#personId = '{$personId}'", 'userId');
+    	             //$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
     	       
     	             if($inCharge != $userId) { 
                         if(!Users::haveRole('ceo') && !Users::haveRole('trz')){
