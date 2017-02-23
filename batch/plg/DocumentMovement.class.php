@@ -26,6 +26,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
 		setIfNot($mvc->storeFieldName, 'storeId');
+		setIfNot($mvc->savedMovements, array());
 	}
 	
 	
@@ -45,7 +46,15 @@ class batch_plg_DocumentMovement extends core_Plugin
 			}
 			
 			$containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
-			batch_Movements::saveMovement($containerId);
+			
+			// Отразяване на движението, само ако в текущия хит не е отразено за същия документ
+			if(!isset($mvc->savedMovements[$containerId])){
+				batch_Movements::saveMovement($containerId);
+				
+				// Дига се флаг в текущия хит че движението е отразено
+				$mvc->savedMovements[$containerId] = TRUE;
+			}
+			
 		} elseif($rec->state == 'rejected'){
 			$containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
 			$doc = doc_Containers::getDocument($containerId);
