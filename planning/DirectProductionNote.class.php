@@ -900,21 +900,4 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		planning_DirectProductNoteDetails::save($rec);
 	}
-	
-	
-
-
-
-	function act_Test()
-	{
-		$content = @file_get_contents('/home/ivelin/products/ivcho.csv');
-		
-		// Прави се опит за извличане на CSV редовете
-		$csvData = i18n_Charset::convertToUtf8($content);
-		$rows = csv_Lib::getCsvRows($csvData, ';', '"', FALSE);
-		
-		foreach ($rows as $row){
-			$res = cls::get('manimp_ImportNotes')->tryToImportNoteFromCsvRow($row);
-		}
-	}
 }
