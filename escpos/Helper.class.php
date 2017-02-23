@@ -140,7 +140,7 @@ class escpos_Helper
     				$pack = cat_UoM::getShortName($bRec->packagingId);
     				$quantity = $DoubleQ->toVerbal($bRec->quantity / $bRec->quantityInPack);
     				
-    				$prefix = ($res === '') ? "" : " / ";
+    				$prefix = ($res === '') ? "" : "<p f>";
     				$res .= "{$prefix}{$batch} {$quantity} {$pack}" . "\n";
     			}
     			if($res != ''){
