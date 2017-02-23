@@ -425,17 +425,15 @@ class trz_Requests extends core_Master
     	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	        
     	         if($rec->folderId && $folderClass == 'crm_Persons') {
-    	             if(doc_Folders::fetchCoverId($rec->folderId) == $userId){
+    	             if(doc_Folders::fetchCoverId($rec->folderId) == $userId && (!Users::haveRole('ceo') && !Users::haveRole('trz'))) {
+
     	                 // то не може да я направим
     	                 $requiredRoles = 'no_one';
     	             }
     	         }
 	         }
 
-	         if(!Users::haveRole('ceo') && !Users::haveRole('trz')) {
-	                 // то не може да я направим
-	                 $requiredRoles = 'no_one';
-	         }
+	         
 	     }
      }
 
