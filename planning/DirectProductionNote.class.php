@@ -789,6 +789,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		expect($jRec->state != 'rejected' && $jRec->state != 'draft', 'Заданието не е активно');
 		expect($productRec = cat_Products::fetch($productId, 'canManifacture,canStore,fixedAsset,canConvert'));
 		$rec->valior = ($valior) ? $valior : dt::today();
+		$rec->valior = dt::verbal2mysql($rec->valior);
 		$rec->originId = $jRec->containerId;
 		$rec->threadId = $jRec->threadId;
 		$rec->productId = $productId;
@@ -898,5 +899,22 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		planning_DirectProductNoteDetails::save($rec);
+	}
+	
+	
+
+
+
+	function act_Test()
+	{
+		$content = @file_get_contents('/home/ivelin/products/ivcho.csv');
+		
+		// Прави се опит за извличане на CSV редовете
+		$csvData = i18n_Charset::convertToUtf8($content);
+		$rows = csv_Lib::getCsvRows($csvData, ';', '"', FALSE);
+		
+		foreach ($rows as $row){
+			$res = cls::get('manimp_ImportNotes')->tryToImportNoteFromCsvRow($row);
+		}
 	}
 }
