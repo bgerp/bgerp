@@ -46,11 +46,13 @@ class doc_plg_TransferDoc extends core_Plugin
 	{
 		if(empty($rec->id)){ 
 		    $person = crm_Profiles::fetchField("#personId = {$rec->personId}", 'userId');
+		    $alternatePerson = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
 			
 			if($mvc->getField('sharedUsers', FALSE)){
 				$cu = core_Users::getCurrent();
 				$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cu);
 				$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $person);
+				$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $alternatePerson);
 			}
 		}
 	}
