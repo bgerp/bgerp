@@ -385,7 +385,7 @@ class trz_Requests extends core_Master
             // за всяка една молба отговаряща на условията проверяваме
             if ($recReq = $query->fetch()) {
             
-            $link = ht::createLink("Молба за отпуска №{$recReq->id}", array('trz_Requests', 'single', $recReq->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/leaves.png");
+                $link = ht::createLink("Молба за отпуска №{$recReq->id}", array('trz_Requests', 'single', $recReq->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/leaves.png");
                 // и изписваме предупреждение
             	$form->setError('leaveFrom, leaveTo', "|Засичане по време с |*{$link}");
             
@@ -420,20 +420,21 @@ class trz_Requests extends core_Master
 	         }
 	     }
 	     
-	     if ($action == 'add') { 
-	         if ($rec) {
+	     if ($action == 'add' || $action == 'reject') { 
+	         if ($rec->folderId) {
     	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	        
-    	         if($rec->folderId && $folderClass == 'crm_Persons') {
-    	             if(doc_Folders::fetchCoverId($rec->folderId) == $userId && (!Users::haveRole('ceo') && !Users::haveRole('trz'))) {
-
+    	         if($rec->folderId && $folderClass == 'crm_Persons') { 
+    	             $inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+    	       
+    	             if($inCharge != $userId) { 
+                        if(!Users::haveRole('ceo') && !Users::haveRole('trz')){
     	                 // то не може да я направим
     	                 $requiredRoles = 'no_one';
+                        }
     	             }
     	         }
 	         }
-
-	         
 	     }
      }
 
@@ -457,6 +458,16 @@ class trz_Requests extends core_Master
         
         }
         
+        // Ако имаме права да създадем заповед за отпуск
+        if(haveRole('trz, ceo') && $data->rec->state == 'active') {
+        
+            // Добавяме бутон
+            //$data->toolbar->addBtn('Заповед', array('trz_Requests', 'Print', 'id' => $data->rec->id, 'Printing' => 'yes'), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            $data->toolbar->addBtn('Заповед', array('trz_Requests', 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
+                'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
+        
+        }
+        
         // Ако нямаме права за писане в треда
     	if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
     		
@@ -475,10 +486,16 @@ class trz_Requests extends core_Master
         //
         $rec = $mvc->fetchRec($rec);
         $subscribedArr = keylist::toArray($rec->sharedUsers);
+        
+        if(isset($rec->alternatePerson)) { 
+            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
+            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        }
+
     	if(count($subscribedArr)) {
    	        foreach($subscribedArr as $userId) {
     	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-    	            $rec->message  = "|Разрешена е |* \"" . self::getRecTitle($rec) . "\"";
+    	            $rec->message  = "|Активирана е |* \"" . self::getRecTitle($rec) . "\"";
     	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
     	            $rec->customUrl = array('trz_Requests', 'single',  $rec->id);
     	            $rec->priority = 0;
@@ -535,17 +552,12 @@ class trz_Requests extends core_Master
 	            // Заглавие за записа в календара
 	            $calRec->title = "Отпуск:{$personName}";
 	
-	            // Само молбите на потребителите и на публично достъпните лица се виждат от всички
-	            $access = crm_Persons::fetch("#id = {$rec->personId}",'access');
-	            
-	            if(crm_Profiles::fetch("#personId = {$rec->personId}") && $access == 'public') {
-	                $calRec->users = '';
-	            } else {
-	                $calRec->users =  $rec->sharedUsers;
-	            }
+	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+	            $personId = array($personProfile->userId => 0);
+	            $user = keylist::fromArray($personId);
 	
 	            // В чии календари да влезе?
-	            //$calRec->users = $user;
+	            $calRec->users = $user;
 	            
 	            // Статус на задачата
 	            $calRec->state = $rec->state;
