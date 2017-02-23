@@ -1813,11 +1813,42 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 
         // Ако има подадено id
         if (handle) {
-
+        	
+        	// Опитваме по-коректно да определим, към кой документ се отнася избрания текст
+        	try {
+	        	if (typeof window.getSelection != "undefined") {
+	        		var sel = window.getSelection();
+	        		
+	        		if (sel.rangeCount) {
+		        		var c = 0;
+		        		var parentNode = sel.anchorNode.parentNode;
+		        		while(true) {
+		        			if (c++ > 20) break;
+		        			
+		        			// От нивото на ричтекста, намираме div с id на документа
+		        			if ($(parentNode).attr('class') == 'richtext') {
+		        				parentNode = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+		        				var handle2 = $(parentNode).attr('id');
+		        				break;
+		        			}
+		        			
+		        			parentNode = parentNode.parentNode;
+		        		}
+	        		}
+	        		
+	        		if (typeof handle2 == "undefined") {
+        				handle = handle2;
+	        		}
+	        	}
+	        } catch (err) { }
+	        
+	        if (typeof handle2 != "undefined") {
+	        	handle = handle2;
+	        }
             // Записваме манипулатора
             sessionStorage.selHandle = handle;
         }
-
+        
         // Ако няма да записваме само манипулатора
         if (!onlyHandle) {
 
