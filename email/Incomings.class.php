@@ -333,7 +333,7 @@ class email_Incomings extends core_Master
                 }
                 
                 // Изтриване на писмото, ако сметката е настроена така
-                if ($accRec->deleteAfterRetrieval == 'yes') {
+                if ($status != 'error' && $status != 'fetching error' &&  $accRec->deleteAfterRetrieval == 'yes') {
                     $imapConn->delete($i);
                     $statusSum['delete']++;
                     $doExpunge = TRUE;
