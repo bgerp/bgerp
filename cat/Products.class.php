@@ -680,11 +680,15 @@ class cat_Products extends embed_Manager {
     	    
     	    // От вербална стойност се опитваме да вземем невербалната
             if (isset($rec->groups)) {
-                $groupArr = type_Set::toArray($rec->groups);
+                setIfNot($delimiter, Mode::get('importDelimiter'), ',');
+                $groupArr = explode($delimiter, $rec->groups);
                 
                 $groupIdArr = array();
                 
                 foreach ($groupArr as $groupName) {
+                    
+                    if (!trim($groupName)) continue;
+                    
                     $force = FALSE;
                     if (haveRole('debug')) {
                         $force = TRUE;
