@@ -1509,10 +1509,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		expect($tolerance >= 0 && $tolerance <= 1);
     	}
     	
-    	if(isset($term)){
+    	if(!empty($term)){
     		expect($term = cls::get('type_Time')->fromVerbal($term));
     	}
-    	
     	
     	// Трябва да има такъв продукт и опаковка
     	expect(cat_Products::fetchField($productId, 'id'));
