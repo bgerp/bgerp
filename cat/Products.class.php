@@ -687,7 +687,9 @@ class cat_Products extends embed_Manager {
                 
                 foreach ($groupArr as $groupName) {
                     
-                    if (!trim($groupName)) continue;
+                    $groupName = trim($groupName);
+                    
+                    if (!$groupName) continue;
                     
                     $force = FALSE;
                     if (haveRole('debug')) {
