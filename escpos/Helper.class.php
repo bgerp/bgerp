@@ -78,7 +78,7 @@ class escpos_Helper
     			$row->{$fld} = trim(strip_tags($row->{$fld}));
     		}
     	}
-    	
+    	$row->delimiter = "|";
     	// Поставяне на мастър данните
     	$tpl->placeObject($row);
     	$count = 0;
@@ -167,7 +167,7 @@ class escpos_Helper
     		$dRow->packPrice = str_replace('&nbsp;', ' ', $dRow->packPrice);
 			$dRow->amount = strip_tags($DoubleQ->toVerbal($dRec->amount));
 			$dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
-			
+
 			// Поставяне в шаблона
     		$b->placeObject($dRow);
     		$b->removeBlocks();
