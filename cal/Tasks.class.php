@@ -701,7 +701,7 @@ class cal_Tasks extends core_Master
 
         if (Request::get('Ctr') == 'Portal') {
             // Задаваме броя на елементите в страница
-            $mvc->listItemsPerPage = 10;
+            $mvc->listItemsPerPage = 20;
         }
     }
 
