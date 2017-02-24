@@ -31,7 +31,7 @@ class core_Ajax extends core_Mvc
             
             // Очаквае заявката да е по AJAX - да има такъв хедър
             if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
-                self::logNotice("Стартиране на core_Ajax::get() извън AJAX");
+                self::logNotice("Стартиране на core_Ajax::get() извън AJAX" . core_Type::mixedToString(Request::$vars));
                 expect(FALSE);
             }
         }
