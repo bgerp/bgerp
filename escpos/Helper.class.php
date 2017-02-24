@@ -133,16 +133,28 @@ class escpos_Helper
     			$query->orderBy('id', "DESC");
     			
     			$res = '';
+    			$left = $dRec->quantity;
     			
     			// Показват се
     			while($bRec = $query->fetch()){
     				$batch = $Varchar->toverbal($bRec->batch);
     				$pack = cat_UoM::getShortName($bRec->packagingId);
     				$quantity = $DoubleQ->toVerbal($bRec->quantity / $bRec->quantityInPack);
+    				$left -= $bRec->quantity;
     				
     				$prefix = ($res === '') ? "" : "<p f>";
     				$res .= "{$prefix}{$batch} {$quantity} {$pack}" . "\n";
     			}
+    			
+    			// Ако има остатък показва се и той
+    			if(round($left, 2) > 0){
+    				$pack = cat_UoM::getShortName($dRec->packagingId);
+    				$quantity = $DoubleQ->toVerbal($left / $dRec->quantityInPack);
+    				$prefix = ($res === '') ? "" : "<p f>";
+    				$prefix = ($res === '') ? "" : "<p f>";
+    				$res .= "{$prefix} Без партида {$quantity} {$pack}" . "\n";
+    			}
+    			
     			if($res != ''){
     				$dRow->batch = $res;
     			}
