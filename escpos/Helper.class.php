@@ -147,7 +147,7 @@ class escpos_Helper
     			}
     			
     			// Ако има остатък показва се и той
-    			if(round($left, 2) > 0){
+    			if(round($left, 2) > 0 && batch_Defs::getBatchDef($dRec->productId)){
     				$pack = cat_UoM::getShortName($dRec->packagingId);
     				$quantity = $DoubleQ->toVerbal($left / $dRec->quantityInPack);
     				$prefix = ($res === '') ? "" : "<p f>";
