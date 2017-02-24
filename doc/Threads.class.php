@@ -1694,8 +1694,15 @@ class doc_Threads extends core_Manager
                 
                 if (isset($lastDcRec->createdBy)) {
                     
-                    // Създателя на последния докуемент
+                    // Създателя на последния документ
                     $rec->lastAuthor = $lastDcRec->createdBy;    
+                }
+            }
+            
+            // Когато има само един документ и той е оттеглен
+            if (!isset($rec->lastAuthor) && $firstDcRec) {
+                if (isset($firstDcRec->createdBy)) {
+                    $rec->lastAuthor = $firstDcRec->createdBy;
                 }
             }
             
