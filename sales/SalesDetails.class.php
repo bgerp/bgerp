@@ -146,7 +146,6 @@ class sales_SalesDetails extends deals_DealDetail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::getDealDetailFields($this);
-        $this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,input=none');
 		$this->setField('packPrice', 'silent');
     }
     
@@ -212,31 +211,6 @@ class sales_SalesDetails extends deals_DealDetail
     		$fee = tcost_Calcs::get($mvc->Master, $rec->saleId, $rec->id)->fee;
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
     		$row->amount = tcost_Calcs::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-    	}
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$rec = &$data->form->rec;
-    	$form = &$data->form;
-    	
-    	if(isset($rec->productId)){
-    		
-    		// Ако в артикула има срок на доставка, показва се полето
-    		$term = cat_Products::getParams($rec->productId, 'term');
-    		if(!empty($term) && !core_Users::haveRole('partner')){
-    			$form->setField('term', 'input');
-    			if(empty($rec->id)){
-    				$form->setDefault('term', $term);
-    			}
-    			
-    			$termVerbal = $mvc->getFieldType('term')->toVerbal($term);
-    			$form->setSuggestions('term', array('' => '', $termVerbal => $termVerbal));
-    		}
     	}
     }
     

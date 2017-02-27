@@ -887,4 +887,36 @@ abstract class deals_Helper
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Връща динамично изчисления толеранс
+	 * 
+	 * @param int $tolerance
+	 * @param int $productId
+	 * @param double $quantity
+	 * @return mixed
+	 */
+	public static function getToleranceRow($tolerance, $productId, $quantity)
+	{
+		$hint = FALSE;
+		
+		if(empty($tolerance)){
+			$tolerance = cat_Products::getTolerance($productId, $quantity);
+			if($tolerance){
+				$hint = TRUE;
+			}
+		}
+		
+		if($tolerance) {
+			$toleranceRow = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
+			if($hint === TRUE){
+				$toleranceRow = ht::createHint($toleranceRow, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
+			}
+			
+			return $toleranceRow;
+		}
+		
+		return NULL;
+	}
 }

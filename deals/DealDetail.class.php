@@ -23,6 +23,14 @@ abstract class deals_DealDetail extends doc_Detail
 	public $hideListFieldsIfEmpty = 'discount,reff';
  	
  	
+	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'tolerance,term';
+	
+	
  	/**
      * Изчисляване на сумата на реда
      * 
@@ -96,8 +104,11 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
     	$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
-    	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Допълнително->Толеранс,input=none');
-        $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
+    	
+    	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
+    	$mvc->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,before=showMode,input=none');
+    	
+    	$mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
     	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Допълнително->Забележки');
     }
     
@@ -204,15 +215,14 @@ abstract class deals_DealDetail extends doc_Detail
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
         
-        if(isset($rec->productId)){
-        	$tolerance = cat_Products::getParams($rec->productId, 'tolerance');
-        	if(!empty($tolerance)){
-        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
+        // Показване на толеранс аи срока на доставка, ако има
+        if(isset($rec->productId) && !core_Users::haveRole('partner')){
+        	if(cat_Products::getTolerance($rec->productId, 1)){
         		$form->setField('tolerance', 'input');
-        		if(empty($rec->id)){
-        			$form->setDefault('tolerance', $tolerance);
-        		}
-        		$form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
+        	}
+        	
+        	if(cat_Products::getDeliveryTime($rec->productId, 1)){
+        		$form->setField('term', 'input');
         	}
         }
         
@@ -420,9 +430,9 @@ abstract class deals_DealDetail extends doc_Detail
             foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
                 
-              	if($rec->tolerance){
-              		$tolerance = $mvc->getFieldType('tolerance')->toVerbal($rec->tolerance);
-              		$row->packQuantity .= "<small style='font-size:0.8em;display:block;' class='quiet'>±{$tolerance}</small>";
+                $toleranceRow = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
+              	if($toleranceRow){
+              		$row->packQuantity .= "<small style='font-size:0.8em;display:block;' class='quiet'>±{$toleranceRow}</small>";
               	}
                 
               	// Показваме подробната информация за опаковката при нужда

@@ -404,7 +404,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$form->setField('tolerance', 'input');
     		}
     		
-    		if(cat_Products::getDeliveryTime($rec->productId, $quantity)){
+    		if(cat_Products::getDeliveryTime($rec->productId, 1)){
     			$form->setField('term', 'input');
     		}
     	}
@@ -516,7 +516,6 @@ class sales_QuotationsDetails extends doc_Detail {
     		  
     		    if($rec->productId){
     		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
-    		    	//bp($rec);
     		    }
     		}
 	    }
@@ -911,12 +910,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$row->amount = $Double->toVerbal($rec->amount);
     	}
     	
-    	if(empty($rec->tolerance)){
-    		if($tolerance = cat_Products::getTolerance($rec->productId, $rec->quantity)){
-    			$row->tolerance = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
-    			$row->tolerance = ht::createHint($row->tolerance, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
-    		}
-    	}
+    	$row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
     	
     	if(empty($rec->term)){
     		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
