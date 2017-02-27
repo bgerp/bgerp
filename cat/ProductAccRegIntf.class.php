@@ -236,4 +236,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getDeliveryTime($id, $quantity);
     }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public static function getMoq($id)
+    {
+    	return $this->class->getMoq($id);
+    }
 }

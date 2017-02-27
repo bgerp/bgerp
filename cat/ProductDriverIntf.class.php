@@ -271,6 +271,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 */
 	public static function getMoq($id = NULL)
 	{
-		return $this->class->getMinimumOrderQuantity($id);
+		return $this->class->getMoq($id);
 	}
 }
