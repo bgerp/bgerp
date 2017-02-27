@@ -48,6 +48,7 @@ class trz_Setup extends core_ProtoSetup
             'trz_Payroll',
             'trz_PayrollDetails',
             'trz_SalaryPayroll',
+            'trz_SalaryIndicatorNames',
 		    'trz_SalaryIndicators',
 		    'trz_SalaryRules',
             'trz_Bonuses',
