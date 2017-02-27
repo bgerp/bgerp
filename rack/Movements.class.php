@@ -56,7 +56,7 @@ class rack_Movements extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,rack';
+	var $canList = 'ceo,rack,storeWorker';
 
 
 	/**
@@ -68,7 +68,7 @@ class rack_Movements extends core_Manager
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,rack';
+    var $canView = 'ceo,rack,storeWorker';
     
     
     /**
