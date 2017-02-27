@@ -2017,14 +2017,19 @@ function refreshForm(form, removeFields) {
 	} else {
 		var filteredParams = params.filter(function(e){
 				var name = /[^/[]*/.exec(e.name)[0];
-
-				return $.inArray(name, removeFields) == -1
+                
+                if($.inArray(name, removeFields) == -1) {
+				    return true;
+                } else {
+                    // $(form[e.name]).remove();
+                    return false;
+                }
 			});
 	}
 
 	var serialized = $.param(filteredParams);
 
-	//form.submit();
+    // form.submit(); return;
 
 	$.ajax({
 		type: frm.attr('method'),
