@@ -33,18 +33,18 @@
 <!--ET_END neto-->
 <p><r32 ->
 <!--ET_BEGIN vat02Amount-->
-<p b>Ставка<l7>[#delimiter#]<l9>Дан. oсн: <r32>[#vat02BaseAmount#]
-<p b>  [#vat02Base#]<l7>[#delimiter#]<l14>ДДС:<r32>[#vat02Amount#]
+<p>Ставка<l7>[#delimiter#]<l9>Дан. oсн: <r32 b>[#vat02BaseAmount#]
+<p>  [#vat02Base#]<l7>[#delimiter#]<l14>ДДС:<r32 b>[#vat02Amount#]
 <p><r32 ->
 <!--ET_END vat02Amount-->
 <!--ET_BEGIN vat009Amount-->
-<p b>Ставка<l7>[#delimiter#]<l9>Дан. oсн: <r32>[#vat009BaseAmount#]
-<p b>  [#vat009Base#]<l7>[#delimiter#]<l14>ДДС:<r32>[#vat009Amount#]
+<p>Ставка<l7>[#delimiter#]<l9>Дан. oсн: <r32 b>[#vat009BaseAmount#]
+<p>  [#vat009Base#]<l7>[#delimiter#]<l14>ДДС:<r32 b>[#vat009Amount#]
 <p><r32 ->
 <!--ET_END vat009Amount-->
 <!--ET_BEGIN vat0Amount-->
-<p b>Ставка<l7>[#delimiter#]<l9>Дан. oсн: <r32>[#vat0BaseAmount#]
-<p b>  [#vat0Base#]<l7>[#delimiter#]<l14>ДДС:<r32>[#vat0Amount#]
+<p>Ставка<l7>[#delimiter#]<l9>Дан. oсн: <r32 b>[#vat0BaseAmount#]
+<p>  [#vat0Base#]<l7>[#delimiter#]<l14>ДДС:<r32 b>[#vat0Amount#]
 <p><r32 ->
 <!--ET_END vat0Amount-->
 <p F b>Общо:  <r16 F b>[#total#]
