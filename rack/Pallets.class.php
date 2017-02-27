@@ -344,8 +344,6 @@ class rack_Pallets extends core_Manager
             }
 
             rack_Movements::save($mRec);
-
-
         }
         
         if(!$rec->label) {

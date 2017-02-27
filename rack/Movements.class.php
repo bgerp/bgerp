@@ -186,8 +186,6 @@ class rack_Movements extends core_Manager
         }
     }
 
-
-
     /**
      * Добавя филтър към перата
      *
