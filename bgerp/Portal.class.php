@@ -83,8 +83,8 @@ class bgerp_Portal extends core_Manager
             <table style='width:100%' class='top-table large-spacing'>
             <tr>
                 <td style='width:32%'>[#LEFT_COLUMN#]</td>
-                <td style='width:36%'>[#NOTIFICATIONS#]</td>
-                <td style='width:32%'>[#RIGHT_COLUMN#]</td>
+                <td style='width:36%'>[#TASK_COLUMN#]</td>
+                <td style='width:32%'>[#NOTIFICATIONS#][#CALENDAR_COLUMN#]</td>
             </tr>
             </table>
             ");
@@ -152,15 +152,11 @@ class bgerp_Portal extends core_Manager
         
         $calendarHeader->append(cal_Calendar::renderPortal(), 'CALENDAR_DETAILS');
         if(Mode::is('screenMode', 'narrow')) {
-            $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
-            $tpl->append($tasksTpl, 'TASK_COLUMN');
-
             jquery_Jquery::run($tpl, "openCurrentTab();");
-        } else {
-            $tpl->append($tasksTpl, 'RIGHT_COLUMN');
-            $tpl->append($calendarHeader, 'RIGHT_COLUMN');
         }
 
+        $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
+        $tpl->append($tasksTpl, 'TASK_COLUMN');
         $tpl->push('js/PortalSearch.js', 'JS');
         jquery_Jquery::run($tpl, "portalSearch();");
 

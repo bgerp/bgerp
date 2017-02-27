@@ -518,9 +518,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			if(count($details)){
 				foreach ($details as $dRec){
 					$dRec->noteId = $rec->id;
+					
+					// Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
 					if(isset($rec->inputStoreId)){
-						$dRec->storeId = $rec->inputStoreId;
+						if(cat_Products::fetchField($dRec->productId, 'canStore') == 'yes' && $dRec->type != 'pop'){
+							$dRec->storeId = $rec->inputStoreId;
+						}
 					}
+					
 					planning_DirectProductNoteDetails::save($dRec);
 				}
 			}
@@ -764,6 +769,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	/**
 	 * Създаване на протокол за производство на артикул
+	 * Ако може след създаването ще зареди артикулите от активната рецепта и/или задачите
 	 * 
 	 * @param int $jobId        - ид на задание
 	 * @param int $productId    - ид на артикул
@@ -774,7 +780,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * 			['expenseItemId'] - ид на перо на разходен обект
 	 * 			['expenses']      - режийни разходи
 	 * 			['batch']         - партиден номер
-	 * 
+	 * 			['inputStoreId']  - дефолтен склад за влагане
 	 */
 	public static function createDraft($jobId, $productId, $quantity, $valior = NULL, $fields = array())
 	{
@@ -783,6 +789,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		expect($jRec->state != 'rejected' && $jRec->state != 'draft', 'Заданието не е активно');
 		expect($productRec = cat_Products::fetch($productId, 'canManifacture,canStore,fixedAsset,canConvert'));
 		$rec->valior = ($valior) ? $valior : dt::today();
+		$rec->valior = dt::verbal2mysql($rec->valior);
 		$rec->originId = $jRec->containerId;
 		$rec->threadId = $jRec->threadId;
 		$rec->productId = $productId;
@@ -792,7 +799,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		expect($rec->quantity = $Double->fromVerbal($quantity));
 		if($productRec->canStore == 'yes'){
 			expect($fields['storeId'], 'За складируем артикул е нужен склад');
-			expect($storeRec = store_Stores::fetch($fields['storeId']), 'Несъществуващ склад');
+			expect($storeRec = store_Stores::fetch($fields['storeId']), "Несъществуващ склад {$fields['storeId']}");
 			$rec->storeId = $fields['storeId'];
 		} else {
 			if($rec->canConvert == 'yes'){
@@ -802,6 +809,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 				expect(acc_Items::fetch($fields['expenseItemId']), 'Няма такова перо');
 				$rec->expenseItemId = $fields['expenseItemId'];
 			}
+		}
+		
+		if(isset($fields['inputStoreId'])){
+			expect(store_Stores::fetch($fields['inputStoreId']), "Несъществуващ склад за влагане {$fields['inputStoreId']}");
+			$rec->inputStoreId = $fields['inputStoreId'];
 		}
 		
 		if(isset($fields['expenses'])){
@@ -819,7 +831,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 				}
 				 
 				$rec->batch = $Def->normalize($fields['batch']);
-				
 				$rec->isEdited = TRUE;
 			}
 		}

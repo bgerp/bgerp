@@ -22,7 +22,7 @@
             <!--ET_END productId-->
 
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-               <span class="maxwidth" data-col="[#DATA_COL_ATTR#]">[#packQuantity#] [#packagingId#]</span>
+               <span class="maxwidth boldText" data-col="[#DATA_COL_ATTR#]">[#packQuantity#] [#packagingId#]</span>
                 <!--ET_BEGIN tolerance-->
                 <div class='quiantity-misc centered' style='font-size:0.8em'>|толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
                 <!--ET_END tolerance-->

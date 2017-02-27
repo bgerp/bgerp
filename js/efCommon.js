@@ -1813,11 +1813,42 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 
         // Ако има подадено id
         if (handle) {
-
+        	
+        	// Опитваме по-коректно да определим, към кой документ се отнася избрания текст
+        	try {
+	        	if (typeof window.getSelection != "undefined") {
+	        		var sel = window.getSelection();
+	        		
+	        		if (sel.rangeCount) {
+		        		var c = 0;
+		        		var parentNode = sel.anchorNode.parentNode;
+		        		while(true) {
+		        			if (c++ > 20) break;
+		        			
+		        			// От нивото на ричтекста, намираме div с id на документа
+		        			if ($(parentNode).attr('class') == 'richtext') {
+		        				parentNode = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+		        				var handle2 = $(parentNode).attr('id');
+		        				break;
+		        			}
+		        			
+		        			parentNode = parentNode.parentNode;
+		        		}
+	        		}
+	        		
+	        		if (typeof handle2 == "undefined") {
+        				handle = handle2;
+	        		}
+	        	}
+	        } catch (err) { }
+	        
+	        if (typeof handle2 != "undefined") {
+	        	handle = handle2;
+	        }
             // Записваме манипулатора
             sessionStorage.selHandle = handle;
         }
-
+        
         // Ако няма да записваме само манипулатора
         if (!onlyHandle) {
 
@@ -2370,7 +2401,6 @@ function editCopiedTextBeforePaste() {
 
 		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
 
-
 		//В клонирания елемент сменяме стиловете, за да избегнем отделните редове, ако имаме елементи със smartCenter
 		$(htmlDiv).find('.maxwidth').css('display', 'inline');
 
@@ -2378,21 +2408,26 @@ function editCopiedTextBeforePaste() {
 		var current = htmlDiv.innerHTML.toString();
 
 		//намира всеки стринг, който отгоравя на израза
-		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
+		var matchedStr =  current.match(/([0-9]{1,3})((\&nbsp\;){1}([0-9]{1,3}))+/g);
 
 		if(matchedStr){
 			var replacedStr = new Array();
 
-			for(var i=0; i< matchedStr.length;i++){
+			for(var i=0; i< matchedStr.length; i++){
 				// променя всеки от стринговете
-				replacedStr[i] = matchedStr[i].replace(/(&nbsp;)/g, '');
-				var regExp = new RegExp(matchedStr[i], "g");
+				replacedStr[i] = matchedStr[i].replace(/(\&nbsp\;)/g, '');
+				
+				var mRegExp = escapeRegExp(matchedStr[i]);
+				
+				var regExp = new RegExp(mRegExp, "g");
+				
 				// прави замяната в тези стрингове
 				current = current.replace(regExp ,replacedStr[i]);
 			}
 			if(current.indexOf('<table>') == -1){
 				current = '<table>' + current + "</table>";
 			}
+			
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
 		}
@@ -2402,6 +2437,22 @@ function editCopiedTextBeforePaste() {
 		}, 0);
 	});
 }
+
+
+/**
+ * Ескейпва регулярния израз
+ * 
+ * @param str
+ * 
+ * @returns
+ */
+function escapeRegExp(str) {
+	
+	if (!str.trim()) return ;
+	
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+}
+
 
 /**
  * Масив със сингълтон обектите

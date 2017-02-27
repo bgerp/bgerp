@@ -190,7 +190,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * Проверка за отрицателна цена (още няма контрол при въвеждането)
+     * Проверка за отрицателна цена
      */
     //http://localhost/unit_MinkPSales/SalePriceMinus/
     function act_SalePriceMinus()
@@ -416,6 +416,8 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
         }    
+        // активиране на продажбата
+        $browser->press('Активиране');
         
     }
        
@@ -1386,8 +1388,7 @@ class unit_MinkPSales extends core_Manager {
         //if(strpos($browser->gettext(), 'Контиране')) {
         //}
         if(strpos($browser->gettext(), 'Сто и четири BGN и 0,29')) {
-            // връща грешка, ако не е избрано ЕН с цени
-        } else {
+         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в ЕН', 'warning');
         }
          

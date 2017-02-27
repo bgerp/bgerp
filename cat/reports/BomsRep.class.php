@@ -126,7 +126,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $salesArr = implode(',', $salesArr);
  
         $query = planning_Jobs::getQuery();
-        $query->where("#saleId IN ('{$salesArr}') AND #state = 'active'");
+        $query->where("#saleId IN ('{$salesArr}') AND (#state = 'active' OR #state = 'wakeup')");
 
 
         // за всяко едно активно Задания за производство
@@ -159,7 +159,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
                                 'articleCnt'	=> $rec->quantity * $recDetail->propQuantity,
                                 'params' => cat_Products::getParams($recDetail->resourceId, NULL, TRUE),
                                 'quantity' => $rec->quantity,
-                                'materials' => 0,);
+                                'materials' => 0,
+                            );
                         }
                     } else {
                     
@@ -168,15 +169,29 @@ class cat_reports_BomsRep extends frame_BaseDriver
        
                     }
 
-//                     /if($recDetail->type == 'input' && $recDetail->parentId) {bp();$materials[$recDetail->parentId][] = $recDetail->resourceId;}
+//                     if($recDetail->type == 'input' && $recDetail->parentId) {$materials[$recDetail->parentId][] = $recDetail->resourceId;}
                 }
             }
         }
-        
+    
+        $i = 1;
         foreach ($data->recs as $id=>$rec){
-            $rec->materials = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
+            
+            $mArr = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
+            $rec->num = $i;
+            if(count($mArr) >=1) {
+                foreach($mArr as $id=>$val){
+                    
+                    $rec->materials = array($id=>$id);
+                    $rec->mCnt = array($id=>$val['quantity']);
+                    $rec->mParams = key(cat_Products::getPacks($id));
+                   
+                }
+            }
+            
+            $i++;
         }
-     
+
         return $data;
     }
     
@@ -242,8 +257,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
             unset($rec->params['$T']);
             
             foreach($rec->params as $name=>$val) {
- 
-                if(!is_numeric($val)) continue;
+                
+                //if(!is_numeric($val)) continue;
                 
                 $name = cat_Params::getNormalizedName($name);
                 $name = str_replace("_", " ", $name);
@@ -252,15 +267,20 @@ class cat_reports_BomsRep extends frame_BaseDriver
    
             }
         }
-        
-             
+         
         if(is_array($rec->materials)) { 
             foreach ($rec->materials as $material) { 
-                if(is_array($rec->materials)) {
-                    $row->materials .= cat_Products::getShortHyperlink($material['productId']) . "<br/>";
-                    $row->mParams = cat_UoM::getShortName(key(cat_Products::getPacks($material['productId'])));
-                    $row->mCnt = $Int->toVerbal($material['quantity']) . "<br/>";
-                }
+                $row->materials .= cat_Products::getShortHyperlink($material) . "<br/>";
+            }
+        }
+        
+        if(isset($rec->mParams)) {
+            $row->mParams = cat_UoM::getShortName($rec->mParams);
+        }
+        
+        if(is_array($rec->mCnt)) {
+            foreach ($rec->mCnt as $mCnt) { 
+                $row->mCnt = $Int->toVerbal($mCnt) . "<br/>";
             }
         }
 
@@ -331,10 +351,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
 
     	$f = cls::get('core_FieldSet');
     	
-    	$f->FLD('num', 'varchar');
+    	$f->FLD('num', 'int');
     	$f->FLD('article', 'varchar');
     	$f->FLD('articleCnt', 'int', 'tdClass=accItemClass,smartCenter');
-    	$f->FLD('params', 'varchar');
+    	$f->FLD('params', 'varchar','tdClass=itemClass');
     	$f->FLD('materials', 'varchar');
     	$f->FLD('mParams', 'varchar');
     	$f->FLD('mCnt', 'int','tdClass=accItemClass,smartCenter');
@@ -363,11 +383,11 @@ class cat_reports_BomsRep extends frame_BaseDriver
         // Кои полета ще се показват
         $f = new core_FieldSet;
         $f->FLD('num', 'int');
-        $f->FLD('article', 'varchar');
+        $f->FLD('article', 'key(mvc=cat_Products,select=name)');
         $f->FLD('articleCnt', 'int');
         $f->FLD('params', 'varchar');
-        $f->FLD('materials', 'varchar');
-        $f->FLD('mParams', 'varchar');
+        $f->FLD('materials', 'key(mvc=cat_Products,select=name)');
+        $f->FLD('mParams', 'key(mvc=cat_UoM,select=shortName)');
         $f->FLD('mCnt', 'int');
 
     
@@ -406,8 +426,25 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $fields = $this->getFields();
 
         $dataRec = array();
+        foreach($this->innerState->recs as $id=>$rec){
+            $dataRec[$id] = $rec; 
+            $dataRec[$id]->params = self::getVerbal($rec)->params;
+            $dataRec[$id]->params = str_replace("<br/>", ";", $dataRec[$id]->params);
+            
+            if(is_array($rec->mCnt)) {
+                foreach($rec->mCnt as $pId=>$cnt){
+                    $dataRec[$id]->mCnt =  cls::get('type_Int')->toVerbal($cnt);
+                }
+            }
+            
+            if(is_array($rec->materials)) {
+                foreach($rec->materials as $mId=>$material){
+                    $dataRec[$id]->materials =  $material;
+                }
+            }
+        }
 
-        //$csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields);
+        $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
          
         return $csv;
     }

@@ -40,8 +40,8 @@ class bgerp_Notifications extends core_Manager
      * Заглавие
      */
     var $title = 'Известия';
-    
-    
+
+
     /**
      * Заглавие
      */
@@ -52,8 +52,14 @@ class bgerp_Notifications extends core_Manager
      * Права за писане
      */
     var $canWrite = 'admin';
-    
-    
+
+
+    /**
+     * Брой записи на страница
+     */
+    var $listItemsPerPage = 10;
+
+
     /**
      * Кой има право да чете?
      */

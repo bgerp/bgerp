@@ -379,8 +379,13 @@ abstract class deals_DealMaster extends deals_DealBase
     		} else {
     			$rec->deliveryTermId = $termId;
     			$code = cond_DeliveryTerms::fetchField($termId, 'codeName');
+    			//
     			if($code == $deliveryExtended){
+    				$tplLang = doc_TplManager::fetchField($rec->template, 'lang');
+    				
+    				core_Lg::push($tplLang);
     				$deliveryExtended = cond_DeliveryTerms::addDeliveryTermLocation($deliveryExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    				core_Lg::pop();
     			}
     			$rec->deliveryTermIdExtended = $deliveryExtended;
     		}
@@ -1504,10 +1509,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		expect($tolerance >= 0 && $tolerance <= 1);
     	}
     	
-    	if(isset($term)){
+    	if(!empty($term)){
     		expect($term = cls::get('type_Time')->fromVerbal($term));
     	}
-    	
     	
     	// Трябва да има такъв продукт и опаковка
     	expect(cat_Products::fetchField($productId, 'id'));
