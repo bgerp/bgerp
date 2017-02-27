@@ -70,7 +70,7 @@ class rack_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', "rack,ceo"),
+            array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', "rack,ceo,store,storeWorker"),
         );
     
     
