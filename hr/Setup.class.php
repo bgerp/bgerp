@@ -119,7 +119,7 @@ class hr_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "ceo, hr"),
+            array(2.31, 'Счетоводство', 'Персонал', 'hr_Indicators', 'default', "ceo, hr, admin"),
         );
 
     

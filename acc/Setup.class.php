@@ -164,7 +164,7 @@ class acc_Setup extends core_ProtoSetup
      */
     var $menuItems = array(
         array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
-        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
+        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo, admin"),
     );
     
     
