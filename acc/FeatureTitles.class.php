@@ -78,6 +78,12 @@ class acc_FeatureTitles extends core_Manager
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache = array();
+    
+    
+    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 40;
@@ -105,6 +111,21 @@ class acc_FeatureTitles extends core_Manager
         }
 
         return $id;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на ключа
+     */
+    public static function getTitleById($id, $escaped = TRUE)
+    {
+    	if(!count(self::$cache)){
+    		$query = self::getQuery();
+    		$query->show('id,title');
+    		self::$cache = $query->fetchAll();
+    	}
+    	
+    	return self::$cache[$id]->title;
     }
 
 }
