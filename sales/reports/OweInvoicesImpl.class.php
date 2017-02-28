@@ -239,21 +239,25 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         }
         
         // разпределяме платеното по фактури
-        $toPaid = "";
         for($i = 0; $i <= count($data->recs)-1; $i++) {
+            
             if($data->recs[$i]->saleId == $data->recs[$i+1]->saleId) {
-                if(!$toPaid && $paid[$data->recs[$i]->saleId]['creditAmount']  !=  '0') {
+                $toPaid = "";
+                if($paid[$data->recs[$i]->saleId]['creditAmount']  !=  '0') {
                     $toPaid = $data->recs[$i]->amountVat - $paid[$data->recs[$i]->saleId]['creditAmount'];
+                } else {
+                    $toPaid = $data->recs[$i]->amountVat;
                 }
                  
                 if($toPaid >= 0) {
                     $data->recs[$i]->amountRest = $toPaid;
                     $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
                 } else {
-        
+                    $data->recs[$i]->amountRest = 0;
+                    $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
                 }
             }
-            
+
             // проверяваме дали остатъка е просрочен
             if ($data->recs[$i]->dueDate == NULL || $data->recs[$i]->dueDate < $data->rec->from) {
                 $data->recs[$i]->amount = $data->recs[$i]->amountRest;
@@ -262,17 +266,15 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             }
         }
         
-        $data->sum = new stdClass();
+        $data->sum = new stdClass(); 
         foreach ($data->recs as $currRec) { 
         	
         	$data->sum->amountVat += $currRec->amountVat;
         	$data->sum->toPaid += $currRec->amountRest;
         	$data->sum->currencyId = $currRec->currencyId;
 
-        	if ($currRec->dueDate == NULL || $currRec->dueDate < dt::now()) { 
+        	if ($currRec->dueDate == NULL || $currRec->dueDate < $data->rec->from) { 
         		$data->sum->arrears += $currRec->amount;
-        	} else {
-        	    $data->sum->arrears = 0;
         	}
         }
 
