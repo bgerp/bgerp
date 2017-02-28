@@ -129,6 +129,12 @@ defIfNot('EMAIL_DEFAULT_SENT_INBOX', '');
 
 
 /**
+ * Автоматично попълване на имейлите в полето копие
+ */
+defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_CC', 'no');
+
+
+/**
  * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
  */
 defIfNot('EMAIL_OUTGOING_HEADER_TEXT', "[#hello#] [#salutation#] [#name#]");
@@ -271,7 +277,9 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
             
             'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
-    
+            
+            'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array ('enum(yes=Да, no=Не)', 'caption=Автоматично попълване на имейлите в полето копие->Избор, customizeBy=powerUser'),
+            
             'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
     
             'EMAIL_OUTGOING_HEADER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На английски, customizeBy=powerUser'),
