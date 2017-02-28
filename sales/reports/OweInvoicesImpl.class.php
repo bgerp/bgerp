@@ -148,27 +148,30 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			while ($invRec = $queryInvoices->fetch()){
                 // до края на избраната дата в отчета
                 while($cDate < dt::addDays(1, $data->rec->from)){
-                    $Balance = new acc_ActiveShortBalance(array('from' => $cDate,
-				        'to' => $cDate,
-				        'accs' => '411',
-				        'item1' => $contragentItem->id,
-				        'item2' => $saleItem->id,
-				        'item3' => $currencyItem->id,
-				        'strict' => TRUE,
-				        'cacheBalance' => FALSE));
-				    	
-				    // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
-                    $Balance = $Balance->getBalanceBefore('411');
-				    $balHistory = acc_ActiveShortBalance::getBalanceHystory(411, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
+                    
+                    foreach (array('411', '412') as $accId) {
+                        $Balance = new acc_ActiveShortBalance(array('from' => $cDate,
+    				        'to' => $cDate,
+    				        'accs' => $accId,
+    				        'item1' => $contragentItem->id,
+    				        'item2' => $saleItem->id,
+    				        'item3' => $currencyItem->id,
+    				        'strict' => TRUE,
+    				        'cacheBalance' => FALSE));
+    				    	
+    				    // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
+                        $Balance = $Balance->getBalanceBefore($accId);
+    				    $balHistory = acc_ActiveShortBalance::getBalanceHystory($accId, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
 
-				    if(is_array($balHistory['history'])) {
-				        foreach($balHistory['history'] as $history) { 
-				            // платено по сделката
-    				        $paid[$saleItem->id]['creditAmount'] += $history['creditAmount'];
-    				        // сделката
-    				        $paid[$saleItem->id]['debitAmount'] += $history['debitAmount'];
-				        }
-				    }
+    				    if(is_array($balHistory['history'])) {
+    				        foreach($balHistory['history'] as $history) { 
+    				            // платено по сделката
+        				        $paid[$saleItem->id]['creditAmount'] += $history['creditAmount'];
+        				        // сделката
+        				        $paid[$saleItem->id]['debitAmount'] += $history['debitAmount'];
+    				        }
+    				    }
+                    }
 				    
 				    $cDate = dt::addDays(1, $cDate);
                 }
@@ -214,7 +217,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	    // ако сделката е фактурирана изцяло
         	    } else {
         	        // от сумата й вадим платеното
-        	        $rec->amountRest = $rec->amountVat - $paid[$rec->saleId]['creditAmount'];
+        	        $rec->amountRest = round($rec->amountVat,2) - round($paid[$rec->saleId]['creditAmount'],2); 
         	    }
         	}
         
@@ -237,7 +240,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, $data->rec->from, $currencyNow, $data->currencyId);
         	}
         }
-        
+
         // разпределяме платеното по фактури
         for($i = 0; $i <= count($data->recs)-1; $i++) {
             
@@ -245,6 +248,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                 $toPaid = "";
                 if($paid[$data->recs[$i]->saleId]['creditAmount']  !=  '0') {
                     $toPaid = $data->recs[$i]->amountVat - $paid[$data->recs[$i]->saleId]['creditAmount'];
+                    $toPaid = round($toPaid, 2);
                 } else {
                     $toPaid = $data->recs[$i]->amountVat;
                 }
@@ -264,8 +268,12 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             } else {
                 $data->recs[$i]->amount = 0;
             }
+            
+            if($data->recs[$i]->amountRest == 0) {
+                //unset($data->recs[$i]);
+            }
         }
-        
+       
         $data->sum = new stdClass(); 
         foreach ($data->recs as $currRec) { 
         	
