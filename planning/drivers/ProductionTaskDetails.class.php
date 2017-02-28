@@ -33,7 +33,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Интерфейси
      */
-    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    public $interfaces = 'hr_IndicatorsSourceIntf';
     
     
     /**
@@ -543,7 +543,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
-     * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
      * @param date $date
      * @return array $result
