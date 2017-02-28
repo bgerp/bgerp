@@ -404,7 +404,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$form->setField('tolerance', 'input');
     		}
     		
-    		if(cat_Products::getDeliveryTime($rec->productId, $quantity)){
+    		if(cat_Products::getDeliveryTime($rec->productId, 1)){
     			$form->setField('term', 'input');
     		}
     	}
@@ -459,6 +459,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    		
+    		// Проверка дали к-то е под МКП
+    		deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
     		
     		if(!$form->gotErrors()){
     		    if(Request::get('Act') != 'CreateProduct'){
@@ -516,7 +519,6 @@ class sales_QuotationsDetails extends doc_Detail {
     		  
     		    if($rec->productId){
     		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
-    		    	//bp($rec);
     		    }
     		}
 	    }
@@ -911,12 +913,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$row->amount = $Double->toVerbal($rec->amount);
     	}
     	
-    	if(empty($rec->tolerance)){
-    		if($tolerance = cat_Products::getTolerance($rec->productId, $rec->quantity)){
-    			$row->tolerance = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
-    			$row->tolerance = ht::createHint($row->tolerance, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
-    		}
-    	}
+    	$row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
     	
     	if(empty($rec->term)){
     		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){

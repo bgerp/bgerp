@@ -471,4 +471,16 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
+	
+	
+	/**
+	 * Връща минималното количество за поръчка
+	 * 
+	 * @param int|NULL $id - ид на артикул
+	 * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+	 */
+	public static function getMoq($id = NULL)
+	{
+		return NULL;
+	}
 }

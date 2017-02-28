@@ -2721,4 +2721,22 @@ class cat_Products extends embed_Manager {
     	
     	return NULL;
     }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public static function getMoq($id)
+    {
+    	// Ако има драйвър, питаме го за МКП-то
+    	if($Driver = static::getDriver($id)){
+    		$moq = $Driver->getMoq($id);
+    		return ($moq) ? $moq : NULL;
+    	}
+    	 
+    	return NULL;
+    }
 }
