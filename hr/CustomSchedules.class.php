@@ -198,13 +198,13 @@ class hr_CustomSchedules extends core_Master
         }
         
         // Ако имаме права да видим документ болничен
-        if(trz_Sickdays::haveRightFor('single', $rec->docId) && $rec->typePerson == 'sicDay'){
-            $row->typePerson = ht::createLink($title, array ('trz_Sickdays', 'single', 'id' => $rec->docId), NULL, 'ef_icon = img/16/sick.png');
+        if(hr_Sickdays::haveRightFor('single', $rec->docId) && $rec->typePerson == 'sicDay'){
+            $row->typePerson = ht::createLink($title, array ('hr_Sickdays', 'single', 'id' => $rec->docId), NULL, 'ef_icon = img/16/sick.png');
         }
         
         // Ако имаме права да видим документ командировка
-        if(trz_Trips::haveRightFor('single', $rec->docId) && $rec->typePerson == 'traveling'){
-            $row->typePerson = ht::createLink($title, array ('trz_Trips', 'single', 'id' => $rec->docId), NULL, 'ef_icon = img/16/working-travel.png');
+        if(hr_Trips::haveRightFor('single', $rec->docId) && $rec->typePerson == 'traveling'){
+            $row->typePerson = ht::createLink($title, array ('hr_Trips', 'single', 'id' => $rec->docId), NULL, 'ef_icon = img/16/working-travel.png');
         }
         
         
@@ -414,13 +414,13 @@ class hr_CustomSchedules extends core_Master
         $chekArr = array();
         $next2weeks = dt::addDays(14,dt::today());
 
-        $querySick = trz_Sickdays::getQuery();
+        $querySick = hr_Sickdays::getQuery();
         $querySick->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}')) AND #state = 'active'");
     
-        $queryTrip = trz_Trips::getQuery();
+        $queryTrip = hr_Trips::getQuery();
         $queryTrip->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}')) AND #state = 'active'");
     
-        $queryLeave = trz_Requests::getQuery();
+        $queryLeave = hr_Leaves::getQuery();
         $queryLeave->where("((#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') OR (#leaveFrom >= '{$now}' AND #leaveFrom <= '{$next2weeks}')) AND #state = 'active'");
     
         // добавяме болничните

@@ -1,0 +1,29 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <h3 class="centered">|М О Л Б А|* </h3>
+    <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
+    <p class="centered">|От|*: <b>[#personId#]</b></p>
+    <p class="centered">|Относно|*: |ползване на|* <b>[#paid#]</b> |годишен отпуск|*</p>
+    <br>
+    <p class="indent">|Уважаеми г-н / г-жо Управител|*,</p>
+    <p class="indent">|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, |считано от|* <b>[#leaveFrom#]</b> |г|. |до|* <b>[#leaveTo#]</b> |г. включително|*.</p>
+    <br>
+    <!--ET_BEGIN note-->
+    <div class="richtext-holder indent">|Бележки|*: [#note#] </div>
+    <!--ET_END note-->
+    <p class="indent">|По време на отсъствието|*:</p>
+    <ul class='custom-ul'>
+        <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+        <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+        <!--ET_BEGIN alternatePerson-->
+        <li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
+        <!--ET_END alternatePerson-->
+    </ul>
+    <br><br>
+    <table style='width:100%;'>
+        <tr>
+            <td>|Дата|*: [#createdDate#] |г|*.</td>
+            <td> </td>
+            <td class='aright'>|Подпис|*: ............................</td>
+        </tr>
+    </table>
+    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

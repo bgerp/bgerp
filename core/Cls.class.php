@@ -192,6 +192,11 @@ class core_Cls
         } else {
             $obj = &cls::createObject($class, $initArr);
         }
+
+        if(isset($obj->newClassName)) {
+
+            return self::get($obj->newClassName, $initArr);
+        }
         
         return $obj;
     }

@@ -31,7 +31,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    public $interfaces = 'hr_IndicatorsSourceIntf';
     
     
     /**
@@ -174,18 +174,18 @@ class sales_PrimeCostByDocument extends core_Manager
 	
 	
 	/**
-	 * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+	 * Интерфейсен метод на hr_SalaryIndicatorsSourceIntf
 	 *
 	 * @param date $date
 	 * @return array $result
 	 */
-	public static function getSalaryIndicators($date)
+	public static function getSalaryIndicators($timeline)
 	{
 
 	    $query = self::getQuery();
 	    $Double = cls::get(type_Double);
 	    
-	    $query->where("#valior  = '{$date}'");
+	    $query->where("#modifiedOn  >= '{$timeline}'");
 	    $me = cls::get(get_called_class());
 	    
 	    $result = array();
