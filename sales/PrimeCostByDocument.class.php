@@ -72,7 +72,7 @@ class sales_PrimeCostByDocument extends core_Manager
     	$this->FLD('valior', 'date(smartTime)', 'caption=Вальор,mandatory');
     	$this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory');
     	$this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory, tdClass=leftCol');
-    	$this->FLD('productId', 'int', 'caption=Артикул,mandatory, tdClass=leftCol');
+    	$this->FLD('productId', 'int', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
     	$this->FLD('sellCost', 'double', 'caption=Цени->Продажна,mandatory');
     	$this->FLD('primeCost', 'double', 'caption=Цени->Себестойност,mandatory');
