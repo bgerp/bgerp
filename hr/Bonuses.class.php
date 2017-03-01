@@ -173,6 +173,31 @@ class hr_Bonuses extends core_Master
     }
     
     
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->showFields = 'personId,date';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input('personId, date', 'silent');
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        if($data->listFilter->rec->personId) {
+            $data->query->where("#personId = '{$data->listFilter->rec->personId}'");
+        }
+        
+        if($data->listFilter->rec->date) {
+            $data->query->where("#date = '{$data->listFilter->rec->date}'");
+        }
+    }
+    
+    
     public static function act_Test()
     {
     	$date = '2016-03-01';
