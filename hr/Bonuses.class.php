@@ -179,7 +179,7 @@ class hr_Bonuses extends core_Master
 	    		'personId' => $rec->personId, 
 	    		'docId'  => $rec->id, 
 	    	    'docClass' => core_Classes::getId('hr_Bonuses'),
-	    		'indicator' => 1, 
+	    		'indicatorId' => 1, 
 	    		'value' => $rec->sum,
                 'isRejected' => $rec->state == 'rejected',
 	    	);
