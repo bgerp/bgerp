@@ -131,7 +131,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			// които са в нишката на тази продажба
 			// и са активни
 			$queryInvoices = sales_Invoices::getQuery();
-			$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active'");
+			$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active' AND #date <= '{$data->rec->from}'");
 			$queryInvoices->orderBy("#date", "DESC");
 
 			// перот на селката
@@ -177,7 +177,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                 }
 	
 				// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
-                $amountVat =  $invRec->dealValue + $invRec->vatAmount;
+                $amountVat =  $invRec->dealValue - $invRec->discountAmount + $invRec->vatAmount;
                     
                 // фактурираното то всяка сделка (сумарно от всички фактури)
 				$amountVatArr[$saleItem->id] +=  $amountVat; 
