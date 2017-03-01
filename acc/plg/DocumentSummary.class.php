@@ -61,7 +61,17 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->filterFieldUsers, 'createdBy');
-        setIfNot($mvc->filterRolesForTeam, 'ceo,manager,admin');
+        
+        $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
+        $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
+        $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, TRUE);
+        $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
+        
+        $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
+        $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
+        $rolesForAllArr = arr::make($mvc->filterRolesForAll, TRUE);
+        $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
+        
         setIfNot($mvc->filterAutoDate, TRUE);
         $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
     }
@@ -115,11 +125,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         $data->listFilter->showFields .= 'from, to';
         
-        $rolesForTeams = arr::make($mvc->filterRolesForTeam, TRUE);
-        $rolesForTeams = implode('|', $rolesForTeams);
-       
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,autoFilter,remember');
+            $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam})", 'caption=Потребители,silent,autoFilter,remember');
             $cKey = $mvc->className . core_Users::getCurrent();
             
             $haveUsers = FALSE;
