@@ -76,7 +76,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно)',
+    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно, pending=Заявка)',
     			'caption=Статус, input=none'
     	);
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');

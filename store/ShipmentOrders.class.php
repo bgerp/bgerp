@@ -61,12 +61,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,store';
@@ -102,6 +96,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     public $canAdd = 'ceo,store,sales,purchase';
 
 
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store,sales,purchase';
+    
+    
     /**
      * Кой може да го види?
      */

@@ -58,12 +58,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
-	 * Кой има право да чете?
-	 */
-	public $canRead = 'bank, ceo';
-	
-	
-	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'bank, ceo';
@@ -82,6 +76,12 @@ abstract class bank_Document extends deals_PaymentDocument
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'bank, ceo, purchase, sales';
+    
+    
+    /**
      * Кой може да редактира?
      */
     public $canEdit = 'bank, ceo, purchase, sales';
@@ -90,7 +90,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Кой може да го контира?
 	 */
-	public $canConto = 'bank, ceo';
+	public $canConto = 'no_one';
 	
 	
 	/**
@@ -140,7 +140,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		$mvc->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
 		$mvc->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Кредит,input=none');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
+				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -507,6 +507,12 @@ abstract class bank_Document extends deals_PaymentDocument
     	if($requiredRoles == 'no_one') return;
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'ownAccount')){
     		$requiredRoles = 'no_one';
+    	}
+    	
+    	if($action == 'pending' && isset($rec)){
+    		if(empty($rec->ownAccount)){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
 }
