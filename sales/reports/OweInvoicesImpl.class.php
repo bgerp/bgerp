@@ -132,7 +132,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			// и са активни
 			$queryInvoices = sales_Invoices::getQuery();
 			$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active' AND #date <= '{$data->rec->from}'");
-			$queryInvoices->orderBy("#date", "DESC");
+			$queryInvoices->orderBy("#date", "ASC");
 
 			// перот на селката
 			$saleItem = acc_Items::fetchItem('sales_Sales', $recSale->id);
