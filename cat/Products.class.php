@@ -1715,25 +1715,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за артикула
-     * 
-     * @param mixed $id - ид или запис
-     * @return mixed $res - записа на заданието или FALSE ако няма
-     */
-    public static function getLastJob($id)
-    {
-    	expect($rec = self::fetchRec($id));
-    	
-    	// Какво е к-то от последното активно задание
-    	$query = planning_Jobs::getQuery();
-    	$query->where("#productId = {$rec->id} AND #state != 'draft' AND #state != 'rejected'");
-    	$query->orderBy('id', 'DESC');
-    	
-    	return $query->fetch();
-    }
-    
-    
-    /**
      * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
