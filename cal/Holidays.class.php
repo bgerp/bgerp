@@ -124,7 +124,7 @@ class cal_Holidays extends core_Master
         								holiday=Празник,
         								non-working=Неработен,
                                         workday=Отработване,
-                                        orthodox=Християски,
+                                        orthodox=Християнски,
                                         muslim=Мюсюлмански,
                                         international=Международен,
                                         AU=Австралия,
