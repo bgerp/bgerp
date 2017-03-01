@@ -99,7 +99,8 @@ class hr_Positions extends core_Detail
         $this->FLD('compensations', 'double(decimals=2)', 'caption=Възнаграждение->За вредности');
         $this->FLD('frequensity', 'enum(mountly=Ежемесечно, weekly=Ежеседмично, daily=Ежедневно)', 'caption=Възнаграждение->Периодичност');
         $this->FLD('downpayment', 'enum(yes=Да,no=Не)', 'caption=Възнаграждение->Аванс');
-        
+        $this->FLD('formula', 'text', 'caption=Възнаграждение->Формула');
+
         // Срокове
         $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Срокове->Изпитателен срок,unit=месеца,width=6em");
         $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', "caption=Срокове->Годишен отпуск,unit=дни,width=6em");

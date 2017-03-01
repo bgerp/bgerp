@@ -184,4 +184,16 @@ class sales_PrimeCostByDocument extends core_Manager
         // Чака за имплементация
         return array();
 	}
+
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     * 
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        return array(1 => 'Делта');
+    }
+
 }

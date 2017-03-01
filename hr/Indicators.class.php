@@ -99,11 +99,11 @@ class hr_Indicators extends core_Manager
         $this->FLD('docId',    'int', 'caption=Документ->№,mandatory');
         $this->FLD('docClass', 'int', 'caption=Документ->Клас,silent,mandatory');
 
-        $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Име,mandatory');
+        $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,mandatory');
 
-        $this->FLD('indicatorId',    'int', 'caption=Индикатор->Наименование,smartCenter,mandatory');
+        $this->FLD('indicatorId',    'int', 'caption=Индикатор,smartCenter,mandatory');
         $this->FLD('sourceClass',    'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Индикатор->Източник,smartCenter,mandatory');
-        $this->FLD('value',    'double(smartRound,decimals=2)', 'caption=Индикатор->Стойност,mandatory');
+        $this->FLD('value',    'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
         
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
     }
@@ -121,8 +121,9 @@ class hr_Indicators extends core_Manager
         // Подготвяме масив с имената на индикаторите
         static $names;
         if(!$names) {
-            $names = $sMvc->getIndicatorNames();
+            $names = $mvc->getIndicatorNames();
         }
+
         // Ако имаме права да видим визитката
         if(crm_Persons::haveRightFor('single', $rec->personId)){
             $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
@@ -196,10 +197,10 @@ class hr_Indicators extends core_Manager
         $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD + 1) * 60);
        
         $periods = self::saveIndicators($timeline);
-bp($periods);
         foreach($periods as $id => $rec) {
             self::calcPeriod($rec);
         }
+ 
     }
     
      
@@ -232,9 +233,9 @@ bp($periods);
             
             // Взимаме връщания масив от интерфейсния метод
             $data = $sMvc->getIndicatorValues($timeline);
-            
-            if (is_array($data)) {
-                
+           
+            if (is_array($data) && count($data)) {
+           
                 // Даваме време
                 core_App::setTimeLimit(count($data) + 10);
 
@@ -249,7 +250,7 @@ bp($periods);
                     }
 
                     $periodRec = acc_Periods::fetchByDate($rec->date);
-                    
+                 
                     // Запомняме за кой период е документа
                     $periods[$periodRec->id] = $periodRec;
                     
@@ -261,8 +262,8 @@ bp($periods);
                     $exRec = self::fetch(array("#docClass = {$rec->docClass} AND #docId = {$rec->docId} 
                                                 AND #personId = {$rec->personId} 
                                                 AND #indicatorId = '{$rec->indicatorId}' AND #sourceClass = {$rec->sourceClass}
-                                                AND #date = '($rec->date}'"));
-
+                                                AND #date = '{$rec->date}'"));
+ 
                     if($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
@@ -271,7 +272,7 @@ bp($periods);
                             continue;
                         }
                     }
-              
+           
                     // Ако имаме уникален запис го записваме
                     self::save($rec);
                     $forClean[$key][$rec->id] = $rec->id;
@@ -280,8 +281,8 @@ bp($periods);
         }
         
         // Почистване на непотвърдените записи
-        foreach($forClean as $doc => $ids) {
-            list($docClass, $docId) = explode('::', $doc);
+        foreach($forClean as $doc => $ids) { 
+            list($docClass, $docId) = explode('::', $doc); 
             $query = self::getQuery();
             $query->where("#docClass = {$docClass} && #docId = {$docId}");
             if(count($ids)) {
@@ -289,9 +290,56 @@ bp($periods);
             }
             $query->delete();
         }
+
+        return $periods;
     }
     
-     
+    /**
+     * Калкулира заплащането на всички, които имат трудов договор за посочения период
+     */
+    static function calcPeriod($pRec)
+    { 
+        // Намираме последните, активни договори за назначения, които се засичат с периода
+        $ecQuery = hr_EmployeeContracts::getQuery();
+        $ecQuery->where("#state = 'active' OR #state = 'closed'");
+        $ecQuery->where("#startFrom <= '{$pRec->end}'");
+        $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$pRec->start}')");
+        $ecQuery->groupBy("personId");
+        $ecQuery->orderBy("#dateId", 'DESC');
+        
+        $ecArr = array();
+
+        while($ecRec = $ecQuery->fetch()) {
+            if(!isset($ecArr[$ecRec->personId])) {
+                $ecArr[$ecRec->personId] = $ecRec;
+            }
+        }
+
+
+ 
+        // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
+        foreach($ecArr as $personId => $ecRec) {
+
+            $res = (object) array(
+                'personId' => $personId,
+                'periodId' => $pRec->id,
+                );
+            $posRec = hr_Positions::fetch($ecRec->positionId);
+            if(!$posRec->formula) {
+                $res->selary = $ecRec->salaryBase;
+            } else {
+                $query = self::getQuery();
+            }
+        }
+
+        // Ако не успеем - заплащането е базовото от договора
+
+        // Извличаме и сумираме всички индикатори за дадения човек, за дадения период
+
+        // Заместваме във формулата и получаваме  резултата
+
+        // В записа записваме и формулата и заместените велични
+    }
     
     /**
      * Извличаме имената на идикаторите
@@ -311,7 +359,7 @@ bp($periods);
         foreach ($docArr as $class){
             $sourceClass = core_Classes::getId($class);
             $sMvc = cls::get($class);
-            $names[$class] = $sMvc->getIndicatorNames();
+            $names[$sourceClass] = $sMvc->getIndicatorNames();
         }
 
         return $names;
