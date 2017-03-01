@@ -231,7 +231,6 @@ class sales_SalesDetails extends deals_DealDetail
     	$jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
 		$jQuery->orderBy('order', 'ASC');
     	
-		//bp($jQuery->fetchAll());
     	while($jRec = $jQuery->fetch()){
     		$row = (object)array('quantity' => 0, 'quantityFromTasks' => 0, 'quantityProduced' => 0);
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
@@ -246,9 +245,7 @@ class sales_SalesDetails extends deals_DealDetail
     		
     		$res[] = $row;
     	}
-    	//bp($res);
     	
-    	//bp($jQuery->fetchAll());
     	return $res;
     }
     
