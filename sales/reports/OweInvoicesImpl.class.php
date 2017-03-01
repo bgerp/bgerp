@@ -188,6 +188,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 													'eic'=> $contragentRec->vatId,
 							                        'currencyId' => $recSale->currencyId,
 													'invId'=>$invRec->id,
+				                                    'invType'=>$invRec->type,
 													'date'=>$invRec->date,
 													'number'=>$invRec->number,
 					                                'displayRate'=>$invRec->displayRate,
@@ -252,13 +253,21 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                 } else {
                     $toPaid = $data->recs[$i]->amountVat;
                 }
-                 
-                if($toPaid >= 0) {
-                    $data->recs[$i]->amountRest = $toPaid;
-                    $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                
+                // ако е фактура
+                if($data->recs[$i]->invType == 'invoice') {
+                    if($toPaid >= 0) {
+                        $data->recs[$i]->amountRest = $toPaid;
+                        $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                    } else { 
+                        $data->recs[$i]->amountRest = 0;
+                        $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
+                    }
+                // ако е известие
+                // TODO как ще се разпределя лащането?
                 } else {
-                    $data->recs[$i]->amountRest = 0;
-                    $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
+                    $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                    $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
                 }
             }
 
