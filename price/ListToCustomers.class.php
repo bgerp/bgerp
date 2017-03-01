@@ -340,15 +340,13 @@ class price_ListToCustomers extends core_Manager
         			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime);
         			if(isset($price)){
         				$rec->price = $price;
+        				
+        				if(!is_null($rec->price)){
+        					$vat = cat_Products::getVat($productId);
+        					$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
+        				}
+        				
         				return $rec;
-        			}
-        		}
-        		 
-        		// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
-        		if(!isset($quantity)){
-        			$quantityJob = cat_Products::getLastJob($productId)->quantity;
-        			if(isset($quantityJob)){
-        				$quantity = $quantityJob;
         			}
         		}
         		 

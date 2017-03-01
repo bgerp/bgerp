@@ -64,11 +64,7 @@ class hr_Positions extends core_Detail
      */
     var $masterKey = 'departmentId';
     
-    /**
-     * @todo Чака за документация...
-     */
-    var $currentTab = 'Структура';
-    
+ 
     /**
      * @todo Чака за документация...
      */
@@ -77,7 +73,7 @@ class hr_Positions extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'professionId,employmentTotal,employmentOccupied';
+    var $listFields = 'professionId,departmentId,employmentTotal,employmentOccupied';
     
     
     /**
@@ -103,7 +99,8 @@ class hr_Positions extends core_Detail
         $this->FLD('compensations', 'double(decimals=2)', 'caption=Възнаграждение->За вредности');
         $this->FLD('frequensity', 'enum(mountly=Ежемесечно, weekly=Ежеседмично, daily=Ежедневно)', 'caption=Възнаграждение->Периодичност');
         $this->FLD('downpayment', 'enum(yes=Да,no=Не)', 'caption=Възнаграждение->Аванс');
-        
+        $this->FLD('formula', 'text', 'caption=Възнаграждение->Формула');
+
         // Срокове
         $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Срокове->Изпитателен срок,unit=месеца,width=6em");
         $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', "caption=Срокове->Годишен отпуск,unit=дни,width=6em");
@@ -137,8 +134,9 @@ class hr_Positions extends core_Detail
         }
     }
     
+
     /**
-     * @todo Чака за документация...
+     * Подготвя името на позицията
      */
     function on_CalcName($mvc, $rec)
     {
@@ -151,7 +149,9 @@ class hr_Positions extends core_Detail
             $jRec = hr_Professions::fetch($rec->professionId);
         }
         
-        $rec->name = $dRec->name . ' - ' . $jRec->name;
+        
+        $rec->name = $dRec->name;
+        $rec->name .= ($rec->name ? '-' : '') . $jRec->name;
     }
     
     /**
@@ -164,6 +164,8 @@ class hr_Positions extends core_Detail
         if($this->haveRightFor('add', (object)array('departmentId' => $data->masterId))){
         	$data->addUrl = array($this, 'add', 'departmentId' => $data->masterId, 'ret_url' => TRUE);
         }
+
+        $data->listFields = 'id,professionId,departmentId,employmentTotal,employmentOccupied';
         
         self::prepareDetail($data);
     }
@@ -187,5 +189,16 @@ class hr_Positions extends core_Detail
     	$tpl->append($table->get($data->rows, $data->listFields), 'content');
         
     	return $tpl;
+    }
+
+
+    /**
+     *
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if($mvc->haveRightFor('single', $rec)) {
+            $row->id = ht::createLink($row->id, array($mvc, 'list', $rec->id));
+        }
     }
 }

@@ -356,6 +356,9 @@ class acc_CostAllocations extends core_Manager
 		$rec = &$data->rec;
 		$data->recs = $data->rows = array();
 		
+		// Да не се показват ако режима е за четене
+		if(Mode::isReadOnly()) return;
+		
 		// Какви разходи са отчетени към реда
 		$query = self::getQuery();
 		$query->where("#detailClassId = {$rec->detailClassId} AND #detailRecId = {$rec->detailRecId}");

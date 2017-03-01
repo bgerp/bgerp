@@ -94,6 +94,12 @@ class sales_Services extends deals_ServiceMaster
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,sales';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,sales';

@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state';
+	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
 	
 	
 	/**
@@ -187,6 +187,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,input=hidden,notChangeableByContractor');
 		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
+		$mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
+		
 		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад,notChangeableByContractor'); // наш склад, от където се експедира стоката
 		
 		// Плащане
@@ -379,11 +381,20 @@ abstract class deals_DealMaster extends deals_DealBase
     		} else {
     			$rec->deliveryTermId = $termId;
     			$code = cond_DeliveryTerms::fetchField($termId, 'codeName');
+    			
     			if($code == $deliveryExtended){
+    				$tplLang = doc_TplManager::fetchField($rec->template, 'lang');
+    				
+    				core_Lg::push($tplLang);
     				$deliveryExtended = cond_DeliveryTerms::addDeliveryTermLocation($deliveryExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    				core_Lg::pop();
     			}
     			$rec->deliveryTermIdExtended = $deliveryExtended;
     		}
+    	}
+    	
+    	if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
+    		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
     }
 
@@ -779,6 +790,48 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Ако потребителя не е в група доставчици го включваме
     	$rec = $mvc->fetchRec($rec);
     	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $mvc->crmDefGroup);
+    	
+    	// След активиране се обновяват толеранса и срока на детайлите
+    	$saveRecs = array();
+    	$Detail = cls::get($mvc->mainDetail);
+    	$dQuery = $Detail->getQuery();
+    	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+    	$dQuery->where("#tolerance IS NULL || #term IS NULL");
+    	
+    	while($dRec = $dQuery->fetch()){
+    		$save = FALSE;
+    		
+    		if(!isset($dRec->term)){
+    			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				$dRec->term = $term;
+    				$save = TRUE;
+    			}
+    		}
+    	
+    		if(!isset($dRec->tolerance)){
+    			if($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)){
+    				$dRec->tolerance = $tolerance;
+    				$save = TRUE;
+    			}
+    		}
+    	
+    		if($save === TRUE){
+    			$saveRecs[] = $dRec;
+    		}
+    	}
+    	 
+    	// Ако има детайли за обновяване
+    	if(count($saveRecs)){
+    		$Detail->saveArray($saveRecs, 'id,tolerance,term');
+    	}
+    	
+    	// Записване на най-големия срок на доставка
+    	if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+    		$rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+    		if(isset($rec->deliveryTermTime)){
+    			$mvc->save_($rec, 'deliveryTermTime');
+    		}
+    	}
     }
     
     
@@ -935,6 +988,14 @@ abstract class deals_DealMaster extends deals_DealBase
 			$row->responsible = core_Lg::transliterate($row->responsible);
 			
 			core_Lg::pop();
+			
+			if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+				$deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+				if($deliveryTermTime){
+					$deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
+					$row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+				}
+			}
 	    }
 	    
         if($rec->makeInvoice == 'no') {
@@ -943,6 +1004,33 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 			$row->amountToInvoice = "<span style='font-size:0.7em'>" . $noInvStr . "</span>";
 		}
+    }
+    
+    
+    /**
+     * Най-големия срок на доставка
+     * 
+     * @param int $id
+     * @return int|NULL
+     */
+    private function getMaxDeliveryTime($id)
+    {
+    	$maxDeliveryTime = NULL;
+    	
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey} = {$id}");
+    	$query->show('productId,term,quantity');
+    	
+    	while($rec = $query->fetch()){
+    		$term = (isset($rec->term)) ? $rec->term : cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
+    		
+    		if(isset($term)){
+    			$maxDeliveryTime = max($maxDeliveryTime, $term);
+    		}
+    	}
+    	
+    	return $maxDeliveryTime;
     }
     
     
@@ -1504,10 +1592,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		expect($tolerance >= 0 && $tolerance <= 1);
     	}
     	
-    	if(isset($term)){
+    	if(!empty($term)){
     		expect($term = cls::get('type_Time')->fromVerbal($term));
     	}
-    	
     	
     	// Трябва да има такъв продукт и опаковка
     	expect(cat_Products::fetchField($productId, 'id'));

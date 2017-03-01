@@ -161,7 +161,7 @@ class expert_Dataset extends core_BaseClass {
             return;
         }
  
-        $trust = $maxTrust = 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order/100000 + $rule->priority;
+        $trust = $maxTrust = max(0.0000001, 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order/100000 + $rule->priority);
         $div = 3;
         
         $vars = $rule->exprVars + $rule->condVars;

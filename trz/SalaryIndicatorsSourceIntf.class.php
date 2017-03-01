@@ -21,16 +21,17 @@ class trz_SalaryIndicatorsSourceIntf
      * успеваемостта на човека спрямо ресурса, които е изпозлвал 
      * 
      * 
-     * @param date $date
+     * @param   $afterTheTime  $datetime    Времето, след което да се вземат всички модифицирани/създадени записи
      * @return array $result (date date, 
      *                        int personId,
      *                        int docId, 
      *                        int docClass, 
      *                        varchar indicator, 
-     *                        double value
+     *                        double value,
+     *                        bool isRejected,
      */
-    public function getSalaryIndicators($date) 
+    public function getSalaryIndicators($afterTheTime) 
     {
-        return $this->class->getSalaryIndicators($date);
+        return $this->class->getSalaryIndicators($afterTheTime);
     }
 }

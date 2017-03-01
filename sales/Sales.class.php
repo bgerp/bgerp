@@ -282,8 +282,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
-        $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
-    	$this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
+        $this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
     }
@@ -318,12 +317,6 @@ class sales_Sales extends deals_DealMaster
     		
     		$form->setDefault('dealerId', $dealerId);
     	}
-    	
-    	if ($form->isSubmitted()) {
-    		if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
-    			$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
-    		}
-    	}
     }
     
     
@@ -340,25 +333,6 @@ class sales_Sales extends deals_DealMaster
     	if($rec->bankAccountId){
     		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
-    	}
-    }
-    
-    
-    /**
-     * Преди ъпдейт след промяна на детайла
-     */
-    public static function on_BeforeUpdatedMaster($mvc, &$rec)
-    {
-    	if(isset($rec->id) && empty($rec->deliveryTime)){
-    		
-    		$dQuery = sales_SalesDetails::getQuery();
-    		$dQuery->where("#saleId = {$rec->id}");
-    		$dQuery->XPR('maxTerm', 'time', 'MAX(#term)');
-    		$dQuery->show('maxTerm');
-    		if($maxTerm = $dQuery->fetch()->maxTerm){
-    			
-    			$rec->deliveryTermTime = max($rec->deliveryTermTime, $maxTerm);
-    		}
     	}
     }
     
@@ -997,9 +971,11 @@ class sales_Sales extends deals_DealMaster
     	$dQuery->where("#saleId = {$rec->id}");
     	$dQuery->show('productId,packagingId,quantity,tolerance');
     	
+    	$data->jobs = array();
     	while($dRec = $dQuery->fetch()){
-    		if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
-    			$data->JobsInfo[] = $dRow;
+    		$jobRows = sales_SalesDetails::prepareJobInfo($dRec, $rec);
+    		if(count($jobRows)){
+    			$data->jobs = array_merge($data->jobs, $jobRows);
     		}
     	}
     	
@@ -1023,9 +999,7 @@ class sales_Sales extends deals_DealMaster
     		$Jobs = cls::get('planning_Jobs');
     		$table = cls::get('core_TableView', array('mvc' => $Jobs));
     		
-    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
-    		
-    		foreach ($data->JobsInfo as &$row){
+    		foreach ($data->jobs as &$row){
     			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
     				if($row->{$var} == 0){
     						$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
@@ -1033,7 +1007,7 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     	
-    			$jobsTable = $table->get($data->JobsInfo, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobsTable = $table->get($data->jobs, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
     			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
     			$jobTpl->replace($jobsTable, 'table');
     			$tpl->replace($jobTpl, 'JOB_INFO');

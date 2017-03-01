@@ -43,6 +43,9 @@
         <tr>
             <td colspan = "3" class="cell custom-header-bg"> 
                 <b>|Задание за производство|*</b>
+                <!--ET_BEGIN timeActivated-->
+                <span class='small'>( |Активирано|* [#timeActivated#] )</span>
+                <!--ET_END timeActivated-->
             </td>
         </tr>
         <tr>

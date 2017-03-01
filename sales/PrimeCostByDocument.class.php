@@ -31,7 +31,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    public $interfaces = 'hr_IndicatorsSourceIntf';
     
     
     /**
@@ -72,7 +72,7 @@ class sales_PrimeCostByDocument extends core_Manager
     	$this->FLD('valior', 'date(smartTime)', 'caption=Вальор,mandatory');
     	$this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory');
     	$this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory, tdClass=leftCol');
-    	$this->FLD('productId', 'int', 'caption=Артикул,mandatory, tdClass=leftCol');
+    	$this->FLD('productId', 'int', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
     	$this->FLD('sellCost', 'double', 'caption=Цени->Продажна,mandatory');
     	$this->FLD('primeCost', 'double', 'caption=Цени->Себестойност,mandatory');
@@ -167,73 +167,33 @@ class sales_PrimeCostByDocument extends core_Manager
 	        }
 	    } 
 	    
-	    $dealerId = crm_Profiles::fetchField("#userId = {$dealerId}","personId");
+	    $dealerId = crm_Profiles::fetchField("#userId = {$dealerId}", "personId");
 
 	    return $dealerId;
 	}
 	
 	
 	/**
-	 * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+	 * Интерфейсен метод на hr_IndicatorsSourceIntf
 	 *
 	 * @param date $date
 	 * @return array $result
 	 */
-	public static function getSalaryIndicators($date)
+	public static function getIndicatorValues($timeline)
 	{
-
-	    $query = self::getQuery();
-	    $Double = cls::get(type_Double);
-	    
-	    $query->where("#valior  = '{$date}'");
-	    $me = cls::get(get_called_class());
-	    
-	    $result = array();
-
-	    while($rec = $query->fetch()){
-
-	        $Class = cls::get($rec->detailClassId);
-	        $dRec = $Class->fetch($rec->detailRecId);
-	        $dealerId = self::getDealerId($rec);
-	        $key = $dealerId . "|" . $rec->detailClassId . "|" .$dRec->shipmentId;
-
-            // Ако е Експедиционно нареждане
-            // Бърза продажба
-            // Предавателен протокол
-            if($Class instanceof store_ShipmentOrderDetails ||
-	           $Class instanceof store_ShipmentOrderDetails ||
-	           $Class instanceof sales_ServicesDetails) {
-	            // добавяме делтата
-                $sign = "+";
-            // Ако е Приемателен протокол
-            // Складова разписка
-            } elseif($Class instanceof purchase_ServicesDetails ||
-	                 $Class instanceof store_ReceiptDetails) {
-                // вадим делтата
-                $sign = "-";
-            }
-            
-            // Ако нямаме такъв запис, го създаваме
-	        if(!array_key_exists($key, $result)) {  
-    	        $result[$key] = (object)array(
-    	            'date' => $rec->valior,
-    	            'personId' => $dealerId,
-    	            'docId'  => $rec->detailRecId,
-    	            'docClass' => $rec->detailClassId,
-    	            'indicator' => tr("|$me->title|*"),
-    	            'value' => $rec->delta
-    	        );
-    	    // в противен случай го обновяваме
-	        } else {
-	            $obj = &$result[$key];
-	            if ($sign == "+") {
-	               $obj->value += $rec->delta;
-	            } elseif($sign == "-") {
-	               $obj->value -= $rec->delta;
-	            }
-	        }
-	    }
-
-	    return $result;
+        // Чака за имплементация
+        return array();
 	}
+
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     * 
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        return array(1 => 'Делта');
+    }
+
 }

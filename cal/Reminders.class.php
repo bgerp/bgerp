@@ -563,77 +563,43 @@ class cal_Reminders extends core_Master
      * Обновява информацията за напомнянията
      * за текущата и следващите три години
      */
-    static function updateRemindersToCalendar($id)
+    static function updateRemindersToCalendar($rec, $fromDate, $toDate, $prefix, &$events)
     {
-        if(($rec = static::fetch($id)) && ($rec->state == 'active')) {
-
-            if(!$rec->timeStart) return;
     
-            list($y, $m, $d) = type_Combodate::toArray($rec->timeStart);
-        }
-    
-        $events = array();
-    
-        // Годината на датата от преди 30 дни е начална
-        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
-    
-        // Начална дата
-        $fromDate = "{$cYear}-01-01";
-    
-        // Крайна дата
-        $toDate = ($cYear + 2) . '-12-31';
-    
-        // Масив с години, за които ще се вземат напомнянията
-        $years = array($cYear, $cYear + 1, $cYear + 2);
-        
-        // Префикс на клучовете за напомнянията в календара
-        $prefix = "RЕМ-{$id}";
         
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active')) {
+        if($rec->timeStart && ($rec->timeStart >= $fromDate) && ($rec->timeStart <= $toDate) && ($rec->state == 'active')) {
             
-            if ($d > 0 && $m > 0) {
-                
-                $calRec = new stdClass();
+             $calRec = new stdClass();
     
-                // Ключ на събитието
-                $calRec->key = $prefix . '-Start';
+             // Ключ на събитието
+             $calRec->key = $prefix . '-' . $rec->id . '-Start';
     
-                // TODO да се проверява за високосна година
-                $calRec->time = $rec->timeStart;
-                
-                if($rec->nextStartTime) {
-                    // Ключ на събитието
-                    $calRec->key = $prefix . '-Start';
-                    
-                    // TODO да се проверява за високосна година
-                    $calRec->time = $rec->timeStart;
-                }
-    
-                $calRec->type = 'alarm_clock';
-                
-                $calRec->allDay = 'no';
-                
-                $calRec->state = $rec->state;
+             // TODO да се проверява за високосна година
+             $calRec->time = $rec->timeStart;
+                 
+             $calRec->type = 'alarm_clock';
+             
+             $calRec->allDay = 'no';
+             
+             $calRec->state = $rec->state;
 
-                $calRec->title = $rec->title;
+             $calRec->title = $rec->title;
  
-                $calRec->users =  $rec->sharedUsers;
+             $calRec->users =  $rec->sharedUsers;
 
-                $calRec->url = array('cal_Reminders', 'Single', $id);
+             $calRec->url = array('cal_Reminders', 'Single', $rec->id);
     
-                $calRec->priority = 90;
+             $calRec->priority = 90;
     
-                $events[] = $calRec;
-            }
-        }
+             $events[] = $calRec;
 
-        if ($rec->nextStartTime && $rec->nextStartTime >= $rec->timeStart && $rec->nextStartTime <= $toDate && ($rec->state == 'active')){ 
+        } elseif ($rec->nextStartTime && ($rec->nextStartTime >= $fromDate) && ($rec->nextStartTime <= $toDate) && ($rec->state == 'active')){ 
 
             $remRec = new stdClass();
                
             // Ключ на събитието
-            $remRec->key = $prefix . '-NextStart';
+            $remRec->key = $prefix . '-' . $rec->id . '-NextStart';
 
             $remRec->time = $rec->nextStartTime;
                
@@ -647,14 +613,14 @@ class cal_Reminders extends core_Master
                
             $remRec->users =  $rec->sharedUsers;
                
-            $remRec->url = array('cal_Reminders', 'Single', $id);
+            $remRec->url = array('cal_Reminders', 'Single', $rec->id);
                
             $remRec->priority = 90;
                
             $events[] = $remRec;
         }
 
-        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        return $events;
     }
 
     
@@ -737,15 +703,30 @@ class cal_Reminders extends core_Master
     function cron_UpdateCalendarEvents()
     {
         $query = self::getQuery();
-
-        while($rec = $query->fetch()) {
-            $res = static::updateRemindersToCalendar($rec->id);
-            $new += $res['new'];
-            $deleted += $res['deleted'];
-            $updated += $res['updated'];
-        }
+            
+        $arr = array();
+        
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
     
-        $status = "В календара са добавени {$new}, обновени {$updated} и изтрити {$deleted} напомняния";
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+    
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+        
+        // Префикс на клучовете за напомнянията в календара
+        $prefix = "RЕМ";
+        
+        $events = array();
+
+        while($rec = $query->fetch("#state = 'active' && #priority != 'low'")) {
+            self::updateRemindersToCalendar($rec, $fromDate, $toDate, $prefix, $events);
+        }
+        
+        $res = cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+
+        $status = "В календара са добавени {$res['new']}, обновени {$res['updated']} и изтрити {$res['deleted']} напомняния";
     
         return $status;
     }

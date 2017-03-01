@@ -56,7 +56,7 @@ class rack_Movements extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,rack';
+	var $canList = 'ceo,rack,storeWorker';
 
 
 	/**
@@ -68,15 +68,33 @@ class rack_Movements extends core_Manager
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,rack';
+    var $canView = 'ceo,rack,storeWorker';
     
     
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'no_one';
+
+
+    /**
+     * Кой може да започне движение
+     */
+    var $canStart = 'ceo,admin,rack,storeWorker';
     
     
+    /**
+     * Кой може да приключи движение
+     */
+    var $canDone = 'ceo,admin,rack,storeWorker';
+    
+    
+    /**
+     * Кой може да откаже движение
+     */
+    var $canCancel = 'ceo,admin,rack,storeWorker';
+    
+
     /**
      * Брой записи на страница
      */
@@ -167,8 +185,6 @@ class rack_Movements extends core_Manager
             }
         }
     }
-
-
 
     /**
      * Добавя филтър към перата

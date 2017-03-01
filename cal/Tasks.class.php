@@ -32,7 +32,7 @@ class cal_Tasks extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone,doc_AssignPlg';
 
 
     /**
@@ -136,7 +136,13 @@ class cal_Tasks extends core_Master
      */
     public $canChangerec = 'powerUser, admin, ceo';
 
+    
+    /**
+     * Кой може да възлага задачата
+     */
+    public $canAssign = 'powerUser';
 
+    
     /**
      * Икона за единичния изглед
      */
@@ -235,7 +241,10 @@ class cal_Tasks extends core_Master
         $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
+        
+        // Отговорноици
+        $this->FLD('assign', 'user(role=powerUser,allowEmpty)', 'caption=Възложено на,changable,input=none');
 
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
@@ -701,7 +710,7 @@ class cal_Tasks extends core_Master
 
         if (Request::get('Ctr') == 'Portal') {
             // Задаваме броя на елементите в страница
-            $mvc->listItemsPerPage = 10;
+            $mvc->listItemsPerPage = 20;
         }
     }
 
@@ -1096,6 +1105,13 @@ class cal_Tasks extends core_Master
         
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
+        
+        // Ако е възложено на някой
+        if ($rec->assign) {
+        
+            // В заглавието добавяме потребителя
+            $row->subTitle = $this->getVerbal($rec, 'assign');
+        }
         
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -2329,6 +2345,10 @@ class cal_Tasks extends core_Master
         if (!$rec->timeStart && !$rec->timeEnd) {
         	unset($resArr['expectationTimeStart']);
         	unset($resArr['expectationTimeEnd']);
+        }
+
+        if ($row->assign) {
+            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
         }
     }
     

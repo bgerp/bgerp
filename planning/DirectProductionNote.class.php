@@ -789,6 +789,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		expect($jRec->state != 'rejected' && $jRec->state != 'draft', 'Заданието не е активно');
 		expect($productRec = cat_Products::fetch($productId, 'canManifacture,canStore,fixedAsset,canConvert'));
 		$rec->valior = ($valior) ? $valior : dt::today();
+		$rec->valior = dt::verbal2mysql($rec->valior);
 		$rec->originId = $jRec->containerId;
 		$rec->threadId = $jRec->threadId;
 		$rec->productId = $productId;

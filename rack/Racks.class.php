@@ -383,7 +383,7 @@ class rack_Racks extends core_Master
                 // Ако се очаква палет
                 if(!isset($title) && $movedTo[$posFull]) {
                     $title = $pos;
-                    $attr['style'] = 'color:#bfb;';
+                    $attr['style'] = 'color:#6c6;';
                     $hint = tr('Очаква се палет');
                 }
                 
@@ -393,12 +393,10 @@ class rack_Racks extends core_Master
                     $hint = tr('Предстои преместване');
                 }
               
-
                 if(!isset($title)) {
                     $title = $pos;
                     $attr['style'] = 'color:#ccc;';
                 }
-
 
                 if($pos == $hlPos) {
                     $attr['class'] .= ' rack-hl';

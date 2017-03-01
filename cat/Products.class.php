@@ -355,11 +355,18 @@ class cat_Products extends embed_Manager {
     			$defMetas = $mvc->fetchField($rec->proto, 'meta');
     			$defMetas = type_Set::toArray($defMetas);
     		} else {
-    			$defMetas = $cover->getDefaultMeta();
-    			
-    			if($Driver = $mvc->getDriver($rec)){
-    				$defMetas = $Driver->getDefaultMetas($defMetas);
-    			}
+                $defMetas = array();
+
+                if($Driver = $mvc->getDriver($rec)){
+                    $defMetas = $Driver->getDefaultMetas($defMetas);
+                    if(count($defMetas)) {
+                        $form->setField('meta', 'autohide=any');
+                    }
+                }
+
+                if(!$defMetas || !count($defMetas)) {
+    			    $defMetas = $cover->getDefaultMeta();
+                }
     		}
     		
     		if(count($defMetas)){
@@ -680,11 +687,17 @@ class cat_Products extends embed_Manager {
     	    
     	    // От вербална стойност се опитваме да вземем невербалната
             if (isset($rec->groups)) {
-                $groupArr = type_Set::toArray($rec->groups);
+                setIfNot($delimiter, Mode::get('importDelimiter'), ',');
+                $groupArr = explode($delimiter, $rec->groups);
                 
                 $groupIdArr = array();
                 
                 foreach ($groupArr as $groupName) {
+                    
+                    $groupName = trim($groupName);
+                    
+                    if (!$groupName) continue;
+                    
                     $force = FALSE;
                     if (haveRole('debug')) {
                         $force = TRUE;
@@ -1702,25 +1715,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за артикула
-     * 
-     * @param mixed $id - ид или запис
-     * @return mixed $res - записа на заданието или FALSE ако няма
-     */
-    public static function getLastJob($id)
-    {
-    	expect($rec = self::fetchRec($id));
-    	
-    	// Какво е к-то от последното активно задание
-    	$query = planning_Jobs::getQuery();
-    	$query->where("#productId = {$rec->id} AND #state != 'draft' AND #state != 'rejected'");
-    	$query->orderBy('id', 'DESC');
-    	
-    	return $query->fetch();
-    }
-    
-    
-    /**
      * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
@@ -2706,6 +2700,24 @@ class cat_Products extends embed_Manager {
     		return ($term) ? $term : NULL;
     	}
     	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public static function getMoq($id)
+    {
+    	// Ако има драйвър, питаме го за МКП-то
+    	if($Driver = static::getDriver($id)){
+    		$moq = $Driver->getMoq($id);
+    		return ($moq) ? $moq : NULL;
+    	}
+    	 
     	return NULL;
     }
 }

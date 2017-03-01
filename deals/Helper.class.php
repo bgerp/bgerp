@@ -887,4 +887,62 @@ abstract class deals_Helper
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Връща динамично изчисления толеранс
+	 * 
+	 * @param int $tolerance
+	 * @param int $productId
+	 * @param double $quantity
+	 * @return mixed
+	 */
+	public static function getToleranceRow($tolerance, $productId, $quantity)
+	{
+		$hint = FALSE;
+		
+		if(empty($tolerance)){
+			$tolerance = cat_Products::getTolerance($productId, $quantity);
+			if($tolerance){
+				$hint = TRUE;
+			}
+		}
+		
+		if($tolerance) {
+			$toleranceRow = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
+			if($hint === TRUE){
+				$toleranceRow = ht::createHint($toleranceRow, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
+			}
+			
+			return $toleranceRow;
+		}
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Проверка дали к-то е под МКП-то на артикула
+	 * 
+	 * @param core_Form $form
+	 * @param int $productId
+	 * @param double $quantity
+	 * @param double $quantityInPack
+	 * @param string $quantityField
+	 * @return void
+	 */
+	public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity')
+	{
+		$moq = cat_Products::getMoq($productId);
+		
+		if(isset($moq) && $quantity < $moq){
+			$moq /= $quantityInPack;
+			$verbal = core_Type::getByName('double(smartRound)')->toVerbal($moq);
+			if(haveRole('salesMaster,purchaseMaster,ceo')){
+				$form->setWarning($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");
+			} else {
+				$form->setError($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");
+			}
+		}
+	}
 }

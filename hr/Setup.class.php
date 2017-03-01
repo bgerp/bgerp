@@ -30,7 +30,9 @@ defIfNot('HR_EC_MAX', '10000');
 class hr_Setup extends core_ProtoSetup
 {
     
-    
+    // Обновяване на индикаторите на всеки час
+    const INDICATORS_UPDATE_PERIOD = 60;
+
     /**
      * Версия на пакета
      */
@@ -80,6 +82,13 @@ class hr_Setup extends core_ProtoSetup
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
+            'hr_Indicators',
+            'hr_Payroll',
+            'hr_Leaves',
+            'hr_Sickdays',
+            'hr_Trips',
+            'hr_Bonuses',
+            'hr_Deductions',
    			'migrate::forceDepartmentFolders'
         );
 
@@ -88,13 +97,28 @@ class hr_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = 'hr';
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+        array(
+            'systemId' => "Update indicators",
+            'description' => "Обновяване на индикаторите за заплатите",
+            'controller' => "hr_Indicators",
+            'action' => "update",
+            'period' => self::INDICATORS_UPDATE_PERIOD,
+            'offset' => 7,
+            'timeLimit' => 200
+        ));
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "ceo, hr"),
+            array(2.31, 'Счетоводство', 'Персонал', 'hr_Indicators', 'default', "ceo, hr, admin"),
         );
 
     

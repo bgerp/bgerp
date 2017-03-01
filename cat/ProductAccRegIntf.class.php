@@ -153,18 +153,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за артикула
-     * 
-     * @param mixed $id - ид или запис
-     * @return mixed $res - записа на заданието или FALSE ако няма
-     */
-    public function getLastJob($id)
-    {
-    	return $this->class->getLastJob($id);
-    }
-    
-    
-    /**
      * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
@@ -235,5 +223,17 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function getDeliveryTime($id, $quantity)
     {
     	return $this->class->getDeliveryTime($id, $quantity);
+    }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public static function getMoq($id)
+    {
+    	return $this->class->getMoq($id);
     }
 }

@@ -142,18 +142,11 @@ class acc_plg_Contable extends core_Plugin
         if(haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
         }
-       
-        // Бутон за заявка
-        if($mvc->haveRightFor('pending', $rec)){
-        	if($rec->state != 'pending'){
-        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row=2", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
-        	} else{
-        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
-        	}
-        }
         
+        $row = 1;
         if ($mvc->haveRightFor('conto', $rec)) {
         	unset($error);
+        	$row = 2;
         	
             // Проверка на счетоводния период, ако има грешка я показваме
             if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
@@ -171,6 +164,15 @@ class acc_plg_Contable extends core_Plugin
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документът да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+        }
+        
+        // Бутон за заявка
+        if($mvc->haveRightFor('pending', $rec)){
+        	if($rec->state != 'pending'){
+        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$row}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+        	} else{
+        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        	}
         }
         
         if ($mvc->haveRightFor('revert', $rec)) {
