@@ -224,46 +224,32 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function prepareJobInfo($rec, $masterRec)
     {
-    	$row = new stdClass();
-    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    	$row->quantity = $row->quantityFromTasks = $row->quantityProduced = 0;
-    	$jobRec = NULL;
+    	$res = array();
+    	$jQuery = planning_Jobs::getQuery();
+    	$jQuery->where("#productId = {$rec->productId}");
+    	$jQuery->where("#saleId IS NULL OR #saleId = {$masterRec->id}");
+    	$jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
+		$jQuery->orderBy('order', 'ASC');
     	
-    	$pRec = cat_Products::fetch($rec->productId);
-    	
-    	// Имаме ли активно задание по тази продажба
-    	$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-    	
-    	// Ако няма търсим, имаме ли активно задание
-    	if(!$jobRec){
-    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-    	}
-    	
-    	// Ако и такова няма намираме последното задание-чернова към тази продажба
-    	if(!$jobRec){
-    		$jQuery = planning_Jobs::getQuery();
-    		$jQuery->where("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND #state = 'draft'");
-    		$jQuery->orderBy("id", 'DESC');
-    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #state = 'draft'");
-    	}
-    	
-    	if(!empty($jobRec)){
+		//bp($jQuery->fetchAll());
+    	while($jRec = $jQuery->fetch()){
+    		$row = (object)array('quantity' => 0, 'quantityFromTasks' => 0, 'quantityProduced' => 0);
+    		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    		$row->ROW_ATTR['class'] = "state-{$jRec->state}";
+    		
     		$Double = cls::get('type_Double', (object)array('params' => array('smartRound' => TRUE)));
-    		$row->quantity = $Double->toVerbal($jobRec->quantity);
-    		$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jobRec->id, 'product'));
-    		$row->quantityProduced = $Double->toVerbal($jobRec->quantityProduced);
+    		$row->quantity = $Double->toVerbal($jRec->quantity);
+    		$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jRec->id, 'product'));
+    		$row->quantityProduced = $Double->toVerbal($jRec->quantityProduced);
+    		$row->dueDate = cls::get('type_Date')->toVerbal($jRec->dueDate);
+    		$row->jobId = planning_Jobs::getLink($jRec->id, 0);
     		
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    			$row->dueDate = cls::get('type_Date')->toVerbal($jobRec->dueDate);
-    			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
-    		
-    		$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
-    		$row->jobId = ht::createLink($row->jobId, planning_Jobs::getSingleUrlArray($jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
-    		$row->ROW_ATTR['class'] = "state-{$jobRec->state}";
-    	
-    		return $row;
+    		$res[] = $row;
     	}
+    	//bp($res);
+    	
+    	//bp($jQuery->fetchAll());
+    	return $res;
     }
     
     

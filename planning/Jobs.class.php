@@ -676,9 +676,10 @@ class planning_Jobs extends core_Master
     	}
     	 
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
-    
+    		
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetchField("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')", 'id')){
+    		$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
+    		if($mvc->fetchField("{$where} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')", 'id')){
     			$res = 'no_one';
     		}
     	}

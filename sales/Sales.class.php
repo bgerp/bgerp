@@ -971,9 +971,11 @@ class sales_Sales extends deals_DealMaster
     	$dQuery->where("#saleId = {$rec->id}");
     	$dQuery->show('productId,packagingId,quantity,tolerance');
     	
+    	$data->jobs = array();
     	while($dRec = $dQuery->fetch()){
-    		if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
-    			$data->JobsInfo[] = $dRow;
+    		$jobRows = sales_SalesDetails::prepareJobInfo($dRec, $rec);
+    		if(count($jobRows)){
+    			$data->jobs = array_merge($data->jobs, $jobRows);
     		}
     	}
     	
@@ -997,9 +999,7 @@ class sales_Sales extends deals_DealMaster
     		$Jobs = cls::get('planning_Jobs');
     		$table = cls::get('core_TableView', array('mvc' => $Jobs));
     		
-    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
-    		
-    		foreach ($data->JobsInfo as &$row){
+    		foreach ($data->jobs as &$row){
     			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
     				if($row->{$var} == 0){
     						$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
@@ -1007,7 +1007,7 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     	
-    			$jobsTable = $table->get($data->JobsInfo, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobsTable = $table->get($data->jobs, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
     			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
     			$jobTpl->replace($jobsTable, 'table');
     			$tpl->replace($jobTpl, 'JOB_INFO');
