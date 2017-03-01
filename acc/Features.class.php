@@ -119,7 +119,6 @@ class acc_Features extends core_Manager
         $this->FLD('value', 'varchar(80)', 'caption=Стойност,mandatory');
         
         $this->setDbUnique('itemId,featureTitleId');
-        $this->setDbIndex('itemId');
     }
 
 
@@ -129,7 +128,7 @@ class acc_Features extends core_Manager
     static function on_CalcFeature($mvc, $rec)
     {
         if($rec->featureTitleId) {
-            $rec->feature = acc_FeatureTitles::getTitleById($rec->featureTitleId);
+            $rec->feature = acc_FeatureTitles::fetchField($rec->featureTitleId, 'title');
         }
     }
 
