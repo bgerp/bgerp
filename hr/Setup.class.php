@@ -31,7 +31,7 @@ class hr_Setup extends core_ProtoSetup
 {
     
     // Обновяване на индикаторите на всеки час
-    const INDICATORS_UPDATE_PERIOD = 3600;
+    const INDICATORS_UPDATE_PERIOD = 60;
 
     /**
      * Версия на пакета
@@ -83,7 +83,6 @@ class hr_Setup extends core_ProtoSetup
             'hr_ContractTypes',
             'hr_EmployeeContracts',
             'hr_Indicators',
-            'hr_IndicatorNames',
             'hr_Payroll',
             'hr_Leaves',
             'hr_Sickdays',

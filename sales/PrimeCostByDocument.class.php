@@ -167,73 +167,21 @@ class sales_PrimeCostByDocument extends core_Manager
 	        }
 	    } 
 	    
-	    $dealerId = crm_Profiles::fetchField("#userId = {$dealerId}","personId");
+	    $dealerId = crm_Profiles::fetchField("#userId = {$dealerId}", "personId");
 
 	    return $dealerId;
 	}
 	
 	
 	/**
-	 * Интерфейсен метод на hr_SalaryIndicatorsSourceIntf
+	 * Интерфейсен метод на hr_IndicatorsSourceIntf
 	 *
 	 * @param date $date
 	 * @return array $result
 	 */
-	public static function getSalaryIndicators($timeline)
+	public static function getIndicatorValues($timeline)
 	{
-
-	    $query = self::getQuery();
-	    $Double = cls::get(type_Double);
-	    
-	    $query->where("#modifiedOn  >= '{$timeline}'");
-	    $me = cls::get(get_called_class());
-	    
-	    $result = array();
-
-	    while($rec = $query->fetch()){
-
-	        $Class = cls::get($rec->detailClassId);
-	        $dRec = $Class->fetch($rec->detailRecId);
-	        $dealerId = self::getDealerId($rec);
-	        $key = $dealerId . "|" . $rec->detailClassId . "|" .$dRec->shipmentId;
-
-            // Ако е Експедиционно нареждане
-            // Бърза продажба
-            // Предавателен протокол
-            if($Class instanceof store_ShipmentOrderDetails ||
-	           $Class instanceof store_ShipmentOrderDetails ||
-	           $Class instanceof sales_ServicesDetails) {
-	            // добавяме делтата
-                $sign = "+";
-            // Ако е Приемателен протокол
-            // Складова разписка
-            } elseif($Class instanceof purchase_ServicesDetails ||
-	                 $Class instanceof store_ReceiptDetails) {
-                // вадим делтата
-                $sign = "-";
-            }
-            
-            // Ако нямаме такъв запис, го създаваме
-	        if(!array_key_exists($key, $result)) {  
-    	        $result[$key] = (object)array(
-    	            'date' => $rec->valior,
-    	            'personId' => $dealerId,
-    	            'docId'  => $rec->detailRecId,
-    	            'docClass' => $rec->detailClassId,
-    	            'indicator' => tr("|$me->title|*"),
-    	            'value' => $rec->delta
-    	        );
-    	    // в противен случай го обновяваме
-	        } else {
-	            $obj = &$result[$key];
-	            if ($sign == "+") {
-	               $obj->value += $rec->delta;
-	            } elseif($sign == "-") {
-	               $obj->value -= $rec->delta;
-	            }
-	        }
-	    }
-
-	    return $result;
+        // Чака за имплементация
+        return array();
 	}
 }

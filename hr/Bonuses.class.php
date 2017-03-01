@@ -39,11 +39,18 @@ class hr_Bonuses extends core_Master
      */
     public $singleTitle = "Премия";
     
-    
+
+    /**
+     * Абривиатура на документа
+     */
+    public $abbr = 'Bns';
+
+
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_State, plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,
+    				 doc_DocumentPlg, doc_ActivatePlg,
                     hr_Wrapper';
     
     
@@ -160,26 +167,54 @@ class hr_Bonuses extends core_Master
      * @param date $date
      * @return array $result
      */
-    public static function getSalaryIndicators($timeline)
+    public static function getIndicatorValues($timeline)
     {
     	$query = self::getQuery();
-    	$query->where("#lastModify  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
-    	$me = cls::get(get_called_class());
-
+        $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
+ 
     	while($rec = $query->fetch()){
-    	
+ 
     		$result[] = (object)array(
     		    'date' => $rec->date,
 	    		'personId' => $rec->personId, 
 	    		'docId'  => $rec->id, 
 	    	    'docClass' => core_Classes::getId('hr_Bonuses'),
-	    		'indicator' => 'Bonus', 
+	    		'indicator' => 1, 
 	    		'value' => $rec->sum,
                 'isRejected' => $rec->state == 'rejected',
 	    	);
     	}
 
     	return $result;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     * 
+     * @param date $date
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        return array(1 => 'Бонус');
+    }
+
+
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    function getDocumentRow($id)
+    {
+    	$rec = $this->fetch($id);
+    	$row = new stdClass();
+    	$row->title = $this->getRecTitle($rec);
+    	$row->authorId = $rec->createdBy;
+    	$row->author = $this->getVerbal($rec, 'createdBy');
+    	$row->state = $rec->state;
+    	$row->recTitle = $this->getRecTitle($rec);
+    	
+    	return $row;
     }
 
 }
