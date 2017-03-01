@@ -100,6 +100,12 @@ class purchase_Purchases extends deals_DealMaster
     public $canAdd = 'ceo, purchase';
     
     
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo, purchase';
+    
+    
 	/**
 	* Кои роли могат да филтрират потребителите по екип в листовия изглед
 	*/
