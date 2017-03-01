@@ -90,7 +90,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Кой може да го контира?
 	 */
-	public $canConto = 'no_one';
+	public $canConto = 'bank, ceo';
 	
 	
 	/**
