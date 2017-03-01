@@ -44,14 +44,19 @@ class hr_Bonuses extends core_Master
      * Абривиатура на документа
      */
     public $abbr = 'Bns';
+    
+    
+    /**
+    * Активен таб на менюто
+    */
+    public $menuPage = 'Персонал:Документи';
 
 
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,
-    				 doc_DocumentPlg, doc_ActivatePlg,
-                    hr_Wrapper';
+    				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper';
     
     
     /**
@@ -157,6 +162,14 @@ class hr_Bonuses extends core_Master
     		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
     		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
     	}
+    	//bp($rec, date, );
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
+    	
+    	if($rec->sum) {
+    	    $row->sum = $Double->toVerbal($rec->sum);
+    	    $row->sum .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+    	}
     }
     
     
@@ -195,6 +208,8 @@ class hr_Bonuses extends core_Master
     }
     
     
+    
+    
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      * 
@@ -208,19 +223,74 @@ class hr_Bonuses extends core_Master
 
 
     /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка 
+     *
+     * @param $folderId int ид на папката
      */
-    function getDocumentRow($id)
+    public static function canAddToFolder($folderId)
     {
-    	$rec = $this->fetch($id);
-    	$row = new stdClass();
-    	$row->title = $this->getRecTitle($rec);
-    	$row->authorId = $rec->createdBy;
-    	$row->author = $this->getVerbal($rec, 'createdBy');
-    	$row->state = $rec->state;
-    	$row->recTitle = $this->getRecTitle($rec);
-    	
-    	return $row;
+        $Cover = doc_Folders::getCover($folderId);
+        
+        // Трябва да е в папка на лице или на проект
+        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') return FALSE;
+        
+        // Ако е в папка на лице, лицето трябва да е в група служители
+        if($Cover->className == 'crm_Persons'){
+        	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+        	$personGroups = $Cover->fetchField('groupList');
+        	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        }
+        
+        if($Cover->className == 'doc_UnsortedFolders') {
+            $cu = core_Users::getCurrent();
+            if(!haveRole('ceo,hr', $cu)) return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     *
+     * @param int $id
+     * @return stdClass $row
+     */
+    public function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+    
+        $row = new stdClass();
+    
+        //Заглавие
+        $row->title = "Премия  №{$rec->id}";
+    
+        //Създателя
+        $row->author = $this->getVerbal($rec, 'createdBy');
+    
+        //Състояние
+        $row->state = $rec->state;
+    
+        //id на създателя
+        $row->authorId = $rec->createdBy;
+    
+        $row->recTitle = $this->getRecTitle($rec, FALSE);
+    
+        return $row;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+         
+        $title = tr('Премия  №|*'. $rec->id . ' за|* ') . $me->getVerbal($rec, 'personId');
+         
+        return $title;
     }
 
 }
