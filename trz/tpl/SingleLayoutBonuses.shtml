@@ -1,0 +1,17 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<h3 class="centered">|ПРЕМИЯ|* </h3>
+<p class="centered">№ [#id#] / [#date#] |г|*.</p>
+<br>
+<p class="indent">|За|*: <b>[#personId#]</b></p>
+<p class="indent">|Произход на бонуса|*: <b>[#type#]</b></p>
+<p class="indent">|Сума|*: [#sum#]</p>
+
+<br><br>
+<table style='width:100%;'>
+    <tr>
+        <td>|Дата|*: [#date#] |г|*.</td>
+        <td> </td>
+        <td class='aright'>|Подпис|*: ............................</td>
+    </tr>
+</table>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

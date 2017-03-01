@@ -123,7 +123,13 @@ class hr_Bonuses extends core_Master
      * Единична икона
      */
     public $singleIcon = 'img/16/bonuses.png';
-    
+
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'trz/tpl/SingleLayoutBonuses.shtml';
+
     
     /**
      * Описание на модела (таблицата)
