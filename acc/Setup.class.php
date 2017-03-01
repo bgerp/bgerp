@@ -62,7 +62,7 @@ defIfNot('ACC_SUMMARY_ROLES_FOR_ALL', 'ceo,admin');
 /**
  * Роли за екипите при филтриране
  */
-defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin');
+defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin,manager');
 
 
 /**
