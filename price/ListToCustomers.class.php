@@ -350,14 +350,6 @@ class price_ListToCustomers extends core_Manager
         			}
         		}
         		 
-        		// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
-        		if(!isset($quantity)){
-        			$quantityJob = cat_Products::getLastJob($productId)->quantity;
-        			if(isset($quantityJob)){
-        				$quantity = $quantityJob;
-        			}
-        		}
-        		 
         		// Търсим първо активната търговска рецепта, ако няма търсим активната работна
         		$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
         		if(empty($bomRec)){

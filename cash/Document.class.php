@@ -83,6 +83,12 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'cash, ceo, purchase, sales';
+    
+    
+    /**
      * Кой може да редактира?
      */
     public $canEdit = 'cash, ceo, purchase, sales';
@@ -163,7 +169,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
     	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',	'caption=Статус, input=none');
+    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 
     	// Поставяне на уникален индекс
@@ -537,6 +543,12 @@ abstract class cash_Document extends deals_PaymentDocument
     	if($requiredRoles == 'no_one') return;
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')){
     		$requiredRoles = 'no_one';
+    	}
+    	
+    	if($action == 'pending' && isset($rec)){
+    		if(empty($rec->peroCase)){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
 }

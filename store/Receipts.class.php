@@ -74,12 +74,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
-    
-    
-    /**
      * Кой може да сторнира
      */
     public $canRevert = 'storeMaster, ceo';
@@ -113,6 +107,12 @@ class store_Receipts extends store_DocumentMaster
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store,sales,purchase';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store,sales,purchase';
     
     
     /**

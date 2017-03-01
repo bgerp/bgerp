@@ -113,6 +113,12 @@ class store_Transfers extends core_Master
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
@@ -198,7 +204,7 @@ class store_Transfers extends core_Master
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно, pending=Заявка)', 
             'caption=Статус, input=none'
         );
     }
