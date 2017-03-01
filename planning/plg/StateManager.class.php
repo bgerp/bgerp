@@ -50,6 +50,10 @@ class planning_plg_StateManager extends core_Plugin
 			$mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворено на,input=none');
 		}
 		
+		if (!$mvc->fields['timeActivated']) {
+			$mvc->FLD('timeActivated', 'datetime(format=smartTime)', 'caption=Времена->Активирано на,input=none');
+		}
+		
 		if(isset($mvc->demandReasonChangeState)){
 			$mvc->demandReasonChangeState = arr::make($mvc->demandReasonChangeState, TRUE);
 		}
@@ -236,11 +240,12 @@ class planning_plg_StateManager extends core_Plugin
     				$rec->brState = $rec->state;
     				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'waiting';
     				$logAction = 'Активиране';
+    				$rec->timeActivated = dt::now();
     			break;
     		}
     	
     		// Ако ще активираме: запалваме събитие, че ще активираме
-    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
+    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed,timeActivated';
     		if($action == 'activate'){
     			$mvc->invoke('BeforeActivation', array(&$rec));
     			$saveFields = NULL;

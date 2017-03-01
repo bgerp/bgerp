@@ -102,7 +102,7 @@
                         <ol style = 'margin-top:1px'>
                             <!--ET_END deliveryTime-->
                             <!--ET_BEGIN withVat-->
-                            <li>Prices are with apllied VAT[#withVat#]</li>
+                            <li>Prices are with applied VAT[#withVat#]</li>
                             <!--ET_END withVat-->
                             <!--ET_BEGIN sepVat-->
                             <li>Prices are with separate VAT[#sepVat#]</li>

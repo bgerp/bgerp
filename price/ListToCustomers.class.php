@@ -340,6 +340,12 @@ class price_ListToCustomers extends core_Manager
         			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime);
         			if(isset($price)){
         				$rec->price = $price;
+        				
+        				if(!is_null($rec->price)){
+        					$vat = cat_Products::getVat($productId);
+        					$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
+        				}
+        				
         				return $rec;
         			}
         		}

@@ -1587,6 +1587,22 @@ class email_Outgoings extends core_Master
                     $removeFromGroup = array();
                 }
             }
+            
+            // Ако има имейли в Cc и е избрано да се попълват ги добавяме в полето
+            if ($contragentData->ccEmail && (email_Setup::get('AUTO_FILL_EMAILS_FROM_CC') == 'yes')) {
+            
+                $ccEmails = $rec->emailCc;
+                $ccEmails .= $ccEmails ? ', ' : '';
+                $ccEmails .= $contragentData->ccEmail;
+            
+                $ccEmailsArr = type_Emails::toArray($ccEmails);
+                
+                $ccEmailsArr = array_combine($ccEmailsArr, $ccEmailsArr);
+                $ccEmailsArr = email_Inboxes::removeOurEmails($ccEmailsArr);
+                $rec->emailCc = type_Emails::fromArray($ccEmailsArr);
+                
+                $removeFromGroup = array_merge($removeFromGroup, $ccEmailsArr);
+            }
         } else {
             if ($isCloning) {
                 $oId = $rec->originId ? $rec->originId : $rec->containerId;
@@ -1684,6 +1700,12 @@ class email_Outgoings extends core_Master
                         $contragentData->groupEmails .= $contragentData->email;
                     }
                     $contragentData->email = $oContragentData->email;
+                }
+                
+                // Имейлите от полето копие
+                if ($oContragentData->ccEmail) {
+                    $contragentData->ccEmail .= ($contragentData->ccEmail) ? ', ': '';
+                    $contragentData->ccEmail .= $oContragentData->ccEmail;
                 }
                 
                 if ($oContragentData->groupEmails) {
