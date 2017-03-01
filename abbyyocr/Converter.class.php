@@ -185,7 +185,10 @@ class abbyyocr_Converter extends core_Manager
         
             // Заключваме процеса за определено време
             if (core_Locks::get($params['lockId'], 300, 0, FALSE)) {
-        
+				
+                fileman_Data::logWrite('OCR обработка на файл с ABBYY', $fRec->dataId);
+                fileman_Files::logWrite('OCR обработка на файл с ABBYY', $fRec->id);
+                
                 // Стартираме извличането
                 return static::getText($file, $params);
             }

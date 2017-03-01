@@ -43,7 +43,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_plg_Close';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_plg_Close, plg_LastUsedKeys';
     
     
     /**
@@ -296,9 +296,10 @@ class purchase_Purchases extends deals_DealMaster
     		if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
 	    	} else {
+	    		$exClosedDeal = purchase_ClosedDeals::fetchField("#threadId = {$rec->threadId} AND #state != 'rejected'", 'id');
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'purchase', той вижда бутона но не може да го използва
-	    		if(!purchase_ClosedDeals::isPurchaseDiffAllowed($rec) && haveRole('purchase')){
+	    		if(!purchase_ClosedDeals::isPurchaseDiffAllowed($rec) && haveRole('purchase') && empty($exClosedDeal)){
 	    			$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото");
 	    		}
 	    	}
@@ -632,9 +633,8 @@ class purchase_Purchases extends deals_DealMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionPur" : "commonConditionPurEng";
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-    			$row->commonCondition = cls::get('type_Varchar')->toVerbal($cond);
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionPur")){
+    			$row->commonCondition = cls::get('type_Url')->toVerbal($cond);
     		}
     	}
     }

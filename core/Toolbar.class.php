@@ -79,9 +79,9 @@ class core_Toolbar extends core_BaseClass
         if ($params['checkPrivateHost'] && !$params['error']) {
             if (core_App::checkCurrentHostIsPrivate()) {
                 if ($params['checkPrivateHost'] == 'warning') {
-                    $params['warning'] = 'Използвате услугата от частен адрес.';
+                    $params['warning'] = 'За правилна работа, bgERP трябва да е на публичен Интернет домейн';
                 } else {
-                    $params['error'] = 'Не може да се използва услугата, защото не работи с частни адреси.';
+                    $params['error'] = 'За да работи тази услуга, bgERP трябва да е на публичен Интернет домейн';
                 }
             }
             unset($params['checkPrivateHost']);

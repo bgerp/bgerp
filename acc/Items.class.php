@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,7 @@ class acc_Items extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools2, editwatch_Plugin, plg_Search,
+    var $loadList = 'plg_Created, plg_State2, editwatch_Plugin, plg_Search,
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_Sorting';
     
     
@@ -57,19 +57,19 @@ class acc_Items extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,acc';
+    var $canEdit = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,acc';
+    var $canDelete = 'no_one';
     
     
     /**
-     * Кой е може да го администрира?
+     * Кой може да променя състоянието на валутата
      */
-    var $canAdmin = 'ceo,acc';
+    public $canChangestate = 'acc,admin';
     
     
     /**
@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,titleLink=Наименование,num,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
+    var $listFields = 'id,titleLink=Наименование,num,uomId,lastUseOn,createdBy,createdOn,state,closedOn,earliestUsedOn';
     
     
     /**
@@ -548,9 +548,11 @@ class acc_Items extends core_Manager
             $register = cls::get($register);
         }
         
+        core_Lg::push(EF_DEFAULT_LANGUAGE);
         if (!$regRec = $register->getItemRec($objectId)) {
             return FALSE;
         }
+        core_Lg::pop();
         
         if ($regRec) {
             $itemRec->num      = $regRec->num;

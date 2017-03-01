@@ -38,14 +38,23 @@ class csv_Lib
         $path = getFullPath($file);
 
         expect(($handle = fopen($path, "r")) !== FALSE);
+        
+        $closeOnce = FALSE;
 
         while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== FALSE) {
-
+ 
             // Пропускаме празните линии
             if(!count($data) || (count($data) == 1 && trim($data[0]) == '')) continue;
 
             // Пропускаме редовете със знака указан в $skip
-            if($data[0]{0} == $format['skip']) continue;
+            if($data[0]{0} == $format['skip']) {
+
+                if(strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
+                    $closeOnce = TRUE;
+                }
+
+                continue;
+            }
 
             // Ако не са указани полетата, вземаме ги от първия ред
             if($firstRow && !count($fields)) {
@@ -64,6 +73,11 @@ class csv_Lib
                 
                 foreach($fields as $i => $f) {
                     $rec->{$f} = $data[$i];
+                }
+
+                if($closeOnce) {
+                    $rec->state = 'closed';
+                    $closeOnce = FALSE;
                 }
           
                 if ($mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) continue ;

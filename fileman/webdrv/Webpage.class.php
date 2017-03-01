@@ -104,9 +104,14 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         // Инстанция на richtext типа
         $richText = cls::get('type_Richtext');
-
+        
         // Вземаме текстовата част в richEdit тип
-        $textPart = $richText->toVerbal(html2text_Converter::toRichText($content));
+        
+        $textPart = html2text_Converter::toRichText($content);
+        
+        $textPart = mb_substr($textPart, 0, 100000);
+        
+        $textPart = $richText->toVerbal($textPart);
         
         return $textPart;
     }

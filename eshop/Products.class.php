@@ -217,7 +217,7 @@ class eshop_Products extends core_Master
 
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
-            	$title = tr('Изпратете запитване за') . ' ' . tr($rec->name);
+            	$title = 'Изпратете запитване за|* ' . tr($rec->name);
             	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){

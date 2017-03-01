@@ -733,8 +733,6 @@ class findeals_Deals extends deals_DealBase
     			$data->query->where("#state = '{$state}'");
     		}
     	}
-    	
-    	$data->query->where("#dealManId = {$mvc->getClassId()}");
     }
     
     
@@ -1041,5 +1039,14 @@ class findeals_Deals extends deals_DealBase
     	if(isset($rec->baseAccountId)){
     		Mode::setPermanent('findealCorrespondingAccId', $rec->baseAccountId);
     	}
+    }
+    
+    
+    /**
+     * След като се поготви заявката за модела
+     */
+    protected static function on_AfterGetQuery($mvc, $query)
+    {
+    	$query->where("#dealManId = {$mvc->getClassId()}");
     }
 }

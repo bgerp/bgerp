@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -22,13 +22,19 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Clone';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'codeName, term, state';
+    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито, lastUsedOn=Последно, state, createdBy,createdOn';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'costCalc, calcCost, lastUsedOn';
     
     
     /**
@@ -40,40 +46,39 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Кой може да пише
      */
-    public $canWrite = 'ceo,cond,admin';
+    public $canWrite = 'ceo,admin';
     
     
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cond,admin';
+    public $canAdd = 'ceo,admin';
     
     
     /**
      * Кой може да променя
      */
-    public $canEdit = 'ceo,cond,admin';
+    public $canEdit = 'ceo,admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond,admin';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond,admin';
+	public $canSingle = 'ceo,admin';
     
 
     /**
-     * Кой може да променя състоянието на валутата
+     * Кой може да променя състоянието на Условията на доставка
      */
-    public $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'ceo,admin';
 
 
-    
     /**
      * Заглавие
      */
@@ -99,6 +104,12 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,admin';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -111,8 +122,28 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->setDbUnique('codeName');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	if($form->rec->createdBy == core_Users::SYSTEM_USER){
+    		$form->setReadOnly('codeName');
+    		foreach (array('term', 'forSeller', 'forBuyer', 'transport', 'address') as $fld){
+    			$form->setField($fld, 'input=none');
+    		}
+    	}
     }
     
     
@@ -122,7 +153,7 @@ class cond_DeliveryTerms extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -168,6 +199,8 @@ class cond_DeliveryTerms extends core_Master
     	if($rec->calcCost == 'yes'){
     		
     		// Може да се начислява скрит транспорт само за складируем артикул, ако в условието на доставка е разрешено
+    		if(empty($productId)) return FALSE;
+    		
     		if(cat_Products::fetchField($productId, 'canStore') == 'yes'){
     			return TRUE;
     		}
@@ -267,5 +300,16 @@ class cond_DeliveryTerms extends core_Master
     	}
     	
     	return $deliveryCode;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec->lastUsedOn)){
+    		$res = 'no_one';
+    	}
     }
 }

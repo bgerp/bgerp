@@ -76,10 +76,13 @@ class hyphen_Plugin extends core_Plugin
      * Хифенира стринговете
      *
 	 * @param string $string
+	 * @param integer $minLen
+	 * @param integer $maxLen
+	 * @param string $hyphenStr
 	 * 
 	 * @return string
 	 */
-    static function getHyphenWord($string)
+    static function getHyphenWord($string, $minLen = self::MIN_LENGTH_HYPHEN, $maxLen = self::MAX_LENGTH_HYPHEN, $hyphenStr = "<wbr>")
     {
         // Брояча за сивмовилите
         $i = 0;
@@ -135,7 +138,7 @@ class hyphen_Plugin extends core_Plugin
             }
             
             // Ако брояча е под първия минимум или сме в края или сме вътре в ентити
-            if (($i <= static::MIN_LENGTH_HYPHEN) || ($p == $len) || ($entity && $entity < 10)) {
+            if (($i <= $minLen) || ($p == $len) || ($entity && $entity < 10)) {
                 
                 // Добавяме символа
                 $resStr .= $currChar;
@@ -171,7 +174,7 @@ class hyphen_Plugin extends core_Plugin
             if (!$addHyphen) {
                     
                 // Ако брояча е над втория допустим праг, задължително вдигаме флага
-                if ($i > static::MAX_LENGTH_HYPHEN) {
+                if ($i > $maxLen) {
                     
                     // Вдигаме влага за добавяне на хифенация
                     $addHyphen = TRUE;
@@ -182,7 +185,7 @@ class hyphen_Plugin extends core_Plugin
             // Ако флага е вдигнат
             if ($addHyphen) {
 //                $resStr .= "&#173;" . $char; // Знак за softHyphne
-                $resStr .= "<wbr>" . $char;
+                $resStr .= $hyphenStr . $char;
                 
                 // Нулираме брояча
                 $i = 0;

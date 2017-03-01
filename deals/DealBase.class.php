@@ -407,7 +407,7 @@ abstract class deals_DealBase extends core_Master
     	$tableMvc = new core_Mvc;
     	$tableMvc->FLD('code', 'varchar');
     	$tableMvc->FLD('productId', 'varchar');
-    	$tableMvc->FLD('measure', 'varchar', 'tdClass=accToolsCell,smartCenter');
+    	$tableMvc->FLD('measure', 'varchar', 'tdClass=accToolsCell nowrap');
     	$tableMvc->FLD('quantity', 'varchar', 'tdClass=aright');
     	$tableMvc->FLD('shipQuantity', 'varchar', 'tdClass=aright');
     	$tableMvc->FLD('bQuantity', 'varchar', 'tdClass=aright');

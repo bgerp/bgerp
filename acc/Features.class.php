@@ -175,7 +175,9 @@ class acc_Features extends core_Manager
         // Класа трябва да поддържа 'acc_RegisterIntf'
         if(!cls::haveInterface('acc_RegisterIntf', $ItemClass)) return;
         
+        core_Lg::push(EF_DEFAULT_LANGUAGE);
         $itemRec = $ItemClass->getItemRec($itemRec->objectId);
+        core_Lg::pop();
         
         // Свойствата на обекта
         $features = $itemRec->features;

@@ -113,7 +113,7 @@ class unit_MinkPColab extends core_Manager {
         //$browser->setValue('partner', True);
         $browser->setValue('roleRank', 'partner');
         $browser->refresh('Запис');
-        $browser->setValue('roleOthers[86]', '86');
+        $browser->setValue('agent', True);
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
@@ -195,7 +195,8 @@ class unit_MinkPColab extends core_Manager {
         //$browser->setValue('partner', True);
         $browser->setValue('roleRank', 'partner');
         $browser->refresh('Запис');
-        $browser->setValue('roleOthers[85]', '85');
+        //$browser->setValue('roleOthers[85]', '85');
+        $browser->setValue('distributor', True);
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');

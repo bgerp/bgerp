@@ -135,7 +135,7 @@
                 <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>
                 <!--ET_END deliveryTermTime-->
                 <!--ET_BEGIN commonConditionQuote-->
-                <li>[#commonConditionQuote#]</li>
+                <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
                 <!--ET_END commonConditionQuote-->
             </ol>
             <!--ET_END conditions-->

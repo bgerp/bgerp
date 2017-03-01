@@ -64,6 +64,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * Кои ключове да се тракват, кога за последно са използвани
+	 */
+	public $lastUsedKeys = 'deliveryTermId,paymentMethodId';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -216,7 +222,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		$form->setDefault('valior', dt::now());
-		$form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 		
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
@@ -245,6 +250,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $deliverySuggestions = array();
         $query = cond_DeliveryTerms::getQuery();
         $query->where("#state = 'active'");
+        $query->orderBy("codeName", "ASC");
         $query->show('codeName');
         while($dRec = $query->fetch()){
         	$deliverySuggestions[$dRec->codeName] = $dRec->codeName;

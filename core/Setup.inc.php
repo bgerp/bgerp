@@ -90,7 +90,8 @@ $opts = array(
     'http'=>array(
     'method'=>"GET",
     'header'=>"Accept-language: en\r\n" .
-                "Cookie: setup=bar\r\n"
+                "Cookie: setup=bar\r\n",
+    'timeout'=>2
       )
 );
 
@@ -666,7 +667,7 @@ if($step == 3) {
     
     // Проверка дали локалните URL-та работят
     $log[] = 'h:Проверка дали локалните URL-та работят:';
-    $res = file_get_contents("{$localUrl}&step=testSelfUrl", FALSE, $context, 0, 32);
+    $res = @file_get_contents("{$localUrl}&step=testSelfUrl", FALSE, $context, 0, 32);
 
     if($res == $flagOK) {
         $log[] = "inf:Локалните URL-та се достъпват";

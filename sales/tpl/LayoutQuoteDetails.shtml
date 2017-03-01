@@ -5,7 +5,6 @@
 	        <tr>
 	            <th style='width:4%;'>№</th>
 	            <th>|Описание|*</th>
-	            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
 	            <th class='quote-col[#OPT#] nowrap'>|К-во|*</th>
 	            <th>|Цена|*</th>
 	            <th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
@@ -21,20 +20,18 @@
             <!--ET_BEGIN productId-->
             <td id='[#rowspanpId#]' rowspan = '[#rowspan#]' class='product-id[#OPTP#] vtop'>[#productId#]</td>
             <!--ET_END productId-->
-            <td class='misc-info quote-col[#OPT#] nowrap centered vtop'>
-                [#packagingId#]
-            </td>
+
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-               <b>[#packQuantity#] </b>
+               <span class="maxwidth" data-col="[#DATA_COL_ATTR#]">[#packQuantity#] [#packagingId#]</span>
                 <!--ET_BEGIN tolerance-->
-                <div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
+                <div class='quiantity-misc centered' style='font-size:0.8em'>|толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
                 <!--ET_BEGIN term-->
-                <div class='quiantity-misc'>|срок|* &nbsp;<b>[#term#]</b></div>
+                <div class='quiantity-misc centered' style='font-size:0.8em'>|срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
                 <!--ET_END term-->
             </td>
             <td class='misc-info nowrap aright vtop'>
-                <b>[#packPrice#] </b>
+                <span class="maxwidth" data-col="[#DATA_COL_ATTR_AMOUNT#]"><b>[#packPrice#] </b></span>
                 <!--ET_BEGIN discount-->
                 <div class='discount'>- [#discount#] |ТО|*
                 </div>

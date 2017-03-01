@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,13 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2,plg_Translate, plg_Clone';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Translate';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, sysId, title, state, type';
+    public $listFields = 'sysId, title, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
@@ -44,37 +44,43 @@ class cond_PaymentMethods extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond, admin';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond, admin';
+	public $canSingle = 'ceo,admin';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, cond, admin';
+    public $canEdit = 'ceo,admin';
     
     
     /**
-     * Кой може да променя състоянието на валутата
+     * Кой може да променя състоянието на Методите на плащане
      */
-    public $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'ceo,admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, cond, admin';
+    public $canAdd = 'ceo,admin';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, cond, admin';
+    public $canDelete = 'ceo, admin';
     
     
     /**
@@ -90,11 +96,9 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $fieldsNotToClone = 'sysId';
+    public $hideListFieldsIfEmpty = 'lastUsedOn';
     
     
     /**
@@ -106,7 +110,7 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
 
         // Текстово описание
-        $this->FLD('title', 'varchar', 'caption=Описание, mandatory, translate,oldFieldName=description');
+        $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
         $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'caption=Вид плащане');
         
         // Процент на авансовото плащане
@@ -119,17 +123,48 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
         
         // Колко дни след дадено събитие да е балансовото плащане?
-        $this->FLD('eventBalancePayment', 'enum(,invDate=Датата на фактурата||Invoice date,
-                                               invEndOfMonth=След краят на месеца на фактурата||After the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
+        $this->FLD('eventBalancePayment', 'enum(,invDate=след датата на фактурата||after invoice date,
+                                               invEndOfMonth=след края на месеца на фактурата||after the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
 
         // Отстъпка за предсрочно плащане
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
         $this->FLD('discountPeriod', 'time(uom=days,suggestions=незабавно|5 дни|10 дни|15 дни)', 'caption=Отстъпка за предсрочно плащане->Срок,hint=Дни');
-
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+        
         $this->setDbUnique('sysId');
-        $this->setDbUnique('title');
+        //$this->setDbUnique('title');
+    }
+
+
+    function on_CalcTitle($mvc, $rec)
+    {
+        Mode::push('text', 'plain');
+
+        if($rec->downpayment) {
+            $title .= round($rec->downpayment * 100, 2). '% ' . tr('авансово||downpayment');
+        }
+
+        if($rec->paymentBeforeShipping) {
+            $title .= ($title ? ', ' : '') . round($rec->paymentBeforeShipping * 100, 2). '% ' . tr('преди експедиция||before shipment');  
+        }
+
+        if($rec->paymentOnDelivery) {
+            $title .= ($title ? ', ' : '') . round($rec->paymentOnDelivery * 100, 2) . '% ' . tr('при доставка||after delivery');
+        }
+        
+        if($rec->timeBalancePayment) {
+            $title .= ($title ? ', ' : '') .  round((1 - $rec->downpayment - $rec->paymentBeforeShipping - $rec->paymentOnDelivery)*100,2) . '% ' . tr('до||in') . ' ' . $mvc->getVerbal($rec, 'timeBalancePayment') . ' ' . $mvc->getVerbal($rec, 'eventBalancePayment');
+        }
+        
+        if($rec->discountPercent) {
+            $title .= ($title ? ', ' : '') . tr('отстъпка||discount') . ' ' . round($rec->discountPercent * 100, 2) . '% ' . tr('при цялостно плащане до||if paid in full within') . ' ' . $mvc->getVerbal($rec, 'discountPeriod');
+        }
+
+        $rec->title = $title;
+
+        Mode::pop('text');
     }
     
     
@@ -139,9 +174,7 @@ class cond_PaymentMethods extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-	    	
             $rec = &$form->rec;
-	    	
             $total = $rec->downpayment + $rec->paymentBeforeShipping + $rec->paymentOnDelivery;
 	    	 
 	    	if($total > 1){
@@ -344,5 +377,15 @@ class cond_PaymentMethods extends core_Master
     	// Връщане на аванса
     	return $amount;
     }
-
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec->lastUsedOn)){
+    		$res = 'no_one';
+    	}
+    }
 }

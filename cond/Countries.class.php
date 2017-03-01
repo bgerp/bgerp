@@ -22,19 +22,19 @@ class cond_Countries extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond';
+	public $canList = 'ceo,admin';
 	
 	
 	/**
 	 * Кой може да изтрива
 	 */
-	public $canDelete = 'ceo,cond';
+	public $canDelete = 'ceo,admin';
 	
 	
 	/**
 	 * Кой може да пише
 	 */
-	public $canWrite = 'ceo,cond';
+	public $canWrite = 'ceo,admin';
 	
 	
 	/**
@@ -150,20 +150,26 @@ class cond_Countries extends core_Manager
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$paramRec = cond_Parameters::fetch($rec->conditionId);
-		$row->conditionId = cond_Parameters::getVerbal($paramRec, 'typeExt');
+		
+		if(isset($fields['-list'])){
+			$row->conditionId = cond_Parameters::getVerbal($paramRec, 'typeExt');
+			$singleUrl = cond_Parameters::getSingleUrlArray($rec->conditionId);
+			$row->conditionId = ht::createLink($row->conditionId, $singleUrl);
+		
+			$row->ROW_ATTR['class'] .= " state-active";
+			
+			if(empty($rec->country)){
+				$row->country = "<span class='quiet'>" . tr('Всички държави') . "</span>";
+			}
+		}
 		
 		if($ParamType = cond_Parameters::getTypeInstance($paramRec, 'drdata_Countries', $rec->country, $rec->value)){
 			$row->value = $ParamType->toVerbal(trim($rec->value));
 		}
 		
-		$row->ROW_ATTR['class'] .= " state-active";
-		
-		if(cond_Parameters::haveRightFor('single', $rec->conditionId)){
-			$row->conditionId = ht::createLink($row->conditionId, array('cond_Parameters', 'single', $rec->conditionId));
-		}
-		
-		if(empty($rec->country)){
-			$row->country = "<span class='quiet'>" . tr('Всички държави') . "</span>";
+		if(!empty($paramRec->group)){
+			$paramRec->group = tr($paramRec->group);
+			$row->group = cond_Parameters::getVerbal($paramRec, 'group');
 		}
 	}
 	

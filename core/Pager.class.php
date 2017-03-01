@@ -216,14 +216,16 @@ class core_Pager extends core_BaseClass
                 $this->itemsCount = $resCntCache;
             }
         }
-
+ 
         $this->calc();
 
         // Подготовка на заявката за извличане на id
         $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);  
+        $query->show('id');
+        $rQuery = clone $query;
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
-        $query->show('id');
+        
 
         while($rec = $query->fetch()) {
             $ids[] = $rec->id;
@@ -280,15 +282,37 @@ class core_Pager extends core_BaseClass
         expect(isset($resCnt));
 
         $this->itemsCount = $resCnt;
- 
         $query = $qWork;
  
+        
+        $exRangeStart = $this->rangeStart;
+
         $this->calc();
+        
+        if($exRangeStart != $this->rangeStart) {
+
+            $rQuery->limit($this->rangeEnd - $this->rangeStart);
+            $rQuery->startFrom($this->rangeStart);
+            $ids = array();
+
+            while($rec = $rQuery->fetch()) {
+                $ids[] = $rec->id;
+            }
+            $idCnt = count($ids);
+        }
 
         if($idCnt) {
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
             $ids = implode(',', $ids);
             $query->where("#id IN ($ids)");
+
+            
+
+            foreach($query->where as $i => $cond) {
+                if((stripos($cond, 'match(')  !== FALSE) || (stripos($cond, 'locate(') !== FALSE)) {
+                    unset($query->where[$i]);
+                }
+            }
         } else {
             $this->calc();
             $query->limit(0);

@@ -625,6 +625,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Обхождаме масива с манупулаторите
         foreach ($fileHndArr as $fh) {
+            if (!trim($fh)) continue;
             
             // Определяме баркодовете във файла
             $barcodes = zbar_Reader::getBarcodesFromFile($fh);

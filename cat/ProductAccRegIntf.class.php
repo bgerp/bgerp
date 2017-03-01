@@ -153,7 +153,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за спецификацията
+     * Връща последното не оттеглено или чернова задание за артикула
      * 
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на заданието или FALSE ако няма
@@ -165,7 +165,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последната активна рецепта на спецификацията
+     * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
      * @param sales|production $type - вид работна или търговска
@@ -209,5 +209,31 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
     {
     	return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+    }
+    
+    
+    /**
+     * Колко е толеранса
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - толеранс или NULL, ако няма
+     */
+    public function getTolerance($id, $quantity)
+    {
+    	return $this->class->getTolerance($id, $quantity);
+    }
+    
+    
+    /**
+     * Колко е срока на доставка
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+     */
+    public function getDeliveryTime($id, $quantity)
+    {
+    	return $this->class->getDeliveryTime($id, $quantity);
     }
 }

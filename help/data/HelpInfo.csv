@@ -103,11 +103,11 @@ log_Browsers,list,bg,Тук се съдържа списъка с информа
 fileman_Log,list,bg,Тук се съдържа списък с последно качените или разгледани от вас файлове в системата.
 fileman_Files,list,bg,Това е филтриран списък с всички файлове в системата.
 fileman_Files,single,bg,Това е преглед на файла.
-fileman_GalleryImages,list,bg,Тук се съдържа списък с картинките в галерията.
-fileman_GalleryImages,edit,bg,Това е форма за редактиране/добавяне на картинка в галерията.
-fileman_GalleryGroups,list,bg,Тук се съдържа списък с групите на картинките в галерията.
-fileman_GalleryGroups,edit,bg,Това е форма за редактиране/добавяне на група за картинки в галерията.
-fileman_GalleryGroups,cloneFields,bg,Това е форма за клониране на запис.
+cms_GalleryImages,list,bg,Тук се съдържа списък с картинките в галерията.
+cms_GalleryImages,edit,bg,Това е форма за редактиране/добавяне на картинка в галерията.
+cms_GalleryGroups,list,bg,Тук се съдържа списък с групите на картинките в галерията.
+cms_GalleryGroups,edit,bg,Това е форма за редактиране/добавяне на група за картинки в галерията.
+cms_GalleryGroups,cloneFields,bg,Това е форма за клониране на запис.
 fileman_Buckets,list,bg,Тук се съдържа списък с кофите за файловете.
 fileman_Buckets,edit,bg,Това е форма за редактиране/добавяне на кофа на файл.
 fileman_Repositories,list,bg,Тук се съдържа списък с пътищата до хранилищата.

@@ -456,23 +456,18 @@ class store_InventoryNotes extends core_Master
     		$tpl->append($block, 'SALES_BLOCK');
     	}
     }
-    
-    
+
+
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	$tpl->push('store/tpl/css/styles.css', 'CSS');
-    	
-    	$tpl->push('store/js/InventoryNotes.js', 'JS');
-    	jquery_Jquery::run($tpl, "noteActions();");
-    	
     	if(!Mode::is('printing')){
     		$tpl->removeBlock('COUNTER');
     	}
     }
-    
+
     
     /**
      * Връща артикулите в протокола
@@ -776,6 +771,8 @@ class store_InventoryNotes extends core_Master
     		if($rec->showBlQuantities == 'yes'){
     			$url['showBlQuantities'] = TRUE;
     		}
+    		
+    		$this->logWrite('Настройки на бланката', $id);
     		
     		// Редирект към урл-то за бланката
     		return new Redirect($url);

@@ -1107,7 +1107,7 @@ class cat_Boms extends core_Master
     		// Записваме намерената цена
     		if($savePriceCost === TRUE){
     			$primeCost = ($price === FALSE) ? NULL : $price;
-    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
+    			$params1 = $scope;
     			
     			// Ъпдейтваме кешираните стойност и параметри само при промяна
     			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($params1)){
@@ -1161,7 +1161,7 @@ class cat_Boms extends core_Master
     		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
     			$scope = static::getScope($params);
-    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
+    			$params1 = $scope;
     			
     			if(serialize($rec->params) != serialize($params1)){
     				$rec->params = $params1;
@@ -1247,13 +1247,13 @@ class cat_Boms extends core_Master
     			// Ако мин и макс делта са различни изчисляваме редовете за двата тиража
     			if($minDelta != $maxDelta){
     				
-    				$params['$T'] = $t1;
+    				$params[$rec->productId]['$T'] = $t1;
     				$rowCost1 = self::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
     				
     				if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost1 += $rowCost1;
     					
-    				$params['$T'] = $t2;
+    				$params[$rec->productId]['$T'] = $t2;
     				$rowCost2 = self::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
     				if($rowCost2 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost2 += $rowCost2;
@@ -1272,7 +1272,9 @@ class cat_Boms extends core_Master
     		$price = $primeCost1 * (1 + $minDelta);
     
     	} else {
-    	
+    		$primeCost1 *= $t1;
+    		$primeCost2 *= $t2;
+    		
 	    	// Изчисляваме началната и пропорционалната сума
 	    	$basePrice = ($primeCost2 * $t1 - $primeCost1 * $t2) / ($t1 - $t2); 
 	    	$propPrice = ($primeCost1 - $primeCost2) / ($t1 - $t2);

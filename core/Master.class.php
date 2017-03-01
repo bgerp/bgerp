@@ -114,6 +114,11 @@ class core_Master extends core_Manager
         // Подготвяме данните за единичния изглед
         $this->prepareSingle($data);
         
+        // Ако модето е че се иска пхп дата тя се връща
+        if(Mode::is('dataType', 'php')){
+        	return $data;
+        }
+        
         // Рендираме изгледа
         $tpl = $this->renderSingle($data);
         

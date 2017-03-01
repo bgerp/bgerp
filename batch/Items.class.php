@@ -93,7 +93,7 @@ class batch_Items extends core_Master {
     	$this->FLD('batch', 'varchar(128)', 'caption=Партида,mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory');
     	$this->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
-    	$this->FLD('nullifiedDate', 'date(format=smartTime)', 'caption=Изчерпано');
+    	$this->FLD('nullifiedDate', 'datetime(format=smartTime)', 'caption=Изчерпано');
     	
     	$this->setDbUnique('productId,batch,storeId');
     }
@@ -224,7 +224,7 @@ class batch_Items extends core_Master {
     	$rec->quantity = $quantity;
     	
     	if($rec->quantity == 0){
-    		$rec->nullifiedDate = dt::today();
+    		$rec->nullifiedDate = dt::now();
     	} else {
     		if(isset($rec->nullifiedDate)){
     			$rec->nullifiedDate = NULL;
@@ -247,8 +247,7 @@ class batch_Items extends core_Master {
     	$query = self::getQuery();
     	$query->where("#quantity = 0 AND #state != 'closed'");
     	$before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
-    	$before = dt::addSecs(-1 * $before, dt::today());
-    	$before = dt::verbal2mysql($before, FALSE);
+    	$before = dt::addSecs(-1 * $before, dt::now());
     	
     	$query->where("#nullifiedDate <= '{$before}'");
     	while($rec = $query->fetch()){

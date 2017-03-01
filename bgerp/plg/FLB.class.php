@@ -75,7 +75,7 @@ class bgerp_plg_FLB extends core_Plugin
 		$roles = arr::make($mvc->canActivate);
 		$roles[] = 'admin';
 		$roles = implode('|', $roles);
-		$form->setFieldType('inCharge', "user(roles={$roles}, select=nick)");
+		$form->setFieldType('inCharge', "user(roles={$roles}, rolesForAll=officer)");
 	}
 	
 	
@@ -173,18 +173,16 @@ class bgerp_plg_FLB extends core_Plugin
 	 */
 	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$allowEmpty = (haveRole('ceo')) ? 'allowEmpty' : '';
 		$data->listFilter->view = 'horizontal';
-		$data->listFilter->FLD('users', "users(rolesForAll=ceo|admin,rolesForAll=ceo|manager|admin,{$allowEmpty})", 'caption=Потребител,silent,autoFilter,remember');
+		$data->listFilter->FLD('users', "users(rolesForAll=ceo|admin,rolesForTeams=officer|admin)", 'caption=Потребител,silent,autoFilter,remember');
 		$data->listFilter->showFields = 'users';
 		$data->listFilter->input('users', 'silent');
 		
-		if((!haveRole('ceo'))){
-			$data->listFilter->setDefault('users', core_Users::getCurrent());
-		}
+		$default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
+		$data->listFilter->setDefault('users', $default);
 		
 		// Скриване на записите до които няма достъп
-		if($selectedUsers = $data->listFilter->rec->users){
+		if($selectedUsers = $data->listFilter->rec->users) {
 			self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
 		}
 	}

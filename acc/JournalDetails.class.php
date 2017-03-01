@@ -95,8 +95,16 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
         $this->FLD('amount', 'double(minDecimals=2)', 'caption=Сума');
 
+        // Поставяне на индекси
         $this->setDbIndex('debitAccId, creditAccId');
-        $this->setDbIndex('debitItem1, debitItem2, debitItem3, creditItem1, creditItem2, creditItem3');
+        $this->setDbIndex('debitAccId');
+        $this->setDbIndex('creditAccId');
+        $this->setDbIndex('debitItem1');
+        $this->setDbIndex('debitItem2');
+        $this->setDbIndex('debitItem3');
+        $this->setDbIndex('creditItem1');
+        $this->setDbIndex('creditItem2');
+        $this->setDbIndex('creditItem3');
     }
     
     
@@ -187,6 +195,36 @@ class acc_JournalDetails extends core_Detail
        
         // Трябва да има поне една зададена сметка
         $accounts = arr::make($accs);
+        $itemsAll = arr::make($itemsAll);
+        
+        // Ако само се филтрират по сметки UNION по сметките, за бързодействие
+        if(count($accounts) && !count($itemsAll) && empty($items1) && empty($items2) && empty($items3)){
+        	
+        	// Прави се UNION на сметките
+        	foreach ($accounts as $sysId){
+        		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
+        		$query->setUnion("#debitAccId = {$accId}");
+        		$query->setUnion("#creditAccId = {$accId}");
+        	}
+        	
+        	return;
+        }
+        
+        // Ако само се търсят пера на всяка позиция, UNION за бързодействие
+        if(count($itemsAll) && !count($accounts) && empty($items1) && empty($items2) && empty($items3)){
+        	foreach ($itemsAll as $itemId){
+        		
+        		// Ако няма сметки се прави обикновен юнион на всичките варианти, на които може да е перото
+        		$query->setUnion("#debitItem1 = {$itemId}");
+        		$query->setUnion("#debitItem2 = {$itemId}");
+        		$query->setUnion("#debitItem3 = {$itemId}");
+        		$query->setUnion("#creditItem1 = {$itemId}");
+        		$query->setUnion("#creditItem2 = {$itemId}");
+        		$query->setUnion("#creditItem3 = {$itemId}");
+        	}
+        	
+        	return;
+        }
         
         if(count($accounts) >= 1){
             foreach ($accounts as $sysId){
@@ -203,7 +241,7 @@ class acc_JournalDetails extends core_Detail
             foreach ($itemsAll as $itemId){
                 
                 // Трябва да инт число
-                expect(ctype_digit($itemId));
+                expect(ctype_digit((string)$itemId));
                 
                 // .. и перото да участва на произволна позиция
                 $query->where("#debitItem1 = {$itemId}");

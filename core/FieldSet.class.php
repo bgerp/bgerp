@@ -241,7 +241,7 @@ class core_FieldSet extends core_BaseClass
                 if(strpos($group, '||')) {
                     list($group, $en) = explode('||', $group);
                 }
-
+ 
                 if(isset($this->lastFroGroup[$group]) ) { 
                     $params['after'][] = $this->lastFroGroup[$group];  
                 }
@@ -269,7 +269,6 @@ class core_FieldSet extends core_BaseClass
                 }
                 $this->fields = $newFields;               
             }
-
 
             // Проверяваме дали има предишни полета, които трябва да се подредят преди или след това поле
             if($mustOrder) {
@@ -300,6 +299,39 @@ class core_FieldSet extends core_BaseClass
                     $this->fields = $firstArr + $before + $me + $after + $secondArr;
                 }
             }
+        }
+
+        // Преподреждаме формата, така, че поле, което има секция, която преди се е срещала, но 
+        // текущата е различна - то полето отива към края на последното срещане
+        $lastGroup = '';
+        $lastField = array();
+        $flagChange = FALSE;
+        foreach($this->fields as $name => $fld) {
+            if(strpos($fld->caption, '->')) {
+                
+                list($group, $caption) = explode('->', $fld->caption);
+                
+                if(strpos($group, '||')) {
+                    list($group, $en) = explode('||', $group);
+                }
+
+                if($lastGroup && $lastGroup != $group && $lastField[$group]) {
+                    $flagChange = TRUE;
+                    arr::insert($res, $lastField[$group], array($name => $fld), TRUE);
+
+                } else {
+                    $res[$name] = $fld;
+                }
+          
+                $lastField[$group] = $name;
+                $lastGroup = $group;
+            } else {
+                $res[$name] = $fld;
+            }
+ 
+        }
+        if($flagChange) {
+            $this->fields = $res;
         }
     }
 

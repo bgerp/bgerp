@@ -63,7 +63,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    var $depends = 'drdata=0.1, callcenter=0.1';
     
     
     /**

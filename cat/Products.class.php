@@ -55,7 +55,8 @@ class cat_Products extends embed_Manager {
     
     /**
      * Име на полето за групите на продуктите.
-     * Използва се за целите на bgerp_plg_Groups
+     * 
+     * @see bgerp_plg_Groups
      */
     public $groupField = 'groups';
 
@@ -300,7 +301,7 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
-        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
+        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
 		
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
@@ -319,13 +320,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
-        
-        $this->FLD('meta', 'set(canSell=Продаваем,
-                                canBuy=Купуваем,
-                                canStore=Складируем,
-                                canConvert=Вложим,
-                                fixedAsset=Дълготраен актив,
-        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
+        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -506,8 +501,8 @@ class cat_Products extends embed_Manager {
     		if(isset($rec->folderId)){
     			$Cover = doc_Folders::getCover($rec->folderId);
     			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-    				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
-    					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
+    				while(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
+    					$rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
     				}
     			} elseif($Cover->getProductType() == 'template' && empty($rec->code)){
     				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
@@ -632,7 +627,6 @@ class cat_Products extends embed_Manager {
     {
         // Полетата csv_ се попълват в loadSetupData
         // При 'Импорт' не се използват
-        
     	if(empty($rec->innerClass)){
     		$rec->innerClass = cls::get('cat_GeneralProductDriver')->getClassId();
     	}
@@ -961,15 +955,10 @@ class cat_Products extends embed_Manager {
      */					
     public static function getProductInfo($productId)
     {
-    	if(isset(self::$productInfos[$productId])){
-    		
-    		return self::$productInfos[$productId];
-    	}
+    	if(isset(self::$productInfos[$productId])) return self::$productInfos[$productId];
     	
     	// Ако няма такъв продукт връщаме NULL
-    	if(!$productRec = static::fetchRec($productId)) {
-    		return NULL;
-    	}
+    	if(!$productRec = static::fetchRec($productId)) return NULL;
     	
     	$res = new stdClass();
     	$res->packagings = array();
@@ -1650,7 +1639,7 @@ class cat_Products extends embed_Manager {
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg')
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $compontQuantity = 1)
     {
     	$rec = static::fetchRec($id);
     	
@@ -1687,7 +1676,7 @@ class cat_Products extends embed_Manager {
     	if($showDescription === TRUE){
     	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType, $lang);
     	    if(!$data){
-    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang);
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $compontQuantity);
     	    }
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
@@ -1704,7 +1693,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Връщаме шаблона с подготвените данни
-    	$tpl = new ET("[#name#]<!--ET_BEGIN desc--><br><span style='font-size:0.85em'>[#desc#]</span><!--ET_END desc-->");
+    	$tpl = new ET("[#name#]<!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
     	$tpl->replace($title, 'name');
     	$tpl->replace($descriptionTpl, 'desc');
     	
@@ -1713,7 +1702,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за спецификацията
+     * Връща последното не оттеглено или чернова задание за артикула
      * 
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на заданието или FALSE ако няма
@@ -1732,7 +1721,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща последната активна рецепта на спецификацията
+     * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
      * @param sales|production $type - вид работна или търговска
@@ -1893,12 +1882,12 @@ class cat_Products extends embed_Manager {
     {
     	// Ако има чернова оферта към нея, бутон за редакция
     	if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    		if($mvc->haveRightFor('edit', $qRec)){
+    		if(sales_Quotations::haveRightFor('edit', $qRec)){
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на оферта');
     		}
     	} elseif($data->rec->state != 'rejected'){
-    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $data->rec->threadId))){
-    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
+    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $data->rec->threadId, 'originId' => $data->rec->containerId))){
+    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за артикула');
     		}
     	}
     	
@@ -1932,7 +1921,6 @@ class cat_Products extends embed_Manager {
     public function getIcon($id)
     {
     	if($Driver = $this->getDriver($id)){
-    		
     		return $Driver->getIcon();
     	} else {
     		return 'img/16/error-red.png';
@@ -2340,7 +2328,7 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return void
      */
-    public static function prepareComponents($productId, &$res = array())
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $compontQuantity = 1)
     {
     	// Имали последна активна търговска рецепта за артикула?
     	$rec = cat_Products::getLastActiveBom($productId, 'sales');
@@ -2357,17 +2345,21 @@ class cat_Products extends embed_Manager {
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
+    	$qQuantity = $compontQuantity;
+    	
     	
     	if(is_array($details)){
     		$fields = cls::get('cat_BomDetails')->selectFields();
     		$fields['-components'] = TRUE;
     		
     		foreach ($details as $dRec){
-    			$dRec->params['$T'] = 1;
+    			if(!isset($dRec->parentId)){
+    				$dRec->params['$T'] = $qQuantity;
+    			}
+    			
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
     			$row = cat_BomDetails::recToVerbal($dRec, $fields);
-    			
     			$obj->code = $row->position;
     			
     			$codeCount = strlen($obj->code);
@@ -2379,13 +2371,24 @@ class cat_Products extends embed_Manager {
     			$obj->measureId = $row->packagingId;
     			
     			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
+    			
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
-    			 
+    			if($dRec->type == 'stage'){
+    				$specTpl = cat_Products::getParams($dRec->resourceId, 'specTpl');
+    				if($specTpl && count($dRec->params)){
+    					$specTpl = strtr($specTpl, $dRec->params);
+    					$specTpl = new core_ET($specTpl);
+    					$obj->title .= " " . $specTpl->getContent();
+    				}
+    			}
+    			
     			if($obj->parent){
     				if($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR){
     					$obj->quantity *= $res[$obj->parent]->quantity;
     				}
+    			} else {
+    				$obj->quantity *= $qQuantity;
     			}
     			
     			if($dRec->description){
@@ -2591,5 +2594,118 @@ class cat_Products extends embed_Manager {
     	$accounts = arr::make($accounts, TRUE);
     	
     	return $accounts;
+    }
+    
+    
+    /**
+     * Намира цена на артикул по неговия код към текущата дата, в следния ред
+     * 
+     * 1. Мениджърска себестойност
+     * 2. Ако е вложим и има заместващи, себестойноста на този с най-голямо к-во във всички складове
+     * 3. Ако е производим и има търговска рецепта, цената по нея
+     * 4. Ако е складируем - средната му цена във всички складове
+     * 5. Ако не открие връща NULL
+     * 
+     * @param string $code
+     * @return NULL|double $primeCost
+     */
+    public static function getPrimeCostByCode($code)
+    {
+    	// Имали такъв артикул?
+    	$product = self::getByCode($code);
+    	if(!$product) return NULL;
+    	
+    	$productId = $product->productId;
+    
+    	// Мениджърската му себестойност, ако има
+    	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
+    	if(!empty($primeCost)) return $primeCost;
+    	
+    	$pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore');
+    	
+    	// Ако е вложим
+    	if($pRec->canConvert == 'yes'){
+    		
+    		// Кои са му еквивалентните
+    		$similar = planning_ObjectResources::getEquivalentProducts($productId);
+    		
+    		// Подреждане на еквивалентните му, по к-то им във всички складове
+    		if(count($similar)){
+    			$orderArr = array();
+    			foreach ($similar as $k => $pId){
+    				if($k == $productId) continue;
+    				$query = store_Products::getQuery();
+    				$query->where("#productId = {$k}");
+    				$query->XPR('sum', 'double', 'SUM(#quantity)');
+    				$sum = $query->fetch()->sum;
+    				$orderArr["{$sum}"] = $k;
+    			}
+    			
+    			krsort($orderArr);
+    			$topKey = $orderArr[key($orderArr)];
+    			
+    			// Връщане на себестойноста на този с най-голямо количество
+    			if(!empty($topKey)){
+    				$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $topKey);
+    				if(!empty($primeCost)) return $primeCost;
+    			}
+    		}
+    	}
+    	
+    	// Ако е производим, и има търговска рецепта, цената по нея
+    	if($pRec->canManifacture == 'yes'){
+    		$bomId = cat_Products::getLastActiveBom($productId, 'sales');
+    		if(!empty($bomId)){
+    			$primeCost = cat_Boms::getBomPrice($bomId, 1, 0, 0, NULL, price_ListRules::PRICE_LIST_COST);
+    			if(!empty($primeCost)) return $primeCost;
+    		}
+    	}
+    	
+    	// Ако е складируем, средната му цена му във всички складове
+    	if($pRec->canStore == 'yes'){
+    		$primeCost = cat_Products::getWacAmountInStore(1, $productId, NULL);
+    		if(!empty($primeCost)) return $primeCost;
+    	}
+    	
+    	// Ако нищо не намери
+    	return NULL;
+    }
+    
+    
+    /**
+     * Колко е толеранса
+     * 
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - толеранс или NULL, ако няма
+     */
+    public static function getTolerance($id, $quantity)
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		$tolerance = $Driver->getTolerance($id, $quantity);
+    		return ($tolerance) ? $tolerance : NULL;
+    	}
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Колко е срока на доставка
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+     */
+    public static function getDeliveryTime($id, $quantity)
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		$term = $Driver->getDeliveryTime($id, $quantity);
+    		return ($term) ? $term : NULL;
+    	}
+    	
+    	return NULL;
     }
 }

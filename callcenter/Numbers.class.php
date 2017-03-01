@@ -95,7 +95,7 @@ class callcenter_Numbers extends core_Manager
     {
         
         $this->FLD('number', 'drdata_PhoneType', 'caption=Номер, mandatory, width=100%, silent');
-        $this->FLD('type', 'enum(tel=Телефон, mobile=Мобилен, fax=Факс, internal=Вътрешен)', 'caption=Тип');
+        $this->FLD('type', 'enum(tel=Телефон, mobile=Мобилен, fax=Факс, internal=Вътрешен)', 'caption=Тип, refreshForm, allowEmpty');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
         $this->FLD('host', 'key(mvc=callcenter_Hosts, select=name, allowEmpty)', 'caption=Хост');
@@ -391,15 +391,17 @@ class callcenter_Numbers extends core_Manager
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
+        $data->listFilter->fields['type']->type->options += array('' => '');
+        
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'numberSearch';
+        $data->listFilter->showFields = 'numberSearch, type';
         
-        $data->listFilter->input('numberSearch', 'silent');
+        $data->listFilter->input('numberSearch, type', 'silent');
         
         // Ако има филтър
         if($filter = $data->listFilter->rec) {
-        
+            
             // Ако се търси по номера
             if ($number = $filter->numberSearch) {
                 
@@ -408,6 +410,10 @@ class callcenter_Numbers extends core_Manager
                 
                 // Търсим във външните и вътрешните номера
                 $data->query->where(array("#number LIKE '%[#1#]'", $number));
+            }
+            
+            if ($type = $filter->type) {
+                $data->query->where(array("#type = '[#1#]'", $type));
             }
         }
     }

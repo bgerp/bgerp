@@ -333,30 +333,69 @@ class cal_Calendar extends core_Master
        
         $url = parseLocalUrl($rec->url, FALSE);
        
+        $cUrl = getCurrentUrl();
         // TODO да стане с интерфейс
         $isLink = TRUE;
-        if($url['Ctr'] == 'crm_Persons') {
-        	$isLink = crm_Persons::haveRightFor('single', $url['id']);
+        $mvc = cls::get($url['Ctr']);
+        
+        // проверка, този клас mvc ли е?
+        if($mvc instanceof core_Mvc) {
+            
+            $class = $url['Ctr'];
+            // записа има ли достъп до екшъните му
+            switch ($url['Act']) {
+                case 'Single':
+                    $isLink = $class::haveRightFor('single', $url['id']);
+                    break;
+                case 'list':
+                    $isLink = $class::haveRightFor('list');
+                    break;
+                case 'default':
+                    $isLink = $class::haveRightFor('default');
+                    break;
+            }
         }
        
         // TODO
+        // картинката
         $attr = array();
         if(!strpos($rec->type, '/')) {
          	$attr['ef_icon'] = "img/16/{$lowerType}.png";
+         	
+         	$i = "img/16/{$lowerType}.png";
+         	$img = "<img class='calImg' src=". sbf($i) .">&nbsp;";
+         	
     	} elseif($rec->type = 'reminder') {
          	$attr['ef_icon'] = "img/16/alarm_clock.png";
+         	
+         	$i = "img/16/alarm_clock.png";
+         	$img = "<img class='calImg' src=". sbf($i) .">&nbsp;";
     	} else { 
             $attr['ef_icon'] = $rec->type;
+            
+            $i = $rec->type;
+            $img = "<img class='calImg' src=". sbf($i) .">&nbsp;";
         }
 
-       $attr = ht::addBackgroundIcon($attr);
+        $attr = ht::addBackgroundIcon($attr);
 
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
         }
+
         // TODO
+        // правим линк за изгледите
         if($isLink){
-        	$row->event = ht::createLink($row->title, $url, NULL, $attr);
+            $row->event = ht::createLink($row->title, $url, NULL, $attr);
+            
+            if($cUrl['Act'] == "day" || $cUrl['Act'] == "week" || $cUrl['Act'] == "month"){
+                if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
+                    $row->event = "<div class='task'>" . $img . ht::createLink("<p class='state-{$rec->state}'>".$row->title . "</p>", $url, NULL)."</div>";
+                } else{
+                    $row->event = "<div class='holiday-title'>" . $img . ht::createLink("<p class='calWeek'>".$row->title . "</p>", $url, NULL)."</div>";
+                }
+            }
+        // или ако нямаме достъп, правим елемент
         } else {
         	$row->event = ht::createElement("span", $attr, $row->title);
             if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
@@ -367,6 +406,7 @@ class cal_Calendar extends core_Master
                 }
             }
         }
+        
         // TODO
         $today     = date('Y-m-d');
         $tommorow  = date('Y-m-d', time() + 24 * 60 * 60);
@@ -802,7 +842,7 @@ class cal_Calendar extends core_Master
     	$type = strtoupper($country);
     	
     	if ($type == 'BG') {
-            $query->where("#time = '{$time}' AND (#type = 'holiday' OR #type = 'non-working' OR #type = 'workday' OR #type = 'BG')");
+            $query->where("#time = '{$time}' AND (#type = 'holiday' OR #type = 'non-working' OR #type = 'workday')");
     	} else {
     	    $query->where("#time = '{$time}' AND #type = '{$type}'");
     	}
@@ -1615,8 +1655,13 @@ class cal_Calendar extends core_Master
         
         $stateDay = self::prepareState($fromDate, $toDate, $selectedUsers);
         
+      
         if(is_array($stateDay)){
+            
 	        foreach($stateDay as $rec){
+	            $row = new stdClass();
+	            $row = self::recToVerbal($rec);
+	            
 			    // Деня, за който взимаме събитията
 			    $dayKey = $dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
 			     
@@ -1629,30 +1674,14 @@ class cal_Calendar extends core_Master
 			    if($hourKey <= self::$tr && $hourKey != "allDay") self::$tr = $hourKey;
 			    
 			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
-			    
-			    // Линк към събитието
-	     		$url = parseLocalUrl($rec->url, FALSE);
-	               
-	     		// Ид-то на събитието
-	    		$id = substr(strrchr($rec->url, "/"),1);
-	    		
+
 	     	    // Картинката за задачите
 	     		$img = self::getIconByType($rec->type, $rec->key);
 	     		
 	     		$rec->title = type_Varchar::escape($rec->title);
-				
-	     		if($hourKey == "allDay" ){
-	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
-	     				$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	     			} else {
-	     				$dayData[$hourKey][$dayKey] .="<div class='holiday-title'>". $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	     			}
-	     		}
-	    		
-	     		if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00")$dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	    		
-	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $dayData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	
+
+	     		$dayData[$hourKey][$dayKey] .= $row->event;
+
 	     	}
         }
      	
@@ -1680,6 +1709,8 @@ class cal_Calendar extends core_Master
         
         if(is_array($stateWeek)){
 	        foreach($stateWeek as $rec){
+	            $row = new stdClass();
+	            $row = self::recToVerbal($rec);
 	        	
 	        	// Деня, за който взимаме събитията
 			    $dayKey = $weekArr->dates[dt::mysql2verbal($rec->time, 'Y-m-d')];
@@ -1705,17 +1736,8 @@ class cal_Calendar extends core_Master
 	            
 	            $rec->title = type_Varchar::escape($rec->title);
 	            
-	            if($hourKey == "allDay"){
-	            	if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
-	            		$weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	            	} else {
-	            		$weekData[$hourKey][$dayKey] .="<div class='holiday-title'>". $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	            	}
-	            } 
-	            
-	            if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)) .'</div>';
-	    		
-	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $weekData[$hourKey][$dayKey] .= "<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
+	            $weekData[$hourKey][$dayKey] .= $row->event;
+
 	        }
         }
        
@@ -1743,7 +1765,8 @@ class cal_Calendar extends core_Master
       
         if(is_array($stateMonth)){
 	        foreach($stateMonth as $rec){
-	       
+	            $row = new stdClass();
+	            $row = self::recToVerbal($rec);
 			     
 			    // Начален час на събитието
 			    $hourKey = dt::mysql2verbal($rec->time, 'G');
@@ -1769,28 +1792,7 @@ class cal_Calendar extends core_Master
 			    
 			    if($hourKey >= self::$tk && $hourKey != "allDay") self::$tk = $hourKey;
 			    
-			    // Линк към събитието
-	     		$url = parseLocalUrl($rec->url, FALSE);
-	               
-	     		// Ид-то на събитието
-	    		$id = substr(strrchr($rec->url, "/"),1);
-	    		
-	     	    // Картинката за задачите
-	            $img = self::getIconByType($rec->type, $rec->key);
-	            
-	            $rec->title = type_Varchar::escape($rec->title);
-	            
-	        	if($hourKey == "allDay" ){
-	     			if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel') {
-	     				$monthDate->monthArr[$weekKey][$dayKey] .= "<div class='task'>".$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title. "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	     			} else {
-	     				$monthDate->monthArr[$weekKey][$dayKey] .="<div class='holiday-title'>". $img.ht::createLink("<p class='calWeek'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title))."</div>";
-	     			}
-	     		}
-	     		
-	            if($hourKey != "allDay" && dt::mysql2verbal($rec->time, 'i') == "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" .$img.ht::createLink("<p class='state-{$rec->state}'>" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)). '</div>';
-	    		
-	    		if(dt::mysql2verbal($rec->time, 'i') != "00") $monthDate->monthArr[$weekKey][$dayKey] .="<div class='task'>" . $img.ht::createLink("<p class='state-{$rec->state}'>" . dt::mysql2verbal($rec->time, 'H:i'). "&nbsp;" . $rec->title . "</p>", $url, NULL, array('title' => $rec->title)).'</div>';
+			    $monthDate->monthArr[$weekKey][$dayKey] .= $row->event;
 	        }
         }
        
@@ -2314,6 +2316,66 @@ class cal_Calendar extends core_Master
     	$isToday = ($fromA[2]== $today[2] && $fromA[1] == $today[1] && $fromA[0] == $today[0]);
     	
     	return $isToday;
+    }
+    
+    
+    public static function prepareLinkOrElement($rec)
+    {
+        $lowerType = strtolower($rec->type);
+         
+        $url = parseLocalUrl($rec->url, FALSE);
+         
+        // TODO да стане с интерфейс
+        $isLink = TRUE;
+        $mvc = cls::get($url['Ctr']);
+        
+        if($mvc instanceof core_Mvc) {
+        
+            $class = $url['Ctr'];
+            switch ($url['Act']) {
+                case 'Single':
+                    $isLink = $class::haveRightFor('single', $url['id']);
+                    break;
+                case 'list':
+                    $isLink = $class::haveRightFor('list');
+                    break;
+                case 'default':
+                    $isLink = $class::haveRightFor('default');
+                    break;
+            }
+        }
+        
+         
+        // TODO
+        $attr = array();
+        if(!strpos($rec->type, '/')) {
+            $attr['ef_icon'] = "img/16/{$lowerType}.png";
+        } elseif($rec->type = 'reminder') {
+            $attr['ef_icon'] = "img/16/alarm_clock.png";
+        } else {
+            $attr['ef_icon'] = $rec->type;
+        }
+        
+        $attr = ht::addBackgroundIcon($attr);
+        
+        if($rec->priority <= 0) {
+            $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
+        }
+        // TODO
+        if($isLink){
+            $event = ht::createLink($rec->title, $url, NULL, $attr);
+        } else {
+            $event = ht::createElement("span", $attr, $rec->title);
+            if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+                $pRec = crm_Persons::fetch($url['id']);
+        
+                if ($pRec->inCharge) {
+                    $event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
+                }
+            }
+        }
+        
+        return $event;
     }
 
 }

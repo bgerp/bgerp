@@ -200,10 +200,13 @@ class doc_HiddenContainers extends core_Manager
      * @param integer $id
      * @param boolean|NULL $hide
      * @param boolean $temp
+     * @param NULL|integer $userId
      */
-    public static function showOrHideDocument($cId, $hide = FALSE, $temp = FALSE)
+    public static function showOrHideDocument($cId, $hide = FALSE, $temp = FALSE, $userId = NULL)
     {
-        $userId = core_Users::getCurrent();
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
         
         if ($userId < 1) return ;
         

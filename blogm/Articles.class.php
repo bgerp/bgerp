@@ -458,12 +458,12 @@ class blogm_Articles extends core_Master {
         
         
         if($data->rec->body) {
-            $pattern = fileman_GalleryRichTextPlg::IMG_PATTERN;
+            $pattern = cms_GalleryRichTextPlg::IMG_PATTERN;
         
             preg_match($pattern, $data->rec->body, $matches);
  
             if($iHnd = $matches[1]) {
-                $iRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
+                $iRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
                 $fileSrc = $iRec->src;
             }
         }

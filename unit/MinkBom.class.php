@@ -538,7 +538,7 @@ class unit_MinkBom extends core_Manager
         }
          
         $browser->setValue('note', 'MinkTestCreatePurchase');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
         

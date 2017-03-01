@@ -144,6 +144,7 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::updateTasks',
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
+    		'migrate::migrateJobs',
         );
 
         
@@ -248,6 +249,51 @@ class planning_Setup extends core_ProtoSetup
     		try{
     			$Details->save_($dRec, 'storeId');
     		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на департаментите
+     */
+    function migrateJobs()
+    {
+    	$Jobs = cls::get('planning_Jobs');
+    	$Jobs->setupMvc();
+    	
+    	if(!planning_Jobs::count()) return;
+    	
+    	$emptyId = hr_Departments::fetch("#systemId = 'emptyCenter'")->id;
+    	if(!$emptyId) return;
+    	
+    	$defFolderId = hr_Departments::forceCoverAndFolder($emptyId);
+    	
+    	$query = $Jobs->getQuery();
+    	$query->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)');
+    	
+    	while($rec = $query->fetch()){
+    		
+    		try{
+    			$newFolderId = $defFolderId;
+    			
+    			if(isset($rec->departments)){
+    				$departments = keylist::toArray($rec->departments);
+    				if(count($departments)){
+    					$departmentId = key($departments);
+    					if($departmentId){
+    						$rec->department = $departmentId;
+    						$newFolderId = hr_Departments::forceCoverAndFolder($departmentId);
+    							
+    						$Jobs->save_($rec, 'department');
+    					}
+    				}
+    			}
+    			
+    			doc_Threads::move($rec->threadId, $newFolderId);
+    			doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $rec->createdBy);
+    		} catch (core_exception_Expect $e){
     			reportException($e);
     		}
     	}

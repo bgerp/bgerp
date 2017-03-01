@@ -39,7 +39,7 @@ class expert_Dataset extends core_BaseClass {
     /**
      * Задава стойност на променлива
      */
-    public function addRule($name, $expr, $cond = NULL)
+    public function addRule($name, $expr, $cond = NULL, $priority = NULL)
     {
         // Нормализация на параметрите
         $name = trim($name);
@@ -48,10 +48,14 @@ class expert_Dataset extends core_BaseClass {
         if($name{0} == '$') {
             $name = substr($name, 1);
         }
-        $id = substr(md5($name . $expr . $cond), 0, 8);
+        $id = substr(md5($name . $expr . $cond . $priority), 0, 8);
 
-        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending');
+        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => count($this->rules[$name])+1);
         
+        if($priority) {
+            $rule->priority = $priority;
+        }
+
         $rule->exprVars = $this->extractVars($expr);
 
         $rule->condVars = $this->extractVars($cond);
@@ -71,7 +75,7 @@ class expert_Dataset extends core_BaseClass {
     /**
      * Мегически метод, който се извиква, ако обекта се използва като функция
      */
-    public function __invoke($name, $expr, $cond = NULL)
+    public function __invoke($name, $expr, $cond = NULL, $priority = NULL)
     {
         static $files;
 
@@ -87,7 +91,7 @@ class expert_Dataset extends core_BaseClass {
             $this->log[] = "<br>Warning: Възможен проблем с двойни кавички в правилото <b>$line</b>";
         }
 
-        $this->addRule($name, $expr, $cond);
+        $this->addRule($name, $expr, $cond, $priority);
     }
 
 
@@ -148,7 +152,7 @@ class expert_Dataset extends core_BaseClass {
      * $rule->state = fail, pending, used
      */
     private function prepareRule(&$rule)
-    {
+    { 
         if($rule->state != 'pending') return;
 
         if($this->trusts[$rule->name]) {
@@ -156,8 +160,8 @@ class expert_Dataset extends core_BaseClass {
 
             return;
         }
-
-        $trust = $maxTrust = 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""');
+ 
+        $trust = $maxTrust = 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order/100000 + $rule->priority;
         $div = 3;
         
         $vars = $rule->exprVars + $rule->condVars;
@@ -166,6 +170,29 @@ class expert_Dataset extends core_BaseClass {
         $div      += count($vars);
 
         foreach($vars as $n) {
+
+            // Ако нямаме достоверност за стойността и нямаме правило за нея - правилото е блокирано
+            if(!($this->trusts[$n] > 0)) {
+                if(!isset($this->rules[$n])) {
+                    $rule->state = 'block';
+
+                    return;
+                } else {
+                    $havePending = FALSE;
+                    foreach($this->rules[$n] as $id => $rN) {
+                        if($rN->state == 'pending') {
+                            $havePending = TRUE;
+                            break;
+                        }
+                    }
+                    if(!$havePending) {
+                        $rule->state = 'block';
+
+                        return;
+                    }
+                }
+            }
+
             $trust += (1+$this->trusts[$n])/2;
             if(!$this->trusts[$n]) {
                 $trust = 0;
@@ -185,6 +212,8 @@ class expert_Dataset extends core_BaseClass {
             }
             $rule->value = $this->calc($rule->expr, $rule->exprVars);
         }
+
+
     }
 
 
@@ -231,7 +260,7 @@ class expert_Dataset extends core_BaseClass {
                 }
             }
         }
-        
+       
         do {
             // Изчисляваме всички правила. Опитваме се да намерим $value, $trust, $maxTrust
             foreach($this->rules as $name => &$rArr) {
@@ -240,8 +269,9 @@ class expert_Dataset extends core_BaseClass {
                     $this->prepareRule($r);
                 }
             }
-            
+
             $bestRule = NULL;
+            $rated = array();
 
             // Намираме от всички правила, това, което има достоверност >0 и се изчислява
             // приоритет = достоверност - брой "чакъщи" правила с по-висок или равен ранг
@@ -268,11 +298,15 @@ class expert_Dataset extends core_BaseClass {
  
                     if(!isset($bestRule) || $bestRule->rate < $r->rate) {
                         $bestRule = $r;
+                        $rated[] = $r;
                     }
                 }
             }
             
             if($bestRule) {  
+
+                // if($bestRule->name == 'CostVariable') bp($rated, $this);
+
                 $this->setVar($bestRule->name, $bestRule->value, $bestRule->trust, "[{$bestRule->expr}]" . ($bestRule->cond ?  " ({$bestRule->cond})":''));
                 $bestRule->state = 'used';
             }

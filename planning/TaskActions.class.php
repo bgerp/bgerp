@@ -186,11 +186,15 @@ class planning_TaskActions extends core_Manager
 		$query->where("#type = '{$type}'");
 		$query->where("#jobId = {$jobId}");
 		$query->where("#productId = {$jobRec->productId}");
-		$query->XPR('sumQuantity', 'double', "SUM(#quantity)");
-		$query->show('quantity,sumQuantity');
+		$query->show('quantity,action');
 		
-		$quantity = $query->fetch()->sumQuantity;
-		if(!isset($quantity)){
+		$quantity = 0;
+		while($rec = $query->fetch()){
+			$sign = ($rec->action == 'reject') ? -1 : 1;
+			$quantity += $sign * $rec->quantity;
+		}
+		
+		if($quantity < 0){
 			$quantity = 0;
 		}
 		

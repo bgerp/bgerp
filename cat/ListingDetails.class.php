@@ -221,7 +221,7 @@ class cat_ListingDetails extends doc_Detail
 				$requiredRoles = 'no_one';
 			} else {
 				$state = cat_Listings::fetchField($rec->listId, 'state');
-				if($state != 'draft'){
+				if($state == 'rejected'){
 					$requiredRoles = 'no_one';
 				}
 			}

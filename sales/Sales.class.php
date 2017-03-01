@@ -59,7 +59,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close, plg_LastUsedKeys';
     
     
     /**
@@ -193,6 +193,7 @@ class sales_Sales extends deals_DealMaster
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
+    	'caseId'             => 'lastDocUser|lastDoc',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
@@ -397,15 +398,6 @@ class sales_Sales extends deals_DealMaster
         }
        
         $form->setOptions('bankAccountId', $options);
-        if($bankAccountId = bank_OwnAccounts::getCurrent('bankAccountId', FALSE)){
-        	$accountRec = bank_Accounts::fetch($bankAccountId);
-        	$bankCurrencyCode = currency_Currencies::getCodeById($accountRec->currencyId);
-        	
-        	if($rec->currencyId == $bankCurrencyCode){
-        		$form->setDefault('bankAccountId', $bankAccountId);
-        	}
-        }
-       
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
@@ -452,9 +444,10 @@ class sales_Sales extends deals_DealMaster
     		if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
 	    	} else {
+	    		$exClosedDeal = sales_ClosedDeals::fetchField("#threadId = {$rec->threadId} AND #state != 'rejected'", 'id');
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но не може да го използва
-	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales')){
+	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales') && empty($exClosedDeal)){
 	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото");
 	    		}
 	    	}
@@ -1128,9 +1121,8 @@ class sales_Sales extends deals_DealMaster
 
     	if(isset($fields['-single'])){
     		
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionSale")){
+    			$row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
     		}
     		
     		if ($rec->currencyRate) {

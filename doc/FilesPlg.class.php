@@ -19,18 +19,11 @@ class doc_FilesPlg extends core_Plugin
      * Променяме wrapper' а да сочи към текущата избрана папка
      */
     function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
-    { 
-        // Ако разглеждаме single' а
-        if($data->action != 'single') return;
-        
-        // Ако не сме избрали папка
-        if (!($folderId = mode::get('lastfolderId'))) return ;
-        
-        // Ако няма такъв файл
-        if (!($fRec = doc_Files::fetch("#folderId = '{$folderId}' AND #fileHnd = '{$data->rec->fileHnd}'"))) return ;
+    {
+        if ($data->action != 'single') return ;
         
         // Ако нямам права за файла
-        if (!doc_Files::haveRightFor('list', $fRec)) return ;
+        if (!doc_Files::haveRightFor('list')) return ;
         
         // Инстанция на класа
         $docFilesInst = cls::get('doc_Files');
@@ -90,7 +83,7 @@ class doc_FilesPlg extends core_Plugin
         while ($fRec = $query->fetch()) {
             
             // Ако нямаме права за разглеждане на записа
-            if (!doc_Files::haveRightFor('info', $fRec)) continue;
+            if (!doc_Files::haveRightFor('list', $fRec)) continue;
             
             // Ако сме обходили съответния контейнер, прескачаме
             if ($containerArr[$fRec->containerId]) continue;
@@ -111,6 +104,8 @@ class doc_FilesPlg extends core_Plugin
             	
                 continue;
             }
+            
+            if (!$doc || !$doc->haveRightFor('single')) continue ;
             
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
@@ -138,6 +133,8 @@ class doc_FilesPlg extends core_Plugin
                     
                         continue;
                     }
+                    
+                    if (!$docProxy || !$docProxy->haveRightFor('single')) continue ;
                     
                     // Полетата на документа във вербален вид
                     $docProxyRow = $docProxy->getDocumentRow();
@@ -234,6 +231,8 @@ class doc_FilesPlg extends core_Plugin
             
                 continue;
             }
+            
+            if (!$doc || !$doc->haveRightFor('single')) continue ;
             
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();

@@ -706,9 +706,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
-        if ($action == 'single' && !(Request::get('Printing'))) {
-        	
-            expect($id = Request::get('id', 'int'));
+        if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
+        	expect($id = Request::get('id', 'int'));
             
             expect($rec = $mvc->fetch($id), $id);
             
@@ -2552,7 +2551,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Намираме прикачените файлове
-        $res = array_merge(fileman_GalleryRichTextPlg::getImages($rec->body), (array)$res);
+        $res = array_merge(cms_GalleryRichTextPlg::getImages($rec->body), (array)$res);
     }
     
     

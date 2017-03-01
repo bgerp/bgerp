@@ -164,7 +164,7 @@ class colab_DocumentLog extends core_Manager
                     $attr['data-useHover'] = '1';
                     $attr['data-useCache'] = '1';
                     
-                    $viewCntLink = ht::createElement('span', $attr, $viewCnt, TRUE);
+                    $viewCntLink = ht::createElement('span', $attr, "<span>" . $viewCnt . "</span>", TRUE);
                     
                     $viewCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $viewCntLink;
                     

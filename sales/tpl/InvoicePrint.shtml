@@ -1,0 +1,112 @@
+<c>[#MyCompany#]
+<c>[#MyAddress#]
+<!--ET_BEGIN MyCompanyVatNo-->
+<c>ЗДДС №: [#MyCompanyVatNo#]
+<!--ET_END MyCompanyVatNo-->
+<!--ET_BEGIN uicId-->
+<c>ЕИК: [#uicId#]
+<!--ET_END uicId-->
+<p>
+<c F b>[#type#]
+<c F b>№[#number#]
+<c F b>[#date#]
+<c F b>ОРИГИНАЛ
+<p>
+<!--ET_BEGIN PRODUCT_BLOCK-->
+[#PRODUCT_BLOCK#]
+<p b>[#numb#].[#productId#]
+<p><l>[#packQuantity#] [#packagingId#]<l12>х [#packPrice#]<r32>= [#amount#]
+<!--ET_END PRODUCT_BLOCK-->
+<!--ET_BEGIN DOWNPAYMENT_BLOCK-->
+[#DOWNPAYMENT_BLOCK#]
+<p b>[#downpayment#] = [#downpayment_amount#]
+<!--ET_END DOWNPAYMENT_BLOCK-->
+<p><r32 ->
+<!--ET_BEGIN value-->
+<p b>Стойност:  <r32 b>[#value#]
+<!--ET_END value-->
+<!--ET_BEGIN discountValue-->
+<p b>Отстъпка:  <r32 b>[#discountValue#]
+<!--ET_END discountValue-->
+<!--ET_BEGIN neto-->
+<p b>Нето:  <r32 b>[#neto#]
+<!--ET_END neto-->
+<!--ET_BEGIN vat02BaseAmount-->
+<p b>Дан. основа [#vat02Base#]: <r32 b>[#vat02BaseAmount#]
+<!--ET_END vat02BaseAmount-->
+<!--ET_BEGIN vat02Amount-->
+<p b>ДДС [#vat02#]:  <r32 b>[#vat02Amount#]
+<!--ET_END vat02Amount-->
+<!--ET_BEGIN vat09BaseAmount-->
+<p b>Дан. основа [#vat09Base#]: <r32 b>[#vat09BaseAmount#]
+<!--ET_END vat09BaseAmount-->
+<!--ET_BEGIN vat09Amount-->
+<p b>ДДС [#vat09#]:  <r32 b>[#vat09Amount#]
+<!--ET_END vat09Amount-->
+<!--ET_BEGIN vat0BaseAmount-->
+<p b>Дан. основа [#vat0Base#]: <r32 b>[#vat0BaseAmount#]
+<!--ET_END vat0BaseAmount-->
+<!--ET_BEGIN vat0Amount-->
+<p b>ДДС [#vat0#]:  <r32 b>[#vat0Amount#]
+<!--ET_END vat0Amount-->
+<p><r32 ->
+<p F b>Общо:  <r16 F b>[#total#]
+<p f>Словом: [#sayWords#]
+<p><r32 ->
+<p b>Клиент
+<p>[#contragentName#]
+<p>[#contragentCountryId#]
+<p>[#contragentPCode#] [#contragentPlace#]
+<p>[#contragentAddress#]
+<!--ET_BEGIN contragentVatNo-->
+<p>ЗДДС №: [#contragentVatNo#]
+<!--ET_END contragentVatNo-->
+<!--ET_BEGIN uicNo-->
+<p>ЕИК: [#uicNo#]
+<!--ET_END uicNo-->
+<p><r32 ->
+<!--ET_BEGIN vatReason-->
+<p>Основание за ДДС: [#vatReason#]
+<!--ET_END vatReason-->
+<p>Място на сделката: [#place#]
+<p>Дата на данъчното събитие:
+<p b>[#vatDate#]
+<!--ET_BEGIN paymentType-->
+<p>[#paymentType#]
+<!--ET_END paymentType-->
+<!--ET_BEGIN bankInfo-->
+[#bankInfo#]
+<!--ET_BEGIN bank-->
+<p>Банка: [#bank#]
+<!--ET_END bank-->
+<!--ET_BEGIN bic-->
+<p>BIC: [#bic#]
+<!--ET_END bic-->
+<!--ET_BEGIN accountId-->
+<p>IBAN: [#accountId#]
+<!--ET_END accountId-->
+<!--ET_END bankInfo-->
+<!--ET_BEGIN dueDate-->
+<p>Краен срок за плащане:
+<p>[#dueDate#]
+<!--ET_END dueDate-->
+<!--ET_BEGIN OVERDUE_INTEREST_RATE-->
+<p>Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*
+<!--ET_END OVERDUE_INTEREST_RATE-->
+<!--ET_BEGIN rate-->
+<p>Курс: [#rate#]
+<!--ET_END rate-->
+<!--ET_BEGIN deliveryInfo-->
+<p><r32 ->
+[#deliveryInfo#]
+<p b>Доставка
+<!--ET_BEGIN deliveryId-->
+<p>[#deliveryId#] <!--ET_BEGIN deliveryPlaceId-->[#deliveryPlaceId#]<!--ET_END deliveryPlaceId-->
+<!--ET_END deliveryId-->
+<!--ET_END deliveryInfo-->
+<p>Бележки: [#additionalInfo#]
+<p><r32 ->
+<p>Получател:
+<p><r32 .>
+<p>Съставил:
+<p>[#username#]

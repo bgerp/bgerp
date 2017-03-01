@@ -8,11 +8,13 @@
 	<!--ET_END blank-->
 	
 	<!--ET_BEGIN header-->
+	    
+	    <span style='display:none;'>[#header#]</span>
+		
 		<div class='header [#STATE_CLASS#] no-print'>
 			<div class='docBgIcon' style='[#iconStyle#]'>
 		        <div class='document-title-group'>[#singleTitle#] <b>[#ident#]</b><!--ET_BEGIN state--> ([#state#])<!--ET_END state--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
 				</div>
-				<!--ET_END DocumentSettingsLeft-->
 				<!--ET_BEGIN DocumentSettingsLeft-->
 					<div class='document-settings-left'>
 						[#DocumentSettingsLeft#]

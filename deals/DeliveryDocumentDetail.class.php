@@ -133,6 +133,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 	
 			if (!isset($rec->packPrice)) {
+				$autoPrice = TRUE;
 				
 				// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
 				$origin = $mvc->Master->getOrigin($masterRec);
@@ -175,6 +176,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				}
 				
 			} else {
+				$autoPrice = FALSE;
+				
 				// Изчисляване цената за единица продукт в осн. мярка
 				$rec->price  = $rec->packPrice  / $rec->quantityInPack;
 				
@@ -182,6 +185,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 				}
 			}
+			
+			// Проверка на цената
+			if(!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)){
+				$form->setError('packPrice,packQuantity', $msg);
+			}
+			
 			$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 			
 			// Ако има такъв запис, сетваме грешка

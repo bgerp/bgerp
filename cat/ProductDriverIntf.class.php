@@ -109,15 +109,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
-	 */
-	public function getJobFolderName()
-	{
-		return $this->class->getJobFolderName();
-	}
-	
-	
-	/**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
      * @param double $quantity - к-во
@@ -194,19 +185,28 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Връща цената за посочения продукт към посочения клиент на посочената дата
 	 *
-	 * @param mixed $customerClass - клас на контрагента
-	 * @param int $customerId - ид на контрагента
-	 * @param int $productId - ид на артикула
-	 * @param int $packagingId - ид на опаковка
-	 * @param double $quantity - количество
-	 * @param datetime $datetime - дата
-	 * @param double $rate  - валутен курс
-	 * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+	 * @param mixed $productId     - ид на артикул
+	 * @param int $quantity        - к-во
+	 * @param double $minDelta     - минималната отстъпка
+	 * @param double $maxDelta     - максималната надценка
+	 * @param datetime $datetime   - дата
 	 * @return double|NULL $price  - цена
 	 */
-	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL)
 	{
-		return $this->class->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+		return $this->class->getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime);
+	}
+	
+	
+	/**
+	 * Може ли драйвера автоматично да си изчисли себестойноста
+	 * 
+	 * @param mixed $productId - запис или ид
+	 * @return boolean
+	 */
+	public function canAutoCalcPrimeCost($productId)
+	{
+		return $this->class->canCalcPrice($productId);
 	}
 	
 	

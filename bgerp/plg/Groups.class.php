@@ -50,7 +50,7 @@ class bgerp_plg_Groups extends core_Plugin
             
             $selArr = arr::make($rec->Selected);
             
-            setIfNot($groupField, $mvc->groupField, 'groupList');
+            setIfNot($groupField, $mvc->groupField, $mvc->expandInputFieldName, 'groupList');
             
             $groupFieldType = $mvc->getFieldType($groupField);
             

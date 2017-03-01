@@ -40,7 +40,7 @@ class store_Transfers extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer, acc_AllowArticlesCostCorrectionDocsIntf';
     
     
     /**
@@ -480,5 +480,45 @@ class store_Transfers extends core_Master
     	// Споделяме текущия потребител със нишката на заданието
     	$cu = core_Users::getCurrent();
     	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+    }
+    
+    
+    /**
+     * Списък с артикули върху, на които може да им се коригират стойностите
+     * @see acc_AllowArticlesCostCorrectionDocsIntf
+     *
+     * @param mixed $id               - ид или запис
+     * @return array $products        - масив с информация за артикули
+     * 			    o productId       - ид на артикул
+     * 				o name            - име на артикула
+     *  			o quantity        - к-во
+     *   			o amount          - сума на артикула
+     *   			o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+     *    			o transportWeight - транспортно тегло на артикула
+     *     			o transportVolume - транспортен обем на артикула
+     */
+    function getCorrectableProducts($id)
+    {
+    	$products = array();
+    	$rec = $this->fetchRec($id);
+    	$query = store_TransfersDetails::getQuery();
+    	$query->where("#transferId = {$rec->id}");
+    	while($dRec = $query->fetch()){
+    		if(!array_key_exists($dRec->newProductId, $products)){
+    			$products[$dRec->newProductId] = (object)array('productId'    => $dRec->newProductId,
+    					'quantity'        => 0,
+    					'name'            => cat_Products::getTitleById($dRec->newProductId, FALSE),
+    					'amount'          => NULL,
+    					'transportWeight' => $dRec->weight,
+    					'transportVolume' => $dRec->volume,
+    					'inStores'        => array($rec->toStore => 0),
+    			);
+    		}
+    		
+    		$products[$dRec->newProductId]->quantity += $dRec->quantity;
+    		$products[$dRec->newProductId]->inStores[$rec->toStore] += $dRec->quantity;
+    	}
+    
+    	return $products;
     }
 }

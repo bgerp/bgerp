@@ -475,15 +475,19 @@ class core_Query extends core_FieldSet
     
     /**
      * Връща 'ORDER BY' клаузата
+     * 
+     * @param boolean $useAlias - дали полето за подредба да е с пълното си име или с alias-а си
      */
-    function getOrderBy()
+    function getOrderBy($useAlias = FALSE)
     {
         if (count($this->orderBy) > 0) {
             foreach ($this->orderBy as $order) {
-                $orderBy .= ($orderBy ? ", " : "") . $this->expr2mysql($order->field) .
+            	$fldName = ($useAlias === FALSE) ? $this->expr2mysql($order->field) : str_replace("#", '', $order->field);
+            	
+                $orderBy .= ($orderBy ? ", " : "") . $fldName .
                 " " . strtoupper($order->direction);
             }
-            
+           
             return "\nORDER BY {$orderBy}" ;
         }
     }
@@ -571,15 +575,19 @@ class core_Query extends core_FieldSet
             foreach($this->unions as $cond) {
                 $q = clone($this);
                 $q->unions = NULL;
+                $q->orderBy = NULL;
+                $q->limit = NULL;
+                $q->start = NULL;
                 $q->where($cond);
                 
                 $string = ($count > 1) ? "(" . $q->buildQuery() . ")" : $q->buildQuery();
                 $query .= ($query ? "\nUNION\n" : '') . $string;
             }
+           
+            $query .= $this->getOrderBy(TRUE);
+            $query .= $this->getLimit();
         } else {
-
             $wh = $this->getWhereAndHaving();
-            
             $query = "SELECT ";
             
             if (!empty($this->_selectOptions)) {

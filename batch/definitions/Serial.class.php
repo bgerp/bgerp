@@ -33,8 +33,10 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		$fieldset->FLD('numbers', 'int', 'caption=Цифри,mandatory,unit=брой');
-		$fieldset->FLD('prefix', 'varchar(10)', 'caption=Представка');
-		$fieldset->FLD('suffix', 'varchar(10)', 'caption=Наставка');
+		$fieldset->FLD('prefix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Представка');
+		$fieldset->FLD('suffix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Наставка');
+		$fieldset->FLD('prefixHistory', 'blob', 'input=none');
+		$fieldset->FLD('suffixHistory', 'blob', 'input=none');
 	}
 	
 	
@@ -125,22 +127,21 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$prefix = $this->rec->prefix;
 		$suffix = $this->rec->suffix;
 		
-		if(!empty($prefix)){
-			if(strpos($from, $prefix) === FALSE || strpos($to, $prefix) === FALSE) return FALSE;
+		$prefixes = (isset($this->rec->prefixHistory)) ? $this->rec->prefixHistory : array("{$prefix}" => "{$prefix}");
+		foreach ($prefixes as $pr){
+			$from = ltrim($from, $pr);
+			$to = ltrim($to, $pr);
 		}
 		
-		if(!empty($suffix)){
-			if(strpos($from, $suffix) === FALSE || strpos($to, $suffix) === FALSE) return FALSE;
+		$suffixes = (isset($this->rec->suffixHistory)) ? $this->rec->suffixHistory : array("{$suffix}" => "{$suffix}");
+		foreach ($suffixes as $sf){
+			$to = rtrim($to, $sf);
+			$from = rtrim($from, $sf);
 		}
-		
-		$from = str_replace($prefix, '', $from);
-		$from = str_replace($suffix, '', $from);
-		
-		$to = str_replace($prefix, '', $to);
-		$to = str_replace($suffix, '', $to);
 		
 		$res = array();
 		$start = $from;
+		
 		while($start < $to){
 			$serial = str::increment($start);
 			$v = "{$prefix}{$serial}{$suffix}";
@@ -173,6 +174,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			$vArr = explode(':', $v);
 			if(count($vArr) == 2){
 				$rangeArr = $this->getByRange($vArr[0], $vArr[1]);
+				
 				if(is_array($rangeArr)){
 					$res = $res + $rangeArr;
 				} else {
@@ -205,6 +207,19 @@ class batch_definitions_Serial extends batch_definitions_Proto
 				$form->setError("driverClass", "Само артикули с основна мярка 'брой' могат да имат серийни номера");
 			}
 		}
+		
+		
+		if(!is_array($rec->prefixHistory)){
+			$rec->prefixHistory = array();
+		}
+		$rec->prefixHistory[$rec->prefix] = $rec->prefix;
+		
+		if(!is_array($rec->suffixHistory)){
+			$rec->suffixHistory = array();
+		}
+		$rec->suffixHistory[$rec->suffix] = $rec->suffix;
+		
+		
 	}
 	
 	

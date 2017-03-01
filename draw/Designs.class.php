@@ -228,7 +228,7 @@ class draw_Designs extends core_Master
             
             $params = trim($params, '; ');
             
-            while(substr($params, -1) != ')') {
+            while(substr($params, -1) != ')' && strlen($params) > 1) {
                 $params = substr($params, 0, strlen($params)-1);
             }
             $params = substr($params, 0, strlen($params)-1);

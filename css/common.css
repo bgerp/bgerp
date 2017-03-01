@@ -1921,6 +1921,10 @@ td.keylist-group {
     top: 7px;
     right: 5px; }
 
+.narrow .formGroup img {
+  top: 50%;
+  margin-top: -8px; }
+
   .narrow td.keylist-group .minus,
   .narrow td.keylist-group .plus {
     top: 7px; }

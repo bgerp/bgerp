@@ -121,7 +121,7 @@
                             <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN commonCondition-->
-                            <li>[#commonCondition#]</li>
+                            <li>Common conditions for purchase: [#commonCondition#]</li>
                             <!--ET_END commonCondition-->
                         </ol>
                     </div>

@@ -195,7 +195,7 @@ class tcost_Calcs extends core_Manager
     
     
     /**
-     * След подготовка на туклбара на списъчния изглед
+     * След подготовка на тулбара на списъчния изглед
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
@@ -280,14 +280,18 @@ class tcost_Calcs extends core_Manager
     	$count = 0;
     	$classId = cls::get($docClass)->getClassId();
     	$feeErr = tcost_CostCalcIntf::CALC_ERROR;
+    	$isQuote = ($classId == sales_Quotations::getClassId());
     	
     	$query = self::getQuery();
     	$query->where("#docClassId = {$classId} AND #docId = {$docId}");
-    	$query->XPR('sum', 'double', 'sum(#fee)');
     	$query->where("#fee != {$feeErr}");
-    	
-    	if($rec = $query->fetch()){
-    		$count = $rec->sum;
+    	while($rec = $query->fetch()){
+    		if($isQuote === TRUE){
+    			$dRec = sales_QuotationsDetails::fetch($rec->recId, 'price,optional');
+    			if(!isset($dRec->price) || $dRec->optional == 'yes') continue;
+    		}
+    		
+    		$count += $rec->fee;
     	}
     	
     	return $count;
@@ -476,15 +480,16 @@ class tcost_Calcs extends core_Manager
     	if($rec->autoPrice !== TRUE){
     		
     		if(cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->productId)){
-    			
-    			// Проверка дали цената е допустима спрямо сумата на транспорта
-    			$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
-    			 
-    			if($amount <= round($rec->fee, 2)){
-    				$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
-    				$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
-    				$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
-    				$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
+    			if(isset($rec->{$map['price']})){
+    				// Проверка дали цената е допустима спрямо сумата на транспорта
+    				$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
+    				
+    				if($amount <= round($rec->fee, 2)){
+    					$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
+    					$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
+    					$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
+    					$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
+    				}
     			}
     		}
     	}

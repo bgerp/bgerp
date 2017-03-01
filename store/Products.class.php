@@ -285,7 +285,7 @@ class store_Products extends core_Manager
 
 
     /**
-     * След подготовка на туклбара на списъчния изглед
+     * След подготовка на тулбара на списъчния изглед
      *
      * @param core_Mvc $mvc
      * @param stdClass $data

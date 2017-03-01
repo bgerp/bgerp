@@ -19,8 +19,6 @@ function spr(sel) {
 
 }
 
-
-
 /**
  * Опитваме се да репортнем JS грешките
  */
@@ -1031,6 +1029,8 @@ function js2php(obj, path, new_path) {
 
 function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
+        if($(this).hasClass('nojs')) return;
+        
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
         var sizeStyle = el.attr('data-sizeStyle');
@@ -2720,24 +2720,24 @@ function actionsWithSelected() {
 
 function prepareCheckboxes(){
     var toggle = $(document.createElement('input')).attr({
-        name: "toggle"
-        ,class: "invert-checkboxes"
-        ,style: "display:none"
-        ,type:  'checkbox'
-        ,onclick: 'toggleAllCheckboxes();'
+        name: "toggle",
+        style: "display:none",
+        type:  'checkbox',
+        onclick: 'toggleAllCheckboxes();'
     });
+    $(toggle).addClass('invert-checkboxes');
 
     $('.checkbox-btn').each(function(){
         var id = $(this).attr("id").match(/\d+/)[0];
         var element = $(document.createElement('input')).attr({
-            id:    'cb_' + id
-            ,name: "R[" + id + "]"
-            ,class: "custom-checkboxes"
-            ,style: "display:none"
-            ,value: 'myValue'
-            ,type:  'checkbox'
-            ,onclick: 'chRwClSb("' + id +'")'
+            id:    'cb_' + id,
+            name: "R[" + id + "]",
+            style: "display:none",
+            value: 'myValue',
+            type:  'checkbox',
+            onclick: 'chRwClSb("' + id +'")'
         });
+        $(element).addClass('custom-checkboxes');
         $(this).closest('td').prepend(element);
         $(this).closest('tr').attr("id", 'lr_' + id);
 
@@ -4657,7 +4657,12 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	var height = $(window).height();
 	var browser = getUserAgent();
 	var title = sysDomain + '/' + ctr + '/' + act;
-
+	
+	if (url) {
+		url = url.substring(0, 250);
+		url += '...';
+	}
+	
 	addBugReportInput(form, 'title', title);
 	addBugReportInput(form, 'url', url);
 	addBugReportInput(form, 'email', user + '@' + domain);

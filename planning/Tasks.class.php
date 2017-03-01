@@ -228,6 +228,7 @@ class planning_Tasks extends tasks_Tasks
 	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
+		if(!$rec->productId) return;
 		
 		$productFields = self::getFieldsFromProductDriver($rec->productId);
 		$rec->additionalFields = array();

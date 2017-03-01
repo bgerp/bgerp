@@ -67,4 +67,36 @@ class batch_definitions_Document extends batch_definitions_Proto
 		
 		return parent::isValid($value, $quantity, $msg);
 	}
+	
+	
+	/**
+	 * Какви са свойствата на партидата
+	 *
+	 * @param varchar $value - номер на партидара
+	 * @return array - свойства на партидата
+	 * 	масив с ключ ид на партидна дефиниция и стойност свойството
+	 */
+	public function getFeatures($value)
+	{
+		list($date, $string) = explode('-', $value);
+		 
+		$varcharClassId = batch_definitions_Varchar::getClassId();
+		$dateClassId = batch_definitions_ExpirationDate::getClassId();
+		
+		return array("{$varcharClassId}" => $string, "{$dateClassId}" => $date);
+	}
+	
+	
+	/**
+	 * Подрежда подадените партиди
+	 *
+	 * @param array $batches - наличните партиди
+	 * 		['batch_name'] => ['quantity']
+	 * @param date|NULL $date
+	 * return void
+	 */
+	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
+	{
+		ksort($batches);
+	}
 }

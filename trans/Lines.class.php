@@ -315,31 +315,6 @@ class trans_Lines extends core_Master
     }
     
     
-	/**
-     * В кои корици може да се вкарва документа
-     * 
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-    	return array('trans_LinesFolderCoverIntf');
-    }
-    
-    
-	/**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $folderClass = doc_Folders::fetchCoverClassName($folderId);
-    	
-        return cls::haveInterface('trans_LinesFolderCoverIntf', $folderClass);
-    }
-    
-    
     /**
      * След подготовка на сингъла
      */

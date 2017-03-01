@@ -614,4 +614,26 @@ class core_Array
     	
     	return $res;
     }
+
+
+    /**
+     * Вмъкване на подмасив в масив
+     * @param array      $array     Оригинален масив
+     * @param int|string $position  Стрингов индекс или числова позиция
+     * @param mixed      $insert    Какво ще вмъкваме
+     * @param bool       $after     След или преди позицията
+     */
+    public static function insert(&$array, $position, $insert, $after = FALSE)
+    {
+        if (is_int($position)) {
+            array_splice($array, $position, 0, $insert);
+        } else {
+            $pos   = array_search($position, array_keys($array)) + $after;
+            $array = array_merge(
+                array_slice($array, 0, $pos),
+                $insert,
+                array_slice($array, $pos)
+            );
+        }
+    }
 }

@@ -420,10 +420,12 @@ abstract class deals_Helper
 	public static function addNotesToProductRow(&$productRow, $notes)
 	{
 		$RichText = cls::get('type_Richtext');
+		$notes = $RichText->toVerbal($notes);
 		if(is_string($productRow)){
-			$productRow .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
+			$productRow .= "<div class='small'>{$notes}</div>";
 		} else {
-			$productRow->append("<div class='small'>{$RichText->toVerbal($notes)}</div>");
+			$productRow->append(new core_ET("<div class='small'>[#NOTES#]</div>"));
+			$productRow->replace($notes, 'NOTES');
 		}
 	}
 	
@@ -601,7 +603,9 @@ abstract class deals_Helper
 							}
 								
 							$d = &$combined[$index];
-							$d->discount = max($d->discount, $p->discount);
+							if($p->discount != 1){
+								$d->discount = max($d->discount, $p->discount);
+							}
 			
 							$sign = ($parameter == 'arrays') ? 1 : -1;
 							
@@ -809,7 +813,7 @@ abstract class deals_Helper
 			$res['contragentName'] = $contragentName;
 		}
 		
-		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml'));
+		$makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain'));
 		
 		// Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
 		if($makeLink === TRUE){
@@ -851,5 +855,36 @@ abstract class deals_Helper
 		}
 		 
 		return TRUE;
+	}
+	
+	
+	/**
+	 * Помощна ф-я проверяваща дали цената не е много малка
+	 * 
+	 * @param double|NULL $price - цена
+	 * @param double $quantity   - количество
+	 * @param boolean $autoPrice - дали е автоматично изчислена
+	 * @param string|NULL $msg   - съобщение за грешка ако има
+	 * @return boolean           - дали цената е под допустимото
+	 */
+	public static function isPriceAllowed($price, $quantity, $autoPrice = FALSE, &$msg = NULL)
+	{
+		if(!$price) return TRUE;
+		if($quantity == 0) return TRUE;
+		
+		$amount = $price * $quantity;
+		
+		$round = round($amount, 2);
+		$res =((double)$round >= 0.01);
+		
+		if($res === FALSE){
+			if($autoPrice === TRUE){
+			$msg = "Сумата на реда не може да бъде под|* <b>0.01</b>! |Моля увеличете количеството, защото цената по политика е много ниска|*";
+			} else {
+				$msg = "Сумата на реда не може да бъде под|* <b>0.01</b>! |Моля променете количеството и/или цената|*";
+			}
+		}
+		
+		return $res;
 	}
 }

@@ -48,6 +48,16 @@ class plg_ExpandInput extends core_Plugin
             
             $mvc->FLD($mvc->expandInputFieldName, "keylist(mvc={$pMvc}, select={$select})", $caption);
         }
+        
+        // Вземаме параметрите, от групата, която няма да се показва
+        $eParams = $mvc->fields[$mvc->expandFieldName]->type->params;
+        if ($eParams) {
+            $iParams = $mvc->fields[$mvc->expandInputFieldName]->type->params;
+            if (!is_array($iParams)) {
+                $iParams = array();
+            }
+            $mvc->fields[$mvc->expandInputFieldName]->type->params = $iParams + $eParams;
+        }
     }
     
     
@@ -59,8 +69,19 @@ class plg_ExpandInput extends core_Plugin
      * @param stdObject $rec
      * @param string|NULL $fields
      */
-    static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
+    static function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)
     {
+        // Ако е подадено да се записва само едното поле, записваме и двете
+        if (isset($fields)) {
+            $fieldsArr = arr::make($fields, TRUE);
+        
+            if ($fieldsArr[$mvc->expandFieldName] || $fieldsArr[$mvc->expandInputFieldName]) {
+                $fieldsArr[$mvc->expandFieldName] = $mvc->expandFieldName;
+                $fieldsArr[$mvc->expandInputFieldName] = $mvc->expandInputFieldName;
+                $fields = implode(',', $fieldsArr);
+            }
+        }
+        
         // Вземаме всички въведени от потребителя стойност
         $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
         

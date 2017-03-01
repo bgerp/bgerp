@@ -358,7 +358,7 @@ class doc_Containers extends core_Manager
        
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, NULL, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         
-        $data->query->orderBy('#createdOn');
+        $data->query->orderBy('#createdOn, #id');
         
     	$threadId = Request::get('threadId', 'int');
         
@@ -1708,8 +1708,6 @@ class doc_Containers extends core_Manager
         $query->orWhere("#searchKeywords IS NULL");
         $query->orWhere("#searchKeywords = ''");
         
-        $query->orWhere("#activatedBy IS NULL AND #state != 'rejected' AND #state != 'draft'");
-        
         $query->limit(500);
 
         $resArr = array();
@@ -2634,7 +2632,7 @@ class doc_Containers extends core_Manager
             } else {
                 
                 // Съобщение
-                $message = "|Активирани, но неизпратени имейли";
+                $message = "|Имате активирани, но неизпратени имейли";
                 
                 // Линк, където ще сочи нотификацията
                 $customUrl = array('doc_Search', 'state' => 'active', 'docClass' => $outgoingsClassId, 'author' => $firstTeamAuthor);
@@ -2915,6 +2913,8 @@ class doc_Containers extends core_Manager
     function cron_Repair()
     {
         $cronPeriod = core_Cron::getPeriod(self::REPAIR_SYSTEM_ID);
+        
+        $cronPeriod *= 2;
         
         $from = dt::subtractSecs($cronPeriod);
         $to = dt::now();

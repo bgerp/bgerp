@@ -60,6 +60,15 @@ class plg_RefreshRows extends core_Plugin
             // Името с което ще се добави в масива
             $name = $mvc->className . '_RefreshRows';
             
+            // Ако страницата ще се обновява ръчно по AJAX
+            if ($mvc->manualRefreshCnt) {
+                $hitId = Request::get('hit_id');
+                if (!$hitId) {
+                    $hitId = str::getRand('######');
+                }
+                jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');", TRUE);
+            }
+            
             // Абонираме URL-то
             core_Ajax::subscribe($tpl, $url, $name, $time);
             
@@ -108,8 +117,24 @@ class plg_RefreshRows extends core_Plugin
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
         
+        // Времето на отваряне на страницата
+        $hitTime = Request::get('hitTime');
+        
+        // Кеша зе името
+        $nameHash = static::getNameHash($refreshUrlStr, $hitTime);
+        
+        $manualNameHash = static::getManualNameHash($nameHash);
+        
+        // Ако ще се обновява ръчно и вече е обновен n пъти
+        $stopRefresh = $mvc->stopМanualRefresh($manualNameHash);
+        
+        if ($stopRefresh === TRUE) {
+        
+            return FALSE;
+        }
+        
         // Парсираме URL-то
-        $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
+        $refreshUrlOrig = $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
         
         // Добавяме флага
         $refreshUrl['ajax_mode'] = $ajaxMode;
@@ -126,12 +151,6 @@ class plg_RefreshRows extends core_Plugin
         // Вземаме кеша на съдържанието
         $statusHash = $mvc->getContentHash($status);
         
-        // Времето на отваряне на страницата
-        $hitTime = Request::get('hitTime');
-        
-        // Кеша зе името
-        $nameHash = static::getNameHash($refreshUrlStr, $hitTime);
-        
         // Вземаме съдържанието от предишния запис
         $savedHash = Mode::get($nameHash);
         
@@ -139,6 +158,24 @@ class plg_RefreshRows extends core_Plugin
         
         // Ако има промяна
         if($statusHash != $savedHash) {
+            
+            // Ако ще се обновява ръчно
+            if ($mvc->manualRefreshCnt) {
+                
+                $refeshCnt = (int)Mode::get($manualNameHash);
+                $refeshCnt++;
+                
+                $type = 'notice';
+                if ($mvc->manualRefreshCnt == $refeshCnt) {
+                    $type = 'info';
+                }
+                
+                $res = $mvc->manualRefreshRes($refreshUrlOrig, $type);
+                
+                Mode::setPermanent($manualNameHash, $refeshCnt);
+                
+                return FALSE;
+            }
             
             // Записваме новата стойност, за да не се извлича следващия път за този таб
             Mode::setPermanent($nameHash, $statusHash);
@@ -238,6 +275,8 @@ class plg_RefreshRows extends core_Plugin
      * 
      * @param array $refreshUrl
      * @param integer $hitTime
+     * 
+     * @return string
      */
     static function getNameHash($refreshUrl, $hitTime)
     {
@@ -246,6 +285,56 @@ class plg_RefreshRows extends core_Plugin
         
         // Името на хеша, с който е записан в сесията
         $nameHash = "REFRESH_ROWS_" . $nameHash;
+        
+        return $nameHash;
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param boolean|NULL $res
+     */
+    public static function on_AfterStopМanualRefresh($mvc, &$res, $nameHash)
+    {
+        if (!$mvc->manualRefreshCnt) return ;
+        
+        $maxRefreshTimes = $mvc->manualRefreshCnt;
+        
+        $res = FALSE;
+        
+        if ((int)Mode::get($nameHash) >= $maxRefreshTimes) {
+            $res = TRUE;
+        }
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param array|NULL $res
+     */
+    public static function on_AfterManualRefreshRes($mvc, &$res, $refreshUrl, $type)
+    {
+        if (!isset($res)) {
+            $res = array();
+        }
+        
+        core_Statuses::newStatus('|Има промени в страницата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 300, Request::get('hitId'));
+    }
+    
+    
+    /**
+     * Връща хеша от URL-то и времето на извикване на страницата
+     * 
+     * @param string `fileman_data`.`file_len`
+     * 
+     * @return string
+     */
+    static function getManualNameHash($nameHash)
+    {
+        // Името на хеша, с който е записан в сесията
+        $nameHash = "MANUAL_" . $nameHash;
         
         return $nameHash;
     }

@@ -244,7 +244,7 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
             
             // Потребител, който ще е отговорник на несортираните имейли
-            'EMAIL_UNSORTABLE_INCHARGE' => array ('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'mandatory, caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
+            'EMAIL_UNSORTABLE_INCHARGE' => array ('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
 
             // Максималната големина на файловете, които ще се приемат за CID
             'EMAIL_MAXIMUM_CID_LEN' => array ('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
@@ -318,6 +318,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::repairSendOnTimeClasses',
             'migrate::updateUserInboxesD',
             'migrate::repairSalutations',
+            'migrate::repairDelayTime',
         );
     
 
@@ -570,6 +571,34 @@ class email_Setup extends core_ProtoSetup
             $rec->userId = $rec->createdBy;
             
             email_Salutations::save($rec, 'userId');
+        }
+    }
+
+
+    /**
+     * Миграция за поправка на полетата за изчакване от time в datetime
+     */
+    public static function repairDelayTime()
+    {
+        // Ако полето липсва в таблицата на модела да не се изпълнява
+        $cls = cls::get('email_SendOnTime');
+        $cls->db->connect();
+        $delayField = str::phpToMysqlName('delay');
+        if (!$cls->db->isFieldExists($cls->dbTableName, $delayField)) return ;
+        
+        $eQuery = $cls->getQuery();
+        
+        unset($eQuery->fields['delay']);
+        $eQuery->FLD('delay', 'time');
+        
+        $eQuery->where("#delaySendOn IS NULL");
+        $eQuery->where("#delay IS NOT NULL");
+        $eQuery->where("#delay != 0");
+        
+        while($eRec = $eQuery->fetch()) {  
+            $eRec->delaySendOn = dt::addSecs($eRec->delay, $eRec->createdOn);
+            
+            $cls->save($eRec, 'delaySendOn');
         }
     }
 }

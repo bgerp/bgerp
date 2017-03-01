@@ -198,15 +198,10 @@ class fileman_Setup extends core_ProtoSetup
             // Установяваме модела за последни файлове
             'fileman_Log',
             
-        	// Установяваме модела за групи на галериите
-            'fileman_GalleryGroups',
-    
-            // Установяваме модела за галериите 
-            'fileman_GalleryImages',
-            
             'migrate::addFileLen',
             'migrate::bucketRoles',
-            'migrate::regenerateData1'
+            'migrate::regenerateData1',
+            'migrate::regenerateBarcodes'
         );
     
     
@@ -262,9 +257,6 @@ class fileman_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина за качване на файлове в RichEdit
         $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
-        
-         // Замества абсолютните линкове с титлата на документа
-        $html .= $Plugins->installPlugin('Галерии и картинки в RichText', 'fileman_GalleryRichTextPlg', 'type_Richtext', 'private');
         
         // Кофа за файлове качени от архиви
         $html .= $Buckets->createBucket('archive', 'Качени от архив', '', '100MB', 'user', 'user');
@@ -434,6 +426,37 @@ class fileman_Setup extends core_ProtoSetup
         while ($dRec = $dQuery->fetch()) {
             $dRec->processed = 'no';
             fileman_Data::save($dRec, 'processed');
+        }
+    }
+    
+    
+    /**
+     * Изтриване на последно генерирани баркодове от системата
+     */
+    static function regenerateBarcodes()
+    {
+        $iQuery = fileman_Indexes::getQuery();
+        $iQuery->where("#type = 'barcodes'");
+        $iQuery->where("#createdBy < 1");
+        
+        $iQuery->orderBy('createdOn', 'DESC');
+        
+        $iQuery->limit(1000);
+        
+        $delArr = array();
+        
+        while ($iRec = $iQuery->fetch()) {
+            
+            fileman_Data::resetProcess($iRec->dataId);
+            
+            $delArr[$iRec->id] = $iRec->id;
+        }
+        
+        if (!empty($delArr)) {
+            $delImpl = implode(',', $delArr);
+            $delCnt = fileman_Indexes::delete("#id IN ({$delImpl})");
+            
+            fileman_Indexes::logDebug("Изтрити баркодове: {$delCnt}");
         }
     }
 }

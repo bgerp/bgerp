@@ -318,7 +318,7 @@ class cat_Categories extends core_Master
     /**
      * Връща мета дефолт мета данните на папката
      *
-     * @param int $id - ид на спецификация папка
+     * @param int $id - ид на категория
      * @return array $meta - масив с дефолт мета данни
      */
     public function getDefaultMeta($id)

@@ -2,17 +2,17 @@
 
 
 /**
- * Клас 'fileman_GalleryRichTextPlg' - замества [img=#...] в type_Richtext
+ * Клас 'cms_GalleryRichTextPlg' - замества [img=#...] в type_Richtext
  *
  *
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_GalleryRichTextPlg extends core_Plugin
+class cms_GalleryRichTextPlg extends core_Plugin
 {
 
     /**
@@ -50,13 +50,13 @@ class fileman_GalleryRichTextPlg extends core_Plugin
 //    function catchGallery($match)
 //    {
 //    	$title = $match[2];
-//        $groupRec = fileman_GalleryGroups::fetch(array("#title = '[#1#]'", $title));
+//        $groupRec = cms_GalleryGroups::fetch(array("#title = '[#1#]'", $title));
 //    	if(!$groupRec) return "[img=#{$groupRec}]";
 //    	
 //    	$tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
 //        $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
 //        
-//        $imgagesRec = fileman_GalleryImages::getQuery();
+//        $imgagesRec = cms_GalleryImages::getQuery();
 //        $imgagesRec->where("#groupId={$groupRec->id}");
 //        $tpl = new ET(getFileContent('cms/tpl/gallery.shtml'));
 //        $tpl->replace($groupRec->tWidth,'width');
@@ -108,11 +108,11 @@ class fileman_GalleryRichTextPlg extends core_Plugin
     {
         $title = $match['title'];
         
-        $imgRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $title));
+        $imgRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $title));
         
         if(!$imgRec) return $match[0];
 
-        $groupRec = fileman_GalleryGroups::fetch($imgRec->groupId);
+        $groupRec = cms_GalleryGroups::fetch($imgRec->groupId);
         
         $tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
         $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
@@ -175,7 +175,7 @@ class fileman_GalleryRichTextPlg extends core_Plugin
     function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
         // Ако има група
-        if (fileman_GalleryGroups::fetch("1=1") && fileman_GalleryImages::haveRightFor('add')) {
+        if (cms_GalleryGroups::fetch("1=1") && cms_GalleryImages::haveRightFor('add')) {
             
             // id
             $id = $attr['id'];
@@ -193,7 +193,7 @@ class fileman_GalleryRichTextPlg extends core_Plugin
             }
             
             // URL за добавяне на документи
-            $url = fileman_GalleryImages::getUrLForAddImg($callbackName);
+            $url = cms_GalleryImages::getUrLForAddImg($callbackName);
             
             // JS фунцкията, която отваря прозореца
             $js = "

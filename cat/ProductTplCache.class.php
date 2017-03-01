@@ -135,7 +135,7 @@ class cat_ProductTplCache extends core_Master
 	
 	
 	/**
-	 * След подготовка на туклбара на списъчния изглед
+	 * След подготовка на тулбара на списъчния изглед
 	 *
 	 * @param core_Mvc $mvc
 	 * @param stdClass $data
@@ -246,14 +246,14 @@ class cat_ProductTplCache extends core_Master
 	 * @param enum(public,internal) $documentType
 	 * @return core_ET
 	 */
-	public static function cacheDescription($productId, $time, $documentType, $lang)
+	public static function cacheDescription($productId, $time, $documentType, $lang, $compontQuantity = 1)
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		
 		$data = cat_Products::prepareDescription($pRec->id, $documentType);
 		
 		$data->components = array();
-		cat_Products::prepareComponents($pRec->id, $data->components, $documentType);
+		cat_Products::prepareComponents($pRec->id, $data->components, $documentType, $compontQuantity);
 		
 		$cacheRec = new stdClass();
 		

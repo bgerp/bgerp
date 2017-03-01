@@ -25,7 +25,7 @@ class batch_Defs extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search, plg_Sorting';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search, plg_Sorting, plg_SaveAndNew';
     
     
     /**
@@ -279,7 +279,7 @@ class batch_Defs extends core_Manager {
     	}
     	
     	// Ако има запис, записва се
-    	if(isset($nRec)){
+    	if(is_object($nRec)){
     		return self::save($nRec);
     	}
     }

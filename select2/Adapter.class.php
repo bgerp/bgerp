@@ -176,6 +176,8 @@ class select2_Adapter
         foreach ((array)$sugg as $key => $titleArr) {
             $isGroup=FALSE;
         	
+            $titleArr =  (array) $titleArr;
+
             $title = $titleArr['title'];
             $titleNormalized = $titleArr['id'];
         	

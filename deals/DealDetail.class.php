@@ -289,7 +289,7 @@ abstract class deals_DealDetail extends doc_Detail
     			
     			$listId = ($masterRec->priceListId) ? $masterRec->priceListId : NULL;
     			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
-				
+    			
     			if (empty($policyInfo->price) && empty($pRec)) {
     				$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
     			} else {
@@ -309,6 +309,11 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     		}
     		 
+    		// Проверка на цената
+    		if(!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice, $msg)){
+    			$form->setError('packPrice,packQuantity', $msg);
+    		}
+    		
     		$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     		$rec->price  = $price;
     		
@@ -586,9 +591,21 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     		
     		if(!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore'))) && (!count($multiError) || (count($multiError) && Request::get('Ignore')))){
+    			
     			// Запис на обновените записи
-    			$this->saveArray($toUpdate, 'id,quantity');
-    			$this->saveArray($toSave);
+    			if(count($toUpdate)){
+    				foreach ($toUpdate as $uRec){
+    					$uRec->isEdited = TRUE;
+    					$this->save($uRec, 'id,quantity');
+    				}
+    			}
+    			
+    			if(count($toSave)){
+    				foreach ($toSave as $saveRec){
+    					$this->save($saveRec);
+    				}
+    			}
+    			
     			$this->Master->invoke('AfterUpdateDetail', array($saleId, $this));
     			 
     			// Редирект към продажбата

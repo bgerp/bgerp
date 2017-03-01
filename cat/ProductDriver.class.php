@@ -246,7 +246,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @return core_ET $tpl
 	 */
 	public function renderProductDescription($data)
-	{   
+	{
         $title = tr($this->singleTitle);
 
 		$tpl = new ET(tr("|*
@@ -300,7 +300,13 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $dhtml = new ET(" {$caption} " . $data->row->{$name} . " {$unit}");
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
-                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                        if($field->singleCaption == '@') {
+                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                        } elseif($field->singleCaption) {
+                            $caption = tr($field->singleCaption);
+                        } else {
+                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                        }
                         $tpl->append($dhtml, 'INFO');
                     }
 				}
@@ -308,17 +314,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 		}
  
 		return $tpl;
-	}
-	
-	
-	/**
-	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
-	 */
-	public function getJobFolderName()
-	{
-		$title = core_Classes::fetchField($this->getClassId(), 'title');
-		
-		return "Задания за " . mb_strtolower($title);
 	}
 	
 	
@@ -374,19 +369,28 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Връща цената за посочения продукт към посочения клиент на посочената дата
 	 *
-	 * @param mixed $customerClass - клас на контрагента
-	 * @param int $customerId - ид на контрагента
-	 * @param int $productId - ид на артикула
-	 * @param int $packagingId - ид на опаковка
-	 * @param double $quantity - количество
-	 * @param datetime $datetime - дата
-	 * @param double $rate  - валутен курс
-	 * @param yes|no|separate|export $chargeVat - начин на начисляване на ддс
+	 * @param mixed $productId     - ид на артикул
+	 * @param int $quantity        - к-во
+	 * @param double $minDelta     - минималната отстъпка
+	 * @param double $maxDelta     - максималната надценка
+	 * @param datetime $datetime   - дата
 	 * @return double|NULL $price  - цена
 	 */
-	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL)
 	{
 		return NULL;
+	}
+	
+	
+	/**
+	 * Може ли драйвера автоматично да си изчисли себестойноста
+	 * 
+	 * @param mixed $productId - запис или ид
+	 * @return boolean
+	 */
+	public function canAutoCalcPrimeCost($productId)
+	{
+		return FALSE;
 	}
 	
 	
@@ -440,5 +444,31 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
 	{
 	
+	}
+	
+	
+	/**
+	 * Колко е толеранса
+	 *
+	 * @param int $id          - ид на артикул
+	 * @param double $quantity - к-во
+	 * @return double|NULL     - толеранс или NULL, ако няма
+	 */
+	public function getTolerance($id, $quantity)
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Колко е срока на доставка
+	 *
+	 * @param int $id          - ид на артикул
+	 * @param double $quantity - к-во
+	 * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+	 */
+	public function getDeliveryTime($id, $quantity)
+	{
+		return NULL;
 	}
 }

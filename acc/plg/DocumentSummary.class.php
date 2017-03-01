@@ -160,15 +160,19 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
         	
             // Филтрираме по потребители
-            if($filter->users && $isDocument){
+            if($filter->users && $isDocument) {
             	$userIds = keylist::toArray($filter->users);
-                $userArr = implode(',',  $userIds);
             	
-            	$data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
-            	
-            	// Ако полето за филтриране по потребител нее създателя, добавяме и към него
-            	if($mvc->filterFieldUsers != 'createdBy'){
-            		$data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+            	// Ако не се търси по всички
+            	if (!$userIds[-1]) {
+            	    $userArr = implode(',',  $userIds);
+            	    
+            	    $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+            	    
+            	    // Ако полето за филтриране по потребител нее създателя, добавяме и към него
+            	    if($mvc->filterFieldUsers != 'createdBy'){
+            	        $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+            	    }
             	}
             }
             
@@ -191,14 +195,15 @@ class acc_plg_DocumentSummary extends core_Plugin
 
             if($dateRange[0] && $dateRange[1]) {
                 if($fromField) {
-                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#]') OR #{$fromField} IS NULL)";
+                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59') OR #{$fromField} IS NULL)";
                 }
 
-                if($toField) {
-                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#]') OR #{$toField} IS NULL)";
+                if($toField && $toField != $fromField) {
+                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59') OR #{$toField} IS NULL)";
                 }
 
-                $data->query->where(array($where, $dateRange[0], $dateRange[1]));
+                
+               $data->query->where(array($where, $dateRange[0], $dateRange[1]));
 
             } else {
                 if($dateRange[0]) {

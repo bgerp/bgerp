@@ -245,9 +245,13 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
 	{
 		$dates = array_keys($batches);
+		
 		if(is_array($dates)){
 			usort($dates, function($a, $b) {
-				return (strtotime($a) < strtotime($b)) ? -1 : 1;
+				$aString = dt::getMysqlFromMask($a, $this->rec->format);
+				$bString = dt::getMysqlFromMask($b, $this->rec->format);
+				
+				return (strtotime($aString) < strtotime($bString)) ? -1 : 1;
 			});
 			
 			$sorted = array();

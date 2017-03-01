@@ -9,8 +9,9 @@
 Транспортно Тегло,cond_type_Double,кг,transportWeight,,,no,active,"min=0"
 Транспортен Обем,cond_type_Double,куб.м,transportVolume,,,no,active,"min=0"
 Толеранс,cond_type_Percent,,tolerance,,,no,active
-Срок,cond_type_Time,,term,,,no,active
+Срок на доставка,cond_type_Time,,term,,,no,active
 Широчина,cond_type_Double,см,width,,,yes,active
 Режийни разходи,cond_type_Percent,,expenses,,,no,active
 Изглед||Preview,cond_type_Image,,preview,,,no,active
 На етикета||Label text,cond_type_Text,,labelText,,,no,active
+Спецификация,cond_type_Text,,specTpl,,,no,active

@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,8 +38,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	/**
 	 * Плъгини за зареждане
-	 * 
-	 * , acc_plg_Contable
 	 */
 	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
@@ -520,9 +518,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			if(count($details)){
 				foreach ($details as $dRec){
 					$dRec->noteId = $rec->id;
+					
+					// Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
 					if(isset($rec->inputStoreId)){
-						$dRec->storeId = $rec->inputStoreId;
+						if(cat_Products::fetchField($dRec->productId, 'canStore') == 'yes' && $dRec->type != 'pop'){
+							$dRec->storeId = $rec->inputStoreId;
+						}
 					}
+					
 					planning_DirectProductNoteDetails::save($dRec);
 				}
 			}
@@ -745,5 +748,155 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		return $products;
+	}
+	
+	
+	/**
+	 * Проверка дали нов документ може да бъде добавен в
+	 * посочената нишка
+	 *
+	 * @param int $threadId key(mvc=doc_Threads)
+	 * @return boolean
+	 */
+	public static function canAddToThread($threadId)
+	{
+		$firstDoc = doc_Threads::getFirstDocument($threadId);
+		
+		// или към нишка на продажба/артикул/задание
+		return $firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('cat_Products') || $firstDoc->isInstanceOf('planning_Jobs');
+	}
+	
+	
+	/**
+	 * Създаване на протокол за производство на артикул
+	 * Ако може след създаването ще зареди артикулите от активната рецепта и/или задачите
+	 * 
+	 * @param int $jobId        - ид на задание
+	 * @param int $productId    - ид на артикул
+	 * @param double $quantity  - к-во за произвеждане
+	 * @param date $valior      - вальор
+	 * @param array $fields     - допълнителни параметри
+	 * 	        ['storeId']       - ид на склад за засклаждане 
+	 * 			['expenseItemId'] - ид на перо на разходен обект
+	 * 			['expenses']      - режийни разходи
+	 * 			['batch']         - партиден номер
+	 * 			['inputStoreId']  - дефолтен склад за влагане
+	 */
+	public static function createDraft($jobId, $productId, $quantity, $valior = NULL, $fields = array())
+	{
+		$rec = new stdClass();
+		expect($jRec = planning_Jobs::fetch($jobId), 'Няма такова задание');
+		expect($jRec->state != 'rejected' && $jRec->state != 'draft', 'Заданието не е активно');
+		expect($productRec = cat_Products::fetch($productId, 'canManifacture,canStore,fixedAsset,canConvert'));
+		$rec->valior = ($valior) ? $valior : dt::today();
+		$rec->originId = $jRec->containerId;
+		$rec->threadId = $jRec->threadId;
+		$rec->productId = $productId;
+		expect($productRec->canManifacture = 'yes', 'Артикулът не е производим');
+		
+		$Double = cls::get('type_Double');
+		expect($rec->quantity = $Double->fromVerbal($quantity));
+		if($productRec->canStore == 'yes'){
+			expect($fields['storeId'], 'За складируем артикул е нужен склад');
+			expect($storeRec = store_Stores::fetch($fields['storeId']), "Несъществуващ склад {$fields['storeId']}");
+			$rec->storeId = $fields['storeId'];
+		} else {
+			if($rec->canConvert == 'yes'){
+				$rec->expenseItemId = acc_CostAllocations::getUnallocatedItemId();
+			} else {
+				expect($fields['expenseItemId'], 'Няма разходен обект');
+				expect(acc_Items::fetch($fields['expenseItemId']), 'Няма такова перо');
+				$rec->expenseItemId = $fields['expenseItemId'];
+			}
+		}
+		
+		if(isset($fields['inputStoreId'])){
+			expect(store_Stores::fetch($fields['inputStoreId']), "Несъществуващ склад за влагане {$fields['inputStoreId']}");
+			$rec->inputStoreId = $fields['inputStoreId'];
+		}
+		
+		if(isset($fields['expenses'])){
+			expect($fields['expenses']);
+			expect($fields['expenses'] >= 0 && $fields['expenses'] <= 1);
+			$rec->expenses = $fields['expenses'];
+		}
+		
+		if(isset($fields['batch'])){
+			if(core_Packs::isInstalled('batch')){
+				expect($Def = batch_Defs::getBatchDef($productId), "Опит за задаване на партида на артикул без партида");
+				$Def->isValid($fields['batch'], $quantity, $msg);
+				if($msg){
+					expect(FALSE, tr($msg));
+				}
+				 
+				$rec->batch = $Def->normalize($fields['batch']);
+				$rec->isEdited = TRUE;
+			}
+		}
+		
+		// Създаване на запис
+		self::route($rec);
+		 
+		return self::save($rec);
+	}
+	
+	
+	/**
+	 * АПИ метод за добавяне на детайл към протокол за производство
+	 * 
+	 * @param int $id                - ид на артикул       
+	 * @param int $productId         - ид на продукт
+	 * @param int $packagingId       - ид на опаковка
+	 * @param double $packQuantity   - к-во опаковка
+	 * @param double $quantityInPack - к-во в опаковка
+	 * @param boolean $isWaste       - дали е отпадък или не
+	 * @param int|NULL $storeId      - ид на склад, или NULL ако е от незавършеното производство
+	 */
+	public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = FALSE, $storeId = NULL)
+	{
+		// Проверки на параметрите
+		expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
+		expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
+		expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore'), "Няма артикул с ид {$productId}");
+		if($isWaste){
+			expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+			expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+		} else {
+			expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+		}
+		
+		expect($packagingId, "Няма мярка/опаковка");
+		expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
+		
+		if($productRec->canStore != 'yes'){
+			expect(empty($storeId), 'За нескладируем артикул не може да се подаде склад');
+		}
+		
+		if(isset($storeId)){
+			expect(store_Stores::fetch($storeId), 'Невалиден склад');
+		}
+		
+		$packs = cat_Products::getPacks($productId);
+		expect(isset($packs[$packagingId]), "Артикулът не поддържа мярка/опаковка с ид {$packagingId}");
+		
+		$Double = cls::get('type_Double');
+		expect($quantityInPack = $Double->fromVerbal($quantityInPack), "Невалидно к-во {$quantityInPack}");
+		expect($packQuantity = $Double->fromVerbal($packQuantity), "Невалидно к-во {$packQuantity}");
+		$quantity = $quantityInPack * $packQuantity;
+		
+		// Подготовка на записа
+		$rec = (object)array('noteId'         => $id,
+							 'type'           => ($isWaste) ? 'pop' : 'input',
+				             'productId'      => $productId,
+				             'packagingId'    => $packagingId,
+				             'quantityInPack' => $quantityInPack,
+				             'quantity'       => $quantity,
+		);
+		
+		if(isset($storeId)){
+			$rec->storeId = $storeId;
+		}
+		
+		planning_DirectProductNoteDetails::save($rec);
 	}
 }

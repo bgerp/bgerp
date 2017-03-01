@@ -642,8 +642,8 @@ div.productImage {
   .general-product-description .productPreview,
   .sales_SalesDetails .productPreview,
   .store_ShipmentOrderDetails .productPreview {
-    max-width: 120px;
-    max-height: 240px; }
+    max-width: 320px;
+    max-height: 320px; }
   .products-table .groupList .small-padding .productGroupInfo,
   .jobTable .groupList .small-padding .productGroupInfo,
   .general-product-description .groupList .small-padding .productGroupInfo,
@@ -660,6 +660,9 @@ div.productImage {
     margin-bottom: 0;
     position: relative;
     top: -1px; }
+
+.products-table .rowtoolsGroup.modal-toolbar.iw-contextMenu {
+  max-width: 200px; }
 
   .product-component-title td {
     border-top: 1px solid #dddddd;
@@ -714,8 +717,8 @@ div.productImage {
   .jobTable a.fancybox img,
   .general-product-description a.fancybox img,
   .sales_SalesDetails .productImage a.fancybox img {
-    max-width: 120px;
-    max-height: 60px;
+    max-width: 320px;
+    max-height: 320px;
     width: auto;
     height: auto; }
 
@@ -2447,13 +2450,23 @@ span.sharing-history-title {
   .contractorExtHolder .chzn-container-single .chzn-single,
   .contractorExtHolder .chzn-container-active .chzn-single,
   .contractorExtHolder .chzn-container-active .chzn-single-with-drop,
-  .contractorExtHolder .staticFormView .formFieldValue {
-    border: solid 1px #bbbbbb;
+  .contractorExtHolder .staticFormView .formFieldValue,
+  .contractorExtHolder div.richEdit div.richedit-toolbar {
+    border-color: #bbbbbb;
     -moz-border-radius: 2px !important;
     -webkit-border-radius: 2px !important;
     border-radius: 2px !important;
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08); }
+    .contractorExtHolder select.inputError,
+    .contractorExtHolder input.inputError,
+    .contractorExtHolder textarea.inputError,
+    .contractorExtHolder .chzn-container-single .chzn-single.inputError,
+    .contractorExtHolder .chzn-container-active .chzn-single.inputError,
+    .contractorExtHolder .chzn-container-active .chzn-single-with-drop.inputError,
+    .contractorExtHolder .staticFormView .formFieldValue.inputError,
+    .contractorExtHolder div.richEdit div.richedit-toolbar.inputError {
+      border-color: red; }
   .contractorExtHolder .select2-container--default .select2-selection--single,
   .contractorExtHolder .select2-dropdown,
   .contractorExtHolder .select2-container--default .select2-selection--multiple {
@@ -3885,6 +3898,13 @@ only screen and (max-width: 1024px) {
 
   .wide .app-name {
     font-size: 6.4em; } }
+
+/*
+ * ipad
+ */
+@media  (min-device-width : 768px)  and (max-device-width : 1024px) {
+  .wide .document {
+    max-width: 50em; } }
 
 /*
  * Mobile

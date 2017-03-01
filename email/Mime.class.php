@@ -934,17 +934,21 @@ class email_Mime extends core_BaseClass
             // евентуално записваме прикачения файл
         } else {
             
+            $data2 = FALSE; 
             // Декодиране
             switch($p->encoding) {
                 case 'BASE64' :
-                    $data = imap_base64($data);
+                    $data2 = imap_base64($data);
                     break;
                 case 'QUOTED-PRINTABLE' :
-                    $data = imap_qprint($data);
+                    $data2 = imap_qprint($data);
                     break;
                 case '8BIT' :
                 case '7BIT' :
                 default :
+            }
+            if ($data2 !== FALSE) {
+                $data = $data2;
             }
             
             // Ако часта e текстова и не е атачмънт, то по подразбиране, този текст е PLAIN

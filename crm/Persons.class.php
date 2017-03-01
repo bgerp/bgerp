@@ -201,15 +201,6 @@ class crm_Persons extends core_Master
 
     var $doWithSelected = 'export=Експортиране';
 
-
-    /**
-     * Име на полето, указващо в коя група/групи е записа
-     * 
-     * @var string
-     * @see groups_Extendable
-     */
-    public $groupsField = 'groupList';
-
     
     /**
      * Детайли на този мастър обект
@@ -246,6 +237,13 @@ class crm_Persons extends core_Master
     
     
     /**
+     * 
+     * @see type_Key::filterByGroup
+     */
+    public $groupsField = 'groupList';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -269,7 +267,7 @@ class crm_Persons extends core_Master
 
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)', 
-            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv');
+            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv,remember');
         $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
@@ -1825,7 +1823,7 @@ class crm_Persons extends core_Master
         if (Mode::is('screenMode', 'narrow')) {
             
             // Да има само 2 колони
-            $data->form->setField('groupList', array('maxColumns' => 2));    
+            $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));    
         }
         
         if(empty($form->rec->buzCompanyId)){
@@ -1839,11 +1837,25 @@ class crm_Persons extends core_Master
         }
     	
         if($form->rec->buzCompanyId){
-        	$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
+            $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
 			$form->setOptions('buzLocationId', $locations);
 			if(!count($locations)){
 				$form->setField('buzLocationId', 'input=none');
 			}
+            $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
+        }
+    }
+
+
+    /**
+     * Задава титла на формата за редактиране
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+
+        if($form->rec->buzCompanyId){
+            $form->title = "Добавяне на служител към|* " . crm_Companies::getHyperlink($form->rec->buzCompanyId);
         }
     }
     
@@ -2629,23 +2641,30 @@ class crm_Persons extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId на група
+     * @param varchar $groupSysId - sysId или ид на група
+     * @param boolean $isSysId  - дали е систем ид
      */
-    public static function forceGroup($id, $groupSysId)
+    public static function forceGroup($id, $groupSysId, $isSysId = TRUE)
     {
     	expect($rec = static::fetch($id));
-    	expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	$me = cls::get(get_called_class());
+    	if($isSysId === TRUE){
+    		expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	} else {
+    		$groupId = $groupSysId;
+    		expect(crm_Groups::fetch($groupId));
+    	}
     	
     	// Ако контрагента не е включен в групата, включваме го
     	if(!keylist::isIn($groupId, $rec->groupList)){
     		$groupName = crm_Groups::getTitleById($groupId);
-    		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
+    		$rec->{$me->expandInputFieldName} = keylist::addKey($rec->{$me->expandInputFieldName}, $groupId);
     		
     		if(haveRole('powerUser')){
     			core_Statuses::newStatus("|Лицето е включено в група |* '{$groupName}'");
     		}
     		
-    		return static::save($rec, 'groupList');
+    		return static::save($rec, $me->expandInputFieldName);
     	}
     	
     	return TRUE;
@@ -2716,11 +2735,13 @@ class crm_Persons extends core_Master
     	// Ако е в група на клиент, показваме бутона за продажба
     	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
+    		$res[] = 'sales_Quotations';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
     	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
+    		$res[] = 'purchase_Offers';
     	}
     	 
     	return $res;
@@ -2751,8 +2772,8 @@ class crm_Persons extends core_Master
     {
         crm_Companies::on_AfterPrepareImportFields($mvc, $fields);
         
-        if ($fields['groupList']) {
-            $fields['groupList']['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
+        if ($fields[$mvc->expandInputFieldName]) {
+            $fields[$mvc->expandInputFieldName]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
         }
     }
     

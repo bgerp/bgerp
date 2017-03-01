@@ -2,17 +2,17 @@
 
 
 /**
- * Клас 'fileman_GalleryImages' - картинки в галерията
+ * Клас 'cms_GalleryImages' - картинки в галерията
  *
  *
  * @category  bgerp
- * @package   fileman
+ * @package   cms
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_GalleryImages extends core_Manager
+class cms_GalleryImages extends core_Manager
 {
     
     
@@ -49,13 +49,13 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools2,fileman_Wrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
+    var $loadList = "plg_RowTools2,cms_Wrapper,plg_Created, cms_GalleryTitlePlg, plg_Search, cms_GalleryDialogWrapper";
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'cms_GalleryImages';
+    var $oldClassName = 'fileman_GalleryImages';
     
     
     /**
@@ -66,7 +66,7 @@ class fileman_GalleryImages extends core_Manager
     
     /**
      * Името на полето, което ще се използва от плъгина
-     * @see fileman_GalleryTitlePlg
+     * @see cms_GalleryTitlePlg
      */
     var $galleryTitleFieldName = 'title';
     
@@ -95,7 +95,7 @@ class fileman_GalleryImages extends core_Manager
     function description()
     {
         $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение,mandatory, width=100%');
-        $this->FLD('groupId', 'key(mvc=fileman_GalleryGroups,select=title)', 'caption=Група,mandatory, width=100%');
+        $this->FLD('groupId', 'key(mvc=cms_GalleryGroups,select=title)', 'caption=Група,mandatory, width=100%');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, width=100%');
         $this->FLD('style', 'varchar(128)', 'caption=Стил, width=100%');
     }
@@ -113,7 +113,7 @@ class fileman_GalleryImages extends core_Manager
         if (!$data->form->rec->id) {
             
             // id на групата по подразбиране
-            $grId = fileman_GalleryGroups::getDefaultGroupId();
+            $grId = cms_GalleryGroups::getDefaultGroupId();
             
             // Да е избрана
             $data->form->setDefault('groupId', $grId);
@@ -148,7 +148,7 @@ class fileman_GalleryImages extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('groupSearch', 'key(mvc=fileman_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent,autoFilter');
+        $data->listFilter->FNC('groupSearch', 'key(mvc=cms_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent,autoFilter');
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=user, rolesForTeams=user)', 'caption=Потребител,input,silent,autoFilter');
         
         // В хоризонтален вид
@@ -203,26 +203,26 @@ class fileman_GalleryImages extends core_Manager
         $orToPrevious = FALSE;
         
         // Да се показват групите, които са споделени до някоя от групите на потребителя
-        if (fileman_GalleryGroups::restrictRoles($data->query, $orToPrevious, 'groupRoles')) {
+        if (cms_GalleryGroups::restrictRoles($data->query, $orToPrevious, 'groupRoles')) {
             
             // Външно поле за ролите към групата
-            $data->query->EXT('groupRoles', 'fileman_GalleryGroups', 'externalName=roles,externalKey=groupId');
+            $data->query->EXT('groupRoles', 'cms_GalleryGroups', 'externalName=roles,externalKey=groupId');
             $orToPrevious = TRUE;
         }
         
         // Или до потребителя
-        if (fileman_GalleryGroups::restrictSharedTo($data->query, $orToPrevious, 'groupSharedTo')) {
+        if (cms_GalleryGroups::restrictSharedTo($data->query, $orToPrevious, 'groupSharedTo')) {
             
             // Външно поле за споределените потребителие към групата
-            $data->query->EXT('groupSharedTo', 'fileman_GalleryGroups', 'externalName=sharedTo,externalKey=groupId');
+            $data->query->EXT('groupSharedTo', 'cms_GalleryGroups', 'externalName=sharedTo,externalKey=groupId');
             $orToPrevious = TRUE;
         }
         
         // Или са създадени от потребителя
-        if (fileman_GalleryGroups::restrictCreated($data->query, $orToPrevious, 'groupCreatedBy')) {
+        if (cms_GalleryGroups::restrictCreated($data->query, $orToPrevious, 'groupCreatedBy')) {
             
             // Външно поле за създателите на групата
-            $data->query->EXT('groupCreatedBy', 'fileman_GalleryGroups', 'externalName=createdBy,externalKey=groupId');
+            $data->query->EXT('groupCreatedBy', 'cms_GalleryGroups', 'externalName=createdBy,externalKey=groupId');
         }
     }
     
@@ -247,7 +247,7 @@ class fileman_GalleryImages extends core_Manager
                 // Ако не е 'ceo', трябва да има достъп до групата, за да редактира картина от нея
                 if (!haveRole('ceo')) {
                     
-                    if ($rec->groupId && !fileman_GalleryGroups::haveRightFor('usegroup', $rec->groupId)) {
+                    if ($rec->groupId && !cms_GalleryGroups::haveRightFor('usegroup', $rec->groupId)) {
                         $requiredRoles = 'no_one';
                     } else if ($action == 'delete') {
                         
@@ -275,7 +275,7 @@ class fileman_GalleryImages extends core_Manager
         Request::setProtected('callback');
         
         // Създаваме URL' то
-        return toUrl(array('fileman_GalleryImages', 'addImg', 'callback' => $callback));
+        return toUrl(array('cms_GalleryImages', 'addImg', 'callback' => $callback));
     }
     
     
@@ -325,7 +325,7 @@ class fileman_GalleryImages extends core_Manager
         } else {
             
             // Името на класа
-            $class = 'fileman_GalleryImages';
+            $class = 'cms_GalleryImages';
             
             // Вземаме екшъна
             $act = 'addImgDialog';
@@ -376,7 +376,7 @@ class fileman_GalleryImages extends core_Manager
         
         // Добавяме нужните полета
         $form->FNC('imgFile', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Изображение, mandatory");
-        $form->FNC('imgGroupId', 'key(mvc=fileman_GalleryGroups,select=title)', 'caption=Група, mandatory');
+        $form->FNC('imgGroupId', 'key(mvc=cms_GalleryGroups,select=title)', 'caption=Група, mandatory');
         $form->FNC('imgTitle', 'varchar(128)', 'caption=Заглавие');
         
         // Ако има запис
@@ -389,7 +389,7 @@ class fileman_GalleryImages extends core_Manager
         } else {
             
             // По подразбиране да е избрана id на група
-            $grId = fileman_GalleryGroups::getDefaultGroupId();
+            $grId = cms_GalleryGroups::getDefaultGroupId();
             $form->setDefault('imgGroupId', $grId);
         }
         
@@ -635,7 +635,7 @@ class fileman_GalleryImages extends core_Manager
      * Подготвя полето за заглавие
      * 
      * @param object $rec
-     * @see fileman_GalleryTitlePlg
+     * @see cms_GalleryTitlePlg
      */
     function prepareRecTitle(&$rec)
     {

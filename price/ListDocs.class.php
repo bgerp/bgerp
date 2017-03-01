@@ -129,6 +129,12 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -830,36 +836,7 @@ class price_ListDocs extends core_Master
     {
         // Добавяме тези документи само в персонални папки
         $threadRec = doc_Threads::fetch($threadId);
-
+		
         return self::canAddToFolder($threadRec->folderId);
-    }
-
-    
-	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-    	return array('crm_ContragentAccRegIntf', 'price_PriceListFolderCoverIntf');
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	$allowedIntfs = self::getCoversAndInterfacesForNewDoc();
-    	$cover = doc_Folders::getCover($folderId);
-    	foreach ($allowedIntfs as $intf){
-    		if($cover->haveInterface($intf)){
-    			return TRUE;
-    		}
-    	}
-    	return FALSE;
     }
 }

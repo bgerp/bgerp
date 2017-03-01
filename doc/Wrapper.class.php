@@ -65,7 +65,6 @@ class doc_Wrapper extends plg_ProtoWrapper
         }
         
         $threadsUrl = array();
-        $filesUrl = array();
         
         if($folderId && (doc_Folders::haveRightFor('single', $folderId))) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
@@ -78,11 +77,6 @@ class doc_Wrapper extends plg_ProtoWrapper
                 
                 // Линка да сочи в коша
                 $threadsUrl['Rejected'] = 1;
-            }
-            
-            // Ако има достъпни файлове в папката, тогава да е линк
-            if (doc_Files::getCountInFolder()) {
-                $filesUrl = array('doc_Files', 'list', 'folderId' => $folderId);    
             }
         }
         
@@ -101,9 +95,9 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         $this->TAB('doc_Search', 'Търсене', 'powerUser');
         
-        $this->TAB($filesUrl, 'Файлове', 'powerUser');
+        $this->TAB('doc_Files', 'Файлове', 'powerUser');
         
-        $this->TAB('doc_UnsortedFolders', 'Проекти', 'powerUser');
+        $this->TAB('doc_UnsortedFolders', 'Проекти', 'admin,ceo');
         
         // Показва таба за Шаблони, само ако имаме права за листване
         $this->TAB('doc_TplManager', 'Изгледи||Views', 'ceo,admin');

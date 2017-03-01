@@ -295,12 +295,20 @@ class email_Outgoings extends core_Master
             $delay = $options->delay;
             // Нулираме закъснението, за да не сработи при отложеното изпращане
             $options->delay = NULL;
-            if (email_SendOnTime::add($className, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay, 'email_FaxSent')) {
+            if (email_SendOnTime::add($className, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay)) {
                 status_Messages::newStatus('|Добавено в списъка за отложено изпращане');
                 self::logWrite('Добавяне за отложено изпращане', $rec->id);
                 
                 $rec->modifiedOn = dt::now();
-                email_Outgoings::save($rec, 'modifiedOn');
+                
+                $saveStr = 'modifiedOn';
+                
+                if ($options->waiting) {
+                    $rec->waiting = $options->waiting + dt::secsBetween($delay, dt::now());
+                    $saveStr .= ',waiting';
+                }
+                
+                email_Outgoings::save($rec, $saveStr);
             } else {
                 status_Messages::newStatus('|Грешка при добавяне в списъка за отложено изпращане', 'error');
                 self::logErr('Грешка при добавяне за отложено изпращане', $rec->id);
@@ -682,8 +690,8 @@ class email_Outgoings extends core_Master
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
         $form->FNC('emailsCc', 'emails', 'input,caption=Копие до,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list')));
-        $form->FNC('waiting', 'time(suggestions=1 ден|3 дни|1 седмица|2 седмици, allowEmpty)', 'caption=Известяване при липса на отговор->След,hint=Време за известряване при липса на отговор,input,formOrder=8');
-        $form->FNC('delay', 'time(suggestions=1 мин|5 мин|8 часа|1 ден, allowEmpty)', 'caption=Отложено изпращане на писмото->Отлагане,hint=Време за отлагане на изпращането,input,formOrder=9,autohide');
+        $form->FNC('waiting', 'time(suggestions=1 ден|3 дни|1 седмица|2 седмици, allowEmpty)', 'caption=Известяване при липса на отговор->След,hint=Време за известряване при липса на отговор след изпращане,input,formOrder=8');
+        $form->FNC('delay', 'datetime', 'caption=Отложено изпращане->Изпращане на,hint=Време за отлагане на изпращането,input,formOrder=9,autohide');
                 
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Изпрати', 'send', NULL, array('id'=>'save', 'ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на имейла'));
@@ -960,6 +968,10 @@ class email_Outgoings extends core_Master
                 }
             }
             
+            if ($rec->delay && $rec->delay < dt::now()) {
+                $form->setError('delay', 'Отложеното изпращане може да е само в бъдеще');
+            }
+            
             // Вземаме записа
             $eRec = static::fetch($form->rec->id);
             
@@ -1082,7 +1094,7 @@ class email_Outgoings extends core_Master
             
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
             
-            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в интернет|*.";
+            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в Интернет|*.";
             
             $form->setWarning($errField, $err);
             
@@ -2091,7 +2103,7 @@ class email_Outgoings extends core_Master
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
         
-        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting')) {
+        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
             $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
             $data->row->notifyUser = crm_Profiles::createLink($data->rec->lastSendedBy);
@@ -3045,5 +3057,23 @@ class email_Outgoings extends core_Master
         
         // Ако не може да се определи по никакъв начин
         return FALSE;
+    }
+    
+    
+    /**
+     * Преди записване на клонирания запис
+     * 
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // Премахваме ненужните полета
+        unset($nRec->waiting);
+        unset($nRec->lastSendedOn);
+        unset($nRec->lastSendedBy);
     }
 }

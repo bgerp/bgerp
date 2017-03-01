@@ -59,6 +59,12 @@ class batch_Movements extends core_Detail {
     
     
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 150;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -252,6 +258,8 @@ class batch_Movements extends core_Detail {
     		
     		// Записва се движението и
     		foreach ($batches as $key => $b){
+    			$result = TRUE;
+    			
     			try{
     				$itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
     				 
@@ -273,7 +281,8 @@ class batch_Movements extends core_Detail {
     					break;
     				}
     			} catch(core_exception_Expect $e){
-    			
+    				reportException($e);
+    				
     				// Ако е изникнала грешка
     				$result = FALSE;
     			}
@@ -282,7 +291,7 @@ class batch_Movements extends core_Detail {
 		
 		// При грешка изтриваме всички записи до сега
 		if($result === FALSE){
-			self::removeMovement($class, $rec);
+			self::removeMovement($doc->getInstance(), $doc->that);
 		}
 		
 		// Връщаме резултата

@@ -119,7 +119,7 @@ class type_User extends type_Key
                         if($part && $this->params['useSelectAsTitle']) {
                             $this->options[$key]->title = $uRec->$part;
                         } else {
-                            $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
+                            $this->options[$key]->title = type_Nick::normalize($uRec->nick) . " (" . $uRec->names . ")";
                         }
     
                         $this->options[$key]->value = $uRec->id;

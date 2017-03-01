@@ -220,7 +220,9 @@ class core_page_InternalModern extends core_page_Active
 
         $menuObj = bgerp_Menu::getMenuObject();
         
-        uasort($menuObj, function($a, $b) { return($a->order > $b->order); });
+        if (is_array($menuObj)) {
+            uasort($menuObj, function($a, $b) { return($a->order > $b->order); });
+        }
  
         $active = bgerp_Menu::getActiveItem($menuObj);
         

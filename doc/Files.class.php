@@ -18,7 +18,7 @@ class doc_Files extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, plg_Sorting';
+    var $loadList = 'doc_Wrapper, plg_Sorting, plg_GroupByDate';
     
     
     /**
@@ -53,6 +53,13 @@ class doc_Files extends core_Manager
     
     
     /**
+     * По кое поле да се групира
+     * @see plg_GroupByDate
+     */
+    public $groupByDateField = 'date';
+    
+    
+    /**
      * 
      */
     function description()
@@ -71,6 +78,7 @@ class doc_Files extends core_Manager
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
         $this->setDbIndex('dataId, folderId');
+        $this->setDbIndex('show');
     }
     
     
@@ -115,7 +123,7 @@ class doc_Files extends core_Manager
             $hideArr = array();
             $bestRec = NULL;
             
-            // Всички файлове, които се съдрат в същата папка
+            // Всички файлове, които се съдържат в същата папка
             while ($dRec = $dQuery->fetch()) {
                 
                 $containerId = $dRec->containerId;
@@ -288,162 +296,150 @@ class doc_Files extends core_Manager
     
     /**
      * 
+     * 
+     * @param doc_Files $mvc
+     * @param stdObject $data
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->where("#show = 'yes' OR #show IS NULL");
         
+        $sPrefix = '__';
+        $folderPrefix = $sPrefix . 'folder__';
+        
+        // Подготваме масив за избор
+        $suggArr = array();
+        $suggArr[$sPrefix . 'myFiles'] = 'Моите файлове';
+        $suggArr[$folderPrefix . 'allFolders'] = 'Всички папки';
+        
+        // Последните разгледани папки на текущия потребител
+        $lastFoldersArr = (array)bgerp_Recently::getLastFolderIds(doc_Setup::get('SEARCH_FOLDER_CNT'));
+        foreach ($lastFoldersArr as $folderId) {
+            $fRec = doc_Folders::fetch($folderId);
+            $suggArr[$folderPrefix . $folderId] = $fRec->title;
+        }
+        
+        // Показваме избор на потребители
+        if (haveRole('debug')) {
+//         if (haveRole('admin, manager, ceo')) {
+            $Users = cls::get('type_Users', array('params' => array('rolesForTeams' => 'admin, ceo, manager', 'rolesForAll' => 'ceo')));
+            $suggArr += $Users->prepareOptions();
+        }
+        
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->setField('folderId', 'input=hidden,silent');
+        $data->listFilter->FNC('range', 'varchar', 'caption=Обхват,input,silent,autoFilter');
+        
+        $data->listFilter->setOptions('range', $suggArr);
+        $data->listFilter->setDefault('range', key($suggArr));
         
         $data->listFilter->view = 'horizontal';
-        
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'search,range';
         
-        $data->listFilter->showFields = 'folderId,search';
-
         $data->listFilter->input(NULL, 'silent');
         
-        // Очакваме да има id на папка
-        expect($folderId = $data->listFilter->rec->folderId);
+        $usersArr = NULL;
+        $filter = $data->listFilter->rec;
         
-        // Очакваме да има такъв запис
-        expect($folderRec = doc_Folders::fetch($folderId));
-
-        // Подготвяме филтрите
-        doc_Files::applyFilter($data->listFilter->rec, $data->query);
-    }
-    
-    
-	/**
-     * Налага данните на филтъра като WHERE /GROUP BY / ORDER BY клаузи на заявка
-     *
-     * @param stdClass $filter
-     * @param core_Query $query
-     */
-    static function applyFilter($filter, &$query)
-    {
-        if (!empty($filter->folderId)) {
-            $query->where("#folderId = {$filter->folderId}");
+        if ($filter->range) {
+            // Ако се филтрира по папките на текущия потребител или файловете му
+            if (stripos($filter->range, $sPrefix) === 0) {
+                // Търсене по папка
+                if (stripos($filter->range, $folderPrefix) === 0) {
+                    $fSearch = substr($filter->range, strlen($folderPrefix));
+                    // Търсене по всички папки
+                    if ($fSearch == 'allFolders') {
+                        doc_Threads::restrictAccess($data->query);
+                    } else {
+                        // Показваме файловете в папката
+                        // Ако има права за сингъла на папка няма нужда от restrictAccess
+                        expect(is_numeric($fSearch));
+                        $fRec = doc_Folders::fetch($fSearch);
+                        doc_Folders::requireRightFor('single', $fRec);
+                        $data->query->where(array("#folderId = '[#1#]'", $fSearch));
+                    }
+                    
+                    // Подреждаме по последно модифициране на контейнера
+                    $data->query->EXT('cModifiedOn', 'doc_Containers', 'externalKey=containerId, externalName=modifiedOn');
+                    $data->query->orderBy('cModifiedOn', 'DESC');
+                } else {
+                    // Търсене по мои файлове
+                    $usersArr = array(core_Users::getCurrent());
+                }
+            } else {
+                // Ако се търси по потребител
+                expect(isset($Users));
+                $userList = $Users->fromVerbal($filter->range);
+                $usersArr = type_Keylist::toArray($userList);
+            }
+            
+            if (isset($usersArr)) {
+                $data->query = fileman_Files::getQuery();
+                // TODO - след JOIN може да се увеличи с restrictAccess
+                fileman_Files::prepareFilesQuery($data->query, $usersArr);
+            }
         }
         
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
-            $query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
-            
-            plg_Search::applySearch($filter->search, $query, 'searchKeywords');
-        }
-        $query->orderBy('containerId', 'DESC');
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-        // Името на файла да е линк към singле' a му
-        $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
+            $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
         
-        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
-        $row->date = fileman_Files::getVerbal($fRec, 'createdOn');
-        
-        try {
-            // Документа
-            $doc = doc_Containers::getDocument($rec->containerId);
-            
-            // Полетата на документа във вербален вид
-            $docRow = $doc->getDocumentRow();
-            
-            // Атрибутеите на линка
-            $attr = array();
-            $attr['title'] = $docRow->title;
-            
-            // Документа да е линк към single' а на документа
-            $row->threadId = $doc->getLink(35, $attr);
-        } catch (ErrorException $e) {
-            // Не се прави нищо
-        }
-        
-        try {
-            // id' то на контейнера на пъривя документ
-            $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
-            if ($firstContainerId != $rec->containerId) {
-            
-                // Първия документ в нишката
-                $docProxy = doc_Containers::getDocument($firstContainerId);
-            
-                // Полетата на документа във вербален вид
-                $docProxyRow = $docProxy->getDocumentRow();
-            
-                // Атрибутеите на линка
-                $attr['title'] = 'Първи документ|*: ' . $docProxyRow->title;
-            
-                // Темата да е линк към single' а на първиа документ документа
-                $firstContainerLink = $docProxy->getLink(35, $attr);
-                $row->threadId = $row->threadId . " « " . $firstContainerLink;
-            }
-        } catch (ErrorException $e) {
-            // Не се прави нищо
+            plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
         }
     }
     
     
     /**
-     * Подготвя титлата на папката с теми
+     * 
+     * @param doc_Files $mvc
+     * @param stdObject $row
+     * @param stdObject $rec
      */
-    static function on_AfterPrepareListTitle($mvc, &$res, $data)
+    static function on_BeforeRecToVerbal($mvc, $row, $rec)
     {
-        // id' то на папката
-        $folderId = Request::get('folderId', 'int');
+        // Определяме датата
+        setIfNot($rec->date, $rec->lastUse, $rec->lastOn, $rec->cModifiedOn);
+        if (!isset($rec->date)) {
+            $fRec = fileman_Files::fetchByFh($rec->fileHnd);
+            $rec->date = $fRec->createdOn;
+        }
         
-        // Записите за файла
-        $folderRec = doc_Folders::fetch($folderId);
-        
-        // Очакваме да има такъв запис
-        expect($folderRec);
-        
-        // Вербалните полета
-        $folderRow = doc_Folders::recToVerbal($folderRec);
-        
-        // Променяме титлата на полето
-        $data->title =  "Файлове в папка|* {$folderRow->title}";
-    }
-    
-    
-    /**
-     * Извиква се след изчисляването на необходимите роли за това действие
-     */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        // Ако листваме
-        if ($action == 'list') {
+        // TODO - ще се премахне след JOIN
+        // Определяме най-добрия контейнер, в който да се показва файла
+        if (!isset($rec->containerId)) {
+            $query = self::getQuery();
             
-            // Вземамем папката от записа
-            $folderId = $rec->folderId;
+            $query->where("#show = 'yes'");
+            $query->where(array("#fileHnd = '[#1#]'", $rec->fileHnd));
             
-            // Ако не е зададена папка
-            if (!$folderId) {
+            $query->orderBy('id', 'DESC');
+            
+            while ($oRec = $query->fetch()) {
                 
-                // id' то на папката
-                $folderId = Request::get('folderId', 'int');    
-            } 
-
-            // Ако нямаме права за signle na папката
-            if (!doc_Folders::haveRightFor('single', $folderId)) {
+                if (!$oRec->containerId) continue ;
                 
-                // Нямаме права и за разлгеждането на файловете
-                $requiredRoles = 'no_one';   
+                try {
+                    $doc = doc_Containers::getDocument($oRec->containerId);
+                } catch (ErrorException $e) {
+                    continue;
+                }
+                
+                if ($doc->haveRightFor('single')) {
+                    
+                    $dRec = $doc->fetch();
+                    
+                    $rec->containerId = $dRec->containerId;
+                    $rec->threadId = $dRec->threadId;
+                    $rec->folderId = $dRec->folderId;
+                    
+                    break;
+                }
             }
         }
     }
-
     
+       
     /**
      * Връща броя на файловете в съответната папка
      * 
@@ -463,6 +459,61 @@ class doc_Files extends core_Manager
         $count = static::count("#folderId = '{$folderId}'");
         
         return $count;
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        // Името на файла да е линк към singле' a му
+        $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
+        
+        if ($rec->containerId) {
+            try {
+                // Документа
+                $doc = doc_Containers::getDocument($rec->containerId);
+                
+                // Полетата на документа във вербален вид
+                $docRow = $doc->getDocumentRow();
+            
+                // Атрибутеите на линка
+                $attr = array();
+                $attr['title'] = $docRow->title;
+                
+                // Документа да е линк към single' а на документа
+                $row->threadId = $doc->getLink(35, $attr);
+            } catch (ErrorException $e) {
+                // Не се прави нищо
+            }
+            
+            try {
+                // id' то на контейнера на пъривя документ
+                $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+                if ($firstContainerId != $rec->containerId) {
+            
+                    // Първия документ в нишката
+                    $docProxy = doc_Containers::getDocument($firstContainerId);
+            
+                    // Полетата на документа във вербален вид
+                    $docProxyRow = $docProxy->getDocumentRow();
+            
+                    // Атрибутеите на линка
+                    $attr['title'] = 'Първи документ|*: ' . $docProxyRow->title;
+            
+                    // Темата да е линк към single' а на първиа документ документа
+                    $firstContainerLink = $docProxy->getLink(35, $attr);
+                    $row->threadId = $row->threadId . " « " . $firstContainerLink;
+                }
+            } catch (ErrorException $e) {
+                // Не се прави нищо
+            }
+        }
     }
     
     

@@ -186,7 +186,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function description()
     {
-    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти");
+    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
     	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
      
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
@@ -393,6 +393,13 @@ class marketing_Inquiries2 extends embed_Manager
     public static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	
+    	// Ако запитването е в папка на контрагент вкарва се в група запитвания
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$groupId = crm_Groups::force('Клиенти » Запитвания');
+    		$Cover->forceGroup($groupId, FALSE);
+    	}
     }
     
     
@@ -405,7 +412,12 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	if(is_array($mvc->sendNotificationEmailQueue)){
     		foreach ($mvc->sendNotificationEmailQueue as $rec){
-    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		    try {
+    		        $mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		    } catch (core_exception_Expect $e) {
+                    self::logErr("Грешка при изпращане", $rec->id);
+                    reportException($e);
+                }
     		}
     	}
     }
@@ -626,9 +638,16 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$this->requireRightFor('add');
     	
-    	$this->sendNotificationEmail($rec);
+    	$msg = '|Успешно препращане';
+    	try {
+    	    $this->sendNotificationEmail($rec);
+    	} catch (core_exception_Expect $e) {
+            $this->logErr("Грешка при изпращане", $rec->id);
+            reportException($e);
+            $msg = "|Грешка при препращане";
+        }
     	
-    	return new Redirect(array($this, 'single', $rec->id), '|Успешно препращане');
+    	return new Redirect(array($this, 'single', $rec->id), $msg);
     }
     
     
@@ -752,7 +771,7 @@ class marketing_Inquiries2 extends embed_Manager
     			$form->setDefault('proto', key($proto));
     			$form->setField('proto', 'input=hidden');
     		} else {
-    			$form->setField('proto', 'input,caption=Шаблон,placeholder=Артикули,groupByDiv=»');
+    			$form->setField('proto', 'input,caption=Шаблон,placeholder=Продукти||Products,groupByDiv=»');
     		}
     	} else {
     		$form->setField('proto', 'input=none');
@@ -775,10 +794,6 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));
-    	
-    		if(isset($form->rec->title)){
-    			$form->setField('title', 'input=hidden');
-    		}
     	}
     	
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
@@ -819,7 +834,11 @@ class marketing_Inquiries2 extends embed_Manager
                     }
                     log_Browsers::setVars($userData);
     			}
-    		    
+
+                if($Driver) {
+                    $rec->title = $Driver->getProductTitle($rec);
+                }
+
     			$id = $this->save($rec);
     		 
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
@@ -868,17 +887,30 @@ class marketing_Inquiries2 extends embed_Manager
     		}
     		
     		// Ако има минимално количество за поръчка
-    		if($rec->moq > 0){
-    			foreach (range(1, 3) as $i){
-    				$quantity = $rec->{"quantity{$i}"};
-    				
-    				// Количествата не може да са под
-    				if(!empty($quantity)){
-    					if($quantity < $rec->moq){
-    						$form->setError("quantity{$i}", "Под минималното количество за поръчка||Less than minimal order quantrity|* <b>{$moqVerbal}</b>");
-    					}
-    				}
+    		$errorMoqs = $errorQuantities = $allQuantities = array();
+    		
+    		// Проверка на въведените количества
+    		foreach (range(1, 3) as $i){
+    			$quantity = $rec->{"quantity{$i}"};
+    			if(empty($quantity)) continue;
+    			
+    			if($rec->moq > 0 && $quantity < $rec->moq){
+    				$errorMoqs[] = "quantity{$i}";
     			}
+    			
+    			if(in_array($quantity, $allQuantities)){
+    				$errorQuantities[] = "quantity{$i}";
+    			} else {
+    				$allQuantities[] = $quantity;
+    			}
+    		}
+    		
+    		if(count($errorMoqs)){
+    			$form->setError(implode(',', $errorMoqs), "Количеството се повтаря||Duplicated quantity|* <b>{$moqVerbal}</b>");
+    		}
+    		
+    		if(count($errorQuantities)){
+    			$form->setError(implode(',', $errorQuantities), "Количествата трябва да са различни||Quantities must be different|*");
     		}
     	}
     }

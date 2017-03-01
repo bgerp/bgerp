@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext';
                     
  
     /**
@@ -533,7 +533,7 @@ class price_ListRules extends core_Detail
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', NULL);
             }
-            
+           
             // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
             if($rec->type == 'discount' || $rec->type == 'groupDiscount') {
                 if(!isset($rec->discount) && !isset($rec->targetPrice)) {
@@ -585,6 +585,15 @@ class price_ListRules extends core_Detail
 
             if(!$form->gotErrors()) {
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
+            }
+            
+            if($rec->type == 'value' && isset($rec->price)){
+            	
+            	// Проверка на цената
+            	if(!deals_Helper::isPriceAllowed($rec->price, 1, FALSE, $msg)){
+            		$form->setError('packPrice', $msg);
+            		unset($rec->price);
+            	}
             }
         }
     }
@@ -669,7 +678,8 @@ class price_ListRules extends core_Detail
         }
 
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
-        if(strlen(substr(strrchr($rec->price, "."), 1) > 2)){
+        $strlen = strlen(substr(strrchr($rec->price, "."), 1));
+        if($strlen > 2){
         	$mvc->getFieldType('price')->params['decimals'] = 5;
         } else {
         	$mvc->getFieldType('price')->params['decimals'] = 2;

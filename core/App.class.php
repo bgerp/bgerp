@@ -156,8 +156,8 @@ class core_App
 
             // Премахваме последният елемент
             $cnt = count($vUrl);
-
-            if (empty($vUrl[$cnt - 1])) {
+            
+            if (!strlen($vUrl[$cnt - 1])) {
                 unset($vUrl[$cnt - 1]);
             } else {
                 if ($vUrl[0] != EF_SBF && (strpos($vUrl[$cnt - 1], '?') === FALSE)) {
@@ -229,14 +229,14 @@ class core_App
                     $name = $prm;
                 }
             }
-
+            
             // Вкарваме получените параметри от $_POST заявката
             // или от виртуалното URL в $_GET заявката
             foreach ($q as $var => $value) {
                 if (!isset($_GET[$var]) || !$_GET[$var]) {
                     if (isset($_POST[$var]) && !empty($_POST[$var])) {
                         $_GET[$var] = $_POST[$var];
-                    } elseif (isset($q[$var]) && !empty($q[$var])) {
+                    } elseif (isset($q[$var]) && (strlen($q[$var]))) {
                         $_GET[$var] = $q[$var];
                     }
                 }
@@ -289,7 +289,7 @@ class core_App
         // Зареждаме конфигурационния файл на приложението. 
         // Ако липсва - показваме грешка.
         // Шаблон за този файл има в директорията [_docs]
-        if ((include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
+        if ( (include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
             halt('Error in boot.php: Missing configuration file: ' .
                 EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
         }

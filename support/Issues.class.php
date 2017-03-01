@@ -1057,7 +1057,7 @@ class support_Issues extends core_Master
         }
         
         if ($row->assign) {
-            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " <i>[#assign#]</i> " . tr('от') . " <i>[#assignedBy#]</i> " . tr('в') . " [#assignedOn#]");
+            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
         }
     }
 }

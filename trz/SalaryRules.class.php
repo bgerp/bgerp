@@ -231,10 +231,15 @@ class trz_SalaryRules extends core_Manager
             
             $value[] = $rec->value;
         }
-
+        
         $res = array();
-        $res["MIN({$indicator})"] = min($value);
- 
+        if(count($value) > 0) {
+           
+            $res["MIN({$indicator})"] = min($value);
+        } else {
+            $res["MIN({$indicator})"] = 0;
+        }
+        
         return $res;
     }
     
@@ -254,7 +259,11 @@ class trz_SalaryRules extends core_Manager
         }
 
         $res = array();
-        $res["MAX({$indicator})"] = MAX($value);
+        if(count($value) > 0) {
+            $res["MAX({$indicator})"] = max($value);
+        } else {
+            $res["MAX({$indicator})"] = 0;
+        }
 
         return $res;
     }

@@ -250,7 +250,7 @@ en,Вашият имейл,Your name
 en,Вашият пощенски код,Your post code
 en,Вашият сайт или блог,Your website or blog
 en,Вашият телефон,Your phone number
-en,Вграждане,Embedding
+en,Вграждане,Embed
 en,Ведомост,Payroll
 en,Великден,Easter
 en,Вербално ID,Verbal ID
@@ -1418,6 +1418,7 @@ en,Получил,Received by
 en,Пон,Mon
 en,Поотделно,Separately
 en,Поправка,Repair
+en,Популярни продукти,Popular products
 en,Порт,Port
 en,Портове,Ports
 en,Поръчано,Ordered
@@ -2382,3 +2383,9 @@ en,Увеличаване на авансово плащане,Downpayment amoun
 en,Намаляване на авансово плащане,Downpayment amount reducing
 en,незабавно,immediately
 en,Ваш номер,Your number
+en,Предупреждения,Warnings
+en,Игнорирай предупрежденията,Ignore warnings
+en,срок за д-ка,Delivery time
+en,толеранс к-во,Qty tolerance
+en,Клониране на артикула,Clone product
+en,Клониране на реда,Clone row

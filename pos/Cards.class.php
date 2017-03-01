@@ -195,4 +195,17 @@ class pos_Cards extends core_Manager {
     	
     	return FALSE;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+    		if(!cls::get($rec->contragentClassId)->haveRightFor('edit', $rec->contragentId)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    }
 }

@@ -59,9 +59,22 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				} else {
 					$requiredRoles = $mvc->getRequiredRoles('add', $rec);
 				}
+				
+				// Могат да се клонират само артикули от същата папка акто тези на документа
+				if(isset($rec->cloneId)){
+					$pId = $mvc->fetchField($rec->cloneId, 'productId');
+					$docFolder = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'folderId');
+					if(cat_Products::fetchField($pId, 'folderId') != $docFolder){
+						$requiredRoles = 'no_one';
+					}
+				}
 			} else {
 				$requiredRoles = $mvc->getRequiredRoles('add');
 			}
+		}
+		
+		if($action == 'clonerec' && isset($rec)){
+			$requiredRoles = $mvc->getRequiredRoles('add', (object)array("{$mvc->masterKey}" => $rec->{$mvc->masterKey}));
 		}
 	}
 	
@@ -96,7 +109,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			// Поле за прототип
 			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,mandatory,silent,before=proto,removeAndRefreshForm=proto|packPrice|discount|packagingId|tolerance,mandatory");
 			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,before=packagingId");
-			$form->setField('packPrice', 'mandatory');
+			if(!($mvc instanceof sales_QuotationsDetails)){
+				$form->setField('packPrice', 'mandatory');
+			}
 			
 			if(isset($cloneRec)){
 				$innerClass = cat_Products::fetchField($cloneRec->productId, 'innerClass');
@@ -181,6 +196,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 							
 						$form->setField($n1, "caption={$caption}");
 					}
+					unset($form->rec->name);
 					
 					// Допустимите мерки са сред производните на тази на прототипа
 					$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
@@ -269,6 +285,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$dRec->packagingId = $pRec->measureId;
 				$dRec->quantityInPack = 1;
 				
+				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
+				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
+				
 				$mvc->save($dRec);
 				
 				// Редирект към сделката/офертата
@@ -293,6 +312,55 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			// Връщаме FALSE за да се прекъсне ивента
 			return FALSE;
 		}
+		
+		// Екшън за клониране на ред
+		if($action == 'clonerec'){
+			
+			// Проверка на данните
+			$mvc->requireRightFor('clonerec');
+			expect($masterId = Request::get($mvc->masterKey, 'int'));
+			expect($masterRec = $mvc->Master->fetch($masterId));
+			expect($cloneId = Request::get('cloneId', 'int'));
+			expect($cloneRec = $mvc->fetch($cloneId));
+			$mvc->requireRightFor('clonerec', $cloneRec);
+			
+			foreach (array('id', 'createdOn', 'createdBy', 'price', 'quantity', 'amount') as $fld){
+				unset($cloneRec->{$fld});
+			}
+			
+			// Подготовка на формата
+			$form = $mvc->getForm();
+			$form->title = "Клониране на ред от|* <b>" . $mvc->Master->getHyperlink($masterId, TRUE) . "</b>";
+			$form->setField($mvc->masterKey, 'input=hidden');
+			$form->rec = $cloneRec;
+			$form->input(NULL, 'silent');
+			
+			// Извикване на ивенти
+			$data1 = (object)array('form' => &$form, 'masterRec' => $masterRec);
+			$mvc->invoke('AfterPrepareEditForm', array($data1, $data1));
+			$form->setReadOnly('productId');
+			$form->input();
+			$mvc->invoke('AfterInputEditForm', array($form));
+			
+			// Събмит на формата
+			if($form->isSubmitted()){
+				$rec = $form->rec;
+				$mvc->save($rec);
+				
+				// Редирект
+				return Redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), FALSE, 'Успешно е създаден нов артикул');
+			}
+			
+			// Добавяне на бутони
+			$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис');
+			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+			
+			// Рендиране на опаковката
+			$tpl = $mvc->renderWrapping($form->renderHtml());
+			
+			// Връщаме FALSE за да се прекъсне ивента
+			return FALSE;
+		}
 	}
 	
 	
@@ -310,8 +378,14 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 			if($mvc->hasPlugin('plg_RowTools2')){
 				core_RowToolbar::createIfNotExists($row->_rowTools);
-				$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
+				$row->_rowTools->addLink('Клониране на артикула', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
 			}
+		}
+		
+		if($mvc->haveRightFor('cloneRec', (object)array($mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id))){
+			$url = array($mvc, 'CloneRec', $mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id, 'ret_url' => TRUE);
+			core_RowToolbar::createIfNotExists($row->_rowTools);
+			$row->_rowTools->addLink('Клониране на реда', $url, "id=btnCloneRow,title=Клониране на реда", 'ef_icon = img/16/clone.png,order=12');
 		}
 	}
 }

@@ -142,7 +142,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 if($mvc instanceof planning_DirectProductionNote){
                 	$ignore[] = acc_Items::fetchItem($mvc->getClassId(), $rec->id)->id;
                 } else {
-                	if($firstDoc->fetchField('state') == 'active'){
+                	if(is_object($firstDoc) && $firstDoc->fetchField('state') == 'active'){
                 		$ignore[] = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
                 	}
                 }

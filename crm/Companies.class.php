@@ -209,17 +209,6 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Поле на модела съдържащо списък с групите, в които е включена фирмата.
-     * 
-     * Използва се от плъгина @link groups_Extendable 
-     * 
-     * @see groups_Extendable
-     * @var string
-     */
-    var $groupsField = 'groupList';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед
      */
     var $singleLayoutFile = 'crm/tpl/SingleCompanyLayout.shtml';
@@ -236,6 +225,13 @@ class crm_Companies extends core_Master
      * @see plg_ExpandInput
      */
     public $expandFieldName = 'groupList';
+    
+    
+    /**
+     * 
+     * @see type_Key::filterByGroup
+     */
+    public $groupsField = 'groupList';
     
     
     /**
@@ -457,7 +453,7 @@ class crm_Companies extends core_Master
         if (Mode::is('screenMode', 'narrow')) {
             
             // Да има само 2 колони
-            $data->form->setField('groupList', array('maxColumns' => 2));    
+            $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));    
         }
     }
     
@@ -1336,6 +1332,7 @@ class crm_Companies extends core_Master
     public static function loadData()
     {
         $html = '';
+        $me = cls::get(get_called_class());
         if (!static::fetch(crm_Setup::BGERP_OWN_COMPANY_ID)) {
             
             $conf = core_Packs::getConfig('crm');
@@ -1347,7 +1344,7 @@ class crm_Companies extends core_Master
             //$rec->groupList = '|7|';
             $groupList = cls::get('crm_Groups');
             $group = 'Свързани лица';
-            $rec->groupList = "|". $groupList->fetchField("#name = '{$group}'", 'id') . "|";
+            $rec->{$me->expandInputFieldName} = "|". $groupList->fetchField("#name = '{$group}'", 'id') . "|";
             
             // Страната не е стринг, а id
             $Countries = cls::get('drdata_Countries');
@@ -1365,7 +1362,7 @@ class crm_Companies extends core_Master
         if (!self::fetch("#name = '{$expertaName}'")) {
             $eRec = new stdClass();
             $eRec->name = $expertaName;
-            $eRec->groupList = "|". crm_Groups::fetchField("#name = 'Доставчици'", 'id') . "|";
+            $eRec->{$me->expandInputFieldName} = "|". crm_Groups::fetchField("#name = 'Доставчици'", 'id') . "|";
             $eRec->country = drdata_Countries::fetchField("#commonNameBg = 'България'");
             $eRec->pCode = '5000';
             $eRec->place = 'В. Търново';
@@ -2004,23 +2001,30 @@ class crm_Companies extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId на група
+     * @param varchar $groupSysId - sysId или ид на група
+     * @param boolean $isSysId  - дали е систем ид
      */
-    public static function forceGroup($id, $groupSysId)
+    public static function forceGroup($id, $groupSysId, $isSysId = TRUE)
     {
     	expect($rec = static::fetch($id));
-    	expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	$me = cls::get(get_called_class());
+    	if($isSysId === TRUE){
+    		expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	} else {
+    		$groupId = $groupSysId;
+    		expect(crm_Groups::fetch($groupId));
+    	}
     	
     	// Ако контрагента не е включен в групата, включваме го
     	if(!keylist::isIn($groupId, $rec->groupList)){
     		$groupName = crm_Groups::getTitleById($groupId);
-    		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
+    		$rec->{$me->expandInputFieldName} = keylist::addKey($rec->{$me->expandInputFieldName}, $groupId);
     		
     		if(haveRole('powerUser')){
     			core_Statuses::newStatus("|Фирмата е включена в група |* '{$groupName}'");
     		}
     		
-    		return static::save($rec, 'groupList');
+    		return static::save($rec, $me->expandInputFieldName);
     	}
     	
     	return TRUE;
@@ -2091,11 +2095,13 @@ class crm_Companies extends core_Master
     	// Ако е в група на клиент, показваме бутона за продажба
     	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
+    		$res[] = 'sales_Quotations';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
     	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
+    		$res[] = 'purchase_Offers';
     	}
     	 
     	return $res;
@@ -2132,7 +2138,7 @@ class crm_Companies extends core_Master
             if($fld->input != 'none' && $fld->input != 'hidden' && $fld->kind != 'FNC') {
                                 
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
-                if ($name == 'groupList') {
+                if ($name == $mvc->expandInputFieldName) {
                     $fields[$name]['notColumn'] = TRUE;
                     $fields[$name]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\')';
                 }

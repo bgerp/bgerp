@@ -133,10 +133,8 @@ class unit_MinkPbgERP extends core_Manager {
         $host = unit_Setup::get('DEFAULT_HOST');
         //$browser->start('http://localhost/');
         $browser->start($host);
-       
         //$browser->start('http://' . $_SERVER['HTTP_HOST']);
-         
-        //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите')) {
+        //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите') !== FALSE) {
         //$browser->click('☒ Ако приемате лиценза по-долу, може да продължите »');
         //$browser->click('Продължаване без обновяване »');
         //$browser->click('✓ Всичко е наред. Продължете с инициализирането »');
@@ -144,8 +142,10 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->click('Стартиране bgERP »');
         //$browser->click('Вход');
         //}
-        if(strpos($browser->gettext(), 'Първоначална регистрация на администратор')) {
-            
+        //$this->reportErr($browser->gettext());
+        
+        if(strpos($browser->gettext(), 'Първоначална регистрация на администратор') !== FALSE) {
+        //$this->reportErr('Първоначална регистрация на администратор');
         //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp  
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
@@ -202,9 +202,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->refresh('Запис');
         //$browser->setValue('roleTeams[13]', '13');
         //$browser->setValue('Headquarter', '13');
-        //return $browser->getHtml();
         //Повтаряне на паролите, 
-        //$browser->refresh('Запис');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
@@ -235,7 +233,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('roleRank', 'officer');
         $browser->refresh('Запис');
         //$browser->setValue('roleTeams[13]', '13');
-        $browser->setValue('Дилър', '79');
+        $browser->setValue('Дилър', True);
         //Повтаряне на паролите, 
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
@@ -543,7 +541,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Проекти');
         $browser->press('Нов запис');
         $browser->setValue('name', 'Други проекти');
-        $browser->setValue('Бележки', '55');
+        $browser->setValue('Бележки', True);
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
@@ -784,6 +782,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Локации');
         $browser->press('Нов търговски обект');
         $browser->setValue('name', 'Фирма с локация');
+        $browser->setValue('uicId', '200093985');
         $browser->setValue('place', 'Варна');
         $browser->setValue('address', 'ул.Морска, №122');
         $browser->setValue('title', 'Централен офис');
@@ -872,7 +871,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
         $browser->press('Оферта');
+        
         $browser->setValue('Цена', '3,1234');
+        //$browser->setValue('row1[cR]', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
         $browser->press('Добавяне');
@@ -964,7 +965,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('deliveryTermIdExtended', 'EXW');
         $browser->setValue('deliveryLocationId', '1');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
     
@@ -1089,7 +1090,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('bankAccountId', '');
         $browser->setValue('deliveryTermIdExtended', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
@@ -1226,7 +1227,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('note', 'MinkPbgErpCreateSale');
         $browser->setValue('deliveryTermIdExtended', 'DDP');
         $browser->setValue('deliveryLocationId', '1');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -1354,7 +1355,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateSaleC');
         //$browser->setValue('pricesAtDate', date('d-m-Y'));
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Освободено от ДДС"); //// ДАВА ГРЕШКА!
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
@@ -1591,8 +1592,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Дефиниции');
         $browser->click('Плащания');
         $browser->press('Нов запис');
-        $browser->setValue('title', 'До 14 дни след фактуриране');
+        //$browser->setValue('title', 'До 14 дни след фактуриране');
         $browser->setValue('type', 'По банков път');
+        $browser->setValue('eventBalancePayment', 'след датата на фактурата');
+        $browser->setValue('timeBalancePayment', '14 дни');
         $browser->setValue('discountPercent', '2');
         $browser->setValue('discountPeriod', '5');
         $browser->press('Запис');
@@ -1617,7 +1620,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('conditionId', 'Начин на плащане (4)');
         $browser->setValue('value', '16');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"До 1 месец след фактуриране")){
+        if (strpos($browser->getText(),"100% до 1 мес. след датата на фактурата")){
         } else {
             return $this->reportErr('Грешка при създаване на търговско условие', 'warning');
         }

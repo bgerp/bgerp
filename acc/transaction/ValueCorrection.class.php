@@ -348,11 +348,12 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 		$isPurchase = ($itemRec->classId == purchase_Purchases::getClassId());
 		$isSale = ($itemRec->classId == sales_Sales::getClassId());
 		$mPn = ($itemRec->classId == planning_DirectProductionNote::getClassId());
+		$isTransfer = ($itemRec->classId == store_Transfers::getClassId());
 		
 		foreach ($products as $p){
 			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
 			
-			if($isPurchase){
+			if($isPurchase || $isTransfer){
 				
 				$storesArr = array();
 				foreach ($p->inStores as $storeId => $p2){

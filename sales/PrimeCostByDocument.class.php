@@ -146,7 +146,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	 * @param stdClass $rec
 	 * @return int $dealerId
 	 */
-	public static function getDilerId($rec)
+	public static function getDealerId($rec)
 	{
 	    
 	    $Class = cls::get($rec->detailClassId);
@@ -167,7 +167,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	        }
 	    } 
 	    
-	    $dealerId = crm_Profiles::fetchField($dealerId,"personId");
+	    $dealerId = crm_Profiles::fetchField("#userId = {$dealerId}","personId");
 
 	    return $dealerId;
 	}
@@ -185,7 +185,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	    $query = self::getQuery();
 	    $Double = cls::get(type_Double);
 	    
-	    $query->where("#valior  <= '{$date}'");
+	    $query->where("#valior  = '{$date}'");
 	    $me = cls::get(get_called_class());
 	    
 	    $result = array();
@@ -194,7 +194,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
 	        $Class = cls::get($rec->detailClassId);
 	        $dRec = $Class->fetch($rec->detailRecId);
-	        $dealerId = self::getDilerId($rec);
+	        $dealerId = self::getDealerId($rec);
 	        $key = $dealerId . "|" . $rec->detailClassId . "|" .$dRec->shipmentId;
 
             // Ако е Експедиционно нареждане

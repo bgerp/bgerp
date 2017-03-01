@@ -325,4 +325,30 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		return $tpl;
 	}
+	
+	
+	/**
+	 * Колко е толеранса
+	 *
+	 * @param int $id          - ид на артикул
+	 * @param double $quantity - к-во
+	 * @return double|NULL     - толеранс или NULL, ако няма
+	 */
+	public function getTolerance($id, $quantity)
+	{
+		return $this->getParams(cat_Products::getClassId(), $id, 'tolerance');
+	}
+	
+	
+	/**
+	 * Колко е срока на доставка
+	 *
+	 * @param int $id          - ид на артикул
+	 * @param double $quantity - к-во
+	 * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+	 */
+	public function getDeliveryTime($id, $quantity)
+	{
+		return $this->getParams(cat_Products::getClassId(), $id, 'term');
+	}
 }

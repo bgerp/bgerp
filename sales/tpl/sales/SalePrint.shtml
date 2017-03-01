@@ -1,0 +1,98 @@
+<c>[#MyCompany#]
+<c>[#MyAddress#]
+<p>
+<c F b>ДОГОВОР
+<c F b>ЗА ПРОДАЖБА
+<c b>[#id#] / [#valior#]
+<p><r32>
+
+<!--ET_BEGIN PRODUCT_BLOCK-->
+[#PRODUCT_BLOCK#]
+<p b>[#numb#].[#productId#]
+<!--ET_BEGIN batch--><p f>[#batch#]<!--ET_END batch-->
+<p><l>[#packQuantity#] [#packagingId#]<l10> х [#packPrice#]<r32 b>= [#amount#]
+<!--ET_END PRODUCT_BLOCK-->
+
+<p><r32 ->
+<!--ET_BEGIN value-->
+<p b>Стойност:  <r32 b>[#value#]
+<!--ET_END value-->
+<!--ET_BEGIN discountValue-->
+<p b>Отстъпка:  <r32 b>[#discountValue#]
+<!--ET_END discountValue-->
+<!--ET_BEGIN neto-->
+<p b>Нето:  <r32 b>[#neto#]
+<!--ET_END neto-->
+<!--ET_BEGIN vat02Amount-->
+<p b>ДДС [#vat02#]:  <r32 b>[#vat02Amount#]
+<!--ET_END vat02Amount-->
+<!--ET_BEGIN vat09Amount-->
+<p b>ДДС [#vat09#]:  <r32 b>[#vat09Amount#]
+<!--ET_END vat09Amount-->
+<!--ET_BEGIN vat0Amount-->
+<p b>ДДС [#vat0#]:  <r32 b>[#vat0Amount#]
+<!--ET_END vat0Amount-->
+<p><r32 ->
+<p F b>Общо:  <r16 F b>[#total#]
+<p><r32 ->
+<p b>Клиент
+<p>[#contragentName#]
+<p>[#contragentAddress#]
+<!--ET_BEGIN deliveryLocationId-->
+<p>До обект: [#deliveryLocationId#]
+<!--ET_END deliveryLocationId-->
+<p><r32 ->
+<!--ET_BEGIN shipmentStoreId-->
+<p>От склад: [#shipmentStoreId#]
+<!--ET_END shipmentStoreId-->
+<!--ET_BEGIN paymentMethodId-->
+<p>Плащане: [#paymentMethodId#]
+<!--ET_END paymentMethodId-->
+<!--ET_BEGIN downpayment-->
+<p>Авансово: [#downpayment#]
+<!--ET_END downpayment-->
+<!--ET_BEGIN currencyId-->
+<p>Валута: [#currencyId#]
+<!--ET_END currencyId-->
+<!--ET_BEGIN caseId-->
+<p>Каса: [#caseId#]
+<!--ET_END caseId-->
+<!--ET_BEGIN bankAccountId-->
+<p>Банк. с-ка:
+<p>[#bankAccountId#]
+<!--ET_END bankAccountId-->
+<!--ET_BEGIN conditions-->
+<p><r32 ->
+[#conditions#]
+<p b>Условия:
+<!--ET_BEGIN withVat-->
+<p>- Цените са с включен ДДС[#withVat#]
+<!--ET_END withVat-->
+<!--ET_BEGIN sepVat-->
+<p>- Цените са с отделно ДДС [#sepVat#]
+<!--ET_END sepVat-->
+<!--ET_BEGIN noVat-->
+<p>- Цените са без ДДС[#noVat#]
+<!--ET_END noVat-->
+<!--ET_BEGIN notes-->
+<p>- [#notes#]
+<!--ET_END notes-->
+<!--ET_BEGIN closedDocuments-->
+<p>- Обединява: [#closedDocuments#]
+<!--ET_END closedDocuments-->
+<!--ET_BEGIN deliveryBlock-->
+[#deliveryBlock#]
+<p>- Доставка: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> до [#deliveryTime#]<!--ET_END deliveryTime-->
+<!--ET_END deliveryBlock-->
+<!--ET_BEGIN deliveryTermTime-->
+<p>- Срок за доставка: [#deliveryTermTime#] след стартиране на договора
+<!--ET_END deliveryTermTime-->
+<!--ET_BEGIN commonConditionQuote-->
+<p>- Общи условия по продажба: [#commonConditionQuote#]
+<!--ET_END commonConditionQuote-->
+<p><r32 ->
+<!--ET_END conditions-->
+<p>Получател:
+<p><r32 .>
+<p>Съставил:
+<p>[#username#]

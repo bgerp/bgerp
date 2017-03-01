@@ -57,7 +57,7 @@ class fileman_Files extends core_Master
 	 * Кой може да го разглежда?
 	 * @todo След като се направи да се показват само файловете на потребителя
 	 */
-	protected $canList = 'powerUser';
+	protected $canList = 'ceo, admin, debug';
     
 	
     /**
@@ -1374,8 +1374,6 @@ class fileman_Files extends core_Master
         //Намираме записа на файла
         $fRec = static::fetchByFh($fh);
         
-        fileman::updateLastUse($fRec);
-        
         //Проверяваме дали сме открили записа
         if(!$fRec) {
             
@@ -2087,7 +2085,7 @@ class fileman_Files extends core_Master
         
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=admin, rolesForTeams=admin)', 'caption=Потребител,input,silent,autoFilter');
         
         // В хоризонтален вид
         $data->listFilter->view = 'vertical';
@@ -2110,30 +2108,8 @@ class fileman_Files extends core_Master
         
         $filter = $data->listFilter->rec;
         
-		// Ако се търси по всички
-		if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
-		    // Подреждаме ги по последно използване от fileman_Data
-		    $data->query->EXT('lastUse', 'fileman_Data', 'externalName=lastUse, externalKey=dataId');
-		    $data->query->orderBy("#lastUse", 'DESC');
-        } else {
-            $selfDbTableName = self::getDbTableName();
-            $logDbTableName = fileman_log::getDbTableName();
-            $idFieldName = str::phpToMysqlName('id');
-            $fileIdFieldName = str::phpToMysqlName('fileId');
-            $userIdFieldName = str::phpToMysqlName('userId');
-            
-            // Подреждаме файловете по-последно използване от съответния потребител
-            $data->groupByDateField = 'lastOn';
-            $data->query->EXT('lastOn', 'fileman_log', 'externalName=lastOn');
-            $data->query->where("`{$selfDbTableName}`.`{$idFieldName}` = `{$logDbTableName}`.`{$fileIdFieldName}`");
-            $data->query->orderBy("#lastOn", 'DESC');
-            
-            // Файловете от последния потребител
-            $usersArr = type_Keylist::toArray($filter->usersSearch);
-            $data->query->EXT('userId', 'fileman_Log', 'externalName=userId');
-            $userArrImp = implode(',',  $usersArr);
-            $data->query->where("`{$logDbTableName}`.`{$userIdFieldName}` IN ({$userArrImp})");
-        }
+        $usersArr = type_Keylist::toArray($filter->usersSearch);
+        $mvc->prepareFilesQuery($data->query, $usersArr, $data->groupByDateField);
         
         $data->query->orderBy('modifiedOn', 'DESC');
 		
@@ -2145,6 +2121,50 @@ class fileman_Files extends core_Master
 		    $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
 		    plg_Search::applySearch($search, $data->query, 'searchKeywords');
 		}
+    }
+    
+    
+    /**
+     * Подготвя заявка за подреждане на файловете, според полседно използването им
+     * 
+     * @param core_Query $query
+     * @param array $usersArr
+     * @param string|NULL $groupByDateField
+     */
+    public static function prepareFilesQuery($query, $usersArr, &$groupByDateField = NULL)
+    {
+        $userArrImp = implode(',',  $usersArr);
+        
+        // Ако има избран повече от един потребител, ги подреждаме по послендо използване
+        if (count($usersArr) > 1) {
+            $groupByDateField = 'lastUse';
+            $query->EXT('lastUse', 'fileman_Data', 'externalName=lastUse, externalKey=dataId');
+            $query->orderBy("#lastUse", 'DESC');
+            
+            if (!$usersArr[-1]) {
+                $query->where("#createdBy IN ({$userArrImp})");
+            }
+        } else {
+            
+            // Подреждаме по поселдно използване от fileman_Log таблицата
+            
+            $groupByDateField = 'lastOn';
+            $selfDbTableName = self::getDbTableName();
+            $logDbTableName = fileman_log::getDbTableName();
+            $idFieldName = str::phpToMysqlName('id');
+            $fileIdFieldName = str::phpToMysqlName('fileId');
+            $userIdFieldName = str::phpToMysqlName('userId');
+            
+            // Подреждаме файловете по-последно използване от съответния потребител
+            $query->EXT('lastOn', 'fileman_log', 'externalName=lastOn');
+            $query->where("`{$selfDbTableName}`.`{$idFieldName}` = `{$logDbTableName}`.`{$fileIdFieldName}`");
+            $query->orderBy("#lastOn", 'DESC');
+            
+            // Файловете от последния потребител
+            
+            $query->EXT('userId', 'fileman_Log', 'externalName=userId');
+            $query->where("`{$logDbTableName}`.`{$userIdFieldName}` IN ({$userArrImp})");
+        }
     }
     
     
