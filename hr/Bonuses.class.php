@@ -56,7 +56,7 @@ class hr_Bonuses extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,
-    				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper';
+    				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper,acc_plg_DocumentSummary';
     
     
     /**
@@ -125,6 +125,13 @@ class hr_Bonuses extends core_Master
     
     
     /**
+     * За плъгина acc_plg_DocumentSummary
+     */
+    public $filterFieldDateFrom = 'date';
+    public $filterFieldDateTo = 'date';
+    
+    
+    /**
      * Единична икона
      */
     public $singleIcon = 'img/16/bonuses.png';
@@ -183,7 +190,7 @@ class hr_Bonuses extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->showFields = 'personId,date';
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->view = 'vertical';
         $data->listFilter->input('personId, date', 'silent');
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
