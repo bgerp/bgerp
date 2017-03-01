@@ -622,4 +622,28 @@ abstract class store_DocumentMaster extends core_Master
     		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
     	}
     }
+    
+    
+    /**
+     *  Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
+    		$data->listFilter->showFields .= ',dState';
+    		$data->listFilter->input();
+    		$data->listFilter->setDefault('dState', 'all');
+    		 
+    		if($rec = $data->listFilter->rec){
+    
+    			// Филтър по състояние
+    			if($rec->dState){
+    				if($rec->dState != 'all'){
+    					$data->query->where("#state = '{$rec->dState}'");
+    				}
+    			}
+    		}
+    	}
+    }
 }
