@@ -87,6 +87,14 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none');
         $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране||Modified->От||By,input=none');
         
+        if (!$mvc->fields['activatedOn']) {
+        	$mvc->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
+        }
+        
+        if (!$mvc->fields['activatedBy']) {
+        	$mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активиране||Activated->От||By,input=none');
+        }
+        
         // Ако има cid и Tab, показваме детайлите
         if (Request::get('Cid') && Request::get('Tab')) {
             
@@ -3451,5 +3459,18 @@ class doc_DocumentPlg extends core_Plugin
     {
     	// Добавяме артикулите към детайлите за клониране
     	$res = arr::make($mvc->cloneDetails, TRUE);
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	if(empty($rec->activatedOn)){
+    		$rec->activatedOn = dt::now();
+    		$rec->activatedBy = core_Users::getCurrent();
+    		$mvc->save_($rec, 'activatedOn,activatedBy');
+    	}
     }
 }
