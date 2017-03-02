@@ -289,8 +289,9 @@ class doc_DocumentPlg extends core_Plugin
                 "id=btnRestore{$data->rec->containerId},warning=Наистина ли желаете да възстановите документа?,order=32,title=" . tr("Възстановяване на документа"), 'ef_icon = img/16/restore.png');
         }
         
-        //Бутон за добавяне на коментар 
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
+            
+        	// Бутон за добавяне на коментар
             if(isset($data->rec->threadId) && doc_Comments::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId, 'folderId' => $data->rec->folderId))){
             	// Бутон за създаване на коментар
             	$data->toolbar->addBtn('Коментар', array(
@@ -300,6 +301,16 @@ class doc_DocumentPlg extends core_Plugin
             			'ret_url'=> $retUrl
             	),
             			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
+            }
+            
+            // Добавяме бутон за създаване на задача
+            if (haveRole('debug') && cal_Tasks::haveRightFor('add')) {
+                $data->toolbar->addBtn('Задача', array(
+                        'cal_Tasks',
+                        'AddDocument',
+                        'foreignId' => $data->rec->containerId,
+                        'ret_url'=> $retUrl
+                ), 'ef_icon = img/16/task-normal.png, title=' . tr('Създаване на задача от документа'));
             }
         } else {
             //TODO да се "премахне" и оптимизира
