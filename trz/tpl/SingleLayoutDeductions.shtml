@@ -3,7 +3,7 @@
 <p class="centered">№ [#id#] / [#date#] |г|*.</p>
 <br>
 <p>|За|*: <b>[#personId#]</b></p>
-<p>|Описание|*: <b>[#type#]</b></p>
+<div class="richtext-holder">|Описание|*: <b>[#type#]</b></div>
 <p>|Сума|*: <b>[#sum#]</b></p>
 
 <br><br>
