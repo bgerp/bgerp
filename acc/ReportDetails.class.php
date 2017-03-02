@@ -338,7 +338,7 @@ class acc_ReportDetails extends core_Manager
                 		$colspan = count($fields) - 1;
                 		$totalRow = $Double->toVerbal($total);
                 		$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
-                		$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='padding-right: 5px; font-weight:bold'><span class='maxwidth totalCol accCell'>{$totalRow}</th></th></tr>";
+                		$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='padding-right: 4px; font-weight:bold'><span class='maxwidth totalCol accCell'>{$totalRow}</th></th></tr>";
                 		$tableHtml->replace($totalHtml, 'ROW_AFTER');
                 		$tableHtml->removeBlocks;
                 	}
