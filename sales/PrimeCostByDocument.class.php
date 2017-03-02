@@ -217,7 +217,7 @@ class sales_PrimeCostByDocument extends core_Manager
 			$dQuery->EXT('state', $Master, "externalName=state,externalKey={$Detail->masterKey}");
 			$dQuery->EXT('modifiedOn', $Master, "externalName=modifiedOn,externalKey={$Detail->masterKey}");
 			$dQuery->where("#modifiedOn >= '{$timeline}'");
-			$dQuery->where("#state != 'draft' AND #state != 'pending'");
+			$dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
 			
 			$fields = "modifiedOn,{$Detail->masterKey},state";
 			if($Master != 'sales_Sales'){
