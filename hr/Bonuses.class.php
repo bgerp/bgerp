@@ -150,7 +150,7 @@ class hr_Bonuses extends core_Master
     {
     	$this->FLD('date', 'date',     'caption=Дата,oldFieldName=periodId');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
-    	$this->FLD('type', 'varchar',     'caption=Произход на бонуса');
+    	$this->FLD('type', 'richtext',     'caption=Произход на бонуса');
     	$this->FLD('sum', 'double',     'caption=Сума');
     }
     
