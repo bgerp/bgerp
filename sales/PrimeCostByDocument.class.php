@@ -298,7 +298,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public static function getIndicatorNames()
     {
-        return array(1 => 'Делта', 2 => 'Делта на инициатора');
+        return array(1 => 'Delta', 2 => 'DeltaI');
     }
 
 }
