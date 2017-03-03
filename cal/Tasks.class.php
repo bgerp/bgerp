@@ -388,17 +388,15 @@ class cal_Tasks extends core_Master
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
         }
 
-        $today = dt::today();
-        $oneWeakLater = dt::addDays(7);
-        $data->query->where("#state = 'active' OR (#state = 'waiting' AND #timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}')");
+        $data->query->where("#state = 'active'");
 
         // Време за подредба на записите в портала
-        $data->query->XPR('orderDate', 'datetime', "if(#expectationTimeStart AND #expectationTimeStart > '{$now}', #expectationTimeStart, if(#timeStart, #timeStart, '{$today} 00:00:00'))");
+        $data->query->XPR('orderDate', 'datetime', "#modifiedOn");
         $data->query->orderBy("#orderDate=DESC, #createdOn=DESC");
 
 
         // Време за групиране на записите в портала
-        $data->query->XPR('groupDate', 'datetime', "if(#timeStart, #timeStart, '')");
+        $data->query->XPR('groupDate', 'datetime', "#modifiedOn");
 
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
