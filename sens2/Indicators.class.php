@@ -213,15 +213,15 @@ class sens2_Indicators extends core_Manager
 
         self::save($rec);
 	
-	if(!$rec->error) {
-            // Записваме и в контекста, ако има такъв
-            if(self::$contex) {
-            $title = self::getRecTitle($rec);
-                self::$contex[$title] = $value;
-            }
-	
-            return $rec->id;
-	}
+        if(!$rec->error) {
+                // Записваме и в контекста, ако има такъв
+                if(self::$contex) {
+                $title = self::getRecTitle($rec);
+                    self::$contex[$title] = $value;
+                }
+        
+                return $rec->id;
+        }
     }
 
 
