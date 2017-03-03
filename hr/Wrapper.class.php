@@ -36,8 +36,7 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_Deductions', 'Документи->Удръжки', 'ceo,hr');
 
         $this->TAB('hr_Departments', 'Структура->Отдели', 'ceo,hr,admin');
-        $this->TAB('hr_Positions', 'Структура->Позиции','ceo,hr,admin');
-        $this->TAB('hr_Professions', 'Структура->Професии','ceo,hr,admin');
+        $this->TAB('hr_Positions', 'Структура->Длъжности','ceo,hr,admin');
         $this->TAB('hr_CustomSchedules', 'Структура->Графици', 'ceo,hr,admin');
         $this->TAB('hr_WorkingCycles', 'Структура->Цикли', 'ceo,hr,admin');
         $this->TAB('hr_ContractTypes', 'Структура->Шаблони', 'ceo,hr,admin');

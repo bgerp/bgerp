@@ -78,7 +78,6 @@ class hr_Setup extends core_ProtoSetup
             'hr_WorkingCycleDetails',
             'hr_Shifts',
             'hr_ShiftDetails',
-            'hr_Professions',
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
@@ -168,4 +167,44 @@ class hr_Setup extends core_ProtoSetup
     		hr_Departments::forceCoverAndFolder($dRec->id);
     	}
     }
+
+
+    /**
+     * Миграция "длъжности"
+     */
+    function setPositionName()
+    {
+        $mvc = cls::get('hr_Positions');
+     	if($mvc->fetch('1=1')) {
+            if($mvc->db->tableExists('hr_Professions') && 
+               cls::load('hr_Professions', TRUE) && 
+               $mvc->db->isFieldExists($mvc->dbTableName, 'profession_id') &&
+               $mvc->db->isFieldExists($mvc->dbTableName, 'department_id')) {
+    	        
+                $query = hr_Positions::getQuery();
+                $query->FLD('professionId', 'int');
+                $query->FLD('departmentId', 'int');
+                
+                while($rec = $query->fetch()) { 
+                    $profRec = hr_Professions::fetch($rec->professionId);
+                    $depRec  = hr_Departments::fetch($rec->departmentId);
+                    
+                    if(!$rec->name) {
+                        $rec->name = $profRec->name . '/' . $depRec->name;
+
+                        if($mvc->fetch("#name = '{$rec->name}'")) {
+                            $rec->name .= ' ' . $rec->id;
+                        }
+
+                        $rec->nkpd = $profRec->nkpd;
+
+                        $mvc->save($rec);
+                    }
+                }
+
+            }
+        }
+
+    }
+  
 }

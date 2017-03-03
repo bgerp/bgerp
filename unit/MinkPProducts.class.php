@@ -114,12 +114,12 @@ class unit_MinkPProducts extends core_Manager {
             //Добавяне на лимит
             $browser->click('Добавяне на ново ограничение на перото');
             $browser->setValue('accountId', '321. Суровини, материали, продукция, стоки');
-            $browser->refresh('Запис');
+            //$browser->refresh('Запис');
+            $browser->press('Refresh');
             $browser->setValue('limitDuration', '1 год.');
             $browser->setValue('limitQuantity', '100');
             $browser->setValue('item1', 'Склад 1 (1 st)');
-            //Екип "Headquarter"
-            $browser->setValue('sharedUsers[13_1]', '13_1');
+            $browser->setValue('Bgerp', True);
             $browser->press('Запис');
             
             //Добавяне на себестойност

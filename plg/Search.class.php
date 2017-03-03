@@ -152,7 +152,7 @@ class plg_Search extends core_Plugin
      */
     static function sortLength($a, $b)
     {
-        return strlen($a)-strlen($b);
+        return strlen($b)-strlen($a);
     }
    
     

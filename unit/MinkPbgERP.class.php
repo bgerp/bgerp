@@ -560,7 +560,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
     
         // Създаване на звено
-        $browser->click('HR');
+        $browser->click('Персонал');
         $browser->click('Структура');
         $browser->press('Нов запис');
         //return $browser->getHtml();
@@ -587,7 +587,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser = $this->SetUp();
     
         // Създаване на звено
-        $browser->click('HR');
+        $browser->click('Персонал');
         $browser->click('Структура');
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
@@ -606,7 +606,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     
-    /**
+    /*
      * 1. Създаване на артикул - продукт с параметри
      */
     //http://localhost/unit_MinkPbgERP/CreateProduct/

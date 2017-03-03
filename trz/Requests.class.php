@@ -45,7 +45,7 @@ class trz_Requests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
+    public $listFields = 'id,personId, leaveFrom, leaveTo, note, paid';
     
     
     /**
@@ -121,12 +121,6 @@ class trz_Requests extends core_Master
      */
     public $canDelete = 'powerUser';
 
-    
-    /**
-     * Икона за единичния изглед
-     */
-    //var $singleIcon = 'img/16/money.png';
-    
     
     /**
      * Единична икона

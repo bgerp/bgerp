@@ -44,7 +44,7 @@ class cal_Tasks extends core_Master
     /**
      * Какви детайли има този мастер
      */
-    public $details = 'cal_TaskProgresses, cal_TaskConditions';
+    public $details = 'cal_TaskProgresses, cal_TaskConditions, cal_TaskDocuments';
 
 
     /**
@@ -228,7 +228,7 @@ class cal_Tasks extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
         $this->FLD('priority', 'enum(low=Нисък,
                                     normal=Нормален,
                                     high=Висок,
@@ -388,17 +388,15 @@ class cal_Tasks extends core_Master
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
         }
 
-        $today = dt::today();
-        $oneWeakLater = dt::addDays(7);
-        $data->query->where("#state = 'active' OR (#state = 'waiting' AND #timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}')");
+        $data->query->where("#state = 'active'");
 
         // Време за подредба на записите в портала
-        $data->query->XPR('orderDate', 'datetime', "if(#expectationTimeStart AND #expectationTimeStart > '{$now}', #expectationTimeStart, if(#timeStart, #timeStart, '{$today} 00:00:00'))");
+        $data->query->XPR('orderDate', 'datetime', "#modifiedOn");
         $data->query->orderBy("#orderDate=DESC, #createdOn=DESC");
 
 
         // Време за групиране на записите в портала
-        $data->query->XPR('groupDate', 'datetime', "if(#timeStart, #timeStart, '')");
+        $data->query->XPR('groupDate', 'datetime', "#modifiedOn");
 
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
@@ -2369,5 +2367,162 @@ class cal_Tasks extends core_Master
         unset($nRec->workingTime);
         unset($nRec->timeCalc);
         $nRec->notifySent = 'no';
+    }
+    
+    
+    /**
+     * Създаване на задача от документ
+     */
+    function act_AddDocument()
+    {
+        $this->requireRightFor('add');
+        
+        $originId = Request::get('foreignId');
+        
+        expect($originId);
+        
+        $document = doc_Containers::getDocument($originId);
+        
+        expect($document);
+        
+        $dRec = $document->fetch();
+        
+        $document->instance->requireRightFor('single', $dRec);
+        
+        $retUrl = getRetUrl();
+        
+        // URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'list'));
+        
+        // Вземаме формата към този модел
+        $form = cls::get('core_Form');
+        
+        $cu = core_Users::getCurrent();
+        
+        $form->FNC('taskId', "key(mvc=cal_Tasks, name=title, allowEmpty)", 'caption=Задача, placeholder=Нова задача, input=input, silent, class=w100, removeAndRefreshForm=date,folderId');
+        $form->FNC('date', 'date', 'caption=Дата,class=w100, input=input, silent');
+        $form->FNC('folderId', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Папка,class=w100, input=input, silent');
+        
+        // Показваме само задачите от/за текущия потребител в съответното състояние
+        $query = $this->getQuery();
+        $query->likeKeylist('sharedUsers', "|{$cu}|");
+        $query->orWhere(array("#createdBy = '[#1#]'", $cu));
+        
+        $query->where("#state = 'active'");
+        $query->orWhere("#state = 'draft'");
+        $query->orWhere("#state = 'waiting'");
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            
+            $title = $rec->title;
+            $title = str::limitLen($title, 32);
+            $title = $title . " ({$rec->id})";
+            
+            $folderName = doc_Folders::getTitleById($rec->folderId, FALSE);
+            $folderName = str::limitLen($folderName, 32);
+            $title = $folderName . ': ' . $title;
+            
+            $taskArr[$rec->id] = $title;
+        }
+        
+        $form->setOptions('taskId', $taskArr);
+        
+        $form->setDefault('date', dt::addDays(1));
+        
+        $form->input(NULL, TRUE);
+        $form->input();
+        
+        if ($form->rec->taskId) {
+            $form->rec->date = '';
+            $form->setReadonly('date');
+            $form->setReadonly('folderId');
+        }        
+        $rec = $form->rec;
+        
+        // Ако е избрана задача, но документа съсществува там
+        if($form->isSubmitted()) {
+            if ($rec->taskId) {
+                if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $rec->taskId, $originId))) {
+                    $form->setError('taskId', 'Документът вече е бил добавен в задачата');
+                }
+            }
+        }
+        
+        // Ако е избрана задача, прикачаме документа към нея
+        if($form->isSubmitted()) {
+            if ($rec->taskId) {
+                $this->requireRightFor('single', $rec->taskId);
+                $nRec = new stdClass();
+                $nRec->taskId = $rec->taskId;
+                $nRec->containerId = $originId;
+                $nRec->state = 'active';
+                
+                if (cal_TaskDocuments::save($nRec)) {
+                    
+                    return new Redirect($retUrl, '|Успешно прикачихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
+                } else {
+                    $form->setError('taskId', 'Грешка при добавяне на документа към задачата');
+                }
+            }
+        }
+        
+        // Ако ще се създава нова задача
+        if($form->isSubmitted()) {
+            
+            $haveFolder = FALSE;
+            
+            $redirectUrl = array($this, 'add');
+            
+            // Ако има дата
+            if ($rec->date) {
+                
+                Mode::push('text', 'plain');
+                $date = dt::mysql2verbal($rec->date, 'd.m.Y');
+                $wDay = dt::mysql2verbal($rec->date, 'N');
+                $wDayStr = tr(core_DateTime::$weekDays[$wDay-1]);
+                $nick = core_Users::getCurrent('nick');
+                Mode::pop('text');
+                
+                // @TODO - ако title съществува
+                
+                $redirectUrl['title'] = tr("Задачи за") . ' ' . $date . '/' . $wDayStr . '/' . $nick;
+                $redirectUrl['timeStart'] = dt::verbal2mysql($date . ' 08:00:00');
+                
+                if ($rec->folderId) {
+                    $redirectUrl['folderId'] = $rec->folderId;
+                    $haveFolder = TRUE;
+                }
+            } else {
+                
+                // Ако е нова задача без попълнени данни - ще е в нишката на оригиналния документ
+                if (!$rec->folderId) {
+                    $redirectUrl['threadId'] = $dRec->threadId;
+                    $haveFolder = TRUE;
+                }
+            }
+            
+            if (!$haveFolder) {
+                // @TODO - или "Документите на XXX"
+                
+                $redirectUrl['folderId'] = doc_Folders::getDefaultFolder($cu);
+            }
+            
+            return new Redirect($redirectUrl);
+        }
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        // Добавяме титлата на формата
+        $form->title = "Създаване на задача от|* ";
+        $form->title .= doc_Containers::getLinkForSingle($originId);
+        
+        // Получаваме изгледа на формата
+        $tpl = $form->renderHtml();
+        
+        return self::renderWrapping($tpl);
     }
 }

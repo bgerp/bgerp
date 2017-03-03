@@ -2575,9 +2575,14 @@ function centerNumericElements() {
  */
 function smartCenter() {
 		if(!$("span.maxwidth").length) return;
+
         var smartCenterWidth = [];
     	$("span.maxwidth").css('display', 'inline-block');
 		$("span.maxwidth").each(function() {
+            if($(this).hasClass('totalCol') ){
+                var dataCol = $(this).closest('table').find('tr td:last').find('.maxwidth').attr('data-col');
+                $(this).attr('data-col', dataCol);
+            }
         	if(!smartCenterWidth[$(this).attr('data-col')] || smartCenterWidth[$(this).attr('data-col')] < $(this).width()){
         		smartCenterWidth[$(this).attr('data-col')] = $(this).width();
             }

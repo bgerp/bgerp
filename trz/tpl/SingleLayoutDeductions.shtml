@@ -1,5 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-<h3 class="centered">|ПРЕМИЯ|* </h3>
+<h3 class="centered">|УДРЪЖКА|* </h3>
 <p class="centered">№ [#id#] / [#date#] |г|*.</p>
 <br>
 <p>|За|*: <b>[#personId#]</b></p>

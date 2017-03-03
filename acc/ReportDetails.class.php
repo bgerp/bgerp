@@ -338,7 +338,7 @@ class acc_ReportDetails extends core_Manager
                 		$colspan = count($fields) - 1;
                 		$totalRow = $Double->toVerbal($total);
                 		$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
-                		$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
+                		$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='padding-right: 4px; font-weight:bold'><span class='maxwidth totalCol accCell'>{$totalRow}</th></th></tr>";
                 		$tableHtml->replace($totalHtml, 'ROW_AFTER');
                 		$tableHtml->removeBlocks;
                 	}
@@ -376,7 +376,7 @@ class acc_ReportDetails extends core_Manager
             }
            
             if($count > 1 && $data->canSeePrices !== FALSE){
-            	$lastRow = "<div class='acc-footer'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
+            	$lastRow = "<div class='acc-footer' style='padding-right: 13px;'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
             	$tpl->append($lastRow, 'CONTENT');
             }
         }
