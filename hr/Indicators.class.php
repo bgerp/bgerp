@@ -104,7 +104,7 @@ class hr_Indicators extends core_Manager
         $this->FLD('indicatorId',    'int', 'caption=Индикатор,smartCenter,mandatory');
         $this->FLD('sourceClass',    'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Индикатор->Източник,smartCenter,mandatory');
         $this->FLD('value',    'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
-        
+
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
     }
     
@@ -194,7 +194,7 @@ class hr_Indicators extends core_Manager
      */
     public static function cron_Update()
     { 
-        $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD + 1) * 60);
+        $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD + 10000) * 60);
        
         $periods = self::saveIndicators($timeline);
         foreach($periods as $id => $rec) {
@@ -284,7 +284,7 @@ class hr_Indicators extends core_Manager
         foreach($forClean as $doc => $ids) { 
             list($docClass, $docId) = explode('::', $doc); 
             $query = self::getQuery();
-            $query->where("#docClass = {$docClass} && #docId = {$docId}");
+            $query->where("#docClass = {$docClass} AND #docId = {$docId}");
             if(count($ids)) {
                 $query->where("#id NOT IN (" . implode(',', $ids) . ")");
             }
@@ -304,7 +304,6 @@ class hr_Indicators extends core_Manager
         $ecQuery->where("#state = 'active' OR #state = 'closed'");
         $ecQuery->where("#startFrom <= '{$pRec->end}'");
         $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$pRec->start}')");
-        $ecQuery->groupBy("personId");
         $ecQuery->orderBy("#dateId", 'DESC');
         
         $ecArr = array();
@@ -314,7 +313,28 @@ class hr_Indicators extends core_Manager
                 $ecArr[$ecRec->personId] = $ecRec;
             }
         }
+        
 
+        $query = self::getQuery();
+        $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
+        $query->groupBy("personId");
+        while($rec = $query->fetch()) {
+            if(!isset($ecArr[$rec->personId])) {
+                $ecArr[$rec->personId] = new stdClass();
+            }
+        }
+
+        // Дали да извадим формулата от длъжността
+        $replaceFormula = dt::now() < $pRec->end;
+
+
+        // Подготвяме масив с нулеви стойности
+        $names = self::getIndicatorNames();
+        foreach($names as $class => $nArr) {
+            foreach($nArr as $n) {
+                $zeroInd[$n] = 0;
+            }
+        }
 
  
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
@@ -324,12 +344,69 @@ class hr_Indicators extends core_Manager
                 'personId' => $personId,
                 'periodId' => $pRec->id,
                 );
-            $posRec = hr_Positions::fetch($ecRec->positionId);
-            if(!$posRec->formula) {
-                $res->selary = $ecRec->salaryBase;
-            } else {
-                $query = self::getQuery();
+            
+            $sum = array();
+ 
+            if(isset($ecRec->positionId)) {
+                $posRec = hr_Positions::fetch($ecRec->positionId);
+                if(!empty($ecRec->salaryBase)) {
+                    $sum['$BaseSalary'] = $ecRec->salaryBase;
+                }
             }
+         
+            $names = self::getIndicatorNames();
+            $query = self::getQuery();
+            $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
+            $query->where("#personId = {$personId}");
+            while($rec = $query->fetch()) {
+                $indicator = $names[$rec->sourceClass][$rec->indicatorId];
+                $sum[$indicator] += $rec->value;
+            }
+            
+            $prlRec = hr_Payroll::fetch("#personId = {$personId} AND #periodId = {$pRec->id}");
+            
+            if(empty($prlRec)) {
+                $prlRec = new stdClass();
+                $prlRec->personId = $personId;
+                $prlRec->periodId = $pRec->id;
+            }
+            
+     
+            if($replaceFormula && $ecRec->positionId) {  
+                $prlRec->formula = hr_Positions::fetchField($ecRec->positionId, 'formula');
+            }
+
+            // Изчисляване на заплатата
+            $prlRec->salary = NULL;
+            if($prlRec->formula) {
+                $contex = array();
+                foreach($zeroInd as $name => $zero) {
+                    if(strpos($prlRec->formula, $name) !== FALSE) {
+                        $contex['$' . $name] = $sum[$name] + $zero;
+                    }
+                }
+                
+                uksort($contex, "str::sortByLengthReverse");
+
+                // Заместваме променливите и индикаторите
+                $expr  = strtr($prlRec->formula, $contex);
+        
+                if(str::prepareMathExpr($expr) === FALSE) {
+                    $prlRec->error = 'Невъзможно изчисление';
+                } else {
+                    $prlRec->salary = str::calcMathExpr($expr, $success);
+
+                    if($success === FALSE) {
+                        $prlRec->error = 'Грешка в калкулацията';
+                    }
+                }
+
+            } 
+
+            $prlRec->indicators = $sum;
+
+            hr_Payroll::save($prlRec);
+
         }
 
         // Ако не успеем - заплащането е базовото от договора

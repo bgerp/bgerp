@@ -25,7 +25,7 @@ class hr_Departments extends core_Master
     /**
      * Детайли на този мастер
      */
-    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles,Positions=hr_Positions';
+    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles';
     
     
     /**
@@ -140,14 +140,10 @@ class hr_Departments extends core_Master
     /**
      * Видове графики
      */
-    public static $chartTypes = array('List' => 'Tаблица', 'StructureChart' => 'Графика',);
+    //public static $chartTypes = array('List' => 'Tаблица', 'StructureChart' => 'Графика',);
     
     
-    /**
-     * Активен таб
-     */
-    public $currentTab = 'Структура->Таблица';
-    
+     
     
     /**
      * Кои полета да се сумират за наследниците
@@ -189,7 +185,7 @@ class hr_Departments extends core_Master
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл");
+        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл,mandatory");
         $this->FLD('startingOn', 'datetime', "caption=Работен график->Начало");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         // Състояние
@@ -288,24 +284,14 @@ class hr_Departments extends core_Master
     }
     
     
-    /**
-     * Добавя след таблицата
-     */
-    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
+ 
+    
+    function act_Migrate()
     {
-        $chartType = Request::get('Chart');
-        
-        if($chartType == 'Structure') {
-            
-            $tpl = static::getChart($data);
-            
-            $mvc->currentTab = "Структура->Графика";
-        } else {
-            $mvc->currentTab = "Структура->Таблица";
-        }
+        $s = cls::get('hr_Setup');
+        $s->setPositionName();
     }
-    
-    
+
     /**
      * След преобразуване на записа в четим за хора вид
      */

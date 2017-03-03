@@ -20,6 +20,11 @@ class hr_Deductions extends core_Master
      * Старо име на класа
      */
     public $oldClassName = 'trz_Fines';
+    
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'hr_IndicatorsSourceIntf';
 
 
     /**
@@ -211,7 +216,7 @@ class hr_Deductions extends core_Master
                 'date' => $rec->date,
                 'personId' => $rec->personId,
                 'docId'  => $rec->id,
-                'docClass' => core_Classes::getId('hr_Bonuses'),
+                'docClass' => core_Classes::getId('hr_Deductions'),
                 'indicatorId' => 1,
                 'value' => $rec->sum,
                 'isRejected' => $rec->state == 'rejected',
