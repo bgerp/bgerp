@@ -576,6 +576,7 @@ class marketing_Inquiries2 extends embed_Manager
     private function getTitle($id)
     {
     	$rec = $this->fetchRec($id);
+ 
     	$Driver = $this->getDriver($rec->id);
     	 
     	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
@@ -836,7 +837,9 @@ class marketing_Inquiries2 extends embed_Manager
     			}
 
                 if($Driver) {
-                    $rec->title = $Driver->getProductTitle($rec);
+                    if($title = $Driver->getProductTitle($rec)) {
+                        $rec->title = $title;
+                    }
                 }
 
     			$id = $this->save($rec);
