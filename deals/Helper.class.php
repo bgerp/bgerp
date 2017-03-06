@@ -122,19 +122,20 @@ abstract class deals_Helper
 			$price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
 			$rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
 			
-			$noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, 2);
+			$noVatAmount = round($price->noVat * $rec->{$map['quantityFld']} - 0.000001, 2);
+        	$noVatAmount1 = round($price->noVat * $rec->{$map['quantityFld']}, 2);
         	
 			if($rec->{$map['discount']}){
 				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
-				$withoutVatAndDisc = $noVatAmount;
+				$withoutVatAndDisc = $noVatAmount1;
 			}
 			
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
 			
         	$rec->{$map['amountFld']} = $noVatAmount;
         	if($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']){
-        		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, 2), 2);
+        		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount1 * $vat, 2), 2);
         	}
 
         	if($rec->{$map['discount']}){
@@ -160,7 +161,7 @@ abstract class deals_Helper
         		
         		// За всички останали събираме нормално
         		$amountRow += $rec->{$map['amountFld']};
-        		$amount += $noVatAmount;
+        		$amount += $noVatAmount1;
         		$amountVat += $vatRow;
         		 
         		$amountJournal += $withoutVatAndDisc;
