@@ -128,7 +128,7 @@ abstract class deals_Helper
 			if($rec->{$map['discount']}){
 				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
-				$withoutVatAndDisc = $noVatAmount;
+				$withoutVatAndDisc = $noVatAmount1;
 			}
 			
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
