@@ -186,7 +186,7 @@ abstract class deals_Helper
 		$mvc->_total->vats = $vats;
 		
 		if(!$map['alwaysHideVat']){
-			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+			//$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
 		} else {
 			$mvc->_total->discount = $discount;
 		}
