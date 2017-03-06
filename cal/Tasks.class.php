@@ -2412,7 +2412,7 @@ class cal_Tasks extends core_Master
         $retUrl = getRetUrl();
         
         // URL' то където ще се редиректва при отказ
-        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'list'));
+        $retUrl = ($retUrl) ? ($retUrl) : (array($document, 'single', $originId));
         
         // Вземаме формата към този модел
         $form = cls::get('core_Form');
@@ -2524,6 +2524,8 @@ class cal_Tasks extends core_Master
             }
             
             $redirectUrl['foreignId'] = $originId;
+            
+            $redirectUrl['ret_url'] = TRUE;
             
             return new Redirect($redirectUrl);
         }
