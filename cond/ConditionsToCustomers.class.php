@@ -329,7 +329,7 @@ class cond_ConditionsToCustomers extends core_Manager
     	expect(cls::haveInterface('crm_ContragentAccRegIntf', $cClass));
     	
     	$query = static::getQuery();
-    	$query->where("#cClass = {$cClass}");
+    	$query->where("#cClass = '{$cClass}'");
     	$query->where("#cId = {$cId}");
     	if($conditionId){
     		$query->where("#conditionId = {$conditionId}");
