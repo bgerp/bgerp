@@ -130,7 +130,7 @@ class cal_TaskDocuments extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->FNC('document', 'varchar', 'caption=Документ, input=input, formOrder=1, mandatory');
+        $data->form->FNC('documentCid', 'varchar', 'caption=Документ, input=input, formOrder=1, mandatory');
         
         $query = $mvc->getQuery();
         $query->where(array("#taskId = '[#1#]'", $data->form->rec->taskId));
@@ -159,9 +159,9 @@ class cal_TaskDocuments extends core_Detail
         
         if (!$data->form->rec->id) {
             if (!empty($docIdsArr)) {
-                $data->form->setOptions('document', $docIdsArr);
+                $data->form->setOptions('documentCid', $docIdsArr);
             } else {
-                $data->form->setReadonly('document');
+                $data->form->setReadonly('documentCid');
             }
         } else {
             
@@ -175,7 +175,7 @@ class cal_TaskDocuments extends core_Detail
             
             $docIdsArr = array($data->form->rec->containerId => $title);
             
-            $data->form->setOptions('document', $docIdsArr);
+            $data->form->setOptions('documentCid', $docIdsArr);
         }
     }
     
