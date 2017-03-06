@@ -2474,12 +2474,8 @@ class cal_Tasks extends core_Master
         if($form->isSubmitted()) {
             if ($rec->taskId) {
                 $this->requireRightFor('single', $rec->taskId);
-                $nRec = new stdClass();
-                $nRec->taskId = $rec->taskId;
-                $nRec->containerId = $originId;
-                $nRec->state = 'active';
                 
-                if (cal_TaskDocuments::save($nRec)) {
+                if (cal_TaskDocuments::add($rec->taskId, $originId)) {
                     
                     return new Redirect($retUrl, '|Успешно прикачихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
                 } else {
