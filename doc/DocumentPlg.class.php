@@ -304,7 +304,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Добавяме бутон за създаване на задача
-            if (haveRole('debug') && cal_Tasks::haveRightFor('add')) {
+            if (cal_Tasks::haveRightFor('add')) {
                 $data->toolbar->addBtn('Задача', array(
                         'cal_Tasks',
                         'AddDocument',

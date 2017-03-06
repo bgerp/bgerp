@@ -100,6 +100,27 @@ class cal_TaskDocuments extends core_Detail
     
     
     /**
+     * Добавя запис
+     * 
+     * @param integer $taskId
+     * @param integer $cId
+     * 
+     * @return NULL|number
+     */
+    public static function add($taskId, $cId)
+    {
+        if (!$taskId || !$cId) return ;
+        
+        $rec = new stdClass();
+        $rec->state = 'active';
+        $rec->containerId = $cId;
+        $rec->taskId = $taskId;
+        
+        return self::save($rec);
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param cal_TaskDocuments $mvc
@@ -241,7 +262,7 @@ class cal_TaskDocuments extends core_Detail
 	 */
 	public function renderDetail_($data)
 	{
-	    if (!haveRole('debug')) return ;
+	    if (empty($data->recs)) return ;
 		
 		return parent::renderDetail_($data);
 	}
