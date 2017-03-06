@@ -13,6 +13,8 @@
  */
 class cal_TaskDocuments extends core_Detail
 {
+    
+    
     /**
      * 
      */
@@ -149,13 +151,7 @@ class cal_TaskDocuments extends core_Detail
                 
                 if ($existDocArr[$cRec->id]) continue;
                 
-                $title = doc_Containers::getDocTitle($cRec->id);
-                
-                $document = doc_Containers::getDocument($cRec->id);
-                $handle = $document->getHandle();
-                $title = $handle . ': ' . $title;
-                
-                $docIdsArr[$cRec->id] = $title;
+                $docIdsArr[$cRec->id] = $mvc->getDocTitle($cRec->id);
             }
         }
         
@@ -171,11 +167,36 @@ class cal_TaskDocuments extends core_Detail
             
             // Ако редактираме записа, да се показва само избраната стойност
             
-            $docIdsArr = array($data->form->rec->containerId => $docIdsArr[$data->form->rec->containerId]);
+            $docTitle = $docIdsArr[$data->form->rec->containerId];
+            
+            if (!isset($docTitle)) {
+                $title = $mvc->getDocTitle($data->form->rec->containerId);
+            }
+            
+            $docIdsArr = array($data->form->rec->containerId => $title);
+            
             $data->form->setOptions('document', $docIdsArr);
         }
     }
     
+    
+    /**
+     * Подготвя заглавието на документа, за избор в опциите
+     * 
+     * @param integer $cId
+     * 
+     * @return string
+     */
+    protected static function getDocTitle($cId)
+    {
+        $title = doc_Containers::getDocTitle($cId);
+        
+        $document = doc_Containers::getDocument($cId);
+        $handle = $document->getHandle();
+        $title = $handle . ': ' . $title;
+        
+        return $title;
+    }
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
