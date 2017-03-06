@@ -195,6 +195,7 @@ abstract class deals_Helper
 		$mvc->_total->vats = $vats;
 		
 		if(!$map['alwaysHideVat']){
+			//$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
 			$mvc->_total->discount = $discount;
 
 			//bp($mvc->_total->discount);
@@ -225,7 +226,7 @@ abstract class deals_Helper
 	 * 
 	 */
 	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE, $lang = 'bg')
-	{
+	{//bp($values);
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$arr = array();
 	
@@ -238,9 +239,12 @@ abstract class deals_Helper
 		if($values['discount']){ 								// ако има отстъпка
 			$arr['discountValue'] = $values['discount'];
 			$arr['discountCurrencyId'] = $currencyId; 			// Валутата на отстъпката е тази на документа
-			$arr['neto'] = $arr['value'] - $arr['discountValue']; 	// Стойността - отстъпката
+			
+			$arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
 			$arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
 		}
+		
+		
 		
 		// Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
 		$arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value']; 
