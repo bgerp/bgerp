@@ -108,7 +108,7 @@ abstract class deals_Helper
 	
 		// Дали трябва винаги да не се показва ддс-то към цената
 		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->{$map['chargeVat']} == 'yes') ? TRUE : FALSE);
-		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
+		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = $amountRow1 = 0;
 		$vats = array();
 		
 		// Обработваме всеки запис
@@ -128,19 +128,23 @@ abstract class deals_Helper
 			if($rec->{$map['discount']}){
 				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
-				$withoutVatAndDisc = $noVatAmount1;
+				$withoutVatAndDisc = $noVatAmount;
 			}
 			
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
 			
         	$rec->{$map['amountFld']} = $noVatAmount;
+        	$amount1 = $rec->{$map['amountFld']};
         	if($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']){
         		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount1 * $vat, 2), 2);
+        		$amount1 = round($amount1 + round($noVatAmount * $vat, 2), 2);
         	}
 
         	if($rec->{$map['discount']}){
         		if(!($masterRec->type === 'dc_note' && $rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE)){
+        			//bp($amount1, $rec->{$map['amountFld']}, $rec->{$map['discount']});
         			$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
+        			//bp(round($discount, 2), $rec->{$map['amountFld']});
         		}
         	}
         	
@@ -153,6 +157,7 @@ abstract class deals_Helper
         			$amountVat += $vatRow;
         			 
         			$amountJournal += $withoutVatAndDisc;
+        			
         			if($masterRec->{$map['chargeVat']} == 'yes') {
         				$amountJournal += $vatRow;
         			}
@@ -161,6 +166,7 @@ abstract class deals_Helper
         		
         		// За всички останали събираме нормално
         		$amountRow += $rec->{$map['amountFld']};
+        		$amountRow1 += $amount1;
         		$amount += $noVatAmount1;
         		$amountVat += $vatRow;
         		 
@@ -168,6 +174,8 @@ abstract class deals_Helper
         		if($masterRec->{$map['chargeVat']} == 'yes') {
         			$amountJournal += $vatRow;
         		}
+        		
+        		//bp($amountRow1, $amountJournal);
         	}
         	
         	if(!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE))){
@@ -180,13 +188,16 @@ abstract class deals_Helper
         	}
 		}
 		
+		
 		$mvc->_total = new stdClass();
 		$mvc->_total->amount = $amountRow;
 		$mvc->_total->vat = $amountVat;
 		$mvc->_total->vats = $vats;
 		
 		if(!$map['alwaysHideVat']){
-			//$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+			$mvc->_total->discount = $discount;
+
+			//bp($mvc->_total->discount);
 		} else {
 			$mvc->_total->discount = $discount;
 		}
