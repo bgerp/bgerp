@@ -290,6 +290,8 @@ class cal_Tasks extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        $data->form->FNC('foreignId', 'key(mvc=doc_Containers)', 'silent, input=hidden');
+        
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
         $data->form->setDefault('sharedUsers', "|" . $cu . "|");
@@ -530,6 +532,10 @@ class cal_Tasks extends core_Master
                 }
             }
         }
+        
+        if ($fId = Request::get('foreignId')) {
+            $form->rec->foreignId = $fId;
+        }
     }
 
 
@@ -596,6 +602,16 @@ class cal_Tasks extends core_Master
                 $data->toolbar->buttons['Активиране']->warning = "По същото време има и други задачи с някои от същите споделени потребители";
             }
         }
+        
+        // Добавяме бутон за създаване на задача
+        if (($data->rec->state != 'rejected') && cal_TaskDocuments::haveRightFor('add')) {
+            $data->toolbar->addBtn('Документ', array(
+                    'cal_TaskDocuments',
+                    'add',
+                    'taskId' => $data->rec->id,
+                    'ret_url'=> TRUE
+            ), 'ef_icon = img/16/doc_stand.png, title=Добавяне на документ към задачата, row=2, order=19.99');
+        }
     }
 
     
@@ -604,6 +620,10 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
+        if ($rec->foreignId) {
+            cal_TaskDocuments::add($rec->id, $rec->foreignId);
+        }
+        
         $mvc->updateTaskToCalendar($rec->id);
     }
 
@@ -2392,7 +2412,7 @@ class cal_Tasks extends core_Master
         $retUrl = getRetUrl();
         
         // URL' то където ще се редиректва при отказ
-        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'list'));
+        $retUrl = ($retUrl) ? ($retUrl) : (array($document, 'single', $originId));
         
         // Вземаме формата към този модел
         $form = cls::get('core_Form');
@@ -2454,12 +2474,8 @@ class cal_Tasks extends core_Master
         if($form->isSubmitted()) {
             if ($rec->taskId) {
                 $this->requireRightFor('single', $rec->taskId);
-                $nRec = new stdClass();
-                $nRec->taskId = $rec->taskId;
-                $nRec->containerId = $originId;
-                $nRec->state = 'active';
                 
-                if (cal_TaskDocuments::save($nRec)) {
+                if (cal_TaskDocuments::add($rec->taskId, $originId)) {
                     
                     return new Redirect($retUrl, '|Успешно прикачихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
                 } else {
@@ -2504,10 +2520,12 @@ class cal_Tasks extends core_Master
             }
             
             if (!$haveFolder) {
-                // @TODO - или "Документите на XXX"
-                
                 $redirectUrl['folderId'] = doc_Folders::getDefaultFolder($cu);
             }
+            
+            $redirectUrl['foreignId'] = $originId;
+            
+            $redirectUrl['ret_url'] = TRUE;
             
             return new Redirect($redirectUrl);
         }

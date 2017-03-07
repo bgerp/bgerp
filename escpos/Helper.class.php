@@ -276,7 +276,7 @@ class escpos_Helper
      * 
      * @return ET
      */
-    protected static function getTpl()
+    public static function getTpl()
     {
         $tpl = '<?xml version="1.0" encoding="utf-8"?>
                 <btpDriver Command="DirectIO">

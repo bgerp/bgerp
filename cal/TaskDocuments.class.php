@@ -13,6 +13,8 @@
  */
 class cal_TaskDocuments extends core_Detail
 {
+    
+    
     /**
      * 
      */
@@ -100,6 +102,27 @@ class cal_TaskDocuments extends core_Detail
     
     
     /**
+     * Добавя запис
+     * 
+     * @param integer $taskId
+     * @param integer $cId
+     * 
+     * @return NULL|number
+     */
+    public static function add($taskId, $cId)
+    {
+        if (!$taskId || !$cId) return ;
+        
+        $rec = new stdClass();
+        $rec->state = 'active';
+        $rec->containerId = $cId;
+        $rec->taskId = $taskId;
+        
+        return self::save($rec);
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param cal_TaskDocuments $mvc
@@ -107,7 +130,7 @@ class cal_TaskDocuments extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->FNC('document', 'varchar', 'caption=Документ, input=input, formOrder=1, mandatory');
+        $data->form->FNC('documentCid', 'varchar', 'caption=Документ, input=input, formOrder=1, mandatory');
         
         $query = $mvc->getQuery();
         $query->where(array("#taskId = '[#1#]'", $data->form->rec->taskId));
@@ -128,13 +151,7 @@ class cal_TaskDocuments extends core_Detail
                 
                 if ($existDocArr[$cRec->id]) continue;
                 
-                $title = doc_Containers::getDocTitle($cRec->id);
-                
-                $document = doc_Containers::getDocument($cRec->id);
-                $handle = $document->getHandle();
-                $title = $handle . ': ' . $title;
-                
-                $docIdsArr[$cRec->id] = $title;
+                $docIdsArr[$cRec->id] = $mvc->getDocTitle($cRec->id);
             }
         }
         
@@ -142,19 +159,44 @@ class cal_TaskDocuments extends core_Detail
         
         if (!$data->form->rec->id) {
             if (!empty($docIdsArr)) {
-                $data->form->setOptions('document', $docIdsArr);
+                $data->form->setOptions('documentCid', $docIdsArr);
             } else {
-                $data->form->setReadonly('document');
+                $data->form->setReadonly('documentCid');
             }
         } else {
             
             // Ако редактираме записа, да се показва само избраната стойност
             
-            $docIdsArr = array($data->form->rec->containerId => $docIdsArr[$data->form->rec->containerId]);
-            $data->form->setOptions('document', $docIdsArr);
+            $docTitle = $docIdsArr[$data->form->rec->containerId];
+            
+            if (!isset($docTitle)) {
+                $title = $mvc->getDocTitle($data->form->rec->containerId);
+            }
+            
+            $docIdsArr = array($data->form->rec->containerId => $title);
+            
+            $data->form->setOptions('documentCid', $docIdsArr);
         }
     }
     
+    
+    /**
+     * Подготвя заглавието на документа, за избор в опциите
+     * 
+     * @param integer $cId
+     * 
+     * @return string
+     */
+    protected static function getDocTitle($cId)
+    {
+        $title = doc_Containers::getDocTitle($cId);
+        
+        $document = doc_Containers::getDocument($cId);
+        $handle = $document->getHandle();
+        $title = $handle . ': ' . $title;
+        
+        return $title;
+    }
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -241,7 +283,7 @@ class cal_TaskDocuments extends core_Detail
 	 */
 	public function renderDetail_($data)
 	{
-	    if (!haveRole('debug')) return ;
+	    if (empty($data->recs)) return ;
 		
 		return parent::renderDetail_($data);
 	}

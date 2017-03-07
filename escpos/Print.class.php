@@ -190,21 +190,55 @@ class escpos_Print extends core_Manager
     public function act_Test()
     {
         $idFullStr = Request::get('id');
-        
-        $paramsArr = self::parseParamStr($idFullStr);
-        
-        expect($paramsArr);
-        
-        $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id'], $paramsArr['userId']);
-        
+		
         $drvName = 'escpos_driver_Ddp250';
         
         if (Request::get('html')) {
             $drvName = 'escpos_driver_Html';
         }
         
-        echo escpos_Convert::process($dataContent, $drvName);
-        
-        shutdown();
+        if ($idFullStr) {
+            $paramsArr = self::parseParamStr($idFullStr);
+            
+            expect($paramsArr);
+            
+            $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id'], $paramsArr['userId']);
+            
+            echo escpos_Convert::process($dataContent, $drvName);
+            
+            shutdown();
+        } else {
+            $res = escpos_Helper::getTpl();
+            
+            $res->replace("Тестово отпечатване", 'title');
+            
+            $test = "<c F b>Фактура №123/28.02.17" .
+                            "<p><r32 =>" .
+                            "<p b>1.<l3 b>Кисело мляко" .
+                            "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
+                            "<p b>2.<l3 b>Хляб \"Добруджа\"" . "<l f> | годност: 03.03" .
+                            "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
+                            "<p b>3.<l3 b>Минерална вода" .
+                            "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
+                            "<p><r32 =>" .
+                            "<p><r29 F b>Общо: 34.23 лв.";
+            $dataContent = escpos_Convert::process($test, 'escpos_driver_Ddp250');
+            
+            $res->replace(base64_encode($dataContent), 'data');
+            
+            // За да не се кешира
+            header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
+            header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+            header("Cache-Control: no-store, no-cache, must-revalidate");
+            header("Cache-Control: post-check=0, pre-check=0", false);
+            header("Pragma: no-cache");
+            
+            // Указваме, че ще се връща XML
+            header('Content-Type: application/xml');
+            
+            echo $res;
+            
+            shutdown();
+        }
     }
 }
