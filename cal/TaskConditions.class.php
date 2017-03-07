@@ -268,4 +268,24 @@ class cal_TaskConditions extends core_Detail
 
         return $arr;
     }
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param stdObject $data
+	 */
+	public function prepareDetail_($data)
+	{
+		$data->TabCaption = 'Условия';
+		$data->Tab = 'top';
+		
+		$res = parent::prepareDetail_($data);
+		
+		if (empty($data->recs)) {
+		    $data->disabled = TRUE;
+		}
+		
+		return $res;
+	}
 }

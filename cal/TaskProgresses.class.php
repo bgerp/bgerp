@@ -302,4 +302,24 @@ class cal_TaskProgresses extends core_Detail
     		}
     	}
     }
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param stdObject $data
+	 */
+	public function prepareDetail_($data)
+	{
+		$data->TabCaption = 'Прогрес';
+		$data->Tab = 'top';
+		
+		$res = parent::prepareDetail_($data);
+		
+		if (empty($data->recs)) {
+		    $data->disabled = TRUE;
+		}
+		
+		return $res;
+	}
 }
