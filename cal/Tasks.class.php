@@ -2551,7 +2551,7 @@ class cal_Tasks extends core_Master
         
         // Добавяме титлата на формата
         $form->title = "Създаване на задача от|* ";
-        $form->title .= doc_Containers::getLinkForSingle($originId);
+        $form->title .= cls::get($document)->getFormTitleLink($document->that);
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
