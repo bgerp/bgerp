@@ -2435,8 +2435,6 @@ class cal_Tasks extends core_Master
         
         $form->setOptions('taskId', $taskArr);
         
-        $form->setDefault('date', dt::addDays(1));
-        
         $form->input(NULL, TRUE);
         $form->input();
         
