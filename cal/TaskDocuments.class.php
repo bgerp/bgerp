@@ -207,7 +207,7 @@ class cal_TaskDocuments extends core_Detail
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            $form->rec->containerId = $form->rec->document;
+            $form->rec->containerId = $form->rec->documentCid;
         }
     }
     
