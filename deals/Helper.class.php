@@ -105,7 +105,7 @@ abstract class deals_Helper
 	
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
 		$map = array_merge(self::$map, $map);
-		$hasDiscount = FALSE;
+		$useAproximatedDiscount = FALSE;
 		
 		// Дали трябва винаги да не се показва ддс-то към цената
 		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->{$map['chargeVat']} == 'yes') ? TRUE : FALSE);
@@ -127,7 +127,7 @@ abstract class deals_Helper
         	$noVatAmount1 = round($price->noVat * $rec->{$map['quantityFld']}, 2);
         	
 			if($rec->{$map['discount']}){
-				$hasDiscount = TRUE;
+				$useAproximatedDiscount = TRUE;
 				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
 				$withoutVatAndDisc = $noVatAmount;
@@ -196,8 +196,10 @@ abstract class deals_Helper
 		$mvc->_total->vat = $amountVat;
 		$mvc->_total->vats = $vats;
 		
-		if($hasDiscount === TRUE){
+		if($useAproximatedDiscount === FALSE){
 			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+		} else {
+			$mvc->_total->discount = round($discount, 2);
 		}
 		
 		
