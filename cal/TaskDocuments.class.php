@@ -144,6 +144,10 @@ class cal_TaskDocuments extends core_Detail
         $threadsArr = bgerp_Recently::getLastThreadsId(self::$lastThreadsCnt);
         $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
         
+        // Документа, към който ще се добавя да не се показва в списъка
+        $mRec = $mvc->Master->fetch($data->form->rec->taskId);
+        $existDocArr[$mRec->containerId] = $mRec->containerId;
+        
         $docIdsArr = array();
         foreach ($threadsArr as $threadId => $dummy) {
             
