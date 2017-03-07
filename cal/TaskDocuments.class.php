@@ -72,19 +72,25 @@ class cal_TaskDocuments extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cal_Wrapper, plg_Created, plg_State, plg_Rejected, plg_RowTools';
+    public $loadList = 'cal_Wrapper, plg_Created, plg_State, plg_Rejected, plg_RowTools2';
     
 	
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'id';
+    public $rowToolsSingleField = '-';
     
     
     /**
      * Активен таб на менюто
      */
     public $currentTab = 'Задачи';
+    
+    
+    /**
+     * 
+     */
+    public $listFields = 'containerId, comment';
     
     
     /**
@@ -143,6 +149,10 @@ class cal_TaskDocuments extends core_Detail
         // Документите от последните посещавани нишки от потребителя
         $threadsArr = bgerp_Recently::getLastThreadsId(self::$lastThreadsCnt);
         $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
+        
+        // Документа, към който ще се добавя да не се показва в списъка
+        $mRec = $mvc->Master->fetch($data->form->rec->taskId);
+        $existDocArr[$mRec->containerId] = $mRec->containerId;
         
         $docIdsArr = array();
         foreach ($threadsArr as $threadId => $dummy) {
@@ -269,10 +279,16 @@ class cal_TaskDocuments extends core_Detail
 	 */
 	public function prepareDetail_($data)
 	{
-		$data->TabCaption = 'Документи';
-		$data->listFields = 'id, containerId, comment';
+	    $data->TabCaption = 'Документи';
+	    $data->Tab = 'top';
 		
-		return parent::prepareDetail_($data);
+	    $res = parent::prepareDetail_($data);
+		
+		if (empty($data->recs)) {
+		    $data->disabled = TRUE;
+		}
+		
+		return $res;
 	}
 	
 	
