@@ -1707,8 +1707,6 @@ abstract class deals_DealMaster extends deals_DealBase
     			$Detail = cls::get($mvc->mainDetail);
     			if(!$Detail->fetch("#{$Detail->masterKey} = {$rec->id}")){
     				$res = 'no_one';
-    			} elseif(core_Users::isPowerUser($userId) && $rec->state == 'draft'){
-    				$res = 'no_one';
     			}
     		}
     	}

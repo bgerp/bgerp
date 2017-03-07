@@ -173,7 +173,7 @@ abstract class deals_Helper
         		$amountVat += $vatRow;
         		 
         		$amountJournal += $withoutVatAndDisc;
-        		if($masterRec->{$map['chargeVat']} == 'yes') {
+        		if($masterRec->{$map['chargeVat']} == 'yes' && !isset($rec->invoiceId)) {
         			$amountJournal += $vatRow;
         		}
         		
@@ -196,10 +196,10 @@ abstract class deals_Helper
 		$mvc->_total->vat = $amountVat;
 		$mvc->_total->vats = $vats;
 		
-		if($useAproximatedDiscount === FALSE){
+		if($useAproximatedDiscount === FALSE){//bp();
 			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
 		} else {
-			$mvc->_total->discount = round($discount, 2);
+			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);//round($discount, 2);
 		}
 		
 		
