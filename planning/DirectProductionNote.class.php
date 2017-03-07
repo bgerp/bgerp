@@ -46,25 +46,25 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning';
+	public $canList = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,planning';
+	public $canSingle = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	public $canEdit = 'ceo,planning';
+	public $canEdit = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,planning';
+	public $canAdd = 'ceo,planning,store';
 	
 	
 	/**
@@ -334,12 +334,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 						}
 					}
 				}
-			}
-		}
-		
-		if($action == 'pending' && isset($rec->id)){
-			if(!self::canBePending($rec->id)){
-				$requiredRoles = 'no_one';
 			}
 		}
 	}
@@ -911,28 +905,5 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		planning_DirectProductNoteDetails::save($rec);
-	}
-	
-	
-	/**
-	 * Mоже ли потребителя да направи документа чакащ. Може ако може да контира документи
-	 * с поне един от избраните складове на материалите
-	 * 
-	 * @param int $id  - ид на протокол
-	 * @return boolean
-	 */
-	private static function canBePending($id)
-	{
-		$dQuery = planning_DirectProductNoteDetails::getQuery();
-		$dQuery->where("#noteId = {$id}");
-		$dQuery->where("#storeId IS NOT NULL");
-		$dQuery->show('storeId');
-		$count = $dQuery->count();
-		
-		while($dRec = $dQuery->fetch()){
-			if(deals_Helper::canSelectObjectInDocument('conto', $dRec, 'store_Stores', 'storeId')) return TRUE;
-		}
-		
-		return ($count) ? FALSE : TRUE;
 	}
 }
