@@ -2461,7 +2461,7 @@ class cal_Tasks extends core_Master
                 
                 if (cal_TaskDocuments::add($rec->taskId, $originId)) {
                     
-                    return new Redirect($retUrl, '|Успешно прикачихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
+                    return new Redirect($retUrl, '|Успешно добавихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
                 } else {
                     $form->setError('taskId', 'Грешка при добавяне на документа към задачата');
                 }
@@ -2493,6 +2493,28 @@ class cal_Tasks extends core_Master
                 if ($rec->folderId) {
                     $redirectUrl['folderId'] = $rec->folderId;
                     $haveFolder = TRUE;
+                }
+                
+                // Проверяваме дали същата задача не е създадена
+                $query = self::getQuery();
+                $query->where("#state != 'rejected'");
+                $query->where(array("#createdBy = '[#1#]'", $cu));
+                $query->where(array("#title = '[#1#]'", $redirectUrl['title']));
+                $query->where(array("#timeStart = '[#1#]'", $redirectUrl['timeStart']));
+                if ($haveFolder) {
+                    $query->where(array("#folderId = '[#1#]'", $redirectUrl['folderId']));
+                }
+                $query->limit(1);
+                
+                // Ако задачата съществува, добавяме документа към нея
+                if ($rec = $query->fetch()) {
+                    if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $rec->id, $originId))) {
+                        
+                        return new Redirect($retUrl, '|Документът вече е бил добавен към|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
+                    } elseif (cal_TaskDocuments::add($rec->id, $originId)) {
+                        
+                        return new Redirect($retUrl, '|Успешно добавихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->id));
+                    }
                 }
             } else {
                 
