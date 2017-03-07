@@ -33,14 +33,8 @@ class cal_Tasks extends core_Master
      */
     public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
     				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone,doc_AssignPlg';
-
-
-    /**
-     * Името на полито, по което плъгина GroupByDate ще групира редовете
-     */
-    public $groupByDateField = 'groupDate';
-
-
+    
+    
     /**
      * Какви детайли има този мастер
      */
@@ -393,13 +387,9 @@ class cal_Tasks extends core_Master
         $data->query->where("#state = 'active'");
 
         // Време за подредба на записите в портала
-        $data->query->XPR('orderDate', 'datetime', "#modifiedOn");
-        $data->query->orderBy("#orderDate=DESC, #createdOn=DESC");
-
-
-        // Време за групиране на записите в портала
-        $data->query->XPR('groupDate', 'datetime', "#modifiedOn");
-
+        $data->query->orderBy("modifiedOn", "DESC");
+        $data->query->orderBy("createdOn", "DESC");
+        
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
 
@@ -417,10 +407,6 @@ class cal_Tasks extends core_Master
 
             }
         }
-
-        $Tasks = cls::get('cal_Tasks');
-
-        $Tasks->load('plg_GroupByDate');
 
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
