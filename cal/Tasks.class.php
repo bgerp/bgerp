@@ -1110,11 +1110,17 @@ class cal_Tasks extends core_Master
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         
-        // Ако е възложено на някой
+        $usersArr = array();
         if ($rec->assign) {
-        
+            $usersArr[$rec->assign] = $rec->assign;
+        }
+        if ($rec->sharedUsers) {
+            $usersArr += type_Keylist::toArray($rec->sharedUsers);
+        }
+        if (!empty($usersArr)) {
+            $Users = cls::get('type_userList');
             // В заглавието добавяме потребителя
-            $row->subTitle = $this->getVerbal($rec, 'assign');
+            $row->subTitle = $Users->toVerbal(type_userList::fromArray($usersArr));
         }
         
         //Създателя
