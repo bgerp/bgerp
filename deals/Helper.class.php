@@ -105,7 +105,8 @@ abstract class deals_Helper
 	
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
 		$map = array_merge(self::$map, $map);
-	
+		$useAproximatedDiscount = FALSE;
+		
 		// Дали трябва винаги да не се показва ддс-то към цената
 		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->{$map['chargeVat']} == 'yes') ? TRUE : FALSE);
 		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = $amountRow1 = 0;
@@ -126,11 +127,12 @@ abstract class deals_Helper
         	$noVatAmount1 = round($price->noVat * $rec->{$map['quantityFld']}, 2);
         	
 			if($rec->{$map['discount']}){
+				$useAproximatedDiscount = TRUE;
 				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
-				$withoutVatAndDisc = $noVatAmount1;
+				$withoutVatAndDisc = $noVatAmount;
 			}
-			
+			//bp($withoutVatAndDisc);
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
 			
         	$rec->{$map['amountFld']} = $noVatAmount;
@@ -194,14 +196,23 @@ abstract class deals_Helper
 		$mvc->_total->vat = $amountVat;
 		$mvc->_total->vats = $vats;
 		
-		if(!$map['alwaysHideVat']){
+		if($useAproximatedDiscount === FALSE){
+			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+		} else {
+			$mvc->_total->discount = round($discount, 2);
+		}
+		
+		
+		//if(!$map['alwaysHideVat']){
 			//$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
-			$mvc->_total->discount = $discount;
+			//$mvc->_total->discount = round($discount, 2);
 
 			//bp($mvc->_total->discount);
-		} else {
-			$mvc->_total->discount = $discount;
-		}
+		//} else {
+			//$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+		//}
+		
+		//bp($mvc->_total, $mvc->_total->amount - $mvc->_total->discount);
 	}
 	
 	
@@ -226,7 +237,7 @@ abstract class deals_Helper
 	 * 
 	 */
 	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE, $lang = 'bg')
-	{//bp($values);
+	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$arr = array();
 	
