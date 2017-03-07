@@ -2503,6 +2503,15 @@ class cal_Tasks extends core_Master
                     $redirectUrl['threadId'] = $dRec->threadId;
                     $haveFolder = TRUE;
                 }
+                
+                try {
+                    $dRow = $document->getDocumentRow();
+                    $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+                    
+                    $redirectUrl['title'] = tr("За") . ': ' . $title;
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
             }
             
             if (!$haveFolder) {
