@@ -1231,7 +1231,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '3');
-        $browser->setValue('packPrice', '09,28/0,3*04');//
+        $browser->setValue('packPrice', '09,25/0,3*04');//123,3333
         $browser->setValue('discount', 2);
         
         $browser->press('Запис и Нов');
@@ -1248,11 +1248,11 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Discount: USD 10,31')) {
+        if(strpos($browser->gettext(), 'Discount: USD 10,29')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
-        if(strpos($browser->gettext(), 'Five hundred and ninety-two USD and 0,96')) {
+        if(strpos($browser->gettext(), 'Five hundred and ninety-one USD and 0,78')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -1274,25 +1274,18 @@ class unit_MinkPSales extends core_Manager {
         $browser->click('Edit');
         //$browser->click('Редактиране');
         $browser->setValue('quantity', '0');
+        $browser->press('Следващ');
+        // зануляване на кол. на втория артикул
+        $browser->setValue('quantity', '0');
+        $browser->press('Следващ');
+        // зануляване на кол. на третия артикул
+        $browser->setValue('quantity', '0');
         $browser->press('Запис');
-        
-        //return $browser->getHtml();
-        //// зануляване на кол. на втория артикул
-        //$browser->click('Редактиране на артикул');
-        //$browser->setValue('quantity', '0');
-        //$browser->press('Запис');
-        
-        //// зануляване на кол. на третия артикул
-        //$browser->click('Редактиране на артикул');
-        //$browser->setValue('quantity', '0');
-        //$browser->press('Запис');
-     
-       
         $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Minus one hundred and forty-two USD and 0,76')) {
-        //} else {
-        //    return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
-        //}
+        if(strpos($browser->gettext(), 'Minus five hundred and ninety-one USD and 0,78')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна сума в КИ за цялото количество', 'warning');
+        }
      
     }
     /**
@@ -2557,7 +2550,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '40');
-        $browser->setValue('packPrice', '+3.1456*0.8-01,00');//3,51648
+        $browser->setValue('packPrice', '+3.1456*0.8-01,00');//1,51648
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
         // Записваме артикула и добавяме нов
