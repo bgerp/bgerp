@@ -189,7 +189,11 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	
 				// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
                 $amountVat =  $invRec->dealValue - $invRec->discountAmount + $invRec->vatAmount;
-                
+
+                if($currencyNow != $invRec->currencyId && isset($invRec->rate)) {
+                    $amountVat /= $invRec->rate;
+                }
+               
                 if($amountVat < 0){
                     $amountRest = $amountVat;
                 } else {
@@ -265,19 +269,25 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             if($line !== 0) continue;
         
             for($i = $line; $i < count($values); $i+=2) {
-   
-          
+
+                if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){
+                   // $paid[$data->recs[$i]->saleId]['creditAmount'] /= $data->recs[$i]->rate;
+                    $p = $paid[$data->recs[$i]->saleId]['creditAmount'] / $data->recs[$i]->rate;
+                } else {
+                    $p = $paid[$data->recs[$i]->saleId]['creditAmount'];
+                }
+        
                 // разпределяме платеното по фактури
                 if($data->recs[$i]->saleId == $data->recs[$i+1]->saleId) {
                     
                     if($paid[$data->recs[$i]->saleId]['creditAmount']  !=  '0') {
-                        $toPaid = $data->recs[$i]->amountVat - $paid[$data->recs[$i]->saleId]['creditAmount'];
+                        $toPaid = $data->recs[$i]->amountVat - $p;
                         $toPaid = round($toPaid, 2); 
                     } else {
                         $toPaid = $data->recs[$i]->amountVat;
                         $toPaid = round($toPaid, 2);
                     }
-                    
+                    //bp($paid, $data->recs[$i]->amountVat ,$paid[$data->recs[$i]->saleId]['creditAmount']);
                     // ако е фактура
                     if($data->recs[$i]->invType == 'invoice') {
                         if($toPaid >= 0) {
