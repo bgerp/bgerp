@@ -125,7 +125,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canEditActivated, FALSE);
         
         setIfNot($mvc->canExportdoc, 'user');
-        setIfNot($mvc->canForceexpenseitem, 'ceo,acc');
+        setIfNot($mvc->canForceexpenseitem, 'ceo,acc,purchase');
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
