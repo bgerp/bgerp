@@ -95,7 +95,7 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
-    	$this->FLD('sharedFolders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Споделяне->Папки,input=none');
+    	$this->FLD('sharedFolders', 'keylist(mvc=doc_Folders,select=title,maxSuggestions=1000,prepareQuery=doc_Prototypes->filterFolders)', 'caption=Споделяне->Папки,input=none');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
@@ -103,6 +103,20 @@ class doc_Prototypes extends core_Manager
     	$this->setDbUnique('originId');
     	$this->setDbUnique('classId,docId');
     	$this->setDbIndex('classId,docId,driverClassId');
+    }
+    
+    
+    /**
+     * Филтриране на папките, така че да се показват само тези във които документа може да се добави
+     * 
+     * @param type_Keylist $type
+     * @param core_Query $query
+     */
+    public function filterFolders($type, $query)
+    {
+    	$query->where("#coverClass IN ({$type->params['coverKeys']}) AND #state != 'rejected' AND #state != 'closed'");
+    	doc_Folders::restrictAccess($query);
+    	$query->limit(1001);
     }
     
     
@@ -203,7 +217,7 @@ class doc_Prototypes extends core_Manager
     		if(is_array($coverArr) && count($coverArr)){
     			$coverKeys = implode(',', array_keys($coverArr));
     			$form->setField('sharedFolders', 'input');
-    			$form->setFieldTypeParams('sharedFolders', array('where' => "#coverClass IN ({$coverKeys}) AND #state != 'rejected' AND #state != 'closed'"));
+    			$form->setFieldTypeParams('sharedFolders', array("coverKeys" => $coverKeys));
     		}
     	}
     }
