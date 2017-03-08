@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -77,6 +77,9 @@ class doc_Prototypes extends core_Manager
     public $canRestore  = 'no_one';
 
 
+    /**
+     * Кой е текущия таб
+     */
 	public $currentTab = "Нишка";
 
 
@@ -92,6 +95,7 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
+    	$this->FLD('sharedFolders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Споделяне->Папки,input=none1');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
@@ -183,6 +187,25 @@ class doc_Prototypes extends core_Manager
     	} elseif($origin->getInstance() instanceof core_Embedder){
     		$form->setDefault('driverClassId', $origin->fetchField($origin->innerClassField));
     	}
+    	
+    	// За споделени папки се взимат само тези във които документа може да бъде създаден
+    	if(cls::existsMethod($origin->className, 'getCoversAndInterfacesForNewDoc')){
+    		$coverArr = doc_plg_SelectFolder::getAllowedCovers($origin->getInstance());
+    		
+    		// Хак за артикулите
+    		if($origin->isInstanceOf('cat_Products')){
+    			$personId = crm_Persons::getClassId();
+    			$companyId = crm_Companies::getClassId();
+    			$coverArr[$personId] = $personId;
+    			$coverArr[$companyId] = $companyId;
+    		}
+    		
+    		if(is_array($coverArr) && count($coverArr)){
+    			$coverKeys = implode(',', array_keys($coverArr));
+    			$form->setField('sharedFolders', 'input');
+    			$form->setFieldTypeParams('sharedFolders', array('where' => "#coverClass IN ({$coverKeys}) AND #state != 'rejected' AND #state != 'closed'"));
+    		}
+    	}
     }
     
     
@@ -235,7 +258,7 @@ class doc_Prototypes extends core_Manager
      * @param mixed $driver - драйвер, ако има
      * @return array $arr   - намерените шаблони
      */
-    public static function getPrototypes($class, $driver = NULL)
+    public static function getPrototypes($class, $driver = NULL, $folderId = NULL)
     {
     	$arr = array();
     	$Class = cls::get($class);
@@ -248,8 +271,12 @@ class doc_Prototypes extends core_Manager
     		$condition .= " AND #driverClassId = '{$Driver->getClassId()}'";
     	}
     	
-    	$query->where($condition);
+    	// Ако е подадена и папка се взимат всички които са до тази папка или са до всички папки
+    	if(isset($folderId)){
+    		$condition .= " AND (#sharedFolders IS NULL OR LOCATE('|{$folderId}|', #sharedFolders))";
+    	}
     	
+    	$query->where($condition);
     	$cu = core_Users::getCurrent();
     	
     	// Ако потребителя не е 'ceo'
@@ -281,7 +308,6 @@ class doc_Prototypes extends core_Manager
     	return $arr;
     }
 
-    
     
     /**
      * Създаване на шаблон + смяна на състоянието на документа в 'шаблон'

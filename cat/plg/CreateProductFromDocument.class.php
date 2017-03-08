@@ -122,7 +122,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			
 			// Наличните прототипи + клонирания
 			if(isset($form->rec->innerClass)){
-				$protos = cat_Categories::getProtoOptions($form->rec->innerClass, $mvc->filterProtoByMeta);
+				$protos = cat_Categories::getProtoOptions($form->rec->innerClass, $mvc->filterProtoByMeta, NULL, $masterRec->folderId);
 			} else {
 				$protos = array();
 			}

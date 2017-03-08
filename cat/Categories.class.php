@@ -395,19 +395,19 @@ class cat_Categories extends core_Master
     }
     
     
-    
     /**
-     * Връща възможните за избор прототипни артикули с дадения драйвер
+     * Връща възможните за избор прототипни артикули с дадения драйвер и свойства
      * 
      * @param int|NULL $driverId - Ид на продуктов драйвер
      * @param string|NULL $meta  - Мета свойствo на артикулите
-     * @param int|NULL $limit - Ограничаване на резултатите
+     * @param int|NULL $limit    - Ограничаване на резултатите
+     * @param int|NULL $folderId - Папка
      * @return array $newOptions - прототипните артикули
      */
-    public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL)
+    public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL, $folderId = NULL)
     {
     	// Извличане на всички прототипни артикули
-    	$options = doc_Prototypes::getPrototypes('cat_Products', $driverId);
+    	$options = doc_Prototypes::getPrototypes('cat_Products', $driverId, $masterRec->folderId);
     	$newOptions = array();
     	
     	$count = 0;
