@@ -251,7 +251,6 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         		$rec->amount = round($rec->amount, 2);
         		
         	} 
-
         }
       
         if (isset ($data->notInv)) { 
@@ -259,45 +258,49 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, $data->rec->from, $currencyNow, $data->currencyId);
         	}
         }
-
-        // разпределяме платеното по фактури
-        for($i = 0; $i <= count($data->recs)-1; $i++) {
-    
-            if($data->recs[$i]->saleId == $data->recs[$i+1]->saleId) {
-                $toPaid = "";
-                if($paid[$data->recs[$i]->saleId]['creditAmount']  !=  '0') {
-                    $toPaid = $data->recs[$i]->amountVat - $paid[$data->recs[$i]->saleId]['creditAmount'];
-                    $toPaid = round($toPaid, 2);
-                } else {
-                    $toPaid = $data->recs[$i]->amountVat;
-                }
-                
-                // ако е фактура
-                if($data->recs[$i]->invType == 'invoice') {
-                    if($toPaid >= 0) {
-                        $data->recs[$i]->amountRest = $toPaid;
-                        $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                    } else { 
-                        $data->recs[$i]->amountRest = 0;
-                        $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
+        
+        $values = $data->recs;
+        $toPaid = 0;
+        for($line = 0; $line < count($values); $line++) {
+            if($line !== 0) continue;
+        
+            for($i = $line; $i < count($values); $i+=2) {
+   
+          
+                // разпределяме платеното по фактури
+                if($data->recs[$i]->saleId == $data->recs[$i+1]->saleId) {
+                    
+                    if($paid[$data->recs[$i]->saleId]['creditAmount']  !=  '0') {
+                        $toPaid = $data->recs[$i]->amountVat - $paid[$data->recs[$i]->saleId]['creditAmount'];
+                        $toPaid = round($toPaid, 2); 
+                    } else {
+                        $toPaid = $data->recs[$i]->amountVat;
+                        $toPaid = round($toPaid, 2);
                     }
-                // ако е известие
-                // TODO как ще се разпределя лащането?
-                } else {
-                    $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
-                    $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                    
+                    // ако е фактура
+                    if($data->recs[$i]->invType == 'invoice') {
+                        if($toPaid >= 0) {
+                            $data->recs[$i]->amountRest = $toPaid;
+                            $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                        } else {
+                            $data->recs[$i]->amountRest = 0;
+                            $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
+                        }
+                    // ако е известие
+                    // TODO как ще се разпределя лащането?
+                    } else { // bp($toPaid);
+                 
+                        if($data->recs[$i]->amountVat <=0 ) { 
+                           
+                            $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                        }
+    
+                    }
                 }
             }
-
-            // проверяваме дали остатъка е просрочен
-            if ($data->recs[$i]->dueDate == NULL || $data->recs[$i]->dueDate < $data->rec->from) {
-                $data->recs[$i]->amount = $data->recs[$i]->amountRest;
-            } else {
-                $data->recs[$i]->amount = 0;
-            }
-
         }
-       
+                
         $data->sum = new stdClass(); 
         foreach ($data->recs as $currRec) { 
         	
@@ -306,8 +309,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	$data->sum->currencyId = $currRec->currencyId;
 
         	if ($currRec->dueDate == NULL || $currRec->dueDate < $data->rec->from) { 
+        	    $currRec->amount = $currRec->amountRest;
         		$data->sum->arrears += $currRec->amount;
         	} else {
+        	   $currRec->amount = 0;
         	   $data->sum->arrears = 0;
         	}
         }
