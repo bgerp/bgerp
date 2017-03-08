@@ -38,7 +38,15 @@ class doc_Prototypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,sharedFolders,state,modifiedOn,modifiedBy";
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'sharedWithRoles,sharedWithUsers,sharedFolders';
     
     
     /**
