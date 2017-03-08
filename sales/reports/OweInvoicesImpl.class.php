@@ -269,14 +269,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             if($line !== 0) continue;
         
             for($i = $line; $i < count($values); $i+=2) {
-
+                
                 if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){
                    // $paid[$data->recs[$i]->saleId]['creditAmount'] /= $data->recs[$i]->rate;
                     $p = $paid[$data->recs[$i]->saleId]['creditAmount'] / $data->recs[$i]->rate;
                 } else {
                     $p = $paid[$data->recs[$i]->saleId]['creditAmount'];
                 }
-        
+               
                 // разпределяме платеното по фактури
                 if($data->recs[$i]->saleId == $data->recs[$i+1]->saleId) {
                     
@@ -287,25 +287,31 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                         $toPaid = $data->recs[$i]->amountVat;
                         $toPaid = round($toPaid, 2);
                     }
-                    //bp($paid, $data->recs[$i]->amountVat ,$paid[$data->recs[$i]->saleId]['creditAmount']);
+
                     // ако е фактура
                     if($data->recs[$i]->invType == 'invoice') {
                         if($toPaid >= 0) {
                             $data->recs[$i]->amountRest = $toPaid;
                             $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                        } else {
+                        } else {  
+                            
                             $data->recs[$i]->amountRest = 0;
-                            $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
+                            if($data->recs[$i+1]->amountVat > 0) {
+                                $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
+                            } else {
+                                $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
+                            }
                         }
                     // ако е известие
                     // TODO как ще се разпределя лащането?
-                    } else { // bp($toPaid);
+                    } else { 
                  
                         if($data->recs[$i]->amountVat <=0 ) { 
                            
                             $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
                         }
-    
+                    
                     }
                 }
             }
