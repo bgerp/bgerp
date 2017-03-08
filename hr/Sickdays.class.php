@@ -449,7 +449,7 @@ class hr_Sickdays extends core_Master
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            
 	            // Заглавие за записа в календара
-	            $calRec->title = "Болничен:{$personName}";
+	            $calRec->title = "Болничен: {$personName}";
 	
 	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
 	            $personId = array($personProfile->userId => 0);
