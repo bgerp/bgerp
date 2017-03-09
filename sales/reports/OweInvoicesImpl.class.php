@@ -129,99 +129,101 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		    $firstDayAfter3Months = "{$y}-{$m}-01";
 		}
 		
-		foreach ($recSaleArr as $recSale) {
-			if ($recSale->amountDelivered !== NULL && $recSale->amountInvoiced !== NULL) {
-    			// нефакторираното е разлика на доставеното и фактурираното
-    			$data->notInv += $recSale->amountDelivered - $recSale->amountInvoiced;
-			}
-	
-			// плащаме във валутата на сделката
-			$data->currencyId = $recSale->currencyId;
-
-			// то ще търсим всички фактури
-			// които са в нишката на тази продажба
-			// и са активни
-			$queryInvoices = sales_Invoices::getQuery();
-			$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active' AND #date <= '{$data->rec->from}'");
-			$queryInvoices->orderBy("#date", "ASC");
-
-			// перот на селката
-			$saleItem = acc_Items::fetchItem('sales_Sales', $recSale->id);
-			// перото на контрагента
-			$contragentItem = acc_Items::fetchItem($contragentCls, $contragentId);
-			// перото на валутата
-			$currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($recSale->currencyId));
-
-			// от началото на активния счетоводен период
-			$cDate = $firstDayAfter3Months;
-			// броим фактурите в сделката
-			$invCnt = 1;
-			while ($invRec = $queryInvoices->fetch()){
-                // до края на избраната дата в отчета
-                while($cDate < dt::addDays(1, $data->rec->from)){
-                    
-                    foreach (array('411', '412') as $accId) {
-                        $Balance = new acc_ActiveShortBalance(array('from' => $cDate,
-    				        'to' => $cDate,
-    				        'accs' => $accId,
-    				        'item1' => $contragentItem->id,
-    				        'item2' => $saleItem->id,
-    				        'item3' => $currencyItem->id,
-    				        'strict' => TRUE,
-    				        'cacheBalance' => FALSE));
-    				    	
-    				    // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
-                        $Balance = $Balance->getBalanceBefore($accId);
-    				    $balHistory = acc_ActiveShortBalance::getBalanceHystory($accId, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
-
-    				    if(is_array($balHistory['history'])) {
-    				        foreach($balHistory['history'] as $history) { 
-    				            // платено по сделката
-        				        $paid[$saleItem->id]['creditAmount'] += $history['creditAmount'];
-        				        // сделката
-        				        $paid[$saleItem->id]['debitAmount'] += $history['debitAmount'];
-    				        }
-    				    }
+		if(is_array($recSaleArr)) {
+    		foreach ($recSaleArr as $recSale) {
+    			if ($recSale->amountDelivered !== NULL && $recSale->amountInvoiced !== NULL) {
+        			// нефакторираното е разлика на доставеното и фактурираното
+        			$data->notInv += $recSale->amountDelivered - $recSale->amountInvoiced;
+    			}
+    	
+    			// плащаме във валутата на сделката
+    			$data->currencyId = $recSale->currencyId;
+    
+    			// то ще търсим всички фактури
+    			// които са в нишката на тази продажба
+    			// и са активни
+    			$queryInvoices = sales_Invoices::getQuery();
+    			$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active' AND #date <= '{$data->rec->from}'");
+    			$queryInvoices->orderBy("#date", "ASC");
+    
+    			// перот на селката
+    			$saleItem = acc_Items::fetchItem('sales_Sales', $recSale->id);
+    			// перото на контрагента
+    			$contragentItem = acc_Items::fetchItem($contragentCls, $contragentId);
+    			// перото на валутата
+    			$currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($recSale->currencyId));
+    
+    			// от началото на активния счетоводен период
+    			$cDate = $firstDayAfter3Months;
+    			// броим фактурите в сделката
+    			$invCnt = 1;
+    			while ($invRec = $queryInvoices->fetch()){
+                    // до края на избраната дата в отчета
+                    while($cDate < dt::addDays(1, $data->rec->from)){
+                        
+                        foreach (array('411', '412') as $accId) {
+                            $Balance = new acc_ActiveShortBalance(array('from' => $cDate,
+        				        'to' => $cDate,
+        				        'accs' => $accId,
+        				        'item1' => $contragentItem->id,
+        				        'item2' => $saleItem->id,
+        				        'item3' => $currencyItem->id,
+        				        'strict' => TRUE,
+        				        'cacheBalance' => FALSE));
+        				    	
+        				    // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
+                            $Balance = $Balance->getBalanceBefore($accId);
+        				    $balHistory = acc_ActiveShortBalance::getBalanceHystory($accId, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
+    
+        				    if(is_array($balHistory['history'])) {
+        				        foreach($balHistory['history'] as $history) { 
+        				            // платено по сделката
+            				        $paid[$saleItem->id]['creditAmount'] += $history['creditAmount'];
+            				        // сделката
+            				        $paid[$saleItem->id]['debitAmount'] += $history['debitAmount'];
+        				        }
+        				    }
+                        }
+    				    
+    				    $cDate = dt::addDays(1, $cDate);
                     }
-				    
-				    $cDate = dt::addDays(1, $cDate);
-                }
-	
-				// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
-                $amountVat =  $invRec->dealValue - $invRec->discountAmount + $invRec->vatAmount;
-
-                if($amountVat < 0){
-                    $amountRest = $amountVat;
-                } else {
-                    $amountRest = 0;
-                }
-                    
-                // фактурираното то всяка сделка (сумарно от всички фактури)
-				$amountVatArr[$saleItem->id] +=  $amountVat; 
-
-				// правим рековете
-				$data->recs[] = (object) array ("contragentCls" => $contragentCls,
-													'contragentId' => $contragentId,
-													'eic'=> $contragentRec->vatId,
-							                        'currencyId' => $recSale->currencyId,
-													'invId'=>$invRec->id,
-				                                    'invType'=>$invRec->type,
-													'date'=>$invRec->date,
-													'number'=>$invRec->number,
-					                                'displayRate'=>$invRec->displayRate,
-					                                'rate'=>$invRec->rate,
-					                                'saleId'=>$saleItem->id,
-													'amountVat'=> $amountVat,
-													'amountRest'=> $amountRest ,
-													'paymentState'=>$recSale->paymentState,
-							                        'dueDate'=>$invRec->dueDate
-					);
-				$invCntArr[$saleItem->id] = $invCnt++;
-			}
+    	
+    				// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
+                    $amountVat =  $invRec->dealValue - $invRec->discountAmount + $invRec->vatAmount;
+    
+                    if($amountVat < 0){
+                        $amountRest = $amountVat;
+                    } else {
+                        //$amountRest = 0;
+                    }
+                        
+                    // фактурираното то всяка сделка (сумарно от всички фактури)
+    				$amountVatArr[$saleItem->id] +=  $amountVat; 
+    
+    				// правим рековете
+    				$data->recs[] = (object) array ("contragentCls" => $contragentCls,
+    													'contragentId' => $contragentId,
+    													'eic'=> $contragentRec->vatId,
+    							                        'currencyId' => $recSale->currencyId,
+    													'invId'=>$invRec->id,
+    				                                    'invType'=>$invRec->type,
+    													'date'=>$invRec->date,
+    													'number'=>$invRec->number,
+    					                                'displayRate'=>$invRec->displayRate,
+    					                                'rate'=>$invRec->rate,
+    					                                'saleId'=>$saleItem->id,
+    													'amountVat'=> $amountVat,
+    													'amountRest'=> $amountRest ,
+    													'paymentState'=>$recSale->paymentState,
+    							                        'dueDate'=>$invRec->dueDate
+    					);
+    				$invCntArr[$saleItem->id] = $invCnt++;
+    			}
+    		}
 		}
 
         foreach ($data->recs as $id => $rec) { 
-        
+           
         	// ако имаме повече от една фактура в сделката
         	if($invCntArr[$rec->saleId] > 1) { 
 
@@ -262,10 +264,11 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         $toPaid = 0;
         for($line = 0; $line < count($values); $line++) {
             if($line !== 0) continue;
-        
+           
+            
             for($i = $line; $i < count($values); $i+=1) {
-                
-                if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){
+         
+                if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){ 
                  
                     $p = $paid[$data->recs[$i]->saleId]['creditAmount'] / $data->recs[$i]->rate;
                 } else {
@@ -278,14 +281,20 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                     if($paid[$data->recs[$i]->saleId]['creditAmount']  >  '0') { 
                         $toPaid = $data->recs[$i]->amountVat - $p;
                         $toPaid = round($toPaid, 2); 
-                    } else {
+                        
+                    } elseif ($paid[$data->recs[$i]->saleId]['creditAmount'] == '0') {
+           
+                        $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                        $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                        
+                    } else { 
                         $toPaid = $data->recs[$i]->amountVat;
                         $toPaid = round($toPaid, 2);
                     }
                    
                     // ако е фактура
                     if($data->recs[$i]->invType == 'invoice') { 
-                        if($toPaid >= 0) {
+                        if($toPaid > 0) {
                             $data->recs[$i]->amountRest = $toPaid;
                             $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
  
@@ -293,14 +302,20 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                 $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
                             }
                    
-                        } else {  
+                        } elseif($toPaid == '0'){ 
+                             $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                             $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                             if(count($values) % 2 != 0) {
+                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
+                             }
+                        } else {
                           
                             $data->recs[$i]->amountRest = 0;
                             if($data->recs[$i+1]->amountVat > 0) {
                                 $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
                             } else {  
                                 $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                               // $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
+                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
                             }
                         }
                     // ако е известие
