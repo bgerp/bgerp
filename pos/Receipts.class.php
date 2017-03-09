@@ -1233,7 +1233,7 @@ class pos_Receipts extends core_Master {
     	// Ако няма цена
     	if(!$rec->price) {
     		$createdOn = pos_Receipts::fetchField($rec->receiptId, 'createdOn');
-    		$createdOn = dt::mysql2verbal($mysqlDate, 'd.m.Y H:i');
+    		$createdOn = dt::mysql2verbal($createdOn, 'd.m.Y H:i');
     		
     		core_Statuses::newStatus("|Артикулът няма цена към|* <b>{$createdOn}</b>", 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);

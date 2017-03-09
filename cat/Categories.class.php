@@ -407,7 +407,7 @@ class cat_Categories extends core_Master
     public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL, $folderId = NULL)
     {
     	// Извличане на всички прототипни артикули
-    	$options = doc_Prototypes::getPrototypes('cat_Products', $driverId, $masterRec->folderId);
+    	$options = doc_Prototypes::getPrototypes('cat_Products', $driverId, $folderId);
     	$newOptions = array();
     	
     	$count = 0;
