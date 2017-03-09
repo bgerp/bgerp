@@ -236,6 +236,10 @@ abstract class deals_ServiceMaster extends core_Master
     			}
     		}
     		
+    		if(!empty($rec->delivered)){
+    			$row->delivered = core_Lg::transliterate($row->delivered);
+    		}
+    		
     		core_Lg::pop();
     		
     		if($rec->isReverse == 'yes'){
