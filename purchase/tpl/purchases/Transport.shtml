@@ -44,6 +44,14 @@
     </tr>
 </table>
 
+<table style="width: 100%;border-top: 1px solid #ccc; margin-top: 5px">
+    <tr class='footerDocInfo'>
+        <td colspan="2">
+            <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+        </td>
+    </tr>
+</table>
+
 
 
 
