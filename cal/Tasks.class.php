@@ -215,8 +215,14 @@ class cal_Tasks extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed';
-
-
+    
+    
+    /**
+     * 
+     */
+    public $canPending = 'powerUser';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -288,7 +294,6 @@ class cal_Tasks extends core_Master
         
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
-        $data->form->setDefault('sharedUsers', "|" . $cu . "|");
 
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->fields[priority]->maxRadio = 2;
@@ -455,10 +460,12 @@ class cal_Tasks extends core_Master
 
         if ($form->isSubmitted()) {
             
-            $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
-            
-            if (empty($sharedUsersArr)) {
-                $form->setError('sharedUsers', 'Трябва да има поне един отговорник');
+            if ($form->cmd == 'active') {
+                $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
+                
+                if (empty($sharedUsersArr)) {
+                    $form->setError('sharedUsers', 'Трябва да има поне един отговорник');
+                }
             }
             
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
@@ -659,6 +666,15 @@ class cal_Tasks extends core_Master
                 if (!$mvc->haveRightFor('single', $rec->id, $userId)) {
                     $requiredRoles = 'no_one';
                }
+            }
+        }
+        
+        // Ако няма потребители, да не може да се активира - ще се промени състоянието на заявка
+        if ($action == 'activate' && $rec->id && !$rec->assign) {
+            $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+            
+            if (empty($sharedUsersArr)) {
+                $requiredRoles = 'no_one';
             }
         }
     }
