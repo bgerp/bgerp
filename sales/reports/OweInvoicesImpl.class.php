@@ -288,7 +288,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                         if($toPaid >= 0) {
                             $data->recs[$i]->amountRest = $toPaid;
                             $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                            $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
+ 
+                            if(count($values) % 2 != 0) {
+                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
+                            }
                    
                         } else {  
                           
