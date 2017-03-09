@@ -251,11 +251,42 @@ class cal_TaskDocuments extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        // TODO - линка да има параметър, който да указва от къде е и да може да се отваря
-        
         if ($rec->containerId) {
-            $row->containerId = doc_Containers::getLinkForSingle($rec->containerId);
+            // Документа
+            $doc = doc_Containers::getDocument($rec->containerId);
+            
+            // Полетата на документа във вербален вид
+            $docRow = $doc->getDocumentRow();
+            
+            $url = $doc->getSingleUrlArray();
+            
+            if (empty($url) && $mvc->Master->haveRightFor('single', $rec->taskId) && $rec->state != 'rejected') {
+                $url = $doc->getUrlWithAccess($mvc, $rec->id);
+            }
+            
+            // Атрибутеите на линка
+            $attr = array();
+            $attr['ef_icon'] = $doc->getIcon($doc->that);
+            $attr['title'] = 'Документ|*: ' . $docRow->title;
+            
+            $row->containerId = ht::createLink(str::limitLen($docRow->title, 35), $url, NULL, $attr);
         }
+    }
+    
+    
+    /**
+     * Проверява дали документа се цитира в източника
+     * 
+     * @param integer $id
+     * @param integer $cid
+     * 
+     * @return boolean
+     */
+    public static function checkDocExist($id, $cid)
+    {
+        if (self::fetch(array("#id = '[#1#]' AND #containerId = '[#2#]' AND #state != 'rejected'", $id, $cid))) return TRUE;
+        
+        return FALSE;
     }
     
     
