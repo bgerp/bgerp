@@ -222,137 +222,141 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     		}
 		}
 
-        foreach ($data->recs as $id => $rec) { 
-           
-        	// ако имаме повече от една фактура в сделката
-        	if($invCntArr[$rec->saleId] > 1) { 
-
-            // само една фактура
-        	} else {
-
-        	    // ако сделката не е фактурирана цялата
-        	    if($amountVatArr[$rec->saleId] != $rec->amountVat) {
-        	        // от сумата на сделката вадим фактурираното и платеното
-        	        $rec->amountRest = $amountVatArr[$rec->saleId] - $rec->amountVat - $paid[$rec->saleId]['creditAmount'];
-        	    // ако сделката е фактурирана изцяло
-        	    } else {
-        	        // от сумата й вадим платеното
-        	        $rec->amountRest = round($rec->amountVat,2) - round($paid[$rec->saleId]['creditAmount'],2); 
-        	    }
-        	}
-        	
-        	if ($currencyNow != $rec->currencyId && isset($rec->rate)) { 
-                $rec->amountVat /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        		$rec->amountVat = round($rec->amountVat, 2);
-        		
-        		$rec->amountRest /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        		$rec->amountRest = round($rec->amountRest, 2);
-        		
-        		$rec->amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        		$rec->amount = round($rec->amount, 2);
-        		
-        	} 
-        }
-      
-        if (isset ($data->notInv)) { 
-        	if ($data->currencyId != $currencyNow) {
-        		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, $data->rec->from, $currencyNow, $data->currencyId);
-        	}
-        }
-        
-        $values = $data->recs;
-        $toPaid = 0;
-        for($line = 0; $line < count($values); $line++) {
-            if($line !== 0) continue;
-           
-            
-            for($i = $line; $i < count($values); $i+=1) {
-         
-                if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){ 
-                 
-                    $p = $paid[$data->recs[$i]->saleId]['creditAmount'] / $data->recs[$i]->rate;
-                } else {
-                    $p = $paid[$data->recs[$i]->saleId]['creditAmount'];
-                }
+		if(is_array($data->recs)) {
+            foreach ($data->recs as $id => $rec) { 
                
-                // разпределяме платеното по фактури
-                if($data->recs[$i]->saleId == $data->recs[$i+1]->saleId) {
-                   
-                    if($paid[$data->recs[$i]->saleId]['creditAmount']  >  '0') { 
-                        $toPaid = $data->recs[$i]->amountVat - $p;
-                        $toPaid = round($toPaid, 2); 
-                        
-                    } elseif ($paid[$data->recs[$i]->saleId]['creditAmount'] == '0') {
-           
-                        $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
-                        $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                        
-                    } else { 
-                        $toPaid = $data->recs[$i]->amountVat;
-                        $toPaid = round($toPaid, 2);
+            	// ако имаме повече от една фактура в сделката
+            	if($invCntArr[$rec->saleId] > 1) { 
+    
+                // само една фактура
+            	} else {
+    
+            	    // ако сделката не е фактурирана цялата
+            	    if($amountVatArr[$rec->saleId] != $rec->amountVat) {
+            	        // от сумата на сделката вадим фактурираното и платеното
+            	        $rec->amountRest = $amountVatArr[$rec->saleId] - $rec->amountVat - $paid[$rec->saleId]['creditAmount'];
+            	    // ако сделката е фактурирана изцяло
+            	    } else {
+            	        // от сумата й вадим платеното
+            	        $rec->amountRest = round($rec->amountVat,2) - round($paid[$rec->saleId]['creditAmount'],2); 
+            	    }
+            	}
+            	
+            	if ($currencyNow != $rec->currencyId && isset($rec->rate)) { 
+                    $rec->amountVat /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            		$rec->amountVat = round($rec->amountVat, 2);
+            		
+            		$rec->amountRest /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            		$rec->amountRest = round($rec->amountRest, 2);
+            		
+            		$rec->amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            		$rec->amount = round($rec->amount, 2);
+            		
+            	} 
+            }
+          
+            if (isset ($data->notInv)) { 
+            	if ($data->currencyId != $currencyNow) {
+            		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, $data->rec->from, $currencyNow, $data->currencyId);
+            	}
+            }
+            
+            $values = $data->recs;
+            $toPaid = 0;
+            for($line = 0; $line < count($values); $line++) {
+                if($line !== 0) continue;
+               
+                
+                for($i = $line; $i < count($values); $i+=1) {
+             
+                    if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){ 
+                     
+                        $p = $paid[$data->recs[$i]->saleId]['creditAmount'] / $data->recs[$i]->rate;
+                    } else {
+                        $p = $paid[$data->recs[$i]->saleId]['creditAmount'];
                     }
                    
-                    // ако е фактура
-                    if($data->recs[$i]->invType == 'invoice') { 
-                        if($toPaid > 0) {
-                            $data->recs[$i]->amountRest = $toPaid;
-                            $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
- 
-                            if(count($values) % 2 != 0) {
-                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
-                            }
-                   
-                        } elseif($toPaid == '0'){ 
-                             $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
-                             $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                             if(count($values) % 2 != 0) {
-                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
-                             }
-                        } else {
-                          
-                            $data->recs[$i]->amountRest = 0;
-                            if($data->recs[$i+1]->amountVat > 0) {
-                                $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
-                            } else {  
-                                $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
-                            }
-                        }
-                    // ако е известие
-                    // TODO как ще се разпределя лащането?
-                    } else {  
+                    // разпределяме платеното по фактури
+                    if($data->recs[$i]->saleId == $data->recs[$i+1]->saleId) {
                        
-                        if($data->recs[$i]->amountVat <=0 ) { 
-                           
+                        if($paid[$data->recs[$i]->saleId]['creditAmount']  >  '0') { 
+                            $toPaid = $data->recs[$i]->amountVat - $p;
+                            $toPaid = round($toPaid, 2); 
+                            
+                        } elseif ($paid[$data->recs[$i]->saleId]['creditAmount'] == '0') {
+               
                             $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                            $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                            
+                        } else { 
+                            $toPaid = $data->recs[$i]->amountVat;
+                            $toPaid = round($toPaid, 2);
                         }
-       
+                       
+                        // ако е фактура
+                        if($data->recs[$i]->invType == 'invoice') { 
+                            if($toPaid > 0) {
+                                $data->recs[$i]->amountRest = $toPaid;
+                                $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+     
+                                if(count($values) % 2 != 0) {
+                                    $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
+                                }
+                       
+                            } elseif($toPaid == '0'){ 
+                                 $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                                 $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                                 if(count($values) % 2 != 0) {
+                                    $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
+                                 }
+                            } else {
+                              
+                                $data->recs[$i]->amountRest = 0;
+                                if($data->recs[$i+1]->amountVat > 0) {
+                                    $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
+                                } else {  
+                                    $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                                    $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
+                                }
+                            }
+                        // ако е известие
+                        // TODO как ще се разпределя лащането?
+                        } else {  
+                           
+                            if($data->recs[$i]->amountVat <=0 ) { 
+                               
+                                $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                            }
+           
+                        }
                     }
                 }
             }
-        }
+		}
 
-        $data->sum = new stdClass(); 
-        foreach ($data->recs as $currRec) { 
-        	
-        	$data->sum->amountVat += $currRec->amountVat;
-        	$data->sum->toPaid += $currRec->amountRest;
-        	$data->sum->currencyId = $currRec->currencyId;
-
-        	if ($currRec->dueDate == NULL || $currRec->dueDate < $data->rec->from) { 
-        	    $currRec->amount = $currRec->amountRest;
-        		$data->sum->arrears += $currRec->amount;
-        	} else {
-        	   $currRec->amount = 0;
-        	   $data->sum->arrears = 0;
-        	}
-        }
-
-        
-        usort($data->recs, function($a, $b)
-        {
-            return strcmp($a->date, $b->date);
-        });
+		if(is_array($data->recs)) {
+            $data->sum = new stdClass(); 
+            foreach ($data->recs as $currRec) { 
+            	
+            	$data->sum->amountVat += $currRec->amountVat;
+            	$data->sum->toPaid += $currRec->amountRest;
+            	$data->sum->currencyId = $currRec->currencyId;
+    
+            	if ($currRec->dueDate == NULL || $currRec->dueDate < $data->rec->from) { 
+            	    $currRec->amount = $currRec->amountRest;
+            		$data->sum->arrears += $currRec->amount;
+            	} else {
+            	   $currRec->amount = 0;
+            	   $data->sum->arrears = 0;
+            	}
+            }
+    
+            
+            usort($data->recs, function($a, $b)
+            {
+                return strcmp($a->date, $b->date);
+            });
+		}
         
 		return $data;
 	}
