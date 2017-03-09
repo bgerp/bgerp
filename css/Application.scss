@@ -5245,7 +5245,15 @@ body.narrow {
 }
 
 .document .display-table .details .listToolbar {
-    border-bottom: none;
+	border-bottom: none;
+}
+
+.attentionIcon {
+	background-image: url('../img/16/emotion_alert.png');
+	background-repeat: no-repeat;
+	background-position: left center;
+	padding-left: 20px;
+	font-size: 0.9em;
 }
 
 .feather-icon{
