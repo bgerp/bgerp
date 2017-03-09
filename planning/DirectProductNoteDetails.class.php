@@ -319,7 +319,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     		
     		if(empty($rec->storeId)){
-    			$row->storeId = tr('Незавършено производство');
+    			$row->storeId = "<span class='quiet'>"  . tr('Незавършено производство') . "</span>";
     		} else {
     			if($rec->type != 'input') continue;
     			
