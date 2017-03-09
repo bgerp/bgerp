@@ -306,7 +306,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                             } elseif($toPaid == '0'){ 
                                  $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
                                  $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                                 if(count($values) % 2 != 0) {
+                                 if(count($values) % 2 != 0 && $data->recs[$i+2]) {
                                     $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
                                  }
                             } else {
@@ -347,7 +347,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             		$data->sum->arrears += $currRec->amount;
             	} else {
             	   $currRec->amount = 0;
-            	   $data->sum->arrears = 0;
+            	   $data->sum->arrears += 0;
             	}
             }
     
@@ -357,7 +357,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                 return strcmp($a->date, $b->date);
             });
 		}
-        
+	
 		return $data;
 	}
 	
