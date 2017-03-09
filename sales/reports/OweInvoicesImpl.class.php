@@ -190,10 +190,6 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
                 $amountVat =  $invRec->dealValue - $invRec->discountAmount + $invRec->vatAmount;
 
-                if($currencyNow != $invRec->currencyId && isset($invRec->rate)) {
-                    $amountVat /= $invRec->rate;
-                }
-               
                 if($amountVat < 0){
                     $amountRest = $amountVat;
                 } else {
@@ -225,10 +221,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		}
 
         foreach ($data->recs as $id => $rec) { 
-
+        
         	// ако имаме повече от една фактура в сделката
         	if($invCntArr[$rec->saleId] > 1) { 
-        	    continue;
 
             // само една фактура
         	} else {
@@ -243,8 +238,8 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	        $rec->amountRest = round($rec->amountVat,2) - round($paid[$rec->saleId]['creditAmount'],2); 
         	    }
         	}
-        
-        	if ($rec->currencyId != $currencyNow) { 
+        	
+        	if ($currencyNow != $rec->currencyId && isset($rec->rate)) { 
                 $rec->amountVat /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
         		$rec->amountVat = round($rec->amountVat, 2);
         		
