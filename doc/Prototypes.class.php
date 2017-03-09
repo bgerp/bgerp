@@ -99,7 +99,7 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
     	$this->FLD('originId', 'key(mvc=doc_Containers)', 'caption=Документ,mandatory,input=hidden,silent');
     	$this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
-    	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent');
+    	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
