@@ -263,7 +263,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         for($line = 0; $line < count($values); $line++) {
             if($line !== 0) continue;
         
-            for($i = $line; $i < count($values); $i+=2) {
+            for($i = $line; $i < count($values); $i+=1) {
                 
                 if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){
                  
@@ -300,7 +300,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                 $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
                             } else {  
                                 $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
+                               // $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
                             }
                         }
                     // ако е известие
