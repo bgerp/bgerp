@@ -269,7 +269,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                
                 
                 for($i = $line; $i < count($values); $i+=1) {
-             
+                    //$data->recs[$i]->amountRest = 0;
                     if($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate) ){ 
                      
                         $p = $paid[$data->recs[$i]->saleId]['creditAmount'] / $data->recs[$i]->rate;
@@ -289,6 +289,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                
                             $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
                             $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                            if(count($values) % 2 != 0 && $data->recs[$i+2]) {
+                                $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
+                            }
                             $flag = TRUE;
                             
                         } else { 
@@ -307,7 +310,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                     $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
                                 }
                        
-                            } elseif($toPaid == '0' && $flag == TRUE){        
+                            } elseif($toPaid == '0' && $flag == TRUE){      
                                  $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
                                  $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
                                  if(count($values) % 2 != 0 && $data->recs[$i+2]) {
@@ -338,6 +341,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                             if($data->recs[$i]->amountVat <=0 ) { 
                                
                                 $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
+                                $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
+                                if(count($values) % 2 != 0 && $data->recs[$i+2]) {
+                                    $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat;
+                                }
                             }
            
                         }
