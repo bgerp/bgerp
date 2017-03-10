@@ -75,6 +75,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 		
 		if($action == 'clonerec' && isset($rec)){
 			$requiredRoles = $mvc->getRequiredRoles('add', (object)array("{$mvc->masterKey}" => $rec->{$mvc->masterKey}));
+			//bp($requiredRoles);
 		}
 	}
 	
@@ -319,7 +320,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 		if($action == 'clonerec'){
 			
 			// Проверка на данните
-			$mvc->requireRightFor('clonerec');
 			expect($masterId = Request::get($mvc->masterKey, 'int'));
 			expect($masterRec = $mvc->Master->fetch($masterId));
 			expect($cloneId = Request::get('cloneId', 'int'));
