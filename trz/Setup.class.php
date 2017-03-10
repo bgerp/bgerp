@@ -42,6 +42,18 @@ class trz_Setup extends core_ProtoSetup
     
     
     /**
+     * Дали да се пропусне, като избор за инсталиране
+     */
+    public $noInstall = TRUE;
+    
+    
+    /**
+     * Дали се спира поддръжката на този пакет
+     */
+    public $deprecated = TRUE;
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(

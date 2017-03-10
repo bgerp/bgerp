@@ -162,12 +162,12 @@ class batch_BatchesInDocuments extends core_Manager
 			$total = round($total, 5);
 			
 			$caption = $batchDef->getFieldCaption();
-			$label = (!empty($caption)) ? $caption . ":" : 'lot:';
+			$label = (!empty($caption)) ? tr($caption) . ":" : 'lot:';
 			
 			// Вербализацията на к-то ако е нужно
 			if(count($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))){
 				$quantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantity / $rInfo->quantityInPack);
-				$quantity .= " " . cat_UoM::getShortName($rInfo->packagingId);
+				$quantity .= " " . tr(cat_UoM::getShortName($rInfo->packagingId));
 				$block->append($quantity, "quantity");
 			}
 
@@ -188,7 +188,7 @@ class batch_BatchesInDocuments extends core_Manager
 			if($total > 0){
 				$batch = "<i style=''>" . tr('Без партида') . "</i>";
 				$quantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($total / $rInfo->quantityInPack);
-				$quantity .= " " . cat_UoM::getShortName($rInfo->packagingId);
+				$quantity .= " " . tr(cat_UoM::getShortName($rInfo->packagingId));
 			} else {
 				$batch = "<i style='color:red'>" . tr('Несъответствие') . "</i>";
 				$batch = ht::createHint($batch, 'К-то на разпределените партиди е повече от това на реда', 'error');

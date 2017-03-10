@@ -44,33 +44,39 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Кой има право да чете?
-	 */
-	public $canConto = 'ceo,planning';
-	
-	
-	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning';
+	public $canList = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,planning';
+	public $canSingle = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	public $canEdit = 'ceo,planning';
+	public $canEdit = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,planning';
+	public $canAdd = 'ceo,planning,store';
+	
+	
+	/**
+	 * Кой има право да чете?
+	 */
+	public $canConto = 'ceo,planning,store';
+	
+	
+	/**
+	 * Кой може да го прави документа чакащ/чернова?
+	 */
+	public $canPending = 'ceo,planning,store';
 	
 	
 	/**

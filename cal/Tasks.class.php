@@ -33,14 +33,8 @@ class cal_Tasks extends core_Master
      */
     public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
     				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone,doc_AssignPlg';
-
-
-    /**
-     * Името на полито, по което плъгина GroupByDate ще групира редовете
-     */
-    public $groupByDateField = 'groupDate';
-
-
+    
+    
     /**
      * Какви детайли има този мастер
      */
@@ -221,8 +215,14 @@ class cal_Tasks extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed';
-
-
+    
+    
+    /**
+     * 
+     */
+    public $canPending = 'powerUser';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -294,7 +294,6 @@ class cal_Tasks extends core_Master
         
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
-        $data->form->setDefault('sharedUsers', "|" . $cu . "|");
 
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->fields[priority]->maxRadio = 2;
@@ -393,13 +392,9 @@ class cal_Tasks extends core_Master
         $data->query->where("#state = 'active'");
 
         // Време за подредба на записите в портала
-        $data->query->XPR('orderDate', 'datetime', "#modifiedOn");
-        $data->query->orderBy("#orderDate=DESC, #createdOn=DESC");
-
-
-        // Време за групиране на записите в портала
-        $data->query->XPR('groupDate', 'datetime', "#modifiedOn");
-
+        $data->query->orderBy("modifiedOn", "DESC");
+        $data->query->orderBy("createdOn", "DESC");
+        
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
 
@@ -417,10 +412,6 @@ class cal_Tasks extends core_Master
 
             }
         }
-
-        $Tasks = cls::get('cal_Tasks');
-
-        $Tasks->load('plg_GroupByDate');
 
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
@@ -469,10 +460,12 @@ class cal_Tasks extends core_Master
 
         if ($form->isSubmitted()) {
             
-            $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
-            
-            if (empty($sharedUsersArr)) {
-                $form->setError('sharedUsers', 'Трябва да има поне един отговорник');
+            if ($form->cmd == 'active') {
+                $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
+                
+                if (empty($sharedUsersArr)) {
+                    $form->setError('sharedUsers', 'Трябва да има поне един отговорник');
+                }
             }
             
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
@@ -673,6 +666,15 @@ class cal_Tasks extends core_Master
                 if (!$mvc->haveRightFor('single', $rec->id, $userId)) {
                     $requiredRoles = 'no_one';
                }
+            }
+        }
+        
+        // Ако няма потребители, да не може да се активира - ще се промени състоянието на заявка
+        if ($action == 'activate' && $rec->id && !$rec->assign) {
+            $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+            
+            if (empty($sharedUsersArr)) {
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -1124,11 +1126,17 @@ class cal_Tasks extends core_Master
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         
-        // Ако е възложено на някой
+        $usersArr = array();
         if ($rec->assign) {
-        
+            $usersArr[$rec->assign] = $rec->assign;
+        }
+        if ($rec->sharedUsers) {
+            $usersArr += type_Keylist::toArray($rec->sharedUsers);
+        }
+        if (!empty($usersArr)) {
+            $Users = cls::get('type_userList');
             // В заглавието добавяме потребителя
-            $row->subTitle = $this->getVerbal($rec, 'assign');
+            $row->subTitle = $Users->toVerbal(type_userList::fromArray($usersArr));
         }
         
         //Създателя
@@ -2449,8 +2457,6 @@ class cal_Tasks extends core_Master
         
         $form->setOptions('taskId', $taskArr);
         
-        $form->setDefault('date', dt::addDays(1));
-        
         $form->input(NULL, TRUE);
         $form->input();
         
@@ -2477,7 +2483,7 @@ class cal_Tasks extends core_Master
                 
                 if (cal_TaskDocuments::add($rec->taskId, $originId)) {
                     
-                    return new Redirect($retUrl, '|Успешно прикачихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
+                    return new Redirect($retUrl, '|Успешно добавихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
                 } else {
                     $form->setError('taskId', 'Грешка при добавяне на документа към задачата');
                 }
@@ -2510,12 +2516,43 @@ class cal_Tasks extends core_Master
                     $redirectUrl['folderId'] = $rec->folderId;
                     $haveFolder = TRUE;
                 }
+                
+                // Проверяваме дали същата задача не е създадена
+                $query = self::getQuery();
+                $query->where("#state != 'rejected'");
+                $query->where(array("#createdBy = '[#1#]'", $cu));
+                $query->where(array("#title = '[#1#]'", $redirectUrl['title']));
+                $query->where(array("#timeStart = '[#1#]'", $redirectUrl['timeStart']));
+                if ($haveFolder) {
+                    $query->where(array("#folderId = '[#1#]'", $redirectUrl['folderId']));
+                }
+                $query->limit(1);
+                
+                // Ако задачата съществува, добавяме документа към нея
+                if ($rec = $query->fetch()) {
+                    if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $rec->id, $originId))) {
+                        
+                        return new Redirect($retUrl, '|Документът вече е бил добавен към|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
+                    } elseif (cal_TaskDocuments::add($rec->id, $originId)) {
+                        
+                        return new Redirect($retUrl, '|Успешно добавихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->id));
+                    }
+                }
             } else {
                 
                 // Ако е нова задача без попълнени данни - ще е в нишката на оригиналния документ
                 if (!$rec->folderId) {
                     $redirectUrl['threadId'] = $dRec->threadId;
                     $haveFolder = TRUE;
+                }
+                
+                try {
+                    $dRow = $document->getDocumentRow();
+                    $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+                    
+                    $redirectUrl['title'] = tr("За") . ': ' . $title;
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
                 }
             }
             
@@ -2536,7 +2573,7 @@ class cal_Tasks extends core_Master
         
         // Добавяме титлата на формата
         $form->title = "Създаване на задача от|* ";
-        $form->title .= doc_Containers::getLinkForSingle($originId);
+        $form->title .= cls::get($document)->getFormTitleLink($document->that);
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();

@@ -125,7 +125,8 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canEditActivated, FALSE);
         
         setIfNot($mvc->canExportdoc, 'user');
-        setIfNot($mvc->canForceexpenseitem, 'ceo,acc');
+        setIfNot($mvc->canForceexpenseitem, 'ceo,acc,purchase');
+        setIfNot($mvc->canPsingle, 'user');
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -304,13 +305,18 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Добавяме бутон за създаване на задача
-            if (cal_Tasks::haveRightFor('add')) {
-                $data->toolbar->addBtn('Задача', array(
-                        'cal_Tasks',
-                        'AddDocument',
-                        'foreignId' => $data->rec->containerId,
-                        'ret_url'=> $retUrl
-                ), 'ef_icon = img/16/task-normal.png, title=' . tr('Създаване на задача от документа'));
+            if (cal_Tasks::haveRightFor('add') && $data->rec->containerId) {
+                
+                $doc = doc_Containers::getDocument($data->rec->containerId);
+                
+                if ($doc->haveRightFor('single')) {
+                    $data->toolbar->addBtn('Задача', array(
+                            'cal_Tasks',
+                            'AddDocument',
+                            'foreignId' => $data->rec->containerId,
+                            'ret_url'=> $retUrl
+                    ), 'ef_icon = img/16/task-normal.png, title=' . tr('Създаване на задача от документа'));
+                }
             }
         } else {
             //TODO да се "премахне" и оптимизира
@@ -965,6 +971,99 @@ class doc_DocumentPlg extends core_Plugin
         	 
         	return FALSE;
     	}
+    	
+    	// Сингъл изглед, който се показва, ако няма достъп до сингъла, но има достъп до източника, където е цитиран
+    	if ($action == 'psingle') {
+    	    
+            // Създаваме обекта $data
+            $data = new stdClass();
+            
+            // Трябва да има id
+            expect($id = Request::get('id', 'int'));
+            
+            // Трябва да има $rec за това $id
+            if(!($data->rec = $mvc->fetch($id))) { 
+                // Имаме ли въобще права за единичен изглед?
+                $mvc->requireRightFor('Psingle');
+            }
+            
+            $data->details = arr::make($this->details);
+            
+            expect($data->rec, $data, $id, Request::get('id', 'int'));
+            
+            // Проверяваме дали потребителя може да вижда списък с тези записи
+            $mvc->requireRightFor('Psingle', $data->rec);
+            
+            // Ако има права за сингъла, редиректваме директно там
+            if ($mvc->haveRightFor('single', $data->rec)) {
+                
+                $res = new Redirect(array($mvc, 'single', $data->rec->id));
+                
+                return FALSE;
+            }
+            
+            // Трябва да има права за сингъл на оригиналния документ
+            Request::setProtected('pUrl');
+            
+            expect($pSingle = Request::get('pUrl'));
+            
+            list($clsId, $recId, $docId) = explode('_', $pSingle);
+            
+            expect(cls::load($clsId, TRUE));
+            
+            $clsInst = cls::get($clsId);
+            if ($clsInst instanceof core_Master) {
+                $clsInst->requireRightFor('single', $recId);
+            } elseif ($clsInst instanceof core_Detail) {
+                $clsRec = $clsInst->fetch($recId);
+                $clsInst->Master->requireRightFor('single', $clsRec->{$clsInst->masterKey});
+            }
+            
+            // Очакваме документа да съществува в източника
+            expect($clsInst->checkDocExist($recId, $data->rec->containerId));
+            
+            // Подготвяме данните за единичния изглед
+            $mvc->prepareSingle($data);
+            
+            // Рендираме изгледа
+            $tpl = $mvc->renderSingle($data);
+            
+            // Опаковаме изгледа
+            $tpl = $mvc->renderWrapping($tpl, $data);
+            
+            if (!Request::get('ajax_mode')) {
+                if (Mode::is('printing')) {
+                    $mvc->logRead('Отпечатване', $id);
+                } elseif(Mode::is('pdf')) {
+                    $mvc->logRead('PDF', $id);
+                } else {
+                    $mvc->logRead('Виждане', $id);
+                }
+            }
+            
+            $res = $tpl;
+            
+            return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Метод по подразбиране за проверка дали документа съществува в източника
+     * За pSingle
+     * 
+     * @param core_Manager $mvc
+     * @param boolean|NULL $res
+     * @param integer $recId
+     * @param integer $docId
+     */
+    public static function on_AfeterCheckDocExist($mvc, &$res, $recId, $docId)
+    {
+        $rec = $mvc->fetch($rec->id);
+        
+        if ($rec->containerId = $docId) {
+            $res = TRUE;
+        }
     }
     
     
@@ -1954,6 +2053,22 @@ class doc_DocumentPlg extends core_Plugin
         		}
         	}
         }
+    }
+    
+    
+    /**
+     * 
+     * @param core_Manager $mvc
+     * @param NULL|array $res
+     * @param integer $docId
+     * @param core_Manager $mInst
+     * @param integer $dId
+     */
+    function on_AfterGetUrlWithAccess($mvc, &$res, $docId, $mInst, $dId)
+    {
+        Request::setProtected('pUrl');
+        
+        $res = array($mvc, 'pSingle', $docId, 'pUrl' => $mInst->getClassId() . '_' . $dId . '_' . $docId, 'ret_url' => TRUE);
     }
     
     
