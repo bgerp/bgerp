@@ -169,6 +169,12 @@ class pos_Favourites extends core_Manager {
 	    		
 	    		// За всеки обект от кеша, изчисляваме актуалната му цена
 	    		$price = price_ListRules::getPrice($posRec->policyId, $obj->productId, $obj->packagingId, $date);
+	    		$pack = cat_products_Packagings::getPack($obj->productId, $obj->packagingId);
+	    		if($pack){
+	    			$price *= $pack->quantity;
+	    			$shortUom = cat_UoM::getShortName($obj->packagingId);
+	    			$obj->name .= " ({$shortUom})";
+	    		}
 	    		
 	    		$vat = cat_Products::getVat($obj->productId, $date);
 	    		$obj->price = $double->toVerbal($price * (1 + $vat));
