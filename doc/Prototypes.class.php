@@ -103,7 +103,7 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
-    	$this->FLD('sharedFolders', 'keylist(mvc=doc_Folders,select=title,maxSuggestions=1000,prepareQuery=doc_Prototypes->filterFolders)', 'caption=Споделяне->Папки,input=none');
+    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
@@ -111,20 +111,6 @@ class doc_Prototypes extends core_Manager
     	$this->setDbUnique('originId');
     	$this->setDbUnique('classId,docId');
     	$this->setDbIndex('classId,docId,driverClassId');
-    }
-    
-    
-    /**
-     * Филтриране на папките, така че да се показват само тези във които документа може да се добави
-     * 
-     * @param type_Keylist $type
-     * @param core_Query $query
-     */
-    public function filterFolders($type, $query)
-    {
-    	$query->where("#coverClass IN ({$type->params['coverKeys']}) AND #state != 'rejected' AND #state != 'closed'");
-    	doc_Folders::restrictAccess($query);
-    	$query->limit(1001);
     }
     
     
@@ -209,23 +195,25 @@ class doc_Prototypes extends core_Manager
     	} elseif($origin->getInstance() instanceof core_Embedder){
     		$form->setDefault('driverClassId', $origin->fetchField($origin->innerClassField));
     	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
     	
-    	// За споделени папки се взимат само тези във които документа може да бъде създаден
-    	if(cls::existsMethod($origin->className, 'getCoversAndInterfacesForNewDoc')){
-    		$coverArr = doc_plg_SelectFolder::getAllowedCovers($origin->getInstance());
-    		
-    		// Хак за артикулите
-    		if($origin->isInstanceOf('cat_Products')){
-    			$personId = crm_Persons::getClassId();
-    			$companyId = crm_Companies::getClassId();
-    			$coverArr[$personId] = $personId;
-    			$coverArr[$companyId] = $companyId;
-    		}
-    		
-    		if(is_array($coverArr) && count($coverArr)){
-    			$coverKeys = implode(',', array_keys($coverArr));
-    			$form->setField('sharedFolders', 'input');
-    			$form->setFieldTypeParams('sharedFolders', array("coverKeys" => $coverKeys));
+    	if($form->isSubmitted()){
+    		if(isset($rec->sharedFolders)){
+    			$origin = doc_Containers::getDocument($rec->originId);
+    			if(!$origin->getInstance()->canAddToFolder($rec->sharedFolders)){
+    				$form->setError('sharedFolders', "Документа не може да бъде създаден в избраната папка");
+    			}
     		}
     	}
     }
@@ -295,7 +283,7 @@ class doc_Prototypes extends core_Manager
     	
     	// Ако е подадена и папка се взимат всички които са до тази папка или са до всички папки
     	if(isset($folderId)){
-    		$condition .= " AND (#sharedFolders IS NULL OR LOCATE('|{$folderId}|', #sharedFolders))";
+    		$condition .= " AND (#sharedFolders IS NULL OR sharedFolders = {$folderId})";
     	}
     	
     	$query->where($condition);
