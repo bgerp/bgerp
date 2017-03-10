@@ -127,7 +127,8 @@ class pos_Favourites extends core_Manager {
     {
     	$self = cls::get(get_called_class());
     	$productsArr = $self->preparePosProducts();
-    	$categoriesArr = pos_FavouritesCategories::prepareAll();
+    	
+    	$categoriesArr = pos_FavouritesCategories::prepareAll(pos_Points::getCurrent('id'));
     	
     	return (object)array('arr' => $productsArr, 'categories' => $categoriesArr);
     }
