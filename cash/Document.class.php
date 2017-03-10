@@ -347,7 +347,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$rec = $data->rec;
     	
     	// Ако не е избрана каса, показваме бутона за контиране но с грешка
-    	if($rec->state == 'draft' && !isset($rec->peroCase) && $mvc->haveRightFor('conto')){
+    	if(($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->peroCase) && $mvc->haveRightFor('conto')){
     		$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
     	}
     }
@@ -543,12 +543,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	if($requiredRoles == 'no_one') return;
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')){
     		$requiredRoles = 'no_one';
-    	}
-    	
-    	if($action == 'pending' && isset($rec)){
-    		if(empty($rec->peroCase)){
-    			$requiredRoles = 'no_one';
-    		}
     	}
     }
 }

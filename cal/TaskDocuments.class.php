@@ -13,6 +13,8 @@
  */
 class cal_TaskDocuments extends core_Detail
 {
+    
+    
     /**
      * 
      */
@@ -70,19 +72,25 @@ class cal_TaskDocuments extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cal_Wrapper, plg_Created, plg_State, plg_Rejected, plg_RowTools';
+    public $loadList = 'cal_Wrapper, plg_Created, plg_State, plg_Rejected, plg_RowTools2';
     
 	
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'id';
+    public $rowToolsSingleField = '-';
     
     
     /**
      * Активен таб на менюто
      */
     public $currentTab = 'Задачи';
+    
+    
+    /**
+     * 
+     */
+    public $listFields = 'containerId, comment';
     
     
     /**
@@ -100,6 +108,27 @@ class cal_TaskDocuments extends core_Detail
     
     
     /**
+     * Добавя запис
+     * 
+     * @param integer $taskId
+     * @param integer $cId
+     * 
+     * @return NULL|number
+     */
+    public static function add($taskId, $cId)
+    {
+        if (!$taskId || !$cId) return ;
+        
+        $rec = new stdClass();
+        $rec->state = 'active';
+        $rec->containerId = $cId;
+        $rec->taskId = $taskId;
+        
+        return self::save($rec);
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param cal_TaskDocuments $mvc
@@ -107,7 +136,7 @@ class cal_TaskDocuments extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->FNC('document', 'varchar', 'caption=Документ, input=input, formOrder=1, mandatory');
+        $data->form->FNC('documentCid', 'varchar', 'caption=Документ, input=input, formOrder=1, mandatory');
         
         $query = $mvc->getQuery();
         $query->where(array("#taskId = '[#1#]'", $data->form->rec->taskId));
@@ -121,6 +150,10 @@ class cal_TaskDocuments extends core_Detail
         $threadsArr = bgerp_Recently::getLastThreadsId(self::$lastThreadsCnt);
         $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
         
+        // Документа, към който ще се добавя да не се показва в списъка
+        $mRec = $mvc->Master->fetch($data->form->rec->taskId);
+        $existDocArr[$mRec->containerId] = $mRec->containerId;
+        
         $docIdsArr = array();
         foreach ($threadsArr as $threadId => $dummy) {
             
@@ -128,13 +161,7 @@ class cal_TaskDocuments extends core_Detail
                 
                 if ($existDocArr[$cRec->id]) continue;
                 
-                $title = doc_Containers::getDocTitle($cRec->id);
-                
-                $document = doc_Containers::getDocument($cRec->id);
-                $handle = $document->getHandle();
-                $title = $handle . ': ' . $title;
-                
-                $docIdsArr[$cRec->id] = $title;
+                $docIdsArr[$cRec->id] = $mvc->getDocTitle($cRec->id);
             }
         }
         
@@ -142,19 +169,44 @@ class cal_TaskDocuments extends core_Detail
         
         if (!$data->form->rec->id) {
             if (!empty($docIdsArr)) {
-                $data->form->setOptions('document', $docIdsArr);
+                $data->form->setOptions('documentCid', $docIdsArr);
             } else {
-                $data->form->setReadonly('document');
+                $data->form->setReadonly('documentCid');
             }
         } else {
             
             // Ако редактираме записа, да се показва само избраната стойност
             
-            $docIdsArr = array($data->form->rec->containerId => $docIdsArr[$data->form->rec->containerId]);
-            $data->form->setOptions('document', $docIdsArr);
+            $docTitle = $docIdsArr[$data->form->rec->containerId];
+            
+            if (!isset($docTitle)) {
+                $title = $mvc->getDocTitle($data->form->rec->containerId);
+            }
+            
+            $docIdsArr = array($data->form->rec->containerId => $title);
+            
+            $data->form->setOptions('documentCid', $docIdsArr);
         }
     }
     
+    
+    /**
+     * Подготвя заглавието на документа, за избор в опциите
+     * 
+     * @param integer $cId
+     * 
+     * @return string
+     */
+    protected static function getDocTitle($cId)
+    {
+        $title = doc_Containers::getDocTitle($cId);
+        
+        $document = doc_Containers::getDocument($cId);
+        $handle = $document->getHandle();
+        $title = $handle . ': ' . $title;
+        
+        return $title;
+    }
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -165,7 +217,7 @@ class cal_TaskDocuments extends core_Detail
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            $form->rec->containerId = $form->rec->document;
+            $form->rec->containerId = $form->rec->documentCid;
         }
     }
     
@@ -199,11 +251,42 @@ class cal_TaskDocuments extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        // TODO - линка да има параметър, който да указва от къде е и да може да се отваря
-        
         if ($rec->containerId) {
-            $row->containerId = doc_Containers::getLinkForSingle($rec->containerId);
+            // Документа
+            $doc = doc_Containers::getDocument($rec->containerId);
+            
+            // Полетата на документа във вербален вид
+            $docRow = $doc->getDocumentRow();
+            
+            $url = $doc->getSingleUrlArray();
+            
+            if (empty($url) && $mvc->Master->haveRightFor('single', $rec->taskId) && $rec->state != 'rejected') {
+                $url = $doc->getUrlWithAccess($mvc, $rec->id);
+            }
+            
+            // Атрибутеите на линка
+            $attr = array();
+            $attr['ef_icon'] = $doc->getIcon($doc->that);
+            $attr['title'] = 'Документ|*: ' . $docRow->title;
+            
+            $row->containerId = ht::createLink(str::limitLen($docRow->title, 35), $url, NULL, $attr);
         }
+    }
+    
+    
+    /**
+     * Проверява дали документа се цитира в източника
+     * 
+     * @param integer $id
+     * @param integer $cid
+     * 
+     * @return boolean
+     */
+    public static function checkDocExist($id, $cid)
+    {
+        if (self::fetch(array("#id = '[#1#]' AND #containerId = '[#2#]' AND #state != 'rejected'", $id, $cid))) return TRUE;
+        
+        return FALSE;
     }
     
     
@@ -227,10 +310,16 @@ class cal_TaskDocuments extends core_Detail
 	 */
 	public function prepareDetail_($data)
 	{
-		$data->TabCaption = 'Документи';
-		$data->listFields = 'id, containerId, comment';
+	    $data->TabCaption = 'Документи';
+	    $data->Tab = 'top';
 		
-		return parent::prepareDetail_($data);
+	    $res = parent::prepareDetail_($data);
+		
+		if (empty($data->recs)) {
+		    $data->disabled = TRUE;
+		}
+		
+		return $res;
 	}
 	
 	
@@ -241,7 +330,7 @@ class cal_TaskDocuments extends core_Detail
 	 */
 	public function renderDetail_($data)
 	{
-	    if (!haveRole('debug')) return ;
+	    if (empty($data->recs)) return ;
 		
 		return parent::renderDetail_($data);
 	}

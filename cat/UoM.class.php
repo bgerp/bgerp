@@ -466,7 +466,7 @@ class cat_UoM extends core_Manager
         	$val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
         	$val = ($verbal) ? $Double->toVerbal($val) : $val;
         	
-        	return ($asObject) ? (object)(array('value' => $val, 'measure' => $typeUom->id)) : $val . " " . $typeUom->shortName;
+        	return ($asObject) ? (object)(array('value' => $val, 'measure' => $typeUom->id)) : $val . " " . tr($typeUom->shortName);
         }
         
         // При повече от една мярка, изчисляваме, колко е конвертираната сума на всяка една
@@ -484,7 +484,7 @@ class cat_UoM extends core_Manager
 	        if($amount >= 1){
 	        	$all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
 	        	
-	        	return ($asObject) ? (object)(array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . " " . static::getShortName($mId); 
+	        	return ($asObject) ? (object)(array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . " " . tr(static::getShortName($mId)); 
         	}
         }
         
@@ -494,7 +494,7 @@ class cat_UoM extends core_Manager
         
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
         
-        return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . static::getShortName($mId);
+        return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . tr(static::getShortName($mId));
     }
     
     

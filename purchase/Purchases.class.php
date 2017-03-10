@@ -229,6 +229,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'purchase,ceo,distributor';
+    
+    
+    /**
      * Позволени операции за посследващите складови документи/протоколи
      */
     public $allowedShipmentOperations = array('stowage'         => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '401'),

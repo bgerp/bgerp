@@ -479,7 +479,7 @@ class doc_Containers extends core_Manager
             $q = Request::get('Q');
             
             // Ако е задеден да не се скрива документа или ако се търси в него
-            $hidden = (boolean) (!isset($q) && doc_HiddenContainers::isHidden($rec->id));
+            $hidden = (boolean) (doc_HiddenContainers::isHidden($rec->id));
             
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
        

@@ -167,7 +167,7 @@ class plg_RefreshRows extends core_Plugin
                 
                 $type = 'notice';
                 if ($mvc->manualRefreshCnt == $refeshCnt) {
-                    $type = 'info';
+                    $type = 'notice';
                 }
                 
                 $res = $mvc->manualRefreshRes($refreshUrlOrig, $type);

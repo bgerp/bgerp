@@ -206,7 +206,7 @@ class doc_plg_SelectFolder extends core_Plugin
      * @param core_Mvc $mvc
      * @return array
      */
-    private static function getAllowedCovers(core_Mvc $mvc)
+    public static function getAllowedCovers(core_Mvc $mvc)
     {
     	// Между какви корици трябва да се избира
     	$interfaces = arr::make($mvc::getCoversAndInterfacesForNewDoc());

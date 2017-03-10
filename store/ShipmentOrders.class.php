@@ -247,6 +247,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     		$row->locationId = crm_Locations::getHyperLink($rec->locationId);
     	}
     	
+    	if(isset($rec->createdBy)){
+    		$row->username = core_Users::fetchField($rec->createdBy, "names");
+    		$row->username = core_Lg::transliterate($row->username);
+    	}
+    	
     	core_Lg::pop();
     	
     	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
@@ -255,11 +260,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     	} else {
     		unset($row->palletCountInput);
     	}
-
-		if(isset($rec->createdBy)){
-			$row->username = core_Users::fetchField($rec->createdBy, "names");
-		}
-
     }
     
     

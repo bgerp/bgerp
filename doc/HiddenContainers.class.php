@@ -189,6 +189,8 @@ class doc_HiddenContainers extends core_Manager
      */
     public static function isHidden($cId)
     {
+        $q = Request::get('Q');
+        if (isset($q)) return FALSE;
         
         return self::$hiddenDocsArr[$cId];
     }

@@ -86,14 +86,14 @@ class doc_plg_Prototype extends core_Plugin
 		
 		if($mvc instanceof embed_Manager){
 			if(isset($form->rec->{$mvc->driverClassField})){
-				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->driverClassField});
+				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->driverClassField}, $form->rec->folderId);
 			}
 		} elseif($mvc instanceof core_Embedder){
 			if(isset($form->rec->{$mvc->innerClassField})){
-				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->innerClassField});
+				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->innerClassField}, $form->rec->folderId);
 			}
 		} else{
-			$prototypes = doc_Prototypes::getPrototypes($mvc);
+			$prototypes = doc_Prototypes::getPrototypes($mvc, NULL, $form->rec->folderId);
 		}
 		
 		// Ако има прототипи

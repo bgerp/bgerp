@@ -276,13 +276,40 @@ class escpos_Helper
      * 
      * @return ET
      */
-    protected static function getTpl()
+    public static function getTpl()
     {
         $tpl = '<?xml version="1.0" encoding="utf-8"?>
                 <btpDriver Command="DirectIO">
                     <title>[#title#]</title>
                     <data>[#data#]</data>
                 </btpDriver>';
+        
+        // TODO #Eml2803 - тестове и ще се премахне
+        if (Request::get('nt')) {
+            $tpl = '<?xml version="1.0" encoding="utf-8"?>
+                <btpDriver Command="DirectIO">
+                    <data>[#data#]</data>
+                </btpDriver>';
+        } elseif (Request::get('nd')) {
+            $tpl = '<?xml version="1.0" encoding="utf-8"?>
+                <btpDriver Command="DirectIO">
+                    <title>[#title#]</title>
+                </btpDriver>';
+        } elseif (Request::get('bd')) {
+            $tpl = '<?xml version="1.0" encoding="utf-8"?>
+                <btpDriver Command="DirectIO">
+                    <title>[#title#]</title>
+                    <data>BAD_DATA</data>
+                </btpDriver>';
+        } elseif (Request::get('nx')) {
+            $tpl = '';
+        } elseif (Request::get('bx')) {
+            $tpl = 'BAD_XML<?xmlBAD version="1.0" encoding="utf-8"?>
+                <btpDriver Command="DirectIO">
+                    <title>[#title#]</title>
+                    <data>[#data#]</data>
+                </btpDriver>';
+        }
         
         $res = new ET(tr('|*' . $tpl));
         

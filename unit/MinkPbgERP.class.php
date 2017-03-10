@@ -99,28 +99,29 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  12.".$this->act_CreatePackage();
         $res .= "  13.".$this->act_CreateGroup();
         $res .= "  14.".$this->act_CreateProject();
-        $res .= "  15.".$this->act_CreateDepartment1();
-        $res .= "  16.".$this->act_CreateDepartment2();
-        $res .= "  17.".$this->act_CreateProduct();
-        $res .= "  18.".$this->act_CreateEditPerson();
-        $res .= "  19.".$this->act_CreateCompany();
-        $res .= "  20.".$this->act_EditCompany();
-        $res .= "  21.".$this->act_CreateLocation1();
-        $res .= "  22.".$this->act_CreateLocation2();
-        $res .= "  23.".$this->act_CreateEditCompany();
-        $res .= "  24.".$this->act_CreateInq();
-        $res .= "  25.".$this->act_CreateQuotation();
-        $res .= "  26.".$this->act_CreatePurchase();
-        $res .= "  27.".$this->act_CreatePurchaseC();
-        $res .= "  28.".$this->act_CreateSale();
-        $res .= "  29.".$this->act_CreateSaleC();
-        $res .= "  30.".$this->act_CreateTask();
-        $res .= "  31.".$this->act_CreateProductVAT9();
-        $res .= "  32.".$this->act_CreatePersonUSA();
-        $res .= "  33.".$this->act_CreateSupplier();
-        $res .= "  34.".$this->act_CreateContractorGroup();
-        $res .= "  35.".$this->act_CreatePaymentMethod();
-        $res .= "  36.".$this->act_CreateCondParameter();
+        $res .= "  15.".$this->act_CreateCycle();
+        $res .= "  16.".$this->act_CreateDepartment1();
+        $res .= "  17.".$this->act_CreateDepartment2();
+        $res .= "  18.".$this->act_CreateProduct();
+        $res .= "  19.".$this->act_CreateEditPerson();
+        $res .= "  20.".$this->act_CreateCompany();
+        $res .= "  21.".$this->act_EditCompany();
+        $res .= "  22.".$this->act_CreateLocation1();
+        $res .= "  23.".$this->act_CreateLocation2();
+        $res .= "  24.".$this->act_CreateEditCompany();
+        $res .= "  25.".$this->act_CreateInq();
+        $res .= "  26.".$this->act_CreateQuotation();
+        $res .= "  27.".$this->act_CreatePurchase();
+        $res .= "  28.".$this->act_CreatePurchaseC();
+        $res .= "  29.".$this->act_CreateSale();
+        $res .= "  30.".$this->act_CreateSaleC();
+        $res .= "  31.".$this->act_CreateTask();
+        $res .= "  32.".$this->act_CreateProductVAT9();
+        $res .= "  33.".$this->act_CreatePersonUSA();
+        $res .= "  34.".$this->act_CreateSupplier();
+        $res .= "  35.".$this->act_CreateContractorGroup();
+        $res .= "  36.".$this->act_CreatePaymentMethod();
+        $res .= "  37.".$this->act_CreateCondParameter();
         
         return $res;
     }
@@ -549,9 +550,35 @@ class unit_MinkPbgERP extends core_Manager {
         }
         //return $browser->getHtml();
     }
-    
     /**
-     * 1. Създаване на първо звено
+     * 1. Създаване на цикъл
+     */
+    //http://localhost/unit_MinkPbgERP/CreateCycle/
+    function act_CreateCycle()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на звено
+        $browser->click('Персонал');
+        $browser->click('Структура');
+        $browser->click('Цикли');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Редовен');
+        $browser->setValue('cycleDuration', '5');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),'Непопълнено задължително поле')){
+            $browser->press('Отказ');
+            return $this->reportErr('Непопълнено задължително поле', 'warning');
+        }
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return $this->reportErr('Дублиране на запис', 'info');
+        }
+        //return $browser->getHtml();
+    }
+    /**
+     * 2. Създаване на първо звено
      */
     //http://localhost/unit_MinkPbgERP/CreateDepartment1/
     function act_CreateDepartment1()
@@ -563,9 +590,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Персонал');
         $browser->click('Структура');
         $browser->press('Нов запис');
-        //return $browser->getHtml();
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Завод');
+        $browser->setValue('schedule','Редовен'); 
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -578,7 +605,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     /**
-     * 2. Създаване на второ звено
+     * 3. Създаване на второ звено
      */
     //http://localhost/unit_MinkPbgERP/CreateDepartment2/
     function act_CreateDepartment2()
@@ -593,6 +620,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Производство');
         $browser->setValue('parentId', 'Завод');
+        $browser->setValue('schedule','Редовен');
         $browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -706,7 +734,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('Клиенти', '1');
         $browser->setValue('Доставчици', '2');
         $browser->press('Запис');
-        //return $browser->getHtml();
         if (strpos($browser->getText(),"Предупреждение:")){
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
@@ -908,9 +935,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Създаване на оферта в');
         $browser->press('Чернова');
         // Добавяне на артикул 
-        //echo $browser->getHtml();
         $browser->press('Добавяне');
-        //return $browser->getHtml();
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);

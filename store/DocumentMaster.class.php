@@ -281,14 +281,6 @@ abstract class store_DocumentMaster extends core_Master
 	   	
 	   	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
 	   
-	   	if(!isset($rec->weight)) {
-	   		$row->weight = "<span class='quiet'>N/A</span>";
-	   	}
-	   
-	   	if(!isset($rec->volume)) {
-	   		$row->volume = "<span class='quiet'>N/A</span>";
-	   	}
-	   	 
 	   	if(isset($fields['-list'])){
 	   		if($rec->amountDelivered){
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
@@ -332,8 +324,19 @@ abstract class store_DocumentMaster extends core_Master
 	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
 	   		}
 	   		
-	   		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
-	   		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
+	   		$weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
+	   		if(!isset($weight)) {
+	   			$row->weight = "<span class='quiet'>N/A</span>";
+	   		} else {
+	   			$row->weight = $mvc->getFieldType('weight')->toVerbal($weight);
+	   		}
+	   		
+	   		$volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+	   		if(!isset($volume)) {
+	   			$row->volume = "<span class='quiet'>N/A</span>";
+	   		} else {
+	   			$row->volume = $mvc->getFieldType('volume')->toVerbal($volume);
+	   		}
 	   		
 	   		core_Lg::pop();
 	   		

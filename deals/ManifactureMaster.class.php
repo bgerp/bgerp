@@ -39,10 +39,10 @@ abstract class deals_ManifactureMaster extends core_Master
 		$mvc->FLD('deadline', 'datetime', 'caption=Срок до');
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',
+				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Чакащ)',
 				'caption=Статус, input=none'
 		);
-
+		
 		$mvc->setDbIndex('valior');
 	}
 	
@@ -219,6 +219,10 @@ abstract class deals_ManifactureMaster extends core_Master
     protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'activate' && empty($rec->id)){
+    		$requiredRoles = 'no_one';
+    	}
+    	
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')){
     		$requiredRoles = 'no_one';
     	}
     }
