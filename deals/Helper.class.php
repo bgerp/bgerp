@@ -105,11 +105,10 @@ abstract class deals_Helper
 	
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
 		$map = array_merge(self::$map, $map);
-		$useAproximatedDiscount = FALSE;
-		
+	
 		// Дали трябва винаги да не се показва ддс-то към цената
 		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->{$map['chargeVat']} == 'yes') ? TRUE : FALSE);
-		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = $amountRow1 = 0;
+		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
 		$vats = array();
 		
 		// Обработваме всеки запис
@@ -123,30 +122,24 @@ abstract class deals_Helper
 			$price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
 			$rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
 			
-			$noVatAmount = round($price->noVat * $rec->{$map['quantityFld']} - 0.000001, 2);
-        	$noVatAmount1 = round($price->noVat * $rec->{$map['quantityFld']}, 2);
+			$noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, 2);
         	
 			if($rec->{$map['discount']}){
-				$useAproximatedDiscount = TRUE;
 				$withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
 			} else {
 				$withoutVatAndDisc = $noVatAmount;
 			}
-			//bp($withoutVatAndDisc);
+			
 			$vatRow = round($withoutVatAndDisc * $vat, 2);
 			
         	$rec->{$map['amountFld']} = $noVatAmount;
-        	$amount1 = $rec->{$map['amountFld']};
         	if($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']){
-        		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount1 * $vat, 2), 2);
-        		$amount1 = round($amount1 + round($noVatAmount * $vat, 2), 2);
+        		$rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, 2), 2);
         	}
 
         	if($rec->{$map['discount']}){
         		if(!($masterRec->type === 'dc_note' && $rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE)){
-        			//bp($amount1, $rec->{$map['amountFld']}, $rec->{$map['discount']});
         			$discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
-        			//bp(round($discount, 2), $rec->{$map['amountFld']});
         		}
         	}
         	
@@ -159,7 +152,6 @@ abstract class deals_Helper
         			$amountVat += $vatRow;
         			 
         			$amountJournal += $withoutVatAndDisc;
-        			
         			if($masterRec->{$map['chargeVat']} == 'yes') {
         				$amountJournal += $vatRow;
         			}
@@ -168,16 +160,13 @@ abstract class deals_Helper
         		
         		// За всички останали събираме нормално
         		$amountRow += $rec->{$map['amountFld']};
-        		$amountRow1 += $amount1;
-        		$amount += $noVatAmount1;
+        		$amount += $noVatAmount;
         		$amountVat += $vatRow;
         		 
         		$amountJournal += $withoutVatAndDisc;
-        		if($masterRec->{$map['chargeVat']} == 'yes' && !isset($rec->invoiceId)) {
+        		if($masterRec->{$map['chargeVat']} == 'yes') {
         			$amountJournal += $vatRow;
         		}
-        		
-        		//bp($amountRow1, $amountJournal);
         	}
         	
         	if(!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== TRUE && $rec->changedPrice !== TRUE))){
@@ -190,29 +179,16 @@ abstract class deals_Helper
         	}
 		}
 		
-		
 		$mvc->_total = new stdClass();
 		$mvc->_total->amount = $amountRow;
 		$mvc->_total->vat = $amountVat;
 		$mvc->_total->vats = $vats;
 		
-		if($useAproximatedDiscount === FALSE){//bp();
+		if(!$map['alwaysHideVat']){
 			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
 		} else {
-			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);//round($discount, 2);
+			$mvc->_total->discount = $discount;
 		}
-		
-		
-		//if(!$map['alwaysHideVat']){
-			//$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
-			//$mvc->_total->discount = round($discount, 2);
-
-			//bp($mvc->_total->discount);
-		//} else {
-			//$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
-		//}
-		
-		//bp($mvc->_total, $mvc->_total->amount - $mvc->_total->discount);
 	}
 	
 	
