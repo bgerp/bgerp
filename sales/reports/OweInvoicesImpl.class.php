@@ -326,7 +326,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                     $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat + $toPaid;
                                 } else {  
                                     $data->recs[$i+1]->amountRest = $data->recs[$i+1]->amountVat;
-                                    $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
+                                    if(count($values) % 2 != 0 && $data->recs[$i+2]) {
+                                        $data->recs[$i+2]->amountRest = $data->recs[$i+2]->amountVat + $toPaid;
+                                    }
                                 }
                             }
                         // ако е известие
