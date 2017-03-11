@@ -283,7 +283,7 @@ class doc_Prototypes extends core_Manager
     	
     	// Ако е подадена и папка се взимат всички които са до тази папка или са до всички папки
     	if(isset($folderId)){
-    		$condition .= " AND (#sharedFolders IS NULL OR sharedFolders = {$folderId})";
+    		$condition .= " AND (#sharedFolders IS NULL OR #sharedFolders = {$folderId})";
     	}
     	
     	$query->where($condition);
