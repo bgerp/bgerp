@@ -119,7 +119,7 @@ class pos_FavouritesCategories extends core_Manager {
     	
     	$pQuery = pos_Points::getQuery();
     	while($pRec = $pQuery->fetch()){
-    		$name = "Налични({$pRec->name})";
+    		$name = "Налични ({$pRec->name})";
     		if(!self::fetch("#name = '{$name}'")){
     			self::save((object)array('name' => $name, 'points' => keylist::addKey('', $pRec->id)));
     		}

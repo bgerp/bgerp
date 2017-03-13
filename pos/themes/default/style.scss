@@ -138,9 +138,10 @@
 }
 
 .pos-span-name {
-	display:inline-block;
+	display:table-cell;
 	vertical-align:middle;
-	line-height: normal;  
+	line-height: normal;
+	height: 30px;
 }
 .narrow .pos-span-name {
 	font-size: 0.85em;
