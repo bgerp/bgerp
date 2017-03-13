@@ -413,13 +413,16 @@ class hr_WorkingCycles extends core_Master
         $tpl = new ET(getTplFromFile('hr/tpl/SingleLayoutShift.shtml'));
         $tpl->push('hr/tpl/style.css', 'CSS');
         
+        $monthOpt = cal_Calendar::prepareMonthOptions();
+
         if(!Mode::is('printing')) {
             if($prepareRecs){
+                $select = ht::createSelect('dropdown-cal', $monthOpt->opt, $prepareRecs->currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
                 
                 $header = "<table class='mc-header' width='100%' cellpadding='0'>
                             <tr>
                                 <td style='text-align: left'><a href='{$prepareRecs->prevtLink}'>{$prepareRecs->prevMonth}</a></td>
-                                <td style='text-align: center'><b>{$prepareRecs->currentMonth}</b></td>
+                                <td style='text-align: center'><b>{$select}</b></td>
                                 <td style='text-align: right'><a href='{$prepareRecs->nextLink}'>{$prepareRecs->nextMonth}</a></td>
                             </tr>
                         </table>";
