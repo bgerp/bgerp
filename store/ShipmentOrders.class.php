@@ -200,7 +200,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	if(!isset($data->form->rec->id)){
-    		$data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани,stocked=Неекспедирани и налични,all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
+    		$origin = static::getOrigin($data->form->rec);
+    		if($origin->isInstanceOf('sales_Sales')){
+    			$data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани,stocked=Неекспедирани и налични,all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
+    		}
     	}
     }
     
