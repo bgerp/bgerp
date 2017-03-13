@@ -390,8 +390,29 @@ class bgerp_Recently extends core_Manager
         
         return $tpl;
     }
-    
-    
+
+
+
+    /**
+     * Игнорираме pager-а
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareListPager($mvc, &$res, $data)
+    {
+
+        // Задаваме броя на елементите в страница
+        $portalArrange = core_Setup::get('PORTAL_ARRANGE');
+
+        if($portalArrange == 'recentlyNotifyTaskCal') {
+            $mvc->listItemsPerPage = 20;
+        } else {
+            $mvc->listItemsPerPage = 10;
+        }
+    }
+
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
