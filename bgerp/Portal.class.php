@@ -82,9 +82,9 @@ class bgerp_Portal extends core_Manager
             $tpl = new ET("
             <table style='width:100%' class='top-table large-spacing'>
             <tr>
-                <td style='width:32%'>[#LEFT_COLUMN#]</td>
-                <td style='width:36%'>[#MIDDLE_COLUMN#]</td>
-                <td style='width:32%'>[#RIGHT_COLUMN#]</td>
+                <td style='width:33.3%'>[#LEFT_COLUMN#]</td>
+                <td style='width:33.4%'>[#MIDDLE_COLUMN#]</td>
+                <td style='width:33.3%'>[#RIGHT_COLUMN#]</td>
             </tr>
             </table>
             ");
