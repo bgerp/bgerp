@@ -131,6 +131,9 @@ class cal_TaskDocuments extends core_Detail
             // Записваме в лога
             cal_Tasks::logWrite('Добавяне на документ', $taskId);
             $document->instance->logInAct('Добавяне към задача', $document->that);
+            
+            // Обновяване на мастъра
+            cal_Tasks::touchRec($taskId);
         }
         
         return $sId; 
