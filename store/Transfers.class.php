@@ -216,8 +216,11 @@ class store_Transfers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'fromStore')){
-    		$requiredRoles = 'no_one';
+    	
+    	if($action == 'conto' && isset($rec)){
+    		if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'toStore')){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
