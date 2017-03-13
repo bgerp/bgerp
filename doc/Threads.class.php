@@ -270,11 +270,15 @@ class doc_Threads extends core_Manager
      * Логва действието
      * 
      * @param string $msg
-     * @param NULL|stdClass $rec
+     * @param NULL|stdClass|integer $rec
      * @param string $type
      */
     function logInAct($msg, $rec = NULL, $type = 'write')
     {
+        if (is_numeric($rec)) {
+            $rec = $this->fetch($rec);
+        }
+        
         if (($type == 'read') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
             doc_Folders::logRead('Разглеждане на папка', $folderId);
         } else {

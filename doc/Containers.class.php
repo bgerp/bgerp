@@ -252,11 +252,15 @@ class doc_Containers extends core_Manager
      * Логва действието
      * 
      * @param string $msg
-     * @param NULL|stdClass $rec
+     * @param NULL|stdClass|integer $rec
      * @param string $type
      */
     function logInAct($msg, $rec = NULL, $type = 'write')
     {
+        if (is_numeric($rec)) {
+            $rec = $this->fetch($rec);
+        }
+        
         if (($type == 'read') && ($threadId = Request::get('threadId', 'int')) && ($msg == 'Листване')) {
             log_Data::add($type, 'Разглеждане на нишка', 'doc_Threads', $threadId);
         } else {
