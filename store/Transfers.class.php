@@ -220,6 +220,13 @@ class store_Transfers extends core_Master
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'toStore')){
     		$requiredRoles = 'no_one';
     	}
+    	
+    	if($action == 'pending' && isset($rec)){
+    		$Detail = cls::get($mvc->mainDetail);
+    		if(!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
