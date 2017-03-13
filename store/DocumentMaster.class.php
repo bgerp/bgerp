@@ -206,11 +206,25 @@ abstract class store_DocumentMaster extends core_Master
     		// Ако документа е обратен не слагаме продукти по дефолт
     		if($rec->isReverse == 'yes') return;
     
-    		$aggregatedDealInfo = $origin->getAggregateDealInfo();
-    		$agreedProducts = $aggregatedDealInfo->get('products');
-    		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-    		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
     		$Detail = $mvc->mainDetail;
+    		$aggregatedDealInfo = $origin->getAggregateDealInfo();
+    		if($rec->importProducts != 'all'){
+    			$agreedProducts = $aggregatedDealInfo->get('products');
+    			$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
+    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+    			
+    			if($rec->importProducts == 'stocked'){
+    				foreach ($agreedProducts as $i1 => $p1) {
+    					$inStock = store_Products::fetchField("#storeId = {$rec->storeId} AND #productId = {$p1->productId}", 'quantity');
+    					if($p1->quantity > $inStock){
+    						unset($agreedProducts[$i1]);
+    					}
+    				}
+    			}
+    		} else {
+    			$agreedProducts = $aggregatedDealInfo->get('products');
+    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array());
+    		}
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $index => $product) {
