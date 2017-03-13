@@ -176,8 +176,12 @@ class pos_Favourites extends core_Manager {
 	    			$obj->name .= " ({$shortUom})";
 	    		}
 	    		
-	    		$vat = cat_Products::getVat($obj->productId, $date);
-	    		$obj->price = $double->toVerbal($price * (1 + $vat));
+	    		if(!is_null($price)){
+	    			$vat = cat_Products::getVat($obj->productId, $date);
+	    			$obj->price = $double->toVerbal($price * (1 + $vat));
+	    		} else {
+	    			$obj->price = "<span>N/A</span>";
+	    		}
 	    	}
 	   }
 	   
