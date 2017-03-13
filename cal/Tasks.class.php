@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'cal_Tasks' - Документ - задача
  *
@@ -2427,75 +2428,218 @@ class cal_Tasks extends core_Master
         
         $cu = core_Users::getCurrent();
         
-        $form->FNC('taskId', "key(mvc=cal_Tasks, name=title, allowEmpty)", 'caption=Задача, placeholder=Нова задача, input=input, silent, class=w100, removeAndRefreshForm=date,folderId');
-        $form->FNC('date', 'date', 'caption=Дата,class=w100, input=input, silent');
-        $form->FNC('folderId', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Папка,class=w100, input=input, silent');
+        $form->FNC('taskType', 'enum', 'caption=Тип задача, input=input, removeAndRefreshForm=date,folderId,silent, class=w100');
         
-        // Показваме само задачите от/за текущия потребител в съответното състояние
+        $taskArr = array();
+        
+        // Групите за видовете задачи
+        $toNewTask = new stdClass();
+        $toNewTask->title = 'Към нова задача';
+        $toNewTask->group = TRUE;
+        
+        $toWaitingTask = new stdClass();
+        $toWaitingTask->title = 'Към чакаща задача';
+        $toWaitingTask->group = TRUE;
+		
+        $toActiveTask = new stdClass();
+        $toActiveTask->title = 'Към активна задача';
+        $toActiveTask->group = TRUE;
+        
+        $prefixDelim = '_';
+        
+        $newPrefix = 'n' . $prefixDelim;
+        $waitingPrefix = 'w' . $prefixDelim;
+        $activePrefix = 'a' . $prefixDelim;
+        
+        $prefixTaskTypeArr = array($newPrefix => $toNewTask, $waitingPrefix => $toWaitingTask, $activePrefix => $toActiveTask);
+        
+        $form->setDefault('taskType', $newPrefix . 'postPonned');
+        
+        // Видовете "Нови задачи"
+        $taskArr[$newPrefix] = $prefixTaskTypeArr[$newPrefix];
+        $taskArr[$newPrefix . 'postPonned'] = 'Отложена задача';
+        $taskArr[$newPrefix . 'project'] = 'В папка на проект';
+        $taskArr[$newPrefix . 'compnany'] = 'В папка на фирма';
+        $taskArr[$newPrefix . 'person'] = 'В папка на лице';
+        
+        // Шаблонните задачи
+        $prototypeArr = doc_Prototypes::getPrototypes($this);
+        foreach ($prototypeArr as $pId => $title) {
+            $taskArr[$newPrefix . $pId] = $title;
+        }
+        
+        // Активните и чакащите задачи
         $query = $this->getQuery();
-        $query->likeKeylist('sharedUsers', "|{$cu}|");
-        $query->orWhere(array("#createdBy = '[#1#]'", $cu));
-        
-        $query->where("#state = 'active'");
-        $query->orWhere("#state = 'draft'");
-        $query->orWhere("#state = 'waiting'");
+        $query->where("#state = 'waiting'");
+        $query->orWhere("#state = 'active'");
         
         $query->orderBy('modifiedOn', 'DESC');
         
+        doc_Threads::restrictAccess($query);
+        
+        $tArr = array();
+        
+        $isTask = (boolean) ($document->instance instanceof cal_Tasks);
+        
         while ($rec = $query->fetch()) {
             
-            $title = $rec->title;
-            $title = str::limitLen($title, 32);
-            $title = $title . " ({$rec->id})";
+            // Да не може да се прикача към себе си
+            if ($isTask && $rec->id == $document->that) continue; 
             
-            $folderName = doc_Folders::getTitleById($rec->folderId, FALSE);
-            $folderName = str::limitLen($folderName, 32);
-            $title = $folderName . ': ' . $title;
-            
-            $taskArr[$rec->id] = $title;
+            $tArr[$rec->state][$rec->id] = $rec->title;
         }
         
-        $form->setOptions('taskId', $taskArr);
+        // Чакащите задачи
+        if (is_array($tArr['waiting']) && !empty($tArr['waiting'])) {
+            $taskArr[$waitingPrefix] = $prefixTaskTypeArr[$waitingPrefix];
+            foreach ($tArr['waiting'] as $id => $title) {
+                $taskArr[$waitingPrefix . $id] = $title;
+            }
+        }
+        
+        // Активните задачи
+        if (is_array($tArr['active']) && !empty($tArr['active'])) {
+            $taskArr[$activePrefix] = $prefixTaskTypeArr[$activePrefix];
+            foreach ($tArr['active'] as $id => $title) {
+                $taskArr[$activePrefix . $id] = $title;
+            }
+        }
+        
+        $form->setOptions('taskType', $taskArr);
         
         $form->input(NULL, TRUE);
         $form->input();
         
-        if ($form->rec->taskId) {
-            $form->rec->date = '';
-            $form->setReadonly('date');
-            $form->setReadonly('folderId');
-        }        
+        $sTypePrefix = '';
+        $sSel = '';
+
+        $mvcName = '';
+        $fncName = 'contragentId';
+        $allowEmpty = '';
+        
+        $redirectUrl = array($this, 'add', 'foreignId' => $originId, 'ret_url' => TRUE);
+
+        try {
+            $dRow = $document->getDocumentRow();
+            $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+        
+            $redirectUrl['title'] = tr("За") . ': ' . $title;
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        }
+        
         $rec = $form->rec;
         
-        // Ако е избрана задача, но документа съсществува там
-        if($form->isSubmitted()) {
-            if ($rec->taskId) {
-                if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $rec->taskId, $originId))) {
-                    $form->setError('taskId', 'Документът вече е бил добавен в задачата');
-                }
-            }
-        }
-        
-        // Ако е избрана задача, прикачаме документа към нея
-        if($form->isSubmitted()) {
-            if ($rec->taskId) {
-                $this->requireRightFor('single', $rec->taskId);
+        // Добавяне допълнителните полета
+        if ($rec->taskType) {
+            list($sType, $sSel) = explode($prefixDelim, $rec->taskType, 2);
+            
+            $sTypePrefix = $sType . $prefixDelim;
+            
+            expect($prefixTaskTypeArr[$sTypePrefix]);
+            
+            // Ако ще е нова задача
+            if ($sTypePrefix == $newPrefix) {
                 
-                if (cal_TaskDocuments::add($rec->taskId, $originId)) {
+                if ($sSel == 'postPonned') {
+                    $form->FNC('date', 'date', 'caption=Дата,class=w100, input=input, silent');
+                    $form->setDefault('date', dt::addDays(1));
+                    $mvcName = 'doc_Folders';
                     
-                    return new Redirect($retUrl, '|Успешно добавихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->taskId));
+                    $form->setDefault('folderId', doc_Folders::getDefaultFolder($cu));
+                    $allowEmpty = ' ,allowEmpty';
+                    $fncName = 'folderId';
+                } elseif ($sSel == 'compnany') {
+                    $mvcName = 'crm_Companies';
+                } elseif ($sSel == 'person') {
+                    $mvcName = 'crm_Persons';
+                } elseif ($sSel == 'project') {
+                    $mvcName = 'doc_UnsortedFolders';
                 } else {
-                    $form->setError('taskId', 'Грешка при добавяне на документа към задачата');
+                    
+                    // Трябва да е id на шаблонна задача
+                    expect(is_numeric($sSel));
+                    
+                    $mvcName = 'doc_Folders';
+                    $fncName = 'folderId';
+                    
+                    // Ако е зададена папка за шаблонните задачи по-подразбиране да е там - ако не в папката на документа
+                    $defFolderId = doc_Prototypes::getProtoRec(get_called_class(), $sSel, 'sharedFolders');
+                    wp($defFolderId);
+                    if (!$defFolderId || !doc_Folders::haveRightFor('single', $defFolderId)) {
+                        $defFolderId = cal_Tasks::fetchField($sSel, 'folderId');
+                    }
+                    
+                    $form->setDefault($fncName, $defFolderId);
+                    
+                    $redirectUrl[$this->protoFieldName] = $sSel;
                 }
+                
+                if ($mvcName) {
+                    $form->FNC($fncName, "key2(mvc={$mvcName}, name=title, restrictViewAccess=yes{$allowEmpty})", 'caption=Папка,class=w100, input=input, silent');
+                }
+                
+                // За да не гърми при избор на различен тип задачи и когато няма такава стойност в folderId
+                if ($form->cmd == 'refresh') {
+                    Request::push(array($fncName => ''));
+                }
+                
+                $form->input(NULL, TRUE);
+                $form->input();
             }
         }
         
-        // Ако ще се създава нова задача
-        if($form->isSubmitted()) {
+        $taskId = 0;
+        if($form->isSubmitted() && $sTypePrefix) {
+            
+            // Ако е избрана задача, проверяваме дали документа е бил добавен вече
+            if (($sTypePrefix == $waitingPrefix) || ($sTypePrefix == $activePrefix)) {
+                $taskId = $sSel;
+                
+                if ($taskId) {
+                    if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $taskId, $originId))) {
+                        $form->setError('taskType', 'Документът вече е бил добавен в задачата');
+                    }
+                } else {
+                    $form->setError('taskType', 'Не е избрана задача');
+                }
+            }
+            
+            // За новите задачи - подогтвяме `folderId`
+            if ($sTypePrefix == $newPrefix && $sSel != 'postPonned') {
+                if ($rec->contragentId && !$rec->folderId) {
+                
+                    $mvcInst = cls::get($mvcName);
+                    $rec->folderId = $mvcInst->forceCoverAndFolder($rec->contragentId);
+                }
+                
+                expect($rec->folderId, $rec);
+                
+                $redirectUrl['folderId'] = $rec->folderId;
+            }
+        }
+        
+        // Ако е избрана съществуваща задача - прикачаме документа към нея
+        if($form->isSubmitted() && $taskId) {
+            $this->requireRightFor('single', $taskId);
+            
+            if (cal_TaskDocuments::add($taskId, $originId)) {
+                
+                return new Redirect($retUrl, '|Успешно добавихте документа към|* ' . cal_Tasks::getLinkToSingle($taskId));
+            } else {
+                $form->setError('taskType', 'Грешка при добавяне на документа към задачата');
+            }
+        }
+        
+        // Ако ще се създава нова задача - при избор на отложена
+        if($form->isSubmitted() && $sTypePrefix = $newPrefix && $sSel == 'postPonned') {
             
             $haveFolder = FALSE;
             
-            $redirectUrl = array($this, 'add');
+            if ($rec->folderId) {
+                $redirectUrl['folderId'] = $rec->folderId;
+                $haveFolder = TRUE;
+            }
             
             // Ако има дата
             if ($rec->date) {
@@ -2507,15 +2651,8 @@ class cal_Tasks extends core_Master
                 $nick = core_Users::getCurrent('nick');
                 Mode::pop('text');
                 
-                // @TODO - ако title съществува
-                
                 $redirectUrl['title'] = tr("Задачи за") . ' ' . $date . '/' . $wDayStr . '/' . $nick;
                 $redirectUrl['timeStart'] = dt::verbal2mysql($date . ' 08:00:00');
-                
-                if ($rec->folderId) {
-                    $redirectUrl['folderId'] = $rec->folderId;
-                    $haveFolder = TRUE;
-                }
                 
                 // Проверяваме дали същата задача не е създадена
                 $query = self::getQuery();
@@ -2545,30 +2682,21 @@ class cal_Tasks extends core_Master
                     $redirectUrl['threadId'] = $dRec->threadId;
                     $haveFolder = TRUE;
                 }
-                
-                try {
-                    $dRow = $document->getDocumentRow();
-                    $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
-                    
-                    $redirectUrl['title'] = tr("За") . ': ' . $title;
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                }
             }
             
             if (!$haveFolder) {
                 $redirectUrl['folderId'] = doc_Folders::getDefaultFolder($cu);
             }
-            
-            $redirectUrl['foreignId'] = $originId;
-            
-            $redirectUrl['ret_url'] = TRUE;
+        }
+        
+        // Ако се стигне до тук и няма грешки във формата
+        if ($form->isSubmitted()) {
             
             return new Redirect($redirectUrl);
         }
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
+        $form->toolbar->addSbBtn('Продължи', 'save', NULL, 'ef_icon = img/16/next-img.png, title=Запис на документа');
         $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
