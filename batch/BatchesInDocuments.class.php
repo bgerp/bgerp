@@ -321,9 +321,11 @@ class batch_BatchesInDocuments extends core_Manager
 		$Detail->filterBatches($detailRecId, $batches);
 		$packName = cat_UoM::getShortName($recInfo->packagingId);
 		
+		$link = doc_Containers::getDocument($recInfo->containerId)->getLink(0);
+		
 		// Подготовка на формата
 		$form = cls::get('core_Form');
-		$form->title = "Задаване на партидности";
+		$form->title = "Задаване на партидности в|* " . $link;
 		$form->info = new core_ET(tr("Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#]</b>"));
 		$form->info->replace(cat_Products::getHyperlink($recInfo->productId, TRUE), 'productId');
 		$form->info->replace(store_Stores::getHyperlink($storeId, TRUE), 'storeId');
