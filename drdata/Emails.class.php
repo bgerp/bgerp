@@ -98,7 +98,7 @@ class drdata_Emails extends core_BaseClass
      */
     public static function mxAndARecordsValidate($domain)
     {
-        $hosts = dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
+        $hosts = @dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
   
         if (!$hosts) {
             

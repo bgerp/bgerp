@@ -1041,8 +1041,7 @@ class crm_Companies extends core_Master
 	        $viewAccess = FALSE;
 	    }
 
-        $me = cls::get('crm_Companies');
-	       
+        $me = cls::get(get_called_class());
 	    $me->restrictAccess($query, NULL, $viewAccess);
 	    
         if(!$includeHiddens) {
@@ -1065,7 +1064,7 @@ class crm_Companies extends core_Master
         $titleFld = $params['titleFld'];
         $query->EXT($countryNameField, 'drdata_Countries', 'externalKey=country');  
         $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld}, IF(#country = {$ownCountry}, IF(LENGTH(#place), CONCAT(' - ', #place), ''), CONCAT(' - ', #{$countryNameField})))");
-       
+        
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 

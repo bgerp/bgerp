@@ -544,151 +544,29 @@ class cal_Calendar extends core_Master
         $month = Request::get('cal_month', 'int');
         $month = str_pad($month, 2, '0', STR_PAD_LEFT);
         $year  = Request::get('cal_year', 'int');
-
+        
         if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
             $year = date('Y');
             $month = date('n');
         }
-
-        // Добавяне на първия хедър
-        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
-        $nextLink = $prevtLink = $prev = getCurrentUrl();
         
-        // генериране на един месец назад
-        $pm = $month-1;
-        if($pm == 0) {
-            $pm = 12;
-            $py = $year-1;
-        } else {
-            $py = $year;
-        }
-        // името на месеца и годината
-        $prevMonth = tr(dt::$months[$pm-1]) . " " .$py;
-        // генериране на линк към него
-        $prevtLink['cal_month'] = $pm;
-        $prevtLink['cal_year'] = $py;
-        $prevtLink = toUrl($prevtLink) . "#calendarPortal";
+        $monthOpt = self::prepareMonthOptions();
+    
+        //currentM
+        //bp(self::prepareMonthOptions());
+        //$options = self::prepareMonthOptions();
+        //tuk
         
-        // генериране на един месец напред
-        $nm = $month+1;
-        if($nm == 13) {
-            $nm = 1;
-            $ny = $year+1;
-        } else {
-            $ny = $year;
-        }
-        // името на месеца и годината
-        $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
-        // генериране на линк към него
-        $nextLink['cal_month'] = $nm;
-        $nextLink['cal_year'] = $ny;
-        $nextLink = toUrl($nextLink) . "#calendarPortal";
-        
-        // взимаме текущия месец и го добавяме и него
-        $now = dt::today();
-        $monthToday =  date("m", dt::mysql2timestamp($now));
-        $yearToday  = date("Y", dt::mysql2timestamp($now));
-        $today['cal_month'] = $monthToday;
-        $today['cal_year'] = $yearToday;
-        $today = toUrl($today) . "#calendarPortal";
-        $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday ;
-        
-        $attr['value'] = $today;
-        $attr['style'] .= 'color:#00F;';
-        $options[$today] = (object) array('title' => $thisMonth, 'attr' => $attr);
-               
-        // правим масив с 3 месеца назад от текущия месец,
-        // които е подготовка за нашия select
-        // за value има линк към съответния месец
-        // а за стойност има името намесеца и съответната година
-        // генерираме го в низходящ ред, за да са подредени месеците хронологично
-        for ($i = 3 ; $i >= 1; $i--){
-        	$prev = getCurrentUrl();
-        	$pm = $month-$i;
-        	if($pm == 0) {
-        		$pm = 12;
-        		$py = $year-1;
-        	} elseif($pm <= 0){
-        		$pm = 12 + $pm;
-        		$py = $year-1;
-        	} else {
-        		$py = $year;
-        	}
-        	$prev['cal_month'] = $pm;
-        	$prev['cal_year'] = $py;
-        	$prev = toUrl($prev) . "#calendarPortal";
-        	$prevM = tr(dt::$months[$pm-1]) . " " .$py;
-        	$options[$prev] = $prevM;
-
-        	if($prevM == $thisMonth) {
-        		$attr['value'] = $prevM;
-        		$attr['style'] .= 'color:#00F;';
-        		$options[$prev] = (object) array('title' => $prevM, 'attr' => $attr);
-        		
-        		unset($options[$today]);
-        	}
-        	
-        }
-        
-        // добавяме текущия месец къммасива
-        // за него не ни е нужен линк
-        $currentM = tr(dt::$months[$month-1]) . " " . $year;
-        $options[$currentMonth] = $currentM;
-        
-        if($currentM == $thisMonth) {
-        	$attr['value'] = $currentM;
-        	$attr['style'] .= 'color:#00F;';
-        	$options[$currentM] = (object) array('title' => $currentM, 'attr' => $attr);
-        	
-           	unset($options[$today]);
-        }
-        
-        // правим масив с 9 месеца напред от текущия месец,
-        // които е подготовка за нашия select
-        // за value има линк към съответния месец
-        // а за стойност има името на месеца и съответната година
-        // генерираме го във възходящ ред, за да са подредени месеците хронологично
-        $k = 1;
-        for ($j = 1; $j <= 9; $j ++) {
-        	$next = getCurrentUrl();
-        	$nm = $month+$j;
-        	
-        	if($nm == 13) {
-        		$nm = 1;
-        		$ny = $year+1;
-        	} elseif($nm >= 14) {
-        		$nm = 1 + $k++;
-        		$ny = $year+1;
-        	} else {
-        		$ny = $year;
-        	}
-        	$next['cal_month'] = $nm;
-        	$next['cal_year'] = $ny;
-        	$next = toUrl($next) . "#calendarPortal";
-        	$nextM = tr(dt::$months[$nm-1]) . " " .$ny ;
-        	
-        	$options[$next] = $nextM;
-
-        	if($nextM == $thisMonth) {
-        		$attr['value'] = $nextM;
-        		$attr['style'] .= 'color:#00F;';
-        		$options[$next] = (object) array('title' => $nextM, 'attr' => $attr);
-        		
-        		unset($options[$today]);
-        	}
-
-        }
-
-        $select = ht::createSelect('dropdown-cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
+        $select = ht::createSelect('dropdown-cal', $monthOpt->opt, $monthOpt->currentM, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
        
         // правим заглавието на календара, 
         // който ще се състои от линк-селект-линк
         // като линковете ще са един месец напред и назад в зависимост от избраната стойност в селекта
         $header = "<table class='mc-header' style='width:100%'>
         <tr>
-        <td class='aleft'><a href='{$prevtLink}'>{$prevMonth}</a></td>
+        <td class='aleft'><a href='{$monthOpt->prevtLink}'>{$monthOpt->prevMonth}</a></td>
         <td class='centered'><span class='metro-dropdown-portal'>{$select}</span>
-        <td class='aright'><a href='{$nextLink}'>{$nextMonth}</a></td>
+        <td class='aright'><a href='{$monthOpt->nextLink}'>{$monthOpt->nextMonth}</a></td>
         </tr>
         </table>";
         
@@ -1946,6 +1824,157 @@ class cal_Calendar extends core_Master
 	    }
 	    
 	    return $weekNb;
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function prepareMonthOptions()
+    {
+        $month = Request::get('cal_month', 'int');
+        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+        $year  = Request::get('cal_year', 'int');
+        
+        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
+            $year = date('Y');
+            $month = date('n');
+        }
+        
+        // Добавяне на първия хедър
+        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
+        $nextLink = $prevtLink = $prev = getCurrentUrl();
+        
+        // генериране на един месец назад
+        $pm = $month-1;
+        if($pm == 0) {
+            $pm = 12;
+            $py = $year-1;
+        } else {
+            $py = $year;
+        }
+        // името на месеца и годината
+        $prevMonth = tr(dt::$months[$pm-1]) . " " .$py;
+        // генериране на линк към него
+        $prevtLink['cal_month'] = $pm;
+        $prevtLink['cal_year'] = $py;
+        $prevtLink = toUrl($prevtLink) . "#calendarPortal";
+        
+        // генериране на един месец напред
+        $nm = $month+1;
+        if($nm == 13) {
+            $nm = 1;
+            $ny = $year+1;
+        } else {
+            $ny = $year;
+        }
+        // името на месеца и годината
+        $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
+        // генериране на линк към него
+        $nextLink['cal_month'] = $nm;
+        $nextLink['cal_year'] = $ny;
+        $nextLink = toUrl($nextLink) . "#calendarPortal";
+        
+        // взимаме текущия месец и го добавяме и него
+        $now = dt::today();
+        $monthToday =  date("m", dt::mysql2timestamp($now));
+        $yearToday  = date("Y", dt::mysql2timestamp($now));
+        $today['cal_month'] = $monthToday;
+        $today['cal_year'] = $yearToday;
+        $today = toUrl($today) . "#calendarPortal";
+  
+        $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday ;
+   
+        $options = array();
+        $attr['value'] = $today;
+        $attr['style'] .= 'color:#00F;';
+        $options[$today] = (object) array('title' => $thisMonth, 'attr' => $attr);
+         
+        // правим масив с 3 месеца назад от текущия месец,
+        // които е подготовка за нашия select
+        // за value има линк към съответния месец
+        // а за стойност има името намесеца и съответната година
+        // генерираме го в низходящ ред, за да са подредени месеците хронологично
+        for ($i = 3 ; $i >= 1; $i--){
+            $prev = getCurrentUrl();
+            $pm = $month-$i;
+            if($pm == 0) {
+                $pm = 12;
+                $py = $year-1;
+            } elseif($pm <= 0){
+                $pm = 12 + $pm;
+                $py = $year-1;
+            } else {
+                $py = $year;
+            }
+            $prev['cal_month'] = $pm;
+            $prev['cal_year'] = $py;
+            $prev = toUrl($prev) . "#calendarPortal";
+            $prevM = tr(dt::$months[$pm-1]) . " " .$py;
+            $options[$prev] = $prevM;
+        
+            if($prevM == $thisMonth) {
+                $attr['value'] = $prevM;
+                $attr['style'] .= 'color:#00F;';
+                $options[$prev] = (object) array('title' => $prevM, 'attr' => $attr);
+        
+                unset($options[$today]);
+            }
+             
+        }
+        
+        // добавяме текущия месец къммасива
+        // за него не ни е нужен линк
+        $currentM = tr(dt::$months[$month-1]) . " " . $year;
+        $options[$currentMonth] = $currentM;
+        
+        if($currentM == $thisMonth) {
+            $attr['value'] = $currentM;
+            $attr['style'] .= 'color:#00F;';
+            $options[$currentM] = (object) array('title' => $currentM, 'attr' => $attr);
+             
+            unset($options[$today]);
+        }
+        
+        // правим масив с 9 месеца напред от текущия месец,
+        // които е подготовка за нашия select
+        // за value има линк към съответния месец
+        // а за стойност има името на месеца и съответната година
+        // генерираме го във възходящ ред, за да са подредени месеците хронологично
+        $k = 1;
+        for ($j = 1; $j <= 9; $j ++) {
+            $next = getCurrentUrl();
+            $nm = $month+$j;
+             
+            if($nm == 13) {
+                $nm = 1;
+                $ny = $year+1;
+            } elseif($nm >= 14) {
+                $nm = 1 + $k++;
+                $ny = $year+1;
+            } else {
+                $ny = $year;
+            }
+            $next['cal_month'] = $nm;
+            $next['cal_year'] = $ny;
+            $next = toUrl($next) . "#calendarPortal";
+            $nextM = tr(dt::$months[$nm-1]) . " " .$ny ;
+             
+            $options[$next] = $nextM;
+        
+            if($nextM == $thisMonth) {
+                $attr['value'] = $nextM;
+                $attr['style'] .= 'color:#00F;';
+                $options[$next] = (object) array('title' => $nextM, 'attr' => $attr);
+        
+                unset($options[$today]);
+            }
+        
+        }
+        
+        return (object) array('opt' => $options, 'currentM' =>$currentMonth,  
+                              'prevtLink'=>$prevtLink, 'nextLink'=>$nextLink, 
+                              'nextMonth'=>$nextMonth,'prevMonth' =>$prevMonth);
     }
     
     

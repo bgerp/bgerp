@@ -317,7 +317,31 @@ class doc_Prototypes extends core_Manager
     	// Връщане на намерените шаблони
     	return $arr;
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param mixed $class
+     * @param integer $docId
+     * @param string|NULL $field
+     * 
+     * @return stdObject|string
+     */
+    public static function getProtoRec($class, $docId, $field = NULL)
+    {
+        $Class = cls::get($class);
+        
+        $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
+        
+        if ($field) {
+            
+            return self::fetchField($cond, $field);
+        }
+        
+        return self::fetch($cond);
+    }
+    
     
     /**
      * Създаване на шаблон + смяна на състоянието на документа в 'шаблон'

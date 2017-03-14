@@ -658,12 +658,9 @@ abstract class deals_DealDetail extends doc_Detail
     		 
     		$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
     
-    		$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $lRec->productId, $lRec->packagingId, 1, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
-    		$discount = isset($policyInfo->discount) ? $policyInfo->discount : NULL;
-    
     		// Проверка дали вече не просъства в продажбата
-    		$res = array_filter($recs, function (&$e) use ($lRec, $discount) {
-    			if($e->productId == $lRec->productId && $e->packagingId == $lRec->packagingId && !isset($e->batch) && $e->discount == $discount && !isset($e->tolerance) && !isset($e->term)){
+    		$res = array_filter($recs, function (&$e) use ($lRec) {
+    			if($e->productId == $lRec->productId && $e->packagingId == $lRec->packagingId && !isset($e->batch) && !isset($e->tolerance) && !isset($e->term)){
     				return TRUE;
     			}
     			return FALSE;

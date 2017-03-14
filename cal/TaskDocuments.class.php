@@ -123,8 +123,20 @@ class cal_TaskDocuments extends core_Detail
         $rec->state = 'active';
         $rec->containerId = $cId;
         $rec->taskId = $taskId;
+        $sId = self::save($rec);
         
-        return self::save($rec);
+        if ($sId) {
+            $document = doc_Containers::getDocument($cId);
+            
+            // Записваме в лога
+            cal_Tasks::logWrite('Добавяне на документ', $taskId);
+            $document->instance->logInAct('Добавяне към задача', $document->that);
+            
+            // Обновяване на мастъра
+            cal_Tasks::touchRec($taskId);
+        }
+        
+        return $sId; 
     }
     
     

@@ -1703,7 +1703,7 @@ class doc_Folders extends core_Master
 	        $viewAccess = FALSE;
 	    }
 
-        $me = cls::get('crm_Companies');
+        $me = cls::get(get_called_class());
 	       
 	    $me->restrictAccess($query, NULL, $viewAccess);
 	    
