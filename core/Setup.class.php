@@ -265,7 +265,7 @@ class core_Setup extends core_ProtoSetup {
             
            'CORE_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
 
-           'CORE_PORTAL_ARRANGE' => array ('enum(notifyTaskRecentlyCal=Известия - Задачи - Последно и Календар,notifyTaskCalRecently=Известия - Задачи - Календар и Последно,recentlyNotifyTaskCal=Последно - Известия - Задачи и Календар)', 'caption=Вътрешен изглед->Портал, customizeBy=powerUser'),
+           'CORE_PORTAL_ARRANGE' => array ('enum(notifyTaskRecentlyCal=Известия - Задачи - Последно и Календар,notifyTaskCalRecently=Известия - Задачи - Календар и Последно,recentlyNotifyTaskCal=Последно - Известия - Задачи и Календар,taskNotifyRecentlyCal=Задачи - Известия - Последно и Календар)', 'caption=Вътрешен изглед->Портал, customizeBy=powerUser'),
 
            'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
            

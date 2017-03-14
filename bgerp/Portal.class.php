@@ -169,6 +169,13 @@ class bgerp_Portal extends core_Manager
                 $tpl->append($Notifications->render(), 'MIDDLE_COLUMN');
                 // Добавяме задачи
                 $tpl->append($tasksTpl, 'RIGHT_COLUMN');
+            } else if ($portalArrange == 'taskNotifyRecentlyCal'){
+                // Добавяме "Наскоро" - документи и папки с които е работено наскоро
+                $tpl->append($Recently->render(), 'RIGHT_COLUMN');
+                // Добавяме нотификации
+                $tpl->append($Notifications->render(), 'MIDDLE_COLUMN');
+                // Добавяме задачи
+                $tpl->append($tasksTpl, 'LEFT_COLUMN');
             } else {
                 // Добавяме "Наскоро" - документи и папки с които е работено наскоро
                 $tpl->append($Recently->render(), 'RIGHT_COLUMN');
