@@ -110,12 +110,6 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'acc, bank, ceo';
-    
-    
-    /**
      * Кой може да сторнира
      */
     var $canRevert = 'bank, ceo';
