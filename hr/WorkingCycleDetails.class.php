@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,45 +19,56 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Работни цикли - детайли";
+    public $title = "Работни цикли - детайли";
+    
     
     /**
      * @todo Чака за документация...
      */
-    var $singleTitle = "Работен цикъл";
+    public $singleTitle = "Работен цикъл";
+    
     
     /**
      * @todo Чака за документация...
      */
-    var $masterKey = 'cycleId';
+    public $masterKey = 'cycleId';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Персонал";
+    public $pageMenu = "Персонал";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_RowZebra, plg_PrevAndNext';
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_RowZebra, plg_PrevAndNext';
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'day,mode=Режим,start,duration,break';
+    public $listFields = 'day,mode=Режим,start,duration,break';
+    
     
     /**
      * @todo Чака за документация...
      */
-    var $rowToolsField = 'day';
+    public $rowToolsField = 'day';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,hr';
+    public $canAdd = 'ceo,hr';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     * 
+     */
+    public $canDelete = 'ceo,hr';
     
     
     /**
