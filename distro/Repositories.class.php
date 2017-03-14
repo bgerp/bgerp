@@ -245,7 +245,7 @@ class distro_Repositories extends core_Master
         $path = rtrim($rec->path, '/') . '/' . $name;
         $path = escapeshellarg($path);
         
-        $exec = 'mkdir -p ' . $path;
+        $exec = 'mkdir -m 777 -p ' . $path;
         
         return $exec;
     }
