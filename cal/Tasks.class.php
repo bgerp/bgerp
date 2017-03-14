@@ -2584,7 +2584,7 @@ class cal_Tasks extends core_Master
                 }
                 
                 if ($mvcName) {
-                    $form->FNC($fncName, "key2(mvc={$mvcName}, name=title, restrictViewAccess=yes{$allowEmpty})", 'caption=Папка,class=w100, input=input, silent');
+                    $form->FNC($fncName, "key2(mvc={$mvcName}, restrictViewAccess=yes{$allowEmpty})", 'caption=Папка,class=w100, input=input, silent');
                 }
                 
                 // За да не гърми при избор на различен тип задачи и когато няма такава стойност в folderId
