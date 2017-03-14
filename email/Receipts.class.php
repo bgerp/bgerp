@@ -149,7 +149,9 @@ class email_Receipts extends email_ServiceEmails
         $autoSubmitted = strtolower($autoSubmitted);
         $autoSubmitted = trim($autoSubmitted);
         
-        if ($autoSubmitted == 'auto-replied') return TRUE;
+        if (!$autoSubmitted) return FALSE;
+        
+        if (stripos($autoSubmitted, 'auto-replied') !== FALSE) return TRUE;
         
         return FALSE;
     }
