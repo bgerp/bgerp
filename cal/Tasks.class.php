@@ -844,9 +844,12 @@ class cal_Tasks extends core_Master
                 $data->listFilter->input('from, to', 'silent');
             }
 
-            if ($data->listFilter->rec->selectedUsers != 'all_users') {
-                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+            
+            if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
+                $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
+                $data->query->orLikeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
+          
 
             if ($data->listFilter->rec->stateTask != 'all' && $data->listFilter->rec->stateTask != 'actPend') {
                 $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
