@@ -425,7 +425,30 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        doc_Threads::restrictAccess($data->query);
+        $viewAccess = FALSE;
+        
+        if ($mvc->haveRightFor('viewpsingle')) {
+            $viewAccess = TRUE;
+        }
+        
+        doc_Threads::restrictAccess($data->query, NULL, $viewAccess);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer $id
+     */
+    public static function on_AfterGetSingleUrlArray($mvc, &$res, $id)
+    {
+        if (isset($res) || (is_array($res) && empty($res))) {
+            if ($mvc->haveRightFor('viewpsingle', $id)) {
+                $res = $mvc->GetUrlWithAccess($id);
+            }
+        }
     }
     
     
@@ -1011,16 +1034,33 @@ class doc_DocumentPlg extends core_Plugin
             
             expect(cls::load($clsId, TRUE));
             
-            $clsInst = cls::get($clsId);
-            if ($clsInst instanceof core_Master) {
-                $clsInst->requireRightFor('single', $recId);
-            } elseif ($clsInst instanceof core_Detail) {
-                $clsRec = $clsInst->fetch($recId);
-                $clsInst->Master->requireRightFor('single', $clsRec->{$clsInst->masterKey});
+            if ($clsId == $mvc->getClassId() && ($docId == $recId)) {
+                
+                expect(is_numeric($docId));
+                
+                // Трябва да има съответните права
+                $mvc->requireRightFor('viewpsingle', $docId);
+                
+                // Трябва да може да се вижда документа
+                $nQuery = $mvc->getQuery();
+                $nQuery->where($docId);
+                doc_Threads::restrictAccess($nQuery, NULL, TRUE);
+                expect($nQuery->fetch());
+            } else {
+                
+                // Ако линка сочи към документа, който е използва в другия документ, трябва да има права за сингъла
+                
+                $clsInst = cls::get($clsId);
+                if ($clsInst instanceof core_Master) {
+                    $clsInst->requireRightFor('single', $recId);
+                } elseif ($clsInst instanceof core_Detail) {
+                    $clsRec = $clsInst->fetch($recId);
+                    $clsInst->Master->requireRightFor('single', $clsRec->{$clsInst->masterKey});
+                }
+                
+                // Очакваме документа да съществува в източника
+                expect($clsInst->checkDocExist($recId, $data->rec->containerId));
             }
-            
-            // Очакваме документа да съществува в източника
-            expect($clsInst->checkDocExist($recId, $data->rec->containerId));
             
             // Подготвяме данните за единичния изглед
             $mvc->prepareSingle($data);
@@ -1751,7 +1791,6 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-
         if($requiredRoles == 'no_one') return;
 
         // Ако добавяме
@@ -2053,6 +2092,13 @@ class doc_DocumentPlg extends core_Plugin
         		}
         	}
         }
+        
+        // Ако не е зададено, да не е admin по подразбиране
+        if ($action == 'viewpsingle') {
+            if (!isset($mvc->canViewpsingle)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -2061,12 +2107,20 @@ class doc_DocumentPlg extends core_Plugin
      * @param core_Manager $mvc
      * @param NULL|array $res
      * @param integer $docId
-     * @param core_Manager $mInst
-     * @param integer $dId
+     * @param core_Manager|NULL $mInst
+     * @param integer $dId|NULL
      */
-    function on_AfterGetUrlWithAccess($mvc, &$res, $docId, $mInst, $dId)
+    function on_AfterGetUrlWithAccess($mvc, &$res, $docId, $mInst=NULL, $dId=NULL)
     {
         Request::setProtected('pUrl');
+        
+        if (!isset($mInst)) {
+            $mInst = $mvc;
+            expect(!$dId);
+            $dId = $docId;
+        } else {
+            expect($dId);
+        }
         
         $res = array($mvc, 'pSingle', $docId, 'pUrl' => $mInst->getClassId() . '_' . $dId . '_' . $docId, 'ret_url' => TRUE);
     }

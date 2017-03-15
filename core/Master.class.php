@@ -736,7 +736,7 @@ class core_Master extends core_Manager
      * @param int $id - ид на запис
      * @return array $url - масив с урл-то на единичния изглед
      */
-    public static function getSingleUrlArray($id)
+    public static function getSingleUrlArray_($id)
     {
     	$me = cls::get(get_called_class());
     	

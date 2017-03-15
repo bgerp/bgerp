@@ -39,6 +39,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->lockBalances, FALSE);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
         setIfNot($mvc->canPending, 'no_one');
+        setIfNot($mvc->canViewpsingle, 'powerUser');
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -374,6 +375,10 @@ class acc_plg_Contable extends core_Plugin
             if($rec->state == 'pending'){
             	$requiredRoles = 'no_one';
             }
+        }
+        
+        if ($action == 'viewpsingle') {
+            $requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
         }
     }
     
