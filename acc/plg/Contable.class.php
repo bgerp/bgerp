@@ -378,7 +378,7 @@ class acc_plg_Contable extends core_Plugin
         }
         
         if ($action == 'viewpsingle') {
-            $requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
+            $requiredRoles = $mvc->getRequiredRoles('conto', NULL, $userId);
         }
     }
     
@@ -418,7 +418,8 @@ class acc_plg_Contable extends core_Plugin
        		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         } catch (acc_journal_RejectRedirect $e){
         	
-        	redirect(array($mvc, 'single', $rec->id), FALSE, '|' . $e->getMessage(), 'error');
+        	$url = $mvc->getSingleUrlArray($rec->id);
+        	redirect($url, FALSE, '|' . $e->getMessage(), 'error');
         }
         
         if(empty($cRes)){
