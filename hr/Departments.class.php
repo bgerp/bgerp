@@ -482,4 +482,22 @@ class hr_Departments extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Добавя след таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        $chartType = Request::get('Chart');
+    
+        if($chartType == 'Structure') {
+    
+            $tpl = static::getChart($data);
+    
+            $mvc->currentTab = "Структура->Графика";
+        } else {
+            $mvc->currentTab = "Структура->Таблица";
+        }
+    }
 }
