@@ -215,8 +215,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$Driver = cls::get($form->rec->innerClass);
 					$cover = doc_Folders::getCover($form->rec->folderId);
 					
-					$defMetas = $Driver->getDefaultMetas($defMetas);
-					
+					$defMetas = $Driver->getDefaultMetas();
 					if(!count($defMetas)){
 						$defMetas = $cover->getDefaultMeta();
 					}
