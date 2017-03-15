@@ -57,7 +57,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 10;
+    var $listItemsPerPage = 15;
 
 
     /**

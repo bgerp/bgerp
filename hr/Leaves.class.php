@@ -643,4 +643,15 @@ class hr_Leaves extends core_Master
          
         return $title;
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($rec->activatedOn)){
+    		$row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
+    	}
+    }
 }

@@ -80,9 +80,15 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Кой има право да чете?
+     * Кой може да го контира?
      */
-    var $canRead = 'bank, ceo';
+    var $canConto = 'ceo, acc, cash, bank';
+    
+    
+    /**
+     * Кой може да го прави заявка?
+     */
+    var $canPending = 'ceo, acc, cash, bank';
     
     
     /**
@@ -101,12 +107,6 @@ class bank_InternalMoneyTransfer extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     var $canSingle = 'bank,ceo';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'acc, bank, ceo';
     
     
     /**
@@ -168,8 +168,17 @@ class bank_InternalMoneyTransfer extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'creditBank')){
-    		$requiredRoles = 'no_one';
+    	
+    	if(isset($rec)){
+    		if($rec->operationSysId == 'bank2bank'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')){
+    				$requiredRoles = 'no_one';
+    			}
+    		} elseif($rec->operationSysId == 'bank2case'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'debitCase')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
     

@@ -84,6 +84,14 @@ class cat_ListingDetails extends doc_Detail
     public $hideListFieldsIfEmpty = 'moq,multiplicity';
     
     
+    /**
+     * Брой записи на страница
+     *
+     * @var integer
+     */
+    public $listItemsPerPage = 50;
+    
+    
 	/**
 	 * Описание на модела (таблицата)
 	 */

@@ -194,8 +194,10 @@ class cat_PriceDetails extends core_Manager
     		
     		if($btns || isset($primeCost)){
     			$type = tr('|Политика "Себестойност"|*');
-    			if(price_Lists::haveRightFor('single', price_ListRules::PRICE_LIST_COST)){
-    				$type = ht::createLink($type, array('price_Lists', 'single', price_ListRules::PRICE_LIST_COST));
+    			$threadId = price_Lists::fetchField(price_ListRules::PRICE_LIST_COST, 'threadId');
+    			
+    			if(doc_Threads::haveRightFor('single', $threadId)){
+    				$type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
     			}
     			
     			$verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, TRUE);
@@ -232,8 +234,10 @@ class cat_PriceDetails extends core_Manager
     	
     	if(isset($catalogCost)){
     		$type = tr('Политика "Каталог"');
-    		if(price_Lists::haveRightFor('single', cat_Setup::get('DEFAULT_PRICELIST'))){
-    			$type = ht::createLink($type, array('price_Lists', 'single', cat_Setup::get('DEFAULT_PRICELIST')));
+    		$threadId = price_Lists::fetchField(cat_Setup::get('DEFAULT_PRICELIST'), 'threadId');
+    		
+    		if(doc_Threads::haveRightFor('single', $threadId)){
+    			$type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
     		}
     		
     		$verbPrice = price_Lists::roundPrice(cat_Setup::get('DEFAULT_PRICELIST'), $catalogCost, TRUE);

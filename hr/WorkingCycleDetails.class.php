@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,45 +19,56 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Работни цикли - детайли";
+    public $title = "Работни цикли - детайли";
+    
     
     /**
      * @todo Чака за документация...
      */
-    var $singleTitle = "Работен цикъл";
+    public $singleTitle = "Работен цикъл";
+    
     
     /**
      * @todo Чака за документация...
      */
-    var $masterKey = 'cycleId';
+    public $masterKey = 'cycleId';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Персонал";
+    public $pageMenu = "Персонал";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_RowZebra, plg_PrevAndNext';
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_RowZebra, plg_PrevAndNext';
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'day,mode=Режим,start,duration,break';
+    public $listFields = 'day,mode=Режим,start,duration,break';
+    
     
     /**
      * @todo Чака за документация...
      */
-    var $rowToolsField = 'day';
+    public $rowToolsField = 'day';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,hr';
+    public $canAdd = 'ceo,hr';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     * 
+     */
+    public $canDelete = 'ceo,hr';
     
     
     /**
@@ -68,9 +79,9 @@ class hr_WorkingCycleDetails extends core_Detail
         $this->FLD('cycleId', 'key(mvc=hr_WorkingCycles,select=name)', 'column=none');
         
         $this->FLD('day', 'int', 'caption=Ден,mandatory');
-        $this->FLD('start', 'time(suggestions=00:00|01:00|02:00|03:00|04:00|05:00|06:00|07:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|19:00|20:00|21:00|22:00|23:00,format=H:M,allowEmpty)', 'caption=Начало');
-        $this->FLD('duration', 'time(suggestions=00|6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00,allowEmpty)', 'caption=Времетраене');
-        $this->FLD('break',    'time(suggestions=00|0:30|00:45|1:00|00,allowEmpty)', 'caption=в т.ч. Почивка');
+        $this->FLD('start', 'time(suggestions=00:00|01:00|02:00|03:00|04:00|05:00|06:00|07:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|19:00|20:00|21:00|22:00|23:00,format=H:M,allowEmpty)', 'caption=Начало,remember');
+        $this->FLD('duration', 'time(suggestions=00|6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00,allowEmpty)', 'caption=Времетраене,remember');
+        $this->FLD('break',    'time(suggestions=00|0:30|00:45|1:00|00,allowEmpty)', 'caption=в т.ч. Почивка,remember');
     }
     
     

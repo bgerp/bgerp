@@ -1,0 +1,50 @@
+<h4 class="centered" style="margin-bottom: 10px">ДОГОВОР</h4>
+
+<p class="centered">ЗА ИЗВЪРШВАНЕ НА ТРАНСПОРТ</p>
+
+<p class="centered">№[#id#] / [#valior#]</p>
+
+<!--ET_BEGIN reff-->
+<p class="centered">|Ваш реф|*: <b>[#reff#]</b></p>
+<!--ET_END reff-->
+<br>
+<p>Уважаеми Дами и Господа,</p>
+
+<p>Ще организираме транспорт, както следва:</p>
+<br>
+[#sales_SalesDetails#]
+<br>
+<p><b>Забележки:</b></p>
+
+<ul>
+    <li>Нормативна база – Конвенция CMR, TIR (ADR-само за опасни товари), ЗЗД, ТЗ</li>
+	<!--ET_BEGIN notes-->
+    [#notes#]
+    <!--ET_END notes-->
+</ul>
+<table class='signiture'>
+    <tr>
+        <td style='width:1%' class='nowrap'>Изготвил: </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td class='nowrap'>
+            <span class="sign_names">
+                [#username#]
+            </span>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%;border-top: 1px solid #ccc; margin-top: 5px">
+    <tr class='footerDocInfo'>
+        <td colspan="2">
+            <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+        </td>
+    </tr>
+</table>
+
+
+
+

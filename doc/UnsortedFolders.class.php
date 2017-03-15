@@ -765,4 +765,83 @@ class doc_UnsortedFolders extends core_Master
     	
     	return $res;
     }
+	
+	
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+	    $query->orderBy("modifiedOn", "DESC");
+	    
+		
+        $viewAccess = TRUE;
+	    if ($params['restrictViewAccess'] == 'yes') {
+	        $viewAccess = FALSE;
+	    }
+		
+        $me = cls::get(get_called_class());
+	    $me->restrictAccess($query, NULL, $viewAccess);
+	    
+        if(!$includeHiddens) {
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+		
+        if($params['where']) {
+            $query->where($params['where']);
+        }
+	    
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+			
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+			
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+		
+        if($threadId = $params['moveThread']) {
+            $tRec = doc_Threads::fetch($threadId);
+            expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
+            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+        
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+			
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '%', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            foreach($qArr as $w) {
+                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
+            }
+        }
+ 		
+        if($limit) {
+            $query->limit($limit);
+        }
+		
+        $query->show($titleFld);
+        
+        $res = array();
+        
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = trim($rec->{$titleFld});
+        }
+ 		
+        return $res;
+    }
 }

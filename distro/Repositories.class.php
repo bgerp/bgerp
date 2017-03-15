@@ -245,7 +245,7 @@ class distro_Repositories extends core_Master
         $path = rtrim($rec->path, '/') . '/' . $name;
         $path = escapeshellarg($path);
         
-        $exec = 'mkdir -p ' . $path;
+        $exec = 'mkdir -m 777 -p ' . $path;
         
         return $exec;
     }
@@ -613,9 +613,9 @@ class distro_Repositories extends core_Master
     {
         $path = escapeshellarg($path);
         
-        $res = 'crontab -l > cron.res' . "\n";
-        $res .= 'echo "* * * * * ' . $path . '" >> cron.res' . "\n";
-        $res .= 'crontab cron.res' . "\n";
+        $res = 'crontab -l > cron.res' . " && ";
+        $res .= 'echo "* * * * * ' . $path . '" >> cron.res' . " && ";
+        $res .= 'crontab cron.res' . " && ";
         $res .= 'rm cron.res';
         
         return $res;

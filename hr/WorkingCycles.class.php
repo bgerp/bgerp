@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,77 +19,85 @@ class hr_WorkingCycles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Цикли";
+    public $title = "Цикли";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Работни цикли";
+    public $singleTitle = "Работни цикли";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Персонал";
+    public $pageMenu = "Персонал";
     
     /**
      * @todo Чака за документация...
      */
-    var $details = 'hr_WorkingCycleDetails';
+    public $details = 'hr_WorkingCycleDetails';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper,  plg_Printing';
+    public $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper,  plg_Printing';
     
     
     /**
      * Единична икона
      */
-    var $singleIcon = 'img/16/timespan.png';
+    public $singleIcon = 'img/16/timespan.png';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr';
+    public $canList = 'ceo,hr';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hr';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hr';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     * 
+     */
+    public $canDelete = 'ceo,hr';
+    
     
     /**
      * @todo Чака за документация...
      */
-    var $singleFields = 'id,name,cycleDuration,info';
+    public $singleFields = 'id,name,cycleDuration,info';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'hr/tpl/SingleLayoutWorkingCycles.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutWorkingCycles.shtml';
     
     
     /**
@@ -413,13 +421,16 @@ class hr_WorkingCycles extends core_Master
         $tpl = new ET(getTplFromFile('hr/tpl/SingleLayoutShift.shtml'));
         $tpl->push('hr/tpl/style.css', 'CSS');
         
+        $monthOpt = cal_Calendar::prepareMonthOptions();
+
         if(!Mode::is('printing')) {
             if($prepareRecs){
+                $select = ht::createSelect('dropdown-cal', $monthOpt->opt, $prepareRecs->currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
                 
                 $header = "<table class='mc-header' width='100%' cellpadding='0'>
                             <tr>
                                 <td style='text-align: left'><a href='{$prepareRecs->prevtLink}'>{$prepareRecs->prevMonth}</a></td>
-                                <td style='text-align: center'><b>{$prepareRecs->currentMonth}</b></td>
+                                <td style='text-align: center'><b>{$select}</b></td>
                                 <td style='text-align: right'><a href='{$prepareRecs->nextLink}'>{$prepareRecs->nextMonth}</a></td>
                             </tr>
                         </table>";

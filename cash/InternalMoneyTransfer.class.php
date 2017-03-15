@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -92,12 +92,6 @@ class cash_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'cash, ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     var $canWrite = 'cash, ceo';
@@ -106,13 +100,13 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'ceo, acc, cash';
+    var $canConto = 'ceo, acc, cash, bank';
     
     
     /**
-     * Кой може да сторнира
+     * Кой може да го прави заявка?
      */
-    var $canRevert = 'cash, ceo';
+    var $canPending = 'ceo, acc, cash, bank';
     
     
     /**
@@ -130,7 +124,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason,creditCase,debitBank,debitCase, id';
+    var $searchFields = 'reason,creditCase,debitBank,debitCase';
     
     
     /**
@@ -169,8 +163,17 @@ class cash_InternalMoneyTransfer extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'creditCase')){
-    		$requiredRoles = 'no_one';
+    	
+    	if(isset($rec)){
+    		if($rec->operationSysId == 'case2bank'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')){
+    				$requiredRoles = 'no_one';
+    			}
+    		} elseif($rec->operationSysId == 'case2case'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'debitCase')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
     

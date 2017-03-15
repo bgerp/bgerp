@@ -1489,6 +1489,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('timeStart[t]', '08:00');
         $browser->setValue('timeEnd[d]', date('d-m-Y', $enddate));
         $browser->setValue('timeEnd[t]', '16:00');
+        $browser->setValue('User1', True);
         $browser->press('Чернова');
         $browser->press('Активиране');
         //return $browser->getHtml();

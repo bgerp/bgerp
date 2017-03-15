@@ -195,6 +195,20 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	if(!isset($data->form->rec->id)){
+    		$origin = static::getOrigin($data->form->rec);
+    		if($origin->isInstanceOf('sales_Sales')){
+    			$data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани,stocked=Неекспедирани и налични,all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
+    		}
+    	}
+    }
+    
+    
+    /**
      * След рендиране на сингъла
      */
     public static function on_AfterRenderSingle($mvc, $tpl, $data)

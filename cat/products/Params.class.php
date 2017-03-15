@@ -160,7 +160,12 @@ class cat_products_Params extends doc_Detail
     	if(!$rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	$options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
-			$form->setOptions('paramId', array('' => '') + $options);
+	    	
+			if(!count($options)){
+				return followRetUrl(NULL, 'Няма параметри за добавяне', 'warning');
+			}
+	    	
+	    	$form->setOptions('paramId', array('' => '') + $options);
 			$form->paramOptions = $options;
 			
 			if(count($options) == 1){
@@ -335,13 +340,6 @@ class cat_products_Params extends doc_Detail
         }
        
         if(isset($rec->productId) && isset($rec->classId)){
-        	
-        	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if($action == 'add'){
-        		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
-        			$requiredRoles = 'no_one';
-        		}
-        	}
         	
         	if(isset($rec->classId)){
         		$pRec = cls::get($rec->classId)->fetch($rec->productId);

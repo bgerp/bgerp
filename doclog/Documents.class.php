@@ -222,7 +222,7 @@ class doclog_Documents extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
         // MID на документа
-        $this->FLD('mid', 'varchar(8)', 'input=none,caption=Ключ,column=none');
+        $this->FLD('mid', 'varchar(8,ci)', 'input=none,caption=Ключ,column=none');
         
         $this->FLD('parentId', 'key(mvc=doclog_Documents, select=action)', 'input=none,caption=Основание');
         

@@ -172,6 +172,9 @@ defIfNot('CORE_FIRST_ADMIN', '');
 defIfNot('CORE_AUTOHIDE_SHARED_USERS', 100);
 
 
+defIfNot('CORE_PORTAL_ARRANGE', 'notifyTaskRecentlyCal');
+
+
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
@@ -261,7 +264,9 @@ class core_Setup extends core_ProtoSetup {
            'CORE_TEMP_PATH_MAX_AGE' => array ('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
             
            'CORE_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
-           
+
+           'CORE_PORTAL_ARRANGE' => array ('enum(notifyTaskRecentlyCal=Известия - Задачи - Последно и Календар,notifyTaskCalRecently=Известия - Задачи - Календар и Последно,recentlyNotifyTaskCal=Последно - Известия - Задачи и Календар,taskNotifyRecentlyCal=Задачи - Известия - Последно и Календар)', 'caption=Вътрешен изглед->Портал, customizeBy=powerUser'),
+
            'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
            
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),

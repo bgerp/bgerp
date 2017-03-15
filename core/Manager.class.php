@@ -374,11 +374,15 @@ class core_Manager extends core_Mvc
      * Логва действието
      * 
      * @param string $msg
-     * @param NULL|stdClass $rec
+     * @param NULL|stdClass|integer $rec
      * @param string $type
      */
     function logInAct($msg, $rec = NULL, $type = 'write')
     {
+        if (is_numeric($rec)) {
+            $rec = $this->fetch($rec);
+        }
+        
         $id = NULL;
         
         if ($rec) {
