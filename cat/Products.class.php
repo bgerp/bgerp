@@ -354,10 +354,8 @@ class cat_Products extends embed_Manager {
     			$defMetas = $mvc->fetchField($rec->proto, 'meta');
     			$defMetas = type_Set::toArray($defMetas);
     		} else {
-                $defMetas = array();
-                
                 if($Driver = $mvc->getDriver($rec)){
-                    $defMetas = $Driver->getDefaultMetas($defMetas);
+                    $defMetas = $Driver->getDefaultMetas();
                     if(count($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
@@ -575,9 +573,13 @@ class cat_Products extends embed_Manager {
 			$this->route($rec);
 		}
 		
-		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
+		$defMetas = array();
 		if($Driver = $this->getDriver($rec)){
-			$defMetas = $Driver->getDefaultMetas($defMetas);
+			$defMetas = $Driver->getDefaultMetas();
+		}
+		
+		if(!count($defMetas)){
+			$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
 		}
 		
 		$rec->meta = ($rec->meta) ? $rec->meta : $this->getFieldType('meta')->fromVerbal($defMetas);
