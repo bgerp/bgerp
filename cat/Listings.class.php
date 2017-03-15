@@ -238,7 +238,7 @@ class cat_Listings extends core_Master
     			// Артикулите се подреждат така че наличните в склада да са по-напред
     			$instock = implode(',', $instock);
     			$query->XPR('instock', 'int', "(CASE WHEN #productId IN ($instock) THEN 0 ELSE 1 END)");
-    			$query->orderBy('instock', 'ASC');
+    			$query->orderBy('instock,id', 'ASC');
     		} else {
     			$query->orderBy('id', 'ASC');
     		}
