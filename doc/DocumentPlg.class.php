@@ -440,10 +440,14 @@ class doc_DocumentPlg extends core_Plugin
      * 
      * @param core_Master $mvc
      * @param NULL|array $res
-     * @param integer $id
+     * @param integer|stdClass $id
      */
     public static function on_AfterGetSingleUrlArray($mvc, &$res, $id)
     {
+        if (is_object($id)) {
+            $id = $rec->id;
+        }
+        
         if (isset($res) || (is_array($res) && empty($res))) {
             if ($mvc->haveRightFor('viewpsingle', $id)) {
                 $res = $mvc->GetUrlWithAccess($id);

@@ -2061,11 +2061,15 @@ class cat_Products extends embed_Manager {
      * Връща урл-то към единичния изглед на обекта, ако потребителя има
      * права за сингъла. Ако няма права връща празен масив
      *
-     * @param int $id - ид на запис
+     * @param int|stdCLass $id - ид на запис
      * @return array $url - масив с урл-то на единичния изглед
      */
     public static function getSingleUrlArray_($id)
     {
+        if (is_object($id)) {
+            $id = $rec->id;
+        }
+        
     	$me = cls::get(get_called_class());
     	 
     	$url = array();
