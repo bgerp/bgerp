@@ -96,10 +96,6 @@ class transsrv_ProductDrv extends cat_ProductDriver
         if($data->form->getField('meta', FALSE)){
 			$data->form->setField('meta', 'input=hidden');
 		}
-
-		$metas = type_Set::toArray($data->form->rec->meta);
-		unset($metas['canStore']);
-		$data->form->rec->meta = cls::get('type_Set')->fromVerbal($metas);
 		
         if($data->form->getField('measureId', FALSE)){
 			$data->form->setField('measureId', 'input=hidden');
