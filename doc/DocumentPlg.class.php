@@ -1255,7 +1255,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE, $attr = array())
     {
         $iconStyle = 'background-image:url(' . sbf($mvc->getIcon($id), '') . ');';
-        $url       = array($mvc, 'single', $id);
+        $url       = $mvc->getSingleUrlArray($id);
         if($attr['Q']) {
             $url['Q'] = $attr['Q'];
             unset($attr['Q']);
@@ -1278,7 +1278,7 @@ class doc_DocumentPlg extends core_Plugin
         	$attr['class'] .= ' state-rejected';
         }
         
-        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec) && !$mvc->haveRightFor('viewpsingle', $rec)) {
             $url =  array();
         } else {
         	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
