@@ -2242,12 +2242,19 @@ class email_Incomings extends core_Master
         
         switch (strtolower($type)) {
             case 'eml':
-        
-                // Вземаме id' то на EML файла
-                $emlFileId = $mvc->fetchField($id, 'emlFile');
                 
-                // Манипулатора на файла
-                $fh = fileman_Files::fetchField($emlFileId, 'fileHnd');
+                $emlFileId = NULL;
+                $fh = NULL;
+                
+                if ($id) {
+                    // Вземаме id' то на EML файла
+                    $emlFileId = $mvc->fetchField($id, 'emlFile');
+                }
+                
+                if ($emlFileId) {
+                    // Манипулатора на файла
+                    $fh = fileman_Files::fetchField($emlFileId, 'fileHnd');
+                }
                 
                 // Добавяме в масива
                 if ($fh) {
@@ -2257,20 +2264,37 @@ class email_Incomings extends core_Master
             break;
         }
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param email_Incomings $mvc
+     * @param NULL|integer $res
+     * @param integer $id
+     * @param string $type
+     */
     function on_BeforeGetDocumentSize($mvc, &$res, $id, $type)
     {
         switch (strtolower($type)) {
             case 'eml':
-        
-                // Вземаме id' то на EML файла
-                $emlFileId = $mvc->fetchField($id, 'emlFile');
                 
-                // Манипулатора на файла
-                $dataId = fileman_Files::fetchField($emlFileId, 'dataId');
+                $emlFileId = NULL;
+                $dataId = NULL;
                 
-                $res = fileman_Data::fetchField($dataId, 'fileLen');
-                  
+                if ($id) {
+                    // Вземаме id' то на EML файла
+                    $emlFileId = $mvc->fetchField($id, 'emlFile');
+                }
+                
+                if ($emlFileId) {
+                    // Манипулатора на файла
+                    $dataId = fileman_Files::fetchField($emlFileId, 'dataId');
+                }
+                
+                if ($dataId) {
+                    $res = fileman_Data::fetchField($dataId, 'fileLen');
+                }
             break;
         }
     }
