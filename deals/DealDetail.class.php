@@ -406,7 +406,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if($mvc->haveRightFor('importlisted', (object)array("{$mvc->masterKey}" => $data->masterId))){
-        	$data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE), "id=btnAddImp-{$data->masterId},order=14,title=Добавяне на листвани артикули", 'ef_icon = img/16/shopping.png');
+        	$data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE), "id=btnAddImp-{$data->masterId},order=14,title=Добавяне на артикули от списък", 'ef_icon = img/16/shopping.png');
         }
     }
     
@@ -494,14 +494,15 @@ abstract class deals_DealDetail extends doc_Detail
     	expect($listId = cond_Parameters::getParameter($saleRec->contragentClassId, $saleRec->contragentId, $param));
     	$form->info = tr("|Списък за листване|*:") . cat_Listings::getLink($listId, 0);
     	
-    	$listed = cat_Listings::getAll($listId);
+    	$listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50);
+    	$form->info .= tr('|* ( |Показване на първите|* <b>50</b> |артикула|* )');
     	
     	// И всички редове от продажбата
     	$query = $this->getQuery();
     	$query->where("#{$this->masterKey} = {$saleId}");
     	$recs = $query->fetchAll();
     	expect(count($listed));
-    	 
+    	
     	// Подготовка на полетата на формата
     	$this->prepareImportListForm($form, $listed, $recs, $saleRec);
     	$form->input();
@@ -653,7 +654,9 @@ abstract class deals_DealDetail extends doc_Detail
     		$meta = cat_Products::fetchField($lRec->productId, $this->metaProducts);
     		if($meta != 'yes') continue;
     		
-    		$caption = "|" . cat_Products::getTitleById($lRec->productId) . "|*";
+    		$title = cat_Products::getTitleById($lRec->productId);
+    		$title = str_replace(',', ' ', $title);
+    		$caption = "|" . $title . "|*";
     		$caption .= " |" . cat_UoM::getShortName($lRec->packagingId);
     		 
     		$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
