@@ -866,7 +866,7 @@ class acc_Balances extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('ceo,admin,debug')){
-    		$rec = core_Cron::getRecForSystemId(acc_Balances::saveLockKey);
+    		$rec = core_Cron::getRecForSystemId('RecalcBalances');
     		$url = array('core_Cron', 'ProcessRun', str::addHash($rec->id), 'forced' => 'yes');
     		
     		$data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
