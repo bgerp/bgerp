@@ -416,6 +416,23 @@ class drdata_Countries extends core_Manager {
     
     
     /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+        if (!Mode::is('forSearch')) return ;
+        
+        if ($part != 'commonName' && $part != 'commonNameBg') return ;
+        
+        if ($part == 'commonName') {
+            $num .= ' ' . self::getCountryName($rec->id, 'bg');
+        } else {
+            $num .= ' ' . self::getCountryName($rec->id, 'en');
+        }
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     static function on_AfterSetupMVC($mvc, &$res)

@@ -99,6 +99,7 @@ class crm_Setup extends core_ProtoSetup
             'migrate::updateSettingsKey',
             'migrate::updateGroupFoldersToUnsorted',
             'migrate::updateLocationType',
+            'migrate::fixContragentSearchKeywords2'
         );
     
 
@@ -357,5 +358,26 @@ class crm_Setup extends core_ProtoSetup
         }
 
         return "Обновени са {$upd} типа на локации";
+    }
+    
+	
+    /**
+     * Оправя ключовите думи
+     */
+    public static function fixContragentSearchKeywords2()
+    {
+        $countryId = drdata_Countries::getIdByName('България');
+        
+        foreach (array('crm_Persons', 'crm_Companies') as $mvcName) {
+            $mvcInst = cls::get($mvcName);
+            $query = $mvcInst->getQuery();
+             
+            while($rec = $query->fetch()) {
+                // Прескачаме българия, защото в ключовите думи ще е по-един и същи начин
+                if ($rec->country == $countryId) continue;
+                
+                $mvcInst->save($rec, 'searchKeywords');
+            }
+        }
     }
 }
