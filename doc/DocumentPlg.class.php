@@ -2122,7 +2122,12 @@ class doc_DocumentPlg extends core_Plugin
             expect($dId);
         }
         
-        $res = array($mvc, 'pSingle', $docId, 'pUrl' => $mInst->getClassId() . '_' . $dId . '_' . $docId, 'ret_url' => TRUE);
+        $clsId = NULL;
+        if ($mInst instanceof core_BaseClass) {
+            $clsId = $mInst->getClassId();
+        }
+        
+        $res = array($mvc, 'pSingle', $docId, 'pUrl' => $clsId . '_' . $dId . '_' . $docId, 'ret_url' => TRUE);
     }
     
     
