@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -281,7 +281,7 @@ class cat_Products extends embed_Manager {
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'originId,code, name';
+	public $fieldsNotToClone = 'originId, code, name';
 	
 	
 	/**
@@ -313,7 +313,6 @@ class cat_Products extends embed_Manager {
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
         $this->FNC('price', 'double(minDecimals=2,maxDecimals=6)', 'input=none,caption=Цена,smartCenter');
 
-        // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canBuy', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'input=none');
@@ -1748,7 +1747,7 @@ class cat_Products extends embed_Manager {
     	$data->toolbar->removeBtn('btnAdd');
     	
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
-    	if($mvc->haveRightFor('add')){
+    	if($mvc->haveRightFor('add') && haveRole('cat')){
     		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
@@ -1837,8 +1836,11 @@ class cat_Products extends embed_Manager {
     	
     	// Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
     	if(($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)){
-			if(isset($rec->folderId)){
-    			$Cover = doc_Folders::getCover($rec->folderId);
+			
+    		if(isset($rec->folderId) || isset($rec->threadId)){
+    			$folderId = isset($rec->folderId) ? $rec->folderId : doc_Threads::fetchField($rec->threadId, 'folderId');
+    			$Cover = doc_Folders::getCover($folderId);
+    			
     			if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
     				if(!haveRole('ceo,cat')){
     					$res = 'no_one';
