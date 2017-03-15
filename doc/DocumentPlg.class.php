@@ -1077,7 +1077,7 @@ class doc_DocumentPlg extends core_Plugin
                 } elseif(Mode::is('pdf')) {
                     $mvc->logRead('PDF', $id);
                 } else {
-                    $mvc->logRead('Виждане', $id);
+                    $mvc->logRead('Виждане на ограничения сингъл', $id);
                 }
             }
             
