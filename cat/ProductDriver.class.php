@@ -19,7 +19,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectDriver = 'ceo, cat, sales';
+	public $canSelectDriver = 'ceo, cat, sales, purchase';
 	
 	
 	/**
