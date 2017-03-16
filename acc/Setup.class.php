@@ -66,6 +66,18 @@ defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin,manager');
 
 
 /**
+ * Класове, които ще разширяват правата за контиране на документ
+ */
+defIfNot('ACC_CLASSES_FOR_VIEW_ACCESS', '');
+
+
+/**
+ * Класове по-подразбиране, които ще пълнята ACC_CLASSES_FOR_VIEW_ACCESS, ако няма стойност
+ */
+defIfNot('ACC_CLASSES_FOR_VIEW_ACCESS_NAME', 'bank_ExchangeDocument, bank_IncomeDocuments, bank_InternalMoneyTransfer, cash_InternalMoneyTransfer, purchase_Services, planning_DirectProductionNote, planning_ConsumptionNotes, planning_ReturnNotes, cash_Pko, cash_Rko, store_ShipmentOrders, sales_Services, store_ConsignmentProtocols, store_Receipts, store_Transfers');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -160,6 +172,7 @@ class acc_Setup extends core_ProtoSetup
     	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
         'ACC_SUMMARY_ROLES_FOR_TEAMS'         => array('varchar', 'caption=Роли за екипите при филтриране->Роли'),
         'ACC_SUMMARY_ROLES_FOR_ALL'           => array('varchar', 'caption=Роли за всички при филтриране->Роли'),
+        'ACC_CLASSES_FOR_VIEW_ACCESS'           => array('keylist(mvc=core_Classes, select=title)', 'caption=Класове|*&#44; |*които ще разширяват правата за контиране на документи->Класове, optionsFunc=acc_Setup::getAccessClassOptions', array('data-role' => 'list')),
     );
     
     
@@ -276,8 +289,49 @@ class acc_Setup extends core_ProtoSetup
     		$this->getCostObjectDocuments();
     		$res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
     	}
-    
+    	
+    	$viewAccess = self::get('CLASSES_FOR_VIEW_ACCESS');
+    	
+    	// Ако не е сетната стойност, задаваме класовете от константата
+    	if (!strlen($viewAccess)) {
+    	    $viewAccessNameArr = type_Set::toArray(self::get('CLASSES_FOR_VIEW_ACCESS_NAME'));
+    	    if (!empty($viewAccessNameArr)) {
+    	        
+    	        $clsIdArr = array();
+    	        
+    	        foreach ($viewAccessNameArr as $clsName) {
+    	            
+    	            $clsName = trim($clsName);
+    	            if (!$clsName) continue;
+    	            
+    	            if (!cls::load($clsName, TRUE)) continue;
+    	            
+    	            $clsId = core_Classes::getId($clsName);
+    	            
+    	            $clsIdArr[$clsId] = $clsId;
+    	        }
+    	        
+    	        $clsIds = type_Keylist::fromArray($clsIdArr);
+    	        
+    	        core_Packs::setConfig('acc', array('ACC_CLASSES_FOR_VIEW_ACCESS' => $clsIds));
+    	    }
+    	}
+    	
     	return $res;
+    }
+    
+    
+    /**
+     * 
+     * @param core_Type $type
+     * @param array $otherParams
+     * 
+     * @return array
+     */
+    public static function getAccessClassOptions($type, $otherParams)
+    {
+        
+        return core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title');
     }
     
     

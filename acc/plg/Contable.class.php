@@ -379,15 +379,21 @@ class acc_plg_Contable extends core_Plugin
         }
         
         if ($action == 'viewpsingle') {
-        	
-        	// Заобиколяване за вземане на правата
-        	$cRec = NULL;
-        	if (is_object($rec)) {
-        		$cRec = clone $rec;
-        		$cRec->state = 'draft';
-        	}
-        	
-            $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+            $allowedClsArr = type_Keylist::toArray(acc_Setup::get('CLASSES_FOR_VIEW_ACCESS'));
+            
+            // Ако не е позволено в класа, да не може да се използва
+            if (!$allowedClsArr[$mvc->getClassId()]) {
+                $requiredRoles = 'no_one';
+            } else {
+                // Заобиколяване за вземане на правата
+                $cRec = NULL;
+                if (is_object($rec)) {
+                    $cRec = clone $rec;
+                    $cRec->state = 'draft';
+                }
+                 
+                $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+            }
         }
     }
     
