@@ -444,12 +444,13 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetSingleUrlArray($mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $rec->id;
-        }
-        
-        if (isset($res) || (is_array($res) && empty($res))) {
+        if (!isset($res) || (is_array($res) && empty($res))) {
             if ($mvc->haveRightFor('viewpsingle', $id)) {
+                
+                if (is_object($id)) {
+                    $id = $id->id;
+                }
+                
                 $res = $mvc->GetUrlWithAccess($id);
             }
         }
@@ -894,12 +895,6 @@ class doc_DocumentPlg extends core_Plugin
             if (!$res = getRetUrl()) {
             	$res = $mvc->getSingleUrlArray($id);
             	
-            	if(core_Packs::isInstalled('colab')){
-            		if(empty($res) && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
-            			$res = $mvc->getSingleUrlArray($id);
-            		}
-            	}
-            	
             	if(empty($res)){
             		$res = array('bgerp_Portal', 'show');
             		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
@@ -984,13 +979,21 @@ class doc_DocumentPlg extends core_Plugin
         	// Ако документа е станал чакащ, генерира се събитие
         	if($newState == 'pending'){
         		$mvc->invoke('AfterSavePendingDocument', array($rec));
+        	} else {
+        	    doc_ThreadUsers::removeContainer($rec->containerId);
         	}
         	
         	$mvc->logInAct($log, $rec);
         	
         	if (!$res = getRetUrl()) {
-        		$res = array($mvc, 'single', $id);
+        	    
+        	    if ($mvc->haveRightFor('single', $id)) {
+        	        $res = array($mvc, 'single', $id);
+        	    } else {
+        	        
+        	    }
         	}
+        	
         	 
         	$res = new Redirect($res);
         	 
