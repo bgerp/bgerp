@@ -388,7 +388,10 @@ class core_Master extends core_Manager
 
                     $url[$tab->getUrlParam()] = $var;
                     $url['#'] = ($data->{$var}->Tab == 'top') ? "detail{$data->tabTopParam}" : 'detailTabs';
-                    $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
+                    
+                    if (!$data->{$var}->disabled) {
+                        $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, toUrl($url));
+                    }
 				}
                 
 				$detailsTpl = new ET('');
