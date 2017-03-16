@@ -2675,6 +2675,13 @@ class cal_Tasks extends core_Master
                 
                 // Ако задачата съществува, добавяме документа към нея
                 if ($rec = $query->fetch()) {
+                    
+                    // Ако ще се добавя към същата задача
+                    if ($rec->containerId == $originId) {
+                        
+                        return new Redirect($retUrl, '|Задачата не може да бъде добавена към себе си|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
+                    }
+                    
                     if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $rec->id, $originId))) {
                         
                         return new Redirect($retUrl, '|Документът вече е бил добавен към|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
