@@ -379,7 +379,15 @@ class acc_plg_Contable extends core_Plugin
         }
         
         if ($action == 'viewpsingle') {
-            $requiredRoles = $mvc->getRequiredRoles('conto', NULL, $userId);
+        	
+        	// Заобиколяване за вземане на правата
+        	$cRec = NULL;
+        	if (is_object($rec)) {
+        		$cRec = clone $rec;
+        		$cRec->state = 'draft';
+        	}
+        	
+            $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
         }
     }
     
