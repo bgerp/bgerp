@@ -295,7 +295,13 @@ class cal_Tasks extends core_Master
         
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
-
+        
+        if ($defUsers = Request::get('DefUsers')) {
+            if (type_Keylist::isKeylist($defUsers) && $mvc->fields['sharedUsers']->type->toVerbal($defUsers)) {
+                $data->form->setDefault('sharedUsers', $defUsers);
+            }
+        }
+        
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->fields[priority]->maxRadio = 2;
         }
@@ -447,8 +453,8 @@ class cal_Tasks extends core_Master
 
         return $tpl;
     }
-
-
+    
+    
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
@@ -463,10 +469,6 @@ class cal_Tasks extends core_Master
             
             if ($form->cmd == 'active') {
                 $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
-                
-                if (empty($sharedUsersArr)) {
-                    $form->setError('sharedUsers', 'Трябва да има поне един отговорник');
-                }
             }
             
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
@@ -2702,6 +2704,8 @@ class cal_Tasks extends core_Master
             if (!$haveFolder) {
                 $redirectUrl['folderId'] = doc_Folders::getDefaultFolder($cu);
             }
+            
+            $redirectUrl['DefUsers'] = '|' . $cu . '|';
         }
         
         // Ако се стигне до тук и няма грешки във формата
