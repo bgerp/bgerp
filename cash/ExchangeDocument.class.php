@@ -145,7 +145,7 @@ class cash_ExchangeDocument extends core_Master
        	$this->FLD('debitPrice', 'double(smartRound)', 'input=none');
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
        	$this->FLD('rate', 'double(decimals=5)', 'input=none');
-        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
+        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
     
