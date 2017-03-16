@@ -985,11 +985,7 @@ class doc_DocumentPlg extends core_Plugin
         	
         	if (!$res = getRetUrl()) {
         	    
-        	    if ($mvc->haveRightFor('single', $id)) {
-        	        $res = array($mvc, 'single', $id);
-        	    } else {
-        	        
-        	    }
+        	    $res = $mvc->$mvc->getSingleUrlArray($rec->id);
         	}
         	
         	 
