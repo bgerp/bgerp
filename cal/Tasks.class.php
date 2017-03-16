@@ -1955,7 +1955,7 @@ class cal_Tasks extends core_Master
      * Може ли една задача да стане в състояние 'active'?
      * 
      * @param stdClass $rec
-     * @return date|NULL
+     * @return date|NULL|FALSE
      */
     static public function canActivateTask($rec)
     {
