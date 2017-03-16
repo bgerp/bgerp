@@ -473,6 +473,7 @@ abstract class deals_DealDetail extends doc_Detail
 	 * 					->code - код/баркод на артикула
 	 * 					->quantity - К-во на опаковката или в основна мярка
 	 * 					->price - цената във валутата на мастъра, ако няма се изчислява директно
+	 * 					->pack - Опаковката
 	 * @return  mixed - резултата от експорта
 	 */
     function import($masterId, $row)
@@ -480,7 +481,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$Master = $this->Master;
     	
     	$pRec = cat_Products::getByCode($row->code);
-    	
+    	$pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
     	$price = NULL;
     	
     	// Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла

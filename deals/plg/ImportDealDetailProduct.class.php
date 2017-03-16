@@ -90,7 +90,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					
 					// Обработваме данните
 					$rows = csv_Lib::getCsvRows($data, $rec->delimiter, $rec->enclosure, $rec->firstRow);
-					$fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol);
+					$fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
 					
 					if(!count($rows)){
 						$form->setError('csvData,csvFile', 'Не са открити данни за импорт');
@@ -141,12 +141,21 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			// Подготвяме данните за реда
 			$obj = (object)array('code'     => $row[$fields['code']],
 								 'quantity' => $row[$fields['quantity']],
+								 'pack'     => ($row[$fields['pack']]) ? $row[$fields['pack']] : NULL,
 					             'price'    => $row[$fields['price']]
 			);
 		
 			// Подсигуряваме се, че подадените данни са във вътрешен вид
 			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
 			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
+			
+			if(isset($obj->pack)){
+				$packId = cat_UoM::fetchBySinonim($obj->pack)->id;
+				if($packId){
+					$obj->pack = $packId;
+				}
+			}
+			
 			if($obj->price){
 				$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
 				if(!$obj->price){
@@ -154,6 +163,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				}
 			}
 			
+			$pRec = cat_Products::getByCode($obj->code);
 			if(!$obj->code || (isset($obj->code) && !cat_Products::getByCode($obj->code))){
 				$err[$i][] = '|Грешен или липсващ код|*';
 			}
@@ -162,9 +172,20 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				$err[$i][] = '|Грешно количество|*';
 			}
 			
+			if($pRec && isset($obj->pack)){
+				if(isset($pRec->packagingId) && $pRec->packagingId != $obj->pack){
+					$err[$i][] = '|Подадения баркод е за друга опаковка|*';
+				}
+				
+				$packs = cat_Products::getPacks($pRec->productId);
+				if(!array_key_exists($obj->pack, $packs)){
+					$err[$i][] = '|Артикулът не поддържа подадената мярка/опаковка|*';
+				}
+			}
+			
 			// Проверка за точност на к-то
 			if(isset($obj->quantity)){
-				if($pRec = cat_Products::getByCode($obj->code)){
+				if($pRec){
 					$packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
 					if(!deals_Helper::checkQuantity($packagingId, $obj->quantity, $warning)){
 						$err[$i][] = $warning;
@@ -264,9 +285,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		// Съответстващи колонки на полета
 		$form->FLD('codecol', 'int', 'caption=Съответствие в данните->Код,unit=колона,mandatory');
 		$form->FLD('quantitycol', 'int', 'caption=Съответствие в данните->К-во,unit=колона,mandatory');
+		$form->FLD('packcol', 'int', 'caption=Съответствие в данните->Мярка/Опаковка,unit=колона');
 		$form->FLD('pricecol', 'int', 'caption=Съответствие в данните->Цена,unit=колона');
 		
-		foreach (array('codecol', 'quantitycol', 'pricecol') as $i => $fld){
+		foreach (array('codecol', 'quantitycol', 'packcol', 'pricecol') as $i => $fld){
 			$form->setSuggestions($fld, array(1,2,3,4,5,6,7));
 			$form->setDefault($fld, $i + 1);
 		}
