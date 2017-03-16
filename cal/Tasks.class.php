@@ -673,8 +673,12 @@ class cal_Tasks extends core_Master
         }
         
         // Ако няма потребители, да не може да се активира - ще се промени състоянието на заявка
-        if ($action == 'activate' && $rec->id && !$rec->assign) {
+        if ($action == 'activate' && $rec->id) {
             $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+            
+            if ($rec->assign) {
+                $sharedUsersArr[$rec->assign] = $rec->assign;
+            }
             
             if (empty($sharedUsersArr)) {
                 $requiredRoles = 'no_one';
@@ -1951,10 +1955,20 @@ class cal_Tasks extends core_Master
      * Може ли една задача да стане в състояние 'active'?
      * 
      * @param stdClass $rec
-     * @return date
+     * @return date|NULL
      */
     static public function canActivateTask($rec)
     {
+        // Без отговорник да не може да се активират
+        $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        if ($rec->assign) {
+            $sharedUsersArr[$rec->assign] = $rec->assign;
+        }
+        if (empty($sharedUsersArr)) {
+            
+            return ;
+        }
+        
     	// сега
     	$now = dt::verbal2mysql(); 
     	$nowTimeStamp = dt::mysql2timestamp($now);
