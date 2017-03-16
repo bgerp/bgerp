@@ -422,7 +422,7 @@ class sales_Sales extends deals_DealMaster
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но не може да го използва
 	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales') && empty($exClosedDeal)){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото");
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото|*!");
 	    		}
 	    	}
     		
