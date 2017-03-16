@@ -311,23 +311,24 @@ class acc_plg_Contable extends core_Plugin
                     
                     // Ако потребителя не може да контира документа, не може и да го оттегля
                     if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
-                    	if(!haveRole($mvc->getRequiredRoles('conto'))){
-                    		$requiredRoles = 'no_one';
-                    	}
+                    	
+                    	$clone = clone $rec;
+                    	$clone->state = 'draft';
+                    	$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
                     }
                 }
             }
         } elseif ($action == 'restore') {
-        	
-        	// Ако потребителя не може да контира документа, не може и да го възстановява
-        	if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
-        		if(!haveRole($mvc->getRequiredRoles('conto'))){
-        			$requiredRoles = 'no_one';
+        	if(isset($rec)){
+        		
+        		// Ако потребителя не може да контира документа, не може и да го възстановява
+        		if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
+        		
+        			$clone = clone $rec;
+        			$clone->state = 'draft';
+        			$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
         		}
-        	}
-            
-            if(isset($rec)){
-            	
+        		
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
             	$periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
             	if ($periodRec->state == 'closed') {
@@ -378,14 +379,7 @@ class acc_plg_Contable extends core_Plugin
         }
         
         if ($action == 'viewpsingle') {
-            
-            // Заобиколяване за вземане на правата
-            $cRec = NULL;
-            if (is_object($rec)) {
-                $cRec = clone $rec;
-                $cRec->state = 'draft';
-            }
-            $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+            $requiredRoles = $mvc->getRequiredRoles('conto', NULL, $userId);
         }
     }
     
