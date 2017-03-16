@@ -2926,6 +2926,11 @@ fieldset.sharing-history {
 	clear: both;
 }
 
+.document .richtext .fancybox img {
+	max-width: 100%;
+	height: auto;
+}
+
 .clear-center {
 	img {
 		max-width: 100%;
