@@ -892,13 +892,11 @@ class doc_DocumentPlg extends core_Plugin
            
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-            	if($mvc->haveRightFor('single', $rec)){
-            		$res = array($mvc, 'single', $id);
-            	}
+            	$res = $mvc->getSingleUrlArray($id);
             	
             	if(core_Packs::isInstalled('colab')){
             		if(empty($res) && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
-            			$res = array($mvc, 'single', $id);
+            			$res = $mvc->getSingleUrlArray($id);
             		}
             	}
             	
@@ -936,7 +934,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-            	$res = array($mvc, 'single', $id);
+            	$res = $mvc->getSingleUrlArray($id);
             }
             
             $res = new Redirect($res); //'OK';
