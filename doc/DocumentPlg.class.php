@@ -979,8 +979,6 @@ class doc_DocumentPlg extends core_Plugin
         	// Ако документа е станал чакащ, генерира се събитие
         	if($newState == 'pending'){
         		$mvc->invoke('AfterSavePendingDocument', array($rec));
-        	} else {
-        	    doc_ThreadUsers::removeContainer($rec->containerId);
         	}
         	
         	$mvc->logInAct($log, $rec);
