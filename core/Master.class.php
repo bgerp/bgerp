@@ -742,7 +742,7 @@ class core_Master extends core_Manager
     public static function getSingleUrlArray_($id)
     {
         if (is_object($id)) {
-            $id = $rec->id;
+            $id = $id->id;
         }
         
     	$me = cls::get(get_called_class());
