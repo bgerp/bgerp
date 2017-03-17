@@ -3088,6 +3088,12 @@ class doc_DocumentPlg extends core_Plugin
             
             return ;
         }
+		
+        if ($id) {
+            $rec = $mvc->fetch($id);
+        } else {
+            $rec = new stdClass();
+        }
         
         // Потребител
         $userId = core_Users::getCurrent();
@@ -3108,12 +3114,15 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен горен таб
         $tabTop = Request::get('TabTop');
         
+        // Отворен таб с друго име
+        $tabTop2 = Request::get('TabTop' . $rec->containerId);
+        
         // Отворен таб на историята
         $tab = Request::get('Tab');
 
         $lang = core_Lg::getCurrent();
 
-        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab . '|' . $lang;
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop  . "|" . $tabTop2 . "|" . $tab . '|' . $lang;
         
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);
