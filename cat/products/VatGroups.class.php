@@ -216,7 +216,7 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'edit' || $action == 'delete') && isset($rec)){
     		if($rec->validFrom <= dt::now()){

@@ -147,7 +147,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * След проверка на ролите
      */
-    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
     	
