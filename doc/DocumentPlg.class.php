@@ -3090,7 +3090,7 @@ class doc_DocumentPlg extends core_Plugin
         }
 		
         if ($id) {
-            $rec = $mvc->fetch($id);
+            $rec = $mvc->fetchRec($id);
         } else {
             $rec = new stdClass();
         }
