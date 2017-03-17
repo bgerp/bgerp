@@ -553,7 +553,7 @@ class core_Master extends core_Manager
         } else { 
             $requiredRoles = parent::getRequiredRoles_($action, $rec, $userId);
             
-            if ($action != 'admin' && $action != 'psingle') {
+            if ($action != 'admin' && $action != 'psingle' && !(stripos($action, 'psingle'))) {
                 // Ако няма достъп до някое действие, но има достъо то частния сингъл
                 // Проверяваме правата за частните действия
                 if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $this->haveRightFor('psingle', $rec)) {
