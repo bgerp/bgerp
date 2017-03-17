@@ -13,37 +13,57 @@
 <p>Ще организираме транспорт, както следва:</p>
 <br>
 [#sales_SalesDetails#]
-<br>
-<p><b>Забележки:</b></p>
-
-<ul>
-    <li>Нормативна база – Конвенция CMR, TIR (ADR-само за опасни товари), ЗЗД, ТЗ</li>
-	<!--ET_BEGIN notes-->
-    [#notes#]
-    <!--ET_END notes-->
-</ul>
-<table class='signiture'>
+<div class="lines"></div>
+<table class="innerTable footer-notes paddingCells">
     <tr>
-        <td style='width:1%' class='nowrap'>Изготвил: </td>
-        <td></td>
+        <td style="width:66%" rowspan=2>
+            <p><b>Забележки:</b></p>
+            <ul>
+                <!--ET_BEGIN withVat-->
+                <li>|Цените са в с включен ДДС|*.[#withVat#]</li>
+                <!--ET_END withVat-->
+                <!--ET_BEGIN sepVat-->
+                <li>|Цените са с отделно ДДС|*.[#sepVat#]</li>
+                <!--ET_END sepVat-->
+                <!--ET_BEGIN noVat-->
+                <li>|Цените са без ДДС|*.[#noVat#]</li>
+                <!--ET_END noVat-->
+
+                <li>Нормативна база – Конвенция CMR, TIR (ADR-само за опасни товари), ЗЗД, ТЗ</li>
+                <!--ET_BEGIN notes-->
+                [#notes#]
+                <!--ET_END notes-->
+            </ul>
+        </td>
+        <td class="topCell aright vtop">
+            [#/deals/tpl/DocumentPiceInfo.shtml#]
+        </td>
     </tr>
     <tr>
-        <td></td>
-        <td class='nowrap'>
+        <td>
+            <table class='signiture' style="margin-top: 20px;">
+                <tr>
+                    <td style='width:1%' class='nowrap'>Изготвил: </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class='nowrap'>
             <span class="sign_names">
                 [#username#]
             </span>
+                    </td>
+                </tr>
+            </table>
         </td>
     </tr>
-</table>
-
-<table style="width: 100%;border-top: 1px solid #ccc; margin-top: 5px">
     <tr class='footerDocInfo'>
         <td colspan="2">
             <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
         </td>
     </tr>
 </table>
+
 
 
 
